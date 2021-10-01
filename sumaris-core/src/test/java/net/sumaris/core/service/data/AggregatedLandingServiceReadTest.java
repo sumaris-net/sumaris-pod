@@ -46,7 +46,7 @@ import java.util.List;
 public class AggregatedLandingServiceReadTest extends AbstractServiceTest {
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");
+    public static final DatabaseResource dbResource = DatabaseResource.readDb("oracle");
 
     @Autowired
     private AggregatedLandingService aggregatedLandingService;

@@ -25,6 +25,7 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -37,12 +38,13 @@ import java.util.Map;
 @Data
 @FieldNameConstants
 public class VesselSnapshotVO implements IDataVO<Integer>,
-        IWithRecorderPersonEntity<Integer, PersonVO> {
+        IWithRecorderPersonEntity<Integer, PersonVO>, IRootDataVO<Integer> {
 
     private Integer id;
     private String name;
     private String exteriorMarking;
     private String registrationCode;
+    private String intRegistrationCode;
     private Integer administrativePower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
@@ -63,6 +65,7 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+    private ProgramVO program;
 
     private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;

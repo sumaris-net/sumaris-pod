@@ -52,7 +52,7 @@ public class Page implements Serializable {
     private SortDirection sortDirection = SortDirection.ASC;
 
     public Pageable asPageable() {
-        return Pageables.create((int)offset, size, sortBy, sortDirection);
+        return Pageables.create(offset, size, sortBy, sortDirection);
     }
 }
 

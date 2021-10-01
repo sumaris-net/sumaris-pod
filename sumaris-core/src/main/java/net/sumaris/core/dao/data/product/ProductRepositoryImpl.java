@@ -96,7 +96,8 @@ public class ProductRepositoryImpl
             .and(hasLandingId(filter.getLandingId()))
             .and(hasOperationId(filter.getOperationId()))
             .and(hasSaleId(filter.getSaleId()))
-            .and(hasExpectedSaleId(filter.getExpectedSaleId()));
+            .and(hasExpectedSaleId(filter.getExpectedSaleId()))
+            .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
     @Override

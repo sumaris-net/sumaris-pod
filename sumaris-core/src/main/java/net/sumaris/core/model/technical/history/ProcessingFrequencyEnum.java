@@ -34,6 +34,7 @@ public enum ProcessingFrequencyEnum implements Serializable {
 
     NEVER(0, "NEVER"),
     MANUALLY(1, "MANUALLY"),
+    HOURLY(5, "HOURLY"),
     DAILY(2, "DAILY"),
     WEEKLY(3, "WEEKLY"),
     MONTHLY(4, "MONTHLY");

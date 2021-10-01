@@ -67,7 +67,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
                 .collect(Collectors.toList());
         }
         else if (ArrayUtils.isNotEmpty(filter.getUserProfileIds())) {
-            userProfileIds = ImmutableList.copyOf(filter.getUserProfileIds());
+            userProfileIds = Arrays.asList(filter.getUserProfileIds());
         }
         else if (filter.getUserProfileId() != null) {
             userProfileIds = ImmutableList.of(filter.getUserProfileId());

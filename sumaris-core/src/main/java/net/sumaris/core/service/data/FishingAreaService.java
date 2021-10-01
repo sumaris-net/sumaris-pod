@@ -41,6 +41,11 @@ public interface FishingAreaService {
     FishingAreaVO saveByFishingTripId(int tripId, FishingAreaVO fishingArea);
 
     @Transactional(readOnly = true)
+    List<FishingAreaVO> getAllByFishingTripId(int tripId);
+
+    List<FishingAreaVO> saveAllByFishingTripId(int tripId, List<FishingAreaVO> fishingAreas);
+
+    @Transactional(readOnly = true)
     List<FishingAreaVO> getAllByOperationId(int operationId);
 
     List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);

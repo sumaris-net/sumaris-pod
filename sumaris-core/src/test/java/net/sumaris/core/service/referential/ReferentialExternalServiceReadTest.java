@@ -48,7 +48,8 @@ public class ReferentialExternalServiceReadTest extends AbstractServiceTest{
     @Ignore("Use only Ifremer webservice")
     public void findByFilter() {
         ReferentialFilterVO filter = ReferentialFilterVO.builder()
-                .levelIds(new Integer[]{5,6})
+                .searchText("*P101**-MS")
+                .levelIds(new Integer[]{3,4})
                 .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
                 .build();
 

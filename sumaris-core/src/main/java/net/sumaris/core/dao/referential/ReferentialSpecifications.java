@@ -57,19 +57,15 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
 
     default Specification<E> hasId(Integer id) {
         if (id == null) return null;
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
+        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, ID_PARAMETER);
             return criteriaBuilder.equal(root.get(IEntity.Fields.ID), idParam);
-        });
-        specification.addBind(ID_PARAMETER, id);
-        return specification;
+        }).addBind(ID_PARAMETER, id);
     }
 
     default Specification<E> inStatusIds(IReferentialFilter filter) {
         Integer[] statusIds = filter.getStatusIds();
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
             ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
             ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
             return criteriaBuilder.or(
@@ -113,14 +109,12 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(levelLabels)) return null;
 
-        return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(levelPropertyName -> {
-            BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-                ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
-                return criteriaBuilder.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam);
-            });
-            specification.addBind(LEVEL_LABEL_PARAMETER, Arrays.asList(levelLabels));
-            return specification;
-        })
+        return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(levelPropertyName ->
+                    BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
+                        ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
+                        return criteriaBuilder.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam);
+                    }).addBind(LEVEL_LABEL_PARAMETER, Arrays.asList(levelLabels))
+            )
         .orElse(null);
     }
 
@@ -150,7 +144,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                     ));
                 return criteriaBuilder.or(
                     // all predicates
-                    predicates.toArray(new Predicate[0])
+                    predicates.toArray(new Predicate[predicates.size()])
                 );
             }
             // Search on label+name only
@@ -169,14 +163,10 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
 
             // Avoid duplication, for 'one to many' join
-            query.distinct(true);
+            query.distinct(shouldQueryDistinct(joinProperty));
 
             // Get the class join, using properties
-            String[] joinProperties = joinProperty.split("[./]");
-            Join<Object, Object> join = root.join(joinProperties[0], JoinType.INNER);
-            for(int i = 1; i < joinProperties.length; i++) {
-                join = join.join(joinProperties[i], JoinType.INNER);
-            }
+            Join<Object, Object> join = Daos.composeJoin(root, joinProperty, JoinType.INNER);
 
             // Search on given attribute
             if (StringUtils.isNotBlank(searchAttribute)) {
@@ -215,4 +205,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
     }
 
+    default boolean shouldQueryDistinct(String joinProperty) {
+        return true;
+    }
 }

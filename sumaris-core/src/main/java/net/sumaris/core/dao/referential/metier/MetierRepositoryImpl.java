@@ -137,7 +137,8 @@ public class MetierRepositoryImpl
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(alreadyPracticedMetier(filter));
+                .and(alreadyPracticedMetier(filter))
+                .and(inGearIds(filter));
     }
 
     /* -- protected method -- */
@@ -148,6 +149,13 @@ public class MetierRepositoryImpl
         MetierFilterVO metierFilter = (MetierFilterVO) filter;
 
         return alreadyPracticedMetier(metierFilter);
+    }
+
+    private Specification<Metier> inGearIds(IReferentialFilter filter) {
+        if (!(filter instanceof MetierFilterVO)) return null;
+        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+
+        return inGearIds(metierFilter.getGearIds());
     }
 
 }

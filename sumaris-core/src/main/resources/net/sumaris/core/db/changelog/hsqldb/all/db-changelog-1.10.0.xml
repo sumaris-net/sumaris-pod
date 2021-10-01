@@ -32,7 +32,7 @@
 
 
 	<!-- rename SALE_SEQ to EXPECTED_SALE_FK -->
-	<changeSet id="ludovic.pecquot@e-is.pro" author="1625816880596-301">
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1625816880596-301" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<and>
 				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
@@ -51,7 +51,7 @@
 
   <!-- move data from SALE to EXPECTED_SALE -->
 	<!-- BE CAREFUL: SALE not linked to a TRIP will not be copy (ex: linked by OBSERVED_LOCATION) -->
-  <changeSet id="ludovic.pecquot@e-is.pro" author="1625816880596-302">
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1625816880596-302" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <tableIsEmpty tableName="EXPECTED_SALE"/>
     </preConditions>

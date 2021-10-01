@@ -24,30 +24,122 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithDataQualityEntity;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author peck7 on 28/08/2020.
  */
 public interface DataSpecifications<E extends IDataEntity<? extends Serializable>> {
 
+    String ID_PARAM = "id";
+    String EXCLUDED_IDS_PARAM = "excludedIds";
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
 
+    default Specification<E> excludedIds(Integer[] excludedIds) {
+        if (ArrayUtils.isEmpty(excludedIds)) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAM);
+            return criteriaBuilder.not(
+                criteriaBuilder.in(root.get(E.Fields.ID)).value(param)
+            );
+        })
+            .addBind(EXCLUDED_IDS_PARAM, Arrays.asList(excludedIds));
+    }
+
+    default Specification<E> id(Integer id) {
+        if (id == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, ID_PARAM);
+            return criteriaBuilder.equal(root.get(E.Fields.ID), param);
+        })
+            .addBind(ID_PARAM, id);
+    }
+
     default BindableSpecification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.distinct(true); // Set distinct here because hasRecorderDepartmentId is always used (usually ...)
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_DEPARTMENT_ID_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(E.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), param)
             );
-        });
-        specification.addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
-        return specification;
+        })
+            .addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
     }
 
+    /**
+     * Control date is null
+     * @return
+     */
+    default Specification<E> isNotControlled() {
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.isNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+    }
+
+    /**
+     * Control date is not null
+     * @return
+     */
+    default Specification<E> isControlled() {
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+    }
+
+    default Specification<E> isValidated() {
+        return (root, query, criteriaBuilder) ->
+            // Validation date not null
+            criteriaBuilder.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE));
+    }
+
+    default Specification<E> isQualified() {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+            // Qualification date not null
+            criteriaBuilder.isNotNull(root.get(IDataEntity.Fields.QUALIFICATION_DATE)),
+            // Quality flag != 0
+            criteriaBuilder.notEqual(criteriaBuilder.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+        );
+    }
+
+    default Specification<E> withDataQualityStatus(DataQualityStatusEnum status) {
+        if (status != null) {
+            switch (status) {
+                case MODIFIED:
+                    return isNotControlled();
+                case CONTROLLED:
+                    return isControlled();
+                case VALIDATED:
+                    return isValidated();
+                case QUALIFIED:
+                    return isQualified();
+            }
+        }
+        return null;
+    }
+
+    default Specification<E> inDataQualityStatus(DataQualityStatusEnum... dataQualityStatus) {
+        if (ArrayUtils.isEmpty(dataQualityStatus)) return null;
+        if (dataQualityStatus.length == 1) {
+            return withDataQualityStatus(dataQualityStatus[0]);
+        }
+
+        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+            Arrays.stream(dataQualityStatus)
+                .map(this::withDataQualityStatus)
+                .filter(Objects::nonNull)
+                .toArray(Predicate[]::new)
+        );
+    }
 }

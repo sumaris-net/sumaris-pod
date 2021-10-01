@@ -42,6 +42,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.LandingMeasurement;
 import net.sumaris.core.model.data.Sample;
+import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -287,14 +288,14 @@ public class StrategyRepositoryImpl
 
         Join<Sample, Landing> landingInnerJoin = root.join(Sample.Fields.LANDING, JoinType.INNER);
         Join<Landing, LandingMeasurement> strategyMeasurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
-        Join<Landing, LandingMeasurement> tagIdInnerJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
+        Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 
-        query.select(tagIdInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE))
+        query.select(tagIdInnerJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE))
                 .distinct(true)
                 .where(
                         builder.and(
                             // Tag id measurement
-                            builder.equal(tagIdInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                            builder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
                             // Strategy measurement
                             builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
                             builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)

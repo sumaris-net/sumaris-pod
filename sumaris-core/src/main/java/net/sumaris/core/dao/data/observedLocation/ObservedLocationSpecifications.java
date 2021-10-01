@@ -23,13 +23,13 @@ package net.sumaris.core.dao.data.observedLocation;
  */
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.ObservedLocation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,19 +83,16 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
 
     default Specification<ObservedLocation> hasObserverPersonIds(Integer... observerPersonIds) {
         if (ArrayUtils.isEmpty(observerPersonIds)) return null;
-        BindableSpecification<ObservedLocation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
             ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
-            return criteriaBuilder.in(
-                    root.join(ObservedLocation.Fields.OBSERVERS, JoinType.INNER)
-                            .get(IEntity.Fields.ID))
+            return criteriaBuilder.in(Daos.composeJoin(root, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
                     .value(parameter);
-        });
-        specification.addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
-        return specification;
+        }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }
 
 

@@ -278,7 +278,7 @@ public class ReferentialDaoImpl
 
         TypedQuery<Long> query = getEntityManager().createQuery(criteriaQuery);
         if (levelClause != null) {
-            query.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
+            query.setParameter(levelIdsParam, Arrays.asList(levelIds));
         }
 
         return query.getSingleResult();
@@ -661,19 +661,19 @@ public class ReferentialDaoImpl
             typedQuery.setParameter(searchAnyMatchParam, searchTextAnyMatch);
         }
         if (levelIdClause != null && levelIds != null) {
-            typedQuery.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
+            typedQuery.setParameter(levelIdsParam, Arrays.asList(levelIds));
         }
         if (levelLabelClause != null && levelLabels != null) {
-            typedQuery.setParameter(levelLabelsParam, ImmutableList.copyOf(levelLabels));
+            typedQuery.setParameter(levelLabelsParam, Arrays.asList(levelLabels));
         }
         if (statusIdsClause != null) {
-            typedQuery.setParameter(statusIdsParam, ImmutableList.copyOf(statusIds));
+            typedQuery.setParameter(statusIdsParam, Arrays.asList(statusIds));
         }
         if (includedClause != null) {
-            typedQuery.setParameter(includedIdsParam, ImmutableList.copyOf(includedIds));
+            typedQuery.setParameter(includedIdsParam, Arrays.asList(includedIds));
         }
         if (excludedClause != null) {
-            typedQuery.setParameter(excludedIdsParam, ImmutableList.copyOf(excludedIds));
+            typedQuery.setParameter(excludedIdsParam, Arrays.asList(excludedIds));
         }
 
         return typedQuery;

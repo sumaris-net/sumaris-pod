@@ -27,10 +27,9 @@ variables:
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
     MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
-    APP_CORE_MODULE: sumaris-core
-    APP_DB_MODULE: sumaris-db
     APP_SHARED_MODULE: sumaris-core-shared
     APP_CORE_MODULE: sumaris-core
+    APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
     ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/*.war"
     ARTIFACT_CONFIG_FILES: "${APP_WAR_MODULE}/target/classes/*.properties"
@@ -97,22 +96,23 @@ docker:ci:
     when: on_failure
     allow_failure: true
     script:
-        # Create the target directory
-        - mkdir -p target/ci && cd target/ci
-        # Create the Dockerfile
-        - echo 'FROM jlrigau/maven-git' > Dockerfile
-        - echo 'WORKDIR /tmp/.build-cache' >> Dockerfile
-        - echo 'COPY ./ ./' >> Dockerfile
-        - echo "ENV MAVEN_LOCAL_REPO=${MAVEN_LOCAL_REPO}" >> Dockerfile
-        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt' >> Dockerfile
-        - echo 'RUN mvn install -s ./ci_settings.xml -q -DskipTests' >> Dockerfile
-        - echo 'RUN mvn clean -s ./ci_settings.xml -q' >> Dockerfile
-        - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt' >> Dockerfile
-        - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> Dockerfile
-        - echo 'WORKDIR /build' >> Dockerfile
-        # Build and push the CI image
-        - docker build --pull -t ${CI_BUILD_IMAGE} .
-        - docker push ${CI_BUILD_IMAGE}
+      # Create the target directory
+      - mkdir -p target/ci
+      # Create the Dockerfile
+      - echo 'FROM tirrell/maven-git' > target/ci/Dockerfile
+      - echo 'WORKDIR /tmp/.build-cache' >> target/ci/Dockerfile
+      - echo 'COPY ./ ./' >> target/ci/Dockerfile
+      - echo "RUN mkdir -p ${MAVEN_LOCAL_REPO}" >> target/ci/Dockerfile
+      - echo "ENV MAVEN_LOCAL_REPO=${MAVEN_LOCAL_REPO}" >> target/ci/Dockerfile
+      - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 3 | egrep -v "^\.$"` > /tmp/before.txt' >> target/ci/Dockerfile
+      - echo 'RUN mvn install -s ./ci_settings.xml -q -DskipTests' >> target/ci/Dockerfile
+      - echo 'RUN mvn clean -s ./ci_settings.xml -q' >> target/ci/Dockerfile
+      - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 3 | egrep -v "^\.$"` > /tmp/after.txt' >> target/ci/Dockerfile
+      - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> target/ci/Dockerfile
+      - echo 'WORKDIR /build' >> target/ci/Dockerfile
+      # Build and push the CI image
+      - docker build --pull -t ${CI_BUILD_IMAGE} -f target/ci/Dockerfile .
+      - docker push ${CI_BUILD_IMAGE}
     only:
         - develop
     artifacts:

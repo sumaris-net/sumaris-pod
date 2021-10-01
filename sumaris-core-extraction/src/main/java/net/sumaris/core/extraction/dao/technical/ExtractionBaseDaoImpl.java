@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.vo.ExtractionContextVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -59,7 +60,6 @@ import java.util.stream.Stream;
 public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
-    protected static final String XSL_ORACLE_FILENAME = "xmlQuery/queryOracle.xsl";
 
     @Autowired
     protected ExtractionConfiguration configuration;
@@ -176,14 +176,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
      * @return
      */
     protected XMLQuery createXMLQuery() {
-        XMLQuery xmlQuery = applicationContext.getBean("xmlQuery", XMLQuery.class);
-        if (this.databaseType == DatabaseType.oracle) {
-            xmlQuery.setXSLFileName(XSL_ORACLE_FILENAME);
-        }
-        else if (this.databaseType == DatabaseType.postgresql){
-            xmlQuery.setLowercase(true);
-        }
-        return xmlQuery;
+        return new XMLQuery(databaseType);
     }
 
     protected void dropTables(@NonNull ExtractionContextVO context) {
@@ -256,5 +249,23 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
             .setTimeout(this.hibernateQueryTimeout);
 
         return query;
+    }
+
+    /**
+     * Enable/Disable group, depending on the DBMS
+     * @param xmlQuery
+     */
+    protected void setDbms(XMLQuery xmlQuery) {
+        if (this.databaseType != null) {
+            switch (this.databaseType) {
+                case hsqldb:
+                case oracle:
+                    xmlQuery.setDbms(this.databaseType.name());
+                    break;
+                case postgresql:
+                    xmlQuery.setDbms("pgsql");
+                    break;
+            }
+        }
     }
 }

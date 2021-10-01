@@ -1019,7 +1019,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 break;
             case QUALITATIVE_VALUE:
                 // If find a object structure (e.g. ReferentialVO), try to find the id
-                target.setQualitativeValue(getReference(QualitativeValue.class, Integer.parseInt(value)));
+                try {
+                    target.setQualitativeValue(getReference(QualitativeValue.class, Integer.parseInt(value)));
+                }
+                catch(NumberFormatException e) {
+                    throw new SumarisTechnicalException(String.format("Invalid value for pmfm with id=%s. Expected an integer (to link with a QualitativeValue.id), but got: '%s'. Please fix value, or change the Pmfm type to alphanumerical",
+                        pmfmId, value));
+                }
                 break;
             case STRING:
                 target.setAlphanumericalValue(value);

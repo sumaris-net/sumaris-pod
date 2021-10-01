@@ -23,7 +23,9 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
@@ -37,9 +39,11 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
@@ -50,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -65,6 +71,9 @@ public class LandingServiceImpl implements LandingService {
 
     @Autowired
     protected TripService tripService;
+
+    @Autowired
+    protected VesselService vesselService;
 
     @Autowired
     protected TripRepository tripRepository;
@@ -115,8 +124,32 @@ public class LandingServiceImpl implements LandingService {
     }
 
     @Override
-    public LandingVO get(Integer landingId) {
-        return landingRepository.get(landingId);
+    public LandingVO get(Integer id) {
+        return get(id, DataFetchOptions.DEFAULT);
+    }
+
+    @Override
+    public LandingVO get(Integer id, @NonNull DataFetchOptions fetchOptions) {
+        LandingVO target = landingRepository.get(id, fetchOptions);
+
+        // Fetch children (disabled by default)
+        if (fetchOptions.isWithChildrenEntities()) {
+
+            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
+            target.setSamples(sampleService.getAllByLandingId(id));
+
+            if (target.getTripId() != null) {
+                TripVO trip = tripService.get(target.getTripId(), fetchOptions);
+                target.setTrip(trip);
+            }
+        }
+
+        // Measurements
+        if (fetchOptions.isWithMeasurementValues()) {
+            target.setMeasurements(measurementDao.getLandingMeasurements(id));
+        }
+
+        return target;
     }
 
     @Override
@@ -169,27 +202,19 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public void delete(int id) {
+        log.info("Delete Landing#{} {trash: {}}", id, enableTrash);
 
         // Create events (before deletion, to be able to join VO)
-        LandingVO deletedVO = null;
-        Integer tripId = null;
-        if (enableTrash) {
-            deletedVO = get(id);
-            tripId = deletedVO.getTripId();
-            if (tripId != null) {
-                deletedVO.setTrip(tripRepository.get(tripId)); // TODO full VO loading
-            }
-        }
+        LandingVO eventData = enableTrash ? get(id, DataFetchOptions.FULL_GRAPH) : null;
 
-        if (tripId != null) {
-            tripRepository.deleteById(tripId);
-        }
+        // Delete linked trips
+        tripRepository.deleteByLandingId(id);
 
-        // Apply deletion
-        landingRepository.deleteById(id);
+        // Delete landing
+        landingRepository.deleteByIds(ImmutableList.of(id));
 
         // Publish events
-        publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), deletedVO));
+        publisher.publishEvent(new EntityDeleteEvent(id, Landing.class.getSimpleName(), eventData));
     }
 
     @Override
@@ -282,12 +307,15 @@ public class LandingServiceImpl implements LandingService {
             trip.setLandingId(source.getId());
             trip.setLanding(null);
 
+            fillDefaultProperties(source, trip);
+
             TripVO savedTrip = tripService.save(source.getTrip(), TripSaveOptions.builder()
                     .withLanding(false)
                     .withOperation(false)
                     .withOperationGroup(true)
                     .build());
 
+            source.setTripId(savedTrip.getId());
             source.setTrip(savedTrip);
         }
     }
@@ -317,9 +345,7 @@ public class LandingServiceImpl implements LandingService {
         if (sample == null) return;
 
         // Copy recorder department from the parent
-        if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
-            sample.setRecorderDepartment(parent.getRecorderDepartment());
-        }
+        DataBeans.setDefaultRecorderDepartment(sample, parent.getRecorderDepartment());
 
         // Fill matrix
         if (sample.getMatrix() == null || sample.getMatrix().getId() == null) {
@@ -334,6 +360,13 @@ public class LandingServiceImpl implements LandingService {
         }
 
         sample.setLandingId(parent.getId());
+    }
+
+    protected void fillDefaultProperties(LandingVO parent, TripVO trip) {
+        if (trip == null) return;
+
+        DataBeans.setDefaultRecorderDepartment(trip, parent.getRecorderDepartment());
+        DataBeans.setDefaultRecorderPerson(trip, parent.getRecorderPerson());
     }
 
     /**

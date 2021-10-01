@@ -72,6 +72,8 @@ public class FishingAreaRepositoryImpl
         this.config = config;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
+        setCheckUpdateDate(false);
+        setLockForUpdate(false);
     }
 
     @Override
@@ -174,12 +176,16 @@ public class FishingAreaRepositoryImpl
 
         // Save
         sources.forEach(fishingArea -> {
-            save(fishingArea);
-            existingIds.remove(fishingArea.getId());
+            boolean exists = fishingArea.getId() != null && existingIds.remove(fishingArea.getId());
+            // Reset the id, because a fishingArea could have been deleted by changes on trip.metiers (fix IMAGINE-436)
+            if (!exists) fishingArea.setId(null);
         });
 
-        // Delete remaining objects
+        // Delete remaining objects (BEFORE to save, because of unique key)
         existingIds.forEach(this::deleteById);
+
+        // Save
+        sources.forEach(this::save);
 
         return sources;
     }

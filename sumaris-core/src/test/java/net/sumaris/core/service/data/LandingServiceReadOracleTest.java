@@ -29,6 +29,8 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
@@ -94,7 +96,7 @@ public class LandingServiceReadOracleTest extends AbstractServiceTest {
         // Add vessel if need
         beans.forEach(bean -> {
             if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), bean.getVesselDateTime()));
+                bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
             }
         });
     }

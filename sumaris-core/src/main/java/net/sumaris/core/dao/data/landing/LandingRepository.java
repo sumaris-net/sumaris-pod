@@ -27,6 +27,9 @@ import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -37,6 +40,7 @@ public interface LandingRepository extends
 
     Optional<Landing> findByTripId(Integer tripId);
 
-    void deleteByIdIn(Collection<Integer> landingIds);
-
+    @Modifying
+    @Query("delete from Landing l where l.id in (:ids)")
+    void deleteByIds(@Param("ids") Collection<Integer> ids);
 }

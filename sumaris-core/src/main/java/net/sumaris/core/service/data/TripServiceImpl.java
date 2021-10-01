@@ -33,7 +33,11 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
@@ -42,6 +46,7 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.SaleTypeEnum;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
@@ -53,6 +58,7 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -81,6 +87,7 @@ public class TripServiceImpl implements TripService {
     private final ReferentialService referentialService;
     private final FishingAreaService fishingAreaService;
     private final VesselService vesselService;
+    private boolean enableTrash = false;
 
     public TripServiceImpl(MeasurementDao measurementDao, SumarisConfiguration configuration, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
                            OperationService operationService, OperationGroupService operationGroupService, PhysicalGearService physicalGearService, ApplicationEventPublisher publisher,
@@ -103,20 +110,20 @@ public class TripServiceImpl implements TripService {
         this.referentialService = referentialService;
     }
 
-    @Override
-    public List<TripVO> getAllTrips(int offset, int size) {
-        return findByFilter(null, offset, size, null, null, DataFetchOptions.builder().build());
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.enableTrash = event.getConfiguration().enableEntityTrash();
     }
 
     @Override
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size) {
-        return findByFilter(filter, offset, size, null, null, DataFetchOptions.builder().build());
+    public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
+                                SortDirection sortDirection, DataFetchOptions fieldOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fieldOptions);
     }
 
     @Override
-    public List<TripVO> findByFilter(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                     SortDirection sortDirection, DataFetchOptions fieldOptions) {
-        return tripRepository.findAll(filter != null ? filter : TripFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fieldOptions).getContent();
+    public List<TripVO> findAll(TripFilterVO filter, Page page, DataFetchOptions fieldOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
     }
 
     @Override
@@ -126,7 +133,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int id) {
-        return get(id, DataFetchOptions.builder().build());
+        return get(id, DataFetchOptions.DEFAULT);
     }
 
     @Override
@@ -136,7 +143,7 @@ public class TripServiceImpl implements TripService {
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
-            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), target.getDepartureDateTime()));
+            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDepartureDateTime())));
             target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
             target.setSales(saleService.getAllByTripId(id, fetchOptions));
             target.setExpectedSales(expectedSaleService.getAllByTripId(id));
@@ -145,14 +152,20 @@ public class TripServiceImpl implements TripService {
             fillTripLandingLinks(target);
 
             // Operation groups
-            if (target.getLanding() != null) {
-                target.setOperationGroups(operationGroupService.getAllByTripId(id, fetchOptions));
+            if (target.getLandingId() != null || target.getLanding() != null) {
+                target.setOperationGroups(operationGroupService.findAllByTripId(id, fetchOptions));
                 target.setMetiers(operationGroupService.getMetiersByTripId(id));
             }
 
             // Operations
             else {
-                target.setOperations(operationService.findAllByTripId(id, fetchOptions));
+                OperationFetchOptions operationFetchOptions = OperationFetchOptions.builder()
+                        .withObservers(fetchOptions.isWithObservers())
+                        .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                        .withRecorderPerson(fetchOptions.isWithRecorderPerson())
+                        .build();
+
+                target.setOperations(operationService.findAllByTripId(id, operationFetchOptions));
             }
 
         }
@@ -176,7 +189,11 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(target.getId());
 
         landingRepository.findByTripId(target.getId()).ifPresent(landing -> {
-            target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
+            target.setLandingId(landing.getId());
+
+            // Should be not fetch here
+            //target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
+
             if (landing.getObservedLocation() != null) {
                 target.setObservedLocationId(landing.getObservedLocation().getId());
             }
@@ -244,8 +261,16 @@ public class TripServiceImpl implements TripService {
         result.setMetiers(metiers);
 
         // Save fishing area
-        FishingAreaVO savedFishingArea = fishingAreaService.saveByFishingTripId(result.getId(), source.getFishingArea());
-        result.setFishingArea(savedFishingArea);
+        if (CollectionUtils.isNotEmpty(source.getFishingAreas())) {
+            List<FishingAreaVO> fishingAreas = fishingAreaService.saveAllByFishingTripId(result.getId(), source.getFishingAreas());
+            result.setFishingAreas(fishingAreas);
+        } else if (source.getFishingArea() != null) {
+            FishingAreaVO fishingArea = fishingAreaService.saveByFishingTripId(result.getId(), source.getFishingArea());
+            result.setFishingArea(fishingArea);
+        } else {
+            // Remove all
+            fishingAreaService.saveAllByFishingTripId(result.getId(), ImmutableList.of());
+        }
 
         // Save physical gears
         List<PhysicalGearVO> physicalGears = Beans.getList(source.getGears());
@@ -327,7 +352,6 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
-        boolean enableTrash = configuration.enableEntityTrash();
         log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
         TripVO eventData = enableTrash ?

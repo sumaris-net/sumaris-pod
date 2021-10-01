@@ -70,7 +70,9 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypes";
         String LOCATION_LEVEL_BY_LABEL = "net.sumaris.core.dao.referential.findByUniqueLabel";
 
-        String VESSEL_SNAPSHOT_BY_ID_AND_DATE = "net.sumaris.core.service.data.vesselSnapshotById";
+        String VESSEL_SNAPSHOT_BY_ID_AND_DATE = "net.sumaris.core.service.data.vessel.vesselSnapshotByIdAndDate";
+        String VESSEL_SNAPSHOTS_BY_FILTER = "net.sumaris.core.service.data.vessel.vesselSnapshotByFilter";
+        String VESSEL_SNAPSHOTS_COUNT_BY_FILTER = "net.sumaris.core.service.data.vessel.vesselSnapshotCountByFilter";
 
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
@@ -123,6 +125,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheDurations.DEFAULT, 600);
             Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheDurations.DEFAULT, 600);
             Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, VesselSnapshotVO.class, CacheDurations.DEFAULT, 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.VESSEL_SNAPSHOTS_BY_FILTER, VesselSnapshotVO.class, CacheDurations.DEFAULT, 50);
+            Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, Integer.class, Long.class, CacheDurations.DEFAULT, 50);
             Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheDurations.DEFAULT, 100);
             Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_ID, Integer.class, StrategyVO.class, CacheDurations.LONG, 500);
             Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_LABEL, String.class, StrategyVO.class, CacheDurations.LONG, 500);

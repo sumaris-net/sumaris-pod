@@ -46,6 +46,7 @@ public class DepartmentVO extends ReferentialVO {
     private String comments;
 
     private Integer statusId;
+    private Integer validityStatusId;
 
     private String siteUrl;
 

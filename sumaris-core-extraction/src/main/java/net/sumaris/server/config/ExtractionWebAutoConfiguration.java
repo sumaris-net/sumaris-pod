@@ -22,6 +22,7 @@
 
 package net.sumaris.server.config;
 
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.server.http.ExtractionRestController;
 import net.sumaris.server.http.ExtractionRestPaths;
 import org.slf4j.Logger;
@@ -31,6 +32,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
@@ -38,6 +42,8 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.Servlet;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Configuration
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
@@ -47,6 +53,7 @@ import javax.servlet.Servlet;
         name = {"enabled"},
         matchIfMissing = true
 )
+@EnableScheduling
 public class ExtractionWebAutoConfiguration {
     /**
      * Logger.
@@ -93,5 +100,25 @@ public class ExtractionWebAutoConfiguration {
                 configurer.setUseSuffixPatternMatch(false);
             }
         };
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = "sumaris.extraction.scheduling",
+        name = {"enabled"},
+        matchIfMissing = true
+    )
+    public SchedulingConfigurer schedulingConfigurer() {
+        return new SchedulingConfigurer() {
+            @Override
+            public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+                taskRegistrar.setScheduler(extractionTaskExecutor());
+            }
+        };
+    }
+
+    @Bean
+    public Executor extractionTaskExecutor() {
+        return Executors.newScheduledThreadPool((ProcessingFrequencyEnum.values().length - 1) * 2);
     }
 }
