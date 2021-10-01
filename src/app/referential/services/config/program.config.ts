@@ -1,5 +1,5 @@
 import {FormFieldDefinition, StatusIds} from '@sumaris-net/ngx-components';
-import {LocationLevelIds} from '../model/model.enum';
+import { LocationLevelIds, UnitLabel } from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -296,6 +296,23 @@ export const ProgramProperties = Object.freeze({
     label: "PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE",
     defaultValue: "false",
     type: 'boolean'
+  },
+
+  LANDING_WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
+    key: 'sumaris.landing.samples.weightUnit',
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_WEIGHT_UNIT',
+    type: 'enum',
+    values: [
+      {
+        key: UnitLabel.KG,
+        value: UnitLabel.KG
+      },
+      {
+        key: UnitLabel.GRAM,
+        value: UnitLabel.GRAM
+      }
+    ],
+    defaultValue: UnitLabel.KG
   },
 
   /* -- Landed trip options -- */

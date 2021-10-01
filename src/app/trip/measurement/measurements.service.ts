@@ -1,16 +1,11 @@
-import {BehaviorSubject, isObservable, Observable} from "rxjs";
-import {filter, first, map, switchMap, tap} from "rxjs/operators";
-import {IEntityWithMeasurement, MeasurementValuesUtils} from "../services/model/measurement.model";
-import {ConfigService, EntityUtils, PlatformService} from '@sumaris-net/ngx-components';
-import {Directive, EventEmitter, Inject, Injector, Input, Optional} from '@angular/core';
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {IPmfm, PMFM_ID_REGEXP} from "../../referential/services/model/pmfm.model";
-import {SortDirection} from "@angular/material/sort";
-import {IEntitiesService, LoadResult} from "@sumaris-net/ngx-components";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {UnitLabel} from '@app/referential/services/model/model.enum';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { filter, first, map, switchMap, tap } from 'rxjs/operators';
+import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
+import { EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
+import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
+import { IPmfm, PMFM_ID_REGEXP } from '../../referential/services/model/pmfm.model';
+import { SortDirection } from '@angular/material/sort';
+import { ProgramRefService } from '../../referential/services/program-ref.service';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -26,7 +21,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   private _delegate: IEntitiesService<T, F>;
 
   protected programRefService: ProgramRefService;
-  protected configService: ConfigService;
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -93,7 +87,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   }
 
   protected weightDisplayedUnit: string;
-  // protected configService: ConfigService;
 
   constructor(
     injector: Injector,
@@ -106,7 +99,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     }) {
     this._delegate = delegate;
     this.programRefService = injector.get(ProgramRefService);
-    this.configService = injector.get(ConfigService);
     this._requiredStrategy = options && options.requiredStrategy || false;
     this._debug = options && options.debug;
 
@@ -119,13 +111,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
         switchMap(() => this.watchProgramPmfms())
       )
       .subscribe(pmfms => this.applyPmfms(pmfms));
-
-    if (this.configService)
-    {
-      this.configService.config.subscribe(config => {
-        this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-      });
-    }
   }
 
   ngOnDestroy() {
@@ -197,13 +182,13 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
       entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
-      pmfms.forEach(pmfm => {
+     /* pmfms.forEach(pmfm => {
         if (pmfm.unitLabel === UnitLabel.defaultWeight || pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM) {
           if (this.weightDisplayedUnit === UnitLabel.GRAM && pmfm.unitLabel === UnitLabel.KG) {
             entity.measurementValues[pmfm.id.toString()] = entity.measurementValues[pmfm.id.toString()] as number / 1000;
           }
         }
-      })
+      })*/
 
       return entity;
     });

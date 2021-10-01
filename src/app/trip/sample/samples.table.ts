@@ -1,9 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {SampleValidatorService} from '../services/validator/sample.validator';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
-  AppFormUtils, AppValidatorService, ColorName, ConfigService,
+  AppFormUtils,
+  AppValidatorService,
+  ColorName,
   firstNotNilPromise,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -11,7 +13,8 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   LoadResult,
   ObjectMap,
   PlatformService,
@@ -23,25 +26,23 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {FormGroup} from '@angular/forms';
-import {TaxonGroupRef, TaxonNameRef} from '../../referential/services/model/taxon.model';
-import {Sample} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel} from '../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {environment} from '../../../environments/environment';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {IDenormalizedPmfm, IPmfm, PmfmUtils} from '../../referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MatMenu} from '@angular/material/menu';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
-import {strategy} from '@angular-devkit/core/src/experimental/jobs';
+import { Moment } from 'moment';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { FormGroup } from '@angular/forms';
+import { TaxonGroupRef, TaxonNameRef } from '../../referential/services/model/taxon.model';
+import { Sample } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel } from '../../referential/services/model/model.enum';
+import { ReferentialRefService } from '../../referential/services/referential-ref.service';
+import { environment } from '../../../environments/environment';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils, UnitConversion } from '../../referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
+import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MatMenu } from '@angular/material/menu';
 
 const moment = momentImported;
 
@@ -107,7 +108,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
-  private weightDisplayedUnit: string;
+  @Input() weightDisplayedUnit: string;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.getValue() !== value) {
@@ -159,7 +160,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   constructor(
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
-    protected configService: ConfigService,
     @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
@@ -207,10 +207,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           tap(event => this.onPrepareRowForm.emit(event))
         )
         .subscribe());
-
-    this.configService.config.subscribe(config => {
-      this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-    });
   }
 
   ngOnInit() {
@@ -635,13 +631,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             if (pmfm.id === PmfmIds.DRESSING) {
               pmfm.completeName = null;
             }
-            // display configuration unit
-            if (group === 'WEIGHT') {
-              pmfm.completeName = pmfm.completeName?.replace(UnitLabel.KG, this.weightDisplayedUnit);
-              if (pmfm.unitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
-                this.value.forEach(sample => {
-                  sample.measurementValues[pmfm.id.toString()] = sample.measurementValues[pmfm.id.toString()] * 1000;
-                })
+            // Special case for weight: apply conversion
+            if (PmfmUtils.isWeight(pmfm)) {
+              const originalUnitLabel = pmfm.unitLabel || UnitLabel.KG;
+              if (originalUnitLabel !== this.weightDisplayedUnit) {
+                pmfm.unitLabel = this.weightDisplayedUnit;
+                pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
+                pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
               }
             }
           }

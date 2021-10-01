@@ -43,6 +43,7 @@ import {PmfmService} from '@app/referential/services/pmfm.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
 import {ContextService} from '@app/shared/context.service';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
 
 const moment = momentImported;
 
@@ -337,6 +338,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       };
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
       this.samplesTable.programLabel = program.label;
+      this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
     }
 
     if (this.strategyCard) {
