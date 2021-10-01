@@ -42,6 +42,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() floatLabel: FloatLabelType = "auto";
   @Input() tabindex: number;
   @Input() autofocus: boolean;
+  @Input() weightDisplayedUnit: string;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
@@ -70,8 +71,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     @Optional() private formGroupDir: FormGroupDirective
   ) {
   }
-
-  protected weightDisplayedUnit: string;
 
   ngOnInit() {
 

@@ -259,6 +259,7 @@
             [pmfm]="pmfm"
             [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
             [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
+            [weightDisplayedUnit]="this.weightDisplayedUnit"
             [compact]="compactFields" floatLabel="never"></app-pmfm-field>
         </ng-template>
       </td>
