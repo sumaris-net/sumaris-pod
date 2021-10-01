@@ -795,6 +795,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: pmfm.pmfm?.id,
           name: pmfm.pmfm?.name,
+          unit: pmfm.pmfm?.unit,
+          method: pmfm.pmfm?.method,
+          fraction: pmfm.pmfm?.fraction,
+          matrix: pmfm.pmfm?.matrix,
         };
       });
       this.lengthPmfmsForm.patchValue(lengths);
@@ -806,6 +810,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: pmfm.pmfm?.id,
           name: pmfm.pmfm?.name,
+          unit: pmfm.pmfm?.unit,
+          method: pmfm.pmfm?.method,
+          fraction: pmfm.pmfm?.fraction,
+          matrix: pmfm.pmfm?.matrix,
         };
       });
       this.weightPmfmsForm.patchValue(weights);
@@ -817,6 +825,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         return {
           id: pmfm.pmfm?.id,
           name: pmfm.pmfm?.name,
+          unit: pmfm.pmfm?.unit,
+          method: pmfm.pmfm?.method,
+          fraction: pmfm.pmfm?.fraction,
+          matrix: pmfm.pmfm?.matrix,
         };
       });
       this.maturityPmfmsForm.patchValue(maturities);
