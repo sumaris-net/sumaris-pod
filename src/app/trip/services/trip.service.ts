@@ -1082,6 +1082,14 @@ export class TripService
       }
     }
 
+    // Update fishing areas
+    if (target.fishingAreas && source.fishingAreas) {
+      target.fishingAreas.forEach(entity => {
+        const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
+        EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
+      });
+    }
+
     // Update gears
     if (source.gears && target.gears) {
       target.gears.forEach(targetGear => {
