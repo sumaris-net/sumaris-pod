@@ -1360,8 +1360,11 @@
         "SEX": "Sex:",
         "SEX_PLACEHOLDER": "Sex",
         "WEIGHTS": "Weight: ",
+        "WEIGHTS_PLACEHOLDER": "Weight #",
         "LENGTHS": "Length: ",
+        "LENGTHS_PLACEHOLDER": "Length #",
         "MATURITIES": "Maturity : ",
+        "MATURITIES_PLACEHOLDER": "Maturity #",
         "CALCIFIED_TYPE": "Calcified parts:",
         "CALCIFIED_TYPE_PLACEHOLDER": "Type of calcified parts #",
         "YEAR_PLACEHOLDER": "Year"
