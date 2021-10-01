@@ -4,7 +4,7 @@ import {isNil, isNilOrBlank, isNotNil, isNotNilOrNaN, joinPropertiesPath} from "
 import {IPmfm, Pmfm, PmfmUtils} from './pmfm.model';
 import {DenormalizedPmfmStrategy} from "./pmfm-strategy.model";
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import { isNilOrNaN } from '../../../../../ngx-sumaris-components/src/app/shared/functions';
+import { isNilOrNaN } from '@app/shared/functions';
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
