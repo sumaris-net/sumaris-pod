@@ -203,7 +203,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // disable whole form or form part
     if (!this.canUserWrite()) {
       this.disable();
-      // FIXME fractions not disabled
+       // FIXME fractions not disabled
       this.calcifiedFractionsHelper.disable();
     } else if (this.hasLanding) {
       this.taxonNamesFormArray.disable();
@@ -931,7 +931,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Fill PmfmStrategy defaults
     let rankOrder = 1;
     target.pmfms = pmfmStrategies
-      // .map(PmfmStrategy.fromObject)
       .map(pmfmStrategy => {
         pmfmStrategy.strategyId = pmfmStrategy.id;
         pmfmStrategy.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
