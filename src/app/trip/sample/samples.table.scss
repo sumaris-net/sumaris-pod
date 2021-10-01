@@ -26,7 +26,8 @@
         left: 50px !important;
       }
       .mat-column-label,
-      .mat-column-TAG_ID {
+      .mat-column-TAG_ID,
+      .mat-column-DRESSING {
         min-width: 80px !important;
         max-width: 120px !important;;
       }
@@ -126,6 +127,10 @@
 
     /* Second header row : increase row height */
     .mat-header-row.second-header-row {
+      position: sticky;
+      top: 43px;
+      z-index: 10;
+
       height: 90px;
       max-height: 90px;
 

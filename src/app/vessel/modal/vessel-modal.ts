@@ -8,9 +8,9 @@ import {Subscription} from "rxjs";
 import {CORE_CONFIG_OPTIONS}  from "@sumaris-net/ngx-components";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {isNotNil} from "@sumaris-net/ngx-components";
-import {SynchronizationStatus} from "../../data/services/model/root-data-entity.model";
 import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
 import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
+import {SynchronizationStatus} from "@app/data/services/model/model.utils";
 
 export interface VesselModalOptions {
   defaultStatus?: number;

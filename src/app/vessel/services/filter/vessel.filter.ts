@@ -1,5 +1,17 @@
-import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, toDateISOString} from '@sumaris-net/ngx-components';
-import {Vessel, VesselFeatures, VesselRegistration} from '../model/vessel.model';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  EntityUtils,
+  FilterFn,
+  fromDateISOString,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialRef,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
+import {Vessel, VesselFeatures, VesselRegistrationPeriod} from '../model/vessel.model';
 import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
 import {Moment} from 'moment';
 
@@ -8,19 +20,33 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
 
   static fromObject: (source: any, opts?: any) => VesselFilter;
 
-  searchText: string = null;
-  date: Moment = null;
-  vesselId: number = null;
-  statusId: number = null;
-  statusIds: number[] = null;
+  searchText: string;
+  searchAttributes: string[];
+  date: Moment;
+  vesselId: number;
+  statusId: number;
+  statusIds: number[];
+
+  // (e.g. Can be a country flag, or the exact registration location)
+  // Filter (on pod) will use LocationHierarchy) but NOT local filtering
+  registrationLocation: ReferentialRef;
+  basePortLocation: ReferentialRef;
+  vesselType: ReferentialRef;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.searchText = source.searchText;
+    this.searchAttributes = source.searchAttributes || undefined;
     this.date = fromDateISOString(source.date);
     this.statusId = source.statusId;
     this.statusIds = source.statusIds;
     this.vesselId = source.vesselId;
+    this.registrationLocation = ReferentialRef.fromObject(source.registrationLocation) ||
+      isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({id: source.registrationLocationId}) || undefined;
+    this.basePortLocation = ReferentialRef.fromObject(source.basePortLocation) ||
+      isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({id: source.basePortLocationId}) || undefined;
+    this.vesselType = ReferentialRef.fromObject(source.vesselType) ||
+      isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({id: source.vesselTypeId}) || undefined;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -29,6 +55,20 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
     if (opts && opts.minify) {
       target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
       delete target.statusId;
+
+      target.registrationLocationId = this.registrationLocation?.id;
+      delete target.registrationLocation;
+
+      target.basePortLocationId = this.basePortLocation?.id;
+      delete target.basePortLocation;
+
+      target.vesselTypeId = this.vesselType?.id;
+      delete target.vesselType;
+    }
+    else {
+      target.registrationLocation = this.registrationLocation?.asObject(opts);
+      target.basePortLocation = this.basePortLocation?.asObject(opts);
+      target.vesselType = this.vesselType?.asObject(opts);
     }
     return target;
   }
@@ -47,7 +87,26 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
       filterFns.push(t => statusIds.includes(t.statusId));
     }
 
-    const searchTextFilter = EntityUtils.searchTextFilter(['features.name', 'features.exteriorMarking', 'registration.registrationCode'], this.searchText);
+    // registration location
+    const registrationLocationId = this.registrationLocation?.id;
+    if (isNotNil(registrationLocationId)) {
+      filterFns.push(t => (t.vesselRegistrationPeriod?.registrationLocation?.id === registrationLocationId));
+    }
+
+    // base port location
+    const basePortLocationId = this.basePortLocation?.id;
+    if (isNotNil(basePortLocationId)) {
+      filterFns.push(t => (t.vesselFeatures?.basePortLocation?.id === basePortLocationId));
+    }
+
+    // Vessel type
+    const vesselTypeId = this.vesselType?.id;
+    if (isNotNil(vesselTypeId)) {
+      filterFns.push(t => (t.vesselType?.id === vesselTypeId));
+    }
+
+    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || ['vesselFeatures.exteriorMarking', 'vesselRegistrationPeriod.registrationCode', 'vesselFeatures.name'],
+      this.searchText);
     if (searchTextFilter) filterFns.push(searchTextFilter);
 
     return filterFns;
@@ -78,7 +137,7 @@ export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, Ves
 }
 
 @EntityClass({typename: 'VesselRegistrationFilterVO'})
-export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFilter, VesselRegistration> {
+export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFilter, VesselRegistrationPeriod> {
 
   static fromObject: (source: any, opts?: any) => VesselRegistrationFilter;
 
@@ -95,7 +154,7 @@ export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFil
     };
   }
 
-  protected buildFilter(): FilterFn<VesselRegistration>[] {
+  protected buildFilter(): FilterFn<VesselRegistrationPeriod>[] {
     const filterFns = super.buildFilter();
 
     if (isNotNil(this.vesselId)) {

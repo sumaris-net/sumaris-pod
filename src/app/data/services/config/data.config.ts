@@ -1,5 +1,6 @@
 import {TypePolicies} from '@apollo/client/core';
 import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-components';
+import {UnitLabel} from '@app/referential/services/model/model.enum';
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'DataReferenceVO': {
@@ -47,6 +48,12 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: true
   },
+  SHOW_OBSERVERS: <FormFieldDefinition>{
+    key: 'sumaris.data.show.observer.enable',
+    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS',
+    type: 'boolean',
+    defaultValue: true
+  },
   SHOW_FILTER_PROGRAM: <FormFieldDefinition>{
     key: 'sumaris.data.landing.show.filter.program.enable',
     label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PROGRAM',
@@ -65,10 +72,10 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: true
   },
-  SHOW_OBSERVERS: <FormFieldDefinition>{
-    key: 'sumaris.data.show.observer.enable',
-    label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS',
-    type: 'boolean',
-    defaultValue: true
+  WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
+    key: 'sumaris.data.UnitLabel.weightUnit',
+    label: 'CONFIGURATION.OPTIONS.DEFAULT_WEIGHT_UNIT',
+    type: 'string',
+    defaultValue: UnitLabel.defaultWeight
   },
 });

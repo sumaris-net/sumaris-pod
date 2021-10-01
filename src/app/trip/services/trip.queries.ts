@@ -103,6 +103,7 @@ export const DataFragments = {
     measurementValues
     qualityFlagId
     operationId
+    landingId
     __typename
   }
   ${Fragments.referential}

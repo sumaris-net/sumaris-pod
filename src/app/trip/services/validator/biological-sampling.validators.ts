@@ -3,6 +3,7 @@ import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm
 import {Subscription} from "rxjs";
 import {isNotNil} from "@sumaris-net/ngx-components";
 import {ObjectMap} from "@sumaris-net/ngx-components";
+import {PmfmIds} from '../../../referential/services/model/model.enum';
 
 export class BiologicalSamplingValidators {
 
@@ -22,9 +23,20 @@ export class BiologicalSamplingValidators {
     form.setValidators( (control) => {
       const formGroup = control as FormGroup;
       const measValues = formGroup.get('measurementValues').value;
+      // ensure dressing pmfm exist
+      const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => pmfmId === PmfmIds.DRESSING);
+      let hasTagId
+      if (tagIdIndex !== -1) {
+        hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] && (measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "");
+      } else {
+        hasTagId = false;
+      }
       const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
 
+      if (!hasTagId) {
+        return { missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING' };
+      }
       if (!hasWeight && !hasLengthSize){
         return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
       }

@@ -250,6 +250,13 @@ export class TaxonNameStrategy {
     return res;
   }
 
+// TODO : Check if clone is needed
+  clone(): TaxonNameStrategy {
+    const target = new TaxonNameStrategy();
+    target.fromObject(this);
+    return target;
+  }
+
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.taxonName.__typename;

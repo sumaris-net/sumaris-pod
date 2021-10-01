@@ -21,8 +21,8 @@ import {
   UserEventService
 } from '@sumaris-net/ngx-components';
 import {BehaviorSubject} from 'rxjs';
-import {DataRootEntityUtils, RootDataEntity, SynchronizationStatus} from '../services/model/root-data-entity.model';
-import {qualityFlagToColor} from '../services/model/model.utils';
+import {DataRootEntityUtils, RootDataEntity} from '../services/model/root-data-entity.model';
+import {qualityFlagToColor, SynchronizationStatus} from '../services/model/model.utils';
 import {IDataSynchroService} from '../services/root-data-synchro-service.class';
 import * as momentImported from 'moment';
 import {TableElement} from '@e-is/ngx-material-table';
@@ -220,7 +220,7 @@ export abstract class AppRootTable<
     let success = false;
     try {
 
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         // Run the import
         this.dataService.executeImport({maxProgression: 100})
           .pipe(
@@ -239,7 +239,9 @@ export abstract class AppRootTable<
             throttleTime(100)
           )
           .subscribe(progression => this.$importProgression.next(progression))
-          .add(() => resolve());
+          .add(() => {
+            resolve();
+          });
       });
 
       // Toggle to offline mode
@@ -504,10 +506,10 @@ export abstract class AppRootTable<
     return source as F;
   }
 
-  protected async restoreFilterOrLoad() {
+  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; }) {
     this.markAsLoading();
 
-    console.debug("[root-table] Restoring filter from settings...");
+    console.debug("[root-table] Restoring filter from settings...", opts);
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 
@@ -521,7 +523,7 @@ export abstract class AppRootTable<
     }
 
     this.filterForm.patchValue(filter.asObject());
-    this.setFilter(filter, {emitEvent: true});
+    this.setFilter(filter, {emitEvent: true, ...opts});
   }
 
   protected async checkUpdateOfflineNeed() {

@@ -17,7 +17,7 @@ export class VesselFeaturesValidatorService implements ValidatorService {
 
   getFormGroup(data?: VesselFeatures): FormGroup {
     return this.formBuilder.group({
-      __typename: ['VesselFeaturesVO'],
+      __typename: [VesselFeatures.TYPENAME],
       id: [null],
       updateDate: [null],
       creationDate: [null],

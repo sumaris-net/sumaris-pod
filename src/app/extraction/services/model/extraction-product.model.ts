@@ -14,6 +14,7 @@ export type StrataTimeType = 'year' | 'quarter' | 'month';
 export const ProcessingFrequencyIds = {
   NEVER: 0,
   MANUALLY: 1,
+  HOURLY: 5,
   DAILY: 2,
   WEEKLY: 3,
   MONTHLY: 4
@@ -23,28 +24,32 @@ export declare interface ProcessingFrequency {
   id: number;
   label: string;
 }
-export const ProcessingFrequencyList: ProcessingFrequency[] = [
-  {
+export const ProcessingFrequencyItems = Object.freeze([
+  <ProcessingFrequency>{
     id: ProcessingFrequencyIds.NEVER,
     label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.NEVER'
   },
-  {
+  <ProcessingFrequency>{
     id: ProcessingFrequencyIds.MANUALLY,
     label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MANUALLY'
   },
-  {
+  <ProcessingFrequency>{
+    id: ProcessingFrequencyIds.HOURLY,
+    label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.HOURLY'
+  },
+  <ProcessingFrequency>{
     id: ProcessingFrequencyIds.DAILY,
     label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.DAILY'
   },
-  {
+  <ProcessingFrequency>{
     id: ProcessingFrequencyIds.WEEKLY,
     label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.WEEKLY'
   },
-  {
+  <ProcessingFrequency>{
     id: ProcessingFrequencyIds.MONTHLY,
     label: 'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY_ENUM.MONTHLY'
   }
-];
+]);
 
 
 @EntityClass({typename: 'AggregationTypeVO'})

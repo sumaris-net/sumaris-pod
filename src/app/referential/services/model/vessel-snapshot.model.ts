@@ -13,23 +13,23 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
 
   static fromObject: (source: any, opts?: any) => VesselSnapshot;
 
-  static fromVessel(source: Vessel | any): VesselSnapshot {
+  static fromVessel(source: Partial<Vessel>): VesselSnapshot {
     if (!source) return undefined;
     const target = new VesselSnapshot();
     target.fromObject({
       id: source.id,
       vesselType: source.vesselType,
       vesselStatusId: source.statusId,
-      name: source.features && source.features.name,
-      startDate: source.features && source.features.startDate,
-      endDate: source.features && source.features.endDate,
-      exteriorMarking: source.features && source.features.exteriorMarking,
-      basePortLocation: source.features && source.features.basePortLocation,
-      registrationId: source.registration && source.registration.id,
-      registrationCode: source.registration && source.registration.registrationCode,
-      registrationStartDate: source.registration && source.registration.startDate,
-      registrationEndDate: source.registration && source.registration.endDate,
-      registrationLocation: source.registration && source.registration.registrationLocation
+      name: source.vesselFeatures?.name,
+      startDate: source.vesselFeatures?.startDate,
+      endDate: source.vesselFeatures?.endDate,
+      exteriorMarking: source.vesselFeatures?.exteriorMarking,
+      basePortLocation: source.vesselFeatures?.basePortLocation,
+      registrationId: source.vesselRegistrationPeriod?.id,
+      registrationCode: source.vesselRegistrationPeriod?.registrationCode,
+      registrationStartDate: source.vesselRegistrationPeriod?.startDate,
+      registrationEndDate: source.vesselRegistrationPeriod?.endDate,
+      registrationLocation: source.vesselRegistrationPeriod?.registrationLocation
     });
     return target;
   }
@@ -43,6 +43,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   exteriorMarking: string;
   registrationId: number; // TODO remove this ?
   registrationCode: string;
+  intRegistrationCode: string;
   registrationStartDate: Moment;
   registrationEndDate: Moment;
   administrativePower: number;
@@ -101,6 +102,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     super.fromObject(source);
     this.exteriorMarking = source.exteriorMarking;
     this.registrationCode = source.registrationCode;
+    this.intRegistrationCode = source.intRegistrationCode;
     this.name = source.name;
     this.comments = source.comments || undefined;
     this.vesselStatusId = source.vesselStatusId;

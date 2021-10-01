@@ -5,16 +5,21 @@
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
+    "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "target": "es2015",
     "importHelpers": true,
+    "module": "esnext",
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "typeRoots": [
       "node_modules/@types"
     ],
-    "target": "es2015",
+    "types": [
+      "node",
+      "webpack-env"
+    ],
     "lib": [
       "es2018",
       "dom"
@@ -26,12 +31,17 @@
       "@environments/*": [
         "src/environments/*"
       ],
+      "@sumaris-net/ngx-components/*": [
+        "ngx-sumaris-components/src/app/public_api.ts"
+      ],
       // Force using the RxJS project's version
       "rxjs": ["node_modules/rxjs"],
       "rxjs/*": ["node_modules/rxjs/*"]
     }
   },
   "angularCompilerOptions": {
+    //"enableIvy": "true",
+    //"compilationMode": "partial",
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true
   }

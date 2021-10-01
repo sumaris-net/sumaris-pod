@@ -10,7 +10,7 @@ import {Moment} from "moment";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyList} from "../../services/model/extraction-product.model";
+import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyItems} from "../../services/model/extraction-product.model";
 import {ExtractionUtils} from "../../services/extraction.utils";
 import {ExtractionProductService} from "../../services/extraction-product.service";
 import {FormArrayHelper}  from "@sumaris-net/ngx-components";
@@ -22,7 +22,7 @@ declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
 }
 
-const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFrequencyList.reduce((res, frequency) => {
+const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFrequencyItems.reduce((res, frequency) => {
   res[frequency.id] = frequency;
   return res;
 }, {});

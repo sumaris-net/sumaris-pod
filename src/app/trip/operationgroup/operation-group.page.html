@@ -72,12 +72,12 @@
 
       <!-- catch batch form -->
       <div [hidden]="!catchBatchForm.hasPmfms" class="ion-padding">
-        <form-catch-batch #catchBatchForm
-                          (onSubmit)="save($event)" [showError]="false" [debug]="debug"
-                          acquisitionLevel="CATCH_BATCH"
-                          [program]="programSubject|async"
-                          [tabindex]="200">
-        </form-catch-batch>
+        <app-form-catch-batch #catchBatchForm
+                              (onSubmit)="save($event)" [showError]="false" [debug]="debug"
+                              acquisitionLevel="CATCH_BATCH"
+                              [program]="programSubject|async"
+                              [tabindex]="200">
+        </app-form-catch-batch>
       </div>
 
       <!-- tab group for batches -->

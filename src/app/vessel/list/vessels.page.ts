@@ -15,7 +15,6 @@ export const VesselsPageSettingsEnum = {
   FEATURE_ID: VESSEL_FEATURE_NAME
 };
 
-
 @Component({
   selector: 'app-vessels-page',
   styleUrls: ['vessels.page.scss'],
@@ -48,6 +47,7 @@ export class VesselsPage implements OnInit {
 
   ngOnInit() {
     this.table.settingsId = VesselsPageSettingsEnum.PAGE_ID;
+
   }
 
   /**

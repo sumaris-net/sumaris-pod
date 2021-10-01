@@ -4,7 +4,7 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [backHref]="defaultBackHref"
+             [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-buttons slot="end">
     <ion-spinner *ngIf="loading"></ion-spinner>
@@ -142,10 +142,11 @@
 
 </ion-content>
 
-<ion-footer *ngIf="!mobile">
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
   <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
-                    [disabled]="!dirty || loading"
-                    [disabledCancel]="!dirty || loading">
+                        [disabled]="!dirty || loading"
+                        [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

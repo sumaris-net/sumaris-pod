@@ -91,7 +91,7 @@
           <mat-cell *matCellDef="let row">
 
             <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                                    [appAutofocus]="row.id === -1 && row.editing"
+                                    [autofocus]="row.id === -1 && row.editing"
                                     [formControl]="row.validator.controls.parentGroup"
                                     [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP'|translate"
                                     [required]="true"

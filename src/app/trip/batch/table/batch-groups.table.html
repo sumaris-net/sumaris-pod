@@ -171,7 +171,7 @@
 
     <mat-cell *matCellDef="let row">
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="row.id == -1 && row.editing"
+                              [autofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonGroup"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                               [required]="showTaxonGroupColumn"
@@ -189,7 +189,7 @@
 
       <!-- desktop -->
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
+                              [autofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonName"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                               [required]="showTaxonNameColumn"

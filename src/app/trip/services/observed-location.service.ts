@@ -275,32 +275,34 @@ export class ObservedLocationService
       sortBy: sortBy || (opts && opts.trash ? 'updateDate' : 'startDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter && dataFilter.asPodObject()
+      filter: dataFilter?.asPodObject()
     };
 
     let now = Date.now();
     console.debug("[observed-location-service] Watching observed locations... using options:", variables);
 
+    const withTotal = (!opts || opts.withTotal !== false);
+    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
     return this.mutableWatchQuery<LoadResult<ObservedLocation>>({
-        queryName: 'LoadAll',
-        query: this.queries.loadAllWithTotal,
-        arrayFieldName: 'data',
-        totalFieldName: 'total',
-        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
-        variables: variables,
-        error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "ERROR.LOAD_ERROR"},
-        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-      })
-      .pipe(
-        filter(() => !this.loading),
-        map(({data, total}) => {
-          const entities = (data || []).map(ObservedLocation.fromObject);
-          if (now) {
-            console.debug(`[observed-location-service] Loaded {${entities.length || 0}} observed locations in ${Date.now() - now}ms`, entities);
-            now = undefined;
-          }
-          return {data: entities, total};
-        }));
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
+      query,
+      arrayFieldName: 'data',
+      totalFieldName: withTotal ? 'total' : undefined,
+      insertFilterFn: dataFilter?.asFilterFn(),
+      variables,
+      error: {code: ErrorCodes.LOAD_OBSERVED_LOCATIONS_ERROR, message: "ERROR.LOAD_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+    })
+    .pipe(
+      filter(() => !this.loading),
+      map(({data, total}) => {
+        const entities = (data || []).map(ObservedLocation.fromObject);
+        if (now) {
+          console.debug(`[observed-location-service] Loaded {${entities.length || 0}} observed locations in ${Date.now() - now}ms`, entities);
+          now = undefined;
+        }
+        return {data: entities, total};
+      }));
   }
 
   watchAllLocally(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
@@ -649,7 +651,7 @@ export class ObservedLocationService
       ...opts
     };
 
-    const localId = entity && entity.id;
+    const localId = entity?.id;
     if (isNil(localId) || localId >= 0) throw new Error("Entity must be a local entity");
     if (this.network.offline) throw new Error("Could not synchronize if network if offline");
 

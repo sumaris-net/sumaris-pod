@@ -3,7 +3,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {ModalController, Platform} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {DefaultStatusList}  from "@sumaris-net/ngx-components";
+import {StatusList}  from "@sumaris-net/ngx-components";
 import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
 import {debounceTime, filter} from "rxjs/operators";
 import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
@@ -20,7 +20,7 @@ import {ReferentialFilter} from "../services/filter/referential.filter";
 })
 export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
 
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
   filterForm: FormGroup;
 

@@ -1,4 +1,4 @@
-import {RootDataEntity, SynchronizationStatus} from "./root-data-entity.model";
+import {RootDataEntity} from "./root-data-entity.model";
 import {fromDateISOString, Person, toDateISOString} from '@sumaris-net/ngx-components';
 import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {DataEntityFilter} from "./data-filter.model";
@@ -7,6 +7,7 @@ import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {Moment} from 'moment';
+import {DataQualityStatusIdType, SynchronizationStatus} from '@app/data/services/model/model.utils';
 
 export abstract class RootDataEntityFilter<
   T extends RootDataEntityFilter<T, E, EID, AS, FO>,
@@ -21,6 +22,7 @@ export abstract class RootDataEntityFilter<
   recorderPerson: Person;
   startDate?: Moment;
   endDate?: Moment;
+  dataQualityStatus?: DataQualityStatusIdType;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -31,6 +33,7 @@ export abstract class RootDataEntityFilter<
       || isNotNil(source.recorderPersonId) && Person.fromObject({id: source.recorderPersonId}) || undefined;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    this.dataQualityStatus = source.dataQualityStatus;
   }
 
   asObject(opts?: AS): any {
@@ -43,6 +46,8 @@ export abstract class RootDataEntityFilter<
 
       target.recorderPersonId = this.recorderPerson && this.recorderPerson.id || undefined;
       delete target.recorderPerson;
+
+      target.dataQualityStatus = this.dataQualityStatus && [this.dataQualityStatus] || undefined;
 
       // Not exits in pod
       delete target.synchronizationStatus;
