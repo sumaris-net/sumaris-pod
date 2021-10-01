@@ -357,6 +357,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.strategyLabel = strategy.label;
     this.landingForm.strategyControl.setValue(strategy);
 
+    // Propagate strategy's fishing area locations to form
+    const fishingAreaLocations = removeDuplicatesFromArray((strategy.appliedStrategies || []).map(a => a.location), 'id');
+    this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
+    this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
+
     // Propagate to table
     this.samplesTable.strategyLabel = strategy.label;
     const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
@@ -390,11 +395,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         ...additionalPmfms
       ];
     }
-
-    // Applying filtered location
-    const fishingAreaLocations = removeDuplicatesFromArray((strategy.appliedStrategies || []).map(a => a.location), 'id');
-    this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
-    this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
     this.markForCheck();
   }
