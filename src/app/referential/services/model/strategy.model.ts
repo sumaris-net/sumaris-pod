@@ -10,8 +10,9 @@ import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS} from '@app/core/services/model/refer
 
 @EntityClass({typename: 'StrategyVO'})
 export class Strategy<
-  T extends Strategy<any> = Strategy<any>
-  > extends BaseReferential<Strategy> {
+  T extends Strategy<any> = Strategy<any>,
+  O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions
+  > extends BaseReferential<Strategy, number, O> {
 
   static fromObject: (source: any, opts?: any) => Strategy;
 
@@ -38,18 +39,6 @@ export class Strategy<
     return target as T;
   }
 
-  asObject(opts?: EntityAsObjectOptions): any {
-    const target: any = super.asObject(opts);
-    target.programId = this.programId;
-    target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.gears = this.gears && this.gears.map(s => s.asObject(opts));
-    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
-    return target;
-  }
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -63,6 +52,19 @@ export class Strategy<
     // Taxon groups, sorted by priority level
     this.taxonGroups = source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject) || [];
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject) || [];
+  }
+
+  asObject(opts?: O): any {
+    const target: any = super.asObject(opts);
+    target.programId = this.programId;
+    target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.denormalizedPmfms = this.denormalizedPmfms && this.denormalizedPmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.departments = this.departments && this.departments.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.gears = this.gears && this.gears.map(s => s.asObject(opts));
+    target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    return target;
   }
 
   equals(other: T): boolean {

@@ -1,29 +1,36 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {CacheService} from "ionic-cache";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SortDirection} from "@angular/material/sort";
-import {StrategyFragments} from "./strategy.fragments";
-import {LoadResult} from "@sumaris-net/ngx-components";
-import {StrategyService} from "./strategy.service";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
-import {firstArrayValue, isEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {ParameterLabelGroups, PmfmLabelPatterns} from './model/model.enum';
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {PmfmService} from "./pmfm.service";
-import {ReferentialRefService} from "./referential-ref.service";
-import {mergeMap} from "rxjs/operators";
-import {DateUtils} from "@sumaris-net/ngx-components";
-import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {Moment} from "moment";
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { ReferentialFragments } from './referential.fragments';
+import {
+  AccountService,
+  ConfigService,
+  DateUtils,
+  EntitiesStorage,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
+  firstArrayValue,
+  GraphqlService,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LoadResult,
+  NetworkService,
+  PlatformService
+} from '@sumaris-net/ngx-components';
+import { CacheService } from 'ionic-cache';
+import { SortDirection } from '@angular/material/sort';
+import { StrategyFragments } from './strategy.fragments';
+import { StrategyService } from './strategy.service';
+import { Observable } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
+import { ParameterLabelGroups } from './model/model.enum';
+import { PmfmService } from './pmfm.service';
+import { ReferentialRefService } from './referential-ref.service';
+import { SamplingStrategy, StrategyEffort } from './model/sampling-strategy.model';
+import { BaseReferentialService } from './base-referential-service.class';
+import { Moment } from 'moment';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { Strategy } from '@app/referential/services/model/strategy.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -120,7 +127,11 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
                 filter?: Partial<StrategyFilter>,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
-    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, {
+      ...opts,
+      toEntity: false
+    });
+
 
     // Fill entities (parameter groups, effort, etc)
     return this.fillEntities(res, opts);
@@ -130,8 +141,82 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return this.strategyService.deleteAll(entities, options);
   }
 
+  async load(id: number, opts?: EntityServiceLoadOptions & { query?: any; toEntity?: boolean;
+    withParameterGroups?: boolean;
+    withEffort?: boolean;
+  }): Promise<SamplingStrategy> {
+    const data = await this.strategyService.load(id, { ...opts, toEntity: false});
+
+    const entity = (!opts || opts.toEntity!== false) ? SamplingStrategy.fromObject(data) : data as SamplingStrategy;
+
+    //await this.fillEntities({data: [entity]}, opts);
+
+    return entity;
+  }
+
   async computeNextSampleTagId(strategyLabel: string, separator?: string, nbDigit?: number): Promise<string> {
     return this.strategyService.computeNextSampleTagId(strategyLabel, separator, nbDigit);
+  }
+
+  canUserWrite(data?: Strategy) {
+    return this.strategyService.canUserWrite(data)
+  }
+
+  async save(entity: SamplingStrategy, opts?: EntitySaveOptions & {
+    clearCache?: boolean;
+  }): Promise<SamplingStrategy> {
+    const isNew = isNil(entity.id);
+
+    console.debug('[sampling-strategy-service] Saving sampling strategy...');
+
+    const savedEntity = (await this.strategyService.save(entity, {
+      ...opts,
+      update: (cache, { data }) => {
+        const savedEntity = data && data.data;
+        this.copyIdAndUpdateDate(savedEntity, entity);
+
+        // Update query cache
+        if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
+          this.insertIntoMutableCachedQueries(cache, {
+            queries: this.getLoadQueries(),
+            data: {
+              ...savedEntity,
+              efforts: entity.efforts,
+              effortByQuarter: entity.efforts,
+              parameterGroups: entity.parameterGroups
+            }
+          });
+        }
+
+
+      }
+    })) as SamplingStrategy;
+
+    return savedEntity;
+  }
+
+  async duplicateAllToYear(sources: SamplingStrategy[], year: string): Promise<Strategy[]> {
+
+    if (isEmptyArray(sources)) return [];
+    if (isNil(year) || typeof year !== "string" || year.length !== 2) throw Error('Missing or invalid year argument (should be YY format)');
+
+    // CLear cache (only once)
+    await this.strategyService.clearCache();
+
+    const savedEntities: Strategy[] = [];
+
+    // WARN: do not use a Promise.all, because parallel execution not working (label computation need series execution)
+    for (const source of sources) {
+      const target = await this.strategyService.cloneToYear(source, year);
+
+      const targetAsSampling = SamplingStrategy.fromObject(target.asObject());
+
+      const savedEntity = await this.save(targetAsSampling, {clearCache: false /*already done once*/})
+
+      savedEntities.push(savedEntity);
+    }
+
+    return savedEntities;
   }
 
   /* -- protected -- */

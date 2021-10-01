@@ -86,7 +86,7 @@ export class AggregatedLandingService
            sortBy?: string,
            sortDirection?: SortDirection,
            dataFilter?: Partial<AggregatedLandingFilter>,
-           options?: any): Observable<LoadResult<AggregatedLanding>> {
+           opts?: any): Observable<LoadResult<AggregatedLanding>> {
 
     // Update previous filter
     dataFilter = this.asFilter(dataFilter);
@@ -119,7 +119,7 @@ export class AggregatedLandingService
           filter: dataFilter && dataFilter.asPodObject()
         },
         error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: "AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR"},
-        fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+        fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
       .pipe(
         filter(() => !this.loading)

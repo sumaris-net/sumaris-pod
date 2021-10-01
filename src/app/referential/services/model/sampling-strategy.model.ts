@@ -1,10 +1,13 @@
-import {Strategy} from "./strategy.model";
-import {Moment} from "moment";
-import { Entity, EntityClass, fromDateISOString } from '@sumaris-net/ngx-components';
-import {isNil, toNumber} from "@sumaris-net/ngx-components";
+import { Strategy } from './strategy.model';
+import { Moment } from 'moment';
+import { EntityClass, fromDateISOString, isNil, ReferentialAsObjectOptions, toNumber } from '@sumaris-net/ngx-components';
+
+export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOptions {
+  keepEffort: boolean; // fa  lse by default
+}
 
 @EntityClass({typename: 'SamplingStrategyVO'})
-export class SamplingStrategy extends Strategy<SamplingStrategy> {
+export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrategyAsObjectOptions> {
 
   static fromObject: (source: any, opts?: any) => SamplingStrategy;
 
@@ -34,6 +37,26 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
   clone(): SamplingStrategy {
     const target = new SamplingStrategy();
     target.fromObject(this);
+    return target;
+  }
+
+  fromObject(source: any) {
+    const target = super.fromObject(source);
+    this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || [];
+    this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || {};
+    this.parameterGroups = source.parameterGroups || undefined;
+    return target;
+  }
+
+  asObject(opts?: SamplingStrategyAsObjectOptions): any {
+    const target = super.asObject(opts);
+
+    // Remove effort
+    if (!opts || opts.keepEffort !== true) {
+      delete target.efforts;
+      delete target.effortByQuarter;
+      delete target.parameterGroups;
+    }
     return target;
   }
 
