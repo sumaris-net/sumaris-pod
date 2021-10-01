@@ -56,6 +56,7 @@ export abstract class RootDataEntityFilter<
       target.program = this.program && this.program.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
       target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
       target.synchronizationStatus = this.synchronizationStatus;
+      target.dataQualityStatus = this.dataQualityStatus;
     }
 
     return target;

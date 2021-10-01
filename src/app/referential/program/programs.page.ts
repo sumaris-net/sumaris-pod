@@ -1,22 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ViewChild} from "@angular/core";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialsPage} from "../list/referentials.page";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { AccountService, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { ReferentialsPage } from '../list/referentials.page';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 
-export enum AnimationState {
-  ENTER = 'enter',
-  LEAVE = 'leave'
-}
+export const ProgramsPageSettingsEnum = {
+  PAGE_ID: "programs",
+  FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY
+};
 
 @Component({
   selector: 'app-program-page',
   templateUrl: './programs.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProgramsPage {
+export class ProgramsPage implements OnInit {
 
   canEdit: boolean;
   canDelete: boolean;
@@ -36,6 +36,11 @@ export class ProgramsPage {
     const isAdmin = this.accountService.isAdmin();
     this.canEdit = isAdmin || this.accountService.isSupervisor();
     this.canDelete = isAdmin;
+  }
+
+  ngOnInit() {
+    this.table.settingsId =  ProgramsPageSettingsEnum.PAGE_ID;
+    this.table.restoreFilterOrLoad();
   }
 
   /* -- protected methods -- */
