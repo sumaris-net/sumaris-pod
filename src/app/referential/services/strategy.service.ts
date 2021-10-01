@@ -8,6 +8,7 @@ import {
   BaseEntityGraphqlSubscriptions,
   EntitiesStorage,
   EntityAsObjectOptions,
+  EntitySaveOptions,
   EntityUtils,
   fromDateISOString,
   GraphqlService,
@@ -38,7 +39,6 @@ import { StrategyRefService } from './strategy-ref.service';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { EntitySaveOptions } from '@sumaris-net/ngx-components';
 
 
 const FindStrategyNextLabel: any = gql`
