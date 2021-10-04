@@ -1,7 +1,7 @@
-import {Injectable, Injector} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {Observable} from 'rxjs';
-import {QualityFlagIds} from '../../referential/services/model/model.enum';
+import { Injectable, Injector } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
   EntityAsObjectOptions,
@@ -16,12 +16,12 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {map} from 'rxjs/operators';
-import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService} from './vessel-features.service';
-import {VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
+import { map } from 'rxjs/operators';
+import { ReferentialFragments } from '../../referential/services/referential.fragments';
+import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
+import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
 import {Vessel} from './model/vessel.model';
 import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
 import {SortDirection} from '@angular/material/sort';
@@ -183,10 +183,21 @@ export class VesselService
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
-      mutations: VesselMutations
+      mutations: VesselMutations,
+      equalsFn: (e1, e2) => this.vesselEquals(e1, e2)
     });
     this._featureName = VESSEL_FEATURE_NAME;
     this._debug = !environment.production;
+  }
+
+  private vesselEquals(e1: Vessel, e2: Vessel) {
+    return e1 && e2 && (
+      // check id equals
+      e1.id === e2.id ||
+      // or exteriorMarking and registrationCode equals
+      (e1.features?.exteriorMarking === e2.features?.exteriorMarking &&
+        e1.registration?.registrationCode === e2.registration?.registrationCode)
+    );
   }
 
   /**

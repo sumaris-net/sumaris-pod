@@ -1,7 +1,6 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
-import {ObjectMap} from "@sumaris-net/ngx-components";
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
@@ -76,7 +75,7 @@ export const PmfmIds = {
   SIZE_CATEGORY: 174,
   TOTAL_PRICE: 270,
   AVERAGE_PACKAGING_PRICE: 271,
-  AVERAGE_PRICE_WEI: 272,
+  AVERAGE_WEIGHT_PRICE: 272,
   SALE_ESTIMATED_RATIO: 278,
   SALE_RANK_ORDER: 279,
 
@@ -114,6 +113,10 @@ export const MethodIds = {
 
 export const MatrixIds = {
   INDIVIDUAL: 2
+}
+
+export const UnitIds = {
+  NONE: 0
 }
 
 export const autoCompleteFractions = {

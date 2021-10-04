@@ -397,6 +397,7 @@
     "AVATAR": "Avatar",
     "EMAIL": "Email",
     "USERNAME": "Identifiant",
+    "USERNAME_EXTRANET": "Identifiant Extranet",
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
@@ -607,7 +608,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
-        "PHYSICAL_GEAR": "Engin utilisé",
+        "GEAR": "Engin utilisé",
         "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",
         "START_DATE_TIME": "Début d'opération",
@@ -648,6 +649,7 @@
       "LIST": {
         "PARENT": "Effort",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "SALE_TYPE": "Type de vente",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
         "INDIVIDUAL_SAMPLING": "Echantillonnage",
@@ -786,6 +788,10 @@
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
       }
     }
+  },
+  "EXPECTED_SALE": {
+    "FEATURES": "Caractéristiques:",
+    "CALCULATED_TOTAL": "Total calculé:"
   },
   "SALE": {
     "TITLE": "Vente",
@@ -969,6 +975,7 @@
     "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "RANK_ORDER": "Numéro de lot",
       "LABEL": "Numéro de lot",
       "LABEL_VALUE": "Lot #{{rankOrder}}",
       "PARENT": "Effort",
@@ -1032,7 +1039,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Zone de pêche",
+    "TITLE": "Zone de pêche :",
     "LOCATION": "Lieu",
     "DISTANCE_TO_COAST_GRADIENT": "Gradient de distance à la côte",
     "DEPTH_GRADIENT": "Gradient de profondeur",

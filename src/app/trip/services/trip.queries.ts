@@ -1,5 +1,5 @@
-import {gql} from "@apollo/client/core";
-import {ReferentialFragments} from "../../referential/services/referential.fragments";
+import { gql } from '@apollo/client/core';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 
 
 export const Fragments = {
@@ -228,9 +228,6 @@ export const OperationGroupFragment = {
     metier {
       ...MetierFragment
     }
-    physicalGear {
-      ...PhysicalGearFragment
-    }
     recorderDepartment {
       ...LightDepartmentFragment
     }
@@ -259,7 +256,6 @@ export const OperationGroupFragment = {
   ${DataFragments.product}
   ${DataFragments.sample}
   ${DataFragments.fishingArea}
-  ${PhysicalGearFragments.physicalGear}
   ${Fragments.measurement}
   `
 };

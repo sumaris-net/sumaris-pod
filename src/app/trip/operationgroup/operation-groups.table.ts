@@ -1,20 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
-import {BehaviorSubject} from "rxjs";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {MetierService} from "../../referential/services/metier.service";
-import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {OperationFilter} from "@app/trip/services/filter/operation.filter";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
+import { BehaviorSubject } from 'rxjs';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { InMemoryEntitiesService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
+import { MetierService } from '@app/referential/services/metier.service';
+import { OperationGroup } from '../services/model/trip.model';
+import { environment } from '@environments/environment';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
-export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
+export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'gear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -143,20 +141,13 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       console.debug('[operation-group.table] onMetierChange', $event, row.currentData.metier);
       const operationGroup: OperationGroup = row.currentData;
 
-      if (!operationGroup.physicalGear || operationGroup.physicalGear.gear.id !== operationGroup.metier.gear.id) {
+      if (operationGroup.metier?.id && (!operationGroup.metier?.gear || !operationGroup.metier?.taxonGroup)) {
 
         // First, load the Metier (with children)
         const metier = await this.metierService.load(operationGroup.metier.id);
 
-        // create new physical gear if missing
-        const physicalGear = new PhysicalGear();
-        physicalGear.gear = metier.gear;
-        // affect same rank order than operation group
-        physicalGear.rankOrder = operationGroup.rankOrderOnPeriod;
-
         // affect to current row
         row.validator.controls['metier'].setValue(metier);
-        row.validator.controls['physicalGear'].setValue(physicalGear);
       }
 
     }

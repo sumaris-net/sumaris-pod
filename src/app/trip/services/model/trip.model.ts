@@ -1,5 +1,5 @@
-import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import { Moment } from 'moment';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
 import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
@@ -270,60 +270,40 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   }
 }
 
+@EntityClass({typename: 'OperationGroupVO'})
 export class OperationGroup extends DataEntity<OperationGroup>
   implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
 
-  static TYPENAME = 'OperationGroupVO';
-
-  static fromObject(source: any): OperationGroup {
-    const res = new OperationGroup();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any) => OperationGroup;
 
   comments: string;
   rankOrderOnPeriod: number;
   hasCatch: boolean;
 
-  metier: Metier;
-  physicalGear: PhysicalGear;
+  metier: Metier = null;
+  physicalGearId: number;
   tripId: number;
   trip: RootDataEntity<any>;
 
-  measurements: Measurement[];
-  gearMeasurements: Measurement[];
+  measurements: Measurement[] = [];
+  gearMeasurements: Measurement[] = [];
 
   // all measurements in table
-  measurementValues: MeasurementModelValues | MeasurementFormValues;
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
-  products: Product[];
-  samples: Sample[];
-  packets: Packet[];
-  fishingAreas: FishingArea[];
+  products: Product[] = [];
+  samples: Sample[] = [];
+  packets: Packet[] = [];
+  fishingAreas: FishingArea[] = [];
 
   constructor() {
-    super();
-    this.__typename = OperationGroup.TYPENAME;
-    this.metier = null;
-    this.physicalGear = null;
-    this.measurementValues = {};
-    this.measurements = [];
-    this.gearMeasurements = [];
-    this.products = [];
-    this.samples = [];
-    this.packets = [];
-    this.fishingAreas = [];
+    super(OperationGroup.TYPENAME);
   }
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(opts);
 
     target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
-
-    // Physical gear
-    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    if (target.physicalGear)
-      delete target.physicalGear.measurementValues;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
@@ -368,7 +348,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.tripId = source.tripId;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && Metier.fromObject(source.metier) || undefined;
-    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
+    this.physicalGearId = source.physicalGearId;
 
     // Measurements
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
@@ -376,7 +356,6 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.measurementValues = {
       ...MeasurementUtils.toMeasurementValues(this.measurements),
       ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
-      ...(this.physicalGear && this.physicalGear.measurementValues),
       ...source.measurementValues // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {

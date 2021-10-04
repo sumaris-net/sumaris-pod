@@ -1,9 +1,9 @@
-import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, Observable, of, Subject} from 'rxjs';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialService} from '../services/referential.service';
+import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialService } from '../services/referential.service';
 import {
   AccountService,
   AppTable, changeCaseToUnderscore,
@@ -15,22 +15,23 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  Referential, ReferentialRef,
+  Referential,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   slideUpDownAnimation,
-  sort
+  sort,
+  StatusList,
 } from '@sumaris-net/ngx-components';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-
+import { ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../../../environments/environment';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 
 
 @Component({

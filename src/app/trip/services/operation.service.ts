@@ -1,5 +1,5 @@
-import {Injectable, Optional} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
+import { Injectable , Optional} from '@angular/core';
+import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
 import {filter, first, map, tap} from 'rxjs/operators';
 import {ErrorCodes} from './trip.errors';
@@ -29,20 +29,20 @@ import {
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
-  QueryVariables
+  QueryVariables,
 } from '@sumaris-net/ngx-components';
 import {Measurement} from './model/measurement.model';
 import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
+import { Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
 import {Batch, BatchUtils} from './model/batch.model';
 import {Sample} from './model/sample.model';
 import {SortDirection} from '@angular/material/sort';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { AcquisitionLevelCodes , QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {GeolocationOptions} from '@ionic-native/geolocation';
 import moment from 'moment';

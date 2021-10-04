@@ -62,10 +62,10 @@
 
   <!-- parent -->
   <ng-container matColumnDef="parent">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [hidden]="!showParent">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <ion-label translate>TRIP.PRODUCT.LIST.PARENT</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!showParent">
+    <mat-cell *matCellDef="let row">
 
       <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
                               [autofocus]="row.id == -1 && row.editing && !row.currentData.parent"
@@ -75,6 +75,16 @@
                               [config]="autocompleteFields.parent">
       </mat-autocomplete-field>
 
+    </mat-cell>
+  </ng-container>
+
+  <!-- saleType -->
+  <ng-container matColumnDef="saleType">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>TRIP.PRODUCT.LIST.SALE_TYPE</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-label style='font-size: 1rem !important;' [class.mat-form-field-disabled]='readOnly'>{{ row.currentData.saleType | referentialToString }}</ion-label>
     </mat-cell>
   </ng-container>
 

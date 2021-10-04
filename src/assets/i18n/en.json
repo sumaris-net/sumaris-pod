@@ -115,7 +115,7 @@
       "ITEMS_PER_PAGE":"Items per page",
       "NEXT_PAGE":"Next page",
       "PREVIOUS_PAGE":"Previous page",
-      "OF": "sur"
+      "OF": "on"
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtered)"
@@ -398,6 +398,7 @@
     "AVATAR": "Avatar",
     "EMAIL": "Email",
     "USERNAME": "Username",
+    "USERNAME_EXTRANET": "Username Extranet",
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
@@ -607,7 +608,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
-        "PHYSICAL_GEAR": "Used gear",
+        "GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
         "START_DATE_TIME": "Start",
@@ -648,6 +649,7 @@
       "LIST": {
         "PARENT": "Effort",
         "TAXON_GROUP": "Commercial species (FAO)",
+        "SALE_TYPE": "Disposal",
         "WEIGHT": "Weight (kg)",
         "INDIVIDUAL_COUNT": "Individual count",
         "INDIVIDUAL_SAMPLING": "Sampling",
@@ -766,6 +768,10 @@
         "BURST_MODE_ENABLE": "Sample: enable burst mode?"
       }
     }
+  },
+  "EXPECTED_SALE": {
+    "FEATURES": "Features:",
+    "CALCULATED_TOTAL": "Calculated total:"
   },
   "SALE": {
     "TITLE": "Sale",
@@ -948,6 +954,7 @@
     "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "RANK_ORDER": "Batch number",
       "LABEL": "Batch number",
       "LABEL_VALUE": "Batch #{{rankOrder}}",
       "PARENT": "Effort",
@@ -1011,7 +1018,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Fishing area",
+    "TITLE": "Fishing area:",
     "LOCATION": "Location",
     "DISTANCE_TO_COAST_GRADIENT": "Distance to coast gradient",
     "DEPTH_GRADIENT": "Depth gradient",

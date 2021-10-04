@@ -772,6 +772,13 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
+    PmfmIds.PACKAGING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PACKAGING_ID);
+    PmfmIds.SIZE_CATEGORY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SIZE_CATEGORY_ID);
+    PmfmIds.TOTAL_PRICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TOTAL_PRICE_ID);
+    PmfmIds.AVERAGE_PACKAGING_PRICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AVERAGE_PACKAGING_PRICE_ID);
+    PmfmIds.AVERAGE_WEIGHT_PRICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AVERAGE_WEIGHT_PRICE_ID);
+    PmfmIds.SALE_ESTIMATED_RATIO = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_ESTIMATED_RATIO_ID);
+    PmfmIds.SALE_RANK_ORDER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_RANK_ORDER_ID);
 
     // Methods
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);
@@ -781,6 +788,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Matrix
     MatrixIds.INDIVIDUAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.FRACTION_INDIVIDUAL_ID);
+
+    // Units
+    UnitIds.NONE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.UNIT_NONE_ID);
 
     // Taxon group
     // TODO: add all enumerations

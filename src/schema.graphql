@@ -455,6 +455,8 @@ type Mutation {
   controlTrip(trip: TripVOInput!): TripVO
   "Create an account"
   createAccount(account: AccountVOInput): AccountVO
+  "Delete many aggregated landings"
+  deleteAggregatedLandings(filter: AggregatedLandingFilterVOInput, vesselSnapshotIds: [Int]): Boolean!
   "Delete some aggregations"
   deleteAggregations(ids: [Int]): Boolean!
   "Delete an observed location"
@@ -603,7 +605,6 @@ type OperationGroupVO {
   metier: MetierVO
   "Get operation group's packets"
   packets: [PacketVO]
-  physicalGear: PhysicalGearVO
   physicalGearId: Int
   "Get operation group's products"
   products: [ProductVO]
@@ -699,6 +700,7 @@ type ParameterVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  parameterGroupId: Int
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   statusId: Int
@@ -2039,7 +2041,6 @@ input OperationGroupVOInput {
   measurements: [MeasurementVOInput]
   metier: MetierVOInput
   packets: [PacketVOInput]
-  physicalGear: PhysicalGearVOInput
   physicalGearId: Int
   products: [ProductVOInput]
   qualificationComments: String
@@ -2129,6 +2130,7 @@ input ParameterVOInput {
   label: String
   levelId: Int
   name: String
+  parameterGroupId: Int
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   statusId: Int

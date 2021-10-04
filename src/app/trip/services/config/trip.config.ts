@@ -1,8 +1,9 @@
-import {EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition} from '@sumaris-net/ngx-components';
-import {Operation, Trip} from '../model/trip.model';
-import {TypePolicies} from '@apollo/client/core';
-import {ObservedLocation} from '../model/observed-location.model';
-import {Landing} from '../model/landing.model';
+import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition } from '@sumaris-net/ngx-components';
+import { Operation, Trip } from '../model/trip.model';
+import { TypePolicies } from '@apollo/client/core';
+import { ObservedLocation } from '../model/observed-location.model';
+import { Landing } from '../model/landing.model';
+import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -74,6 +75,9 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
 export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MeasurementVO': {
     keyFields: ['entityName', 'id']
+  },
+  'AggregatedLandingVO': {
+    keyFields: ['vesselSnapshot']
   }
 };
 
@@ -102,6 +106,12 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
     mode: 'by-id',
     skipNonLocalEntities: true,
     lightFieldsExcludes: ["samples"]
+  },
+
+  'AggregatedLandingVO': <EntityStoreTypePolicy<AggregatedLanding>>{
+    mode: 'default',
+    skipNonLocalEntities: true,
+    lightFieldsExcludes: ['vesselActivities']
   },
 
   // Fake entity, use to store historical data
