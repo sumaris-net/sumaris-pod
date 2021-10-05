@@ -287,11 +287,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.setError(strategyLabelsWithData.length === 1
         ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
         : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
-      if (strategyLabelsWithData.length === 1) {
-        await Alerts.showError("PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA", this.alertCtrl, this.translate);
-      } else {
-        await Alerts.showError("PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA", this.alertCtrl, this.translate);
-      }
+      await Alerts.showError(strategyLabelsWithData.length === 1 ? "PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA" : "PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA", this.alertCtrl, this.translate);
       return 0;
     }
 
