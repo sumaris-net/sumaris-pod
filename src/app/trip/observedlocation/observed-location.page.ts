@@ -475,7 +475,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
-    if (this.landingsTable && this.landingsTable.dirty) {
+    if (this.landingsTable && this.landingsTable.dirty && this.landingsTable.isEditable) {
       await this.landingsTable.save();
     }
     if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
