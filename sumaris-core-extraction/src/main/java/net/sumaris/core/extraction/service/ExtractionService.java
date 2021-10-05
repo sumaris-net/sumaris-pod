@@ -22,7 +22,9 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.cache.CacheDurations;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
@@ -30,6 +32,7 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -71,7 +74,18 @@ public interface ExtractionService {
                                       int offset,
                                       int size,
                                       String sort,
-                                      SortDirection direction) ;
+                                      SortDirection direction);
+
+    /*@Cacheable(cacheNames = CacheConfiguration.Names.EXTRACTION_ROWS, condition = "#cacheDuration=")
+    default ExtractionResultVO executeAndReadWithCache(ExtractionTypeVO type,
+                            @Nullable ExtractionFilterVO filter,
+                            int offset,
+                            int size,
+                            String sort,
+                            SortDirection direction,
+                            CacheDurations cacheDuration) {
+        return executeAndRead(type, filter, offset, size, sort, direction);
+    }*/
 
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(ExtractionTypeVO type,

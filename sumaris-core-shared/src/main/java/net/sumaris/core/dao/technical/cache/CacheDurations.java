@@ -22,16 +22,33 @@
 
 package net.sumaris.core.dao.technical.cache;
 
+import java.time.Duration;
+
 /**
  * Cache duration, in seconds
  */
-public interface CacheDurations {
+public enum CacheDurations {
 
-    int DEFAULT = 1500; // 25 min;
+    DEFAULT(1500), // 25 min;
 
-    int SHORT = 10 * 60; // 10 min
-    int MEDIUM = 60 * 60; // 1 h
-    int LONG = 12 * 60 * 60; // 12 h
+    SHORT(10 * 60), // 10 min
+    MEDIUM(60 * 60), // 1 h
+    LONG(12 * 60 * 60), // 12 h
 
-    int ETERNAL = 24 * 60 * 60; // 1 day
+    ETERNAL(24 * 60 * 60) // 1 day
+    ;
+
+    private Duration value;
+
+    CacheDurations(int seconds) {
+        this.value = Duration.ofSeconds(seconds);
+    }
+
+    public Duration get() {
+        return value;
+    }
+
+    public static CacheDurations fromString(String name) {
+        return CacheDurations.valueOf(name.toUpperCase());
+    }
 }

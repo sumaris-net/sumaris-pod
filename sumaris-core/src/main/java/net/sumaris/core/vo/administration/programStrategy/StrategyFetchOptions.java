@@ -41,6 +41,30 @@ public class StrategyFetchOptions implements IFetchOptions {
     }
 
     /**
+     * Fetch taxon names
+     */
+    @Builder.Default
+    private boolean withTaxonNames = false;
+
+    /**
+     * Fetch taxon groups
+     */
+    @Builder.Default
+    private boolean withTaxonGroups = false;
+
+    /**
+     * Fetch departments
+     */
+    @Builder.Default
+    private boolean withDepartments = false;
+
+    /**
+     * Fetch gears
+     */
+    @Builder.Default
+    private boolean withGears = false;
+
+    /**
      * Compute PmfmStrategy (normalized entities)
      */
     @Builder.Default
@@ -51,6 +75,8 @@ public class StrategyFetchOptions implements IFetchOptions {
      */
     @Builder.Default
     private boolean withDenormalizedPmfms = false;
+
+
 
     /**
      * Fetch strategy for PSFM strategy

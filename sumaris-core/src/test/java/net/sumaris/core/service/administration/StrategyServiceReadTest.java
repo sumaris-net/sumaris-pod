@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -168,12 +169,14 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
     @Test
     public void findByFilter() {
 
+        Page page = Page.builder().size(100).build();
+
         // Filter by program
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
                 .programLabels(new String[]{fixtures.getDefaultProgram().getLabel()})
                 .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
         }
@@ -183,7 +186,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             StrategyFilterVO filter = StrategyFilterVO.builder()
                     .analyticReferences(new String[]{"P101-0001-01-DF"})
                     .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
             Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
@@ -194,7 +197,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             StrategyFilterVO filter = StrategyFilterVO.builder()
                 .referenceTaxonIds(new Integer[]{1006})
                 .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(2, strategies.size());
             Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
@@ -205,7 +208,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             StrategyFilterVO filter = StrategyFilterVO.builder()
                     .departmentIds(new Integer[]{3})
                     .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
             Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
@@ -216,7 +219,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             StrategyFilterVO filter = StrategyFilterVO.builder()
                     .locationIds(new Integer[]{101})
                     .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
             Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
@@ -227,7 +230,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             StrategyFilterVO filter = StrategyFilterVO.builder()
                     .parameterIds(new Integer[]{350, 351})
                     .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(2, strategies.size());
             Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
@@ -243,7 +246,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                             .build(),
                     })
                     .build();
-            List<StrategyVO> strategies = service.findByFilter(filter, Pageable.unpaged(), StrategyFetchOptions.DEFAULT);
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
             Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());

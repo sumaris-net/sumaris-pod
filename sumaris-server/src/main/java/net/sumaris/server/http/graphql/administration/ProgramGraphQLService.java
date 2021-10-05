@@ -27,8 +27,9 @@ import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
@@ -160,7 +161,12 @@ public class ProgramGraphQLService {
             @GraphQLEnvironment ResolutionEnvironment env) {
         filter = fillStrategyFilter(filter);
         return strategyService.findByFilter(filter,
-                Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build(),
                 getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
@@ -312,24 +318,17 @@ public class ProgramGraphQLService {
 
     @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
     @IsUser
-    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final Integer id,
-                                              @GraphQLArgument(name = "label") final String label,
+    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final int id,
                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
                                               @GraphQLEnvironment ResolutionEnvironment env) {
-
-
-
-        // Watch by id
-        if (id != null) {
-            Preconditions.checkArgument(id >= 0, "Invalid 'id' argument");
-            return changesPublisherService.getPublisher(Program.class, ProgramVO.class, id, minIntervalInSecond, true);
-        }
-
-        // Watch by label
-        Preconditions.checkNotNull(label, "Invalid 'label' argument");
         ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
-        return changesPublisherService.getPublisher((lastUpdateDate) -> programService.findIfNewerByLabel(label, lastUpdateDate, fetchOptions).orElse(null), minIntervalInSecond, true);
 
+        return changesPublisherService.getPublisher(updateDate -> {
+            // Get actual program
+            if (updateDate == null) return programService.get(id, fetchOptions);
+            // Get if newer
+            return programService.findNewerById(id, updateDate, fetchOptions).orElse(null);
+        }, minIntervalInSecond, true);
     }
 
 
@@ -408,25 +407,42 @@ public class ProgramGraphQLService {
 
     protected StrategyFetchOptions getStrategyFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
-                // Test if should include Pmfms
-                .withPmfms(
-                        fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
-                )
-                // Test if should include DenormalizedPmfms
-                .withDenormalizedPmfms(
-                        fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.LABEL)) ||
-                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.TYPE)) ||
-                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL)) ||
-                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
-                                fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
-                )
-                // Retrieve how to fetch Pmfms
-                .pmfmsFetchOptions(
-                        PmfmStrategyFetchOptions.builder()
-                                .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
-                                .build()
-                )
-                .build();
+            .withTaxonNames(
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.TAXON_NAMES, TaxonNameStrategyVO.Fields.PRIORITY_LEVEL))
+                || fields.contains(StringUtils.slashing(StrategyVO.Fields.TAXON_NAMES, TaxonNameStrategyVO.Fields.TAXON_NAME, TaxonNameVO.Fields.REFERENCE_TAXON_ID))
+            )
+            .withTaxonGroups(
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.TAXON_GROUPS, TaxonGroupStrategyVO.Fields.PRIORITY_LEVEL))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.TAXON_GROUPS, TaxonGroupStrategyVO.Fields.TAXON_GROUP, IEntity.Fields.ID))
+            )
+            .withDepartments(
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.DEPARTMENTS, StrategyDepartmentVO.Fields.ID))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.DEPARTMENTS, StrategyDepartmentVO.Fields.DEPARTMENT, IEntity.Fields.ID))
+            )
+            .withGears(
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.ID))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.LABEL))
+            )
+            // Test if should include Pmfms
+            .withPmfms(
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
+            )
+            // Test if should include DenormalizedPmfms
+            .withDenormalizedPmfms(
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.LABEL)) ||
+                            fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.TYPE)) ||
+                            fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL)) ||
+                            fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
+                            fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
+            )
+
+            // Retrieve how to fetch Pmfms
+            .pmfmsFetchOptions(
+                    PmfmStrategyFetchOptions.builder()
+                            .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
+                            .build()
+            )
+            .build();
     }
 
     protected void checkCanEditProgram(Integer programId) {

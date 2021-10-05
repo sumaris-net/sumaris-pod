@@ -50,15 +50,28 @@ public interface DataRepository<
     // From a filter
     List<V> findAll(F filter);
 
-    Page<V> findAll(F filter, Pageable pageable);
-
     List<V> findAll(F filter, @Nullable O fetchOptions);
 
-    Page<V> findAll(F filter, Pageable pageable, @Nullable O fetchOptions);
+    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
+
+    List<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
+
+    List<V> findAllVO(@Nullable Specification<E> spec);
+
+    List<V> findAllVO(@Nullable Specification<E> spec, O fetchOptions);
+
 
     /**
+     * @deprecated use Page instead
      */
-    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
+    @Deprecated
+    Page<V> findAll(F filter, Pageable pageable);
+
+    /**
+     * @deprecated use Page instead
+     */
+    @Deprecated
+    Page<V> findAll(F filter, Pageable pageable, @Nullable O fetchOptions);
 
     /**
      * @deprecated use Page instead
@@ -67,16 +80,15 @@ public interface DataRepository<
     List<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
 
     /**
+     * @deprecated use Page instead
      */
-    List<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
-
-    // From a specification
-    List<V> findAllVO(@Nullable Specification<E> spec);
-
+    @Deprecated
     Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable);
 
-    List<V> findAllVO(@Nullable Specification<E> spec, O fetchOptions);
-
+    /**
+     * @deprecated use Page instead
+     */
+    @Deprecated
     Page<V> findAllVO(@Nullable Specification<E> spec, Pageable pageable, O fetchOption);
 
     long count(F filter);

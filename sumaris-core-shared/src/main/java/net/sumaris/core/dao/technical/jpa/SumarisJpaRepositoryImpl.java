@@ -411,7 +411,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
-                                                   net.sumaris.core.dao.technical.Page page,
+                                                   @Nullable net.sumaris.core.dao.technical.Page page,
                                                    Class<S> domainClass) {
         if (page == null) {
             return getQuery(spec, domainClass, Pageable.unpaged());

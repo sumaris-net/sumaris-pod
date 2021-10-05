@@ -30,9 +30,12 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import java.util.List;
 
 @Data
-@FieldNameConstants
 @EqualsAndHashCode(callSuper = true)
 public class TaxonGroupVO extends ReferentialVO {
+
+    public interface Fields extends IReferentialVO.Fields {
+        String TAXON_NAMES = "taxonNames";
+    }
 
     // Fill using TaxonGroup2TaxonHierarchy (filled from TaxonGroupHistoricalRecord)
     List<TaxonNameVO> taxonNames;

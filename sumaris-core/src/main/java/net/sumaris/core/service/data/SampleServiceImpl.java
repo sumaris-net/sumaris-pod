@@ -201,7 +201,7 @@ public class SampleServiceImpl implements SampleService {
 		} else if (savedSample.getMeasurements() != null) {
 			savedSampleTagId = savedSample.getMeasurements().stream()
 					.filter(m -> m.getId() == PmfmEnum.TAG_ID.getId())
-					.map(m -> m.getAlphanumericalValue())
+					.map(MeasurementVO::getAlphanumericalValue)
 					.findFirst().orElse(null);
 		}
 

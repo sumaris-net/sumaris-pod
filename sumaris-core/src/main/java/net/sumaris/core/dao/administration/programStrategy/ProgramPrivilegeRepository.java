@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.dao.administration.programStrategy;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2020 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,31 +22,16 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.dao.referential.ReferentialRepository;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.util.Date;
+/**
+ * @author blavenie
+ */
+public interface ProgramPrivilegeRepository
+    extends ReferentialRepository<ProgramPrivilege, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
-public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
-
-    interface Fields extends IUpdateDateEntityBean.Fields {
-        String LABEL = "label";
-        String NAME = "name";
-    }
-
-    String getLabel();
-
-    void setLabel(String label);
-
-    String getName();
-
-    void setName(String name);
-
-    Integer getStatusId();
-
-    void setStatusId(Integer statusId);
-
-    Date getCreationDate();
-
-    void setCreationDate(Date creationDate);
 }

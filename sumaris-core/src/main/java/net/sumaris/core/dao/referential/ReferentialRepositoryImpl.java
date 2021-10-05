@@ -41,6 +41,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -76,6 +77,15 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
     public List<V> findAll(F filter, O fetchOptions) {
         return findAll(toSpecification(filter)).stream()
             .map(e -> this.toVO(e, fetchOptions))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
+        Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        TypedQuery<E> query = getQuery(spec, page, getDomainClass());
+        return streamQuery(query)
+            .map(entity -> toVO(entity, fetchOptions))
             .collect(Collectors.toList());
     }
 

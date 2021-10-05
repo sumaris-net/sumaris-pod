@@ -44,12 +44,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Date;
 import java.util.List;
 
 @Ignore("Use only SIH Oracle database")
 @ActiveProfiles("oracle")
+@TestPropertySource(locations = "classpath:application-oracle.properties")
 @Slf4j
 public class VesselServiceReadOracleTest extends AbstractServiceTest{
 
