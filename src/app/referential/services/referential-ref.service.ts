@@ -1,33 +1,40 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {ErrorCodes} from './errors';
-import {AccountService, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
-import {Referential, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
-import {ReferentialService} from './referential.service';
-import {IEntitiesService, LoadResult, SuggestService} from '@sumaris-net/ngx-components';
-import {GraphqlService} from '@sumaris-net/ngx-components';
-import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
-import {Metier, TaxonGroupRef, TaxonNameRef} from './model/taxon.model';
-import {NetworkService} from '@sumaris-net/ngx-components';
-import {EntitiesStorage} from '@sumaris-net/ngx-components';
-import {ReferentialFragments} from './referential.fragments';
-import {SortDirection} from '@angular/material/sort';
-import {Moment} from 'moment';
-import {isEmptyArray} from '@sumaris-net/ngx-components';
-import {JobUtils} from '@sumaris-net/ngx-components';
-import {chainPromises} from '@sumaris-net/ngx-components';
-import {BaseGraphqlService} from '@sumaris-net/ngx-components';
-import {StatusIds} from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {fromDateISOString} from '@sumaris-net/ngx-components';
-import {ObjectMap} from '@sumaris-net/ngx-components';
-import {TaxonNameRefFilter} from './filter/taxon-name-ref.filter';
-import {ReferentialRefFilter} from './filter/referential-ref.filter';
-import {Configuration} from '@sumaris-net/ngx-components';
-import {REFERENTIAL_CONFIG_OPTIONS} from './config/referential.config';
-import {ConfigService} from '@sumaris-net/ngx-components';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ErrorCodes } from './errors';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  BaseGraphqlService,
+  chainPromises,
+  ConfigService,
+  Configuration,
+  EntitiesStorage,
+  fromDateISOString,
+  GraphqlService,
+  IEntitiesService,
+  isEmptyArray,
+  JobUtils,
+  LoadResult,
+  NetworkService,
+  ObjectMap,
+  Referential,
+  ReferentialRef,
+  ReferentialUtils,
+  StatusIds,
+  SuggestService,
+} from '@sumaris-net/ngx-components';
+import { ReferentialService } from './referential.service';
+import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
+import { Metier, TaxonGroupRef, TaxonNameRef } from './model/taxon.model';
+import { ReferentialFragments } from './referential.fragments';
+import { SortDirection } from '@angular/material/sort';
+import { Moment } from 'moment';
+import { environment } from '@environments/environment';
+import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
+import { ReferentialRefFilter } from './filter/referential-ref.filter';
+import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -779,6 +786,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.AVERAGE_WEIGHT_PRICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AVERAGE_WEIGHT_PRICE_ID);
     PmfmIds.SALE_ESTIMATED_RATIO = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_ESTIMATED_RATIO_ID);
     PmfmIds.SALE_RANK_ORDER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_RANK_ORDER_ID);
+    PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
 
     // Methods
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);

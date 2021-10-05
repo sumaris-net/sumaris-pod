@@ -1,27 +1,34 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ReferentialForm} from "../form/referential.form";
-import {ReferentialRef, referentialToString, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {PmfmStrategiesTable, PmfmStrategyFilter} from "./pmfm-strategies.table";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {SelectReferentialModal} from "../list/select-referential.modal";
-import {ModalController} from "@ionic/angular";
-import {AppListForm, AppListFormOptions}  from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {BehaviorSubject} from "rxjs";
-import {debounceTime} from "rxjs/operators";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {Strategy, TaxonGroupStrategy, TaxonNameStrategy} from "../services/model/strategy.model";
-import {Program} from "../services/model/program.model";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "../services/filter/referential.filter";
-import {ReferentialRefFilter} from "../services/filter/referential-ref.filter";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { ReferentialForm } from '../form/referential.form';
+import {
+  AccountService,
+  AppEntityEditor,
+  AppListForm,
+  AppListFormOptions,
+  EntityServiceLoadOptions,
+  isEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils,
+  toNumber,
+} from '@sumaris-net/ngx-components';
+import { PmfmStrategiesTable, PmfmStrategyFilter } from './pmfm-strategies.table';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { SelectReferentialModal } from '../list/select-referential.modal';
+import { ModalController } from '@ionic/angular';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { Strategy, TaxonGroupStrategy, TaxonNameStrategy } from '../services/model/strategy.model';
+import { Program } from '../services/model/program.model';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 
 @Component({
   selector: 'app-strategy-form',
@@ -220,14 +227,14 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
       const json = await this.getJsonValueToSave();
       const data = Strategy.fromObject(json);
-      this.updateView(data, {openTabIndex: -1, updateTabAndRoute: false});
+      await this.updateView(data, {openTabIndex: -1, updateTabAndRoute: false});
     }
 
     return true;
   }
 
-  updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
-    super.updateView(data, {...opts, updateRoute: false});
+  async updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
+    await super.updateView(data, {...opts, updateRoute: false});
   }
 
   async openSelectReferentialModal(opts: {

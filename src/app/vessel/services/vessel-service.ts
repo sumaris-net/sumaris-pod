@@ -21,17 +21,17 @@ import {
 import { map } from 'rxjs/operators';
 import { ReferentialFragments } from '../../referential/services/referential.fragments';
 import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
-import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries} from './vessel-registration.service';
-import {Vessel} from './model/vessel.model';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
-import {SortDirection} from '@angular/material/sort';
-import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
-import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
-import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-service.class';
-import {VESSEL_FEATURE_NAME} from './config/vessel.config';
-import {VesselFilter} from './filter/vessel.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {environment} from '@environments/environment';
+import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries } from './vessel-registration.service';
+import { Vessel } from './model/vessel.model';
+import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { SortDirection } from '@angular/material/sort';
+import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
+import { BaseRootEntityGraphqlMutations } from '../../data/services/root-data-service.class';
+import { VESSEL_FEATURE_NAME } from './config/vessel.config';
+import { VesselFilter } from './filter/vessel.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { environment } from '@environments/environment';
 
 
 export const VesselFragments = {
@@ -195,8 +195,8 @@ export class VesselService
       // check id equals
       e1.id === e2.id ||
       // or exteriorMarking and registrationCode equals
-      (e1.features?.exteriorMarking === e2.features?.exteriorMarking &&
-        e1.registration?.registrationCode === e2.registration?.registrationCode)
+      (e1.vesselFeatures?.exteriorMarking === e2.vesselFeatures?.exteriorMarking &&
+        e1.vesselRegistrationPeriod?.registrationCode === e2.vesselRegistrationPeriod?.registrationCode)
     );
   }
 

@@ -47,7 +47,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { TripValidatorService } from './validator/trip.validator';
 import { Operation, PhysicalGear, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { fillRankOrder , SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
@@ -59,11 +59,10 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { Sample } from './model/sample.model';
 import { ErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { TripFilter , TripOfflineFilter} from './filter/trip.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
-import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
+import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
@@ -259,7 +258,7 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
   displaySuccessToast?: boolean;
 }
 
-const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } = {
+const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 
   // Load a trip
   load: gql` query Trip($id: Int!) {
@@ -441,6 +440,7 @@ export class TripService
 
   /**
    * Load many trips
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -589,12 +589,12 @@ export class TripService
     return res && res.total > 0;
   }
 
-  listenChanges(id: number, opts?: { interval?: number; }): Observable<Trip> {
+  listenChanges(id: number, opts?: { interval?: number }): Observable<Trip> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
@@ -613,6 +613,7 @@ export class TripService
 
   /**
    * Save many trips
+   *
    * @param entities
    * @param opts
    */
@@ -626,6 +627,7 @@ export class TripService
 
   /**
    * Save a trip
+   *
    * @param entity
    * @param opts
    */
@@ -877,6 +879,7 @@ export class TripService
 
   /**
    * Control the validity of an trip
+   *
    * @param entity
    * @param opts
    */
@@ -921,6 +924,7 @@ export class TripService
 
   /**
    * Delete many trips
+   *
    * @param entities
    * @param opts
    */
@@ -958,6 +962,7 @@ export class TripService
 
   /**
    * Delete many local trips
+   *
    * @param entities
    * @param opts
    */
@@ -1003,6 +1008,7 @@ export class TripService
 
   /**
    * Copy entities (local or remote) to the local storage
+   *
    * @param entities
    * @param opts
    */
@@ -1010,7 +1016,7 @@ export class TripService
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
-  async copyLocallyById(id: number, opts?: TripLoadOptions & {}): Promise<Trip> {
+  async copyLocallyById(id: number, opts?: TripLoadOptions): Promise<Trip> {
 
     // Load existing data
     const data = await this.load(id, {...opts, fetchPolicy: 'network-only'});
@@ -1031,6 +1037,7 @@ export class TripService
 
   /**
    * Copy an entity (local or remote) to the local storage
+   *
    * @param source
    * @param opts
    */
@@ -1066,57 +1073,6 @@ export class TripService
     }
 
     return target;
-  }
-
-  /* -- protected methods -- */
-
-  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
-    opts = {...MINIFY_OPTIONS, ...opts};
-    const copy: any = entity.asObject(opts);
-
-    // Fill return date using departure date
-    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
-
-    // Fill return location using departure location
-    if (!copy.returnLocation || !copy.returnLocation.id) {
-      copy.returnLocation = {...copy.departureLocation};
-    }
-
-    // Full json optimisation
-    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
-      // Clean vessel features object, before saving
-      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
-    }
-
-    return copy;
-  }
-
-  protected fillDefaultProperties(entity: Trip) {
-
-    super.fillDefaultProperties(entity);
-
-    if (entity.operationGroups) {
-      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
-      entity.operationGroups.forEach(operationGroup => {
-        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
-        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
-      });
-    }
-    // todo maybe others tables ?
-
-    // Physical gears: compute rankOrder
-    fillRankOrder(entity.gears);
-
-    // Measurement: compute rankOrder
-    fillRankOrder(entity.measurements);
-  }
-
-  protected async fillOfflineDefaultProperties(entity: Trip) {
-    await super.fillOfflineDefaultProperties(entity);
-
-    // Fill gear id
-    const gears = entity.gears || [];
-    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripSaveOptions) {
@@ -1214,8 +1170,60 @@ export class TripService
     }
   }
 
+  /* -- protected methods -- */
+
+  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
+    opts = {...MINIFY_OPTIONS, ...opts};
+    const copy: any = entity.asObject(opts);
+
+    // Fill return date using departure date
+    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
+
+    // Fill return location using departure location
+    if (!copy.returnLocation || !copy.returnLocation.id) {
+      copy.returnLocation = {...copy.departureLocation};
+    }
+
+    // Full json optimisation
+    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
+      // Clean vessel features object, before saving
+      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+    }
+
+    return copy;
+  }
+
+  protected fillDefaultProperties(entity: Trip) {
+
+    super.fillDefaultProperties(entity);
+
+    if (entity.operationGroups) {
+      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
+      entity.operationGroups.forEach(operationGroup => {
+        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
+        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
+      });
+    }
+    // todo maybe others tables ?
+
+    // Physical gears: compute rankOrder
+    fillRankOrder(entity.gears);
+
+    // Measurement: compute rankOrder
+    fillRankOrder(entity.measurements);
+  }
+
+  protected async fillOfflineDefaultProperties(entity: Trip) {
+    await super.fillOfflineDefaultProperties(entity);
+
+    // Fill gear id
+    const gears = entity.gears || [];
+    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
+  }
+
   /**
    * List of importation jobs.
+   *
    * @protected
    * @param opts
    */
@@ -1253,6 +1261,7 @@ export class TripService
 
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */

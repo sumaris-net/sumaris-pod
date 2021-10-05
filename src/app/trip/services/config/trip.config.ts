@@ -3,7 +3,6 @@ import { Operation, Trip } from '../model/trip.model';
 import { TypePolicies } from '@apollo/client/core';
 import { ObservedLocation } from '../model/observed-location.model';
 import { Landing } from '../model/landing.model';
-import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -78,6 +77,9 @@ export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   },
   'AggregatedLandingVO': {
     keyFields: ['vesselSnapshot']
+  },
+  'VesselActivityVO': {
+    keyFields: ['date', 'rankOrder', 'observedLocationId', 'landingId']
   }
 };
 
@@ -108,11 +110,17 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
     lightFieldsExcludes: ["samples"]
   },
 
-  'AggregatedLandingVO': <EntityStoreTypePolicy<AggregatedLanding>>{
-    mode: 'default',
-    skipNonLocalEntities: true,
-    lightFieldsExcludes: ['vesselActivities']
-  },
+  // 'AggregatedLandingVO': <EntityStoreTypePolicy<AggregatedLanding>>{
+  //   mode: 'default',
+  //   skipNonLocalEntities: true,
+  //   lightFieldsExcludes: ['vesselActivities']
+  // },
+  //
+  // 'VesselActivityVO': <EntityStoreTypePolicy<VesselActivity>>{
+  //   mode: 'default',
+  //   skipNonLocalEntities: true,
+  //   lightFieldsExcludes: ['metiers']
+  // },
 
   // Fake entity, use to store historical data
   'Remote#LandingVO': <EntityStoreTypePolicy<Landing>>{

@@ -27,7 +27,6 @@ import { VesselActivityForm } from './aggregated-landing/vessel-activity.form';
 import { AggregatedLandingModal } from './aggregated-landing/aggregated-landing.modal';
 import { TripModule } from './trip.module';
 import { CoreModule } from '@sumaris-net/ngx-components';
-import { AppReferentialModule } from '../referential/app-referential.module';
 import { SelectVesselsModal } from './observedlocation/vessels/select-vessel.modal';
 import { AppDataModule } from '../data/app-data.module';
 import { TranslateModule } from '@ngx-translate/core';
@@ -35,6 +34,7 @@ import { SamplesModal } from './sample/samples.modal';
 import { SamplingLandingPage } from './landing/sampling/sampling-landing.page';
 import { ObservedLocationOfflineModal } from './observedlocation/offline/observed-location-offline.modal';
 import { VesselModule } from '../vessel/vessel.module';
+import { AppReferentialModule } from '@app/referential/referential.module';
 
 
 @NgModule({

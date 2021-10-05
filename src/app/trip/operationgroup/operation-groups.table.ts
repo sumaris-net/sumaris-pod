@@ -30,8 +30,11 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
 })
 export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationFilter> implements OnInit, OnDestroy {
 
+  @Input() $metiers: BehaviorSubject<ReferentialRef[]>;
+
+  referentialToString = referentialToString;
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
 
   @Input()
@@ -46,8 +49,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   get dirty(): boolean {
     return super.dirty || this.memoryDataService.dirty;
   }
-
-  @Input() $metiers: BehaviorSubject<ReferentialRef[]>;
 
   constructor(
     injector: Injector,
@@ -100,34 +101,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
 
   }
 
-  referentialToString = referentialToString;
-
-  /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    if (this.platform.is('mobile')) {
-      // hide pmfms on mobile
-      return [];
-    }
-
-    return pmfms;
-  }
-
-  protected async addRowToTable(): Promise<TableElement<OperationGroup>> {
-    const row = await super.addRowToTable();
-
-    // TODO BLA: a mettre dans onNewEntity() ?
-    row.validator.controls['rankOrderOnPeriod'].setValue(this.getNextRankOrderOnPeriod());
-    // row.validator.controls['rankOrderOnPeriod'].updateValueAndValidity();
-
-    return row;
-  }
-
   getNextRankOrderOnPeriod(): number {
     let next = 0;
     (this.value || []).forEach(v => {
@@ -152,5 +125,32 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
 
     }
   }
+
+  /* -- protected methods -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  protected async addRowToTable(): Promise<TableElement<OperationGroup>> {
+    const row = await super.addRowToTable();
+
+    // TODO BLA: a mettre dans onNewEntity() ?
+    row.validator.controls['rankOrderOnPeriod'].setValue(this.getNextRankOrderOnPeriod());
+    // row.validator.controls['rankOrderOnPeriod'].updateValueAndValidity();
+
+    return row;
+  }
+
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+
+    if (this.platform.is('mobile')) {
+      // hide pmfms on mobile
+      return [];
+    }
+
+    return pmfms;
+  }
+
 }
 

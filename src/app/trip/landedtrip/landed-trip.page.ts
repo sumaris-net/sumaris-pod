@@ -350,7 +350,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
 
     // Fishing area
-    this.fishingAreaForm.value = data.fishingArea || {};
+    this.fishingAreaForm.value = data.fishingAreas?.[0] || {};
 
     // Trip measurements todo filter ????????
     const tripMeasurements = data.measurements || [];
@@ -553,7 +553,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
     // FishingArea
-    json.fishingArea = !this.fishingAreaForm.empty ? this.fishingAreaForm.value : null;
+    json.fishingAreas = [!this.fishingAreaForm.empty ? this.fishingAreaForm.value : null];
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 

@@ -6,9 +6,10 @@ import { ReferentialValidatorService } from '../services/validator/referential.v
 import { ReferentialService } from '../services/referential.service';
 import {
   AccountService,
-  AppTable, changeCaseToUnderscore,
-  StatusList,
-  EntitiesTableDataSource, EntityUtils,
+  AppTable,
+  changeCaseToUnderscore,
+  EntitiesTableDataSource,
+  EntityUtils,
   firstNotNilPromise,
   isNil,
   isNotEmptyArray,

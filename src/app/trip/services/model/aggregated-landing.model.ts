@@ -3,9 +3,9 @@ import { Moment } from 'moment';
 import { IWithVesselSnapshotEntity, VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Entity, EntityAsObjectOptions, EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
-import { SynchronizationStatus } from '@app/data/services/model/root-data-entity.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { SortDirection } from '@angular/material/sort';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 
 @EntityClass({typename: 'VesselActivityVO'})
 export class VesselActivity extends Entity<VesselActivity> {
@@ -33,6 +33,13 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.tripId = null;
   }
 
+  static isEmpty(value: VesselActivity) {
+    return !value || (
+      MeasurementValuesUtils.isEmpty(value.measurementValues)
+      && isEmptyArray(value.metiers)
+    );
+  }
+
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.date = toDateISOString(this.date);
@@ -53,12 +60,6 @@ export class VesselActivity extends Entity<VesselActivity> {
     this.tripId = source.tripId;
   }
 
-  static isEmpty(value: VesselActivity) {
-    return !value || (
-      MeasurementValuesUtils.isEmpty(value.measurementValues)
-      && isEmptyArray(value.metiers)
-    );
-  }
 }
 
 @EntityClass({typename: 'AggregatedLandingVO'})

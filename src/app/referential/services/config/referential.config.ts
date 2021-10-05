@@ -1,6 +1,6 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
+import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds } from '../model/model.enum';
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -308,6 +308,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: PmfmIds.TOTAL_PRICE
+  },
+  PMFM_REFUSED_SURVEY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.REFUSED_SURVEY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_REFUSED_SURVEY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.REFUSED_SURVEY
   },
 
   // Methods

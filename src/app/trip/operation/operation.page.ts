@@ -1,33 +1,42 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {HistoryPageReference, ReferentialUtils, UsageMode} from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from 'rxjs/operators';
-import {FormGroup, Validators} from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  fadeInOutAnimation,
+  firstNotNil,
+  firstNotNilPromise,
+  HistoryPageReference,
+  IEntity,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  ReferentialUtils,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
+import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap } from 'rxjs/operators';
+import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
-import {IndividualMonitoringSubSamplesTable} from '../sample/individualmonitoring/individual-monitoring-samples.table';
-import {Program} from '@app/referential/services/model/program.model';
-import {SubSamplesTable} from '../sample/sub-samples.table';
-import {SamplesTable} from '../sample/samples.table';
-import {Batch} from '../services/model/batch.model';
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank} from '@sumaris-net/ngx-components';
-import {firstNotNil, firstNotNilPromise} from '@sumaris-net/ngx-components';
-import {Operation, Trip} from '../services/model/trip.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
-import {EntityUtils, IEntity} from '@sumaris-net/ngx-components';
-import {PlatformService} from '@sumaris-net/ngx-components';
-import {BatchTreeComponent} from '../batch/batch-tree.component';
-import {fadeInOutAnimation} from '@sumaris-net/ngx-components';
-import {EntityServiceLoadOptions} from '@sumaris-net/ngx-components';
-import {AppEntityEditor} from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
-import {Measurement} from '@app/trip/services/model/measurement.model';
+import { IndividualMonitoringSubSamplesTable } from '../sample/individualmonitoring/individual-monitoring-samples.table';
+import { Program } from '@app/referential/services/model/program.model';
+import { SubSamplesTable } from '../sample/sub-samples.table';
+import { SamplesTable } from '../sample/samples.table';
+import { Batch } from '../services/model/batch.model';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { BatchTreeComponent } from '../batch/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { Measurement } from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 
@@ -431,8 +440,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   }
 
-  updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
-    super.updateView(data, opts);
+  async updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    await super.updateView(data, opts);
 
     if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
       this.batchTree.autoFill();
