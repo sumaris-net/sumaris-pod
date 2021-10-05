@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.service;
  */
 
 import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.extraction.DatabaseResource;
 import net.sumaris.core.extraction.specification.data.trip.AggRjbTripSpecification;
 import net.sumaris.core.extraction.specification.data.trip.RdbSpecification;
@@ -244,7 +245,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(AggRdbSpecification.COLUMN_AREA);
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_MONTH);
 
-        AggregationResultVO result = aggregationService.executeAndRead(type, filter, strata, 0,100, null, null);
+        AggregationResultVO result = aggregationService.executeAndRead(type, filter, strata, Page.builder().size(100).build());
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -284,7 +285,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName(AggRdbSpecification.COLUMN_AREA);
 
-        AggregationResultVO result = aggregationService.getAggBySpace(savedType, filter, strata, 0,100, null, null);
+        AggregationResultVO result = aggregationService.getAggBySpace(savedType, filter, strata, Page.builder().size(100).build());
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());

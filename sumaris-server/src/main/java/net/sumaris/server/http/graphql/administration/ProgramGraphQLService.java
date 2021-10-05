@@ -287,7 +287,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
     public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
         if (taxonGroup.getId() != null) {
-            return taxonNameService.getAllByTaxonGroupId(taxonGroup.getId());
+            return taxonNameService.findAllByTaxonGroupId(taxonGroup.getId());
         }
         return null;
     }

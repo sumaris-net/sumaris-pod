@@ -27,10 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,28 +54,32 @@ public class TaxonNameServiceImpl implements TaxonNameService {
     protected ReferentialDao referentialDao;
 
     @Override
-    public TaxonNameVO get(int id) {
-        return taxonNameRepository.get(id);
+    public TaxonNameVO get(int id, TaxonNameFetchOptions fetchOptions) {
+        return taxonNameRepository.get(id, fetchOptions);
     }
 
     @Override
-    public TaxonNameVO getByLabel(String label) {
+    public TaxonNameVO getByLabel(String label, TaxonNameFetchOptions fetchOptions) {
         Preconditions.checkNotNull(label);
-        return taxonNameRepository.getByLabel(label);
+        return taxonNameRepository.getByLabel(label, fetchOptions);
     }
 
     @Override
-    public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return taxonNameRepository.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+    public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Page page, TaxonNameFetchOptions fetchOptions) {
+        return taxonNameRepository.findAll(filter, page, fetchOptions);
+    }
+
+    public List<TaxonNameVO> findAllSpeciesAndSubSpecies(boolean withSynonyms, Page page, TaxonNameFetchOptions fetchOptions) {
+        return taxonNameRepository.findAll(
+            TaxonNameFilterVO.builder()
+                .withSynonyms(withSynonyms)
+                .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()})
+                .build(),
+            page, fetchOptions);
     }
 
     @Override
-    public List<TaxonNameVO> getAll(boolean withSynonyms) {
-        return taxonNameRepository.getAll(withSynonyms);
-    }
-
-    @Override
-    public List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId) {
+    public List<TaxonNameVO> findAllByTaxonGroupId(Integer taxonGroupId) {
         return taxonNameRepository.getAllByTaxonGroupId(taxonGroupId);
     }
 

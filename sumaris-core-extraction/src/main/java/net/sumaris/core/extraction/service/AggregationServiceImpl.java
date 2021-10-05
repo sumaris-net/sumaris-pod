@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -184,7 +185,10 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public AggregationResultVO getAggBySpace(AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, int offset, int size, String sort, SortDirection direction) {
+    public AggregationResultVO getAggBySpace(AggregationTypeVO type,
+                                             @Nullable ExtractionFilterVO filter,
+                                             @Nullable AggregationStrataVO strata,
+                                             Page page) {
         Preconditions.checkNotNull(type);
 
         ExtractionProductVO product = productService.getByLabel(type.getLabel(),
@@ -194,14 +198,14 @@ public class AggregationServiceImpl implements AggregationService {
         String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
         AggregationContextVO context = toContextVO(product, sheetName);
 
-        return getAggBySpace(context, filter, strata, offset, size, sort, direction);
+        return getAggBySpace(context, filter, strata, page);
     }
 
     @Override
     public AggregationResultVO getAggBySpace(@NonNull AggregationContextVO context,
                                              @Nullable ExtractionFilterVO filter,
                                              @Nullable AggregationStrataVO strata,
-                                             int offset, int size, String sort, SortDirection direction) {
+                                             Page page) {
         filter = ExtractionFilterVO.nullToEmpty(filter);
         strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
         String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
@@ -217,7 +221,7 @@ public class AggregationServiceImpl implements AggregationService {
 
         // Read the data
         ProductFormatEnum format = ExtractionFormats.getProductFormat(context);
-        return getDao(format).getAggBySpace(tableName, filter, strata, offset, size, sort, direction);
+        return getDao(format).getAggBySpace(tableName, filter, strata, page);
     }
 
     @Override
@@ -277,7 +281,7 @@ public class AggregationServiceImpl implements AggregationService {
 
     @Override
     public AggregationResultVO executeAndRead(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata,
-                                              int offset, int size, String sort, SortDirection direction) {
+                                              Page page) {
         // Execute the aggregation
         AggregationContextVO context = aggregate(type, filter, strata);
         Daos.commitIfHsqldbOrPgsql(dataSource);
@@ -291,7 +295,7 @@ public class AggregationServiceImpl implements AggregationService {
 
         try {
             // Read data
-            return getAggBySpace(context, readFilter, strata, offset, size, sort, direction);
+            return getAggBySpace(context, readFilter, strata, page);
         } finally {
             // Clean created tables
             clean(context, true);

@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.AggregationTypeFilterVO;
@@ -80,13 +81,13 @@ public interface AggregationService {
     AggregationResultVO getAggBySpace(AggregationTypeVO type,
                                       @Nullable ExtractionFilterVO filter,
                                       @Nullable AggregationStrataVO strata,
-                                      int offset, int size, String sort, SortDirection direction);
+                                      Page page);
 
     @Transactional(readOnly = true)
     AggregationResultVO getAggBySpace(AggregationContextVO context,
                                       @Nullable ExtractionFilterVO filter,
                                       @Nullable AggregationStrataVO strata,
-                                      int offset, int size, String sort, SortDirection direction);
+                                      Page page);
 
     @Transactional(readOnly = true)
     AggregationTechResultVO getAggByTech(AggregationTypeVO format,
@@ -109,9 +110,7 @@ public interface AggregationService {
     AggregationResultVO executeAndRead(AggregationTypeVO type,
                                        @Nullable ExtractionFilterVO filter,
                                        @Nullable AggregationStrataVO strata,
-                                       int offset, int size,
-                                       @Nullable String sort,
-                                       @Nullable SortDirection direction);
+                                       Page page);
 
     @Transactional(timeout = 10000000)
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);

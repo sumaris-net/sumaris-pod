@@ -23,7 +23,7 @@
 package net.sumaris.core.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.cache.CacheDurations;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.cache.Caches;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
@@ -94,11 +94,12 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String DENORMALIZED_PMFM_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.denormalizedPmfmByFilter";
 
         // Taxon
-        String TAXON_NAME_BY_ID = "net.sumaris.core.dao.referential.taxonNameById";
-        String TAXON_NAME_BY_FILTER = "net.sumaris.core.dao.referential.taxonNameByFilter";
-        String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxonNameByReferenceId";
-        String TAXON_NAMES_BY_TAXON_GROUP_ID = "net.sumaris.core.dao.referential.taxonNamesByTaxonGroupId";
-        String REFERENCE_TAXON_ID_BY_TAXON_NAME_ID = "net.sumaris.core.dao.referential.referenceTaxonIdByTaxonNameId";
+        String TAXON_NAME_BY_ID = "net.sumaris.core.dao.referential.taxon.taxonNameById";
+        String TAXON_NAME_BY_FILTER = "net.sumaris.core.dao.referential.taxon.taxonNameByFilter";
+        String TAXON_NAME_BY_TAXON_REFERENCE_ID = "net.sumaris.core.dao.referential.taxon.taxonNameByReferenceId";
+        String TAXON_NAMES_BY_TAXON_GROUP_ID = "net.sumaris.core.dao.referential.taxon.taxonNamesByTaxonGroupId";
+        String TAXONONOMIC_LEVEL_BY_ID = "net.sumaris.core.dao.referential.taxon.taxonomicLevelById";
+        String REFERENCE_TAXON_ID_BY_TAXON_NAME_ID = "net.sumaris.core.dao.referential.taxon.referenceTaxonIdByTaxonNameId";
 
         // Vessel
         String VESSEL_SNAPSHOT_BY_ID_AND_DATE = "net.sumaris.core.service.data.vessel.vesselSnapshotByIdAndDate";
@@ -106,8 +107,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String VESSEL_SNAPSHOTS_COUNT_BY_FILTER = "net.sumaris.core.service.data.vessel.vesselSnapshotCountByFilter";
 
         // Extraction
-        String PRODUCT_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.technical.product.productByLabel";
-        String PRODUCTS_BY_FILTER = "net.sumaris.core.dao.technical.product.productByFilter";
+        String PRODUCT_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.technical.extraction.productByLabel";
+        String PRODUCTS_BY_FILTER = "net.sumaris.core.dao.technical.extraction.productByFilter";
         String TABLE_META_BY_NAME = "net.sumaris.core.dao.technical.schema.tableMetaByName";
 
         // Other
@@ -131,34 +132,34 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             log.info("Adding {Core} caches...");
             // Referential
             Caches.createEternalCollectionHeapCache(cacheManager, Names.REFERENTIAL_TYPES, ReferentialTypeVO.class, 600);
-            Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheDurations.DEFAULT.get(), 600);
+            Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Department
-            Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_ID, Integer.class, DepartmentVO.class, CacheDurations.DEFAULT.get(), 600);
-            Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_LABEL, String.class, DepartmentVO.class, CacheDurations.DEFAULT.get(), 600);
+            Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_ID, Integer.class, DepartmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_LABEL, String.class, DepartmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Person
-            Caches.createHeapCache(cacheManager, Names.PERSON_BY_ID, Integer.class, PersonVO.class, CacheDurations.DEFAULT.get(), 600);
-            Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheDurations.DEFAULT.get(), 600);
+            Caches.createHeapCache(cacheManager, Names.PERSON_BY_ID, Integer.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Location
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_LEVEL_BY_LABEL, String.class, ReferentialVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_BY_ID, Integer.class, LocationVO.class, 2000);
 
             // Gear
-            Caches.createHeapCache(cacheManager, Names.GEAR_BY_ID, Integer.class, ReferentialVO.class, CacheDurations.DEFAULT.get(), 300);
+            Caches.createHeapCache(cacheManager, Names.GEAR_BY_ID, Integer.class, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 300);
 
             // Program
-            Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheDurations.DEFAULT.get(), 100);
+            Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL, String.class, ProgramVO.class, 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
 
             // Strategy
-            Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheDurations.DEFAULT.get(), 100);
-            Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_ID, Integer.class, StrategyVO.class, CacheDurations.LONG.get(), 500);
-            Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_LABEL, String.class, StrategyVO.class, CacheDurations.LONG.get(), 500);
-            Caches.createCollectionHeapCache(cacheManager, Names.PMFM_STRATEGIES_BY_FILTER, PmfmStrategyVO.class, CacheDurations.DEFAULT.get(), 500);
-            Caches.createCollectionHeapCache(cacheManager, Names.DENORMALIZED_PMFM_BY_FILTER, DenormalizedPmfmStrategyVO.class, CacheDurations.DEFAULT.get(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheTTL.DEFAULT.asDuration(), 100);
+            Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_ID, Integer.class, StrategyVO.class, CacheTTL.LONG.asDuration(), 500);
+            Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_LABEL, String.class, StrategyVO.class, CacheTTL.LONG.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PMFM_STRATEGIES_BY_FILTER, PmfmStrategyVO.class, CacheTTL.DEFAULT.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.DENORMALIZED_PMFM_BY_FILTER, DenormalizedPmfmStrategyVO.class, CacheTTL.DEFAULT.asDuration(), 500);
 
             // Pmfm
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_BY_ID, Integer.class, PmfmVO.class, 600);
@@ -173,16 +174,18 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalHeapCache(cacheManager, Names.TAXON_NAME_BY_FILTER, Integer.class, TaxonNameVO.class, 600);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.TAXON_NAMES_BY_TAXON_GROUP_ID, Integer.class, TaxonNameVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, Integer.class, Integer.class, 600);
+            Caches.createEternalHeapCache(cacheManager, Names.TAXONONOMIC_LEVEL_BY_ID, Integer.class, ReferentialVO.class, 50);
 
             // Vessel
-            Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, VesselSnapshotVO.class, CacheDurations.DEFAULT.get(), 600);
-            Caches.createCollectionHeapCache(cacheManager, Names.VESSEL_SNAPSHOTS_BY_FILTER, VesselSnapshotVO.class, CacheDurations.DEFAULT.get(), 50);
-            Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, Integer.class, Long.class, CacheDurations.DEFAULT.get(), 50);
+            Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, VesselSnapshotVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.VESSEL_SNAPSHOTS_BY_FILTER, VesselSnapshotVO.class, CacheTTL.DEFAULT.asDuration(), 50);
+            Caches.createHeapCache(cacheManager, Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, Integer.class, Long.class, CacheTTL.DEFAULT.asDuration(), 50);
 
             // Extraction
             Caches.createEternalHeapCache(cacheManager, Names.PRODUCT_BY_LABEL_AND_OPTIONS, ExtractionProductVO.class, 100);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PRODUCTS_BY_FILTER, ExtractionProductVO.class, 100);
-            Caches.createHeapCache(cacheManager, Names.TABLE_META_BY_NAME, String.class, SumarisTableMetadata.class, CacheDurations.DEFAULT.get(), 500);
+            Caches.createHeapCache(cacheManager, Names.TABLE_META_BY_NAME, String.class, SumarisTableMetadata.class, CacheTTL.DEFAULT.asDuration(), 500);
+
 
             // Other entities
             Caches.createEternalCollectionHeapCache(cacheManager, Names.ANALYTIC_REFERENCES_BY_FILTER, ReferentialVO.class, 100);

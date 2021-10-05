@@ -229,6 +229,11 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id", condition = "#entityName == 'TaxonName'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true, condition = "#entityName == 'TaxonName'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'ReferenceTaxon'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'TaxonGroup'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id", condition = "#entityName == 'TaxonomicLevel'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#id", condition = "#entityName == 'Gear'")
     })
     public void delete(final String entityName, int id) {
@@ -307,6 +312,7 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#source.entityName == 'TaxonName' || #source.entityName == 'TaxonGroup'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#source.id", condition = "#source.entityName == 'TaxonomicLevel'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#source.id", condition = "#source.entityName == 'Gear'")
         }
     )

@@ -135,7 +135,7 @@ public class Caches {
         Class<V> valueClass,
         int entries) {
 
-        return createHeapCache(cacheManager, cacheName, valueClass, CacheDurations.ETERNAL.get(), entries);
+        return createHeapCache(cacheManager, cacheName, valueClass, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     public static <K, V> Cache<K, V> createEternalHeapCache(
@@ -145,7 +145,7 @@ public class Caches {
         Class<V> valueClass,
         int entries) {
 
-        return createHeapCache(cacheManager, cacheName, keyType, valueClass, CacheDurations.ETERNAL.get(), entries);
+        return createHeapCache(cacheManager, cacheName, keyType, valueClass, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     public static <C extends Collection<V>, V> Cache<SimpleKey, C> createEternalCollectionHeapCache(
@@ -154,7 +154,7 @@ public class Caches {
         Class<V> valueType,
         int entries) {
 
-        return createCollectionHeapCache(cacheManager, cacheName, valueType, CacheDurations.ETERNAL.get(), entries);
+        return createCollectionHeapCache(cacheManager, cacheName, valueType, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     public static <K, C extends Collection<V>, V> Cache<K, C> createEternalCollectionHeapCache(
@@ -164,7 +164,7 @@ public class Caches {
         Class<V> valueType,
         int entries) {
 
-        return createCollectionHeapCache(cacheManager, cacheName, keyType, valueType, CacheDurations.ETERNAL.get(), entries);
+        return createCollectionHeapCache(cacheManager, cacheName, keyType, valueType, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     /*

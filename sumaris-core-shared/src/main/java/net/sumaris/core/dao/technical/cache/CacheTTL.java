@@ -22,12 +22,17 @@
 
 package net.sumaris.core.dao.technical.cache;
 
+import lombok.NonNull;
+import net.sumaris.core.util.StringUtils;
+
+import javax.annotation.Nullable;
 import java.time.Duration;
 
 /**
  * Cache duration, in seconds
  */
-public enum CacheDurations {
+public enum CacheTTL {
+
 
     DEFAULT(1500), // 25 min;
 
@@ -40,15 +45,20 @@ public enum CacheDurations {
 
     private Duration value;
 
-    CacheDurations(int seconds) {
+    CacheTTL(int seconds) {
         this.value = Duration.ofSeconds(seconds);
     }
 
-    public Duration get() {
+    public Duration asDuration() {
         return value;
     }
 
-    public static CacheDurations fromString(String name) {
-        return CacheDurations.valueOf(name.toUpperCase());
+    public static CacheTTL fromString(@NonNull String name) {
+        return CacheTTL.valueOf(name.toUpperCase());
     }
+
+    public static CacheTTL nullToDefault(@Nullable CacheTTL ttl) {
+        return ttl == null ? CacheTTL.DEFAULT : ttl;
+    }
+
 }

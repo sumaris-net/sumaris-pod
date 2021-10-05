@@ -22,8 +22,10 @@ package net.sumaris.core.service.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,19 +35,19 @@ import java.util.List;
 public interface TaxonNameService {
 
     @Transactional(readOnly = true)
-    TaxonNameVO get(int id);
+    TaxonNameVO get(int id, TaxonNameFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    TaxonNameVO getByLabel(String label);
+    TaxonNameVO getByLabel(String label, TaxonNameFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Page page, TaxonNameFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<TaxonNameVO> getAll(boolean withSynonyms);
+    List<TaxonNameVO> findAllSpeciesAndSubSpecies(boolean withSynonyms, Page page, TaxonNameFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<TaxonNameVO> getAllByTaxonGroupId(Integer taxonGroupId);
+    List<TaxonNameVO> findAllByTaxonGroupId(Integer taxonGroupId);
 
     @Transactional(readOnly = true)
     Long countByFilter(TaxonNameFilterVO filter);

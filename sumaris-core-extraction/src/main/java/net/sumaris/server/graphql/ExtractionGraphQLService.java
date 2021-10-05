@@ -28,8 +28,9 @@ import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.NonNull;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.cache.CacheDurations;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -112,7 +113,7 @@ public class ExtractionGraphQLService {
     public ExtractionResultVO getExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                               @GraphQLArgument(name = "size", defaultValue = "100") Integer size,
                                                @GraphQLArgument(name = "sortBy") String sort,
                                                @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
@@ -123,7 +124,12 @@ public class ExtractionGraphQLService {
 
         securityService.checkReadAccess(type);
 
-        return extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return extractionService.executeAndRead(type, filter, Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build());
     }
 
     @GraphQLQuery(name = "extraction", description = "Preview some extraction")
@@ -143,14 +149,21 @@ public class ExtractionGraphQLService {
 
         securityService.checkReadAccess(type);
 
+        Page page = Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build();
+
         ExtractionResultVO resultVO;
-        //if (cacheDuration == null) {
-            resultVO = extractionService.executeAndRead(type, filter, offset, size, sort, SortDirection.fromString(direction));
-        /*}
+        if (cacheDuration == null) {
+            resultVO = extractionService.executeAndRead(type, filter, page);
+        }
         else {
-            CacheDurations duration = CacheDurations.fromString(cacheDuration);
-            resultVO = extractionService.executeAndReadWithCache(type, filter, offset, size, sort, SortDirection.fromString(direction), duration.name());
-        }*/
+            resultVO = extractionService.executeAndReadWithCache(type, filter, page,
+                CacheTTL.fromString(cacheDuration));
+        }
 
         return toJsonArray(resultVO);
     }

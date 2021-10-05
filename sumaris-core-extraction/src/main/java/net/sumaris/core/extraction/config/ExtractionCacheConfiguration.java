@@ -23,9 +23,10 @@ package net.sumaris.core.extraction.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.technical.cache.CacheDurations;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.cache.Caches;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -39,6 +40,9 @@ import org.springframework.context.annotation.Configuration;
 public class ExtractionCacheConfiguration {
 
     public interface Names {
+
+        String EXTRACTION_ROWS_PREFIX = "net.sumaris.core.dao.technical.extraction.extractionRows.";
+
         String AGGREGATION_TYPE_BY_ID_AND_OPTIONS = "net.sumaris.core.extraction.service.aggregationTypeById";
         String AGGREGATION_TYPE_BY_FORMAT = "net.sumaris.core.extraction.service.aggregationTypeByFormat";
     }
@@ -47,8 +51,13 @@ public class ExtractionCacheConfiguration {
     public JCacheManagerCustomizer extractionCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {Extraction} caches...");
-            Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, AggregationTypeVO.class, CacheDurations.DEFAULT, 100);
-            Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_FORMAT, String.class, AggregationTypeVO.class, CacheDurations.DEFAULT, 100);
+            Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, AggregationTypeVO.class, CacheTTL.DEFAULT.asDuration(), 100);
+            Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_FORMAT, String.class, AggregationTypeVO.class, CacheTTL.DEFAULT.asDuration(), 100);
+
+            for (CacheTTL ttl: CacheTTL.values()) {
+                Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
+                    Integer.class, ExtractionResultVO.class, ttl.asDuration(), 10);
+            }
         };
     }
 }

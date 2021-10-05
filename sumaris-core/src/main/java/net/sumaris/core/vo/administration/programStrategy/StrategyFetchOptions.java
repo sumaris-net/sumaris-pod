@@ -33,11 +33,10 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @ToString
 public class StrategyFetchOptions implements IFetchOptions {
 
-    public static StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
+    public static final StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
 
     public static StrategyFetchOptions nullToDefault(StrategyFetchOptions options) {
-        if (options != null) return options;
-        return DEFAULT;
+        return options != null ? options : DEFAULT;
     }
 
     /**
@@ -75,8 +74,6 @@ public class StrategyFetchOptions implements IFetchOptions {
      */
     @Builder.Default
     private boolean withDenormalizedPmfms = false;
-
-
 
     /**
      * Fetch strategy for PSFM strategy

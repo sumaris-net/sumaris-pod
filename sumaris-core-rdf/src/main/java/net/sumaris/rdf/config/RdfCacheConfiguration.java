@@ -24,7 +24,7 @@ package net.sumaris.rdf.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.technical.cache.CacheDurations;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.cache.Caches;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -47,7 +47,7 @@ public class RdfCacheConfiguration {
     public JCacheManagerCustomizer rdfCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {RDF} caches...");
-            Caches.createHeapCache(cacheManager, Names.ONTOLOGY_BY_NAME, String.class, Model.class, CacheDurations.DEFAULT.get(), 50);
+            Caches.createHeapCache(cacheManager, Names.ONTOLOGY_BY_NAME, String.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);
         };
     }
 

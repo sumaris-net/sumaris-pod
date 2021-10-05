@@ -25,12 +25,14 @@ package net.sumaris.core.dao.referential.taxon;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.cache.annotation.Cacheable;
@@ -79,18 +81,11 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
         ).value(Arrays.asList(taxonGroupIds));
     }
 
-    List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
-
-    List<TaxonNameVO> getAll(boolean withSynonyms);
-
-    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
     Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId);
 
     List<TaxonNameVO> findAllReferentByReferenceTaxonId(int referenceTaxonId);
 
-    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
     List<TaxonNameVO> getAllByTaxonGroupId(int taxonGroupId);
 
-    @Cacheable(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID)
     Integer getReferenceTaxonIdById(int id);
 }
