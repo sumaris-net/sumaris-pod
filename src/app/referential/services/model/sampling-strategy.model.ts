@@ -1,6 +1,8 @@
 import { Strategy } from './strategy.model';
 import { Moment } from 'moment';
-import { EntityClass, fromDateISOString, isNil, ReferentialAsObjectOptions, toNumber } from '@sumaris-net/ngx-components';
+import { EntityClass, fromDateISOString, isNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOptions {
   keepEffort: boolean; // fa  lse by default
@@ -26,6 +28,13 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
     3?: StrategyEffort;
     4?: StrategyEffort;
   };
+  year?: Moment;
+  sex?: boolean;
+  age?: boolean;
+  lengthPmfms: PmfmStrategy[];
+  weightPmfms: PmfmStrategy[];
+  maturityPmfms: PmfmStrategy[];
+  fractionPmfms: PmfmStrategy[];
 
   constructor() {
     super();
@@ -45,6 +54,14 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
     this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || [];
     this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || {};
     this.parameterGroups = source.parameterGroups || undefined;
+
+    this.year = fromDateISOString(source.year);
+    this.age = source.age;
+    this.sex = source.sex;
+    this.lengthPmfms = source.lengthPmfms && source.lengthPmfms.map(PmfmStrategy.fromObject);
+    this.weightPmfms = source.weightPmfms && source.weightPmfms.map(PmfmStrategy.fromObject);
+    this.maturityPmfms = source.maturityPmfms && source.maturityPmfms.map(PmfmStrategy.fromObject);
+    this.fractionPmfms = source.fractionPmfms && source.fractionPmfms.map(PmfmStrategy.fromObject);
     return target;
   }
 
@@ -56,6 +73,20 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
       delete target.efforts;
       delete target.effortByQuarter;
       delete target.parameterGroups;
+      delete target.year;
+      delete target.age;
+      delete target.sex;
+      delete target.lengthPmfms;
+      delete target.weightPmfms;
+      delete target.maturityPmfms;
+      delete target.fractionPmfms;
+    }
+    else {
+      target.year = toDateISOString(this.year);
+      target.lengthPmfms = this.lengthPmfms && this.lengthPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.weightPmfms = this.weightPmfms && this.weightPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.maturityPmfms = this.maturityPmfms && this.maturityPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.fractionPmfms = this.fractionPmfms && this.fractionPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     }
     return target;
   }

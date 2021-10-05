@@ -26,6 +26,7 @@ import { Program } from '../../services/model/program.model';
 import { ProgramService } from '../../services/program.service';
 import { AcquisitionLevelCodes, PmfmIds } from '../../services/model/model.enum';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { SamplingStrategy } from '@app/referential/services/model/sampling-strategy.model';
 
 const moment = momentImported;
 
@@ -34,7 +35,7 @@ const moment = momentImported;
   templateUrl: 'sampling-strategy.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingStrategyPage extends AppEntityEditor<Strategy, SamplingStrategyService> {
+export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, SamplingStrategyService> {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   $program = new BehaviorSubject<Program>(null);
@@ -55,7 +56,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, SamplingStra
     protected pmfmService: PmfmService,
     protected platform: PlatformService
   ) {
-    super(injector, Strategy, samplingStrategyService,
+    super(injector, SamplingStrategy, samplingStrategyService,
       {
         pathIdAttribute: 'strategyId',
         tabCount: 2,
@@ -81,7 +82,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, SamplingStra
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
-  protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: SamplingStrategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
 
     // Load program, form the route path
@@ -98,9 +99,11 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, SamplingStra
 
     // Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
     this.fillPmfmStrategyDefaults(data);
+
+    await this.strategyForm.ready();
   }
 
-  protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: SamplingStrategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     // Load program, form the entity's program
@@ -109,13 +112,27 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, SamplingStra
       this.$program.next(program);
     }
 
+    // Load full analytic reference, from label
+    if (data.analyticReference && typeof data.analyticReference === 'string') {
+      data.analyticReference = await this.samplingStrategyService.loadAnalyticReferenceByLabel(data.analyticReference);
+    }
+
+    await this.strategyForm.ready();
+  }
+
+  protected async onEntitySaved(data: SamplingStrategy): Promise<void> {
+    await super.onEntitySaved(data);
+
+    // Restore analyticReference object
+    data.analyticReference = this.form.get('analyticReference').value;
+
   }
 
   protected registerForms() {
     this.addChildForm(this.strategyForm);
   }
 
-  protected canUserWrite(data: Strategy): boolean {
+  protected canUserWrite(data: SamplingStrategy): boolean {
     return this.samplingStrategyService.canUserWrite(data);
   }
 
@@ -156,14 +173,19 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, SamplingStra
     return 0;
   }
 
-  protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  protected loadFromRoute(): Promise<void> {
+
+    return super.loadFromRoute();
+  }
+
+  protected setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return; // Skip
     this.strategyForm.setValue(data);
   }
 
-  protected async getValue(): Promise<Strategy> {
+  protected async getValue(): Promise<SamplingStrategy> {
 
-    const value: Strategy = await this.strategyForm.getValue();
+    const value: SamplingStrategy = (await this.strategyForm.getValue()) as SamplingStrategy;
 
     // Add default PmfmStrategy
     this.fillPmfmStrategyDefaults(value);

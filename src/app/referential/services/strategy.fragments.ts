@@ -61,8 +61,8 @@ export const StrategyFragments = {
     departments {
       ...StrategyDepartmentFragment
     }
-  }
-  `,
+  }`,
+
   appliedStrategy: gql`fragment AppliedStrategyFragment on AppliedStrategyVO {
       id
       strategyId
@@ -73,16 +73,16 @@ export const StrategyFragments = {
         ...AppliedPeriodFragment
       }
       __typename
-    }
-  `,
+    }`,
+
   appliedPeriod: gql`fragment AppliedPeriodFragment on AppliedPeriodVO {
       appliedStrategyId
       startDate
       endDate
       acquisitionNumber
       __typename
-    }
-  `,
+    }`,
+
   strategyDepartment: gql`fragment StrategyDepartmentFragment on StrategyDepartmentVO {
       id
       strategyId
@@ -96,8 +96,8 @@ export const StrategyFragments = {
         ...ReferentialFragment
       }
       __typename
-    }
-  `,
+    }`,
+
   lightPmfmStrategy: gql`fragment LightPmfmStrategyFragment on PmfmStrategyVO {
       id
       acquisitionLevel
@@ -128,6 +128,7 @@ export const StrategyFragments = {
       strategyId
       __typename
     }`,
+
   pmfmStrategy: gql`fragment PmfmStrategyFragment on PmfmStrategyVO {
     id
     acquisitionLevel
@@ -158,6 +159,7 @@ export const StrategyFragments = {
     strategyId
     __typename
   }`,
+
   taxonGroupStrategy: gql`fragment TaxonGroupStrategyFragment on TaxonGroupStrategyVO {
       strategyId
       priorityLevel
@@ -171,8 +173,8 @@ export const StrategyFragments = {
         }
       }
       __typename
-    }
-  `,
+    }`,
+
   taxonNameStrategy: gql`fragment TaxonNameStrategyFragment on TaxonNameStrategyVO {
       strategyId
       priorityLevel
@@ -180,8 +182,8 @@ export const StrategyFragments = {
         ...TaxonNameFragment
       }
       __typename
-    }
-  `,
+    }`,
+
   strategyRef: gql`fragment StrategyRefFragment on StrategyVO {
       id
       label
@@ -201,14 +203,14 @@ export const StrategyFragments = {
       taxonNames {
         ...TaxonNameStrategyFragment
       }
-    pmfms {
-      ...LightPmfmStrategyFragment
-    }
+      pmfms {
+        ...LightPmfmStrategyFragment
+      }
       denormalizedPmfms {
         ...DenormalizedPmfmStrategyFragment
       }
-    }
-  `,
+    }`,
+
   denormalizedPmfmStrategy: gql`fragment DenormalizedPmfmStrategyFragment on DenormalizedPmfmStrategyVO {
     id
     label
@@ -255,12 +257,6 @@ export const StrategyFragments = {
     creationDate
     statusId
     programId
-    gears {
-      ...ReferentialFragment
-    }
-    taxonGroups {
-      ...TaxonGroupStrategyFragment
-    }
     taxonNames {
       ...TaxonNameStrategyFragment
     }

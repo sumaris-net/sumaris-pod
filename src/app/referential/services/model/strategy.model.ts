@@ -16,7 +16,7 @@ export class Strategy<
 
   static fromObject: (source: any, opts?: any) => Strategy;
 
-  analyticReference: string = null;
+  analyticReference: string|ReferentialRef = null;
   appliedStrategies: AppliedStrategy[] = null;
   pmfms: PmfmStrategy[] = null;
   denormalizedPmfms: DenormalizedPmfmStrategy[] = null;

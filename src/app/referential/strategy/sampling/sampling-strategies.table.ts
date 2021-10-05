@@ -194,48 +194,54 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar)
 
       // Remove error after changed selection
-    this.selection.changed.subscribe(() => {
-      this.error = null;
-    });
+    this.selection.changed.subscribe(() => this.resetError());
 
     // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {
+      showAllOnFocus: false,
       suggestFn: (value, filter) => this.strategyService.suggestAnalyticReferences(value, {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 6],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     this.registerAutocompleteField('department', {
+      showAllOnFocus: false,
       service: this.referentialRefService,
       filter: <ReferentialFilter>{
         entityName: 'Department',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+      },
+      mobile: this.mobile
     });
 
     this.registerAutocompleteField('location', {
+      showAllOnFocus: false,
       service: this.referentialRefService,
       filter: <ReferentialFilter>{
         entityName: 'Location',
         // TODO BLA: rendre ceci paramètrable par program properties
         levelIds: LocationLevelIds.LOCATIONS_AREA,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+      },
+      mobile: this.mobile
     });
 
     this.registerAutocompleteField('taxonName', {
+      showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggestTaxonNames(value, filter),
       attributes: ['name'],
       filter: <ReferentialFilter>{
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: recorder person (filter)
     this.registerAutocompleteField('person', {
+      showAllOnFocus: false,
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]

@@ -81,7 +81,7 @@ export const ReferentialFragments = {
     updateDate
     creationDate
     referenceTaxonId
-    parentTaxonName{
+    parentTaxonName {
       id
       label
       name

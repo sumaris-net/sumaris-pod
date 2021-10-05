@@ -11,11 +11,11 @@ import {
   firstArrayValue,
   GraphqlService,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrBlank,
   isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService
+  PlatformService, ReferentialRef
 } from '@sumaris-net/ngx-components';
 import { CacheService } from 'ionic-cache';
 import { SortDirection } from '@angular/material/sort';
@@ -44,7 +44,6 @@ const SamplingStrategyQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.referential}
@@ -61,14 +60,13 @@ const SamplingStrategyQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.lightPmfmStrategy}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}
   `,
   loadEffort: gql`query StrategyEffort($extractionType: String!,
-    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
+    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $cacheDuration: String,
     $viewSheetName: String!, $filterSheetName: String!,
     $columnName: String!, $operator: String!, $values: [String!]!) {
     data: extraction(
@@ -77,6 +75,7 @@ const SamplingStrategyQueries = {
       size: $size,
       sortBy: $sortBy,
       sortDirection: $sortDirection,
+      cacheDuration: $cacheDuration,
       filter: {
         sheetName: $viewSheetName,
         criteria: [
@@ -127,11 +126,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
                 filter?: Partial<StrategyFilter>,
            opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
-    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, {
-      ...opts,
-      toEntity: false
-    });
-
+    const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 
     // Fill entities (parameter groups, effort, etc)
     return this.fillEntities(res, opts);
@@ -149,7 +144,11 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     const entity = (!opts || opts.toEntity!== false) ? SamplingStrategy.fromObject(data) : data as SamplingStrategy;
 
-    //await this.fillEntities({data: [entity]}, opts);
+    await this.fillEntities({data: [entity]}, {
+      withEffort: true,
+      withParameterGroups: false,
+      ...opts
+    });
 
     return entity;
   }
@@ -158,18 +157,30 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return this.strategyService.computeNextSampleTagId(strategyLabel, separator, nbDigit);
   }
 
+  async loadAnalyticReferenceByLabel(label: string): Promise<ReferentialRef> {
+    if (isNilOrBlank(label)) return undefined;
+    try {
+      const res = await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label });
+      return firstArrayValue(res && res.data || []);
+    } catch (err) {
+      console.error('Error while loading analyticReference by label', err);
+      return ReferentialRef.fromObject({label: label});
+    }
+  }
+
   canUserWrite(data?: Strategy) {
     return this.strategyService.canUserWrite(data)
   }
 
   async save(entity: SamplingStrategy, opts?: EntitySaveOptions & {
     clearCache?: boolean;
+    withEffort?: boolean;
   }): Promise<SamplingStrategy> {
     const isNew = isNil(entity.id);
 
     console.debug('[sampling-strategy-service] Saving sampling strategy...');
 
-    const savedEntity = (await this.strategyService.save(entity, {
+    await this.strategyService.save(entity, {
       ...opts,
       update: (cache, { data }) => {
         const savedEntity = data && data.data;
@@ -181,18 +192,22 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             queries: this.getLoadQueries(),
             data: {
               ...savedEntity,
+              // Keep efforts
               efforts: entity.efforts,
-              effortByQuarter: entity.efforts,
+              effortByQuarter: entity.effortByQuarter,
               parameterGroups: entity.parameterGroups
             }
           });
         }
-
-
       }
-    })) as SamplingStrategy;
+    });
 
-    return savedEntity;
+    // Update entity effort
+    if (!isNew) {
+      await this.fillEntities({data : [entity]}, opts)
+    }
+
+    return entity;
   }
 
   async duplicateAllToYear(sources: SamplingStrategy[], year: string): Promise<Strategy[]> {
@@ -231,13 +246,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       map((res) => {
         return (res.data || []).map(p => p.id);
       }));
-  }
-
-  async hasEffort(samplingStrategy: SamplingStrategy, opts?: {
-    fetchPolicy?: FetchPolicy;
-  }): Promise<boolean> {
-    await this.fillEfforts([samplingStrategy], opts);
-    return samplingStrategy.hasRealizedEffort;
   }
 
   async loadStrategyEffortByDate(programLabel: string, strategyLabel: string, date: Moment): Promise<StrategyEffort> {
@@ -309,10 +317,11 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   async fillEfforts(entities: SamplingStrategy[], opts?: {
     fetchPolicy?: FetchPolicy;
+    cacheDuration?: 'DEFAULT'
   }): Promise<void> {
     if (isEmptyArray(entities)) return; // Skip is empty
 
-    console.debug(`[denormalized-strategy-service] Loading effort of ${entities.length} strategies...`);
+    console.debug(`[sampling-strategy-service] Loading effort of ${entities.length} strategies...`);
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,
       variables: {
@@ -322,6 +331,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         size: 1000, // All rows
         sortBy: "start_date",
         sortDirection: "asc",
+        cacheDuration: opts && opts.cacheDuration || "DEFAULT",
         filterSheetName: "ST",
         columnName: "strategy_id",
         operator: "IN",
@@ -356,7 +366,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         }
       }
       else {
-        console.warn(`[denormalized-strategy-service] An effort has unknown strategy '${effort.strategyLabel}'. Skipping. Please check GraphQL query 'extraction' of type 'strat'.`);
+        console.warn(`[sampling-strategy-service] An effort has unknown strategy '${effort.strategyLabel}'. Skipping. Please check GraphQL query 'extraction' of type 'strat'.`);
       }
     });
 

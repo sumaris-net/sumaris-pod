@@ -101,8 +101,8 @@ export const ProgramRefQueries = {
 };
 
 const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription UpdateProgram($id: Int, $label: String, $interval: Int){
-    data: updateProgram(id: $id, label: $label, interval: $interval) {
+  listenChanges: gql`subscription UpdateProgram($id: Int!, $interval: Int){
+    data: updateProgram(id: $id, interval: $interval) {
       ...LightProgramFragment
     }
   }
@@ -672,40 +672,6 @@ export class ProgramRefService
             cache.subject.unsubscribe();
             cache.subscription.unsubscribe();
           }, 100);
-        })
-      );
-  }
-
-  listenChangesByLabel(label: string, opts?: {
-    interval?: number;
-    toEntity?: false;
-  }): Observable<Program> {
-    if (isNil(label)) throw Error("Missing argument 'label' ");
-    if (!this.subscriptions.listenChanges) throw Error("Not implemented!");
-
-    const variables = {
-      label,
-      interval: opts && opts.interval || 10 // seconds
-    };
-    if (this._debug) console.debug(`[base-entity-service] [WS] Listening for changes on Program {${label}}...`);
-
-    return this.graphql.subscribe<{data: any}>({
-      query: this.subscriptions.listenChanges,
-      variables,
-      error: {
-        code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
-        message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
-      }
-    })
-      .pipe(
-        map(({data}) => {
-          const entity = (!opts || opts.toEntity !== false) ? data && this.fromObject(data) : data;
-          if (entity && this._debug) console.debug(`[base-entity-service] [WS] Received changes on Program {${label}}`, entity);
-
-          // TODO: when missing = deleted ?
-          if (!entity) console.warn(`[base-entity-service] [WS] Received deletion on Program {${label}} - TODO check implementation`);
-
-          return entity;
         })
       );
   }
