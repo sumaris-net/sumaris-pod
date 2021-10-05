@@ -160,7 +160,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
     this.fishingAreaFields?.forEach(fishingArea => {
-      this.setFieldFilterEnable('fishingArea', value, fishingArea);
+      this.setFieldFilterEnable('fishingArea', value, fishingArea, true);
     });
   }
 
@@ -550,8 +550,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.autocompleteFilters[fieldName];
   }
 
-  protected setFieldFilterEnable(fieldName: FilterableFieldName, value: boolean, field?: MatAutocompleteField) {
-    if (this.autocompleteFilters[fieldName] !== value) {
+  protected setFieldFilterEnable(fieldName: FilterableFieldName, value: boolean, field?: MatAutocompleteField, forceReload?: boolean) {
+    if (this.autocompleteFilters[fieldName] !== value || forceReload) {
       this.autocompleteFilters[fieldName] = value;
       this.markForCheck();
       if (field) field.reloadItems();
