@@ -23,15 +23,15 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
-import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.util.Beans;
@@ -69,8 +69,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         .build();
 
     private final LandingService landingService;
-    private final LandingRepository landingRepository;
-    private final TripRepository tripRepository;
+    private final TripService tripService;
     private final ObservedLocationService observedLocationService;
     private final OperationGroupRepository operationGroupRepository;
     private final MeasurementDao measurementDao;
@@ -79,8 +78,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final ProgramRepository programRepository;
 
     public AggregatedLandingServiceImpl(LandingService landingService,
-                                        LandingRepository landingRepository,
-                                        TripRepository tripRepository,
+                                        TripService tripService,
                                         ObservedLocationService observedLocationService,
                                         OperationGroupRepository operationGroupRepository,
                                         MeasurementDao measurementDao,
@@ -88,8 +86,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                                         VesselService vesselService,
                                         ProgramRepository programRepository) {
         this.landingService = landingService;
-        this.landingRepository = landingRepository;
-        this.tripRepository = tripRepository;
+        this.tripService = tripService;
         this.observedLocationService = observedLocationService;
         this.operationGroupRepository = operationGroupRepository;
         this.measurementDao = measurementDao;
@@ -222,7 +219,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         });
         // Check all activity have date without time
         aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
-            .forEach(activity -> Preconditions.checkArgument(activity.getDate().equals(Dates.resetTime(activity.getDate())))));
+            .forEach(activity -> Preconditions.checkArgument(activity.getDate().equals(Dates.resetTime(activity.getDate())), "Must have a date without time")));
 
         // Load VesselSnapshot Entity
         aggregatedLandings.parallelStream()
@@ -291,14 +288,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 }
                 if (!landingIdsToRemove.isEmpty()) {
                     // Delete remaining landings
-                    // Delete linked trips
-                    tripRepository.deleteByLandingIds(landingIdsToRemove);
-
-                    // Delete landing
-                    landingRepository.deleteByIds(landingIdsToRemove);
-
-                    // TODO LP: or use this
-                    //landingIdsToRemove.forEach(landingService::delete);
+                    landingService.delete(landingIdsToRemove);
 
                     // Add the observed location to check list
                     observationIdsToCheck.add(observedLocation.getId());
@@ -396,8 +386,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         DataBeans.setDefaultRecorderPerson(landing, parent.getRecorderPerson());
 
         LandingVO savedLanding = landingService.save(landing);
-        if (landing.getMeasurementValues() != null)
-            measurementDao.saveLandingMeasurementsMap(savedLanding.getId(), landing.getMeasurementValues());
+//        if (landing.getMeasurementValues() != null)
+//            measurementDao.saveLandingMeasurementsMap(savedLanding.getId(), landing.getMeasurementValues());
 
     }
 
@@ -438,10 +428,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             landings = getLandings(observedLocationId);
         }
         // Delete landings
-        landingRepository.deleteByIds(Beans.collectIds(landings));
-
-        // TODO LP or use this:
-        Beans.collectIds(landings).forEach(landingService::delete);
+        landingService.delete(Beans.collectIds(landings));
 
         // Delete observed location
         observedLocationService.delete(observedLocationId);
@@ -642,6 +629,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 if (trip.getLanding() == null) {
                     trip.setLanding(landing);
                 }
+                trip.setLandingId(landing.getId());
                 TripVO savedTrip = saveTrip(trip);
                 if (activity.getTripId() == null)
                     activity.setTripId(savedTrip.getId());
@@ -654,7 +642,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         } else if (tripId != null) {
 
             // Delete the whole trip
-            tripRepository.deleteById(tripId);
+            tripService.delete(tripId);
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Trip (id=%s) successfully deleted", tripId));
             }
@@ -670,8 +658,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         Preconditions.checkNotNull(trip);
         Preconditions.checkNotNull(trip.getLanding());
 
-        // Trip itself (landing updated by tripRepository)
-        TripVO savedTrip = tripRepository.save(trip);
+        // Trip itself (landing updated by tripService)
+        TripVO savedTrip = tripService.save(
+            trip,
+            TripSaveOptions.builder().withLanding(true).build() // TODO check if needed, landing should be already created
+        );
 
         // Save metiers
         operationGroupRepository.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
@@ -693,7 +684,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
     private TripVO loadTrip(int tripId) {
         //noinspection UnnecessaryBoxing
-        TripVO trip = tripRepository.get(Integer.valueOf(tripId));
+        TripVO trip = tripService.get(Integer.valueOf(tripId));
         // Load metiers and operation groups
         if (CollectionUtils.isEmpty(trip.getMetiers())) {
             trip.setMetiers(operationGroupRepository.getMetiersByTripId(tripId));
@@ -747,8 +738,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     }
 
     private void loadLandingMeasurements(LandingVO landing) {
-        if (landing.getMeasurementValues() == null)
-            landing.setMeasurementValues(measurementDao.getLandingMeasurementsMap(landing.getId()));
+        if (landing.getMeasurementValues() == null) {
+            Map<Integer, String> result = new HashMap<>();
+            Optional.ofNullable(measurementDao.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+            Optional.ofNullable(measurementDao.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+            landing.setMeasurementValues(result);
+        }
     }
 
     private LandingVO createLanding(ObservedLocationVO parent, Integer vesselId, VesselActivityVO activity) {

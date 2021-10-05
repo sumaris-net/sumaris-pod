@@ -57,8 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -212,6 +210,9 @@ public class LandingServiceImpl implements LandingService {
 
         // Delete linked trips
         tripRepository.deleteByLandingId(id);
+
+        measurementDao.deleteMeasurements(LandingMeasurement.class, Landing.class, ImmutableList.of(id));
+        measurementDao.deleteMeasurements(SurveyMeasurement.class, Landing.class, ImmutableList.of(id));
 
         // Delete landing
         landingRepository.deleteByIds(ImmutableList.of(id));

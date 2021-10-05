@@ -80,6 +80,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
@@ -100,6 +101,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("extractionService")
+@ConditionalOnBean(ExtractionConfiguration.class)
 @Slf4j
 public class ExtractionServiceImpl implements ExtractionService {
 

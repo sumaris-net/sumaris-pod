@@ -190,7 +190,7 @@ public class VesselServiceImpl implements VesselService {
 			Preconditions.checkNotNull(source.getVesselRegistrationPeriod().getRegistrationLocation().getId(), "Missing registration location");
 		}
 
-		VesselVO savedVessel = vesselRepository.save(source, checkUpdateDate);
+		VesselVO savedVessel = vesselRepository.save(source, checkUpdateDate, true);
 
 		if (savedVessel.getVesselFeatures() != null) {
 			VesselFeaturesVO savedVesselFeatures = vesselFeaturesRepository.save(savedVessel.getVesselFeatures());

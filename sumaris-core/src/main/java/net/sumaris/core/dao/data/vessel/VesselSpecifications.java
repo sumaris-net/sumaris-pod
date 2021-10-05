@@ -33,7 +33,6 @@ import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.VesselVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -227,5 +226,4 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
         return specification;
     }
 
-    VesselVO save(VesselVO vo, boolean checkUpdateDate);
 }

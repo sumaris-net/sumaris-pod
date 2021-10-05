@@ -525,7 +525,8 @@ public class TripServiceImpl implements TripService {
                 landing.setDateTime(trip.getReturnDateTime());
                 landing.setObservers(Beans.getSet(trip.getObservers()));
 
-                landingRepository.save(landing);
+                // Don't check update date and don't lock
+                landingRepository.save(landing, false, false);
                 trip.setLandingId(landing.getId());
             }
 

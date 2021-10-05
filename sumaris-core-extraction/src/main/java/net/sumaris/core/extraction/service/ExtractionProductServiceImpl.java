@@ -23,6 +23,7 @@ package net.sumaris.core.extraction.service;
  */
 
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.util.StringUtils;
@@ -31,15 +32,18 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author benoit.lavenier@e-is.pro
  */
 @Service("extractionProductService")
+@ConditionalOnBean(ExtractionConfiguration.class)
 public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionProductServiceImpl.class);

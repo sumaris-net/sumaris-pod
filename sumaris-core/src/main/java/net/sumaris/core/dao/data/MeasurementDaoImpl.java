@@ -59,10 +59,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -746,6 +743,38 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public <ID extends Serializable, T extends IMeasurementEntity> void deleteMeasurements(Class<T> targetClass, Class<? extends IEntity<ID>> parentClass, Collection<ID> parentIds) {
+
+        if (targetClass == null || parentClass == null || CollectionUtils.isEmpty(parentIds))
+            return;
+
+        Collection<PropertyDescriptor> parentDescriptors = parentPropertiesMap.get(targetClass);
+        if (CollectionUtils.isNotEmpty(parentDescriptors)) {
+
+            // Find the right parent property (use the first compatible parent)
+            PropertyDescriptor parentProperty = parentDescriptors.stream()
+                .filter(property -> property.getPropertyType().isAssignableFrom(parentClass))
+                .findFirst().orElse(null);
+
+            // If a parent property has been found, use it
+            if (parentProperty != null) {
+
+                // Build delete query
+                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+                CriteriaDelete<T> criteria = cb.createCriteriaDelete(targetClass);
+                criteria.from(targetClass);
+                criteria.where(cb.in(criteria.getRoot().get(parentProperty.getName()).get(IEntity.Fields.ID)).value(parentIds));
+                int deleted = getEntityManager().createQuery(criteria).executeUpdate();
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("%d %s deleted by parent '%s':%s", deleted, targetClass.getSimpleName(), parentProperty.getName(), parentIds));
+                }
+                getEntityManager().flush();
+                getEntityManager().clear();
+            }
+        }
+    }
+
+    @Override
     public <T extends IMeasurementEntity> List<T> getMeasurementEntitiesByParentId(Class<T> entityClass, String parentPropertyName, int parentId, String sortByPropertyName) {
         return getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName)
                 .getResultList();
@@ -1112,7 +1141,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         Collection<PropertyDescriptor> parentDescriptors = parentPropertiesMap.get(target.getClass());
         if (CollectionUtils.isNotEmpty(parentDescriptors)) {
 
-            // Find th right parent property (use the first compatible parent)
+            // Find the right parent property (use the first compatible parent)
             PropertyDescriptor parentProperty = parentDescriptors.stream()
                     .filter(property -> property.getPropertyType().isAssignableFrom(parentClass))
                     .findFirst().orElse(null);
@@ -1134,6 +1163,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         // No parent property in the global map: continue as a special case
+        // TODO clean up following cases, should be already managed by parentPropertiesMap
 
         // If vessel use measurement
         if (target instanceof VesselUseMeasurement) {

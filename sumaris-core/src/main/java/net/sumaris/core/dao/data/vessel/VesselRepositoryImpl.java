@@ -35,7 +35,10 @@ import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -138,11 +141,6 @@ public class VesselRepositoryImpl
             // Quality
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             ;
-    }
-
-    @Override
-    public VesselVO save(VesselVO vo, boolean checkUpdateDate) {
-        return super.save(vo, checkUpdateDate);
     }
 
     @Override
