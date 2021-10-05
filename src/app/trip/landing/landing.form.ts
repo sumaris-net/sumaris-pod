@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
@@ -133,6 +133,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.tripForm?.controls.fishingAreas as FormArray;
   }
 
+  @ViewChildren('fishingAreaField') fishingAreaFields: QueryList<MatAutocompleteField>;
+
   get showTrip(): boolean {
     return this.showMetier || this.showFishingArea;
   }
@@ -157,6 +159,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
+    this.fishingAreaFields?.forEach(fishingArea => {
+      this.setFieldFilterEnable('fishingArea', value, fishingArea, true);
+    });
   }
 
   @Input() set canEditStrategy(value: boolean) {
@@ -351,6 +356,15 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         })
       );
 
+    this.registerSubscription(
+      this.$strategyLabel
+        .subscribe(strategyLabel => {
+          this.fishingAreaFields?.forEach(fishingArea => {
+            fishingArea.reloadItems();
+          });
+        })
+    );
+
     // Init trip form (if enable)
     if (this.showTrip) {
       // DEBUG
@@ -536,8 +550,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.autocompleteFilters[fieldName];
   }
 
-  protected setFieldFilterEnable(fieldName: FilterableFieldName, value: boolean, field?: MatAutocompleteField) {
-    if (this.autocompleteFilters[fieldName] !== value) {
+  protected setFieldFilterEnable(fieldName: FilterableFieldName, value: boolean, field?: MatAutocompleteField, forceReload?: boolean) {
+    if (this.autocompleteFilters[fieldName] !== value || forceReload) {
       this.autocompleteFilters[fieldName] = value;
       this.markForCheck();
       if (field) field.reloadItems();
