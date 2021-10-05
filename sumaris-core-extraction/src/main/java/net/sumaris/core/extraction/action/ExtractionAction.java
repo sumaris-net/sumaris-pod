@@ -28,7 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.cli.action.ActionUtils;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.exception.UnknownFormatException;
+import net.sumaris.core.extraction.service.AggregationService;
+import net.sumaris.core.extraction.service.ExtractionProductService;
 import net.sumaris.core.extraction.service.ExtractionService;
+import net.sumaris.core.extraction.service.ExtractionServiceLocator;
 import net.sumaris.core.extraction.util.ExtractionFormats;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
@@ -52,7 +55,7 @@ public class ExtractionAction {
      */
     public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
-        ExtractionService service = ServiceLocator.instance().getService("extractionService", ExtractionService.class);
+        ExtractionService service = ExtractionServiceLocator.extractionService();
 
         String formatLabel = config.getExtractionCliOutputFormat();
         IExtractionFormat format = null;

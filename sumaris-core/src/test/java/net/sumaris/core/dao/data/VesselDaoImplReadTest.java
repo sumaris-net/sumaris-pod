@@ -59,25 +59,25 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
     public void findByFilter() {
 
         List<VesselVO> result = dao.findByFilter(null, 0, 10,
-            StringUtils.doting(VesselVO.Fields.FEATURES, VesselFeaturesVO.Fields.EXTERIOR_MARKING),
+            StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeaturesVO.Fields.EXTERIOR_MARKING),
             SortDirection.ASC);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());
         VesselVO vessel1 = result.get(0);
         Assert.assertEquals(1, vessel1.getId().intValue());
-        Assert.assertEquals("CN851751", vessel1.getFeatures().getExteriorMarking());
-        Assert.assertEquals("FRA000851751", vessel1.getRegistration().getRegistrationCode());
-        Assert.assertNotNull(vessel1.getFeatures().getBasePortLocation());
-        Assert.assertEquals(10, vessel1.getFeatures().getBasePortLocation().getId().intValue());
-        Assert.assertNotNull(vessel1.getRegistration().getRegistrationLocation());
-        Assert.assertEquals(1, vessel1.getRegistration().getRegistrationLocation().getId().intValue());
+        Assert.assertEquals("CN851751", vessel1.getVesselFeatures().getExteriorMarking());
+        Assert.assertEquals("FRA000851751", vessel1.getVesselRegistrationPeriod().getRegistrationCode());
+        Assert.assertNotNull(vessel1.getVesselFeatures().getBasePortLocation());
+        Assert.assertEquals(10, vessel1.getVesselFeatures().getBasePortLocation().getId().intValue());
+        Assert.assertNotNull(vessel1.getVesselRegistrationPeriod().getRegistrationLocation());
+        Assert.assertEquals(1, vessel1.getVesselRegistrationPeriod().getRegistrationLocation().getId().intValue());
         VesselVO vessel2 = result.get(1);
         Assert.assertEquals(2, vessel2.getId().intValue());
-        Assert.assertEquals("CN851769", vessel2.getFeatures().getExteriorMarking());
-        Assert.assertNotNull(vessel2.getFeatures().getBasePortLocation());
-        Assert.assertEquals(10, vessel2.getFeatures().getBasePortLocation().getId().intValue());
-        Assert.assertNull(vessel2.getRegistration());
+        Assert.assertEquals("CN851769", vessel2.getVesselFeatures().getExteriorMarking());
+        Assert.assertNotNull(vessel2.getVesselFeatures().getBasePortLocation());
+        Assert.assertEquals(10, vessel2.getVesselFeatures().getBasePortLocation().getId().intValue());
+        Assert.assertNull(vessel2.getVesselRegistrationPeriod());
     }
 
     @Test

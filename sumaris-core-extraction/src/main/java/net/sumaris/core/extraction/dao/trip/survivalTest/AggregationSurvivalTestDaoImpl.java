@@ -23,9 +23,8 @@ package net.sumaris.core.extraction.dao.trip.survivalTest;
  */
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
-import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
@@ -197,9 +196,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -264,9 +261,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
+        setDbms(xmlQuery);
 
         return xmlQuery;
     }

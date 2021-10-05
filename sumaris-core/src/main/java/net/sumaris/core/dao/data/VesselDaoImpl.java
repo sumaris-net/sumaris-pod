@@ -33,6 +33,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -46,7 +47,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.data.VesselRegistrationVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -120,8 +121,8 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         // Apply sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             // replace some field aliases
-            sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.FEATURES, Vessel.Fields.VESSEL_FEATURES);
-            sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.REGISTRATION, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
+            sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.VESSEL_FEATURES, Vessel.Fields.VESSEL_FEATURES);
+            sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
             sortAttribute = sortAttribute.replaceFirst(VesselVO.Fields.STATUS_ID, StringUtils.doting(Vessel.Fields.STATUS, Status.Fields.ID));
         }
         addSorting(query, builder, vesselRoot, sortAttribute, sortDirection);
@@ -174,7 +175,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
     }
 
     @Override
-    public List<VesselRegistrationVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public List<VesselRegistrationPeriodVO> getRegistrationsByVesselId(int vesselId, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         Preconditions.checkArgument(offset >= 0);
         Preconditions.checkArgument(size > 0);
 
@@ -246,7 +247,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
 
         // Save Vessel features
-        VesselFeaturesVO features = source.getFeatures();
+        VesselFeaturesVO features = source.getVesselFeatures();
         if (features != null) {
             if (features.getId() == null) {
                 // New features
@@ -274,7 +275,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
 
         // Save Registration period
-        VesselRegistrationVO registration = source.getRegistration();
+        VesselRegistrationPeriodVO registration = source.getVesselRegistrationPeriod();
         if (registration != null) {
             if (registration.getId() == null) {
                 // New period
@@ -285,7 +286,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
                 // Create new entity
                 getEntityManager().persist(periodEntity);
                 // Get new Id
-                source.getRegistration().setId(periodEntity.getId());
+                source.getVesselRegistrationPeriod().setId(periodEntity.getId());
             } else {
                 // Update period
                 VesselRegistrationPeriod registrationEntity = getById(VesselRegistrationPeriod.class, registration.getId());
@@ -457,10 +458,10 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         target.setRecorderDepartment(recorderDepartment);
 
         // Vessel features
-        target.setFeatures(toVesselFeaturesVO(source.getVesselFeatures()));
+        target.setVesselFeatures(toVesselFeaturesVO(source.getVesselFeatures()));
 
         // Vessel registration period
-        target.setRegistration(toVesselRegistrationVO(source.getVesselRegistrationPeriod()));
+        target.setVesselRegistrationPeriod(toVesselRegistrationVO(source.getVesselRegistrationPeriod()));
 
         return target;
     }
@@ -497,11 +498,11 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         return target;
     }
 
-    private VesselRegistrationVO toVesselRegistrationVO(VesselRegistrationPeriod source) {
+    private VesselRegistrationPeriodVO toVesselRegistrationVO(VesselRegistrationPeriod source) {
         if (source == null)
             return null;
 
-        VesselRegistrationVO target = new VesselRegistrationVO();
+        VesselRegistrationPeriodVO target = new VesselRegistrationPeriodVO();
 
         Beans.copyProperties(source, target);
 
@@ -539,7 +540,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
+            String defaultProgramLabel = ProgramEnum.SIH.getLabel(); //getConfig().getVesselDefaultProgramLabel();
             ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(getReference(Program.class, defaultProgram.getId()));
@@ -589,7 +590,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
     }
 
-    private void vesselRegistrationPeriodVOToEntity(VesselRegistrationVO source, VesselRegistrationPeriod target, boolean copyIfNull) {
+    private void vesselRegistrationPeriodVOToEntity(VesselRegistrationPeriodVO source, VesselRegistrationPeriod target, boolean copyIfNull) {
 
         // Registration start date
         if (copyIfNull || source.getStartDate() != null) {

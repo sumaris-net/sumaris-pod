@@ -33,6 +33,7 @@ import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
@@ -43,7 +44,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 
 @Service("denormalizeTripService")
 @Slf4j
@@ -95,7 +95,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         MutableInt invalidBatchCount = new MutableInt(0);
         do {
             // Fetch some trips
-            List<TripVO> trips = tripService.findByFilter(filter,
+            List<TripVO> trips = tripService.findAll(filter,
                 offset, pageSize, // Page
                 TripVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
                 tripFetchOptions);
@@ -164,7 +164,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             List<OperationVO> operations = operationService.findAllByTripId(tripId,
                 offset, pageSize, // Page
                 OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
-                DataFetchOptions.builder()
+                OperationFetchOptions.builder()
                     .withChildrenEntities(false)
                     .withMeasurementValues(false)
                     .build());

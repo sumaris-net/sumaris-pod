@@ -22,29 +22,33 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import java.util.Date;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
 public class PhysicalGearFilterVO implements IRootDataFilter, IVesselFilter {
 
-    private Integer tripId;
-
-    private Integer vesselId;
-
     private Date startDate;
-
     private Date endDate;
-
     private String programLabel;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
 
-    private Integer locationId;
+    private Integer locationId; // Not used in repository
 
+    // Parent
+    private Integer vesselId;
+    private Integer tripId;
+
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

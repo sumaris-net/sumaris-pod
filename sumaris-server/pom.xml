@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.10.2</version>
+    <version>1.11.0</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -102,6 +102,14 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
 
     <!-- Security -->
     <dependency>
@@ -185,6 +193,11 @@
     <dependency>
       <groupId>com.oracle</groupId>
       <artifactId>ojdbc8</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
       <scope>provided</scope>
     </dependency>
 

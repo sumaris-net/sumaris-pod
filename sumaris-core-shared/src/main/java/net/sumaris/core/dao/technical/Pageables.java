@@ -41,11 +41,15 @@ public class Pageables  {
 
     }
 
-    public static Pageable create(int offset, int size, String sortAttribute, SortDirection sortDirection) {
+    public static Pageable create(long offset, int size) {
+        return create(offset, size, null, null);
+    }
+
+    public static Pageable create(long offset, int size, String sortAttribute, SortDirection sortDirection) {
         // Make sure offset is valid, for the page size
         //Preconditions.checkArgument(offset % size == 0, "Invalid offset. Must be a multiple of the given 'size'");
 
-        int page = (offset - offset % size) / size;
+        int page = (int)((offset - offset % size) / size);
         if (sortAttribute != null) {
             return PageRequest.of(page, size,
                     (sortDirection == null) ? Sort.Direction.ASC :

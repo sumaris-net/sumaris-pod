@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import java.util.Date;
 
@@ -53,4 +54,6 @@ public class ProductFilterVO implements IRootDataFilter {
     private Integer saleId;
     private Integer expectedSaleId;
 
+    // Quality
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

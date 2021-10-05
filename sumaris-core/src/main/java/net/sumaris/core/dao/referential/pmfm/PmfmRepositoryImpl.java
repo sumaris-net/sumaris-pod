@@ -187,7 +187,8 @@ public class PmfmRepositoryImpl
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true),
-                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX, allEntries = true)
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX, allEntries = true),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true)
         }
     )
     public PmfmVO save(PmfmVO vo) {
@@ -262,4 +263,13 @@ public class PmfmRepositoryImpl
             .orElse(false);
     }
 
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP)
+    public boolean hasParameterGroupId(int pmfmId, int... parameterGroupIds) {
+        return Optional.of(getById(pmfmId))
+            .map(Pmfm::getParameter)
+            .map(Parameter::getParameterGroup)
+            .map(parameterGroup -> Arrays.binarySearch(parameterGroupIds, parameterGroup.getId()) != -1)
+            .orElse(false);
+    }
 }

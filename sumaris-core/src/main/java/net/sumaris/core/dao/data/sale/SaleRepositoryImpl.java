@@ -175,7 +175,12 @@ public class SaleRepositoryImpl
     @Override
     protected Specification<Sale> toSpecification(SaleFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasTripId(filter.getTripId()));
+            // Location
+            .and(hasSaleLocation(filter.getLocationId()))
+            // Parent
+            .and(hasTripId(filter.getTripId()))
+            // Quality
+            .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
 }

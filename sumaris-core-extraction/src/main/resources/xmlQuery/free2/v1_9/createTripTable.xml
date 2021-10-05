@@ -14,8 +14,8 @@
     <select alias="PROJECT" type="hidden">P.LABEL</select>
 
     <!-- other fields -->
-    <select alias="ID_NAVIRE" type="text" group="oracle,hsqldb">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK))</select>
-    <select alias="ID_NAVIRE" type="text" group="pgsql">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK, '9999'))</select>
+    <select alias="ID_NAVIRE" type="text" dbms="oracle,hsqldb">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK))</select>
+    <select alias="ID_NAVIRE" type="text" dbms="pgsql">COALESCE(VRP.REGISTRATION_CODE, TO_CHAR(T.VESSEL_FK, '9999'))</select>
     <select alias="NOM_NAVIRE" type="text">VF.NAME</select>
     <select alias="LONGUEUR" type="number">VF.LENGTH_OVER_ALL / 100</select>
     <select alias="PUISSANCE" type="number">VF.ADMINISTRATIVE_POWER</select>
@@ -54,7 +54,7 @@
       VUM.TRIP_FK=T.ID and VUM.PMFM_FK IN (&contractCodePmfmIds))]]></select>
 
     <!-- TODO Ajouter cette colonne dans l'entité Trip -->
-    <select alias="SAMPLING_STRATA" type="text">null</select>
+    <select alias="SAMPLING_STRATA" type="text" dbms="hsqldb,pgsql">null</select>
 
     <from alias="T">TRIP</from>
     <from join="true">INNER JOIN PROGRAM P ON P.ID = T.PROGRAM_FK</from>

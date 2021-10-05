@@ -68,6 +68,9 @@ public interface PmfmService {
     boolean isGearPmfm(int pmfmId);
 
     @Transactional(readOnly = true)
+    boolean isSurveyPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
     String computeCompleteName(int pmfmId);
 
     /**

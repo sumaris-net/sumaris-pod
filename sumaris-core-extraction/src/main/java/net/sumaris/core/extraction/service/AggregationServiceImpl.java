@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.config.ExtractionCacheConfiguration;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.AggregationDao;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
@@ -58,6 +59,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -77,6 +79,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("aggregationService")
+@ConditionalOnBean(ExtractionConfiguration.class)
 @Slf4j
 public class AggregationServiceImpl implements AggregationService {
 

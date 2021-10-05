@@ -52,7 +52,7 @@ public class DataFetchOptions implements IDataFetchOptions {
     private boolean withObservers = true;
 
     @Builder.Default
-    private boolean withChildrenEntities = false;
+    private boolean withChildrenEntities = false; // Important: should be disabled by default (see TripService or LandingService)
 
     @Builder.Default
     private boolean withMeasurementValues = false;

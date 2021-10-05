@@ -22,7 +22,15 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.nuiton.i18n.I18n;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,16 +53,34 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 /**
  * @author peck7 on 03/12/2018.
  */
+@Slf4j
 public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
     private static final String TOKEN = "token";
     private static final String BASIC = "Basic";
 
+    private SumarisServerConfiguration configuration;
+    private boolean ready = false;
     private boolean enableAuthBasic;
     private boolean enableAuthToken;
 
-    protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+
+    protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher, SumarisServerConfiguration configuration) {
         super(requiresAuthenticationRequestMatcher);
+        this.configuration = configuration;
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        this.configuration = this.configuration != null ? this.configuration : SumarisServerConfiguration.getInstance();
+
+        // Update configuration
+        setEnableAuthBasic(configuration.enableAuthBasic());
+        setEnableAuthToken(configuration.enableAuthToken());
+
+        log.info("Started authenticated filer, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
+        this.ready = true;
     }
 
     public void setEnableAuthToken(boolean enableAuthToken) {
@@ -67,6 +93,11 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+
+        // When not ready, force to stop the security chain
+        if (!this.ready) {
+            throw new AuthenticationServiceException(I18n.l(request.getLocale(), "sumaris.error.starting"));
+        }
 
         String authorization = request.getHeader(AUTHORIZATION);
         String[] values = StringUtils.isNotBlank(authorization)

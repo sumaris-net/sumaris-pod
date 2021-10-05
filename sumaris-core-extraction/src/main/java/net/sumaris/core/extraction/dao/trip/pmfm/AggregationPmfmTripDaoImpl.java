@@ -24,15 +24,13 @@ package net.sumaris.core.extraction.dao.trip.pmfm;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.extraction.dao.technical.XMLQuery;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.rdb.AggregationRdbTripDaoImpl;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
-import net.sumaris.core.extraction.specification.data.trip.AggCostSpecification;
 import net.sumaris.core.extraction.specification.data.trip.AggPmfmTripSpecification;
 import net.sumaris.core.extraction.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.trip.rdb.AggregationRdbTripContextVO;
-import net.sumaris.core.extraction.vo.trip.survivalTest.AggregationSurvivalTestContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.context.annotation.Lazy;

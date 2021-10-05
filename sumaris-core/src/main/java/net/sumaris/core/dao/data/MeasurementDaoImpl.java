@@ -59,10 +59,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -112,8 +109,14 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Sale
         result.put(SaleMeasurement.class, BeanUtils.getPropertyDescriptor(SaleMeasurement.class, SaleMeasurement.Fields.SALE));
 
+        // ExpectedSale
+        result.put(SaleMeasurement.class, BeanUtils.getPropertyDescriptor(SaleMeasurement.class, SaleMeasurement.Fields.EXPECTED_SALE));
+
         // Landing
         result.put(LandingMeasurement.class, BeanUtils.getPropertyDescriptor(LandingMeasurement.class, LandingMeasurement.Fields.LANDING));
+
+        // Survey
+        result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.LANDING));
 
         return result;
     }
@@ -326,6 +329,25 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public List<MeasurementVO> getSurveyMeasurements(int landingId) {
+        return getMeasurementsByParentId(SurveyMeasurement.class,
+            MeasurementVO.class,
+            SurveyMeasurement.Fields.LANDING,
+            landingId,
+            SurveyMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.LANDING,
+            landingId,
+            null
+        );
+    }
+
+    @Override
     public List<MeasurementVO> getSaleMeasurements(int saleId) {
         return getMeasurementsByParentId(SaleMeasurement.class,
                 MeasurementVO.class,
@@ -345,20 +367,20 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getExpectedSaleMeasurements(int saleId) {
+    public List<MeasurementVO> getExpectedSaleMeasurements(int expectedSaleId) {
         return getMeasurementsByParentId(SaleMeasurement.class,
             MeasurementVO.class,
             SaleMeasurement.Fields.EXPECTED_SALE,
-            saleId,
+            expectedSaleId,
             SaleMeasurement.Fields.ID
         );
     }
 
     @Override
-    public Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId) {
+    public Map<Integer, String> getExpectedSaleMeasurementsMap(int expectedSaleId) {
         return getMeasurementsMapByParentId(SaleMeasurement.class,
             SaleMeasurement.Fields.EXPECTED_SALE,
-            saleId,
+            expectedSaleId,
             null
         );
     }
@@ -472,27 +494,39 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> saveExpectedSaleMeasurements(int saleId, List<MeasurementVO> sources) {
-        ExpectedSale parent = getById(ExpectedSale.class, saleId);
+    public List<MeasurementVO> saveExpectedSaleMeasurements(int expectedSaleId, List<MeasurementVO> sources) {
+        ExpectedSale parent = getById(ExpectedSale.class, expectedSaleId);
         return saveMeasurements(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
-    public Map<Integer, String> saveExpectedSaleMeasurementsMap(int saleId, Map<Integer, String> sources) {
-        ExpectedSale parent = getById(ExpectedSale.class, saleId);
+    public Map<Integer, String> saveExpectedSaleMeasurementsMap(int expectedSaleId, Map<Integer, String> sources) {
+        ExpectedSale parent = getById(ExpectedSale.class, expectedSaleId);
         return saveMeasurementsMap(SaleMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
     public List<MeasurementVO> saveLandingMeasurements(final int landingId, List<MeasurementVO> sources) {
         Landing parent = getById(Landing.class, landingId);
-        return saveMeasurements(LandingMeasurement.class, sources, parent.getMeasurements(), parent);
+        return saveMeasurements(LandingMeasurement.class, sources, parent.getLandingMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveLandingMeasurementsMap(final int landingId, Map<Integer, String> sources) {
         Landing parent = getById(Landing.class, landingId);
-        return saveMeasurementsMap(LandingMeasurement.class, sources, parent.getMeasurements(), parent);
+        return saveMeasurementsMap(LandingMeasurement.class, sources, parent.getLandingMeasurements(), parent);
+    }
+
+    @Override
+    public List<MeasurementVO> saveSurveyMeasurements(int landingId, List<MeasurementVO> sources) {
+        Landing parent = getById(Landing.class, landingId);
+        return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveSurveyMeasurementsMap(int landingId, Map<Integer, String> sources) {
+        Landing parent = getById(Landing.class, landingId);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
@@ -706,6 +740,38 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         return result;
+    }
+
+    @Override
+    public <ID extends Serializable, T extends IMeasurementEntity> void deleteMeasurements(Class<T> targetClass, Class<? extends IEntity<ID>> parentClass, Collection<ID> parentIds) {
+
+        if (targetClass == null || parentClass == null || CollectionUtils.isEmpty(parentIds))
+            return;
+
+        Collection<PropertyDescriptor> parentDescriptors = parentPropertiesMap.get(targetClass);
+        if (CollectionUtils.isNotEmpty(parentDescriptors)) {
+
+            // Find the right parent property (use the first compatible parent)
+            PropertyDescriptor parentProperty = parentDescriptors.stream()
+                .filter(property -> property.getPropertyType().isAssignableFrom(parentClass))
+                .findFirst().orElse(null);
+
+            // If a parent property has been found, use it
+            if (parentProperty != null) {
+
+                // Build delete query
+                CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+                CriteriaDelete<T> criteria = cb.createCriteriaDelete(targetClass);
+                criteria.from(targetClass);
+                criteria.where(cb.in(criteria.getRoot().get(parentProperty.getName()).get(IEntity.Fields.ID)).value(parentIds));
+                int deleted = getEntityManager().createQuery(criteria).executeUpdate();
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("%d %s deleted by parent '%s':%s", deleted, targetClass.getSimpleName(), parentProperty.getName(), parentIds));
+                }
+                getEntityManager().flush();
+                getEntityManager().clear();
+            }
+        }
     }
 
     @Override
@@ -985,7 +1051,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 break;
             case QUALITATIVE_VALUE:
                 // If find a object structure (e.g. ReferentialVO), try to find the id
-                target.setQualitativeValue(getReference(QualitativeValue.class, Integer.parseInt(value)));
+                try {
+                    target.setQualitativeValue(getReference(QualitativeValue.class, Integer.parseInt(value)));
+                }
+                catch(NumberFormatException e) {
+                    throw new SumarisTechnicalException(String.format("Invalid value for pmfm with id=%s. Expected an integer (to link with a QualitativeValue.id), but got: '%s'. Please fix value, or change the Pmfm type to alphanumerical",
+                        pmfmId, value));
+                }
                 break;
             case STRING:
                 target.setAlphanumericalValue(value);
@@ -1069,7 +1141,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         Collection<PropertyDescriptor> parentDescriptors = parentPropertiesMap.get(target.getClass());
         if (CollectionUtils.isNotEmpty(parentDescriptors)) {
 
-            // Find th right parent property (use the first compatible parent)
+            // Find the right parent property (use the first compatible parent)
             PropertyDescriptor parentProperty = parentDescriptors.stream()
                     .filter(property -> property.getPropertyType().isAssignableFrom(parentClass))
                     .findFirst().orElse(null);
@@ -1091,6 +1163,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         // No parent property in the global map: continue as a special case
+        // TODO clean up following cases, should be already managed by parentPropertiesMap
 
         // If vessel use measurement
         if (target instanceof VesselUseMeasurement) {

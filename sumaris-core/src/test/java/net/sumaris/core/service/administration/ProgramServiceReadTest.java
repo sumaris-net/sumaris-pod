@@ -93,9 +93,10 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         programs = service.findByFilter(ProgramFilterVO.builder().withProperty("sumaris.trip.operation.batch.autoFill").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
         Assert.assertNotNull(programs);
-        Assert.assertEquals(1, programs.size());
-        Assert.assertEquals(10, programs.get(0).getId().intValue());
-
+        Assert.assertEquals(2, programs.size());
+        int[] expectedIds = new int[]{50, 10};
+        int[]  resultIds = programs.stream().mapToInt(ProgramVO::getId).toArray();
+        Assert.assertArrayEquals(expectedIds, resultIds);
     }
 
     @Test
@@ -103,7 +104,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         List<ProgramVO> programs = service.getAll();
         Assert.assertNotNull(programs);
-        Assert.assertEquals(9, programs.size());
+        Assert.assertEquals(10, programs.size());
 
     }
 

@@ -38,17 +38,24 @@ import java.util.List;
 public interface SaleSpecifications extends RootDataSpecifications<Sale> {
 
     String TRIP_ID_PARAM = "tripId";
+    String LOCATION_ID_PARAM = "locationId";
 
     default Specification<Sale> hasTripId(Integer tripId) {
-        BindableSpecification<Sale> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(Sale.Fields.TRIP).get(IEntity.Fields.ID), param)
             );
-        });
-        specification.addBind(TRIP_ID_PARAM, tripId);
-        return specification;
+        }).addBind(TRIP_ID_PARAM, tripId);
+    }
+
+    default Specification<Sale> hasSaleLocation(Integer locationId) {
+        if (locationId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
+            return criteriaBuilder.equal(root.get(Sale.Fields.SALE_LOCATION).get(IEntity.Fields.ID), param);
+        }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sales);

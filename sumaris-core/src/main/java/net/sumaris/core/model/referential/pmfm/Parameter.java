@@ -91,4 +91,7 @@ public class Parameter implements IItemReferentialEntity {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<QualitativeValue> qualitativeValues = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parameter_group_fk", nullable = false)
+    private ParameterGroup parameterGroup;
 }

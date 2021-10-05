@@ -27,10 +27,11 @@ import com.google.common.base.Joiner;
 import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ResourceUtils;
@@ -42,6 +43,7 @@ import org.nuiton.i18n.I18n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
@@ -54,6 +56,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 @Component("extractionDocumentationService")
+@ConditionalOnBean(ExtractionConfiguration.class)
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
 
     /** Logger. */

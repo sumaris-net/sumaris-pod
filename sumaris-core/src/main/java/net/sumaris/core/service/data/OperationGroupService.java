@@ -22,6 +22,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
@@ -44,10 +45,9 @@ public interface OperationGroupService {
     List<MetierVO> getMetiersByTripId(int tripId);
 
     @Transactional(readOnly = true)
-    List<OperationGroupVO> getAllByTripId(int tripId, DataFetchOptions options);
+    List<OperationGroupVO> findAllByTripId(int tripId, DataFetchOptions options);
 
-    @Transactional(readOnly = true)
-    List<OperationGroupVO> getAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<OperationGroupVO> findAllByTripId(int tripId, Page page, DataFetchOptions options);
 
     @Transactional(readOnly = true)
     OperationGroupVO get(int id);

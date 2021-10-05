@@ -43,6 +43,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.core.env.ConfigurableEnvironment;
 
+import javax.persistence.LockModeType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -815,6 +816,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>get the analytic references service filter as a regexp on code.</p>
+     *
+     * @return a {@link String}.
+     */
+    public String getAnalyticReferencesServiceFilter() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ANALYTIC_REFERENCES_SERVICE_FILTER.getKey());
+    }
+
+    /**
      * <p>Get the output file, for action (e.g. a file to create, when executing a dump action).</p>
      * <p>Used by CLI (Command Line Interface) actions</p>
      *
@@ -884,6 +894,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOption(SumarisConfigurationOption.SEQUENCE_SUFFIX.getKey());
     }
 
+    public Integer getLockTimeout() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.LOCK_TIMEOUT.getKey());
+    }
+
+    public LockModeType getLockModeType() {
+        return LockModeType.valueOf(applicationConfig.getOption(SumarisConfigurationOption.LOCK_MODE_TYPE.getKey()));
+    }
+
     public String getCsvSeparator() {
         return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
     }
@@ -904,6 +922,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_UNIQUE_TAG.getKey());
     }
 
+    /**
+     * Prefer ProgramEnum.SIH.getLabel()
+     */
+    @Deprecated
     public String getVesselDefaultProgramLabel() {
         return applicationConfig.getOption(SumarisConfigurationOption.VESSEL_DEFAULT_PROGRAM_LABEL.getKey());
     }

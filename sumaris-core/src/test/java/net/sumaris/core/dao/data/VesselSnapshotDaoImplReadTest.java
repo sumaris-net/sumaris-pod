@@ -56,7 +56,7 @@ public class VesselSnapshotDaoImplReadTest extends AbstractDaoTest {
     @Test
     public void findByFilter() {
 
-        VesselFilterVO filter = new VesselFilterVO();
+        VesselFilterVO filter = VesselFilterVO.builder().build();
 
         List<VesselSnapshotVO> result = dao.findByFilter(filter, 0, 10, null, null);
 

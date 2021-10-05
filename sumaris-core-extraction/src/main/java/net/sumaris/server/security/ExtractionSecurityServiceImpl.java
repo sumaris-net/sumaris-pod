@@ -28,6 +28,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
@@ -53,7 +54,7 @@ import java.util.Optional;
  * @author benoit.lavenier@e-is.pro
  */
 @Service("extractionSecurityService")
-@ConditionalOnBean({IAuthService.class})
+@ConditionalOnBean({ExtractionConfiguration.class, IAuthService.class})
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionSecurityServiceImpl.class);

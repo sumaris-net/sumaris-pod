@@ -156,6 +156,11 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
+	public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
+		return measurementDao.getSurveyMeasurementsMap(landingId);
+	}
+
+	@Override
 	public List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId) {
 		return measurementDao.getVesselFeaturesMeasurements(vesselFeaturesId);
 	}
