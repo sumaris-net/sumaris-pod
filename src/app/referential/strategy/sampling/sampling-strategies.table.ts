@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild } from '@angular/core';
 import {
+  Alerts,
   AppFormUtils,
   AppTable,
   EntitiesTableDataSource,
@@ -292,6 +293,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.setError(strategyLabelsWithData.length === 1
         ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
         : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
+      const message = this.translate.instant(strategyLabelsWithData.length === 1 ? "PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA" : "PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA", this.errorDetails);
+      await Alerts.showError(message, this.alertCtrl, this.translate);
       return 0;
     }
 
