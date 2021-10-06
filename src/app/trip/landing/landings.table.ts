@@ -16,6 +16,7 @@ import {ReferentialRefService} from '@app/referential/services/referential-ref.s
 import {environment} from '@environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
 import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -42,6 +43,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   protected referentialRefService: ReferentialRefService;
 
   qualitativeValueAttributes: string[];
+  locationAttributes: string[];
+  vesselSnapshotAttributes: string[];
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
@@ -221,13 +224,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
     super.ngOnInit();
 
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
+    // Vessels display attributes
+    this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
+    // Location display attributes
+    this.locationAttributes = this.settings.getFieldDisplayAttributes('location');
 
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
