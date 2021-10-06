@@ -1,6 +1,6 @@
-import { Strategy } from './strategy.model';
+import { AppliedPeriod, Strategy } from './strategy.model';
 import { Moment } from 'moment';
-import { EntityClass, fromDateISOString, isNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNil, isNotEmptyArray, isNotNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
@@ -51,8 +51,39 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
 
   fromObject(source: any) {
     const target = super.fromObject(source);
-    this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || [];
-    this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || {};
+
+    // Copy efforts. /!\ leave undefined is not set, to be able to detect if has been filled. See hasEffortFilled()
+    this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || undefined;
+
+    if (!this.efforts && this.appliedStrategies) {
+      this.efforts = this.appliedStrategies.reduce((res, as) => {
+        return res.concat(
+          (as.appliedPeriods || []).map(period => {
+            const quarter = period.startDate?.quarter();
+            if (isNil(quarter) || isNil(period.acquisitionNumber)) return null;
+            return StrategyEffort.fromObject(<StrategyEffort>{
+              quarter,
+              startDate: period.startDate,
+              endDate: period.endDate,
+              expectedEffort: period.acquisitionNumber
+            })
+          }).filter(isNotNil)
+        )
+      }, []);
+    }
+
+    this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || undefined;
+    if (!this.effortByQuarter && isNotEmptyArray(this.efforts)) {
+      this.effortByQuarter = {};
+      this.efforts.forEach(effort => {
+        this.effortByQuarter[effort.quarter] = this.effortByQuarter[effort.quarter] || StrategyEffort.fromObject({
+          quarter: effort.quarter,
+          expectedEffort: 0,
+
+        });
+        this.effortByQuarter[effort.quarter].expectedEffort += effort.expectedEffort;
+      });
+    }
     this.parameterGroups = source.parameterGroups || undefined;
 
     this.year = fromDateISOString(source.year);
@@ -83,6 +114,16 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
     }
     else {
       target.year = toDateISOString(this.year);
+
+      target.efforts = this.efforts && this.efforts.map(e => e.asObject()) || undefined;
+
+
+
+      target.effortByQuarter = {};
+      target.efforts.filter(e => e.quarter).forEach(e => target.effortByQuarter[e.quarter] = e);
+
+      target.parameterGroups = this.parameterGroups && this.parameterGroups.slice() || undefined;
+
       target.lengthPmfms = this.lengthPmfms && this.lengthPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
       target.weightPmfms = this.weightPmfms && this.weightPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
       target.maturityPmfms = this.maturityPmfms && this.maturityPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -109,6 +150,13 @@ export class StrategyEffort {
 
   static fromObject(value: any): StrategyEffort {
     if (!value || value instanceof StrategyEffort) return value;
+    const target = new StrategyEffort();
+    target.fromObject(value);
+    return target;
+  }
+
+  static clone(value: any): StrategyEffort {
+    if (!value) return value;
     const target = new StrategyEffort();
     target.fromObject(value);
     return target;
@@ -145,6 +193,13 @@ export class StrategyEffort {
     const startQuarter = this.startDate && this.startDate.quarter();
     const endQuarter = this.endDate && this.endDate.quarter();
     this.quarter = startQuarter === endQuarter ? startQuarter : undefined;
+  }
+
+  asObject(opts?: EntityAsObjectOptions) {
+    const target: any = Object.assign({}, this);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    return target;
   }
 
   get realized(): boolean {

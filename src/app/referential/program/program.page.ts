@@ -158,12 +158,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
-  updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+
+  async updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
     this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
     this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
 
-    super.updateView(data, opts);
+    await super.updateView(data, opts);
   }
 
   protected async onEntityLoaded(data: Program, options?: EntityServiceLoadOptions): Promise<void> {

@@ -470,16 +470,16 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     await modal.present();
     const { data } = await modal.onDidDismiss();
 
-    if (data) {
-      const strategies = rows
-        .map(row => row.currentData)
-        .map(SamplingStrategy.fromObject);
-      const year = fromDateISOString(data).format('YY').toString();
+    if (!data) return;
 
-      this.selection.clear();
+    const strategies = rows
+      .map(row => row.currentData)
+      .map(SamplingStrategy.fromObject);
+    const year = fromDateISOString(data).format('YY').toString();
 
-      await this.duplicateStrategies(strategies, year);
-    }
+
+    await this.duplicateStrategies(strategies, year);
+    this.selection.clear();
   }
 
   async duplicateStrategies(sources: SamplingStrategy[], year: string) {
@@ -493,9 +493,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     }
     catch (err) {
       this.setError(err && err.message || err, {emitEvent: false});
+    }
+    finally {
       this.markAsLoaded();
     }
-
   }
 }
 

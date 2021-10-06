@@ -138,12 +138,12 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.$program.next(program);
   }
 
-  protected setValue(data: Strategy) {
+  protected async setValue(data: Strategy) {
     if (!data) return; // Skip
 
     this.referentialForm.setValue(data);
 
-    this.strategyForm.updateView(data);
+    await this.strategyForm.updateView(data);
 
     this.markAsPristine();
   }

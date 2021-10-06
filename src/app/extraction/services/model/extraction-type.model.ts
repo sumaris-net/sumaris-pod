@@ -10,6 +10,8 @@ export const ExtractionCategories = {
   LIVE: 'LIVE',
 };
 
+export type ExtractionCacheDurationType = 'short'|'default'|'medium'|'long'|'eternal';
+
 @EntityClass({typename: 'ExtractionTypeVO'})
 export class ExtractionType<
   T extends ExtractionType<T, ID> = ExtractionType<any, any>,

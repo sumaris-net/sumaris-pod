@@ -406,8 +406,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   }
 
-  updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
-    super.updateView(data, opts);
+  async updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    await super.updateView(data, opts);
 
     if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
       this.batchTree.autoFill();

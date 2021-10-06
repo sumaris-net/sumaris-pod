@@ -96,8 +96,8 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
 
   /* -- protected methods -- */
 
-  updateView(data: Parameter | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
-    super.updateView(data, opts);
+  async updateView(data: Parameter | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    await super.updateView(data, opts);
 
     this.tabCount = this.isQualitative ? 2 : 1;
   }

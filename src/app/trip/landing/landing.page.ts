@@ -283,12 +283,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this._rowValidatorSubscription = this.computeSampleRowValidator(form, pmfms);
   }
 
-  updateView(data: Landing | null, opts?: {
+  async updateView(data: Landing | null, opts?: {
     emitEvent?: boolean;
     openTabIndex?: number;
     updateRoute?: boolean;
   }) {
-    super.updateView(data, opts);
+    await super.updateView(data, opts);
 
     if (this.parent) {
       if (this.parent instanceof ObservedLocation) {

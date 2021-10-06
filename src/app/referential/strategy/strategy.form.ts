@@ -226,8 +226,8 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     return true;
   }
 
-  updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
-    super.updateView(data, {...opts, updateRoute: false});
+  async updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
+    await super.updateView(data, {...opts, updateRoute: false});
   }
 
   async openSelectReferentialModal(opts: {

@@ -251,7 +251,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.markForCheck();
   }
 
-  updateView(data: Landing | null, opts?: {
+  async updateView(data: Landing | null, opts?: {
     emitEvent?: boolean;
     openTabIndex?: number;
     updateRoute?: boolean;
@@ -262,7 +262,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       opts = {...opts, openTabIndex: 1};
     }
 
-    super.updateView(data, opts);
+    await super.updateView(data, opts);
 
     // Configure landing form
     this.landingForm.showLocation = false;
