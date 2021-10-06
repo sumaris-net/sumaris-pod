@@ -35,8 +35,7 @@ export class SamplingLandingPage extends LandingPage {
     protected pmfmService: PmfmService
   ) {
     super(injector, {
-      pathIdAttribute: 'samplingId',
-      autoOpenNextTab: true
+      pathIdAttribute: 'samplingId'
     });
   }
 

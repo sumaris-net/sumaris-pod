@@ -365,9 +365,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const startDate = this.data.startDateTime.clone().add(-15, "days");
     const endDate = this.data.startDateTime.clone();
-    const programLabel = (this.aggregatedLandingsTable && this.aggregatedLandingsTable.program) || this.data.program.label;
+    const programLabel = this.aggregatedLandingsTable?.program || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
-      && await this.aggregatedLandingsTable.vesselIdsAlreadyPresent()) || [];
+      && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
 
     const landingFilter = LandingFilter.fromObject({
       programLabel,
@@ -443,7 +443,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected registerForms() {
     this.addChildForms([
       this.observedLocationForm,
-      () => this.landingsTable,
+      // Use landings table as child, only if editable
+      () => this.landingsTable?.canEdit && this.landingsTable,
       () => this.aggregatedLandingsTable
     ]);
   }
@@ -475,7 +476,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
-    if (this.landingsTable && this.landingsTable.dirty && this.landingsTable.isEditable) {
+    if (this.landingsTable && this.landingsTable.dirty && this.landingsTable.canEdit) {
       await this.landingsTable.save();
     }
     if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
