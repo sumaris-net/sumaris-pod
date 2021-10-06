@@ -1503,8 +1503,8 @@
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
         "LABEL.ZERO": "L'incrément minimal est 001",
-        "STRATEGY_HAS_DATA": "Une ligne de plan est liée à une ou plusieurs observations individuelles",
-        "STRATEGIES_HAS_DATA": "Des lignes de plan sont liées à une ou plusieurs observations individuelles",
+        "STRATEGY_HAS_DATA": "La ligne de plan {{ label }} est liée à une ou plusieurs observations individuelles",
+        "STRATEGIES_HAS_DATA": "Les lignes de plan {{ label }} sont liées à une ou plusieurs observations individuelles",
         "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
         "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
       }

@@ -287,7 +287,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.setError(strategyLabelsWithData.length === 1
         ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
         : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
-      await Alerts.showError(strategyLabelsWithData.length === 1 ? "PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA" : "PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA", this.alertCtrl, this.translate);
+      const message = this.translate.instant(strategyLabelsWithData.length === 1 ? "PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA" : "PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA", this.errorDetails);
+      await Alerts.showError(message, this.alertCtrl, this.translate);
       return 0;
     }
 
