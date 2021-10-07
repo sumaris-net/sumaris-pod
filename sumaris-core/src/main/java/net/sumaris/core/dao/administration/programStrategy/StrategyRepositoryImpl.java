@@ -32,7 +32,6 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonNameRepositoryImpl;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -56,7 +55,6 @@ import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -567,15 +565,13 @@ public class StrategyRepositoryImpl
         Map<Integer, ReferenceTaxonStrategy> sourcesToRemove = Beans.splitByProperty(parent.getReferenceTaxons(),
             ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
 
-        TaxonNameRepositoryImpl tnr = new TaxonNameRepositoryImpl(em);
-
         // Save each reference taxon strategy
         Beans.getStream(sources).forEach(source -> {
             Integer referenceTaxonId = source.getReferenceTaxonId() != null ? source.getReferenceTaxonId() :
                 (source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : null);
 
             if (referenceTaxonId == null) {
-                referenceTaxonId = tnr.getReferenceTaxonIdById(source.getTaxonName().getId());
+                referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
             }
             if (referenceTaxonId == null) throw new DataIntegrityViolationException("Missing referenceTaxon.id in a ReferenceTaxonStrategyVO");
             ReferenceTaxonStrategy target = sourcesToRemove.remove(referenceTaxonId);
@@ -735,12 +731,12 @@ public class StrategyRepositoryImpl
                     target.setPriorityLevel(item.getPriorityLevel());
 
                     // Taxon name
-                    Optional<TaxonNameVO> taxonName = taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId());
-                    if (taxonName.isPresent()) {
-                        target.setTaxonName(taxonName.get());
-                        target.setReferenceTaxonId(taxonName.get().getReferenceTaxonId());
-                        target.setIsReferent(taxonName.get().getIsReferent());
-                    }
+                    taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId())
+                        .ifPresent(taxonName -> {
+                            target.setTaxonName(taxonName);
+                            target.setReferenceTaxonId(taxonName.getReferenceTaxonId());
+                            target.setIsReferent(taxonName.getIsReferent());
+                        });
                     return target;
                 })
                 .filter(target -> target.getTaxonName() != null)
