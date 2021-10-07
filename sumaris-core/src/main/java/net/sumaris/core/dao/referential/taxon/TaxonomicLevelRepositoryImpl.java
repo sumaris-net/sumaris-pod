@@ -66,7 +66,7 @@ public class TaxonomicLevelRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id")
+    @Cacheable(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id")
     public ReferentialVO get(int id) {
         return super.get(id);
     }
