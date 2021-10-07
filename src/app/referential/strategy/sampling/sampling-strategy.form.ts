@@ -467,7 +467,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this._startPromise = Promise.all([
 
       this.referentialRefService.loadAll(0, 1000, null, null, {
-        entityName: 'Fraction'
+        entityName: 'Fraction',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
       })
         .then(({data}) => this.$allFractions.next(data)),
 
