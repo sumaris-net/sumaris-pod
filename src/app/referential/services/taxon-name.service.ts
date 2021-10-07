@@ -20,7 +20,7 @@ import { ReferentialService } from './referential.service';
 import { Observable, of } from 'rxjs';
 import { ReferentialFragments } from './referential.fragments';
 import { TaxonName } from './model/taxon-name.model';
-import { ReferentialFilter } from '@app/referential/services/filter/referential.filter';
+import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
 
 export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any; }= {
   loadAll: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
@@ -38,6 +38,10 @@ export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists
       total: taxonNameCount(filter: $filter)
     }
     ${ReferentialFragments.lightTaxonName}`,
+
+  countAll: gql`query TaxonNameCount($filter: TaxonNameFilterVOInput){
+      total: taxonNameCount(filter: $filter)
+  }`,
 
   load:  gql`query taxonName($label: String, $id: Int){
       data: taxonName(label: $label, id: $id){
@@ -61,7 +65,7 @@ const TaxonNameMutations: BaseEntityGraphqlMutations = {
 }
 
 @Injectable({providedIn: 'root'})
-export class TaxonNameService extends BaseEntityService<TaxonName, ReferentialFilter> implements IEntityService<TaxonName> {
+export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilter> implements IEntityService<TaxonName> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -70,7 +74,7 @@ export class TaxonNameService extends BaseEntityService<TaxonName, ReferentialFi
     protected referentialService: ReferentialService
   ) {
     super(graphql, platform,
-    TaxonName, ReferentialFilter, {
+    TaxonName, TaxonNameFilter, {
       queries: TaxonNameQueries,
       mutations: TaxonNameMutations
     });

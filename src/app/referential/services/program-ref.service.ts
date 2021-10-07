@@ -6,7 +6,7 @@ import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
 import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
-import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
+import {TaxonGroupRef, TaxonGroupTypeIds} from "./model/taxon-group.model";
 import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
@@ -32,6 +32,7 @@ import {BaseReferentialService} from "./base-referential-service.class";
 import {ProgramFilter} from "./filter/program.filter";
 import {ReferentialRefFilter} from "./filter/referential-ref.filter";
 import {environment} from '@environments/environment';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 
 export const ProgramRefQueries = {

@@ -1,8 +1,8 @@
 import {EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, fromDateISOString, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
 import {BaseReferentialFilter} from '@app/referential/services/filter/referential.filter';
 import {Strategy} from '@app/referential/services/model/strategy.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon.model';
 import {Moment} from 'moment';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 @EntityClass({typename: 'StrategyFilterVO'})
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {

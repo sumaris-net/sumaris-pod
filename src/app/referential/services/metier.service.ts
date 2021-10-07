@@ -4,7 +4,6 @@ import {ErrorCodes} from "./errors";
 import {AccountService, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
 import {LoadResult, SuggestService} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Metier} from "./model/taxon.model";
 import {NetworkService}  from "@sumaris-net/ngx-components";
 import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
@@ -15,6 +14,7 @@ import {isNil} from "@sumaris-net/ngx-components";
 import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
 import {environment} from '@environments/environment';
 import {MetierFilter} from "./filter/metier.filter";
+import { Metier } from "@app/referential/services/model/metier.model";
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',

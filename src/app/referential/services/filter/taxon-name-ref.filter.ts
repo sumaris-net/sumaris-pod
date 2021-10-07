@@ -1,10 +1,10 @@
 import {BaseReferentialFilter} from "./referential.filter";
-import {TaxonNameRef} from "../model/taxon.model";
 import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
 import {StoreObject} from "@apollo/client/core";
 import {isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 @EntityClass({typename: 'TaxonNameFilterVO'})
 export class TaxonNameRefFilter extends BaseReferentialFilter<TaxonNameRefFilter, TaxonNameRef> {

@@ -32,7 +32,6 @@ import {
 import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
 import { Program } from '../../services/model/program.model';
 import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from '../../services/model/strategy.model';
-import { TaxonNameRef, TaxonUtils } from '../../services/model/taxon.model';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 import { StrategyService } from '../../services/strategy.service';
 import { StrategyValidatorService } from '../../services/validator/strategy.validator';
@@ -51,11 +50,12 @@ import { BehaviorSubject, merge } from 'rxjs';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
-import { TaxonName } from '@app/referential/services/model/taxon-name.model';
+import { TaxonName, TaxonNameRef, TaxonUtils } from '@app/referential/services/model/taxon-name.model';
 import { TaxonNameService } from '@app/referential/services/taxon-name.service';
 import { PmfmStrategyValidatorService } from '@app/referential/services/validator/pmfm-strategy.validator';
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
+import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
 
 const moment = momentImported;
 
@@ -1049,42 +1049,28 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   private async isTaxonNameUnique(label: string, currentViewTaxonId?: number): Promise<boolean> {
     if (isNilOrBlank(label)) return true;
 
-    console.debug('TODO calling isTaxonNameUnique: ' + label);
-
-    let taxonNamesItems = (await this.referentialRefService.loadAll(0, 1000, null, null, {
-      entityName: TaxonName.ENTITY_NAME,
-      searchText: TaxonUtils.generateNameSearchPatternFromLabel(label),
+    const taxonNameFilter: Partial<TaxonNameFilter> = {
       searchAttribute: 'name',
       excludedIds: [currentViewTaxonId],
       statusIds: [StatusIds.ENABLE],
-      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-    }))?.data;
+      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
+      withSynonyms: false
+    };
 
-    if (isEmptyArray(taxonNamesItems)) return true;
+    const [first, second] = await Promise.all([
+      // Try without parenthesis
+      this.taxonNameService.countAll({
+        ...taxonNameFilter,
+        searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, false)
+      }),
+      // Try WITH parenthesis
+      this.taxonNameService.countAll({
+        ...taxonNameFilter,
+        searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, true)
+      }),
+    ])
 
-    let referentTaxons = (await Promise.all(taxonNamesItems.map(taxonRef => (this.taxonNameService.load(taxonRef.id)))))
-      .filter(taxon => taxon.isReferent);
-    if (isNotEmptyArray(referentTaxons)) {
-      return false;
-    }
-
-    // IMAGINE-511 - add a control on taxon unicity searching in taxon with parentheses
-    // should be replaced by generateNameSearchPatternFromLabel managing optional parentheses in searchText parameter
-    taxonNamesItems = (await this.referentialRefService.loadAll(0, 1000, null, null, {
-      entityName: TaxonName.ENTITY_NAME,
-      searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, true),
-      searchAttribute: 'name',
-      excludedIds: [currentViewTaxonId],
-      statusIds: [StatusIds.ENABLE],
-      levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
-    }))?.data;
-    if (isEmptyArray(taxonNamesItems)) return true;
-
-    referentTaxons = (await Promise.all(taxonNamesItems.map(taxonRef => this.taxonNameService.load(taxonRef.id))))
-      .filter(taxon => taxon.isReferent);
-    if (isNotEmptyArray(referentTaxons)) return false;
-
-    return true;
+    return (first + second) === 0;
   }
 
   protected async onDateChange(date?: Moment) {

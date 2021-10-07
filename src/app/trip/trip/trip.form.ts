@@ -40,8 +40,8 @@ import {debounceTime, filter} from 'rxjs/operators';
 import {VesselModal} from '@app/vessel/modal/vessel-modal';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Metier} from '@app/referential/services/model/taxon.model';
 import {MetierFilter} from '@app/referential/services/filter/metier.filter';
+import { Metier } from "@app/referential/services/model/metier.model";
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 

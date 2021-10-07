@@ -41,12 +41,12 @@ import { SamplingStrategyService } from '@app/referential/services/sampling-stra
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { Metier } from '@app/referential/services/model/taxon.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
+import { Metier } from '@app/referential/services/model/metier.model';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 

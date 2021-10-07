@@ -30,19 +30,20 @@ import { Moment } from 'moment';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { FormGroup } from '@angular/forms';
-import { TaxonGroupRef, TaxonNameRef } from '../../referential/services/model/taxon.model';
+import { TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import { Sample } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel } from '../../referential/services/model/model.enum';
-import { ReferentialRefService } from '../../referential/services/referential-ref.service';
-import { environment } from '../../../environments/environment';
+import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils, UnitConversion } from '../../referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils, UnitConversion } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
 import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MatMenu } from '@angular/material/menu';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 const moment = momentImported;
 
@@ -493,6 +494,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       }
       this.currentSample = data;
     }
+  }
+
+  deleteSelection(event: UIEvent): Promise<number> {
+    console.debug('TODO: deleteSelection');
+    return super.deleteSelection(event);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

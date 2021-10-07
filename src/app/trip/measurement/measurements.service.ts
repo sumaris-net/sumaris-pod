@@ -1,4 +1,4 @@
-import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { BehaviorSubject, isObservable, Observable, Subscription } from 'rxjs';
 import { filter, first, map, switchMap, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
@@ -13,6 +13,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     implements IEntitiesService<T, F> {
 
   private readonly _debug: boolean;
+  private _subscription: Subscription;
   private _programLabel: string;
   private _acquisitionLevel: string;
   private _strategyLabel: string;
@@ -105,15 +106,19 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
 
-    this._onRefreshPmfms
-      .pipe(
-        filter(() => this.canWatchPmfms()),
-        switchMap(() => this.watchProgramPmfms())
-      )
-      .subscribe(pmfms => this.applyPmfms(pmfms));
+    this._subscription.add(
+      this._onRefreshPmfms
+        .pipe(
+          filter(() => this.canWatchPmfms()),
+          switchMap(() => this.watchProgramPmfms()),
+          tap(pmfms => this.applyPmfms(pmfms))
+        )
+        .subscribe()
+    );
   }
 
   ngOnDestroy() {
+    this._subscription.unsubscribe();
     this.$pmfms.complete();
     this.$pmfms.unsubscribe();
     this._onRefreshPmfms.complete();
