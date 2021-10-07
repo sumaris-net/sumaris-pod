@@ -34,13 +34,13 @@ import {DenormalizedPmfmStrategy, PmfmStrategy} from '../../../referential/servi
 import {BehaviorSubject, combineLatest} from 'rxjs';
 import {MeasurementValuesUtils} from '../../services/model/measurement.model';
 import {PmfmFormField} from '../../../referential/pmfm/pmfm.form-field.component';
-import {TaxonNameRef} from '../../../referential/services/model/taxon.model';
 import {SubBatch} from '../../services/model/subbatch.model';
 import {BatchGroup} from '../../services/model/batch-group.model';
 import {TranslateService} from '@ngx-translate/core';
 import {FloatLabelType} from '@angular/material/form-field';
 import {ProgramRefService} from '../../../referential/services/program-ref.service';
 import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 
 @Component({

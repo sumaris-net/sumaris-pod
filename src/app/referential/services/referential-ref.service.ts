@@ -9,7 +9,6 @@ import {ReferentialService} from "./referential.service";
 import {IEntitiesService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
-import {Metier, TaxonNameRef} from "./model/taxon.model";
 import {NetworkService}  from "@sumaris-net/ngx-components";
 import {EntitiesStorage}  from "@sumaris-net/ngx-components";
 import {ReferentialFragments} from "./referential.fragments";
@@ -29,6 +28,8 @@ import {Configuration}  from "@sumaris-net/ngx-components";
 import {REFERENTIAL_CONFIG_OPTIONS} from "./config/referential.config";
 import {ConfigService}  from "@sumaris-net/ngx-components";
 import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{

@@ -34,7 +34,7 @@ import {SubBatch} from '../../services/model/subbatch.model';
 import {defer, Observable, Subject} from 'rxjs';
 import {map, takeUntil} from 'rxjs/operators';
 import {SubBatchesModal} from '../modal/sub-batches.modal';
-import {TaxonGroupRef} from '../../../referential/services/model/taxon.model';
+import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
 import {MatMenuTrigger} from '@angular/material/menu';
 import {BatchGroupValidatorService} from '../../services/validator/batch-group.validator';
 import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';

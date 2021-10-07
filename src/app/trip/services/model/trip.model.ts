@@ -8,13 +8,13 @@ import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {Landing} from './landing.model';
-import {Metier} from '@app/referential/services/model/taxon.model';
 import {Sample} from './sample.model';
 import {Batch} from './batch.model';
 import {IWithProductsEntity, Product} from './product.model';
 import {IWithPacketsEntity, Packet} from './packet.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
+import { Metier } from "@app/referential/services/model/metier.model";
 
 /* -- Helper function -- */
 
