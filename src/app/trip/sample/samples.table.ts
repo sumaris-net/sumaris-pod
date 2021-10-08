@@ -189,6 +189,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
     this.defaultSortDirection = 'asc';
+
+    this.confirmBeforeDelete = false;
+    this.confirmBeforeCancel = false;
+    this.undoableDeletion = false;
+    this.saveBeforeDelete = false;
+
+    this.saveBeforeSort = true;
+    this.saveBeforeFilter = true;
     this.propagateRowError = true;
 
     // Set default value
