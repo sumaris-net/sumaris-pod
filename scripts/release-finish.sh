@@ -18,7 +18,7 @@ PROJECT_DIR=`pwd`
 if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release-gitflow-finish.sh <version> <release_description>"
+  echo " > ./release-finish.sh <version> <release_description>"
   echo "with:"
   echo " - version: x.y.z"
   echo " - release_description: a comment on release"
