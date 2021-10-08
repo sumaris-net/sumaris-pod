@@ -149,16 +149,16 @@ if [[ "_$description" == "_" ]]; then
 fi
 
 # Commit
-#cd $PROJECT_DIR
+cd $PROJECT_DIR
 #git reset HEAD
-#git add package.json config.xml src/assets/manifest.json install.sh
-#git commit -m "$version"
-#git tag -f -a "$version" -m "${description}"
-#git push origin "$version"
-#[[ $? -ne 0 ]] && exit 1
+git add package.json config.xml src/assets/manifest.json install.sh
+git commit -m "$version"
+git tag -f -a "$version" -m "${description}"
+git push origin "$version"
+[[ $? -ne 0 ]] && exit 1
 
 # Pause (if propagation is need between hosted git server and github)
-#sleep 10s
+sleep 40s
 
 echo "**********************************"
 echo "* Uploading artifacts to Github..."
