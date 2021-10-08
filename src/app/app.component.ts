@@ -191,6 +191,14 @@ export class AppComponent {
       "fish",
       this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
     );
+    this.matIconRegistry.addSvgIcon(
+      "down-arrow",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/down-arrow.svg")
+    );
+    this.matIconRegistry.addSvgIcon(
+      "rollback-arrow",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/rollback-arrow.svg")
+    );
   }
 }
 

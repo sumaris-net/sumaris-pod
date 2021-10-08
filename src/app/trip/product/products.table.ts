@@ -1,24 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {ProductValidatorService} from "../services/validator/product.validator";
-import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
-import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject} from "rxjs";
-import {IReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
-import {TableElement} from "@e-is/ngx-material-table";
-import {ProductSaleModal} from "../sale/product-sale.modal";
-import {isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {SaleProductUtils} from "../services/model/sale-product.model";
-import {filterNotNil} from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {SamplesModal} from "../sample/samples.modal";
-import {LoadResult} from "@sumaris-net/ngx-components";
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { ProductSaleModal } from '../sale/product-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { environment } from '@environments/environment';
+import { SamplesModal } from '../sample/samples.modal';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
-export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
+export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
 
 @Component({
@@ -37,9 +33,26 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
 
-  @Input() showParent = true;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input()
+  set showParent(value: boolean) {
+    this.setShowColumn('parent', value);
+  }
+
+  get showParent(): boolean {
+    return this.getShowColumn('parent');
+  }
+
+  @Input()
+  set showSaleType(value: boolean) {
+    this.setShowColumn('saleType', value);
+  }
+
+  get showSaleType(): boolean {
+    return this.getShowColumn('saleType');
+  }
 
   @Input() set parentFilter(productFilter: ProductFilter) {
     this.setFilter(productFilter);
@@ -94,12 +107,16 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerAutocompleteField('parent', {
-      items: this.$parents,
-      attributes: this.parentAttributes,
-      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
-    });
+    this.allowRowDetail = false;
+
+    if (this.showParent && this.parentAttributes) {
+      this.registerAutocompleteField('parent', {
+        items: this.$parents,
+        attributes: this.parentAttributes,
+        columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined),
+      });
+    }
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
@@ -116,30 +133,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         }));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
-  }
-
-  /* -- protected methods -- */
-
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    if (this.platform.is('mobile')) {
-      // hide pmfms on mobile
-      return [];
-    }
-
-    return pmfms;
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
@@ -223,9 +216,41 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   }
 
+  protected openRow(id: number, row: TableElement<Product>): Promise<boolean> {
+    return super.openRow(id, row);
+  }
+
+  /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    return this.programRefService.suggestTaxonGroups(value,
+      {
+        program: this.programLabel,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+
+    if (this.platform.is('mobile')) {
+      // hide pmfms on mobile
+      return [];
+    }
+
+    return pmfms;
+  }
+
   private onStartEditProduct(row: TableElement<Product>) {
-    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
-      row.validator.patchValue({parent: this.filter.parent});
+    if (row.currentData && !row.currentData.parent) {
+      if (this.filter?.parent) {
+        row.validator.patchValue({ parent: this.filter.parent });
+      } else if (this.$parents.value?.length === 1) {
+        row.validator.patchValue({ parent: this.$parents.value[0] });
+      }
     }
   }
 }

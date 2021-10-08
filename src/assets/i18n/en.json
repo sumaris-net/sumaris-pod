@@ -13,6 +13,7 @@
     "BTN_CLOSE": "Close",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
+    "BTN_DUPLICATE": "Duplicate",
     "BTN_DELETE": "Delete",
     "BTN_DELETE_FOREVER": "Delete forever",
     "BTN_EDIT": "Edit",
@@ -114,7 +115,7 @@
       "ITEMS_PER_PAGE":"Items per page",
       "NEXT_PAGE":"Next page",
       "PREVIOUS_PAGE":"Previous page",
-      "OF": "sur"
+      "OF": "on"
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtered)"
@@ -150,6 +151,7 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
+      "DEFAULT_WEIGHT_UNIT": "Default weight unit",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
@@ -179,7 +181,10 @@
         "GUEST": "Label for Guest profile"
       },
       "VESSEL": {
-        "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel"
+        "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel",
+        "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
+        "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port ?",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels: Nb char. for search"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
@@ -188,12 +193,14 @@
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
+        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Strategy > Location level(s) for fishing area (ids)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Referential > Taxonomic level > Family",
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
         "PMFM_TAG_ID": "Référentiel > PSFM > Sample tag",
+        "PMFM_DRESSING": "Référentiel > PSFM > Presentation",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
@@ -205,7 +212,8 @@
         "PARAMETER_GROUP_SEX_LABELS": "Strategy > Parameter > Sex labels",
         "PARAMETER_GROUP_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
         "PARAMETER_GROUP_LENGTH_LABELS": "Strategy > Parameter > Length labels",
-        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels"
+        "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels",
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Strategy > Fraction > Calcified structure ids"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
@@ -390,6 +398,7 @@
     "AVATAR": "Avatar",
     "EMAIL": "Email",
     "USERNAME": "Username",
+    "USERNAME_EXTRANET": "Username Extranet",
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
@@ -430,6 +439,7 @@
     "MAIN_METIER_PLACEHOLDER": "Main metier",
     "SECONDARY_METIER_PLACEHOLDER": "Secondary metier #{{rank}}",
     "METIERS": "Metiers:",
+    "METIER": "Metier:",
     "BTN_FILTER_METIER": "Restrict to already practiced metiers",
     "COMMENTS": "Comments",
     "QUALITY": "Form status",
@@ -490,6 +500,10 @@
         "MANY_TRIPS_RESTORED": "Trips successfully restored!",
         "LOCAL_TRASH_CLEANED": "Local trash has been cleaned"
       }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuring offline mode",
+      "DURATION_PLACEHOLDER": "Period to import"
     },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Error while loading the trip.",
@@ -565,7 +579,28 @@
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Other features:",
-        "NO_TARGET_SPECIES_FOUND": "No species for this gear"
+        "NO_TARGET_SPECIES_FOUND": "No species for this gear",
+        "DISTANCE_TRAVELED" : "Traveled distance :",
+        "START_PARENT_OPERATION" : "Start laying :",
+        "END_PARENT_OPERATION" : "End laying / Start Fishing :",
+        "START_CHILD_OPERATION" : "End fishing / Start hauling :",
+        "END_CHILD_OPERATION" : "End hauling :",
+        "TYPE": {
+          "TITLE" : "Operation type :",
+          "PARENT" : "Setting",
+          "CHILD" : "Hauling"
+        },
+        "BTN_EDIT_PARENT" : "Edit setting",
+        "BTN_SELECT_PARENT" : "Select setting"
+      },
+      "PARENT": {
+        "TITLE" : "Select setting",
+        "TRIP" : "{{vessel}} - Trip {{departureDateTime}}",
+        "FILTER" : {
+          "SEARCH_TEXT" : "Search : code gear / target species",
+          "START_DATE" : "Start period",
+          "GEAR" : "Gear"
+        }
       },
       "MAP": {
         "TITLE": "Positions map",
@@ -573,7 +608,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
-        "PHYSICAL_GEAR": "Used gear",
+        "GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
         "START_DATE_TIME": "Start",
@@ -582,7 +617,8 @@
         "FISHING_END_DATE_TIME": "Towing",
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
-        "COMMENTS": "Comments"
+        "COMMENTS": "Comments",
+        "OPERATION_TYPE" : "Type"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
@@ -591,7 +627,10 @@
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
+        "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
+        "TOO_LONG_DISTANCE" : "Traveled distance too long"
       }
     },
     "CATCH": {
@@ -610,6 +649,7 @@
       "LIST": {
         "PARENT": "Effort",
         "TAXON_GROUP": "Commercial species (FAO)",
+        "SALE_TYPE": "Disposal",
         "WEIGHT": "Weight (kg)",
         "INDIVIDUAL_COUNT": "Individual count",
         "INDIVIDUAL_SAMPLING": "Sampling",
@@ -729,6 +769,10 @@
       }
     }
   },
+  "EXPECTED_SALE": {
+    "FEATURES": "Features:",
+    "CALCULATED_TOTAL": "Calculated total:"
+  },
   "SALE": {
     "TITLE": "Sale",
     "SALE_FIELD": "Sale:",
@@ -783,6 +827,8 @@
       "TAB_GENERAL": "Details",
       "OBSERVER_PLACEHOLDER": "Observer #",
       "OBSERVERS": "Observers:",
+      "FISHING_AREA_PLACEHOLDER": "Fishing area #",
+      "FISHING_AREAS": "Fishing areas:",
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Sampling"
@@ -908,6 +954,7 @@
     "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "RANK_ORDER": "Batch number",
       "LABEL": "Batch number",
       "LABEL_VALUE": "Batch #{{rankOrder}}",
       "PARENT": "Effort",
@@ -971,7 +1018,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Fishing area",
+    "TITLE": "Fishing area:",
     "LOCATION": "Location",
     "DISTANCE_TO_COAST_GRADIENT": "Distance to coast gradient",
     "DEPTH_GRADIENT": "Depth gradient",
@@ -1062,7 +1109,10 @@
       "TITLE": "Vessels",
       "FILTER": {
         "DATE": "Validity date",
-        "SEARCH_TEXT": "Search: code, name"
+        "SEARCH_TEXT": "Search: code, name",
+        "REGISTRATION_LOCATION": "Country flag",
+        "BASE_PORT_LOCATION": "Base port",
+        "VESSEL_TYPE": "Vessel type"
       }
     },
     "ERROR": {
@@ -1193,6 +1243,7 @@
       "USER_PROFILE": "User profiles",
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
+      "DUPLICATE_STRATEGY": "Strategy to duplicate",
       "MATRIX": "Matrices",
       "FRACTION": "Fractions of the matrix",
       "QUALITATIVE_VALUE": "Qualitative values",
@@ -1272,6 +1323,10 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Catch > Survival test: Commercial species?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Default direction:",
+      "TRIP_OPERATION_LINKED": "Trip > Operation : linked Operations (setting/hauling) ?",
+      "TRIP_METIER_FILTER": "Trip > Operation : Filter already used metiers ?",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation : Max travelled distance before warning :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation : Max travelled distance before error : ",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation > Add landing: Show history?",
@@ -1300,6 +1355,9 @@
         "LEGACY": "Default",
         "SAMPLING": "Biological parameters"
       },
+      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Strategy > Editor : Location level(s) (ids)",
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Strategy > Editor: Auto-enable filtered fields",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Strategy > Editor: Nb. items for filtered fields",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
@@ -1313,6 +1371,10 @@
       "SCIENTIFIC_TAXON_NAMES": "Scientific species",
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFMs",
+      "DUPLICATE_MODAL": {
+        "TITLE": "Duplicate",
+        "HELP": "Select a year for the new sampling plan: "
+      },
       "NEW": {
         "TITLE": "New strategy",
         "SAMPLING": {
@@ -1322,6 +1384,7 @@
       "EDIT": {
         "TITLE": "<small>{{program}}<br></small>Strategy {{label}}",
         "LABEL": "Code",
+        "GENERATE_LABEL_INCREMENT_BUTTON": "generate increment",
         "ANALYTIC_REFERENCE_PLACEHOLDER": "Analytic reference",
         "DEPARTMENTS": "Recorder(s) department(s) :",
         "DEPARTMENT_PLACEHOLDER": "Recorder department #",
@@ -1424,13 +1487,13 @@
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy's analytic references",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is mandatory",
+        "PARAMETERS.DRESSING": "Dressing is required",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
         "LABEL.ZERO": "The minimum increment is 001",
-        "STRATEGY_HAS_REALIZED_EFFORT": "Sampling scheme {{label}} used by observed locations",
-        "STRATEGIES_HAS_REALIZED_EFFORT": "Sampling schemes {{label}} used by observed locations",
-        "PMFM.PMFM_OR_PARAMETER": "Please select a PMFM or Parameter",
+        "STRATEGY_HAS_DATA": "Sampling scheme {{label}} used by observed locations",
+        "STRATEGIES_HAS_DATA": "Sampling schemes {{label}} used by observed locations",
         "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid",
         "NOT_UNIQUE_TAXON_CODE": "Generate taxon code is not unique"
       }
@@ -1842,6 +1905,7 @@
     "DOWNLOAD_APP_HELP": "Free download.",
     "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
-    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.."
+    "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
+    "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters"
   }
 }

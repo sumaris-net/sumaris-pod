@@ -8,7 +8,7 @@ import {
   fadeInOutAnimation,
   FormFieldDefinitionMap,
   HistoryPageReference,
-  isNil,
+  isNil, joinProperties,
   joinPropertiesPath,
   MatAutocompleteFieldConfig,
   referentialToString,
@@ -34,7 +34,7 @@ import {environment} from '@environments/environment';
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
+export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   canEdit: boolean;
   form: FormGroup;
@@ -92,7 +92,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Parameter'}
+          filter: {entityName: 'Parameter'},
+          showAllOnFocus: false
         }
       },
       unit: {
@@ -102,7 +103,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         autocomplete: {
           ...autocompleteConfig,
           attributes: ['label'],
-          filter: {entityName: 'Unit'}
+          filter: {entityName: 'Unit'},
+          showAllOnFocus: false
         }
       },
 
@@ -140,7 +142,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Matrix'}
+          filter: {entityName: 'Matrix'},
+          showAllOnFocus: false
         }
       },
       fraction: {
@@ -149,7 +152,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Fraction', levelId: 1}
+          filter: {entityName: 'Fraction'},
+          showAllOnFocus: false
         }
       },
       method: {
@@ -158,7 +162,8 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
         type: 'entity',
         autocomplete: {
           ...autocompleteConfig,
-          filter: {entityName: 'Method'}
+          filter: {entityName: 'Method'},
+          showAllOnFocus: false
         }
       }
     };
@@ -241,13 +246,13 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit {
     }
 
     // Existing data
-    return this.translate.get('REFERENTIAL.PMFM.EDIT.TITLE', data).toPromise();
+    return this.translate.get('REFERENTIAL.PMFM.EDIT.TITLE', {title: joinProperties(this.data, ['label', 'name'])}).toPromise();
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
       ...(await super.computePageHistory(title)),
-      title: `${this.data.label} - ${this.data.name}`,
+      title: joinProperties(this.data, ['label', 'name']),
       subtitle: 'REFERENTIAL.ENTITY.PMFM',
       icon: 'list'
     };

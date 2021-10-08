@@ -1,25 +1,19 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {Strategy} from "../services/model/strategy.model";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {StrategyForm} from "./strategy.form";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {StrategyService} from "../services/strategy.service";
-import {BehaviorSubject} from "rxjs";
-import {Program} from "../services/model/program.model";
-import {ReferentialForm} from "../form/referential.form";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {debounceTime, filter, tap} from "rxjs/operators";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../services/program-ref.service";
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Strategy } from '../services/model/strategy.model';
+import { AccountService, AppEntityEditor, EntityServiceLoadOptions, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { ModalController } from '@ionic/angular';
+import { StrategyForm } from './strategy.form';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { StrategyService } from '../services/strategy.service';
+import { BehaviorSubject } from 'rxjs';
+import { Program } from '../services/model/program.model';
+import { ReferentialForm } from '../form/referential.form';
+import { debounceTime, filter, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { ProgramRefService } from '../services/program-ref.service';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -138,12 +132,12 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.$program.next(program);
   }
 
-  protected setValue(data: Strategy) {
+  protected async setValue(data: Strategy) {
     if (!data) return; // Skip
 
     this.referentialForm.setValue(data);
 
-    this.strategyForm.updateView(data);
+    await this.strategyForm.updateView(data);
 
     this.markAsPristine();
   }

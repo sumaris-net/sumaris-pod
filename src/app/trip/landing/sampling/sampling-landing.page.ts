@@ -1,17 +1,17 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup, ValidationErrors} from '@angular/forms';
 import {BehaviorSubject, Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
-import {ParameterLabelGroups, PmfmIds} from '../../../referential/services/model/model.enum';
-import {PmfmService} from '../../../referential/services/pmfm.service';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
 import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
 import {filter, tap, throttleTime} from 'rxjs/operators';
 import {ObservedLocation} from '../../services/model/observed-location.model';
-import {SamplingStrategyService} from '../../../referential/services/sampling-strategy.service';
-import {Strategy} from '../../../referential/services/model/strategy.model';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 
@@ -119,6 +119,25 @@ export class SamplingLandingPage extends LandingPage {
     }
   }
 
+  protected async getValue(): Promise<Landing> {
+    const data = await super.getValue();
+
+    // update samples tag id on save
+    const landing = Landing.fromObject(data);
+    if (landing && landing.samples)
+    {
+      landing.samples.map(sample => {
+        if (sample.measurementValues && sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && landing.measurementValues && landing.measurementValues.hasOwnProperty(PmfmIds.STRATEGY_LABEL))
+        {
+          const strategyLabel = landing.measurementValues[PmfmIds.STRATEGY_LABEL];
+          const tagIdConcatenatedWithStrategyLabel = sample.measurementValues[PmfmIds.TAG_ID] ? strategyLabel + "-" + sample.measurementValues[PmfmIds.TAG_ID] : null;
+          sample.measurementValues[PmfmIds.TAG_ID] = tagIdConcatenatedWithStrategyLabel;
+        }
+      });
+    }
+    return data;
+  }
+
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
@@ -131,6 +150,19 @@ export class SamplingLandingPage extends LandingPage {
       const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
       this.warning = recorderIsNotObserver ? 'LANDING.ERROR.NOT_OBSERVER_ERROR' : null;
     }
+
+    // Update landing samples tag_id. We store the tag_id with a concatenation of sample label and sample tag_id but we only display sample tag_id
+    if (data.samples) {
+    data.samples.map(sample => {
+      if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+        const storedTagId = sample.measurementValues[PmfmIds.TAG_ID];
+        if (storedTagId && storedTagId.length > 4 && storedTagId.split('-').length > 1) {
+          const tagIdWithoutSampleLabel = storedTagId.split('-')[1];
+          sample.measurementValues[PmfmIds.TAG_ID] = tagIdWithoutSampleLabel;
+        }
+      }
+    });
+  }
 
     await super.setValue(data);
   }
@@ -150,14 +182,26 @@ export class SamplingLandingPage extends LandingPage {
   protected computeSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
-    // TODO generate new label ?
-    //this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue())
+      // FIXME useless code
+      /*
+      this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue(), '-').then(value => {
+        if (this.samplesTable.editedRow.currentData && (!this.samplesTable.editedRow.currentData.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) || !this.samplesTable.editedRow.currentData.measurementValues[PmfmIds.TAG_ID])) {
+          console.info("computeSampleRowValidator: " + value);
+          const parts = value && value.split('-');
+          const sampleTagIdIncrement = (parts.length === 2) ? parts[1] : undefined;
+          // Set sample tag pmfm value
+          const data = this.samplesTable.editedRow.currentData;
+          data.measurementValues[PmfmIds.TAG_ID] = ("0000" + (Number(sampleTagIdIncrement) + data.rankOrder - 1)).slice(-4);
+          console.info("computeSampleRowValidator result: " + data.measurementValues[PmfmIds.TAG_ID]);
+          this.samplesTable.editedRow.validator.patchValue(data);
+          this.markAsDirty();
+        }
+      });*/
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
       markForCheck: () => this.markForCheck()
     });
   }
-
 
   protected async computeTitle(data: Landing): Promise<string> {
 

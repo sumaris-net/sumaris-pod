@@ -109,6 +109,8 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, opts);
+    target.landingId = this.landingId;
+    target.operationId = this.operationId;
 
     if (opts && opts.minify) {
       // Parent not need, as the tree will be used by pod

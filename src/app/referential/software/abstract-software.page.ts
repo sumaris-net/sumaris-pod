@@ -24,8 +24,7 @@ import {ReferentialRefService} from '../services/referential-ref.service';
 export abstract class AbstractSoftwarePage<
   T extends Software<T>,
   S extends IEntityService<T>>
-  extends AppEntityEditor<T, S>
-  implements OnInit {
+  extends AppEntityEditor<T, S> {
 
   protected accountService: AccountService;
   protected platform: PlatformService;

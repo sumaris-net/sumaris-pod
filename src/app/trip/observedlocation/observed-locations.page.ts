@@ -1,29 +1,41 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {TableElement} from "@e-is/ngx-material-table";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {FormBuilder} from "@angular/forms";
-import {Alerts, EntitiesTableDataSource, isNotEmptyArray, PersonService, PersonUtils} from '@sumaris-net/ngx-components';
-import {ObservedLocationService} from "../services/observed-location.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {FormArray, FormBuilder, FormControl} from '@angular/forms';
+import {
+  Alerts,
+  ConfigService,
+  EntitiesTableDataSource,
+  HammerSwipeEvent,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  PersonService,
+  PersonUtils,
+  PlatformService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  SharedValidators,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {ObservedLocationService} from '../services/observed-location.service';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {ObservedLocation} from "../services/model/observed-location.model";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import {ObservedLocation} from '../services/model/observed-location.model';
 import {AppRootTable} from '@app/data/table/root-table.class';
-import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from "../services/config/trip.config";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
+import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {environment} from '@environments/environment';
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {ObservedLocationOfflineModal} from "./offline/observed-location-offline.modal";
+import {BehaviorSubject} from 'rxjs';
+import {ObservedLocationOfflineModal} from './offline/observed-location-offline.modal';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {DATA_CONFIG_OPTIONS} from "src/app/data/services/config/data.config";
-import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
-import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "../services/filter/observed-location.filter";
+import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
+import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../services/filter/observed-location.filter';
+import {filter, tap} from 'rxjs/operators';
+import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ContextService } from '@app/shared/context.service';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -43,12 +55,24 @@ export class ObservedLocationsPage extends
 
   highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
+  statusList = DataQualityStatusList;
+  statusById = DataQualityStatusEnum;
 
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
-  @Input() showFilterRecorder = true;
-  @Input() showFilterObservers = true;
+
+  @Input() showQuality = true;
+  @Input() showRecorder = true;
+  @Input() showObservers = true;
+
+  get filterObserversForm(): FormArray {
+    return this.filterForm.controls.observers as FormArray;
+  }
+
+  get filterDataQualityControl(): FormControl {
+    return this.filterForm.controls.dataQualityStatus as FormControl;
+  }
 
   constructor(
     protected injector: Injector,
@@ -64,6 +88,7 @@ export class ObservedLocationsPage extends
     protected programRefService: ProgramRefService,
     protected formBuilder: FormBuilder,
     protected configService: ConfigService,
+    protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, platform, location, modalCtrl, settings,
@@ -74,6 +99,7 @@ export class ObservedLocationsPage extends
           'location',
           'startDateTime',
           'observers',
+          'recorderPerson',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
       dataService,
@@ -90,7 +116,7 @@ export class ObservedLocationsPage extends
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
-      observers: [null, SharedValidators.entity]
+      observers: formBuilder.array([[null, SharedValidators.entity]])
     });
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';
@@ -135,49 +161,64 @@ export class ObservedLocationsPage extends
     });
 
     // Combo: recorder person
+    const personAttributes = this.settings.getFieldDisplayAttributes('person', ['lastName', 'firstName', 'department.name'])
     this.registerAutocompleteField('person', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: ['lastName', 'firstName', 'department.name'],
+      attributes: personAttributes,
       displayWith: PersonUtils.personToString,
       mobile: this.mobile
     });
 
-    // Combo: recorder person
+    // Combo: observers
     this.registerAutocompleteField('observers', {
       service: this.personService,
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: ['lastName', 'firstName', 'department.name'],
+      attributes: personAttributes,
       displayWith: PersonUtils.personToString,
       mobile: this.mobile
     });
 
     this.registerSubscription(
-      this.configService.config.subscribe(config => {
-        const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
-        this.$title.next(title);
+      this.configService.config
+        .pipe(
+          filter(isNotNil),
+          tap(config => {
+            console.info('[observed-locations] Init from config', config);
+            const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
+            this.$title.next(title);
 
-        // Enable/Disable columns
-        this.setShowColumn('quality', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE));
-        this.setShowColumn('recorderPerson', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER));
-        this.setShowColumn('observers', config && config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS));
+            // Quality
+            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+            this.setShowColumn('quality', this.showQuality, {emitEvent: false});
 
-        // Manage filters display according to config settings.
-        this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
-        this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
-        this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
-        this.showFilterRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-      })
-    );
+            // Recorder
+            this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+            this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
 
+            // Observer
+            this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+            this.setShowColumn('observers', this.showObservers, {emitEvent: false});
 
+            // Manage filters display according to config settings.
+            this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+            this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
+            this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
 
-    // Restore filter from settings, or load all
-    this.restoreFilterOrLoad();
+            this.updateColumns();
+
+            // Restore filter from settings, or load all
+            this.restoreFilterOrLoad();
+          })
+        )
+        .subscribe());
+
+    // Clear the context
+    this.resetContext();
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
@@ -296,5 +337,9 @@ export class ObservedLocationsPage extends
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected resetContext() {
+    this.context.reset();
   }
 }

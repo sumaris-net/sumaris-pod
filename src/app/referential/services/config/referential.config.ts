@@ -1,8 +1,6 @@
-import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import { TypePolicies } from '@apollo/client/core';
+import { changeCaseToUnderscore, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
+import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds } from '../model/model.enum';
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -113,6 +111,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_DIVISION
   },
+  LOCATION_LEVEL_LOCATIONS_AREA_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_ID',
+    type: 'string',
+    defaultValue: LocationLevelIds.LOCATIONS_AREA.join(',')
+  },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_FAMILY_ID',
@@ -185,6 +189,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.TAG_ID
   },
+  PMFM_DRESSING: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.pmfm.DRESSING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DRESSING',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.DRESSING
+  },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
@@ -208,6 +224,102 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: PmfmIds.SEX
+  },
+  PMFM_PACKAGING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PACKAGING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PACKAGING_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.PACKAGING
+  },
+  PMFM_SIZE_CATEGORY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SIZE_CATEGORY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_CATEGORY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.SIZE_CATEGORY
+  },
+  PMFM_SALE_RANK_ORDER_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SALE_RANK_ORDER.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_RANK_ORDER_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.SALE_RANK_ORDER
+  },
+  PMFM_SALE_ESTIMATED_RATIO_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SALE_ESTIMATED_RATIO.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_ESTIMATED_RATIO_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.SALE_ESTIMATED_RATIO
+  },
+  PMFM_AVERAGE_WEIGHT_PRICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.AVERAGE_WEIGHT_PRICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_WEIGHT_PRICE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.AVERAGE_WEIGHT_PRICE
+  },
+  PMFM_AVERAGE_PACKAGING_PRICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.AVERAGE_PACKAGING_PRICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_PACKAGING_PRICE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.AVERAGE_PACKAGING_PRICE
+  },
+  PMFM_TOTAL_PRICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.TOTAL_PRICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TOTAL_PRICE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.TOTAL_PRICE
+  },
+  PMFM_REFUSED_SURVEY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.REFUSED_SURVEY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_REFUSED_SURVEY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.REFUSED_SURVEY
   },
 
   // Methods
@@ -271,6 +383,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: MatrixIds.INDIVIDUAL
   },
+  UNIT_NONE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Unit.NONE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_NONE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Unit',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MatrixIds.INDIVIDUAL
+  },
   PARAMETER_GROUP_AGE_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.age.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_AGE_LABELS',
@@ -300,23 +424,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_MATURITY_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.MATURITY.join(',')
+  },
+  FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS: <FormFieldDefinition>{
+    key: 'sumaris.list.fraction.calcifiedStructure.ids',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS',
+    type: 'string',
+    defaultValue: FractionIdGroups.CALCIFIED_STRUCTURE.join(',')
   }
 });
 
-export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
-
-  // Display attributes for vessel
-  FIELD_VESSEL_SNAPSHOT_ATTRIBUTES: <FormFieldDefinition>{
-    key: 'sumaris.field.vesselSnapshot.attributes',
-    label: 'SETTINGS.FIELDS.VESSEL.NAME',
-    type: 'enum',
-    values: [
-      {key: 'exteriorMarking,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME'},
-      {key: 'registrationCode,name',   value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME'}
-    ]
-  },
+export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(
   // Display attributes for referential useful entities
-  ... ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
+  ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {
@@ -332,4 +451,4 @@ export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
       };
       return res;
     }, {})
-});
+);

@@ -1,20 +1,29 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql} from "@apollo/client/core";
-import {ErrorCodes} from "./errors";
-import {AccountService, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
-import {LoadResult, SuggestService} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Metier} from "./model/taxon.model";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialFragments} from "./referential.fragments";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {SortDirection} from "@angular/material/sort";
-import {isNil} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {ErrorCodes} from './errors';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  BaseGraphqlService,
+  EntitiesStorage,
+  firstNotNilPromise,
+  GraphqlService,
+  isNil,
+  LoadResult,
+  NetworkService,
+  ReferentialUtils,
+  StatusIds,
+  SuggestService
+} from '@sumaris-net/ngx-components';
+import {Metier} from './model/taxon.model';
+import {ReferentialFragments} from './referential.fragments';
+import {SortDirection} from '@angular/material/sort';
 import {environment} from '@environments/environment';
-import {MetierFilter} from "./filter/metier.filter";
+import {MetierFilter} from './filter/metier.filter';
+import {DomEvent} from 'leaflet';
+import {Operation} from '@app/trip/services/model/trip.model';
+import {map} from 'rxjs/operators';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',
@@ -62,13 +71,13 @@ export class MetierService extends BaseGraphqlService
   }
 
   async load(id: number, options?: any): Promise<Metier> {
-    if (isNil(id)) throw new Error("Missing argument 'id'");
+    if (isNil(id)) throw new Error('Missing argument \'id\'');
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[metier-ref-service] Loading Metier #${id}...`);
 
     const data = await this.graphql.query<{ metier: Metier }>({
       query: MetierQueries.load,
-      variables: { id },
+      variables: {id},
       fetchPolicy: options && options.fetchPolicy || undefined
     });
 
@@ -78,6 +87,55 @@ export class MetierService extends BaseGraphqlService
       return metier;
     }
     return null;
+  }
+
+  async loadAlreadyPracticedMetierTaxonGroup(offset: number,
+                                             size: number,
+                                             sortBy?: string,
+                                             sortDirection?: SortDirection,
+                                             filter?: Partial<MetierFilter>,
+                                             opts?: {
+                                 [key: string]: any;
+                                 fetchPolicy?: FetchPolicy;
+                                 debug?: boolean;
+                                 toEntity?: boolean;
+                               }): Promise<LoadResult<Metier>> {
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+
+    if (!offline) {
+      return this.loadAll(offset, size, sortBy, sortDirection, {...filter, searchJoin: 'TaxonGroup'}, opts);
+    }
+
+    const operationFilter = OperationFilter.fromObject({
+      vesselId: filter.vesselId,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+      gearIds: filter.gearIds,
+      programLabel: filter.programLabel
+    });
+
+    const variables = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
+      trash: opts && opts.trash || false,
+      filter: operationFilter.asFilterFn()
+    };
+
+    return firstNotNilPromise(this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
+      .pipe(map(({data, total}) => {
+        const entities = (data || []).map(source => source.metier).reduce((res, metier) => {
+          if (res.find(m => m.id === metier.id) === undefined){
+            return res.concat(Metier.fromObject(metier, {useChildAttributes: 'TaxonGroup'}));
+          }
+          else {
+            return res;
+          }
+        }, [] );
+        return {data: entities, total};
+      })));
   }
 
   async loadAll(offset: number,
@@ -95,8 +153,8 @@ export class MetierService extends BaseGraphqlService
     filter = this.asFilter(filter);
 
     if (!filter) {
-      console.error("[metier-ref-service] Missing filter");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[metier-ref-service] Missing filter');
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     const variables: any = {
@@ -132,7 +190,7 @@ export class MetierService extends BaseGraphqlService
           ...variables,
           filter: filter && filter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+        error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
       });
     }
@@ -159,8 +217,8 @@ export class MetierService extends BaseGraphqlService
     return res;
   }
 
-  suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
-    if (ReferentialUtils.isNotEmpty(value)) return Promise.resolve({ data: [value as Metier] });
+  async suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value as Metier] };
     value = (typeof value === "string" && value !== '*') && value || undefined;
     return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
       {...filter, searchText: value},

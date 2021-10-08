@@ -4,7 +4,7 @@ import {VesselValidatorService} from "../services/validator/vessel.validator";
 import {VesselService} from "../services/vessel-service";
 import {VesselModal, VesselModalOptions} from "../modal/vessel-modal";
 import {Vessel} from "../services/model/vessel.model";
-import {DefaultStatusList, ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
+import {StatusList, ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService}  from "@sumaris-net/ngx-components";
@@ -14,7 +14,7 @@ import {FormBuilder, FormGroup} from "@angular/forms";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {isNil, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {statusToColor} from "../../data/services/model/model.utils";
+import {statusToColor, SynchronizationStatusEnum} from "../../data/services/model/model.utils";
 import {LocationLevelIds} from "../../referential/services/model/model.enum";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
@@ -24,7 +24,6 @@ import {PlatformService}  from "@sumaris-net/ngx-components";
 import {AppRootTable} from "../../data/table/root-table.class";
 import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
 import {StatusIds}  from "@sumaris-net/ngx-components";
-import {SynchronizationStatusEnum} from "../../data/services/model/root-data-entity.model";
 import {VesselFilter} from "../services/filter/vessel.filter";
 import {MatExpansionPanel} from "@angular/material/expansion";
 
@@ -48,7 +47,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
 
   locations: Observable<ReferentialRef[]>;
   vesselTypes: Observable<ReferentialRef[]>;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
 
   @Input() canEdit: boolean;
@@ -97,16 +96,16 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       RESERVED_START_COLUMNS
         .concat([
           'status',
-          'features.exteriorMarking',
-          'registration.registrationCode'])
+          'vesselFeatures.exteriorMarking',
+          'vesselRegistrationPeriod.registrationCode'])
         .concat(platform.mobile ? [] : [
-          'features.startDate',
-          'features.endDate'
+          'vesselFeatures.startDate',
+          'vesselFeatures.endDate'
         ])
         .concat([
-          'features.name',
+          'vesselFeatures.name',
           'vesselType',
-          'features.basePortLocation'
+          'vesselFeatures.basePortLocation'
         ])
         .concat(platform.mobile ? [] : [
           'comments'
@@ -124,8 +123,13 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       injector
     );
     this.i18nColumnPrefix = 'VESSEL.';
+    this.defaultSortBy = 'vesselFeatures.exteriorMarking';
+    this.defaultSortDirection = 'asc';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
+      basePortLocation: [null, SharedValidators.entity],
+      registrationLocation: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       date: [null, SharedValidators.validDate],
       searchText: [null],
       statusId: [null],
@@ -150,7 +154,11 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
     super.ngOnInit();
 
     // Locations
-    this.registerAutocompleteField('location', {
+    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
+
+    // Base port locations
+    this.registerAutocompleteField('basePortLocation', {
+      attributes: locationAttributes,
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -159,10 +167,32 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       mobile: this.mobile
     });
 
+    // Registration locations
+    this.registerAutocompleteField('registrationLocation', {
+      attributes: locationAttributes,
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelId: LocationLevelIds.COUNTRY
+      },
+      mobile: this.mobile
+    });
+
+    // Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      mobile: this.mobile
+    });
+
     // TODO fill vessel types
 
-    // Restore filter from settings, or load all vessels
-    this.restoreFilterOrLoad();
+    // Restore filter from settings, or load all
+    this.restoreFilterOrLoad({emitEvent: this.autoLoad});
   }
 
   async openNewRowDetail(): Promise<boolean> {

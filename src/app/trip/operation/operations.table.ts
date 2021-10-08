@@ -11,6 +11,7 @@ import {OperationsMap} from './map/operations.map';
 import {environment} from '@environments/environment';
 import {Operation} from '../services/model/trip.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {BehaviorSubject} from 'rxjs';
 
 
 @Component({
@@ -28,6 +29,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     [key: string]: string[]
   };
   highlightedRow: TableElement<Operation>;
+  $uselinkedOperations = new BehaviorSubject<boolean>(false);
 
   @Input() latLongPattern: LatLongPattern;
   @Input() tripId: number;
@@ -35,7 +37,52 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() program: string;
   @Input() showToolbar = true;
   @Input() showPaginator = true;
+
+  ngOnInit() {
+    super.ngOnInit();
+    console.debug('operation-table');
+    this.showMap = toBoolean(this.showMap, false);
+
+    this.displayAttributes = {
+      gear: this.settings.getFieldDisplayAttributes('gear'),
+      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+    };
+
+    this.registerSubscription(
+      this.settings.onChange.subscribe((settings) => {
+        if (this.loading) return; // skip
+        this.latLongPattern = settings.latLongFormat;
+
+        this.displayAttributes = {
+          gear: this.settings.getFieldDisplayAttributes('gear'),
+          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+        };
+
+        this.markForCheck();
+      }));
+
+    // Apply trip id, if already set
+    if (isNotNil(this.tripId)) {
+      this.setTripId(this.tripId);
+    }
+
+    this.registerSubscription(
+      this.$uselinkedOperations
+        .subscribe((value) => {
+            if (value !== true) {
+              this.excludesColumns.push('operationType');
+            }
+            else {
+              this.excludesColumns = this.excludesColumns.filter(col => col !== 'operationType');
+            }
+            this.updateColumns();
+          }
+        )
+    );
+  }
+
   @Input() useSticky = true;
+
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -79,17 +126,19 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       RESERVED_START_COLUMNS
         .concat(
           platform.is('mobile') ?
-            ['physicalGear',
+            ['operationType',
+              'physicalGear',
               'targetSpecies',
               'startDateTime',
-              'endDateTime']  :
-          ['physicalGear',
-            'targetSpecies',
-            'startDateTime',
-            'startPosition',
-            'endDateTime',
-            'endPosition',
-            'comments'])
+              'endDateTime'] :
+            ['operationType',
+              'physicalGear',
+              'targetSpecies',
+              'startDateTime',
+              'startPosition',
+              'endDateTime',
+              'endPosition',
+              'comments'])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
         dataService,
@@ -124,43 +173,13 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       if (this.settings.settings.accountInheritance) {
         const account = this.accountService.account;
         this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-      }
-      else {
+      } else {
         this.latLongPattern = this.settings.latLongFormat;
       }
     });
   }
 
-  ngOnInit() {
-    super.ngOnInit();
-
-    this.showMap = toBoolean(this.showMap, false);
-
-    this.displayAttributes = {
-      gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-    };
-
-    this.registerSubscription(
-      this.settings.onChange.subscribe((settings) => {
-        if (this.loading) return; // skip
-        this.latLongPattern = settings.latLongFormat;
-
-        this.displayAttributes = {
-          gear: this.settings.getFieldDisplayAttributes('gear'),
-          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-        };
-
-        this.markForCheck();
-      }));
-
-    // Apply trip id, if already set
-    if (isNotNil(this.tripId)) {
-      this.setTripId(this.tripId);
-    }
-  }
-
-  setTripId(id: number, opts?: {emitEvent?: boolean; }) {
+  setTripId(id: number, opts?: { emitEvent?: boolean; }) {
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || new OperationFilter();
@@ -168,8 +187,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
       this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
-    }
-    else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)){
+    } else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)) {
       this.onRefresh.emit();
     }
   }
@@ -177,8 +195,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   async openMapModal(event?: UIEvent) {
 
     const res = await this.dataService.loadAllByTrip({
-        tripId: this.tripId
-      }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
+      tripId: this.tripId
+    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
@@ -206,7 +224,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   }
 
-  clickRow(event: MouseEvent|undefined, row: TableElement<Operation>): boolean {
+  clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
     this.highlightedRow = row;
 
     return super.clickRow(event, row);
@@ -217,7 +235,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       .map(ope => ope.currentData.physicalGear)
       .filter(isNotNil)
       .map(gear => gear.id)
-      .reduce( (res, id) => res.includes(id) ? res : res.concat(id), []);
+      .reduce((res, id) => res.includes(id) ? res : res.concat(id), []);
   }
 
   /* -- protected methods -- */

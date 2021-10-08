@@ -1,12 +1,15 @@
-:root {
-
-}
 
 .table-container {
-  height: calc(100vh - var(--table-container-offset, 0));
+  height: calc(100% - var(--table-container-offset, 0) - var(--table-offline-nav, 0) - var(--table-toolbar-height, 0) - 1px);
 
+  --table-offline-nav: 0;
   &.has-offline-nav {
-    --table-container-offset: 49px;
+    --table-offline-nav: var(--mat-tab-link-height);
+  }
+
+  --table-toolbar-height: 0;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
   }
 }
 

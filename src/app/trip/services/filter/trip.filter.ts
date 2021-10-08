@@ -1,9 +1,11 @@
 import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
-import {EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import {EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {Trip} from '../model/trip.model';
 import {VesselSnapshot} from '../../../referential/services/model/vessel-snapshot.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import moment from 'moment/moment';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 
 @EntityClass({typename: 'TripFilterVO'})
@@ -16,6 +18,13 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   location: ReferentialRef = null;
   startDate: Moment = null;
   endDate: Moment = null;
+  observers?: Person[];
+  includedIds: number[];
+
+  constructor() {
+    super();
+    this.dataQualityStatus = 'VALIDATED';
+  }
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -24,12 +33,16 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.startDate);
     this.location = ReferentialRef.fromObject(source.location);
+    this.observers = source.observers && source.observers.map(Person.fromObject) || [];
+    this.includedIds = source.includedIds;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    target.includedIds = this.includedIds;
+
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : (this.vesselSnapshot && isNotNil(this.vesselSnapshot.id) ? this.vesselSnapshot.id : undefined);
@@ -38,10 +51,15 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       // Location
       target.locationId = this.location && this.location.id || undefined;
       delete target.location;
+
+      // Observers
+      target.observerPersonIds = this.observers && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
+      delete target.observers;
     }
     else {
-      target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject({...opts, ...NOT_MINIFY_OPTIONS});
-      target.location = this.location && this.location.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+      target.vesselSnapshot = this.vesselSnapshot && this.vesselSnapshot.asObject(opts) || undefined;
+      target.location = this.location && this.location.asObject(opts) || undefined;
+      target.observers = this.observers && this.observers.map(o => o && o.asObject(opts)).filter(isNotNil) || [];
     }
     return target;
   }
@@ -74,5 +92,24 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     }
 
     return filterFns;
+  }
+}
+
+export class TripOfflineFilter {
+  programLabel?: string;
+  vesselId?: number;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment
+  periodDuration?: number;
+  periodDurationUnit?: DurationConstructor;
+
+  public static toTripFilter(f: TripOfflineFilter): TripFilter {
+    if (!f) return undefined;
+    return TripFilter.fromObject({
+      program: {label: f.programLabel},
+      vesselId: f.vesselId,
+      startDate: f.startDate,
+      endDate: f.endDate
+    });
   }
 }

@@ -210,6 +210,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
    */
   protected async fillParameterGroups(entities: SamplingStrategy[]): Promise<void> {
 
+    // TODO BLA: voir s'il faut filtrer DRESSING
     const parameterListKeys = Object.keys(ParameterLabelGroups).filter(p => p !== 'TAG_ID'); // AGE, SEX, MATURITY, etc
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
 
@@ -265,6 +266,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
             existingEffort.expectedEffort += effort.expectedEffort;
             existingEffort.realizedEffort += effort.realizedEffort;
+            existingEffort.landingCount += effort.landingCount;
           }
         }
       }

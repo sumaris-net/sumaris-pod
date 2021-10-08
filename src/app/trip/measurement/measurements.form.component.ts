@@ -173,6 +173,12 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
   }
 
+  async changeAcquisitionLevel(acquisitionLevel: string, data: Measurement[]){
+    this._acquisitionLevel = acquisitionLevel;
+    await this.refreshPmfmsIfLoaded('changeAcquisitionLevel');
+    return this.safeSetValue(data);
+  }
+
   /* -- protected methods -- */
 
   /**

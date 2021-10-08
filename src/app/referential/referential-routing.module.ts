@@ -6,7 +6,7 @@ import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {SharedRoutingModule} from "@sumaris-net/ngx-components";
-import {AppReferentialModule} from "./app-referential.module";
+import {AppReferentialModule} from "./referential.module";
 import {StrategyPage} from "./strategy/strategy.page";
 import {ProgramsPage} from "./program/programs.page";
 import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";

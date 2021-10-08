@@ -1,21 +1,12 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControlOptions, FormArray, FormBuilder, FormGroup, ValidatorFn, Validators} from "@angular/forms";
-import {
-  SharedFormArrayValidators,
-  SharedFormGroupValidators,
-  SharedValidators
-} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Program} from '@app/referential/services/model/program.model';
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {
-  DataEntityValidatorOptions,
-  DataEntityValidatorService
-} from '@app/data/services/validator/data-entity.validator';
-import {MeasurementsValidatorService} from "./measurement.validator";
-import {Product} from "../model/product.model";
-import {OperationGroup} from "../model/trip.model";
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControlOptions, FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { Program } from '@app/referential/services/model/program.model';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { Product } from '../model/product.model';
+import { OperationGroup } from '../model/trip.model';
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -63,20 +54,21 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
       super.getFormGroupConfig(data, opts),
       {
         __typename: [OperationGroup.TYPENAME],
-        parent: [data && data.parent || null, Validators.required],
-        rankOrder: [data && data.rankOrder || null],
-        taxonGroup: [data && data.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        weight: [data && data.weight || '', SharedValidators.double({maxDecimals: 2})],
-        individualCount: [data && data.individualCount || '', SharedValidators.integer],
+        parent: [data?.parent || null, Validators.required],
+        rankOrder: [data?.rankOrder || null],
+        saleType: [data?.saleType || null],
+        taxonGroup: [data?.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        weight: [data?.weight || '', SharedValidators.double({maxDecimals: 2})],
+        individualCount: [data?.individualCount || '', SharedValidators.integer],
         measurementValues: this.formBuilder.group({}),
-        samples: [data && data.samples || null]
+        samples: [data?.samples || null]
         // comments: [data && data.comments || null, Validators.maxLength(2000)]
       });
 
     if (opts.withSaleProducts) {
       formConfig.saleProducts = this.getSaleProductsFormArray(data);
     } else {
-      formConfig.saleProducts = [data && data.saleProducts || null];
+      formConfig.saleProducts = [data?.saleProducts || null];
     }
 
     return formConfig;
@@ -133,19 +125,19 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
   getSaleProductControl(sale?: any): FormGroup {
     return this.formBuilder.group({
-        id: [sale && sale.id || null],
-        saleType: [sale && sale.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        ratio: [sale && sale.ratio || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0), Validators.max(100)])],
-        ratioCalculated: [sale && sale.ratioCalculated || null],
-        weight: [sale && sale.weight || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
-        weightCalculated: [sale && sale.weightCalculated || null],
-        individualCount: [sale && sale.individualCount || null, Validators.compose([SharedValidators.integer, Validators.min(0)])],
-        averageWeightPrice: [sale && sale.averageWeightPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
-        averageWeightPriceCalculated: [sale && sale.averageWeightPriceCalculated || null],
-        averagePackagingPrice: [sale && sale.averagePackagingPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
-        averagePackagingPriceCalculated: [sale && sale.averagePackagingPriceCalculated || null],
-        totalPrice: [sale && sale.totalPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
-        totalPriceCalculated: [sale && sale.totalPriceCalculated || null]
+        id: [sale?.id || null],
+        saleType: [sale?.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        ratio: [sale?.ratio || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0), Validators.max(100)])],
+        ratioCalculated: [sale?.ratioCalculated || null],
+        weight: [sale?.weight || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        weightCalculated: [sale?.weightCalculated || null],
+        individualCount: [sale?.individualCount || null, Validators.compose([SharedValidators.integer, Validators.min(0)])],
+        averageWeightPrice: [sale?.averageWeightPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averageWeightPriceCalculated: [sale?.averageWeightPriceCalculated || null],
+        averagePackagingPrice: [sale?.averagePackagingPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averagePackagingPriceCalculated: [sale?.averagePackagingPriceCalculated || null],
+        totalPrice: [sale?.totalPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        totalPriceCalculated: [sale?.totalPriceCalculated || null]
       },
       {
         validators: [

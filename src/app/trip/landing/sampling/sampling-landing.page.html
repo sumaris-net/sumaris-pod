@@ -87,6 +87,9 @@
                               [showProgram]="false"
                               [showStrategy]="true"
                               [showMetier]="true"
+                              [showFishingArea]="true"
+                              [allowManyMetiers]="false"
+                              [filteredFishingAreaLocations]="appliedStrategyLocations$|async"
                               (onSubmit)="save($event)"
                               [debug]="debug">
 
@@ -108,6 +111,7 @@
                 <ion-col class="ion-no-padding">
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
+                                             [value]="$strategy|async"
                                              [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
                                              [calcifiedTypesDisplayed]="true">
                     <!-- calcified types-->
@@ -183,6 +187,7 @@
                             [useSticky]="true"
                             [compactFields]="false"
                             (onPrepareRowForm)="onPrepareSampleForm($event)"
+                            [showDisplayColumn]="false"
                             [debug]="debug">
         </app-samples-table>
 
@@ -197,8 +202,10 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) " [disabled]="!dirty || loading"
-                    [disabledCancel]="!dirty || loading">
+  <app-form-buttons-bar (onCancel)="cancel()"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading"
+                        [disabledCancel]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="landingForm.error||error||(samplesTable.error$|async); let error" lines="none">

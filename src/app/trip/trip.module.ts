@@ -25,7 +25,7 @@ import {BatchTreeComponent} from './batch/batch-tree.component';
 import {BatchGroupForm} from './batch/form/batch-group.form';
 import {BatchGroupModal} from './batch/modal/batch-group.modal';
 import {SubBatchModal} from './batch/modal/sub-batch.modal';
-import {AppReferentialModule} from '../referential/app-referential.module';
+import {AppReferentialModule} from '../referential/referential.module';
 import {SampleForm} from './sample/sample.form';
 import {SampleModal} from './sample/sample.modal';
 import {SelectPhysicalGearModal} from './physicalgear/select-physical-gear.modal';
@@ -37,6 +37,9 @@ import {TranslateModule} from '@ngx-translate/core';
 import {CommonModule} from '@angular/common';
 import {TripTrashModal} from './trip/trash/trip-trash.modal';
 import {AppCoreModule} from '@app/core/core.module';
+import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
+import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
+import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
 
 @NgModule({
   imports: [
@@ -55,6 +58,7 @@ import {AppCoreModule} from '@app/core/core.module';
     TripForm,
     TripPage,
     TripTrashModal,
+    TripOfflineModal,
     PhysicalGearTable,
     PhysicalGearForm,
     PhysicalGearModal,
@@ -64,6 +68,8 @@ import {AppCoreModule} from '@app/core/core.module';
     OperationForm,
     OperationPage,
     OperationsMap,
+    SelectOperationModal,
+    SelectOperationByTripTable,
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,

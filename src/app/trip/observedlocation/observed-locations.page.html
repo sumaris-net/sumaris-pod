@@ -194,7 +194,7 @@
         </ion-row>
 
         <!-- Recorder criteria -->
-        <ion-row *ngIf="showFilterRecorder">
+        <ion-row *ngIf="showRecorder">
           <ion-col>
             <!-- Recorder department -->
             <mat-autocomplete-field
@@ -219,17 +219,36 @@
           </ion-col>
         </ion-row>
 
-        <!-- Observers criteria -->
-        <ion-row *ngIf="showFilterObservers">
-          <ion-col>
+        <ion-row *ngIf="showObservers || showQuality">
+          <!-- Observers criteria -->
+          <ion-col *ngIf="showObservers">
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS'|translate"
-              formControlName="observers"
+              [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.observers"
               [i18nPrefix]="'USER.'"
               [clearable]="true">
               <ion-icon matPrefix name="person"></ion-icon>
             </mat-autocomplete-field>
+          </ion-col>
+
+          <!-- Data quality status -->
+          <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
+            <mat-form-field>
+              <mat-select [formControl]="control"
+                          [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY'|translate" required>
+                <mat-select-trigger>
+                  <span *ngIf="statusById | mapGet: control.value; let item">
+                    <ion-icon [name]="item.icon"></ion-icon>
+                    {{ item.label | translate}}
+                  </span>
+                </mat-select-trigger>
+                <mat-option *ngFor="let item of statusList" [value]="item.id">
+                  <ion-icon [name]="item.icon"></ion-icon>
+                  {{ item.label |translate }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
           </ion-col>
         </ion-row>
       </ion-grid>

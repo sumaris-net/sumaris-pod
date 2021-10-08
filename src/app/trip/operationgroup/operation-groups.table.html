@@ -65,23 +65,25 @@
     <mat-cell *matCellDef="let row">
 
       <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
-                              [appAutofocus]="row.id == -1 && row.editing"
+                              [autofocus]="row.id === -1 && row.editing"
                               [formControl]="row.validator.controls.metier"
                               [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
-                              [required]="true" [readonly]="!row.editing"
-                              [config]="autocompleteFields.metier" (blur)="onMetierChange($event, row)">
+                              [readonly]="!row.editing"
+                              [config]="autocompleteFields.metier"
+                              (blur)="onMetierChange($event, row)"
+                              required>
       </mat-autocomplete-field>
 
     </mat-cell>
   </ng-container>
 
-  <!-- physical gear -->
-  <ng-container matColumnDef="physicalGear">
+  <!-- gear -->
+  <ng-container matColumnDef="gear">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.GEAR</ion-label>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
+      <ion-label>{{referentialToString(row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -123,6 +125,10 @@
   </ng-container>
 
   <!-- Actions buttons column -->
+<!--  <app-actions-column (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"-->
+<!--                      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"-->
+<!--                      [canCancel]="false">-->
+<!--  </app-actions-column>-->
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>

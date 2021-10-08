@@ -1,6 +1,6 @@
-import {Injectable, Injector, Optional} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {filter, map} from 'rxjs/operators';
+import { Injectable, Injector, Optional } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
   AccountService,
@@ -21,6 +21,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  JobUtils,
   LoadResult,
   LocalSettingsService,
   NetworkService,
@@ -30,37 +31,38 @@ import {
   toNumber,
   UserEventService,
 } from '@sumaris-net/ngx-components';
-import {DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
+import { DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
   MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   SAVE_AS_OBJECT_OPTIONS,
-  SERIALIZE_FOR_OPTIMISTIC_RESPONSE
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
 } from '@app/data/services/model/data-entity.model';
-import {Observable} from 'rxjs';
-import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {OperationService} from './operation.service';
-import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {TripValidatorService} from './validator/trip.validator';
-import {Operation, PhysicalGear, Trip} from './model/trip.model';
-import {DataRootEntityUtils, SynchronizationStatusEnum} from '@app/data/services/model/root-data-entity.model';
-import {fillRankOrder} from '@app/data/services/model/model.utils';
-import {SortDirection} from '@angular/material/sort';
-import {OverlayEventDetail} from '@ionic/core';
-import {TranslateService} from '@ngx-translate/core';
-import {ToastController} from '@ionic/angular';
-import {TRIP_FEATURE_NAME} from './config/trip.config';
-import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Sample} from './model/sample.model';
-import {ErrorCodes} from '@app/data/services/errors';
-import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
-import {TripFilter} from './filter/trip.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import { Observable } from 'rxjs';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { OperationService } from './operation.service';
+import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { TripValidatorService } from './validator/trip.validator';
+import { Operation, PhysicalGear, Trip } from './model/trip.model';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { SortDirection } from '@angular/material/sort';
+import { OverlayEventDetail } from '@ionic/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ToastController } from '@ionic/angular';
+import { TRIP_FEATURE_NAME } from './config/trip.config';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Sample } from './model/sample.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
+import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
@@ -150,6 +152,9 @@ export const TripFragments = {
     metiers {
       ...MetierFragment
     }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
   }
   ${Fragments.lightDepartment}
   ${Fragments.lightPerson}
@@ -159,6 +164,7 @@ export const TripFragments = {
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
   ${Fragments.metier},
+  ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
   landedTrip: gql`fragment LandedTripFragment on TripVO {
@@ -214,7 +220,7 @@ export const TripFragments = {
     expectedSale {
       ...ExpectedSaleFragment
     }
-    fishingArea {
+    fishingAreas {
       ...FishingAreaFragment
     }
   }
@@ -225,6 +231,7 @@ export const TripFragments = {
   ${Fragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${Fragments.metier}
+  ${PhysicalGearFragments.physicalGear}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}
   ${DataFragments.fishingArea}`
@@ -251,7 +258,7 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
   displaySuccessToast?: boolean;
 }
 
-const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } = {
+const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 
   // Load a trip
   load: gql` query Trip($id: Int!) {
@@ -366,6 +373,7 @@ export class TripService
     protected programRefService: ProgramRefService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
+    protected physicalGearService: PhysicalGearService,
     protected settings: LocalSettingsService,
     protected validatorService: TripValidatorService,
     protected userEventService: UserEventService,
@@ -398,8 +406,41 @@ export class TripService
     if (this._debug) console.debug('[trip-service] Creating service');
   }
 
+  async loadAll(offset: number,
+                size: number,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                filter?: Partial<TripFilter>,
+                opts?: EntityServiceLoadOptions & {
+                  query?: any;
+                  debug?: boolean;
+                  withTotal?: boolean;
+                }
+  ): Promise<LoadResult<Trip>> {
+
+    const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+
+      filter = this.asFilter(filter);
+
+      const variables = {
+        offset: offset || 0,
+        size: size >= 0 ? size : 1000,
+        sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+        sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
+        trash: opts && opts.trash || false,
+        filter: filter.asFilterFn()
+      };
+
+      return this.entities.loadAll('TripVO', variables, {fullLoad: opts && opts.fullLoad});
+    }
+
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
   /**
    * Load many trips
+   *
    * @param offset
    * @param size
    * @param sortBy
@@ -441,7 +482,7 @@ export class TripService
       query,
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
-      insertFilterFn: dataFilter && dataFilter.asFilterFn(),
+      insertFilterFn: dataFilter?.asFilterFn(),
       variables,
       error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
@@ -548,12 +589,12 @@ export class TripService
     return res && res.total > 0;
   }
 
-  listenChanges(id: number, opts?: { interval?: number; }): Observable<Trip> {
+  listenChanges(id: number, opts?: { interval?: number }): Observable<Trip> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
+    return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
@@ -572,6 +613,7 @@ export class TripService
 
   /**
    * Save many trips
+   *
    * @param entities
    * @param opts
    */
@@ -585,6 +627,7 @@ export class TripService
 
   /**
    * Save a trip
+   *
    * @param entity
    * @param opts
    */
@@ -774,7 +817,16 @@ export class TripService
     // Fill operations
     const res = await this.operationService.loadAllByTrip({tripId: localId},
       {fullLoad: true, computeRankOrder: false});
-    entity.operations = res && res.data || [];
+
+    const childOperations = res.data && res.data.filter(operation => operation.parentOperationId && operation.parentOperationId < 0);
+    const parentOperations = res.data && res.data.filter(operation => operation.childOperationId && operation.childOperationId < 0);
+
+    if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
+      throw new Error('Could not synchronize child operation before its parent');
+    }
+
+    entity.operations = res && res.data.filter(operation => (!operation.parentOperationId || operation.parentOperationId > 0)
+      && (!operation.childOperationId || operation.childOperationId > 0)) || [];
 
     try {
 
@@ -793,11 +845,25 @@ export class TripService
       };
     }
 
+    for (const operation of parentOperations) {
+      const operationLocalId = operation.id;
+      operation.tripId = entity.id;
+      const savedOperation = await this.operationService.save(operation, opts);
+      childOperations.forEach(o => {
+        if (o.parentOperationId === operationLocalId) {
+          o.tripId = entity.id;
+          o.parentOperationId = savedOperation.id;
+          o.parentOperation = savedOperation;
+        }
+      });
+    }
+    await this.operationService.saveAll(childOperations, opts);
+
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
-      // Delete trip's operations
-      await this.operationService.deleteLocally({tripId: localId});
+      // Delete trip's operations + parent operation
+      await this.operationService.deleteLocally({includedIds: parentOperations.map(o => o.id), tripId: localId});
 
       // Delete trip
       await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
@@ -813,6 +879,7 @@ export class TripService
 
   /**
    * Control the validity of an trip
+   *
    * @param entity
    * @param opts
    */
@@ -857,6 +924,7 @@ export class TripService
 
   /**
    * Delete many trips
+   *
    * @param entities
    * @param opts
    */
@@ -894,6 +962,7 @@ export class TripService
 
   /**
    * Delete many local trips
+   *
    * @param entities
    * @param opts
    */
@@ -939,6 +1008,7 @@ export class TripService
 
   /**
    * Copy entities (local or remote) to the local storage
+   *
    * @param entities
    * @param opts
    */
@@ -946,7 +1016,7 @@ export class TripService
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
-  async copyLocallyById(id: number, opts?: TripLoadOptions & {}): Promise<Trip> {
+  async copyLocallyById(id: number, opts?: TripLoadOptions): Promise<Trip> {
 
     // Load existing data
     const data = await this.load(id, {...opts, fetchPolicy: 'network-only'});
@@ -967,6 +1037,7 @@ export class TripService
 
   /**
    * Copy an entity (local or remote) to the local storage
+   *
    * @param source
    * @param opts
    */
@@ -1002,57 +1073,6 @@ export class TripService
     }
 
     return target;
-  }
-
-  /* -- protected methods -- */
-
-  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
-    opts = {...MINIFY_OPTIONS, ...opts};
-    const copy: any = entity.asObject(opts);
-
-    // Fill return date using departure date
-    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
-
-    // Fill return location using departure location
-    if (!copy.returnLocation || !copy.returnLocation.id) {
-      copy.returnLocation = {...copy.departureLocation};
-    }
-
-    // Full json optimisation
-    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
-      // Clean vessel features object, before saving
-      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
-    }
-
-    return copy;
-  }
-
-  protected fillDefaultProperties(entity: Trip) {
-
-    super.fillDefaultProperties(entity);
-
-    if (entity.operationGroups) {
-      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
-      entity.operationGroups.forEach(operationGroup => {
-        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
-        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
-      });
-    }
-    // todo maybe others tables ?
-
-    // Physical gears: compute rankOrder
-    fillRankOrder(entity.gears);
-
-    // Measurement: compute rankOrder
-    fillRankOrder(entity.measurements);
-  }
-
-  protected async fillOfflineDefaultProperties(entity: Trip) {
-    await super.fillOfflineDefaultProperties(entity);
-
-    // Fill gear id
-    const gears = entity.gears || [];
-    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
   }
 
   copyIdAndUpdateDate(source: Trip | undefined, target: Trip, opts?: TripSaveOptions) {
@@ -1094,12 +1114,6 @@ export class TripService
         }
       });
 
-      // Update gears in operation groups
-      if (target.operationGroups) {
-        target.operationGroups.forEach(operationGroup => {
-          operationGroup.physicalGear = source.gears.find(json => operationGroup.physicalGear.equals(json));
-        });
-      }
     }
 
     // Update measurements
@@ -1156,8 +1170,98 @@ export class TripService
     }
   }
 
+  /* -- protected methods -- */
+
+  protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
+    opts = {...MINIFY_OPTIONS, ...opts};
+    const copy: any = entity.asObject(opts);
+
+    // Fill return date using departure date
+    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
+
+    // Fill return location using departure location
+    if (!copy.returnLocation || !copy.returnLocation.id) {
+      copy.returnLocation = {...copy.departureLocation};
+    }
+
+    // Full json optimisation
+    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
+      // Clean vessel features object, before saving
+      copy.vesselSnapshot = {id: entity.vesselSnapshot && entity.vesselSnapshot.id};
+    }
+
+    return copy;
+  }
+
+  protected fillDefaultProperties(entity: Trip) {
+
+    super.fillDefaultProperties(entity);
+
+    if (entity.operationGroups) {
+      this.fillRecorderDepartment(entity.operationGroups, entity.recorderDepartment);
+      entity.operationGroups.forEach(operationGroup => {
+        this.fillRecorderDepartment(operationGroup.products, entity.recorderDepartment);
+        this.fillRecorderDepartment(operationGroup.packets, entity.recorderDepartment);
+      });
+    }
+    // todo maybe others tables ?
+
+    // Physical gears: compute rankOrder
+    fillRankOrder(entity.gears);
+
+    // Measurement: compute rankOrder
+    fillRankOrder(entity.measurements);
+  }
+
+  protected async fillOfflineDefaultProperties(entity: Trip) {
+    await super.fillOfflineDefaultProperties(entity);
+
+    // Fill gear id
+    const gears = entity.gears || [];
+    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
+  }
+
+  /**
+   * List of importation jobs.
+   *
+   * @protected
+   * @param opts
+   */
+  protected getImportJobs(opts: {
+    maxProgression: undefined;
+  }): Observable<number>[] {
+
+    const feature = this.settings.getOfflineFeature(this.featureName);
+    const tripFilter = TripOfflineFilter.toTripFilter(feature && feature.filter);
+    if (tripFilter) {
+      return [
+        ...super.getImportJobs(opts),
+        JobUtils.defer((p, o) => this.operationService.executeImport(p, {
+          ...o,
+          filter: {
+            programLabel: tripFilter.program.label,
+            vesselId: tripFilter.vesselId,
+            startDate: tripFilter.startDate
+          }
+        }), opts),
+        JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
+          ...o,
+          filter: {
+            program: tripFilter.program,
+            vesselId: tripFilter.vesselId,
+            startDate: tripFilter.startDate
+          }
+        }), opts)
+      ];
+    } else {
+      return super.getImportJobs(opts);
+    }
+  }
+
+
   /**
    * Copy Id and update, in sample tree (recursively)
+   *
    * @param sources
    * @param targets
    */

@@ -62,7 +62,8 @@
                      [class.even]="col.qvIndex | even"
                      [class.odd]="col.qvIndex | odd"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0"
-                     [class.show]="col.rankOrder % 5 === 0">
+                     [class.show]="col.rankOrder % 5 === 0"
+                     [style.flex]="nbDisplayedColumns">
       <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
         <span>{{qvPmfm.qualitativeValues[col.qvIndex].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
@@ -170,7 +171,7 @@
 
     <mat-cell *matCellDef="let row">
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="row.id == -1 && row.editing"
+                              [autofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonGroup"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                               [required]="showTaxonGroupColumn"
@@ -188,7 +189,7 @@
 
       <!-- desktop -->
       <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [appAutofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
+                              [autofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.taxonName"
                               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                               [required]="showTaxonNameColumn"
@@ -205,6 +206,7 @@
                      [class.total]="col.rankOrder % 5 < 2"
                      [class.odd]="isQvOdd(col)"
                      [class.even]="isQvEven(col)"
+                     [class.hidden-lg]="col.rankOrder % 5 >= nbDisplayedColumns"
                      [class.hidden-xs]="col.rankOrder % 5 !== 0"
                      [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
                      class="mat-cell-content-start-padding">
@@ -218,6 +220,7 @@
               [class.total]="col.rankOrder % 5 < 2"
               [class.odd]="isQvOdd(col)"
               [class.even]="isQvEven(col)"
+              [class.hidden-lg]="col.rankOrder % 5 >= nbDisplayedColumns"
               [class.hidden-xs]="col.rankOrder % 5 !== 0"
               [class.mat-cell-computed]="col.computed"
               class="mat-cell-content-start-padding">
@@ -338,11 +341,11 @@
     <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
 
       <mat-header-cell *matHeaderCellDef
-                       [class.total]="col.rankOrder % 5 < 2"
+                       [class.total]="col.rankOrder % 5 < 2 && nbDisplayedColumns > 1"
                        [class.odd]="isQvOdd(col)"
                        [class.even]="isQvEven(col)"
                        [class.hidden-xs]="col.rankOrder % 5 !== 0"
-                       [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
+                       [class.hidden-mobile]="col.rankOrder % 5 !== 0 && (!hasIndividualMeasurement || col.rankOrder % 5 !== 3)"
                        class="mat-cell-content-start-padding">
         <mat-label>
           <span>{{col.label|translate}}</span>
@@ -351,11 +354,11 @@
       </mat-header-cell>
 
       <mat-cell *matCellDef="let row"
-                [class.total]="col.rankOrder % 5 < 2"
+                [class.total]="col.rankOrder % 5 < 2 && nbDisplayedColumns > 1"
                 [class.odd]="col.qvIndex | odd"
                 [class.even]="col.qvIndex | even"
                 [class.hidden-xs]="col.rankOrder % 5 !== 0"
-                [class.hidden-mobile]="col.rankOrder % 5 !== 0 && col.rankOrder % 5 !== 3"
+                [class.hidden-mobile]="col.rankOrder % 5 !== 0 && (!hasIndividualMeasurement || col.rankOrder % 5 !== 3)"
                 [class.mat-cell-computed]="col.computed"
                 class="mat-cell-content-start-padding">
 

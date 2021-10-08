@@ -1,12 +1,12 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup } from '@angular/forms';
 
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
-import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import { LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { Measurement, MeasurementUtils, MeasurementValuesUtils } from '../model/measurement.model';
+import { PmfmValidators } from '../../../referential/services/validator/pmfm.validators';
+import { IPmfm } from '../../../referential/services/model/pmfm.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -77,8 +77,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       let formControl: AbstractControl = form.get(controlName);
       // If new pmfm: add as control
       if (!formControl) {
-
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', PmfmValidators.create(pmfm, null, opts));
+        formControl = this.formBuilder.control(PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null, PmfmValidators.create(pmfm, null, opts));
         form.addControl(controlName, formControl);
       }
 

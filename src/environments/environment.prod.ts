@@ -1,4 +1,4 @@
-import {Environment} from "@sumaris-net/ngx-components";
+import { Environment } from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json')
 
@@ -14,7 +14,7 @@ export const environment: Environment = Object.freeze({
   mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.10.0',
+  peerMinVersion: '1.11.0',
 
   // FIXME: GraphQL subscription never unsubscribe...
   listenRemoteChanges: false,

@@ -60,6 +60,10 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() qvPmfm: PmfmStrategy;
 
+  @Input() hasIndividualMeasurement: boolean;
+
+  @Input() hasIndividualMeasurementByDefault: boolean;
+
   @Input()
   set value(value: BatchGroup) {
     this.data = value;

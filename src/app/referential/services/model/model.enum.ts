@@ -1,7 +1,6 @@
 // TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
-import {ObjectMap} from "@sumaris-net/ngx-components";
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
@@ -14,7 +13,8 @@ export const LocationLevelIds = {
 
   // At sea
   ICES_RECTANGLE: 4,
-  ICES_DIVISION: 111
+  ICES_DIVISION: 111,
+  LOCATIONS_AREA: [4, 5, 111]
 };
 
 export const GearLevelIds = {
@@ -45,6 +45,7 @@ export const PmfmIds = {
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
   IS_SAMPLING: 121,
+  DRESSING: 151,
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
@@ -68,16 +69,19 @@ export const PmfmIds = {
   STRATEGY_LABEL: 359,
   AGE: 350,
   SEX: 80,
-  MAIN_METIER: 25,
 
   /* OBSDEB pmfms */
   PACKAGING: 177,
   SIZE_CATEGORY: 174,
   TOTAL_PRICE: 270,
   AVERAGE_PACKAGING_PRICE: 271,
-  AVERAGE_PRICE_WEI: 272,
+  AVERAGE_WEIGHT_PRICE: 272,
   SALE_ESTIMATED_RATIO: 278,
   SALE_RANK_ORDER: 279,
+  REFUSED_SURVEY: 266,
+
+  /* ACOST pmfms */
+  HAS_INDIVIDUAL_MEASUREMENT: 381,
 };
 
 export const QualitativeLabels = {
@@ -112,6 +116,10 @@ export const MatrixIds = {
   INDIVIDUAL: 2
 }
 
+export const UnitIds = {
+  NONE: 0
+}
+
 export const autoCompleteFractions = {
   1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
   1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
@@ -121,12 +129,16 @@ export const autoCompleteFractions = {
 }
 
 export const ParameterLabelGroups = {
-  TAG_ID: ['TAG_ID'],
+  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
   AGE: ['AGE']
+};
+
+export const FractionIdGroups = {
+  CALCIFIED_STRUCTURE: [10, 11, 12, 13]
 };
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
@@ -146,7 +158,9 @@ export const UnitLabelPatterns = {
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg'
+  defaultWeight: 'kg',
+  KG: 'kg',
+  GRAM: 'g'
 };
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
@@ -168,7 +182,7 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
 
 export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   TRIP: 'TRIP',
@@ -190,7 +204,8 @@ export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
   PACKET_SALE: 'PACKET_SALE',
   EXPENSE: 'EXPENSE',
   BAIT_EXPENSE: 'BAIT_EXPENSE',
-  ICE_EXPENSE: 'ICE_EXPENSE'
+  ICE_EXPENSE: 'ICE_EXPENSE',
+  CHILD_OPERATION: 'CHILD_OPERATION'
 };
 
 export const SaleTypeIds = {

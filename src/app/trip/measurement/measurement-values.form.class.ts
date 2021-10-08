@@ -43,8 +43,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   get measurementValuesForm(): FormGroup {
-    // TODO: use this._measurementValuesForm instead
-    return this.form.controls.measurementValues as FormGroup; // this._measurementValuesForm || (this.form.controls.measurementValues as FormGroup);
+
+    //return this.form.controls.measurementValues as FormGroup;
+    return this._measurementValuesForm || (this.form.controls.measurementValues as FormGroup);
   }
 
   @Input() compact = false;
@@ -249,7 +250,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   protected setStrategyLabel(value: string) {
-    if (isNotNil(value) && this.$strategyLabel.getValue() !== value) {
+    if (isNotNil(value) && this.$strategyLabel.value !== value) {
 
       this.$strategyLabel.next(value);
 

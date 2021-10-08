@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild } from '@angular/core';
 import {
   AppFormUtils,
   AppTable,
-  DefaultStatusList,
-  EntitiesTableDataSource,
+  StatusList,
+  EntitiesTableDataSource, firstArrayValue,
   fromDateISOString,
   isEmptyArray,
   isNotEmptyArray,
@@ -18,29 +18,33 @@ import {
   SharedValidators,
   sleep,
   StatusIds,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
-import {Program} from '../../services/model/program.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from '../../services/model/model.enum';
-import {ReferentialFilter} from '../../services/filter/referential.filter';
-import {ReferentialRefService} from '../../services/referential-ref.service';
-import {ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME} from '../../services/config/program.config';
-import {environment} from '@environments/environment';
-import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
-import {SamplingStrategyService} from '../../services/sampling-strategy.service';
-import {StrategyService} from '../../services/strategy.service';
+import { Program } from '../../services/model/program.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController, Platform } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { ReferentialFilter } from '../../services/filter/referential.filter';
+import { ReferentialRefService } from '../../services/referential-ref.service';
+import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
+import { environment } from '@environments/environment';
+import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
+import { SamplingStrategyService } from '../../services/sampling-strategy.service';
+import { StrategyService } from '../../services/strategy.service';
 import * as momentImported from 'moment';
-import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ParameterService} from '@app/referential/services/parameter.service';
-import {debounceTime, filter, tap} from 'rxjs/operators';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
-import {Subject} from 'rxjs';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ParameterService } from '@app/referential/services/parameter.service';
+import { debounceTime, filter, tap } from 'rxjs/operators';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import { Subject } from 'rxjs';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import {StrategyModal} from '@app/referential/strategy/strategy.modal';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '@app/referential/services/model/strategy.model';
+import {PmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import { Operation } from '@app/trip/services/model/trip.model';
 
 const moment = momentImported;
 
@@ -63,8 +67,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   readonly quarters = Object.freeze([1, 2, 3, 4]);
   readonly parameterGroupLabels: string[];
 
+
+  highlightedRow: TableElement<SamplingStrategy>;
+
   errorDetails: any;
-  statusList = DefaultStatusList;
+  statusList = StatusList;
   statusById: any;
   parameterIdsByGroupLabel: ObjectMap<number[]>;
 
@@ -216,7 +223,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       filter: <ReferentialFilter>{
         entityName: 'Location',
         // TODO BLA: rendre ceci paramètrable par program properties
-        levelIds: [LocationLevelIds.ICES_DIVISION],
+        levelIds: LocationLevelIds.LOCATIONS_AREA,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
@@ -261,43 +268,27 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .subscribe());
   }
 
+  clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
+    this.highlightedRow = row;
 
-  protected setProgram(program: Program) {
-    if (program && isNotNil(program.id) && this._program !== program) {
-      console.debug('[strategy-table] Setting program:', program);
-
-      this._program = program;
-      this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
-
-      this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
-      // Add a i18n suffix (e.g. in Biological sampling program)
-      const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-      this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
-
-      // Restore filter from settings, or load all
-      this.restoreFilterOrLoad(program.id);
-    }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
+    return super.clickRow(event, row);
   }
 
   async deleteSelection(event: UIEvent): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
-    const strategyLabelsWithRealizedEffort = (rowsToDelete || [])
+    const strategyLabelsWithData = (rowsToDelete || [])
       .map(row => row.currentData as SamplingStrategy)
       .map(SamplingStrategy.fromObject)
-      .filter(strategy => strategy.hasRealizedEffort)
+      .filter(strategy => strategy.hasLanding)
       .map(s => s.label);
 
-    // send error if one strategy has realized effort
-    if (isNotEmptyArray(strategyLabelsWithRealizedEffort)) {
-      this.errorDetails = {label: strategyLabelsWithRealizedEffort.join(', ')};
-      this.error = strategyLabelsWithRealizedEffort.length === 1
-        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_REALIZED_EFFORT'
-        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_REALIZED_EFFORT';
+    // send error if one strategy has landing
+    if (isNotEmptyArray(strategyLabelsWithData)) {
+      this.errorDetails = {label: strategyLabelsWithData.join(', ')};
+      this.setError(strategyLabelsWithData.length === 1
+        ? 'PROGRAM.STRATEGY.ERROR.STRATEGY_HAS_DATA'
+        : 'PROGRAM.STRATEGY.ERROR.STRATEGIES_HAS_DATA');
       return 0;
     }
 
@@ -307,7 +298,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     //TODO FIX : After delete first time, _dirty = false; Cannot delete second times cause try to save
     super.markAsPristine();
 
-    this.error = null;
+    this.resetError();
   }
 
   closeFilterPanel(event?: UIEvent) {
@@ -349,6 +340,28 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   /* -- protected methods -- */
+
+
+  protected setProgram(program: Program) {
+    if (program && isNotNil(program.id) && this._program !== program) {
+      console.debug('[strategy-table] Setting program:', program);
+
+      this._program = program;
+      this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
+
+      this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
+      // Add a i18n suffix (e.g. in Biological sampling program)
+      const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+      this.i18nColumnPrefix += i18nSuffix !== 'legacy' && i18nSuffix || '';
+
+      // Restore filter from settings, or load all
+      this.restoreFilterOrLoad(program.id);
+    }
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
   protected async restoreFilterOrLoad(programId: number) {
     this.markAsLoading();
@@ -440,6 +453,89 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         .then(parameters => result[groupLabel] = parameters.map(p => p.id))
     }));
     return result;
+  }
+
+  // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
+  // We keep initial strategy and remove year related data like efforts.
+  // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
+  async openStrategyDuplicateYearSelectionModal(event: UIEvent, strategiesToDuplicate: TableElement<SamplingStrategy>[]) {
+    const modal = await this.modalCtrl.create({
+      component: StrategyModal,
+    });
+
+    // Open the modal
+    await modal.present();
+    const userDate = await modal.onDidDismiss();
+
+    if (userDate && userDate.data) {
+      for (const strategyToDuplicate of strategiesToDuplicate) {
+        const initialStrategy = SamplingStrategy.fromObject(strategyToDuplicate.currentData);
+        const strategyToSave = new Strategy();
+        const year = typeof(userDate.data) === 'string' ? fromDateISOString(userDate.data).format('YY').toString() : userDate.data.format('YY').toString();
+        const strategyToSaveLabel = await this.strategyService.computeNextLabel(this.program.id, year + initialStrategy.label.substring(2, 9), 3);
+
+        strategyToSave.label = strategyToSaveLabel;
+        strategyToSave.name = strategyToSaveLabel;
+        strategyToSave.description = strategyToSaveLabel;
+        strategyToSave.analyticReference = initialStrategy.analyticReference;
+        strategyToSave.programId = initialStrategy.programId;
+
+        strategyToSave.appliedStrategies = (initialStrategy.appliedStrategies || []).map(initialAppliedStrategy => {
+          const strategyToSaveAppliedStrategy = new AppliedStrategy();
+          strategyToSaveAppliedStrategy.id = undefined;
+          strategyToSaveAppliedStrategy.updateDate = undefined;
+          strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
+          if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
+            strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
+              const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
+              const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
+              const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+              const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
+              appliedPeriod.startDate = startDate;
+              appliedPeriod.endDate = endDate;
+              appliedPeriod.appliedStrategyId = undefined;
+              return appliedPeriod;
+            });
+          } else {
+            strategyToSaveAppliedStrategy.appliedPeriods = [];
+          }
+          return strategyToSaveAppliedStrategy;
+        })
+
+        strategyToSave.pmfms = initialStrategy.pmfms && initialStrategy.pmfms.map(pmfmStrategy => {
+          const pmfmStrategyCloned = pmfmStrategy.clone();
+          pmfmStrategyCloned.id = undefined;
+          pmfmStrategyCloned.strategyId = undefined;
+          return PmfmStrategy.fromObject(pmfmStrategyCloned)
+        }) || [];
+        strategyToSave.departments = initialStrategy.departments && initialStrategy.departments.map(department => {
+          const departmentCloned = department.clone();
+          departmentCloned.id = undefined;
+          departmentCloned.strategyId = undefined;
+          return StrategyDepartment.fromObject(departmentCloned)
+        }) || [];
+        strategyToSave.taxonNames = initialStrategy.taxonNames && initialStrategy.taxonNames.map(taxonNameStrategy => {
+          const taxonNameStrategyCloned = taxonNameStrategy.clone();
+          taxonNameStrategyCloned.strategyId = undefined;
+          return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)
+        }) || [];
+        strategyToSave.id = undefined;
+        strategyToSave.updateDate = undefined;
+        strategyToSave.comments = initialStrategy.comments;
+        strategyToSave.creationDate = undefined;
+        strategyToSave.statusId = initialStrategy.statusId;
+        strategyToSave.validityStatusId = initialStrategy.validityStatusId;
+        strategyToSave.levelId = initialStrategy.levelId;
+        strategyToSave.parentId = initialStrategy.parentId;
+        strategyToSave.entityName = initialStrategy.entityName;
+        strategyToSave.denormalizedPmfms = undefined;
+        strategyToSave.gears = undefined;
+        strategyToSave.taxonGroups = undefined;
+        await this.strategyService.save(strategyToSave);
+      }
+    }
+    this.selection.clear();
+    this.onRefresh.emit();
   }
 }
 

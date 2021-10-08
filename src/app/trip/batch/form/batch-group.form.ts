@@ -43,6 +43,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   @Input() showChildrenSampleBatch = true;
 
+  @Input() hasIndividualMeasurement: boolean;
+
+  @Input() hasIndividualMeasurementByDefault: boolean;
+
   @ViewChildren("firstInput") firstInputFields !: QueryList<InputElement>;
 
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
@@ -134,6 +138,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   ngOnInit() {
     super.ngOnInit();
 
+    console.debug('[batch-group.form] hasIndividualMeasurementByDefault', this.hasIndividualMeasurementByDefault);
     // Set isSampling on each child forms, when has indiv. measure changed
     this.registerSubscription(
       this.hasIndividualMeasureControl.valueChanges
@@ -187,7 +192,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     }
 
     if (this.debug) console.debug("[batch-group-form] setValue() with value:", data);
-    let hasIndividualMeasure = data.observedIndividualCount > 0;
+    let hasIndividualMeasure = data.observedIndividualCount > 0 || this.hasIndividualMeasurementByDefault;
 
     if (!this.qvPmfm) {
       super.setValue(data);
@@ -200,6 +205,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
 
         // Find existing child, or create a new one
+        // tslint:disable-next-line:triple-equals
         const child = (data.children || []).find(c => +(c.measurementValues[this.qvPmfm.id]) == qv.id)
           || new Batch();
 
@@ -355,5 +361,4 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       this.markForCheck();
     }
   }
-
 }

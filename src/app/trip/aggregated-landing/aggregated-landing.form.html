@@ -30,8 +30,7 @@
 
     <ion-row>
       <ion-col>
-        <mat-swipe-field #datesSwipe
-                         formControlName="date"
+        <mat-swipe-field formControlName="date"
                          [items]="dates"
                          [displayWith]="displayDate()"
                          [compareWithFn]="compareDate()"
@@ -72,6 +71,7 @@
                                       [value]="activities[i]"
                                       [programLabel]="programLabel"
                                       [acquisitionLevel]="acquisitionLevel"
+                                      maxVisibleButtons='2'
             >
             </app-vessel-activity-form>
           </ion-card-content>
