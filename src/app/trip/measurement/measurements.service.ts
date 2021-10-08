@@ -13,7 +13,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     implements IEntitiesService<T, F> {
 
   private readonly _debug: boolean;
-  private _subscription: Subscription;
+  private _subscription = new Subscription();
   private _programLabel: string;
   private _acquisitionLevel: string;
   private _strategyLabel: string;

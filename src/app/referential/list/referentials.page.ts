@@ -84,7 +84,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   @Input() set entityName(value: string) {
     if (this._entityName !== value) {
       this._entityName = value;
-      if (!this.loadingSubject.getValue()) {
+      if (!this.loadingSubject.value) {
         this.applyEntityName(value, { skipLocationChange: true });
       }
     }
@@ -251,7 +251,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
 
     // Load default entity
-    await this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
+    await this.applyEntityName(this._entityName || entity || ReferentialsPage.DEFAULT_ENTITY_NAME);
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {

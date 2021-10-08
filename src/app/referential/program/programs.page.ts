@@ -40,6 +40,7 @@ export class ProgramsPage implements OnInit {
 
   ngOnInit() {
     this.table.settingsId =  ProgramsPageSettingsEnum.PAGE_ID;
+    this.table.entityName = 'Program';
     this.table.restoreFilterOrLoad();
   }
 
