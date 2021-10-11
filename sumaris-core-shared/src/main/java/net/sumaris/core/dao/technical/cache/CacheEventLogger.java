@@ -35,7 +35,10 @@ public class CacheEventLogger implements CacheEventListener<Object, Object> {
 
     @Override
     public void onEvent(CacheEvent cacheEvent) {
-        // TODO: send clear cache event to the ActiveMQ event queue
-        //log.info("custom Caching event {} {} {} {} ", cacheEvent.getType(),cacheEvent.getKey(),cacheEvent.getOldValue(),cacheEvent.getNewValue());
+        if (log.isDebugEnabled()) {
+            log.debug("Caching event {} {}", cacheEvent.getType(), cacheEvent.getKey());
+
+            // TODO: send clear cache event to the ActiveMQ event queue
+        }
     }
 }

@@ -25,6 +25,7 @@ package net.sumaris.core.dao.referential;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -52,6 +53,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Repository("referentialExternalDao")
@@ -69,6 +71,9 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     private List<ReferentialVO> analyticReferences;
     private Date analyticReferencesUpdateDate = new Date(0L);
 
+    private Pattern searchPattern;
+    private Pattern searchAnyPattern;
+
     @Autowired
     public ReferentialExternalDaoImpl(SumarisConfiguration config) {
         this.config = config;
@@ -84,7 +89,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
             // Load references
             if (this.enableAnalyticReferences) {
-                loadAnalyticReferences();
+                loadOrUpdateAnalyticReferences();
             }
         }
     }
@@ -97,9 +102,23 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                                             String sortAttribute,
                                             SortDirection sortDirection) {
 
-        if (!enableAnalyticReferences) throw new UnsupportedOperationException("Analytic references not supported");
+        if (!enableAnalyticReferences) {
+            if (config.isProduction()) throw new UnsupportedOperationException("Analytic references not supported");
+            // In DEV mode: return a fake UNK value
+            return ImmutableList.of(ReferentialVO.builder()
+                .id(-1)
+                .label("UNK")
+                .name("Unknown")
+                .build());
+        }
 
-        loadAnalyticReferences();
+        // Make sure references have been load, or refreshed
+        loadOrUpdateAnalyticReferences();
+
+        // Prepare search pattern
+        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
+        searchPattern = getPattern(filter.getSearchText(), false);
+        searchAnyPattern = getPattern(filter.getSearchText(), true);
 
         return analyticReferences.stream()
                 .filter(getAnalyticReferencesPredicate(filter))
@@ -111,20 +130,22 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     }
 
     // TODO NRannou: add cache (with a time to live) - or transcribing
-    public void loadAnalyticReferences() {
+    public void loadOrUpdateAnalyticReferences() {
 
         Date updateDate = new Date();
         int delta = DateUtil.getDifferenceInDays(analyticReferencesUpdateDate, updateDate);
         int delay = config.getAnalyticReferencesServiceDelay();
         String urlStr = config.getAnalyticReferencesServiceUrl();
         String authStr = config.getAnalyticReferencesServiceAuth();
+        String filter = config.getAnalyticReferencesServiceFilter();
 
         // load analyticReferences if not loaded or too old
         if (StringUtils.isNotBlank(urlStr) && (delta > delay || analyticReferences == null)) {
             log.info(String.format("Loading analytic references from {%s}", urlStr));
             BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
-            analyticReferences = parseAnalyticReferencesToVO(content);
+            analyticReferences = parseAnalyticReferencesToVO(content, filter);
             analyticReferencesUpdateDate = updateDate;
+            log.info(String.format("Analytic references loaded {%s}", analyticReferences.size()));
         }
     }
 
@@ -147,22 +168,26 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
         return content;
     }
 
-    private List<ReferentialVO> parseAnalyticReferencesToVO(BufferedReader content) {
+    private List<ReferentialVO> parseAnalyticReferencesToVO(BufferedReader content, String filter) {
         List<ReferentialVO> results = new ArrayList<>();
+        Pattern filterPattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
 
         try {
             JsonNode node = objectMapper.readTree(content);
             node.get("d").get("results").forEach(source -> {
-                ReferentialVO target = new ReferentialVO();
-                target.setId(source.get("Code").asText().hashCode());
-                target.setLabel(source.get("Code").asText());
-                target.setName(source.get("Description").asText());
-                target.setLevelId(source.get("Niveau").asInt());
-                int statusId = "O".equals(source.get("Imputable").asText())
-                        ? StatusEnum.ENABLE.getId() : StatusEnum.DISABLE.getId();
-                target.setStatusId(statusId);
-                target.setEntityName("AnalyticReference");
-                results.add(target);
+                String code = source.get("Code").asText();
+                if (filterPattern.matcher(code).matches()) {
+                    ReferentialVO target = new ReferentialVO();
+                    target.setId(code.hashCode());
+                    target.setLabel(code);
+                    target.setName(source.get("Description").asText());
+                    target.setLevelId(source.get("Niveau").asInt());
+                    int statusId = "O".equals(source.get("Imputable").asText())
+                            ? StatusEnum.ENABLE.getId() : StatusEnum.DISABLE.getId();
+                    target.setStatusId(statusId);
+                    target.setEntityName("AnalyticReference");
+                    results.add(target);
+                }
             });
         } catch (Exception e) {
             throw new SumarisTechnicalException("Unable to parse analytic references: " + e.getMessage(), e);
@@ -173,37 +198,35 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
     private Predicate<ReferentialVO> getAnalyticReferencesPredicate(ReferentialFilterVO filter) {
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
-        filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
 
         return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
                 && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
                 && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
                 && (filter.getLevelId() == null || filter.getLevelId().equals(s.getLevelId()))
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
+                && (filter.getLevelLabels() == null || Arrays.asList(filter.getLevelLabels()).contains(s.getLabel()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || likeIgnoreCase(s.getLabel(), filter.getSearchText(),false) || likeIgnoreCase(s.getName(), filter.getSearchText(),true));
+                && (filter.getSearchText() == null || searchPattern.matcher(s.getLabel()).matches() || searchAnyPattern.matcher(s.getName()).matches());
     }
 
-    private static boolean likeIgnoreCase(String text, String searchText, boolean searchAny) {
-        if (StringUtils.isEmpty(text) || StringUtils.isEmpty(searchText)) return false;
-        return like(text.toLowerCase(), searchText.toLowerCase(), searchAny);
-    }
-
-    private static boolean like(String text, String searchText, boolean searchAny) {
-        if (StringUtils.isEmpty(text) || StringUtils.isEmpty(searchText)) return false;
+    private static Pattern getPattern(String searchText, boolean searchAny) {
 
         // add leading wildcard (if searchAny specified) and trailing wildcard
-        searchText = ((searchAny ? "*" : "") + searchText + "*");
+        searchText = searchText != null ? ((searchAny ? "*" : "") + searchText + "*") : "";
 
-        if (searchText.startsWith("*") && searchText.endsWith("*")) {
-            return text.contains(searchText.replace("*", ""));
-        } else if (searchText.startsWith("*")) {
-            return text.endsWith(searchText.replace("*", ""));
-        } else if (searchText.endsWith("*")) {
-            return text.startsWith(searchText.replace("*", ""));
-        } else {
-            return text.equals(searchText.replace("*", ""));
+        // translate searchText in regexp
+        StringBuilder sb = new StringBuilder();
+        String[] searchArray = searchText.split("\\*", -1);
+        for (int i = 0; i < searchArray.length; i++) {
+            if (!StringUtils.isEmpty(searchArray[i])) {
+                sb.append(Pattern.quote(searchArray[i]));
+            }
+            if (i < searchArray.length - 1) {
+                sb.append(".*");
+            }
         }
+
+        return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
 
 }

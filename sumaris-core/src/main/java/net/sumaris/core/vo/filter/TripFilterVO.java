@@ -27,9 +27,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import javax.annotation.Nullable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -43,20 +45,19 @@ public class TripFilterVO implements IRootDataFilter, IVesselFilter {
     }
 
     private Date startDate;
-
     private Date endDate;
 
     private String programLabel;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
+    private Integer[] observerPersonIds;
 
     private Integer vesselId;
-
     private Integer locationId;
 
+    private Integer[] excludedIds;
+    private Integer[] includedIds;
     private Integer tripId;
 
-    private Integer[] includedIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

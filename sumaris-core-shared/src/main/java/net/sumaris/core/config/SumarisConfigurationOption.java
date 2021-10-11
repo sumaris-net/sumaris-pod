@@ -28,6 +28,7 @@ import net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
+import javax.persistence.LockModeType;
 import java.io.File;
 import java.net.URL;
 import java.util.Locale;
@@ -458,6 +459,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Integer.class,
         false),
 
+    ANALYTIC_REFERENCES_SERVICE_FILTER(
+        "sumaris.analyticReferences.service.filter",
+        n("sumaris.config.option.analyticReferences.service.filter.description"),
+        ".*-MS", /* regexp */
+        String.class,
+        false),
+
     /*
      * CLI options
      */
@@ -548,6 +556,18 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "sumaris.persistence.sequence.suffix",
         n("sumaris.config.option.persistence.sequence.suffix.description"),
         "_SEQ",
+        String.class),
+
+    LOCK_TIMEOUT(
+        "javax.persistence.lock.timeout",
+        n("sumaris.config.option.javax.persistence.lock.timeout.description"),
+        "0",
+        Integer.class),
+
+    LOCK_MODE_TYPE(
+        "javax.persistence.lock.mode",
+        n("sumaris.config.option.javax.persistence.lock.mode.description"),
+        LockModeType.PESSIMISTIC_WRITE.name(),
         String.class),
 
     ENABLE_TECHNICAL_TABLES_UPDATE(

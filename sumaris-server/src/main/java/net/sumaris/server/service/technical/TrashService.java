@@ -27,12 +27,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
 @Transactional(readOnly = true)
 public interface TrashService {
 
     <V> Page<V> findAll(String entityName, Pageable pageable, Class<? extends V> clazz);
+
+    <V> List<V> findAll(String entityName, net.sumaris.core.dao.technical.Page page, Class<? extends V> clazz);
 
     <V> V getById(String entityName, Serializable id, Class<? extends V> clazz);
 

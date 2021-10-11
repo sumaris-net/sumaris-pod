@@ -38,6 +38,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.criteria.JoinType;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public interface TaxonGroupSpecifications
                 root.joinList(TaxonGroup.Fields.METIERS, JoinType.INNER)
                         .join(Metier.Fields.GEAR, JoinType.INNER)
                         .get(Gear.Fields.ID))
-                .value(ImmutableList.copyOf(gearIds));
+                .value(Arrays.asList(gearIds));
     }
 
     void updateTaxonGroupHierarchies();

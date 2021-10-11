@@ -32,17 +32,19 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.ObservedLocationMeasurement;
-import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("observedLocationService")
@@ -74,11 +76,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	@Override
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
 											SortDirection sortDirection, DataFetchOptions fetchOptions) {
-		if (filter == null) {
-			return observedLocationRepository.findAll(offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
-		}
-
-		return observedLocationRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
+		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
 	}
 
 	@Override

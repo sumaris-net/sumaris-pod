@@ -22,18 +22,24 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
+import net.sumaris.core.util.Beans;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
+@EqualsAndHashCode
 public class VesselFilterVO implements IRootDataFilter {
 
     public static VesselFilterVO nullToEmpty(VesselFilterVO f) {
-        return f != null ? f : new VesselFilterVO();
+        return f != null ? f : VesselFilterVO.builder().build();
     }
 
     private String programLabel;
@@ -41,27 +47,59 @@ public class VesselFilterVO implements IRootDataFilter {
     private Integer vesselId;
     private Integer vesselFeaturesId;
 
+    private Integer vesselTypeId;
+
+    private String[] searchAttributes;
     private String searchText;
 
     private List<Integer> statusIds;
 
-    private Integer locationId; // TODO: use it in repository
     private Integer recorderDepartmentId; // TODO: use it in repository
     private Integer recorderPersonId; // TODO: use it in repository
 
     private Date startDate;
-    private Date endDate; // TODO: use it in repository
+    private Date endDate;
+
+    private Integer registrationLocationId;
+    private Integer basePortLocationId;
+    private DataQualityStatusEnum[] dataQualityStatus; // Not used
 
     public void setDate(Date date) {
         this.startDate = date;
+        this.endDate = date;
+    }
+
+    /**
+     * @deprecated use basePortLocationId instead
+     * @return basePortLocationId
+     */
+    @Override
+    @Deprecated
+    public Integer getLocationId() {
+        return basePortLocationId;
+    }
+
+    /**
+     * @deprecated use basePortLocationId instead
+     */
+    @Override
+    @Deprecated
+    public void setLocationId(Integer locationId) {
+        basePortLocationId = locationId;
     }
 
     /**
      * @deprecated use startDate instead
-     * @return
+     * @return startDate
      */
     @Deprecated
     public Date getDate() {
         return this.startDate;
+    }
+
+    public VesselFilterVO clone() {
+        VesselFilterVO target = new VesselFilterVO();
+        Beans.copyProperties(this, target);
+        return target;
     }
 }

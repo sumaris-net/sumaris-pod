@@ -37,6 +37,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.JoinType;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,7 +76,7 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
                 .joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER)
                 .get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP)
                 .get(TaxonGroup.Fields.ID)
-        ).value(ImmutableList.copyOf(taxonGroupIds));
+        ).value(Arrays.asList(taxonGroupIds));
     }
 
     List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);

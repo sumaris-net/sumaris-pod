@@ -44,7 +44,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 
 @Service("denormalizeTripService")
 @Slf4j
@@ -96,7 +95,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         MutableInt invalidBatchCount = new MutableInt(0);
         do {
             // Fetch some trips
-            List<TripVO> trips = tripService.findByFilter(filter,
+            List<TripVO> trips = tripService.findAll(filter,
                 offset, pageSize, // Page
                 TripVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
                 tripFetchOptions);

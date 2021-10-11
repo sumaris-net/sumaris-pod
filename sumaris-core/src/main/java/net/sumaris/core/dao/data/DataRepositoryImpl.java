@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
@@ -53,6 +52,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
@@ -106,20 +106,25 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Override
     public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
-        return findAll(filter, page.asPageable(), fetchOptions)
-                .stream().collect(Collectors.toList());
+        Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        TypedQuery<E> query = getQuery(spec, page, getDomainClass());
+        return streamQuery(query)
+            .map(entity -> toVO(entity, fetchOptions))
+            .collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(Pageables.create(offset, size, sortAttribute, sortDirection))
-            .map(e -> this.toVO(e, fetchOptions));
+    public List<V> findAll(@Nullable F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
+        Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        TypedQuery<E> query = getQuery(spec, offset, size, sortAttribute, sortDirection, getDomainClass());
+        return streamQuery(query)
+            .map(entity -> toVO(entity, fetchOptions))
+            .collect(Collectors.toList());
     }
 
     @Override
-    public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
-            .map(e -> this.toVO(e, fetchOptions));
+    public List<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
+        return findAll(null, offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
@@ -232,7 +237,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         else {
             entity.setQualificationDate(newUpdateDate);
         }
-        // Apply a find, because can return a null value (e.g. if id is not in the DB instance)
+        // Apply a find (and NOT a getReference)
+        // because can return a null value (e.g. if id is not in the DB instance)
         entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
 
         // TODO UNVALIDATION PROCESS HERE

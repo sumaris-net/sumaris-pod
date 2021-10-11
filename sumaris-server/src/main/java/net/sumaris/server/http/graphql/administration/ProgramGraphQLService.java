@@ -25,13 +25,12 @@ package net.sumaris.server.http.graphql.administration;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.pmfm.Fraction;
@@ -54,12 +53,14 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.ChangesPublisherService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -74,6 +75,9 @@ import java.util.stream.Collectors;
 @Transactional
 @Slf4j
 public class ProgramGraphQLService {
+
+    @Autowired
+    private SumarisServerConfiguration config;
 
     @Autowired
     private ProgramService programService;
@@ -154,7 +158,7 @@ public class ProgramGraphQLService {
             @GraphQLArgument(name = "sortBy", defaultValue = StrategyVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
             @GraphQLEnvironment ResolutionEnvironment env) {
-
+        filter = fillStrategyFilter(filter);
         return strategyService.findByFilter(filter,
                 Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
                 getStrategyFetchOptions(GraphQLUtils.fields(env)));
@@ -163,6 +167,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "strategiesCount", description = "Get strategies count")
     @Transactional(readOnly = true)
     public Long getStrategyCount(@GraphQLArgument(name = "filter") StrategyFilterVO filter) {
+        filter = fillStrategyFilter(filter);
         return strategyService.countByFilter(filter);
     }
 
@@ -397,8 +402,10 @@ public class ProgramGraphQLService {
         return ProgramFetchOptions.builder()
                 .withLocations(
                         fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATIONS, ReferentialVO.Fields.ID))
-                        || fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
-                        || fields.contains(ProgramVO.Fields.LOCATION_CLASSIFICATION_IDS)
+                )
+                .withLocationClassifications(
+                    fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
+                    || fields.contains(ProgramVO.Fields.LOCATION_CLASSIFICATION_IDS)
                 )
                 .withProperties(
                         fields.contains(ProgramVO.Fields.PROPERTIES)
@@ -478,5 +485,31 @@ public class ProgramGraphQLService {
      */
     protected void checkIsAdmin(String message) {
         if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
+    }
+
+    /**
+     * Restrict to self department data
+     * @param filter
+     */
+    protected StrategyFilterVO fillStrategyFilter(StrategyFilterVO filter) {
+
+        // Restrict to self department data
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        if (user != null) {
+            Integer depId = user.getDepartment().getId();
+            if (!canDepartmentAccessNotSelfData(depId)) {
+                // Limit data access to user's department
+                filter.setDepartmentIds(new Integer[]{depId});
+            }
+        } else {
+            filter.setDepartmentIds(new Integer[]{-999}); // Hide all. Should never occur
+        }
+
+        return filter;
+    }
+
+    protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
+        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 }

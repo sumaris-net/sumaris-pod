@@ -40,7 +40,6 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "operation")
-@Cacheable
 @NamedQueries({
     @NamedQuery(name = "Operation.updateUndefinedOperationDates",
         query = "UPDATE Operation o " +

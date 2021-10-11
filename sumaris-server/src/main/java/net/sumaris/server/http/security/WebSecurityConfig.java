@@ -22,6 +22,9 @@ package net.sumaris.server.http.security;
  * #L%
  */
 
+import net.sumaris.core.event.config.ConfigurationEventListener;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -73,12 +76,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
 
     private final ApplicationContext applicationContext;
-
+    private final ConfigurationService configurationService;
     private final SumarisServerConfiguration configuration;
 
-    public WebSecurityConfig(ApplicationContext applicationContext, SumarisServerConfiguration configuration) {
+
+    public WebSecurityConfig(ApplicationContext applicationContext,
+                             ConfigurationService configurationService,
+                             SumarisServerConfiguration configuration) {
         super();
         this.applicationContext = applicationContext;
+        this.configurationService = configurationService;
         this.configuration = configuration;
     }
 
@@ -122,11 +129,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     AuthenticationFilter restAuthenticationFilter() throws Exception {
-        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS);
+        final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS, configuration);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(successHandler());
-        filter.setEnableAuthToken(configuration.enableAuthToken());
         filter.setEnableAuthBasic(configuration.enableAuthBasic());
+        filter.setEnableAuthToken(configuration.enableAuthToken());
         return filter;
     }
 

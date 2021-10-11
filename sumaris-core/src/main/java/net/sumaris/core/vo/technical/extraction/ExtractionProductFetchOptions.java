@@ -29,6 +29,16 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @Data
 @Builder
 public class ExtractionProductFetchOptions implements IFetchOptions {
+    public static ExtractionProductFetchOptions MINIMAL = builder()
+        .withRecorderDepartment(false)
+        .withRecorderPerson(false)
+        .withTables(false)
+        .withStratum(false)
+        .withColumns(false)
+        .withColumnValues(false)
+        .withDocumentation(false)
+        .withFilter(false)
+        .build();
 
     public static ExtractionProductFetchOptions TABLES = builder()
             .withRecorderDepartment(false)
@@ -89,4 +99,6 @@ public class ExtractionProductFetchOptions implements IFetchOptions {
     private boolean withStratum = false;
     @Builder.Default()
     private boolean withDocumentation = false;
+    @Builder.Default()
+    private boolean withFilter = true;
 }

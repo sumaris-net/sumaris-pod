@@ -23,6 +23,8 @@ package net.sumaris.server.http.graphql;
  */
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import graphql.GraphQL;
+import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
@@ -34,7 +36,9 @@ import net.sumaris.server.graphql.ExtractionGraphQLService;
 import net.sumaris.server.http.graphql.administration.AccountGraphQLService;
 import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
 import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
+import net.sumaris.server.http.graphql.administration.StrategyPredocGraphQLService;
 import net.sumaris.server.http.graphql.data.DataGraphQLService;
+import net.sumaris.server.http.graphql.data.VesselGraphQLService;
 import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLService;
 import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
@@ -70,6 +74,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     private ProgramGraphQLService programService;
 
     @Autowired
+    private StrategyPredocGraphQLService strategyPredocService;
+
+    @Autowired
     private SoftwareGraphQLService softwareService;
 
     @Autowired
@@ -83,6 +90,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
     @Autowired
     private DataGraphQLService dataService;
+
+    @Autowired
+    private VesselGraphQLService vesselService;
 
     @Autowired
     private ReferentialGraphQLService referentialService;
@@ -146,13 +156,15 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Administration & Referential
                 .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
                 .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
+                .withOperationsFromSingleton(strategyPredocService, StrategyPredocGraphQLService.class)
                 .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
                 .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
-                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
                 .withOperationsFromSingleton(taxonNameGraphQLService, TaxonNameGraphQLService.class)
+                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
 
                 // Data
                 .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+                .withOperationsFromSingleton(vesselService, VesselGraphQLService.class)
 
                 // Social
                 .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
@@ -190,6 +202,13 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     @Bean
     public WebSocketHandler webSocketHandler() {
         return new PerConnectionWebSocketHandler(SubscriptionWebSocketHandler.class);
+    }
+
+    @Bean
+    public GraphQL webSocketGraphQL() {
+        return GraphQL.newGraphQL(graphQLSchema())
+            .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
+            .build();
     }
 }
 
