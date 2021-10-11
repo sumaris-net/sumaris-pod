@@ -45,7 +45,6 @@ git add package.json src/assets/manifest.json config.xml install.sh
 git commit -m ''"$description"''
 # finishing release with:
 # -F: fetch master & develop before
-# -n: don't tag (github.sh already do it)
 # -m: use default message
 # -p: push all tags after finish
-git flow release finish -F -p -n "$version" -m ''"$description"''
+git flow release finish -F -p "$version" -m ''"$description"''
