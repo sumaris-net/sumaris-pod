@@ -134,6 +134,10 @@ public class PmfmServiceImpl implements PmfmService {
         return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
     }
 
+    @Override
+    public boolean isMultiplePmfm(int pmfmId) {
+        return pmfmRepository.hasLabelPrefix(pmfmId, "MULTIPLE");
+    }
 
 
 }

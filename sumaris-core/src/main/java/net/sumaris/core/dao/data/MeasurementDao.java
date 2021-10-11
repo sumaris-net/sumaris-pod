@@ -122,6 +122,7 @@ public interface MeasurementDao {
     List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources);
     List<QuantificationMeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<QuantificationMeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
+    Map<Integer, String[]> saveBatchSortingMeasurementsMultipleMap(final int batchId, Map<Integer, String[]> sources);
     Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
 
     // Product
@@ -140,4 +141,6 @@ public interface MeasurementDao {
 
     // Utils
     <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);
+    <T extends IMeasurementEntity> Map<Integer, String[]> toMeasurementsMultiplesMap(Collection<T> sources);
+
 }
