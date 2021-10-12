@@ -66,4 +66,28 @@
 		</sql>
 	</changeSet>
 
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-303">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="0">select count(*) from parameter_group</sqlCheck>
+		</preConditions>
+		<insert tableName="parameter_group">
+			<column name="id" valueNumeric="0"/>
+			<column name="status_fk" valueNumeric="1"/>
+			<column name="creation_date" valueComputed="sysdate"/>
+			<column name="update_date" valueComputed="current_timestamp"/>
+			<column name="label">UNK</column>
+			<column name="name">Unknown</column>
+			<column name="description">Groupe par défaut (=sans classification)</column>
+		</insert>
+		<insert tableName="parameter_group">
+			<column name="id" valueNumeric="1"/>
+			<column name="status_fk" valueNumeric="1"/>
+			<column name="creation_date" valueComputed="sysdate"/>
+			<column name="update_date" valueComputed="current_timestamp"/>
+			<column name="label">SURVEY</column>
+			<column name="name"><![CDATA[Caratéristiques d'enquêtes]]></column>
+			<column name="description"><![CDATA[Permet de grouper les paramètres qui sont relatifs aux tableaux "Caratéristiques d'enquête"]]></column>
+		</insert>
+	</changeSet>
+
 </databaseChangeLog>

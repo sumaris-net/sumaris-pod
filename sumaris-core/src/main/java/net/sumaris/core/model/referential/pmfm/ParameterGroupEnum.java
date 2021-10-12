@@ -31,7 +31,7 @@ import java.util.Arrays;
 @EntityEnum(entity = ParameterGroup.class, joinAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
 public enum ParameterGroupEnum implements Serializable {
 
-    DEFAULT(0, "DEFAULT"),
+    UNKNOWN(0, "UNK"),
     SURVEY(1, "SURVEY"),
     ;
 

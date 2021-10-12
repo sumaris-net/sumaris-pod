@@ -107,7 +107,7 @@ public class ParameterRepositoryImpl
             // Use parameterGroupId from source
             Optional.ofNullable(source.getParameterGroupId())
                 // Or default ParameterGroup
-                .orElse(ParameterGroupEnum.DEFAULT.getId()));
+                .orElse(ParameterGroupEnum.UNKNOWN.getId()));
     }
 
     @Override
