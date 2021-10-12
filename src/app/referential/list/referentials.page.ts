@@ -21,8 +21,8 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   slideUpDownAnimation,
-  sort,
   StatusList,
+  sort, toBoolean
 } from '@sumaris-net/ngx-components';
 import { ModalController, Platform } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -51,7 +51,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   private _entityName: string;
 
-  canEdit = false;
   filterForm: FormGroup;
   $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
@@ -61,7 +60,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   statusById: any;
   filterCriteriaCount = 0;
 
-  canOpenDetail = false;
   detailsPath = {
     'Program': '/referential/programs/:id',
     'Software': '/referential/software/:id?label=:label',
@@ -79,13 +77,16 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return this.getShowColumn('level');
   }
 
+  @Input() canEdit = false;
+  @Input() canOpenDetail = false;
   @Input() canSelectEntity = true;
+  @Input() persistFilterInSettings: boolean;
   @Input() title = 'REFERENTIAL.LIST.TITLE';
 
   @Input() set entityName(value: string) {
     if (this._entityName !== value) {
       this._entityName = value;
-      if (!this.loadingSubject.getValue()) {
+      if (!this.loadingSubject.value) {
         this.applyEntityName(value, { skipLocationChange: true });
       }
     }
@@ -162,6 +163,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   ngOnInit() {
     super.ngOnInit();
 
+    // Defaults
+    this.persistFilterInSettings = toBoolean(this.persistFilterInSettings, this.canSelectEntity);
+
     // Load entities
     this.registerSubscription(
       this.referentialService.loadTypes()
@@ -192,7 +196,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe()
       );
@@ -208,7 +212,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       items: this.$levels
     });
 
-    if (this.canSelectEntity) {
+    if (this.persistFilterInSettings) {
       this.restoreFilterOrLoad();
     }
     else if (this._entityName) {
@@ -216,7 +220,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
   }
 
-  protected async restoreFilterOrLoad() {
+  async restoreFilterOrLoad() {
     this.markAsLoading();
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
@@ -249,7 +253,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
 
     // Load default entity
-    await this.applyEntityName(ReferentialsPage.DEFAULT_ENTITY_NAME);
+    await this.applyEntityName(this._entityName || entity || ReferentialsPage.DEFAULT_ENTITY_NAME);
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
@@ -390,6 +394,15 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   resetFilter(event?: UIEvent) {
     this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
     this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
+    this.filterExpansionPanel.close();
+  }
+
+  patchFilter(filter: Partial<ReferentialFilter>) {
+    this.filterForm.patchValue(filter, {emitEvent: true});
+    this.setFilter(ReferentialFilter.fromObject({
+      ...this.filterForm.value,
+      entityName: this._entityName
+    }), {emitEvent: true});
     this.filterExpansionPanel.close();
   }
 

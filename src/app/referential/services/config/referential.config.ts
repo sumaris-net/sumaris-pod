@@ -190,7 +190,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: PmfmIds.TAG_ID
   },
   PMFM_DRESSING: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.DRESSING.id',
+    key: 'sumaris.enumeration.Pmfm.DRESSING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DRESSING',
     type: 'entity',
     autocomplete: {

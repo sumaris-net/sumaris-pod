@@ -1,12 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild} from '@angular/core';
-import {ControlValueAccessor, FormControl, FormGroup, FormGroupDirective, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {FloatLabelType} from '@angular/material/form-field';
-import {AppFormUtils, ConfigService, filterNumberInput, focusInput, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean} from '@sumaris-net/ngx-components';
-import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
-import {PmfmValidators} from '../services/validator/pmfm.validators';
-import {ParameterLabelGroups, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns} from '../services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
+import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { FloatLabelType } from '@angular/material/form-field';
+import { AppFormUtils, filterNumberInput, focusInput, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean } from '@sumaris-net/ngx-components';
+import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { PmfmValidators } from '../services/validator/pmfm.validators';
+import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
 
 const noop = () => {
 };
@@ -43,6 +42,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() floatLabel: FloatLabelType = "auto";
   @Input() tabindex: number;
   @Input() autofocus: boolean;
+  @Input() weightDisplayedUnit: string;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
@@ -68,15 +68,9 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected pmfmService: PmfmService,
-    protected configService: ConfigService,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.configService.config.subscribe(config => {
-      this.weightDisplayedUnit = config && config.getProperty(DATA_CONFIG_OPTIONS.WEIGHT_DISPLAYED_UNIT);
-    });
   }
-
-  protected weightDisplayedUnit: string;
 
   ngOnInit() {
 

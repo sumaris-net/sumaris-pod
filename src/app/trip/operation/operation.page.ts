@@ -105,7 +105,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       tabCount: 3,
       autoUpdateRoute: !platform.mobile,
       autoOpenNextTab: !platform.mobile
-      //autoLoadDelay: platform.mobile ? 400 /*  */ : undefined /*default*/
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');

@@ -59,16 +59,9 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
     // Combo: vessels (if need)
     if (this.showVessel) {
       // Combo: vessels
-      const vesselField = this.registerAutocompleteField('vesselSnapshot', {
-        service: this.vesselSnapshotService,
-        attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-        filter: {
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-        }
-      });
-      // Add base port location
-      vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
-
+      this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
+        this.registerAutocompleteField('vesselSnapshot', opts)
+      );
     } else {
       this.form.get('vesselSnapshot').clearValidators();
     }

@@ -16,6 +16,7 @@ import {ReferentialRefService} from '@app/referential/services/referential-ref.s
 import {environment} from '@environments/environment';
 import {LandingFilter} from '../services/filter/landing.filter';
 import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -42,6 +43,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   protected referentialRefService: ReferentialRefService;
 
   qualitativeValueAttributes: string[];
+  locationAttributes: string[];
+  vesselSnapshotAttributes: string[];
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
@@ -189,17 +192,27 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       });
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
-    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
+
+    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.saveBeforeSort = false;
+    this.saveBeforeFilter = false;
+
+    //this.saveBeforeDelete = false;
+    this.saveBeforeDelete = true;
+
+    this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
+
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.saveBeforeDelete = true;
+
+    this.defaultPageSize = -1; // Do not use paginator
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-    this.defaultSortBy = 'id';
-    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -211,13 +224,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
     super.ngOnInit();
 
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
+    // Vessels display attributes
+    this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
+    // Location display attributes
+    this.locationAttributes = this.settings.getFieldDisplayAttributes('location');
 
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,

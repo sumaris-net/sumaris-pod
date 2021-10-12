@@ -10,7 +10,6 @@ import {isNotNil} from "@sumaris-net/ngx-components";
 export class PmfmStrategyValidatorService implements ValidatorService {
 
   private _withDetails = true;
-  private pmfmFirst: boolean;
 
   public get withDetails(): boolean {
     return this._withDetails;
@@ -32,6 +31,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
 
   getFormGroup(data?: PmfmStrategy, opts?: {
     withDetails?: boolean;
+    required?: boolean;
   }): FormGroup {
     opts = {
       withDetails: this._withDetails,
@@ -45,6 +45,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
 
   getFormGroupConfig(data?: PmfmStrategy, opts?: {
     withDetails?: boolean;
+    required?: boolean;
   }): {[key: string]: any} {
     const config: {[key: string]: any} = {
       id: [data && data.id || null],
@@ -72,29 +73,21 @@ export class PmfmStrategyValidatorService implements ValidatorService {
 
   getFormGroupOptions(data?: PmfmStrategy, opts?: {
     withDetails?: boolean;
+    required?: boolean;
   }): AbstractControlOptions | any {
-    return {
-      validator: (form: FormGroup) => {
-        const pmfm = form.get('pmfm').value;
-        const parameter = form.get('parameter').value;
-        if (pmfm && !parameter) {
-          this.pmfmFirst = true;
+    if (!opts || opts.required !== false) {
+      return {
+        validator: (form: FormGroup) => {
+          const pmfm = form.get('pmfm').value;
+          const parameter = form.get('parameter').value;
+          const fraction = form.get('fraction').value;
+          if (!pmfm && !parameter && !fraction) {
+            return {required: true};
+          }
           return null;
         }
-        else if (!pmfm && parameter) {
-          this.pmfmFirst = false;
-          return null;
-        }
-        else if ((!pmfm && !parameter)) {
-          return {required: true};
-        }
-        // remove first to be selected
-        if (this.pmfmFirst) {
-          form.get('pmfm').setValue(null)
-        } else {
-          form.get('parameter').setValue(null)
-        }
-      }
-    };
+      };
+    }
+    return { };
   }
 }

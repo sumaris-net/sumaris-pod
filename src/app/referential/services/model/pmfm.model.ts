@@ -1,7 +1,8 @@
-import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
-import {MethodIds, PmfmIds} from './model.enum';
+import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { MethodIds, PmfmIds, UnitLabel } from './model.enum';
 import {Parameter, ParameterType} from './parameter.model';
 import {PmfmValue} from './pmfm-value.model';
+import { Moment } from 'moment';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -36,6 +37,7 @@ export interface IPmfm<
   hidden?: boolean;
   rankOrder?: number;
 
+  displayConversion?: UnitConversion;
 }
 
 export interface IDenormalizedPmfm<
@@ -49,6 +51,7 @@ export interface IDenormalizedPmfm<
   gearIds: number[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
+
 }
 
 
@@ -62,6 +65,28 @@ export interface IFullPmfm<
   fraction: ReferentialRef;
   method: ReferentialRef;
   unit: ReferentialRef;
+}
+
+
+@EntityClass({typename: 'UnitConversionVO'})
+export class UnitConversion {
+
+  static fromObject: (source: Partial<UnitConversion>, opts?: any) => UnitConversion;
+
+  fromUnit: ReferentialRef;
+  toUnit: ReferentialRef;
+  conversionCoefficient: number;
+  updateDate: Moment;
+
+  constructor() {
+  }
+
+  fromObject(source: any) {
+    this.fromUnit = source.fromUnit && ReferentialRef.fromObject(source.fromUnit);
+    this.toUnit = source.toUnit && ReferentialRef.fromObject(source.toUnit);
+    this.conversionCoefficient = source.conversionCoefficient;
+    this.updateDate = fromDateISOString(source.updateDate);
+  }
 }
 
 @EntityClass({typename: 'PmfmVO'})
@@ -186,23 +211,23 @@ export abstract class PmfmUtils {
   }
 
   static isNumeric(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'integer' || pmfm.type === 'double');
+    return pmfm.type === 'integer' || pmfm.type === 'double';
   }
 
   static isAlphanumeric(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'string');
+    return pmfm.type === 'string';
   }
 
   static isDate(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'date');
+    return pmfm.type === 'date';
   }
 
   static isWeight(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
+    return pmfm.unitLabel === UnitLabel.KG || pmfm.label?.endsWith("WEIGHT");
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
-    return pmfm && isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
+    return pmfm && labels.includes(pmfm.parameter.label);
   }
 
   static isComputed(pmfm: IPmfm) {

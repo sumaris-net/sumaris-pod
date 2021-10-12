@@ -4,11 +4,11 @@ import {BehaviorSubject, Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
-import {EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ObjectMap, SharedValidators} from '@sumaris-net/ngx-components';
+import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, ObjectMap, SharedValidators } from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
-import {filter, tap, throttleTime} from 'rxjs/operators';
+import { filter, first, tap, throttleTime } from 'rxjs/operators';
 import {ObservedLocation} from '../../services/model/observed-location.model';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {Strategy} from '@app/referential/services/model/strategy.model';
@@ -24,7 +24,6 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 })
 export class SamplingLandingPage extends LandingPage {
 
-  $pmfmGroups = new BehaviorSubject<ObjectMap<number[]>>(null);
   showSamplesTable = false;
   zeroEffortWarning = false;
   noEffortError = false;
@@ -36,43 +35,42 @@ export class SamplingLandingPage extends LandingPage {
     protected pmfmService: PmfmService
   ) {
     super(injector, {
-      pathIdAttribute: 'samplingId',
-      autoOpenNextTab: true
+      pathIdAttribute: 'samplingId'
     });
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Check strategy effort
-    this.$strategy.subscribe(strategy => this.checkStrategyEffort(strategy));
-
-    // Use landing location as default location for samples
-    // TODO: BLA review this : a quoi sert defaultLocation ?
+    // Show table, if there is some pmfms
     this.registerSubscription(
-      this.landingForm.form.get('location').valueChanges
+      this.samplesTable.$pmfms
         .pipe(
-          throttleTime(200),
-          filter(isNotNil),
-          tap(location => this.samplesTable.defaultLocation = location)
+          filter(pmfms => !this.showSamplesTable && isNotEmptyArray(pmfms)),
+          first()
         )
-        .subscribe());
+        .subscribe(_ => {
+          this.showSamplesTable = true;
+          this.markForCheck();
+        })
+    );
 
-    // Load Pmfm IDS, group by parameter labels
+    // Load Pmfm IDs
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
-      .then(pmfmGroups => this.$pmfmGroups.next(pmfmGroups));
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-
-    this.$pmfmGroups.complete();
+      .then(pmfmGroups => this.samplesTable.pmfmGroups = pmfmGroups);
   }
 
   /* -- protected functions -- */
 
+  protected async setStrategy(strategy: Strategy) {
+    await super.setStrategy(strategy);
 
-  protected async checkStrategyEffort(strategy: Strategy): Promise<void> {
+    if (!strategy) return; // Skip if empty
+
+    await this.checkStrategyEffort(strategy);
+  }
+
+  protected async checkStrategyEffort(strategy: Strategy) {
 
     const [program] = await Promise.all([
       firstNotNilPromise(this.$program),
@@ -106,8 +104,6 @@ export class SamplingLandingPage extends LandingPage {
       }
     }
 
-    await this.samplesTable.ready();
-    this.showSamplesTable = this.samplesTable.$pmfms.getValue()?.length > 0;
     this.markForCheck();
   }
 
@@ -182,23 +178,7 @@ export class SamplingLandingPage extends LandingPage {
   protected computeSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
-      // FIXME useless code
-      /*
-      this.samplingStrategyService.computeNextSampleTagId(this.$strategyLabel.getValue(), '-').then(value => {
-        if (this.samplesTable.editedRow.currentData && (!this.samplesTable.editedRow.currentData.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) || !this.samplesTable.editedRow.currentData.measurementValues[PmfmIds.TAG_ID])) {
-          console.info("computeSampleRowValidator: " + value);
-          const parts = value && value.split('-');
-          const sampleTagIdIncrement = (parts.length === 2) ? parts[1] : undefined;
-          // Set sample tag pmfm value
-          const data = this.samplesTable.editedRow.currentData;
-          data.measurementValues[PmfmIds.TAG_ID] = ("0000" + (Number(sampleTagIdIncrement) + data.rankOrder - 1)).slice(-4);
-          console.info("computeSampleRowValidator result: " + data.measurementValues[PmfmIds.TAG_ID]);
-          this.samplesTable.editedRow.validator.patchValue(data);
-          this.markAsDirty();
-        }
-      });*/
-
-    return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.$pmfmGroups.getValue() || {}, {
+    return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {
       markForCheck: () => this.markForCheck()
     });
   }

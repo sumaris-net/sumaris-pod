@@ -12,12 +12,13 @@ import {
   toDateISOString
 } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
-import {TaxonGroupRef, TaxonNameRef} from '../../../referential/services/model/taxon.model';
-import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;

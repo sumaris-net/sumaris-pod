@@ -29,7 +29,7 @@ import {
   ShowToastOptions,
   Toasts,
   toNumber,
-  UserEventService,
+  UserEventService
 } from '@sumaris-net/ngx-components';
 import { DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
@@ -1096,6 +1096,14 @@ export class TripService
       if (opts && opts.withLanding && source.sale.products) {
         target.sale.products = source.sale.products;
       }
+    }
+
+    // Update fishing areas
+    if (target.fishingAreas && source.fishingAreas) {
+      target.fishingAreas.forEach(entity => {
+        const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
+        EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
+      });
     }
 
     // Update gears

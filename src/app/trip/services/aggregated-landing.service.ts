@@ -108,7 +108,7 @@ export class AggregatedLandingService
            sortBy?: string,
            sortDirection?: SortDirection,
            dataFilter?: Partial<AggregatedLandingFilter>,
-           options?: EntitiesServiceWatchOptions): Observable<LoadResult<AggregatedLanding>> {
+           opts?: EntitiesServiceWatchOptions): Observable<LoadResult<AggregatedLanding>> {
 
     // Update previous filter
     dataFilter = this.asFilter(dataFilter);
@@ -117,7 +117,7 @@ export class AggregatedLandingService
     // Load offline
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
-      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, options);
+      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
     // TODO: manage offset/size/sort ?
@@ -127,17 +127,17 @@ export class AggregatedLandingService
     if (this._debug) console.debug('[aggregated-landing-service] Loading aggregated landings... using options:', variables);
 
     return this.mutableWatchQuery<LoadResult<AggregatedLanding>>({
-      queryName: 'LoadAll',
-      query: AggregatedLandingQueries.loadAll,
-      arrayFieldName: 'data',
-      insertFilterFn: dataFilter && dataFilter.asFilterFn(),
-      variables: {
-        ...variables,
-        filter: dataFilter && dataFilter.asPodObject()
-      },
-      error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: 'AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR'},
-      fetchPolicy: options && options.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
-    })
+        queryName: 'LoadAll',
+        query: AggregatedLandingQueries.loadAll,
+        arrayFieldName: 'data',
+        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
+        variables: {
+          ...variables,
+          filter: dataFilter && dataFilter.asPodObject()
+        },
+        error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: 'AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR'},
+        fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+      })
       .pipe(
         filter(() => !this.loading),
         filter(isNotNil),

@@ -194,14 +194,16 @@ export abstract class AppRootDataEditor<
 
   protected async setProgram(program: Program) {
     // Can be override by subclasses
-    if (!program) return; // SKip
 
-    if (this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
-
+    // DEBUG
+    if (program && this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
   }
 
-  protected async setStrategy(value: Strategy) {
+  protected async setStrategy(strategy: Strategy) {
     // Can be override by subclasses
+
+    // DEBUG
+    if (strategy && this.debug) console.debug(`[root-data-editor] Strategy ${strategy.label} loaded`, strategy);
   }
 
   setError(error: any) {

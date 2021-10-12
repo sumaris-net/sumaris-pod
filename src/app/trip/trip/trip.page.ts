@@ -66,14 +66,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
   forceMeasurementAsOptional = false;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
-
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
-
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
-
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
+
+  get dirty(): boolean {
+    // Ignore operation table, when computing dirty state
+    return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
+  }
 
   constructor(
     injector: Injector,

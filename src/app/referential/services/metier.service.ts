@@ -24,6 +24,7 @@ import {DomEvent} from 'leaflet';
 import {Operation} from '@app/trip/services/model/trip.model';
 import {map} from 'rxjs/operators';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import { Metier } from "@app/referential/services/model/metier.model";
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',

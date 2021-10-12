@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injection
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
 import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
-import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {Batch} from '../../services/model/batch.model';
 import {Landing} from '../../services/model/landing.model';
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
@@ -11,6 +11,7 @@ import {ReferentialRefService} from '@app/referential/services/referential-ref.s
 import {BatchModal} from '../modal/batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
+import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;

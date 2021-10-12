@@ -13,6 +13,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm, PmfmUtils } from './pmfm.model';
 import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
+import { isNilOrNaN } from '@app/shared/functions';
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
@@ -27,7 +28,12 @@ export abstract class PmfmValueUtils {
         return value && isNotNil(value.id) && value.id.toString() || undefined;
       case 'integer':
       case 'double':
-        return isNotNil(value) && !isNaN(+value) && value.toString() || undefined;
+        if (isNil(value) && !isNaN(+value)) return undefined;
+        // Apply conversion
+        if (isNotNilOrNaN(pmfm.displayConversion?.conversionCoefficient)) {
+          value = (+value) / pmfm.displayConversion.conversionCoefficient;
+        }
+        return value.toString();
       case 'string':
         return value;
       case 'boolean':
@@ -52,9 +58,21 @@ export abstract class PmfmValueUtils {
         }
         return null;
       case 'integer':
-        return isNotNilOrNaN(value) ? parseInt(value) : null;
+        if (isNilOrNaN(value)) return null;
+        value = parseInt(value);
+        // Apply conversion excepted for displaying the value
+        if (pmfm.displayConversion) {
+          value = value * pmfm.displayConversion.conversionCoefficient;
+        }
+        return value;
       case 'double':
-        return isNotNilOrNaN(value) ? parseFloat(value) : null;
+        if (isNilOrNaN(value)) return null;
+        value = parseFloat(value);
+        // Apply conversion excepted for displaying the value
+        if (pmfm.displayConversion) {
+          value = value * pmfm.displayConversion.conversionCoefficient;
+        }
+        return value;
       case 'string':
         return value || null;
       case 'boolean':

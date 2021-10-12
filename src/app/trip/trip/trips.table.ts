@@ -302,6 +302,15 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     return super.prepareOfflineMode(event, opts);
   }
 
+  clearFilterValue(key: keyof TripFilter, event?: UIEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.filterForm.get(key).reset(null);
+  }
+
   /* -- protected methods -- */
 
   protected markForCheck() {

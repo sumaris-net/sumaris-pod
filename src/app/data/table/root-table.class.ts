@@ -5,7 +5,7 @@ import {Location} from '@angular/common';
 import {FormGroup} from '@angular/forms';
 import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from 'rxjs/operators';
 import {
-  AccountService,
+  AccountService, AppFormUtils,
   AppTable,
   chainPromises,
   ConnectionType,
@@ -150,7 +150,11 @@ export abstract class AppRootTable<
       this.filterForm.valueChanges
         .pipe(
           debounceTime(250),
-          filter((_) => this.filterForm.valid),
+          filter((_) => {
+            const valid = this.filterForm.valid;
+            if (!valid && this.debug) AppFormUtils.logFormErrors(this.filterForm);
+            return valid;
+          }),
           tap(value => {
             const filter = this.asFilter(value);
             this.filterCriteriaCount = filter.countNotEmptyCriteria();
@@ -488,6 +492,7 @@ export abstract class AppRootTable<
   resetFilter(event?: UIEvent) {
     this.filterForm.reset();
     this.setFilter(null, {emitEvent: true});
+    this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 

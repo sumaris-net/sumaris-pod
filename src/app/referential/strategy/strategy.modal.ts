@@ -14,8 +14,8 @@ export class StrategyModal extends AppForm<Moment> implements OnInit {
 
   constructor(
     protected viewCtrl: ModalController,
-    protected cd: ChangeDetectorRef,
     protected dateAdapter: DateAdapter<Moment>,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter);
     this.form = new FormGroup({
@@ -39,5 +39,9 @@ export class StrategyModal extends AppForm<Moment> implements OnInit {
 
   async validDate() {
     await this.viewCtrl.dismiss(this.form.get('year').value);
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

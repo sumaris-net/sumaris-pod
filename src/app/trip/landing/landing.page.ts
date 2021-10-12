@@ -16,7 +16,7 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
@@ -43,6 +43,7 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
 
 const moment = momentImported;
 
@@ -87,13 +88,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return this.landingForm.form;
   }
 
-  get appliedStrategyLocations$(): Observable<ReferentialRef[]> {
-    return this.$strategy.pipe(
-      filter(isNotNil),
-      map(strategy => (strategy.appliedStrategies).map(a => a.location))
-    )
-  }
-
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
   @ViewChild('strategyCard', {static: false}) strategyCard: StrategySummaryCardComponent;
@@ -106,9 +100,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     @Optional() options: LandingEditorOptions,
   ) {
     super(injector, Landing, injector.get(LandingService), {
-      tabCount: 2,
       pathIdAttribute: 'landingId',
       autoOpenNextTab: true,
+      tabCount: 2,
       ...options
     });
     this.observedLocationService = injector.get(ObservedLocationService);
@@ -168,6 +162,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
+
+    // DEBUG
+    // console.debug(' Creating new landing entity');
 
     if (this.isOnFieldMode) {
       data.dateTime = moment();
@@ -341,6 +338,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       };
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
       this.samplesTable.programLabel = program.label;
+      this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
     }
 
     if (this.strategyCard) {
@@ -360,6 +358,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Propagate to form
     this.landingForm.strategyLabel = strategy.label;
     this.landingForm.strategyControl.setValue(strategy);
+
+    // Propagate strategy's fishing area locations to form
+    const fishingAreaLocations = removeDuplicatesFromArray((strategy.appliedStrategies || []).map(a => a.location), 'id');
+    this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
+    this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
     // Propagate to table
     this.samplesTable.strategyLabel = strategy.label;
@@ -518,8 +521,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
-    console.warn('[landing-page] No row validator override');
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
+    console.warn('[landing-page] No row validator override');
     return null;
   }
 }

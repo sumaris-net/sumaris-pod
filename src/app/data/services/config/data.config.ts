@@ -71,11 +71,5 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PERIOD',
     type: 'boolean',
     defaultValue: true
-  },
-  WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
-    key: 'sumaris.data.UnitLabel.weightUnit',
-    label: 'CONFIGURATION.OPTIONS.DEFAULT_WEIGHT_UNIT',
-    type: 'string',
-    defaultValue: UnitLabel.defaultWeight
-  },
+  }
 });

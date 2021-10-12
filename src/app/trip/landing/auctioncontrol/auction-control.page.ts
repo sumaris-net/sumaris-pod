@@ -24,7 +24,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon.model';
+import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
 import { AppRootDataEditor } from '../../../data/form/root-data-editor.class';
