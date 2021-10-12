@@ -34,7 +34,6 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.Query;
 
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
@@ -89,20 +88,18 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     }
 
     default Specification<Person> hasPubkey(String pubkey) {
+        if (pubkey == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, PUBKEY_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(root.get(Person.Fields.PUBKEY), parameter)
-            );
+            return criteriaBuilder.equal(root.get(Person.Fields.PUBKEY), parameter);
         }).addBind(PUBKEY_PARAMETER, pubkey);
     }
 
     default Specification<Person> hasUsername(String username) {
+        if (username == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, USERNAME_PARAMETER);
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.USERNAME), parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.USERNAME_EXTRANET), parameter)
             );
@@ -110,33 +107,27 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     }
 
     default Specification<Person> hasEmail(String email) {
+        if (email == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, EMAIL_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(root.get(Person.Fields.EMAIL), parameter)
-            );
+            return criteriaBuilder.equal(root.get(Person.Fields.EMAIL), parameter);
         }).addBind(EMAIL_PARAMETER, email);
     }
 
     default Specification<Person> hasFirstName(String firstName) {
+        if (firstName == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, FIRST_NAME_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), parameter)
-            );
-        }).addBind(FIRST_NAME_PARAMETER, firstName != null ? firstName.toUpperCase() : null);
+            return criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), parameter);
+        }).addBind(FIRST_NAME_PARAMETER, firstName.toUpperCase());
     }
 
     default Specification<Person> hasLastName(String lastName) {
+        if (lastName == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, LAST_NAME_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter)
-            );
-        }).addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toUpperCase() : null);
+            return criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter);
+        }).addBind(LAST_NAME_PARAMETER, lastName.toUpperCase());
     }
 
     Optional<PersonVO> findById(int id);

@@ -39,15 +39,11 @@ public interface ExpectedSaleSpecifications {
     String TRIP_ID_PARAM = "tripId";
 
     default Specification<ExpectedSale> hasTripId(Integer tripId) {
-        BindableSpecification<ExpectedSale> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (tripId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(ExpectedSale.Fields.TRIP).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(TRIP_ID_PARAM, tripId);
-        return specification;
+            return criteriaBuilder.equal(root.get(ExpectedSale.Fields.TRIP).get(IEntity.Fields.ID), param);
+        }).addBind(TRIP_ID_PARAM, tripId);
     }
 
     List<ExpectedSaleVO> getAllByTripId(int tripId);

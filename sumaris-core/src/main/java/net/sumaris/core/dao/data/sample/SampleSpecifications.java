@@ -56,10 +56,7 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, SampleVO.Fields.OPERATION_ID);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Sample.Fields.OPERATION).get(IEntity.Fields.ID), param)
-            );
+            return criteriaBuilder.equal(root.get(Sample.Fields.OPERATION).get(IEntity.Fields.ID), param);
         }).addBind(SampleVO.Fields.OPERATION_ID, operationId);
     }
 

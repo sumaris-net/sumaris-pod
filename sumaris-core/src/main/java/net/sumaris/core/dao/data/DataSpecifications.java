@@ -55,8 +55,7 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
             return criteriaBuilder.not(
                 criteriaBuilder.in(root.get(E.Fields.ID)).value(param)
             );
-        })
-            .addBind(EXCLUDED_IDS_PARAM, Arrays.asList(excludedIds));
+        }).addBind(EXCLUDED_IDS_PARAM, Arrays.asList(excludedIds));
     }
 
     default Specification<E> id(Integer id) {
@@ -64,8 +63,7 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, ID_PARAM);
             return criteriaBuilder.equal(root.get(E.Fields.ID), param);
-        })
-            .addBind(ID_PARAM, id);
+        }).addBind(ID_PARAM, id);
     }
 
     default BindableSpecification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
@@ -76,8 +74,7 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
                 criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(E.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), param)
             );
-        })
-            .addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
+        }).addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
     }
 
     /**

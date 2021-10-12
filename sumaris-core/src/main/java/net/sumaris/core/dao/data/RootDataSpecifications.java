@@ -24,19 +24,12 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.QualityFlagEnum;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * @author peck7 on 28/08/2020.
