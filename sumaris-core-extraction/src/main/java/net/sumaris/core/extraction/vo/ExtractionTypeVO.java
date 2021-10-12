@@ -43,6 +43,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @FieldNameConstants
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 public class ExtractionTypeVO implements IValueObject<Integer>,
         IExtractionFormat,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,

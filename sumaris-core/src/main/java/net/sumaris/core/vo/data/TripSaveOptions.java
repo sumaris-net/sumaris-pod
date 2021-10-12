@@ -37,6 +37,12 @@ public class TripSaveOptions implements ISaveOptions {
 
     public static TripSaveOptions DEFAULT = TripSaveOptions.builder().build();
 
+    public static TripSaveOptions LANDED_TRIP = TripSaveOptions.builder()
+        .withOperationGroup(true) // Enable operation group
+        .withLanding(false)
+        .withOperation(false)
+        .build();
+
     public static TripSaveOptions defaultIfEmpty(TripSaveOptions options) {
         return options != null ? options : DEFAULT;
     }

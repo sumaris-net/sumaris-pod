@@ -22,31 +22,30 @@ package net.sumaris.server.http.graphql.referential;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.*;
+import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.IsSupervisor;
-import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.ChangesPublisherService;
-import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -77,13 +76,15 @@ public class TaxonNameGraphQLService {
     @Transactional(readOnly = true)
     public TaxonNameVO getTaxonName(
             @GraphQLArgument(name = "label") String label,
-            @GraphQLArgument(name = "id") Integer id
+            @GraphQLArgument(name = "id") Integer id,
+            @GraphQLEnvironment ResolutionEnvironment env
     ) {
+        TaxonNameFetchOptions fetchOptions = getFetchOptions(GraphQLUtils.fields(env));
         if (id != null) {
-            return taxonNameService.get(id);
-        } else {
-            return taxonNameService.getByLabel(label);
+            return taxonNameService.get(id, fetchOptions);
         }
+        // By label
+        return taxonNameService.getByLabel(label, fetchOptions);
     }
 
     @GraphQLQuery(name = "taxonNames", description = "Search in taxon names")
@@ -92,12 +93,22 @@ public class TaxonNameGraphQLService {
             @GraphQLArgument(name = "filter") TaxonNameFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = IReferentialVO.Fields.LABEL) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+            @GraphQLArgument(name = "sortBy", defaultValue = IReferentialVO.Fields.NAME) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLEnvironment ResolutionEnvironment env) {
+
+        Page page = Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build();
+        TaxonNameFetchOptions fetchOptions = getFetchOptions(GraphQLUtils.fields(env));
+
         if (filter == null) {
-            return taxonNameService.getAll(true);
+            return taxonNameService.findAllSpeciesAndSubSpecies(true, page, fetchOptions);
         }
-        return taxonNameService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
+        return taxonNameService.findByFilter(filter, page, fetchOptions);
     }
 
     @GraphQLQuery(name = "taxonNameCount", description = "Get taxon name count")
@@ -121,5 +132,14 @@ public class TaxonNameGraphQLService {
     public Boolean referenceTaxonExists(@GraphQLArgument(name = "id") final Integer id) {
         Optional<ReferenceTaxon> referenceTaxon = referenceTaxonRepository.findById(id);
         return referenceTaxon.isPresent();
+    }
+
+    /* -- protected functions -- */
+
+    protected TaxonNameFetchOptions getFetchOptions(Set<String> fields) {
+        return TaxonNameFetchOptions.builder()
+            .withParentTaxonName(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.PARENT_TAXON_NAME, IEntity.Fields.ID)))
+            .withTaxonomicLevel(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.TAXONOMIC_LEVEL, IEntity.Fields.ID)))
+            .build();
     }
 }

@@ -23,6 +23,7 @@ package net.sumaris.server.config;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.service.ServiceLocator;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,11 @@ public class ApplicationStartupListener {
 
     @EventListener
     protected void onApplicationEvent(final ApplicationReadyEvent event) {
-        log.info(I18n.t("sumaris.server.started", this.port));
-
         ServiceLocator.init(event.getApplicationContext());
+    }
+
+    @EventListener
+    protected void onConfigurationReadyEvent(final ConfigurationReadyEvent event) {
+        log.info(I18n.t("sumaris.server.started", this.port));
     }
 }

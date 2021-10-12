@@ -68,7 +68,7 @@ public interface ProgramSpecifications {
         .addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
     }
 
-    Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions);
+    Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions);
 
     ProgramVO toVO(Program source, ProgramFetchOptions fetchOptions);
 

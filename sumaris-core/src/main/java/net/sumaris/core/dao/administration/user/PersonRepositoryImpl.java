@@ -249,7 +249,7 @@ public class PersonRepositoryImpl
         }
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
         Person savedEntity = save(entity);

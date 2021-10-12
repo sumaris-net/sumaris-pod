@@ -191,7 +191,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             phase = TransactionPhase.BEFORE_COMMIT,
             condition = "#event.entityName=='Software'")
     @Transactional(propagation = Propagation.REQUIRED)
-    protected void beforeDeleteSoftware(EntityDeleteEvent event) {
+    public void beforeDeleteSoftware(EntityDeleteEvent event) {
         Preconditions.checkNotNull(event.getId());
         SoftwareVO currentSoftware = event.getData() != null ? (SoftwareVO)event.getData() : getCurrentSoftware();
 

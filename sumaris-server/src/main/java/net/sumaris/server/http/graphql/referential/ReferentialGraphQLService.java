@@ -24,21 +24,22 @@ package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
-import net.sumaris.core.dao.referential.ReferentialDao;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import net.sumaris.core.vo.data.TripVO;
-import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.*;
+import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.ChangesPublisherService;
@@ -50,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -211,10 +213,18 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLEnvironment ResolutionEnvironment env) {
 
-        return taxonNameService.findByFilter(TaxonNameFilterVO.nullToEmpty(filter),
-                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+        return taxonNameService.findByFilter(
+            TaxonNameFilterVO.nullToEmpty(filter),
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build(),
+            getFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "taxonGroupIds", description = "Get taxon groups from a taxon name")
@@ -243,4 +253,12 @@ public class ReferentialGraphQLService {
         return referentialService.countByFilter("TaxonGroup", filter);
     }
 
+    /* -- protected functions -- */
+
+    protected TaxonNameFetchOptions getFetchOptions(Set<String> fields) {
+        return TaxonNameFetchOptions.builder()
+            .withParentTaxonName(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.PARENT_TAXON_NAME, IEntity.Fields.ID)))
+            .withTaxonomicLevel(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.TAXONOMIC_LEVEL, IEntity.Fields.ID)))
+            .build();
+    }
 }

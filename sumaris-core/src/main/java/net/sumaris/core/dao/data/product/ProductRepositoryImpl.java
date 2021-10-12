@@ -286,7 +286,7 @@ public class ProductRepositoryImpl
 
         // Get landing Id (to optimize linked data for SIH)
         Integer landingId = Optional.ofNullable(parent.getTrip())
-            .flatMap(trip -> landingRepository.findByTripId(trip.getId()))
+            .flatMap(trip -> landingRepository.findFirstByTripId(trip.getId()))
             .map(Landing::getId)
             .orElse(null);
 
@@ -310,7 +310,7 @@ public class ProductRepositoryImpl
 
         // Get landing Id (to optimize linked data for SIH)
         Integer landingId = Optional.ofNullable(parent.getTrip())
-            .flatMap(trip -> landingRepository.findByTripId(trip.getId()))
+            .flatMap(trip -> landingRepository.findFirstByTripId(trip.getId()))
             .map(Landing::getId)
             .orElse(null);
 

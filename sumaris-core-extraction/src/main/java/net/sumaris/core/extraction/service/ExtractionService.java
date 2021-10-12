@@ -22,7 +22,11 @@ package net.sumaris.core.extraction.service;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.SortDirection;
+import lombok.NonNull;
+import net.sumaris.core.config.CacheConfiguration;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
+import net.sumaris.core.extraction.config.ExtractionCacheConfiguration;
 import net.sumaris.core.extraction.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
@@ -30,6 +34,7 @@ import net.sumaris.core.extraction.vo.*;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.extraction.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -38,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -61,17 +67,16 @@ public interface ExtractionService {
 
     ExtractionResultVO read(ExtractionContextVO context,
                             @Nullable ExtractionFilterVO filter,
-                            int offset,
-                            int size,
-                            String sort,
-                            SortDirection direction) ;
+                            Page page) ;
 
     ExtractionResultVO executeAndRead(ExtractionTypeVO type,
                                       @Nullable ExtractionFilterVO filter,
-                                      int offset,
-                                      int size,
-                                      String sort,
-                                      SortDirection direction) ;
+                                      Page page);
+
+    ExtractionResultVO executeAndReadWithCache(@NonNull ExtractionTypeVO type,
+                                               @Nullable ExtractionFilterVO filter,
+                                               @NonNull Page page,
+                                               CacheTTL ttl);
 
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(ExtractionTypeVO type,

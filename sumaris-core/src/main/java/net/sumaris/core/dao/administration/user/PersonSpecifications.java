@@ -76,78 +76,67 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
             userProfileIds = null;
         }
 
-        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> userProfileParam = criteriaBuilder.parameter(Collection.class, USER_PROFILES_PARAMETER);
             ParameterExpression<Boolean> userProfileSetParam = criteriaBuilder.parameter(Boolean.class, USER_PROFILES_SET_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isFalse(userProfileSetParam),
                 criteriaBuilder.in(root.join(Person.Fields.USER_PROFILES, JoinType.LEFT).get(UserProfile.Fields.ID)).value(userProfileParam)
             );
-        });
-        specification.addBind(USER_PROFILES_SET_PARAMETER, CollectionUtils.isNotEmpty(userProfileIds));
-        specification.addBind(USER_PROFILES_PARAMETER, userProfileIds);
-        return specification;
+        })
+        .addBind(USER_PROFILES_SET_PARAMETER, CollectionUtils.isNotEmpty(userProfileIds))
+        .addBind(USER_PROFILES_PARAMETER, userProfileIds);
     }
 
     default Specification<Person> hasPubkey(String pubkey) {
-        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, PUBKEY_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.PUBKEY), parameter)
             );
-        });
-        specification.addBind(PUBKEY_PARAMETER, pubkey);
-        return specification;
+        }).addBind(PUBKEY_PARAMETER, pubkey);
     }
 
     default Specification<Person> hasUsername(String username) {
-        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, USERNAME_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.USERNAME), parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.USERNAME_EXTRANET), parameter)
             );
-        });
-        specification.addBind(USERNAME_PARAMETER, username);
-        return specification;
+        }).addBind(USERNAME_PARAMETER, username);
     }
 
     default Specification<Person> hasEmail(String email) {
-        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, EMAIL_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(root.get(Person.Fields.EMAIL), parameter)
             );
-        });
-        specification.addBind(EMAIL_PARAMETER, email);
-        return specification;
+        }).addBind(EMAIL_PARAMETER, email);
     }
 
     default Specification<Person> hasFirstName(String firstName) {
-        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, FIRST_NAME_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), parameter)
             );
-        });
-        specification.addBind(FIRST_NAME_PARAMETER, firstName != null ? firstName.toUpperCase() : null);
-        return specification;
+        }).addBind(FIRST_NAME_PARAMETER, firstName != null ? firstName.toUpperCase() : null);
     }
 
     default Specification<Person> hasLastName(String lastName) {
-        BindableSpecification<Person> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, LAST_NAME_PARAMETER);
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(parameter),
                 criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter)
             );
-        });
-        specification.addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toUpperCase() : null);
-        return specification;
+        }).addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toUpperCase() : null);
     }
 
     Optional<PersonVO> findById(int id);

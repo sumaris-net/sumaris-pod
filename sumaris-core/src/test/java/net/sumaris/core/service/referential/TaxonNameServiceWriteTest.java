@@ -22,23 +22,11 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
-import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
-import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.administration.programStrategy.AppliedPeriodVO;
-import net.sumaris.core.vo.administration.programStrategy.AppliedStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyDepartmentVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -48,7 +36,6 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
-import java.util.List;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TaxonNameServiceWriteTest extends AbstractServiceTest {
@@ -61,7 +48,7 @@ public class TaxonNameServiceWriteTest extends AbstractServiceTest {
 
     @Test
     public void saveExisting() {
-        TaxonNameVO taxonName = service.getByLabel("SRX");
+        TaxonNameVO taxonName = service.getByLabel("SRX", TaxonNameFetchOptions.FULL);
         Assert.assertNotNull(taxonName);
         Assert.assertNotNull(taxonName.getId());
         Assert.assertEquals(1001, taxonName.getId().intValue());
@@ -74,7 +61,7 @@ public class TaxonNameServiceWriteTest extends AbstractServiceTest {
         service.save(taxonName);
 
         // reload by id
-        taxonName = service.get(1001);
+        taxonName = service.get(1001, TaxonNameFetchOptions.FULL);
         Assert.assertNotNull(taxonName);
         Assert.assertEquals("Taxon Name changed", taxonName.getName());
 

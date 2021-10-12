@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential.location;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -31,6 +32,7 @@ import net.sumaris.core.model.referential.location.LocationAssociation;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -38,7 +40,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * @author peck7 on 18/08/2020.
@@ -50,6 +53,12 @@ public class LocationRepositoryImpl
 
     public LocationRepositoryImpl(EntityManager entityManager) {
         super(Location.class, LocationVO.class, entityManager);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, unless = "#result==null")
+    public LocationVO get(int id) {
+        return super.get(id);
     }
 
     @Override
@@ -89,7 +98,7 @@ public class LocationRepositoryImpl
         entity.setChildSurfaceRatio(childSurfaceRatio);
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
         getEntityManager().persist(entity);

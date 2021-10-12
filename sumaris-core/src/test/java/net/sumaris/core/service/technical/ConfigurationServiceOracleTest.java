@@ -33,9 +33,11 @@ import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @Ignore("Use only SFA Oracle database")
 @ActiveProfiles("oracle")
+@TestPropertySource(locations = "classpath:application-oracle.properties")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Slf4j
 public class ConfigurationServiceOracleTest extends AbstractServiceTest {

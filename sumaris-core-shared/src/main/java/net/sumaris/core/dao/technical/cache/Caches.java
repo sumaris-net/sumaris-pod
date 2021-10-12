@@ -66,17 +66,18 @@ public class Caches {
         CacheManager cacheManager,
         String cacheName,
         Class<V> valueClass,
-        int timeToLive,
+        Duration timeToLive,
         int entries) {
         return createHeapCache(cacheManager, cacheName, SimpleKey.class, valueClass, timeToLive, entries);
     }
+
 
     public static <K, V> Cache<K, V> createHeapCache(
         CacheManager cacheManager,
         String cacheName,
         Class<K> keyType,
         Class<V> valueType,
-        int timeToLive,
+        Duration timeToLive,
         int entries) {
 
         CacheConfiguration<K, V> cacheConfiguration = CacheConfigurationBuilder.newCacheConfigurationBuilder(
@@ -86,7 +87,7 @@ public class Caches {
         )
             .withDefaultEventListenersThreadPool()
             .withExpiry(
-                ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(timeToLive))
+                ExpiryPolicyBuilder.timeToLiveExpiration(timeToLive)
             )
             .build();
 
@@ -99,7 +100,7 @@ public class Caches {
         CacheManager cacheManager,
         String cacheName,
         Class<V> valueType,
-        int timeToLive,
+        Duration timeToLive,
         int entries) {
 
         return createCollectionHeapCache(cacheManager, cacheName, SimpleKey.class, valueType, timeToLive, entries);
@@ -110,7 +111,7 @@ public class Caches {
         String cacheName,
         Class<K> keyType,
         Class<V> valueType,
-        int timeToLive,
+        Duration timeToLive,
         int entries) {
 
         Class<C> collectionClass = CastUtils.cast(Collection.class);
@@ -120,7 +121,7 @@ public class Caches {
             ResourcePoolsBuilder.heap(entries)
         )
             .withExpiry(
-                ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(timeToLive))
+                ExpiryPolicyBuilder.timeToLiveExpiration(timeToLive)
             )
             .build();
 
@@ -134,7 +135,7 @@ public class Caches {
         Class<V> valueClass,
         int entries) {
 
-        return createHeapCache(cacheManager, cacheName, valueClass, CacheDurations.ETERNAL, entries);
+        return createHeapCache(cacheManager, cacheName, valueClass, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     public static <K, V> Cache<K, V> createEternalHeapCache(
@@ -144,26 +145,26 @@ public class Caches {
         Class<V> valueClass,
         int entries) {
 
-        return createHeapCache(cacheManager, cacheName, keyType, valueClass, CacheDurations.ETERNAL, entries);
+        return createHeapCache(cacheManager, cacheName, keyType, valueClass, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     public static <C extends Collection<V>, V> Cache<SimpleKey, C> createEternalCollectionHeapCache(
         CacheManager cacheManager,
         String cacheName,
-        Class<V> valueClass,
+        Class<V> valueType,
         int entries) {
 
-        return createCollectionHeapCache(cacheManager, cacheName, valueClass, CacheDurations.ETERNAL, entries);
+        return createCollectionHeapCache(cacheManager, cacheName, valueType, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     public static <K, C extends Collection<V>, V> Cache<K, C> createEternalCollectionHeapCache(
         CacheManager cacheManager,
         String cacheName,
         Class<K> keyType,
-        Class<V> valueClass,
+        Class<V> valueType,
         int entries) {
 
-        return createCollectionHeapCache(cacheManager, cacheName, keyType, valueClass, CacheDurations.ETERNAL, entries);
+        return createCollectionHeapCache(cacheManager, cacheName, keyType, valueType, CacheTTL.ETERNAL.asDuration(), entries);
     }
 
     /*

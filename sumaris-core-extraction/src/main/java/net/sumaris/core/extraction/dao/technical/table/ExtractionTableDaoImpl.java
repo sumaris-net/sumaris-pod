@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
@@ -74,7 +75,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @Override
     public ExtractionResultVO getTable(String tableName) {
-        return getRows(tableName, null, 0, 0, null, null);
+        return getRows(tableName, null, Page.builder().size(0).build());
     }
 
     @Override
@@ -85,8 +86,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public ExtractionResultVO getRows(@NonNull String tableName, ExtractionFilterVO filter,
-                                      int offset, int size, String sort, SortDirection direction) {
+    public ExtractionResultVO getRows(@NonNull String tableName, ExtractionFilterVO filter, Page page) {
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
@@ -108,8 +108,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         Number total = getRowCount(table, whereClause);
         result.setTotal(total);
 
-        if (size > 0 && total.longValue() > 0) {
-            List<String[]> rows = getRows(table, filter.isDistinct(), columnNames, whereClause, offset, size, sort, direction);
+        if (page.getSize() > 0 && total.longValue() > 0) {
+            List<String[]> rows = getRows(table, filter.isDistinct(), columnNames, whereClause, page);
             result.setRows(rows);
         }
 
@@ -165,7 +165,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                                          ExtractionFilterVO filter,
                                          Set<String> groupByColumnNames,
                                          final Map<String, SQLAggregatedFunction> otherColumnNames,
-                                         int offset, int size, String sort, SortDirection direction) {
+                                         Page page) {
 
         ExtractionResultVO result = new ExtractionResultVO();
 
@@ -241,11 +241,11 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 groupByColumns,
                 // Sort by same columns, because of pageable
                 SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames),
-                direction);
+            page.getSortDirection());
 
         // Execute the query
         int columnCount = columnNamesWithFunction.size();
-        List<String[]> rows = query(sql, r -> this.toTableRowVO(r, columnCount), offset, size);
+        List<String[]> rows = query(sql, r -> this.toTableRowVO(r, columnCount), page.getOffset(), page.getSize());
         result.setRows(rows);
 
         return result;
@@ -365,10 +365,11 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     protected List<String[]> getRows(SumarisTableMetadata table,
                                      boolean distinct,
                                      List<String> columnNames,
-                                     String whereClause, int offset, int size, String sort, SortDirection direction) {
-        String sql = table.getSelectQuery(distinct, columnNames, whereClause, sort, direction);
+                                     String whereClause,
+                                     Page page) {
+        String sql = table.getSelectQuery(distinct, columnNames, whereClause, page.getSortBy(), page.getSortDirection());
         int columnCount = columnNames.size();
-        return query(sql, r -> toTableRowVO(r, columnCount), offset, size);
+        return query(sql, r -> toTableRowVO(r, columnCount), page.getOffset(), page.getSize());
     }
 
     protected List<String[]> toTableRowsVO(List<Object[]> rows, final int resultLength) {

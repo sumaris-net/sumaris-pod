@@ -116,9 +116,9 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         return resultStream.map(rowMapper).collect(Collectors.toList());
     }
 
-    protected <R> List<R> query(String query, Function<Object[], R> rowMapper, int offset, int size) {
+    protected <R> List<R> query(String query, Function<Object[], R> rowMapper, long offset, int size) {
         Query nativeQuery = createNativeQuery(query)
-                .setFirstResult(offset)
+                .setFirstResult((int)offset)
                 .setMaxResults(size);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
         return resultStream.map(rowMapper).collect(Collectors.toList());

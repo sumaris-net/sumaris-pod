@@ -26,11 +26,14 @@ import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.referential.taxon.*;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
+import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
@@ -60,11 +63,15 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     }
 
     @Test
-    public void getAllSpeciesAndSubSpecies() {
-        List<TaxonNameVO> taxonNames = taxonNameRepository.getAll(false);
+    public void findAll() {
+        List<TaxonNameVO> taxonNames = taxonNameRepository.findAll(TaxonNameFilterVO.builder().build(),
+            Page.builder().size(100).build(), null);
         Assert.assertNotNull(taxonNames);
-        Assert.assertEquals(26, taxonNames.size());
-        taxonNames = taxonNameRepository.getAll(false);
+        Assert.assertEquals(25, taxonNames.size());
+
+        taxonNames = taxonNameRepository.findAll(TaxonNameFilterVO.builder()
+                .withSynonyms(false)
+            .build(), (Page)null, null);
         Assert.assertNotNull(taxonNames);
         Assert.assertEquals(26, taxonNames.size());
     }
@@ -146,7 +153,9 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
     }
 
     private void assertFilterResult(TaxonNameFilterVO filter, int expectedSize) {
-        List<TaxonNameVO> tn = taxonNameRepository.findByFilter(filter, 0, 100, "id", SortDirection.ASC);
+        List<TaxonNameVO> tn = taxonNameRepository.findAll(filter, Page.builder()
+                .size(100).sortBy("id").sortDirection(SortDirection.ASC)
+            .build(), null);
         Assert.assertNotNull(tn);
         Assert.assertEquals(expectedSize, tn.size());
     }

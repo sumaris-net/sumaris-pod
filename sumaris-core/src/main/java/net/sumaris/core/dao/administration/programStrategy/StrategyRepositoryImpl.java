@@ -32,7 +32,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonNameRepositoryImpl;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.NotUniqueException;
@@ -55,7 +55,6 @@ import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -97,27 +96,35 @@ public class StrategyRepositoryImpl
     @Autowired
     protected DepartmentRepository departmentRepository;
 
+    @Autowired
+    protected ProgramPrivilegeRepository programPrivilegeRepository;
+
     public StrategyRepositoryImpl(EntityManager entityManager) {
         super(Strategy.class, StrategyVO.class, entityManager);
         setLockForUpdate(true);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID)
+    @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, condition = "#result.present")
     public Optional<StrategyVO> findById(int id) {
         return super.findById(id);
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL)
+    @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, condition = "#result.present")
     public Optional<StrategyVO> findByLabel(String label) {
         return super.findByLabel(label);
     }
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER)
+    public List<StrategyVO> findAll(StrategyFilterVO filter, Page page, StrategyFetchOptions fetchOptions) {
+        return super.findAll(filter, page, fetchOptions);
+    }
+
+    @Override
     public List<StrategyVO> findAll(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
-        return super.findAll(filter, fetchOptions);
+        return this.findAll(filter, (Page)null, fetchOptions);
     }
 
     @Override
@@ -428,14 +435,15 @@ public class StrategyRepositoryImpl
 
     @Override
     protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
+        final StrategyFetchOptions opts = StrategyFetchOptions.nullToDefault(fetchOptions);
+
         super.toVO(source, target, fetchOptions, copyIfNull);
-        StrategyFetchOptions finalFetchOptions = StrategyFetchOptions.nullToDefault(fetchOptions);
 
         // Program
         target.setProgramId(source.getProgram().getId());
 
         // Gears
-        if (CollectionUtils.isNotEmpty(source.getGears())) {
+        if (opts.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
             List<ReferentialVO> gears = source.getGears()
                 .stream()
                 .map(referentialDao::toVO)
@@ -445,25 +453,31 @@ public class StrategyRepositoryImpl
         }
 
         // Taxon groups
-        target.setTaxonGroups(getTaxonGroupStrategies(source));
+        if (opts.isWithTaxonGroups()) {
+            target.setTaxonGroups(getTaxonGroupStrategies(source));
+        }
 
         // Taxon names
-        target.setTaxonNames(getTaxonNameStrategies(source));
+        if (opts.isWithTaxonNames()) {
+            target.setTaxonNames(getTaxonNameStrategies(source));
+        }
 
         // Applied strategies
         target.setAppliedStrategies(getAppliedStrategies(source));
 
         // Strategy departments
-        target.setDepartments(getDepartments(source));
-
-        // Pmfm strategies
-        if (finalFetchOptions.isWithPmfms()) {
-            target.setPmfms(getPmfms(source, finalFetchOptions.getPmfmsFetchOptions()));
+        if (opts.isWithDepartments()) {
+            target.setDepartments(getDepartments(source));
         }
 
         // Pmfm strategies
-        if (finalFetchOptions.isWithDenormalizedPmfms()) {
-            target.setDenormalizedPmfms(getDenormalizedPmfms(source, finalFetchOptions.getPmfmsFetchOptions()));
+        if (opts.isWithPmfms()) {
+            target.setPmfms(getPmfms(source, opts.getPmfmsFetchOptions()));
+        }
+
+        // Pmfm strategies
+        if (opts.isWithDenormalizedPmfms()) {
+            target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
         }
     }
 
@@ -551,15 +565,13 @@ public class StrategyRepositoryImpl
         Map<Integer, ReferenceTaxonStrategy> sourcesToRemove = Beans.splitByProperty(parent.getReferenceTaxons(),
             ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
 
-        TaxonNameRepositoryImpl tnr = new TaxonNameRepositoryImpl(em);
-
         // Save each reference taxon strategy
         Beans.getStream(sources).forEach(source -> {
             Integer referenceTaxonId = source.getReferenceTaxonId() != null ? source.getReferenceTaxonId() :
                 (source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : null);
 
             if (referenceTaxonId == null) {
-                referenceTaxonId = tnr.getReferenceTaxonIdById(source.getTaxonName().getId());
+                referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
             }
             if (referenceTaxonId == null) throw new DataIntegrityViolationException("Missing referenceTaxon.id in a ReferenceTaxonStrategyVO");
             ReferenceTaxonStrategy target = sourcesToRemove.remove(referenceTaxonId);
@@ -655,7 +667,7 @@ public class StrategyRepositoryImpl
             if (isNew) {
                 target = new StrategyDepartment();
                 target.setStrategy(parent);
-                target.setUpdateDate(getDatabaseCurrentTimestamp());
+                target.setUpdateDate(getDatabaseCurrentDate());
             }
             if (source.getLocation() != null) {
                 target.setLocation(getReference(Location.class, source.getLocation().getId()));
@@ -719,12 +731,12 @@ public class StrategyRepositoryImpl
                     target.setPriorityLevel(item.getPriorityLevel());
 
                     // Taxon name
-                    Optional<TaxonNameVO> taxonName = taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId());
-                    if (taxonName.isPresent()) {
-                        target.setTaxonName(taxonName.get());
-                        target.setReferenceTaxonId(taxonName.get().getReferenceTaxonId());
-                        target.setIsReferent(taxonName.get().getIsReferent());
-                    }
+                    taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId())
+                        .ifPresent(taxonName -> {
+                            target.setTaxonName(taxonName);
+                            target.setReferenceTaxonId(taxonName.getReferenceTaxonId());
+                            target.setIsReferent(taxonName.getIsReferent());
+                        });
                     return target;
                 })
                 .filter(target -> target.getTaxonName() != null)
@@ -768,7 +780,9 @@ public class StrategyRepositoryImpl
                     target.setId(item.getId());
                     target.setStrategyId(source.getId());
 
-                    target.setLocation(locationRepository.toVO(item.getLocation()));
+                    if (item.getLocation() != null) {
+                        target.setLocation(locationRepository.get(item.getLocation().getId()));
+                    }
 
                     // AppliedPeriod
                     if (CollectionUtils.isNotEmpty(item.getAppliedPeriods())) {
@@ -850,10 +864,11 @@ public class StrategyRepositoryImpl
                     target.setStrategyId(source.getId());
 
                     if (item.getLocation() != null) {
-                        target.setLocation(referentialDao.toVO(item.getLocation()));
+                        target.setLocation(locationRepository.get(item.getLocation().getId()));
                     }
-                    target.setDepartment(referentialDao.toVO(item.getDepartment()));
-                    target.setPrivilege(referentialDao.toVO(item.getPrivilege()));
+
+                    target.setDepartment(departmentRepository.get(item.getDepartment().getId()));
+                    target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
 
                     return target;
                 })

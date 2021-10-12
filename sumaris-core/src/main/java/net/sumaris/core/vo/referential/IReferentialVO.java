@@ -29,7 +29,7 @@ import java.util.Date;
 
 public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
-    interface Fields {
+    interface Fields extends IUpdateDateEntityBean.Fields {
         String LABEL = "label";
         String NAME = "name";
     }

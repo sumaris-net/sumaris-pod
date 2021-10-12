@@ -127,14 +127,13 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
     public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
     getPublisher(final Function<Date, V> getter,
-                       Integer minIntervalInSecond,
-                       boolean startWithActualValue) {
+                 Integer intervalInSec,
+                 boolean startWithActualValue) {
 
-        Preconditions.checkArgument(minIntervalInSecond == null || minIntervalInSecond.intValue() >= 10, "minimum interval value should be >= 10 seconds");
-        if (minIntervalInSecond == null) minIntervalInSecond = 30;
+        Preconditions.checkArgument(intervalInSec == null || intervalInSec.intValue() >= 10, "minimum interval value should be >= 10 seconds");
+        if (intervalInSec == null) intervalInSec = 30;
 
-        log.info(String.format("Checking changes (using getter function), every %s sec. (total publishers: %s)", minIntervalInSecond, publisherCount.incrementAndGet()));
-
+        log.info(String.format("Checking changes (using getter function), every %s sec. (total publishers: %s)", intervalInSec, publisherCount.incrementAndGet()));
 
         final Calendar lastUpdateDate = Calendar.getInstance();
 
@@ -143,7 +142,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         stop.subscribe(o -> log.debug(String.format("Closing publisher after a too long delay (1h) (total publishers: %s)", publisherCount.get() - 1)));
 
         Observable<V> observable = Observable
-                .interval(minIntervalInSecond, TimeUnit.SECONDS)
+                .interval(intervalInSec, TimeUnit.SECONDS)
                 .takeUntil(stop)
                 .observeOn(Schedulers.io())
                 .flatMap(n -> {

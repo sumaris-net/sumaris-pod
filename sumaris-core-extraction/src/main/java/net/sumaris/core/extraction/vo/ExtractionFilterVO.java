@@ -22,10 +22,7 @@ package net.sumaris.core.extraction.vo;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 import javax.annotation.Nullable;
@@ -37,6 +34,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldNameConstants
+@EqualsAndHashCode
 public class ExtractionFilterVO {
 
     public static ExtractionFilterVO nullToEmpty(ExtractionFilterVO filter) {

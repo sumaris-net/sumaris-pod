@@ -23,11 +23,12 @@ package net.sumaris.core.dao.data.landing;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Trip;
@@ -39,9 +40,9 @@ import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -55,20 +56,23 @@ public class LandingRepositoryImpl
     implements LandingSpecifications {
 
     private final LocationRepository locationRepository;
-    private final SumarisConfiguration configuration;
-
-    private boolean isOracle;
+    private boolean isOracleDatabase;
+    private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
-    public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, SumarisConfiguration configuration) {
+    public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
         super(Landing.class, LandingVO.class, entityManager);
         this.locationRepository = locationRepository;
-        this.configuration = configuration;
+
+        // FIXME BLA 30/09/2021 - temporary workaround for issue IMAGINE-540
+        setCheckUpdateDate(false);
+        setLockForUpdate(false);
     }
 
-    @PostConstruct
-    private void setup() {
-        isOracle = Daos.isOracleDatabase(configuration.getJdbcURL());
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        isOracleDatabase = event.getConfiguration().isOracleDatabase();
+        enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
     }
 
     @Override
@@ -93,7 +97,7 @@ public class LandingRepositoryImpl
     public List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, DataFetchOptions fetchOptions) {
 
         // Following natural sort works only for Oracle
-        boolean sortByVesselRegistrationCode = isOracle && Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
+        boolean sortByVesselRegistrationCode = Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
 
         StringBuilder queryBuilder = new StringBuilder();
 
@@ -107,14 +111,21 @@ public class LandingRepositoryImpl
         // single filter
         queryBuilder.append("where l.observedLocation.id = :observedLocationId ");
 
+        // Sort by vessel registration code
         if (sortByVesselRegistrationCode) {
-            // add natural order on vessel registration code
-            queryBuilder.append(
-                String.format(
-                    "order by regexp_substr(vrp.registrationCode, '[^0-9]*') %1$s, to_number(regexp_substr(vrp.registrationCode, '[0-9]+')) %1$s nulls first",
-                    page.getSortDirection()
-                )
-            );
+            // Oracle + natural order
+            if (isOracleDatabase && enableVesselRegistrationNaturalOrder) {
+                queryBuilder.append(
+                    String.format(
+                        "order by regexp_substr(vrp.registrationCode, '[^0-9]*') %1$s, to_number(regexp_substr(vrp.registrationCode, '[0-9]+')) %1$s nulls first",
+                        page.getSortDirection()
+                    )
+                );
+            }
+            // Sort by vessel registration code
+            else {
+                queryBuilder.append(String.format("order by vrp.registrationCode %s", page.getSortDirection()));
+            }
 
         } else {
             // other sort
@@ -130,8 +141,10 @@ public class LandingRepositoryImpl
         TypedQuery<Landing> query = getEntityManager().createQuery(queryBuilder.toString(), Landing.class);
         query.setParameter("observedLocationId", observedLocationId);
 
-        return readPage(query, Landing.class, page.asPageable(), null)
-            .stream()
+        query.setFirstResult((int)page.getOffset());
+        query.setMaxResults(page.getSize());
+
+        return streamQuery(query)
             .map(landing -> toVO(landing, fetchOptions))
             .collect(Collectors.toList())
         ;
@@ -238,7 +251,7 @@ public class LandingRepositoryImpl
         int result = 1;
 
         if (landing.getObservedLocation() == null || landing.getObservedLocation().getId() == null) {
-            // Can't find other landings on a undefined observed location
+            // Can't find other landings on an undefined observed location
             return result;
         }
 
@@ -260,4 +273,12 @@ public class LandingRepositoryImpl
         return result;
     }
 
+    @Override
+    protected void onAfterSaveEntity(LandingVO vo, Landing savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        // Remove object, because of error
+        /*getSession().flush();
+        getSession().clear();*/
+    }
 }

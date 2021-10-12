@@ -273,7 +273,7 @@ public class InitTests extends ExternalResource {
                 beforeInsert(conn);
 
                 // If multiple files, split and loop over
-                for(String importFileName : Splitter.on(',').split(importFileNames.trim())) {
+                for (String importFileName : Splitter.on(',').split(importFileNames.trim())) {
                     log.info(String.format("Importing data from file {%s}...", importFileName));
                     URL importFileUrl = getClass().getResource("/" + importFileName.trim());
                     Assume.assumeTrue(
@@ -283,7 +283,7 @@ public class InitTests extends ExternalResource {
 
                     // Insert
                     insertFromXmlDataSet(importFileUrl, conn);
-                };
+                }
 
                 // Committing insertions
                 conn.commit();

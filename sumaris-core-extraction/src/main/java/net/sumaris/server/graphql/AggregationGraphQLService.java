@@ -27,6 +27,7 @@ import io.leangen.graphql.annotations.GraphQLEnvironment;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.execution.ResolutionEnvironment;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -108,7 +109,12 @@ public class AggregationGraphQLService {
         // Check access right
         securityService.checkReadAccess(type);
 
-        return aggregationService.getAggBySpace(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+        return aggregationService.getAggBySpace(type, filter, strata, Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build());
     }
 
     @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
@@ -180,7 +186,12 @@ public class AggregationGraphQLService {
         if (strata == null || strata.getSpatialColumnName() == null) throw new SumarisTechnicalException(String.format("No strata or spatial column found, in type '%s'", type.getLabel()));
 
         // Get data
-        AggregationResultVO data = aggregationService.getAggBySpace(type, filter, strata, offset, size, sort, SortDirection.fromString(direction));
+        AggregationResultVO data = aggregationService.getAggBySpace(type, filter, strata, Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build());
 
 
         // Convert to GeoJSON

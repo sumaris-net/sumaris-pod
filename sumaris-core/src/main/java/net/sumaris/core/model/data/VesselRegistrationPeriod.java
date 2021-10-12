@@ -27,6 +27,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -49,6 +50,10 @@ public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vess
     @Column(name = "end_date")
     @Temporal(TemporalType.DATE)
     private Date endDate;
+
+    @Formula("nvl(end_date, to_date(' 2100-01-01 00:00:00', 'syyyy-mm-dd hh24:mi:ss'))")
+    @Column(name = "nvl_end_date", insertable = false, updatable = false)
+    private Date nvlEndDate;
 
     @Column(name = "registration_code", length = 40)
     private String registrationCode;

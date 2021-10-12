@@ -73,17 +73,18 @@ git status
 mvn gitflow:release-finish
 [[ $? -ne 0 ]] && exit 1
 
-# Remove release branch
+# Remove local release branch
 git branch -d "release/$version"
 
 echo "---- Push changes to upstream [OK]"
 echo ""
 
-
 # Uploading artifacts to Github
 echo "---- Uploading artifacts to Github..."
+
 # Pause (wait propagation to from gitlab to github)
 echo " Waiting 40s, for propagation to github..." && sleep 40s
+
 . ${PROJECT_DIR}/src/scripts/release-to-github.sh $task $version ''"$release_description"''
 [[ $? -ne 0 ]] && exit 1
 

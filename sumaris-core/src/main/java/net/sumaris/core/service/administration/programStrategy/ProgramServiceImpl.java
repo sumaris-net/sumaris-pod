@@ -78,10 +78,9 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions) {
-		Preconditions.checkNotNull(label);
+	public Optional<ProgramVO> findNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
 		Preconditions.checkNotNull(updateDate);
-		return programRepository.findIfNewerByLabel(label, updateDate, fetchOptions);
+		return programRepository.findIfNewerById(id, updateDate, fetchOptions);
 	}
 
 	@Override

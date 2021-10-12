@@ -29,7 +29,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
-import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -75,9 +74,6 @@ public class LandingServiceImpl implements LandingService {
 
     @Autowired
     protected VesselService vesselService;
-
-    @Autowired
-    protected TripRepository tripRepository;
 
     @Autowired
     protected MeasurementDao measurementDao;
@@ -209,7 +205,10 @@ public class LandingServiceImpl implements LandingService {
         LandingVO eventData = enableTrash ? get(id, DataFetchOptions.FULL_GRAPH) : null;
 
         // Delete linked trips
-        tripRepository.deleteByLandingId(id);
+        tripService.deleteAllByLandingId(id);
+
+        // Delete linked samples
+        sampleService.deleteAllByLandingId(id);
 
         measurementDao.deleteMeasurements(LandingMeasurement.class, Landing.class, ImmutableList.of(id));
         measurementDao.deleteMeasurements(SurveyMeasurement.class, Landing.class, ImmutableList.of(id));
@@ -313,12 +312,10 @@ public class LandingServiceImpl implements LandingService {
 
             fillDefaultProperties(source, trip);
 
-            TripVO savedTrip = tripService.save(source.getTrip(), TripSaveOptions.builder()
-                    .withLanding(false)
-                    .withOperation(false)
-                    .withOperationGroup(true)
-                    .build());
+            // Save the landed trip
+            TripVO savedTrip = tripService.save(trip, TripSaveOptions.LANDED_TRIP);
 
+            // Update the source landing
             source.setTripId(savedTrip.getId());
             source.setTrip(savedTrip);
         }
@@ -371,6 +368,13 @@ public class LandingServiceImpl implements LandingService {
 
         DataBeans.setDefaultRecorderDepartment(trip, parent.getRecorderDepartment());
         DataBeans.setDefaultRecorderPerson(trip, parent.getRecorderPerson());
+
+        if (trip.getProgram() == null) {
+            trip.setProgram(parent.getProgram());
+        }
+        if (trip.getVesselSnapshot() == null) {
+            trip.setVesselSnapshot(parent.getVesselSnapshot());
+        }
     }
 
     /**

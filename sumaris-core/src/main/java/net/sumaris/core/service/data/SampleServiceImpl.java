@@ -145,6 +145,10 @@ public class SampleServiceImpl implements SampleService {
 				.forEach(this::delete);
 	}
 
+	@Override
+	public void deleteAllByLandingId(int landingId) {
+		sampleRepository.deleteByLandingId(landingId);
+	}
 
 	/**
 	 * Transform a samples (with children) into a falt list, sorted with parent always before children
@@ -197,7 +201,7 @@ public class SampleServiceImpl implements SampleService {
 		} else if (savedSample.getMeasurements() != null) {
 			savedSampleTagId = savedSample.getMeasurements().stream()
 					.filter(m -> m.getId() == PmfmEnum.TAG_ID.getId())
-					.map(m -> m.getAlphanumericalValue())
+					.map(MeasurementVO::getAlphanumericalValue)
 					.findFirst().orElse(null);
 		}
 

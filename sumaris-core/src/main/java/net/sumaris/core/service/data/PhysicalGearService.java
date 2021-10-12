@@ -46,5 +46,5 @@ public interface PhysicalGearService {
 	@Transactional(readOnly = true)
 	List<PhysicalGearVO> getAllByTripId(int tripId, DataFetchOptions options);
 
-	List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources);
+	List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources);
 }

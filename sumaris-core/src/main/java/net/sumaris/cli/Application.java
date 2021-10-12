@@ -96,10 +96,10 @@ public class Application {
 
 		// If not set yet, define custom config location
 		if (StringUtils.isNotBlank(configLocation)) {
-			System.getProperty("spring.config.location", configLocation);
+			System.setProperty("spring.config.location", configLocation);
 		}
 		else if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
-			System.getProperty("spring.config.location", "optional:file:./config/,classpath:/");
+			System.setProperty("spring.config.location", "optional:file:./config/,classpath:/");
 		}
 
 		try {

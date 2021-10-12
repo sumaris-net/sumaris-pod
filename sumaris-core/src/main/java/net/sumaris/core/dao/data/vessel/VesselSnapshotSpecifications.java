@@ -1,8 +1,10 @@
-/*
+package net.sumaris.core.dao.data.vessel;
+
+/*-
  * #%L
- * SUMARiS
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -20,18 +22,14 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.cache;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.springframework.data.repository.NoRepositoryBean;
 
-/**
- * Cache duration, in seconds
- */
-public interface CacheDurations {
+@NoRepositoryBean
+public interface VesselSnapshotSpecifications extends
+    VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions> {
 
-    int DEFAULT = 1500; // 25 min;
-
-    int SHORT = 10 * 60; // 10 min
-    int MEDIUM = 60 * 60; // 1 h
-    int LONG = 12 * 60 * 60; // 12 h
-
-    int ETERNAL = 24 * 60 * 60; // 1 day
 }

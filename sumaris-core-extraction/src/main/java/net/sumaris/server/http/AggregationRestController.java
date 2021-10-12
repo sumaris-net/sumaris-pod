@@ -22,11 +22,14 @@
 
 package net.sumaris.server.http;
 
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
+import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
@@ -102,13 +105,13 @@ public class AggregationRestController implements ExtractionRestPaths {
         strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME);
         strata.setTechColumnName(null);
 
-        return geoJsonConverter.toFeatureCollection(aggregationService.getAggBySpace(
-                type,
-                filter,
-                strata,
-                offset, size,
-                null, null),
-                strata.getSpatialColumnName());
+        ExtractionResultVO result =aggregationService.getAggBySpace(type, filter, strata,
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .build());
+
+        return geoJsonConverter.toFeatureCollection(result, strata.getSpatialColumnName());
     }
 
 

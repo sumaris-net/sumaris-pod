@@ -35,6 +35,7 @@ import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
@@ -97,19 +98,19 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
 
     default Specification<Strategy> hasAnalyticReferences(String... analyticReferences) {
         if (ArrayUtils.isEmpty(analyticReferences)) return null;
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, ANALYTIC_REFERENCES);
             return criteriaBuilder.in(
                     root.get(Strategy.Fields.ANALYTIC_REFERENCE))
                     .value(parameter);
-        });
-        specification.addBind(ANALYTIC_REFERENCES, Arrays.asList(analyticReferences));
-        return specification;
+        }).addBind(ANALYTIC_REFERENCES, Arrays.asList(analyticReferences));
     }
 
     default Specification<Strategy> hasReferenceTaxonIds(Integer... referenceTaxonIds) {
         if (ArrayUtils.isEmpty(referenceTaxonIds)) return null;
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
@@ -120,14 +121,13 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
                             .join(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON, JoinType.INNER)
                             .get(ReferenceTaxon.Fields.ID))
                     .value(parameter);
-        });
-        specification.addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
-        return specification;
+        })
+            .addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
     }
 
     default Specification<Strategy> hasDepartmentIds(Integer... departmentIds) {
         if (ArrayUtils.isEmpty(departmentIds)) return null;
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
@@ -138,14 +138,13 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
                             .join(StrategyDepartment.Fields.DEPARTMENT, JoinType.INNER)
                             .get(Department.Fields.ID))
                     .value(parameter);
-        });
-        specification.addBind(DEPARTMENT_IDS, Arrays.asList(departmentIds));
-        return specification;
+        }).addBind(DEPARTMENT_IDS, Arrays.asList(departmentIds));
     }
 
     default Specification<Strategy> hasLocationIds(Integer... locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
@@ -156,14 +155,12 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
                             .join(AppliedStrategy.Fields.LOCATION, JoinType.INNER)
                             .get(Location.Fields.ID))
                     .value(parameter);
-        });
-        specification.addBind(LOCATION_IDS, Arrays.asList(locationIds));
-        return specification;
+        }).addBind(LOCATION_IDS, Arrays.asList(locationIds));
     }
 
     default Specification<Strategy> hasParameterIds(Integer... parameterIds) {
         if (ArrayUtils.isEmpty(parameterIds)) return null;
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
@@ -184,9 +181,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
                                     .get(Parameter.Fields.ID))
                             .value(parameter)
             );
-        });
-        specification.addBind(PARAMETER_IDS, Arrays.asList(parameterIds));
-        return specification;
+        }).addBind(PARAMETER_IDS, Arrays.asList(parameterIds));
     }
 
     default Specification<Strategy> hasPeriods(PeriodVO... periods) {
@@ -264,4 +259,5 @@ public interface StrategySpecifications extends ReferentialSpecifications<Strate
     boolean hasUserPrivilege(int strategyId, int personId, ProgramPrivilegeEnum privilege);
 
     boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
+
 }
