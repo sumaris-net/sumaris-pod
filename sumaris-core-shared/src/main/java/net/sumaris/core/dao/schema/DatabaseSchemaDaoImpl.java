@@ -171,8 +171,8 @@ public class DatabaseSchemaDaoImpl
         schemaExport.setDelimiter(";");
         schemaExport.setOutputFile(filename);
         schemaExport.execute(EnumSet.of(TargetType.SCRIPT),
-                withDrop ? SchemaExport.Action.BOTH : SchemaExport.Action.CREATE,
-                getMetadata());
+            withDrop ? SchemaExport.Action.BOTH : SchemaExport.Action.CREATE,
+            getMetadata());
 
     }
 
@@ -189,7 +189,7 @@ public class DatabaseSchemaDaoImpl
     @Override
     public void generateUpdateSchemaFile(String filename, boolean doUpdate) {
         EnumSet<TargetType> targets = doUpdate ?
-                EnumSet.of(TargetType.SCRIPT, TargetType.DATABASE) :  EnumSet.of(TargetType.SCRIPT);
+            EnumSet.of(TargetType.SCRIPT, TargetType.DATABASE) :  EnumSet.of(TargetType.SCRIPT);
 
         SchemaUpdate task = new SchemaUpdate();
         task.setDelimiter(";");
@@ -225,7 +225,7 @@ public class DatabaseSchemaDaoImpl
             // Continue
         }
         log.info(I18n.t("sumaris.persistence.liquibase.executeUpdate.success") +
-                (schemaVersion != null ? (" " + I18n.t("sumaris.persistence.schemaVersion",  schemaVersion)) : ""));
+            (schemaVersion != null ? (" " + I18n.t("sumaris.persistence.schemaVersion",  schemaVersion)) : ""));
 
     }
 
@@ -239,7 +239,7 @@ public class DatabaseSchemaDaoImpl
         // Run update
         updateSchema(connectionProperties);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void generateStatusReport(File outputFile) throws IOException {
@@ -253,7 +253,7 @@ public class DatabaseSchemaDaoImpl
             throw new SumarisTechnicalException("Could not report database status", le);
         }
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void generateDiffReport(File outputFile, String typesToControl) {
@@ -266,7 +266,7 @@ public class DatabaseSchemaDaoImpl
             throw new SumarisTechnicalException("Could not report database diff", le);
         }
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void generateDiffChangeLog(File outputChangeLogFile, String typesToControl) {
@@ -301,7 +301,7 @@ public class DatabaseSchemaDaoImpl
             return VersionBuilder.create(systemVersion).build();
         } catch (IllegalArgumentException iae) {
             throw new VersionNotFoundException(String.format("Could not find the schema version. Bad schema version found table SYSTEM_VERSION: %s",
-                                                             systemVersion));
+                systemVersion));
         }
     }
 
@@ -316,17 +316,17 @@ public class DatabaseSchemaDaoImpl
     public boolean shouldUpdateSchema() throws VersionNotFoundException {
         return getSchemaVersion().compareTo(getSchemaVersionIfUpdate()) >= 0;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean isDbLoaded() {
-        
+
         // Do not try to run the validation query if the DB not exists
         if (!isDbExists()) {
             log.warn("Unable to check if database is empty or not: database directory not exists");
             return false;
         }
-        
+
         Connection connection;
         try {
             connection = DataSourceUtils.getConnection(getDataSource());
@@ -335,16 +335,16 @@ public class DatabaseSchemaDaoImpl
             log.error("Unable to find JDBC connection from dataSource", ex);
             return false;
         }
-        
+
         // Retrieve a validation query, from configuration
         String dbValidationQuery = getConfig().getDbValidationQuery();
         if (StringUtils.isBlank(dbValidationQuery)) {
             DataSourceUtils.releaseConnection(connection, getDataSource());
             return true;
         }
-        
+
         log.debug(String.format("Check if the database is loaded, using validation query: %s", dbValidationQuery));
-        
+
         // try to execute the validation query
         Statement stmt = null;
         try {
@@ -355,22 +355,22 @@ public class DatabaseSchemaDaoImpl
             return false;
         }
         finally {
-            Daos.closeSilently(stmt);   
+            Daos.closeSilently(stmt);
             DataSourceUtils.releaseConnection(connection, getDataSource());
-        }  
+        }
 
         return true;
     }
-    
+
     /** {@inheritDoc} */
     @Override
-    public boolean isDbExists() {       
+    public boolean isDbExists() {
         String jdbcUrl = getConfig().getJdbcURL();
-        
+
         if (!Daos.isFileDatabase(jdbcUrl)) {
             return true;
         }
-        
+
         File f = new File(getConfig().getDbDirectory(), getConfig().getDbName() + ".script");
         return f.exists();
     }
@@ -399,7 +399,7 @@ public class DatabaseSchemaDaoImpl
         // Check output directory validity
         if (dbDirectory.exists() && !dbDirectory.isDirectory()) {
             throw new SumarisTechnicalException(
-                    I18n.t("sumaris.persistence.newEmptyDatabase.notValidDirectory.error", dbDirectory));
+                I18n.t("sumaris.persistence.newEmptyDatabase.notValidDirectory.error", dbDirectory));
         }
 
         // Make sure the directory could be created
@@ -407,8 +407,8 @@ public class DatabaseSchemaDaoImpl
             FileUtils.forceMkdir(dbDirectory);
         } catch (IOException e) {
             throw new SumarisTechnicalException(
-                    I18n.t("sumaris.persistence.newEmptyDatabase.mkdir.error", dbDirectory),
-                    e);
+                I18n.t("sumaris.persistence.newEmptyDatabase.mkdir.error", dbDirectory),
+                e);
         }
 
         if (ArrayUtils.isNotEmpty(dbDirectory.listFiles())) {
@@ -418,12 +418,12 @@ public class DatabaseSchemaDaoImpl
                     FileUtils.deleteDirectory(dbDirectory);
                 } catch (IOException e) {
                     throw new SumarisTechnicalException(
-                            I18n.t("sumaris.persistence.newEmptyDatabase.deleteDirectory.error", dbDirectory), e);
+                        I18n.t("sumaris.persistence.newEmptyDatabase.deleteDirectory.error", dbDirectory), e);
                 }
             }
             else {
                 throw new SumarisTechnicalException(
-                        I18n.t("sumaris.persistence.newEmptyDatabase.notEmptyDirectory.error", dbDirectory));
+                    I18n.t("sumaris.persistence.newEmptyDatabase.notEmptyDirectory.error", dbDirectory));
             }
         }
 
@@ -441,8 +441,8 @@ public class DatabaseSchemaDaoImpl
         } catch (SQLException | IOException e) {
             e.printStackTrace();
             throw new SumarisTechnicalException(
-                    I18n.t("sumaris.persistence.newEmptyDatabase.create.error"),
-                    e);
+                I18n.t("sumaris.persistence.newEmptyDatabase.create.error"),
+                e);
         }
 
         try {
@@ -450,8 +450,8 @@ public class DatabaseSchemaDaoImpl
             Daos.shutdownDatabase(targetConnectionProperties);
         } catch (SQLException e) {
             throw new SumarisTechnicalException(
-                    I18n.t("sumaris.persistence.newEmptyDatabase.shutdown.error"),
-                    e);
+                I18n.t("sumaris.persistence.newEmptyDatabase.shutdown.error"),
+                e);
         }
     }
 
@@ -464,7 +464,7 @@ public class DatabaseSchemaDaoImpl
      * @return a boolean.
      */
     protected boolean checkConnection(
-            Properties targetConnectionProperties) {
+        Properties targetConnectionProperties) {
 
         // Log target connection
         if (log.isInfoEnabled()) {
@@ -495,11 +495,11 @@ public class DatabaseSchemaDaoImpl
         // Getting the script file
         String scriptPath = scriptFile == null ? config.getDbCreateScriptPath() : scriptFile.getAbsolutePath();
         Preconditions
-                .checkArgument(
-                        StringUtils.isNotBlank(scriptPath),
-                        String.format(
-                                "No path for the DB script has been set in the configuration. This is need to create a new database. Please set the option [%s] in configuration file.",
-                                SumarisConfigurationOption.DB_CREATE_SCRIPT_PATH));
+            .checkArgument(
+                StringUtils.isNotBlank(scriptPath),
+                String.format(
+                    "No path for the DB script has been set in the configuration. This is need to create a new database. Please set the option [%s] in configuration file.",
+                    SumarisConfigurationOption.DB_CREATE_SCRIPT_PATH));
         scriptPath = scriptPath.replaceAll("\\\\", "/");
 
         // Make sure the path is an URL (if not, add "file:" prefix)
@@ -569,27 +569,27 @@ public class DatabaseSchemaDaoImpl
         Predicate<String> predicate = new Predicate<String>() {
 
             final Set<String> includedStarts = Sets.newHashSet(
-                    "INSERT INTO DATABASECHANGELOG ");
+                "INSERT INTO DATABASECHANGELOG ");
 
             final Set<String> excludedStarts = Sets.newHashSet(
-                    "SET ",
-                    "CREATE USER ",
-                    "ALTER USER ", // for HslDB 2.3+
-                    "CREATE SCHEMA ",
-                    "GRANT DBA TO ",
-                    "INSERT INTO ", // In case there is memory tables
-                    "CREATE FUNCTION "
-                    );
+                "SET ",
+                "CREATE USER ",
+                "ALTER USER ", // for HslDB 2.3+
+                "CREATE SCHEMA ",
+                "GRANT DBA TO ",
+                "INSERT INTO ", // In case there is memory tables
+                "CREATE FUNCTION "
+            );
 
             @Override
             public boolean test(String input) {
                 boolean accept = true;
                 for (String forbiddenStart : excludedStarts) {
                     if (input.startsWith(forbiddenStart)
-                            // Allow this instructions
-                            && !input.startsWith("SET WRITE_DELAY")       // for HslDB 1.8+
-                            && !input.startsWith("SET FILES WRITE DELAY") // for HslDB 2.3+
-                            ) {
+                        // Allow this instructions
+                        && !input.startsWith("SET WRITE_DELAY")       // for HslDB 1.8+
+                        && !input.startsWith("SET FILES WRITE DELAY") // for HslDB 2.3+
+                    ) {
                         accept = false;
                         break;
                     }
@@ -646,6 +646,8 @@ public class DatabaseSchemaDaoImpl
 
     protected Metadata getMetadata() {
 
+        SumarisConfiguration config = getConfig();
+
         Map<String, Object> sessionSettings;
         SessionFactory session = null;
         if (getEntityManager() != null) {
@@ -654,17 +656,16 @@ public class DatabaseSchemaDaoImpl
         if (session  == null) {
             try {
                 // To be able to retrieve connection from datasource
-                Connection conn = Daos.createConnection(getConfig().getConnectionProperties());
+                Connection conn = Daos.createConnection(config.getConnectionProperties());
                 HibernateConnectionProvider.setConnection(conn);
-            }
-            catch(SQLException e) {
-                throw new SumarisTechnicalException("Could not open connection: " + getConfig().getJdbcURL());
+            } catch (SQLException e) {
+                throw new SumarisTechnicalException("Could not open connection: " + config.getJdbcURL());
             }
 
             sessionSettings = Maps.newHashMap();
-            sessionSettings.put(Environment.DIALECT, getConfig().getHibernateDialect());
-            sessionSettings.put(Environment.DRIVER, getConfig().getJdbcDriver());
-            sessionSettings.put(Environment.URL, getConfig().getJdbcURL());
+            sessionSettings.put(Environment.DIALECT, config.getHibernateDialect());
+            sessionSettings.put(Environment.DRIVER, config.getJdbcDriver());
+            sessionSettings.put(Environment.URL, config.getJdbcURL());
             sessionSettings.put(Environment.IMPLICIT_NAMING_STRATEGY, HibernateImplicitNamingStrategy.class.getName());
 
             sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
@@ -676,16 +677,15 @@ public class DatabaseSchemaDaoImpl
             sessionSettings = session.getProperties();
         }
 
-        MetadataSources metadata = new MetadataSources(
-                new StandardServiceRegistryBuilder()
-                        .applySettings(sessionSettings)
-                        .applySetting(Environment.CONNECTION_PROVIDER, HibernateConnectionProvider.class.getName())
-                        .build());
+        MetadataSources metadata = new MetadataSources(new StandardServiceRegistryBuilder()
+            .applySettings(sessionSettings)
+            .applySetting(Environment.CONNECTION_PROVIDER, HibernateConnectionProvider.class.getName())
+            .build());
 
         // Add annotations entities
         Reflections reflections = (getConfig().isProduction() ? Reflections.collect() : new Reflections(getConfig().getHibernateEntitiesPackage()));
         reflections.getTypesAnnotatedWith(Entity.class)
-                .forEach(metadata::addAnnotatedClass);
+            .forEach(metadata::addAnnotatedClass);
 
         return metadata.buildMetadata();
     }
@@ -724,7 +724,7 @@ public class DatabaseSchemaDaoImpl
         if (Daos.isPostgresqlDatabase(connection)){
             return "SELECT TO_CHAR(age(now() at time zone 'UTC', now()), 'HH24:MI');";
         }
-        throw new SumarisTechnicalException("Could not determine database type");
+        throw new SumarisTechnicalException("Cannot generate Timezone query : not implemented for this database type");
     }
 
 

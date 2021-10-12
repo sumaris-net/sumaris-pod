@@ -77,8 +77,12 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
         // Run schema update, if need
         boolean shouldRun = config.useLiquibaseAutoRun();
         if (shouldRun) {
-            // Do the update
-            updateSchema();
+            // Do the update (but do NOT emit event)
+            try {
+                databaseSchemaDao.updateSchema();
+            } catch (DatabaseSchemaUpdateException e) {
+                throw new SumarisTechnicalException(e.getCause());
+            }
         }
         else if (log.isDebugEnabled()){
             log.debug( String.format("Liquibase did not run because configuration option '%s' set to false.",
