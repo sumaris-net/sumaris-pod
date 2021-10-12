@@ -69,7 +69,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TripServiceImpl implements TripService {
 
-    private final SumarisConfiguration configuration;
     private final TripRepository tripRepository;
     private final SaleService saleService;
     private final ExpectedSaleService expectedSaleService;
@@ -86,12 +85,11 @@ public class TripServiceImpl implements TripService {
     private final VesselService vesselService;
     private boolean enableTrash = false;
 
-    public TripServiceImpl(MeasurementDao measurementDao, SumarisConfiguration configuration, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
+    public TripServiceImpl(MeasurementDao measurementDao, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
                            OperationService operationService, OperationGroupService operationGroupService, PhysicalGearService physicalGearService, ApplicationEventPublisher publisher,
                            FishingAreaService fishingAreaService, PmfmService pmfmService, VesselService vesselService, LandingRepository landingRepository,
                            ObservedLocationRepository observedLocationRepository, ReferentialService referentialService) {
         this.measurementDao = measurementDao;
-        this.configuration = configuration;
         this.tripRepository = tripRepository;
         this.saleService = saleService;
         this.expectedSaleService = expectedSaleService;
@@ -226,9 +224,9 @@ public class TripServiceImpl implements TripService {
     public TripVO save(final TripVO source, TripSaveOptions options) {
         checkCanSave(source);
 
-        // Init save options with default values if not provided
+        // Create a options clone (to be able to edit it)
         options = TripSaveOptions.defaultIfEmpty(options);
-        final boolean withOperationGroup = options.getWithOperationGroup();
+        boolean withOperationGroup = options.getWithOperationGroup();
 
         // Reset control date
         source.setControlDate(null);
@@ -242,8 +240,8 @@ public class TripServiceImpl implements TripService {
 
 
         // Keep source parent information
-        finalOptions.setLandingId(source.getLandingId());
-        finalOptions.setObservedLocationId(source.getObservedLocationId());
+        options.setLandingId(source.getLandingId());
+        options.setObservedLocationId(source.getObservedLocationId());
 
         // Save
         TripVO target = tripRepository.save(source);
