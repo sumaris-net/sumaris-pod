@@ -727,6 +727,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return super.addRow(event, insertAt);
   }
 
+  protected async addRowToTable(insertAt?: number): Promise<TableElement<Sample>> {
+    const editedRow = await super.addRowToTable(insertAt);
+    editedRow.validator?.updateValueAndValidity({ emitEvent: true, onlySelf: false });
+    return editedRow;
+  }
+
   /**
    * Publish get row error, as public
    */
