@@ -283,7 +283,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   isCurrentData(row: any) {
-    return this.filter.includedIds && this.filter.includedIds.length > 0 && row.currentData.id === this.filter.includedIds[0];
+    return this.filter.orIncludedIds && this.filter.orIncludedIds.length > 0 && row.currentData.id === this.filter.orIncludedIds[0];
   }
 
   /* -- protected methods -- */

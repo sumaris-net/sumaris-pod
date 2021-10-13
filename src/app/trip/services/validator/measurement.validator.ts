@@ -1,12 +1,12 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, AbstractControlOptions, FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
 
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
-import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {SharedFormArrayValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {LocalSettingsService} from '@sumaris-net/ngx-components';
+import {Measurement, MeasurementUtils, MeasurementValuesUtils} from '../model/measurement.model';
+import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
+import {IPmfm} from '../../../referential/services/model/pmfm.model';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -52,8 +52,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       const validator = PmfmValidators.create(pmfm, null, opts);
       if (validator) {
         res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
-      }
-      else {
+      } else {
         res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
       }
       return res;
@@ -73,20 +72,28 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       controlNamesToRemove.push(controlName);
     }
     opts.pmfms.forEach(pmfm => {
-      const controlName = pmfm.id.toString();
-      let formControl: AbstractControl = form.get(controlName);
-      // If new pmfm: add as control
-      if (!formControl) {
+        const controlName = pmfm.id.toString();
+        if (pmfm.label.indexOf('MULTIPLE') === -1) {
+          let formControl: AbstractControl = form.get(controlName);
+          // If new pmfm: add as control
+          if (!formControl) {
+            formControl = this.formBuilder.control(pmfm.defaultValue || '', PmfmValidators.create(pmfm, null, opts));
+            form.addControl(controlName, formControl);
+          }
 
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', PmfmValidators.create(pmfm, null, opts));
-        form.addControl(controlName, formControl);
+        } else {
+          const formArray = this.formBuilder.array([pmfm.defaultValue].map(value => {
+            this.formBuilder.control(value || '', PmfmValidators.create(pmfm, null, opts));
+          }), SharedFormArrayValidators.requiredArrayMinLength(pmfm.required ? 1 : 0));
+
+          form.addControl(controlName, formArray);
+        }
+
+        // Remove from the remove list
+        const index = controlNamesToRemove.indexOf(controlName);
+        if (index >= 0) controlNamesToRemove.splice(index, 1);
       }
-
-      // Remove from the remove list
-      const index = controlNamesToRemove.indexOf(controlName);
-      if (index >= 0) controlNamesToRemove.splice(index, 1);
-
-    });
+    );
 
     // Remove unused controls
     controlNamesToRemove

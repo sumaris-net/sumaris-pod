@@ -6,7 +6,7 @@ import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {HistoryPageReference, ReferentialUtils, UsageMode} from '@sumaris-net/ngx-components';
 import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
 import {debounceTime, distinctUntilChanged, filter, map, startWith, switchMap} from 'rxjs/operators';
-import {FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormGroup, Validators} from '@angular/forms';
 import * as momentImported from 'moment';
 import {IndividualMonitoringSubSamplesTable} from '../sample/individualmonitoring/individual-monitoring-samples.table';
 import {Program} from '@app/referential/services/model/program.model';
@@ -293,7 +293,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           }
 
           // If PMFM "Has Individual measurement ?" exists, then use to enable/disable some column on catch tables
-          this.setSafeIndividualMeasurementSubscription();
+          const hasIndividualMeasurementControl = formGroup && formGroup.controls[PmfmIds.HAS_INDIVIDUAL_MEASUREMENT];
+          if (hasIndividualMeasurementControl) {
+            this.setSafeIndividualMeasurementSubscription(hasIndividualMeasurementControl);
+          }
 
           // Default
           if (isNil(samplingTypeControl) && isNil(isSamplingControl)) {
@@ -438,7 +441,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.batchTree.autoFill();
     }
 
-    if (this.useLinkedOperation){
+    if (this.useLinkedOperation) {
       this.setOperationTypeParams();
     }
   }
@@ -561,12 +564,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (this.opeForm.operationType === 1) {
       this.tabGroup._tabs.last.disabled = false;
       this.showBatchTables = true;
-      this.batchTree.enable();
-      this.setSafeIndividualMeasurementSubscription();
+      if (!this.batchTree.enabled) {
+        this.batchTree.enable();
+        this.batchTree.autoFill();
+      }
+      const formGroup = this.measurementsForm.form;
+      const hasIndividualMeasurementControl = formGroup && formGroup.controls[PmfmIds.HAS_INDIVIDUAL_MEASUREMENT];
+      this.setSafeIndividualMeasurementSubscription(hasIndividualMeasurementControl);
     } else {
       this.tabGroup._tabs.last.disabled = true;
       this.showBatchTables = false;
-      this.batchTree.disable();
+      if (this.batchTree.enabled) {
+        this.batchTree.disable();
+      }
       if (this.individualMeasurementSubscription) {
         this.individualMeasurementSubscription.unsubscribe();
         this.individualMeasurementSubscription = undefined;
@@ -811,11 +821,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.cd.markForCheck();
   }
 
-  protected setSafeIndividualMeasurementSubscription() {
-    if (!this.individualMeasurementSubscription) {
-      const formGroup = this.measurementsForm.form;
-      const hasIndividualMeasurementControl = formGroup && formGroup.controls[PmfmIds.HAS_INDIVIDUAL_MEASUREMENT];
+  protected setSafeIndividualMeasurementSubscription(hasIndividualMeasurementControl: AbstractControl) {
 
+    this.batchTree.showSubBatchesTable = !this.mobile && hasIndividualMeasurementControl.value;
+
+    if (!this.individualMeasurementSubscription) {
       if (isNotNil(hasIndividualMeasurementControl)) {
         this.individualMeasurementSubscription =
           hasIndividualMeasurementControl.valueChanges
@@ -830,7 +840,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               if (this.debug) console.debug('[operation] Detected PMFM changes value for HAS_INDIVIDUAL_MEASUREMENT: ', hasIndividualMeasurement);
               this.batchTree.asyncFormValues.next(
                 {
-                  hasIndividualMeasurement: hasIndividualMeasurement,
+                  hasIndividualMeasurement,
                   hasIndividualMeasurementByDefault: hasIndividualMeasurement
                 }
               );
