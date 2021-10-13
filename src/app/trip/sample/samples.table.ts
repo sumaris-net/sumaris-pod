@@ -505,7 +505,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   deleteSelection(event: UIEvent): Promise<number> {
-    console.debug('TODO: deleteSelection');
     return super.deleteSelection(event);
   }
 
@@ -652,6 +651,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
                 pmfm.unitLabel = this.weightDisplayedUnit;
                 pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
                 pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+                pmfm.alreadyConverted = false;
               }
             }
           }
