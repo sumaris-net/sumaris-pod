@@ -32,7 +32,7 @@
 
     <!-- table OPERATION -->
     <changeSet author="camille.cotonnec@e-is.pro" id="1625816880597-1">
-       <validCheckSum>8:88f7868c44dab436b87241a8b062c867</validCheckSum>
+        <validCheckSum>8:88f7868c44dab436b87241a8b062c867</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="OPERATION" columnName="OPERATION_FK"/>
@@ -51,9 +51,55 @@
         <addForeignKeyConstraint baseColumnNames="OPERATION_FK" baseTableName="OPERATION" constraintName="OPERATION" referencedColumnNames="ID" referencedTableName="OPERATION"/>
     </changeSet>
 
+    <changeSet author="ludovic.pecquot@e-is.pro" id="1625816880597-3">
+        <validCheckSum>8:88f7868c44dab436b87241a8b062c867</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="survey_measurement"/>
+            </not>
+        </preConditions>
+        <createTable tableName="survey_measurement">
+            <column name="id" type="INT">
+                <constraints primaryKey="true" primaryKeyName="survey_measurementPK"/>
+            </column>
+            <column name="alphanumerical_value" type="VARCHAR(40)"/>
+            <column name="comments" type="VARCHAR(2000)"/>
+            <column name="control_date" type="TIMESTAMP"/>
+            <column name="digit_count" type="INT"/>
+            <column name="numerical_value" type="DOUBLE"/>
+            <column name="precision_value" type="DOUBLE"/>
+            <column name="qualification_comments" type="VARCHAR(2000)"/>
+            <column name="qualification_date" type="TIMESTAMP"/>
+            <column name="rank_order" type="INT"/>
+            <column name="update_date" type="TIMESTAMP"/>
+            <column name="landing_fk" type="INT">
+                <constraints nullable="false" foreignKeyName="survey_meas_landing_fk" referencedTableName="landing" referencedColumnNames="id"/>
+            </column>
+            <column name="pmfm_fk" type="INT">
+                <constraints nullable="false" foreignKeyName="survey_meas_pmfm_fk" referencedTableName="pmfm" referencedColumnNames="id"/>
+            </column>
+            <column name="qualitative_value_fk" type="INT">
+                <constraints foreignKeyName="survey_meas_qual_value_fk" referencedTableName="qualitative_value" referencedColumnNames="id"/>
+            </column>
+            <column name="quality_flag_fk" type="INT">
+                <constraints nullable="false" foreignKeyName="survey_meas_quality_flag_fk" referencedTableName="quality_flag" referencedColumnNames="id"/>
+            </column>
+            <column name="recorder_department_fk" type="INT">
+                <constraints nullable="false" foreignKeyName="survey_meas_rec_dep_fk" referencedTableName="department" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet  author="camille.cotonnec@e-is.pro" id="1625816880597-4" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <not><foreignKeyConstraintExists foreignKeyTableName="OPERATION" foreignKeyName="OPERATION_OPERATION_FKC"/></not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="OPERATION_FK" baseTableName="OPERATION" constraintName="OPERATION" referencedColumnNames="ID" referencedTableName="OPERATION"/>
+    </changeSet>
+
 
     <!-- Insert Child_operation into acquisition level  -->
-    <changeSet author="camille.cotonnec@e-is.pro" id="1625816880597-3" runOnChange="true">
+    <changeSet author="camille.cotonnec@e-is.pro" id="1625816880597-5" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="0">SELECT COUNT(ID) FROM ACQUISITION_LEVEL WHERE LABEL='CHILD_OPERATION'</sqlCheck>
