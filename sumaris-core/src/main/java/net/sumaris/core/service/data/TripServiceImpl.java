@@ -260,7 +260,9 @@ public class TripServiceImpl implements TripService {
         }
         else {
             // Remove all
+          if (!isNew) {
             operationGroupService.saveMetiersByTripId(target.getId(), ImmutableList.of());
+          }
         }
 
         // Save fishing area
@@ -269,7 +271,9 @@ public class TripServiceImpl implements TripService {
             target.setFishingAreas(fishingAreas);
         } else {
             // Remove all
+          if (!isNew) {
             fishingAreaService.saveAllByFishingTripId(target.getId(), ImmutableList.of());
+          }
         }
 
         // Save physical gears
@@ -288,7 +292,9 @@ public class TripServiceImpl implements TripService {
         }
         else {
             // Remove all
+          if (!isNew) {
             physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
+          }
         }
 
         // Save operations (only if asked)
@@ -326,7 +332,9 @@ public class TripServiceImpl implements TripService {
             target.setSale(sales.get(0));
         } else {
             // Remove all
+          if (!isNew) {
             saleService.saveAllByTripId(target.getId(), ImmutableList.of());
+          }
         }
 
         // Save expected sales
@@ -342,7 +350,9 @@ public class TripServiceImpl implements TripService {
             target.setExpectedSale(expectedSales.get(0));
         } else {
             // Remove all
+          if (!isNew) {
             expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
+          }
         }
 
         // Publish event
