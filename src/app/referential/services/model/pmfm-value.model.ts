@@ -9,7 +9,6 @@ import { isNilOrNaN } from '@app/shared/functions';
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
 
-
 export abstract class PmfmValueUtils {
 
   static toModelValue(value: PmfmValue | any, pmfm: IPmfm): string {
@@ -52,16 +51,18 @@ export abstract class PmfmValueUtils {
         if (isNilOrNaN(value)) return null;
         value = parseInt(value);
         // Apply conversion excepted for displaying the value
-        if (pmfm.displayConversion) {
+        if (pmfm.displayConversion && !pmfm.alreadyConverted) {
           value = value * pmfm.displayConversion.conversionCoefficient;
+          pmfm.alreadyConverted = true;
         }
         return value;
       case "double":
         if (isNilOrNaN(value)) return null;
         value = parseFloat(value);
         // Apply conversion excepted for displaying the value
-        if (pmfm.displayConversion) {
+        if (pmfm.displayConversion && !pmfm.alreadyConverted) {
           value = value * pmfm.displayConversion.conversionCoefficient;
+          pmfm.alreadyConverted = true;
         }
         return value;
       case "string":

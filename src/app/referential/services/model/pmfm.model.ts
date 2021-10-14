@@ -38,6 +38,7 @@ export interface IPmfm<
   rankOrder?: number;
 
   displayConversion?: UnitConversion;
+  alreadyConverted?: boolean;
 }
 
 export interface IDenormalizedPmfm<
@@ -111,6 +112,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
   qualitativeValues: ReferentialRef[];
 
   completeName: string; // Computed attributes
+  // alreadyConverted: boolean;
 
   constructor() {
     super(Pmfm.TYPENAME);
