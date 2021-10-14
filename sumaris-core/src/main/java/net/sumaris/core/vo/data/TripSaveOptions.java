@@ -40,6 +40,7 @@ public class TripSaveOptions implements ISaveOptions {
         .withOperationGroup(true) // Enable operation group
         .withLanding(false)
         .withOperation(false)
+        .withExpectedSales(false)
         .build();
 
     public static TripSaveOptions defaultIfEmpty(TripSaveOptions options) {
@@ -56,6 +57,6 @@ public class TripSaveOptions implements ISaveOptions {
     private Boolean withLanding = false;
 
     @Builder.Default
-    private Boolean withExpectedSales = true;
+    private Boolean withExpectedSales = false;
 
 }
