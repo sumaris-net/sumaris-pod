@@ -13,6 +13,7 @@ import {ObservedLocation} from '../../services/model/observed-location.model';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {LandingSaveOptions} from '@app/trip/services/landing.service';
 
 
 @Component({
@@ -206,5 +207,14 @@ export class SamplingLandingPage extends LandingPage {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
       strategyLabel: strategy && strategy.label
     }).toPromise());
+  }
+
+  async save(event, options?: any): Promise<boolean> {
+
+    const saveOptions: LandingSaveOptions = {
+      withoutExpectedSales: true // indicate service to save landings without expected sales
+    };
+
+    return await super.save(event, {...options, ...saveOptions});
   }
 }
