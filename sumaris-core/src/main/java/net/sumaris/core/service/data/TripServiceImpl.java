@@ -146,7 +146,9 @@ public class TripServiceImpl implements TripService {
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDepartureDateTime())));
             target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
             target.setSales(saleService.getAllByTripId(id, fetchOptions));
-            target.setExpectedSales(expectedSaleService.getAllByTripId(id));
+            if (fetchOptions.isWithExpectedSales()) {
+              target.setExpectedSales(expectedSaleService.getAllByTripId(id));
+            }
 
             // Fill link to landing, if any
             fillTripLandingLinks(target);
