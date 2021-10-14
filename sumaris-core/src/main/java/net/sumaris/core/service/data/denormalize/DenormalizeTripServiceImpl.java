@@ -80,6 +80,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             .withChildrenEntities(false)
             .withMeasurementValues(false)
             .withRecorderPerson(false)
+            .withExpectedSales(false)
             .build();
 
         long tripTotal = tripService.countByFilter(filter);

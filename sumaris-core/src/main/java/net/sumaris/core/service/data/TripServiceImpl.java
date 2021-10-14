@@ -226,6 +226,7 @@ public class TripServiceImpl implements TripService {
         // Init save options with default values if not provided
         options = TripSaveOptions.defaultIfEmpty(options);
         final boolean withOperationGroup = options.getWithOperationGroup();
+        final boolean withExpectedSales = options.getWithExpectedSales();
 
         // Reset control date
         source.setControlDate(null);
@@ -337,23 +338,25 @@ public class TripServiceImpl implements TripService {
           }
         }
 
-        // Save expected sales
+        // Save expected sales (only if asked)
+      if (withExpectedSales) {
         if (CollectionUtils.isNotEmpty(source.getExpectedSales())) {
-            List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
-            expectedSales.forEach(expectedSale -> fillDefaultProperties(target, expectedSale));
-            expectedSales = expectedSaleService.saveAllByTripId(target.getId(), expectedSales);
-            target.setExpectedSales(expectedSales);
+          List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
+          expectedSales.forEach(expectedSale -> fillDefaultProperties(target, expectedSale));
+          expectedSales = expectedSaleService.saveAllByTripId(target.getId(), expectedSales);
+          target.setExpectedSales(expectedSales);
         } else if (source.getExpectedSale() != null) {
-            ExpectedSaleVO expectedSale = source.getExpectedSale();
-            fillDefaultProperties(target, expectedSale);
-            List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
-            target.setExpectedSale(expectedSales.get(0));
+          ExpectedSaleVO expectedSale = source.getExpectedSale();
+          fillDefaultProperties(target, expectedSale);
+          List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
+          target.setExpectedSale(expectedSales.get(0));
         } else {
-            // Remove all
+          // Remove all
           if (!isNew) {
             expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
           }
         }
+      }
 
         // Publish event
         if (isNew) {
