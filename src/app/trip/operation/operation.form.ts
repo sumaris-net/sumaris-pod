@@ -20,7 +20,7 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
@@ -114,6 +114,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     const control = this.form.get('parentOperation');
     return control.valueChanges
       .pipe(startWith(control.value as Operation));
+  }
+
+  get parentControl(): FormControl {
+    return this.form.get('parentOperation') as FormControl;
   }
 
   constructor(
@@ -295,25 +299,25 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     if (this.debug) console.debug('[operation-form] Parent operation changed: ', parentOperation);
 
     // Compute parent operation label
-    const parentLabel = parentOperation && (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
+    const parentLabel = isNotNil(parentOperation?.id) && (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
       startDateTime: parentOperation.startDateTime && this.dateFormat.transform(parentOperation.startDateTime, {time: true}) as string
     }).toPromise() as string) || '';
     this.$parentOperationLabel.next(parentLabel);
 
   }
 
-  async addParentOperation() {
-    const operation = await this.openSelectOperationModal();
-    if (!operation) return; //  User cancelled
+  async addParentOperation(): Promise<Operation> {
+    let operation = await this.openSelectOperationModal();
 
-    // Update parent
-    this.onParentOperationChanged(operation);
+    const parentOperationControl = this.form.get('parentOperation');
+    if (!operation) {
+      operation = parentOperationControl.value || new Operation();
+    }
 
     const metierControl = this.form.get('metier');
     const physicalGearControl = this.form.get('physicalGear');
     const startPositionControl = this.form.get('startPosition');
     const endPositionControl = this.form.get('endPosition');
-    const parentOperationControl = this.form.get('parentOperation');
     const startDateTimeControl = this.form.get('startDateTime');
     const fishingStartDateTimeControl = this.form.get('fishingStartDateTime');
 
@@ -349,20 +353,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     startDateTimeControl.patchValue(operation.startDateTime);
     fishingStartDateTimeControl.patchValue(operation.fishingStartDateTime);
+    this.form.get('qualityFlagId').patchValue(null);
 
-    this.form.get('fishingEndDateTime').setAsyncValidators(async (control) => {
-      const fishingEndDateTime = fromDateISOString(control.value);
-
-      // Make sure fishingEndDateTime > fishingStartDateTime
-      if (fishingEndDateTime && operation.fishingStartDateTime.isBefore(fishingEndDateTime) === false) {
-        console.warn(`[operation] Invalid operation fishingEndDateTime: before fishingStartDateTime! `, fishingEndDateTime, operation.fishingStartDateTime);
-        return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')};
-      }
-      // OK: clear existing errors
-      SharedValidators.clearError(control, 'msg');
-      return null;
-    });
     this.markAsDirty();
+
+    return operation;
   }
 
   checkDistanceValidity() {
@@ -491,33 +486,32 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   onIsChildOperationChanged(isChildOperation: boolean) {
-    //if (!this.allowParentOperation) return; // Skip
-
     isChildOperation = isChildOperation === true;
     console.debug('[operation-form] Is child operation ? ', isChildOperation);
 
-    this.$isChildOperation.next(isChildOperation);
 
-    // Filage
-    if (!isChildOperation) {
+    // Virage
+    if (isChildOperation) {
+
+      let parent = this.form.get('parentOperation').value;
+      if (!parent) {
+        // Keep filled values
+        this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
+
+        // Select a parent (or same if user cancelled)
+        this.addParentOperation();
+      }
+    }
+
+    // Filage or other case
+    else {
       this.form.patchValue({
         qualityFlagId: QualityFlagIds.NOT_COMPLETED,
         parentOperation: null
       })
     }
 
-    // Virage
-    else {
-
-      this.form.get('qualityFlagId').patchValue(null);
-
-      if (!this.form.get('parentOperation').value) {
-        this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
-        this.form.get('startDateTime').patchValue(null);
-
-        this.addParentOperation();
-      }
-    }
+    this.$isChildOperation.next(isChildOperation);
     this.setValidators();
   }
 
@@ -580,13 +574,24 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Start date end child operation
     if (this.isChildOperation) {
-      this.form.get('fishingEndDateTime').setValidators(Validators.required);
       this.form.get('parentOperation').setValidators(Validators.required);
+      this.form.get('fishingEndDateTime').setValidators(Validators.required);
+      this.form.get('fishingEndDateTime').setAsyncValidators(async (control) => {
+        const fishingEndDateTime = fromDateISOString(control.value);
+        const fishingStartDateTime = fromDateISOString((control.parent as FormGroup).get('fishingStartDateTime').value);
+        // Error if fishingEndDateTime <= fishingStartDateTime
+        if (fishingStartDateTime && fishingEndDateTime?.isSameOrBefore(fishingStartDateTime)) {
+          console.warn(`[operation] Invalid operation fishingEndDateTime: before fishingStartDateTime! `, fishingEndDateTime, fishingStartDateTime);
+          return <ValidationErrors>{ msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION') };
+        }
+        // OK: clear existing errors
+        SharedValidators.clearError(control, 'msg');
+        return null;
+      });
     } else {
       this.form.get('parentOperation').clearValidators();
-      if (this.allowParentOperation) {
-        this.form.get('fishingEndDateTime').clearValidators();
-      }
+      this.form.get('fishingEndDateTime').clearValidators();
+      this.form.get('fishingEndDateTime').clearAsyncValidators();
     }
 
     this.form.get(disabledEndDateTimeControlName).clearAsyncValidators();
@@ -619,7 +624,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       SharedValidators.clearError(control, 'required');
       return null;
     });
+
     this.form.updateValueAndValidity();
+    this.markForCheck();
   }
 
   protected markForCheck() {

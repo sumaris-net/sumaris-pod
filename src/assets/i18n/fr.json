@@ -617,7 +617,7 @@
         "START_POSITION": "Position début",
         "END_POSITION": "Position de fin",
         "COMMENTS": "Commentaires",
-        "OPERATION_TYPE" : "Type"
+        "QUALITY": "État"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",

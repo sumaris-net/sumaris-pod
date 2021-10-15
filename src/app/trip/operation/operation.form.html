@@ -8,7 +8,7 @@
 
   <ion-grid class="ion-no-padding">
 
-    <ion-row class="ion-no-padding high" *ngIf="allowParentOperation">
+    <ion-row class="ion-no-padding high" *ngIf="allowParentOperation||($isChildOperation|async)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
@@ -22,7 +22,7 @@
           <mat-select (selectionChange)="onIsChildOperationChanged($event.value)"
                       [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
                       [tabindex]="tabindex"
-                      [value]="!!form.get('parentOperation').value"
+                      [value]="($isChildOperation|async) === true"
                       required>
             <mat-option *ngFor="let item of isChildOperationItems" [value]="item.value">
               {{ item.label |translate }}
@@ -33,7 +33,7 @@
         <ng-template #isChildOperationButtons>
           <mat-form-field floatLabel="always">
             <input matInput type="text" hidden
-                   [formControl]="form.controls.operationTypeId"
+                   formControlName="parentOperation"
                    required>
             <ion-grid class="ion-no-padding">
               <ion-row class="ion-no-padding">
