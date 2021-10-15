@@ -141,7 +141,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
         this.form.get('date').valueChanges.pipe(distinctUntilChanged()),
         filterNotNil(this.$data)
       ])
-        .subscribe(date => this.showAtDate(this.form.value.date))
+        .subscribe(_ => this.showAtDate(this.form.value.date))
     );
 
     super.ngOnInit();

@@ -14,14 +14,15 @@
       </ion-col>
       <ion-col size="4" size-md="4">
 
-        <mat-form-field *ngIf="!mobile else operationTypeButtonField">
+        <mat-form-field *ngIf="!mobile else isChildOperationButtons">
 
           <input matInput type="text" hidden
                  formControlName="parentOperation"
                  required>
-          <mat-select (selectionChange)="onChildOperationChanged($event)"
+          <mat-select (selectionChange)="onIsChildOperationChanged($event.value)"
                       [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
                       [tabindex]="tabindex"
+                      [value]="!!form.get('parentOperation').value"
                       required>
             <mat-option *ngFor="let item of isChildOperationItems" [value]="item.value">
               {{ item.label |translate }}
@@ -29,7 +30,7 @@
           </mat-select>
         </mat-form-field>
 
-        <ng-template #operationTypeButtonField>
+        <ng-template #isChildOperationButtons>
           <mat-form-field floatLabel="always">
             <input matInput type="text" hidden
                    [formControl]="form.controls.operationTypeId"
@@ -39,8 +40,8 @@
                 <ion-col *ngFor="let item of isChildOperationItems; index as i;">
                   <ion-button class="mat-form-field-button"
                               [tabindex]="tabindex+1"
-                              (click)="onChildOperationChanged(item.value)"
-                              (keyup.enter)="onChildOperationChanged(item.value)"
+                              (click)="onIsChildOperationChanged(item.value)"
+                              (keyup.enter)="onIsChildOperationChanged(item.value)"
                               fill="solid"
                               expand="full"
                               [color]="isChildOperation === item.value ? 'accent' : 'light'">

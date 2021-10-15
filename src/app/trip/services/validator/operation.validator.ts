@@ -68,8 +68,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         comments: [data && data.comments || null, Validators.maxLength(2000)],
         parentOperation: [data && data.parentOperation || null],
         childOperation: [data && data.childOperation || null],
-        qualityFlagId: [data && data.qualityFlagId || null],
-        parentOperationLabel: [null]
+        qualityFlagId: [data && data.qualityFlagId || null]
       });
 
     return formConfig;

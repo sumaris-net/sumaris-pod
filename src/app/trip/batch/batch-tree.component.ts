@@ -185,7 +185,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
             .pipe(
               debounceTime(400),
               // skip if loading, or hide
-              filter(() => !this.loading && this.enableSubBatchesTab)
+              filter(() => !this.loading && this.enableSubBatchesTab && this.subBatchesTable && true)
             )
             // Will refresh the tables (inside the setter):
             .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))

@@ -10,6 +10,7 @@ import {AppForm, filterNotNil, firstFalsePromise, firstNotNilPromise, isNil, isN
 import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} from '../services/model/measurement.model';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 
 @Component({
   selector: 'app-form-measurements',
@@ -66,10 +67,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value && isNotNil(value)) {
-      this._acquisitionLevel = value;
-      this.refreshPmfmsIfLoaded('set acquisitionLevel');
-    }
+    this.setAcquisitionLevel(value)
   }
 
   get acquisitionLevel(): string {
@@ -173,10 +171,16 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
   }
 
-  async changeAcquisitionLevel(acquisitionLevel: string, data: Measurement[]){
-    this._acquisitionLevel = acquisitionLevel;
-    await this.refreshPmfmsIfLoaded('changeAcquisitionLevel');
-    return this.safeSetValue(data);
+  async setAcquisitionLevel(value: string, data?: Measurement[]) {
+    if (this._acquisitionLevel !== value && isNotNil(value)) {
+      this._acquisitionLevel = value;
+      await this.refreshPmfmsIfLoaded('set acquisitionLevel');
+
+      // Apply given data
+      if (data) {
+        await this.safeSetValue(data);
+      }
+    }
   }
 
   /* -- protected methods -- */
@@ -355,9 +359,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return `[meas-form-${acquisitionLevel}]`;
   }
 
-  private async refreshPmfmsIfLoaded(event) {
+
+
+  private async refreshPmfmsIfLoaded(event?: any, reapplyData?: boolean) {
+    // Wait previous loading is finished
     await firstFalsePromise(this._loading$);
-    this.refreshPmfms(event);
+    // Then refresh pmfms
+    await this.refreshPmfms(event);
   }
 
   protected markForCheck() {

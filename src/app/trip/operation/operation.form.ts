@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
@@ -24,7 +24,7 @@ import { AbstractControl, FormGroup, ValidationErrors, Validators } from '@angul
 import { TranslateService } from '@ngx-translate/core';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
-import { distinctUntilChanged, filter } from 'rxjs/operators';
+import { distinctUntilChanged, filter, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
@@ -61,7 +61,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _physicalGearsSubject = new BehaviorSubject<PhysicalGear[]>(undefined);
   private _metiersSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _showMetierFilter = false;
-  private _isChildOperation = false;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -98,7 +97,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() programLabel: string;
-  @Input() acquisitionLevel: BehaviorSubject<string>;
 
   get trip(): Trip {
     return this._trip;
@@ -109,14 +107,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   get isChildOperation(): boolean {
-    return this.allowParentOperation && this.$isChildOperation.value;
+    return this.$isChildOperation.value === true;
   }
 
-  set isChildOperation(value: boolean){
-    if (this.$isChildOperation.value !== value) {
-      this.$isChildOperation.next(value);
-      this.markForCheck();
-    }
+  get parentChanges(): Observable<Operation> {
+    const control = this.form.get('parentOperation');
+    return control.valueChanges
+      .pipe(startWith(control.value as Operation));
   }
 
   constructor(
@@ -194,7 +191,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
-    this._isChildOperation = isNew ? undefined : isNotNil(data.parentOperation?.id);
+    this.onIsChildOperationChanged(isNotNil(data.parentOperation?.id));
     super.setValue(data, opts);
   }
 
@@ -302,6 +299,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       startDateTime: parentOperation.startDateTime && this.dateFormat.transform(parentOperation.startDateTime, {time: true}) as string
     }).toPromise() as string) || '';
     this.$parentOperationLabel.next(parentLabel);
+
   }
 
   async addParentOperation() {
@@ -492,14 +490,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  onChildOperationChanged(isChildOperation: boolean|undefined) {
+  onIsChildOperationChanged(isChildOperation: boolean) {
+    //if (!this.allowParentOperation) return; // Skip
 
-    this.isChildOperation = toBoolean(isChildOperation, this.isChildOperation);
-    console.debug('[operation-form] Is child operation ? ', this._isChildOperation);
+    isChildOperation = isChildOperation === true;
+    console.debug('[operation-form] Is child operation ? ', isChildOperation);
+
+    this.$isChildOperation.next(isChildOperation);
 
     // Filage
-    if (!this.isChildOperation) {
-      this.acquisitionLevel.next(AcquisitionLevelCodes.OPERATION);
+    if (!isChildOperation) {
       this.form.patchValue({
         qualityFlagId: QualityFlagIds.NOT_COMPLETED,
         parentOperation: null
@@ -508,7 +508,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Virage
     else {
-      this.acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
 
       this.form.get('qualityFlagId').patchValue(null);
 
@@ -582,9 +581,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Start date end child operation
     if (this.isChildOperation) {
       this.form.get('fishingEndDateTime').setValidators(Validators.required);
-      this.form.get('parentOperationLabel').setValidators(Validators.required);
+      this.form.get('parentOperation').setValidators(Validators.required);
     } else {
-      this.form.get('parentOperationLabel').clearValidators();
+      this.form.get('parentOperation').clearValidators();
       if (this.allowParentOperation) {
         this.form.get('fishingEndDateTime').clearValidators();
       }

@@ -166,9 +166,9 @@ export const ProgramProperties = Object.freeze({
       }
     ]
   },
-  TRIP_OPERATION_LINKED: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.linked',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_LINKED',
+  TRIP_ALLOW_PARENT_OPERATION: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.allowParent',
+    label: 'PROGRAM.OPTIONS.TRIP_ALLOW_PARENT_OPERATION',
     defaultValue: 'false',
     type: 'boolean'
   },
