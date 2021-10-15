@@ -46,6 +46,7 @@ public class OperationFilterVO implements IDataFilter {
     private Integer vesselId;
     private String programLabel;
     private Integer[] includedIds;
+    private Integer[] orIncludedIds;
     private Integer[] excludedIds;
     private Boolean excludeChildOperation;
     private Boolean hasNoChildOperation;

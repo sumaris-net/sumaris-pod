@@ -95,10 +95,14 @@ public class BatchServiceImpl implements BatchService {
 
 				Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
 				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
+				Map<Integer, String[]> sortingMeasurementsMultiple = Maps.newLinkedHashMap();
 				savedBatch.getMeasurementValues().forEach((pmfmId, value) -> {
 					if (pmfmService.isWeightPmfm(pmfmId)) {
 						quantificationMeasurements.putIfAbsent(pmfmId, value);
 					}
+					else if (pmfmService.isMultiplePmfm(pmfmId)){
+							sortingMeasurementsMultiple.put(pmfmId, value.split(";"));
+						}
 					else {
 						if (sortingMeasurements.containsKey(pmfmId)) {
 							log.warn(String.format("Duplicate measurement width {pmfmId: %s} on batch {id: %s}", pmfmId, savedBatch.getId()));
@@ -108,6 +112,7 @@ public class BatchServiceImpl implements BatchService {
 						}
 					}
 				});
+				measurementDao.saveBatchSortingMeasurementsMultipleMap(savedBatch.getId(), sortingMeasurementsMultiple);
 				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), sortingMeasurements);
 				measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), quantificationMeasurements);
 			}
