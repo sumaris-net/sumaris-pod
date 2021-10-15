@@ -347,7 +347,7 @@ public class ReferentialDaoImpl
         }
 
         // VO -> Entity
-        referentialVOToEntity(source, entity, true);
+        toEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -720,7 +720,7 @@ public class ReferentialDaoImpl
         return classname;
     }
 
-    protected void referentialVOToEntity(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
+    protected void toEntity(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 

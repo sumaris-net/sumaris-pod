@@ -74,6 +74,13 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             Boolean.class,
         false),
 
+    EXTRACTION_MAP_ENABLE(
+        "sumaris.extraction.map.enable",
+        n("sumaris.config.option.extraction.map.enable.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
+
     EXTRACTION_QUERY_TIMEOUT(
         "sumaris.extraction.query.timeout",
         n("sumaris.config.option.extraction.query.timeout.description"),

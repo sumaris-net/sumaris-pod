@@ -62,7 +62,7 @@ public interface VesselRegistrationPeriodSpecifications {
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(cb.coalesce(root.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate),
+                        cb.lessThan(cb.coalesce(root.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate),
                         cb.greaterThan(root.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
