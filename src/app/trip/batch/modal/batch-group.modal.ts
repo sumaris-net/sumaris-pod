@@ -64,6 +64,8 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
   @Input() hasIndividualMeasurementByDefault: boolean;
 
+  @Input() maxVisibleButtons: number;
+
   @Input()
   set value(value: BatchGroup) {
     this.data = value;

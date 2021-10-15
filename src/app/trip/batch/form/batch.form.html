@@ -44,22 +44,23 @@
         <!-- If mobile + qualitative value: force 'button' style -->
         <ng-container *ngIf="mobile && pmfm.isQualitative; else otherField">
           <app-pmfm-qv-field #matInput
-                                         [pmfm]="pmfm"
-                                         [hidden]="pmfm.hidden"
-                                         [style]="'button'"
-                                         [formControl]="form.get('measurementValues.'+ pmfm.id)"
-                                         [compact]="compact"
-                                         [tabindex]="tabindex+2 + i*2">
+                             [pmfm]="pmfm"
+                             [hidden]="pmfm.hidden"
+                             [style]="'button'"
+                             [formControl]="form.get('measurementValues.'+ pmfm.id)"
+                             [compact]="compact"
+                             [maxVisibleButtons]="maxVisibleButtons"
+                             [tabindex]="tabindex+2 + i*2">
           </app-pmfm-qv-field>
         </ng-container>
 
         <!-- NOT qualitative value -->
         <ng-template #otherField>
           <app-pmfm-field #matInput [pmfm]="pmfm"
-                                    [hidden]="pmfm.hidden"
-                                    [formControl]="form.get('measurementValues.'+ pmfm.id)"
-                                    [compact]="compact"
-                                    [tabindex]="tabindex+2 + i*2">
+                          [hidden]="pmfm.hidden"
+                          [formControl]="form.get('measurementValues.'+ pmfm.id)"
+                          [compact]="compact"
+                          [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>
         </ng-template>
 
@@ -70,14 +71,14 @@
     <ion-row *ngIf="defaultWeightPmfm && showWeight">
       <ion-col class="ion-no-padding">
         <app-pmfm-field #matInput
-                                    [class.computed]="weightForm.controls.computed.value"
-                                    [pmfm]="defaultWeightPmfm"
-                                    [formControl]="weightForm.controls.value"
-                                    [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
-                                    [compact]="compact"
-                                    [tabindex]="tabindex+28"
-                                    [listenStatusChanges]="true"
-                                    [required]="requiredWeight">
+                        [class.computed]="weightForm.controls.computed.value"
+                        [pmfm]="defaultWeightPmfm"
+                        [formControl]="weightForm.controls.value"
+                        [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
+                        [compact]="compact"
+                        [tabindex]="tabindex+28"
+                        [listenStatusChanges]="true"
+                        [required]="requiredWeight">
         </app-pmfm-field>
 
       </ion-col>
@@ -131,20 +132,20 @@
     <div [hidden]="!showSampleBatch" formArrayName="children">
       <ion-row class="ion-no-padding">
         <ion-col class="ion-no-padding">
-            <!-- checkbox, when compact -->
-            <mat-checkbox [checked]="isSampling"
-                          [disabled]="disabled || requiredSampleWeight"
-                          labelPosition="after"
-                          [tabindex]="tabindex+31"
-                          (change)="setIsSampling($event.checked)">
-              <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
-            </mat-checkbox>
+          <!-- checkbox, when compact -->
+          <mat-checkbox [checked]="isSampling"
+                        [disabled]="disabled || requiredSampleWeight"
+                        labelPosition="after"
+                        [tabindex]="tabindex+31"
+                        (change)="setIsSampling($event.checked)">
+            <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
+          </mat-checkbox>
         </ion-col>
       </ion-row>
 
       <ion-row class="ion-no-padding"
-        *ngFor="let samplingBatchForm of childrenArray.controls; let i=index"
-        [formGroupName]="i">
+               *ngFor="let samplingBatchForm of childrenArray.controls; let i=index"
+               [formGroupName]="i">
 
         <!-- Sampling ratio -->
         <ion-col size="4" class="ion-no-padding">
@@ -173,14 +174,14 @@
         <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm">
 
           <app-pmfm-field #matInput
-                                      [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
-                                      [pmfm]="defaultWeightPmfm"
-                                      [formControl]="samplingBatchForm.controls.weight.controls.value"
-                                      [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
-                                      [compact]="compact"
-                                      [required]="requiredSampleWeight"
-                                      [tabindex]="tabindex+33"
-                                      [listenStatusChanges]="true">
+                          [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
+                          [pmfm]="defaultWeightPmfm"
+                          [formControl]="samplingBatchForm.controls.weight.controls.value"
+                          [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
+                          [compact]="compact"
+                          [required]="requiredSampleWeight"
+                          [tabindex]="tabindex+33"
+                          [listenStatusChanges]="true">
           </app-pmfm-field>
         </ion-col>
 
