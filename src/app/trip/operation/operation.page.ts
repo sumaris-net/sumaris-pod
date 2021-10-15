@@ -320,7 +320,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (allowParentOperation) {
       showDefaultTables = false;
       this._measurementSubscription.add(
-        this.opeForm.parentChanges
+        this.opeForm.onParentChanges
           .pipe(
             map(parent => !!parent), // into boolean
             distinctUntilChanged()
@@ -645,9 +645,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.measurementsForm.gearId = gearId;
     this.measurementsForm.programLabel = program;
     if (isNotNil(data.parentOperationId)) {
-      await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION);
+      await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
+      this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
     }
-    this.measurementsForm.value = data && data.measurements || [];
+    else {
+      this.measurementsForm.value = data && data.measurements || [];
+    }
 
     // Set batch tree
     this.batchTree.gearId = gearId;
@@ -696,7 +699,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
 
     // If tab 1, open the invalid sub tab
-    if (invalidTabIndex === 1) {
+    if (invalidTabIndex === 1 && this.showCatchTab) {
       if (this.showBatchTables) {
         this.batchTree.setSelectedTabIndex(batchTreeInvalidSubTab);
       } else if (this.showSampleTables) {
@@ -730,9 +733,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.samplesTable,
       this.individualMonitoringTable,
       this.individualReleaseTable,
-      this.batchTree,
-      //this.catchBatchForm,
-      //this.batchGroupsTable
+      () => this.showCatchTab && this.batchTree
     ]);
     if (!this.mobile) {
       //this.addChildForm(() => this.subBatchesTable);

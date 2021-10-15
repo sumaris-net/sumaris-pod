@@ -15,11 +15,7 @@
       <ion-col size="6" size-md="">
 
         <mat-form-field *ngIf="!mobile else isChildOperationButtons">
-
-          <input matInput type="text" hidden
-                 formControlName="parentOperation"
-                 required>
-          <mat-select (selectionChange)="onIsChildOperationChanged($event.value)"
+          <mat-select matInput (selectionChange)="onIsChildOperationChanged($event.value)"
                       [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
                       [tabindex]="tabindex"
                       [value]="($isChildOperation|async) === true"
@@ -92,7 +88,7 @@
                   <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
                 </ion-label>
               </button>
-              <button mat-menu-item type="button" [disabled]="form.controls.parentOperation.value?.id | isNilOrBlank"
+              <button mat-menu-item type="button" [disabled]="parentControl.value | isNilOrBlank"
                       tabindex="-1"
                       (click)="updateParentOperation()">
                 <ion-label>
@@ -121,9 +117,8 @@
                                 [config]="autocompleteFields.physicalGear"
                                 [tabindex]="tabindex+2"
                                 [required]="true"
-                                [readonly]="isChildOperation">
+                                [readonly]="$isChildOperation|async">
         </mat-autocomplete-field>
-
       </ion-col>
 
       <!-- Target species (using metier) -->
@@ -134,7 +129,7 @@
                                 [tabindex]="tabindex+3"
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
-                                [readonly]="isChildOperation">
+                                [readonly]="$isChildOperation|async">
           <!-- Reset filter -->
           <button mat-icon-button matSuffix (click)="toggleMetierFilter($event)"
                   *ngIf="showMetierFilter">

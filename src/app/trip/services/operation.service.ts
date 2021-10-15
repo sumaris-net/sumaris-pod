@@ -1,9 +1,9 @@
-import { Injectable , Optional} from '@angular/core';
-import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
-import {filter, first, map, tap} from 'rxjs/operators';
-import {ErrorCodes} from './trip.errors';
-import {DataFragments, Fragments} from './trip.queries';
+import { Injectable, Optional } from '@angular/core';
+import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { filter, first, map, tap } from 'rxjs/operators';
+import { ErrorCodes } from './trip.errors';
+import { DataFragments, Fragments } from './trip.queries';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -29,27 +29,26 @@ import {
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
-  QueryVariables, removeDuplicatesFromArray
+  QueryVariables
 } from '@sumaris-net/ngx-components';
-import {Measurement} from './model/measurement.model';
-import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import { Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
-import {Batch, BatchUtils} from './model/batch.model';
-import {Sample} from './model/sample.model';
-import {SortDirection} from '@angular/material/sort';
+import { Measurement } from './model/measurement.model';
+import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { Operation, OperationFromObjectOptions, Trip, VesselPosition } from './model/trip.model';
+import { Batch, BatchUtils } from './model/batch.model';
+import { Sample } from './model/sample.model';
+import { SortDirection } from '@angular/material/sort';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { AcquisitionLevelCodes , QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {GeolocationOptions} from '@ionic-native/geolocation';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { GeolocationOptions } from '@ionic-native/geolocation';
 import moment from 'moment';
-import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { MetierService } from '@app/referential/services/metier.service';
 
 

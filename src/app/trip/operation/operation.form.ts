@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
   AccountService,
-  AppForm,
+  AppForm, AppFormUtils,
   DateFormatPipe,
   EntityUtils,
   fromDateISOString,
@@ -34,6 +34,7 @@ import { SelectOperationModal } from '@app/trip/operation/select-operation.modal
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
+import { SubBatch } from '@app/trip/services/model/subbatch.model';
 
 const moment = momentImported;
 
@@ -74,9 +75,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   enableMetierFilter = false;
 
   isChildOperationItems = IS_CHILD_OPERATION_ITEMS;
-  $isChildOperation = new BehaviorSubject<boolean>(false);
+  $isChildOperation = new BehaviorSubject<boolean>(undefined);
   $parentOperationLabel = new BehaviorSubject<string>('');
-  $parentOperation = new BehaviorSubject<Operation>(undefined);
 
   @Input() showComment = true;
   @Input() showError = true;
@@ -108,16 +108,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   get isChildOperation(): boolean {
-    return this.$isChildOperation.getValue();
+    return this.$isChildOperation.value === true;
   }
 
-  get parentChanges(): Observable<Operation> {
-    return this.$parentOperation.asObservable();
-  }
 
   get parentControl(): FormControl {
     return this.form.get('parentOperation') as FormControl;
   }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.enable(opts);
+  }
+
+  @Output() onParentChanges = new EventEmitter<Operation>();
 
   constructor(
     protected dateFormat: DateFormatPipe,
@@ -297,7 +300,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     parentOperation = parentOperation || this.form.get('parentOperation').value;
     if (this.debug) console.debug('[operation-form] Parent operation changed: ', parentOperation);
 
-    this.$parentOperation.next(parentOperation);
+    this.onParentChanges.emit(parentOperation);
 
     // Compute parent operation label
     let parentLabel = '';
@@ -505,12 +508,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       // Virage
       if (isChildOperation) {
 
+        this.parentControl.enable();
+
         if (!this.parentControl.value) {
           // Keep filled values
           this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
 
           // Propage to page, that there is an operation
-          setTimeout(() => this.$parentOperation.next(new Operation()), 600);
+          setTimeout(() => this.onParentChanges.next(new Operation()), 600);
 
           // Select a parent (or same if user cancelled)
           this.addParentOperation();
@@ -522,7 +527,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         this.form.patchValue({
           qualityFlagId: QualityFlagIds.NOT_COMPLETED,
           parentOperation: null
-        })
+        });
+        SharedValidators.clearError(this.parentControl, 'required');
+        this.parentControl.disable();
       }
 
       this.setValidators();
@@ -572,9 +579,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   protected setValidators() {
-    // Add validator on trip date
-
-    let endDateTimeControlName; //
+    // Add validator on date
+    let endDateTimeControlName;
     let disabledEndDateTimeControlName;
     const childOperation = this.form.get('childOperation').value;
 
@@ -588,7 +594,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Start date end child operation
     if (this.isChildOperation) {
-      this.parentControl.setValidators(Validators.required);
+      //this.parentControl.setValidators(Validators.required);
       this.form.get('fishingEndDateTime').setValidators(Validators.required);
       this.form.get('fishingEndDateTime').setAsyncValidators(async (control) => {
         const fishingEndDateTime = fromDateISOString(control.value);
@@ -603,7 +609,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         return null;
       });
     } else {
-      this.form.get('parentOperation').clearValidators();
+      //this.parentControl.clearValidators();
       this.form.get('fishingEndDateTime').clearValidators();
       this.form.get('fishingEndDateTime').clearAsyncValidators();
     }
