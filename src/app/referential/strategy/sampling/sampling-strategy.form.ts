@@ -285,6 +285,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
+    if (!this.appliedPeriodsHelper) {
+      this.initAppliedPeriodHelper();
+    }
+
     this.appliedPeriodsForm.setAsyncValidators([
       async (control) => {
         const minLength = 1;
