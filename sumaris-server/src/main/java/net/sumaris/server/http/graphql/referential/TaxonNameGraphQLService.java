@@ -89,7 +89,7 @@ public class TaxonNameGraphQLService {
 
     @GraphQLQuery(name = "taxonNames", description = "Search in taxon names")
     @Transactional(readOnly = true)
-    public List<TaxonNameVO> findTaxonNamesByFilter(
+    public List<TaxonNameVO> findTaxonNames(
             @GraphQLArgument(name = "filter") TaxonNameFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,

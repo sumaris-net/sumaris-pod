@@ -507,12 +507,12 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>useLiquibaseAutoRun.</p>
+     * <p>isLiquibaseEnabled.</p>
      *
      * @return a boolean.
      */
-    public boolean useLiquibaseAutoRun() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_RUN_AUTO.getKey());
+    public boolean isLiquibaseEnabled() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_ENABLED.getKey());
     }
 
     /**

@@ -362,9 +362,9 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
 
     /* -- Liquibase options-- */
 
-    LIQUIBASE_RUN_AUTO(
+    LIQUIBASE_ENABLED(
         "spring.liquibase.enabled",
-        n("sumaris.config.option.liquibase.should.run.description"),
+        n("sumaris.config.option.liquibase.liquibase.enabled.description"),
         Boolean.TRUE.toString(),
         boolean.class,
         false),

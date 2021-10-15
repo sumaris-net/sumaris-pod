@@ -97,7 +97,7 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @Column(name = "end_date")
     private Date endDate;
 
-    @Formula("nvl(end_date, to_date(' 2100-01-01 00:00:00', 'syyyy-mm-dd hh24:mi:ss'))")
+    @Formula("coalesce(end_date, date'2100-01-01')")
     @Column(name = "nvl_end_date", insertable = false, updatable = false)
     private Date nvlEndDate;
 

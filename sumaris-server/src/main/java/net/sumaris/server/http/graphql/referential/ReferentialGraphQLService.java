@@ -206,27 +206,6 @@ public class ReferentialGraphQLService {
 
     /* -- taxon -- */
 
-    @GraphQLQuery(name = "taxonNames", description = "Search in taxon names")
-    @Transactional(readOnly = true)
-    public List<TaxonNameVO> findTaxonNames(
-            @GraphQLArgument(name = "filter") TaxonNameFilterVO filter,
-            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-            @GraphQLEnvironment ResolutionEnvironment env) {
-
-        return taxonNameService.findByFilter(
-            TaxonNameFilterVO.nullToEmpty(filter),
-            Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(),
-            getFetchOptions(GraphQLUtils.fields(env)));
-    }
-
     @GraphQLQuery(name = "taxonGroupIds", description = "Get taxon groups from a taxon name")
     public List<Integer> getTaxonGroupIdsByTaxonName(@GraphQLContext TaxonNameVO taxonNameVO) {
         if (taxonNameVO.getReferenceTaxonId() != null) {

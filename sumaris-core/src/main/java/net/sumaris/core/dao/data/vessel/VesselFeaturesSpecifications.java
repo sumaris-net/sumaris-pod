@@ -103,7 +103,7 @@ public interface VesselFeaturesSpecifications<
             // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
             return root.get(VesselFeatures.Fields.NVL_END_DATE);
         }
-        return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME);
+        return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
     }
 
     default Expression<Date> nvlRegistrationEndDate(Path<VesselRegistrationPeriod> vrp, CriteriaBuilder cb) {
@@ -111,7 +111,7 @@ public interface VesselFeaturesSpecifications<
             // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
             return vrp.get(VesselRegistrationPeriod.Fields.NVL_END_DATE);
         }
-        return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME);
+        return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
     }
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
