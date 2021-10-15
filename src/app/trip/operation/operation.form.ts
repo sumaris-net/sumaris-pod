@@ -197,7 +197,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
-    this.onIsChildOperationChanged(isNotNil(data.parentOperation?.id));
+    this.onIsChildOperationChanged(isNotNil(data.parentOperation?.id), {emitEvent: false});
     super.setValue(data, opts);
   }
 
@@ -497,7 +497,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  onIsChildOperationChanged(isChildOperation: boolean) {
+  onIsChildOperationChanged(isChildOperation: boolean, opts?: { emitEvent?: boolean; }) {
     isChildOperation = isChildOperation === true;
 
     if (this.$isChildOperation.value !== isChildOperation){
@@ -510,7 +510,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         this.parentControl.enable();
 
-        if (!this.parentControl.value) {
+        if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
           // Keep filled values
           this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
 

@@ -1056,6 +1056,16 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Update (id and updateDate)
     EntityUtils.copyIdAndUpdateDate(source, target);
 
+    // Update parent operation
+    if (target.parentOperation && source.parentOperation) {
+      EntityUtils.copyIdAndUpdateDate(source.parentOperation, target.parentOperation);
+    }
+
+    // Update child operation
+    if (target.childOperation && source.childOperation) {
+      EntityUtils.copyIdAndUpdateDate(source.childOperation, target.childOperation);
+    }
+
     // Update positions (id and updateDate)
     if (source.positions && source.positions.length > 0) {
       [target.startPosition, target.endPosition].forEach(targetPos => {
