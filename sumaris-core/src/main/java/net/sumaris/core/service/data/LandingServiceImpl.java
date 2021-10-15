@@ -290,7 +290,9 @@ public class LandingServiceImpl implements LandingService {
             fillDefaultProperties(source, trip);
 
             // Save the landed trip
-            TripVO savedTrip = tripService.save(trip, TripSaveOptions.LANDED_TRIP);
+            TripSaveOptions tripSaveOptions = TripSaveOptions.LANDED_TRIP;
+            tripSaveOptions.setWithExpectedSales(trip.getExpectedSale() != null || trip.getExpectedSales() != null);
+            TripVO savedTrip = tripService.save(trip, tripSaveOptions);
 
             // Update the source landing
             source.setTripId(savedTrip.getId());

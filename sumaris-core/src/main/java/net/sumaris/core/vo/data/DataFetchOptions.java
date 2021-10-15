@@ -58,6 +58,6 @@ public class DataFetchOptions implements IDataFetchOptions {
     private boolean withMeasurementValues = false;
 
     @Builder.Default
-    private boolean withExpectedSales = false;
+    private boolean withExpectedSales = true;
 
 }

@@ -333,32 +333,26 @@ public class TripServiceImpl implements TripService {
             fillDefaultProperties(target, sale);
             List<SaleVO> sales = saleService.saveAllByTripId(target.getId(), ImmutableList.of(sale));
             target.setSale(sales.get(0));
-        } else {
-            // Remove all
-          if (!isNew) {
+        } else if (!isNew) { // Remove all
             saleService.saveAllByTripId(target.getId(), ImmutableList.of());
-          }
         }
 
         // Save expected sales (only if asked)
-      if (withExpectedSales) {
-        if (CollectionUtils.isNotEmpty(source.getExpectedSales())) {
-          List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
-          expectedSales.forEach(expectedSale -> fillDefaultProperties(target, expectedSale));
-          expectedSales = expectedSaleService.saveAllByTripId(target.getId(), expectedSales);
-          target.setExpectedSales(expectedSales);
-        } else if (source.getExpectedSale() != null) {
-          ExpectedSaleVO expectedSale = source.getExpectedSale();
-          fillDefaultProperties(target, expectedSale);
-          List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
-          target.setExpectedSale(expectedSales.get(0));
-        } else {
-          // Remove all
-          if (!isNew) {
-            expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
-          }
+        if (withExpectedSales) {
+            if (CollectionUtils.isNotEmpty(source.getExpectedSales())) {
+                List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
+                expectedSales.forEach(expectedSale -> fillDefaultProperties(target, expectedSale));
+                expectedSales = expectedSaleService.saveAllByTripId(target.getId(), expectedSales);
+                target.setExpectedSales(expectedSales);
+            } else if (source.getExpectedSale() != null) {
+                ExpectedSaleVO expectedSale = source.getExpectedSale();
+                fillDefaultProperties(target, expectedSale);
+                List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
+                target.setExpectedSale(expectedSales.get(0));
+            } else if (!isNew) { // Remove all
+                expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
+            }
         }
-      }
 
         // Publish event
         if (isNew) {

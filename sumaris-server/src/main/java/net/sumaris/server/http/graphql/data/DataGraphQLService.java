@@ -67,7 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -899,7 +898,7 @@ public class DataGraphQLService {
     @IsUser
     public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
                                 @GraphQLEnvironment ResolutionEnvironment env) {
-        final LandingVO result = landingService.get(id);
+        final LandingVO result = landingService.get(id, getTripFetchOptions(GraphQLUtils.fields(env)));
 
         // Add additional properties if needed
         fillLandingFields(result, GraphQLUtils.fields(env));
@@ -1338,6 +1337,15 @@ public class DataGraphQLService {
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .build();
+    }
+
+    protected DataFetchOptions getTripFetchOptions(Set<String> fields) {
+        DataFetchOptions fetchOption = DataFetchOptions.DEFAULT;
+        fetchOption.setWithExpectedSales(
+                fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID))
+        );
+        return fetchOption;
     }
 
     /**
