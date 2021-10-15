@@ -51,7 +51,7 @@
   <PROGRAM_PROPERTY ID="90" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
   <PROGRAM_PROPERTY ID="91" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.autoFill" NAME="true"/>
   <PROGRAM_PROPERTY ID="92" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.metiers.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="93" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.linked" NAME="true"/>
+  <PROGRAM_PROPERTY ID="93" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.allowParent" NAME="true"/>
   <PROGRAM_PROPERTY ID="94" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="50" LOCATION_CLASSIFICATION_FK="2"/>
