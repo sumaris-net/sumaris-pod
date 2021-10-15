@@ -231,77 +231,12 @@ export const TripFragments = {
   ${Fragments.metier}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}
-  ${DataFragments.fishingArea}`,
-
-landedTripWithoutExpectedSales: gql`fragment LandedTripWithoutExpectedSalesFragment on TripVO {
-  id
-  program {
-    id
-    label
-  }
-  departureDateTime
-  returnDateTime
-  creationDate
-  updateDate
-  controlDate
-  validationDate
-  qualificationDate
-  qualityFlagId
-  comments
-  landing {
-    id
-    rankOrder
-  }
-  observedLocationId
-  departureLocation {
-    ...LocationFragment
-  }
-  returnLocation {
-    ...LocationFragment
-  }
-  vesselSnapshot {
-    ...LightVesselSnapshotFragment
-  }
-  gears {
-    ...PhysicalGearFragment
-  }
-  measurements {
-    ...MeasurementFragment
-  }
-  recorderDepartment {
-    ...LightDepartmentFragment
-  }
-  recorderPerson {
-    ...LightPersonFragment
-  }
-  observers {
-    ...LightPersonFragment
-  }
-  metiers {
-    ...MetierFragment
-  }
-  operationGroups {
-    ...OperationGroupFragment
-  }
-  fishingAreas {
-    ...FishingAreaFragment
-  }
-}
-${Fragments.lightDepartment}
-${Fragments.lightPerson}
-${Fragments.measurement}
-${Fragments.referential}
-${Fragments.location}
-${VesselSnapshotFragments.lightVesselSnapshot}
-${Fragments.metier}
-${OperationGroupFragment.operationGroup}
-${DataFragments.fishingArea}`
+  ${DataFragments.fishingArea}`
 };
 
 
 export interface TripLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
-  isLandedTripWithExpectedSales?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
   toEntity?: boolean;
@@ -309,7 +244,6 @@ export interface TripLoadOptions extends EntityServiceLoadOptions {
 
 export interface TripSaveOptions extends EntitySaveOptions {
   withLanding?: boolean;
-  withLandingExpectedSales?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
   enableOptimisticResponse?: boolean; // True by default
@@ -321,7 +255,7 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
   displaySuccessToast?: boolean;
 }
 
-const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } & { loadLandedTripWithoutExpectedSales: any; } = {
+const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } = {
 
   // Load a trip
   load: gql` query Trip($id: Int!) {
@@ -352,15 +286,7 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; } & { loadL
       ...LandedTripFragment
     }
   }
-  ${TripFragments.landedTrip}`,
-
-  // Load a landed trip
-  loadLandedTripWithoutExpectedSales: gql`query Trip($id: Int!) {
-    data: trip(id: $id) {
-      ...LandedTripWithoutExpectedSalesFragment
-    }
-  }
-  ${TripFragments.landedTripWithoutExpectedSales}`
+  ${TripFragments.landedTrip}`
 };
 
 // Save a trip
@@ -379,14 +305,6 @@ const TripMutations = {
     }
   }
   ${TripFragments.landedTrip}`,
-
-  // Save a landed trip without expected sales
-  saveLandedTripWithoutExpectedSales: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
-    data: saveTrip(trip: $trip, options: $options){
-      ...LandedTripWithoutExpectedSalesFragment
-    }
-  }
-  ${TripFragments.landedTripWithoutExpectedSales}`,
 
   // Delete
   deleteAll: gql`mutation DeleteTrips($ids:[Int]!){
@@ -582,7 +500,6 @@ export class TripService
 
     // use landedTrip option if itself or withOperationGroups is present in service options
     const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
-    const isLandedTripWithExpectedSales = opts && (opts.isLandedTrip || opts.isLandedTripWithExpectedSales);
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
@@ -602,7 +519,7 @@ export class TripService
           });
         }
       } else {
-        const query = isLandedTrip ? (isLandedTripWithExpectedSales ? TripQueries.loadLandedTrip : TripQueries.loadLandedTripWithoutExpectedSales): TripQueries.load;
+        const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
         // Load remotely
         const res = await this.graphql.query<{ data: Trip }>({
@@ -686,7 +603,6 @@ export class TripService
 
     opts = {
       withLanding: false,
-      withLandingExpectedSales: false,
       withOperation: false,
       withOperationGroup: false,
       ...opts
@@ -724,12 +640,11 @@ export class TripService
       trip: json,
       options: {
         withLanding: opts.withLanding,
-        withLandingExpectedSales: opts.withLandingExpectedSales,
         withOperation: opts.withOperation,
         withOperationGroup: opts.withOperationGroup
       }
     };
-    const mutation = (opts.withLanding) ? ((opts.withLandingExpectedSales) ? TripMutations.saveLandedTrip : TripMutations.saveLandedTripWithoutExpectedSales) : this.mutations.save;
+    const mutation = (opts.withLanding) ? TripMutations.saveLandedTrip : this.mutations.save;
     await this.graphql.mutate<{ data: any }>({
       mutation,
       variables,
