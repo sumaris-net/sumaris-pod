@@ -111,6 +111,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() showDisplayColumn = true;
   @Input() weightDisplayedUnit: string;
 
+  @Input() tagIdMinLength = 4;
+  @Input() tagIdPadString = '0';
+
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.getValue() !== value) {
       this.showGroupHeader = true;
@@ -269,14 +272,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
 
-  async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
     //const pmfms = await firstNotNilPromise(this.$pmfms);
 
-    let isNew = !sample && true;
+    let isNew = !dataToOpen && true;
     if (isNew) {
-      sample = new Sample();
-      await this.onNewEntity(sample);
+      dataToOpen = new Sample();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
@@ -299,27 +302,29 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         const pmfms = await firstNotNilPromise(modal.$pmfms);
         this.onPrepareRowForm.emit({form, pmfms});
       },
-      onSaveAndNew: async (data) => {
+      onSaveAndNew: async (dataToSave) => {
         if (isNew) {
-          await this.addEntityToTable(data);
+          await this.addEntityToTable(dataToSave);
         }
         else {
-          this.updateEntityToTable(data, row);
+          this.updateEntityToTable(dataToSave, row);
           row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
           isNew = true; // Next row should be new
         }
+        // Prepare new sample
         const newData = new Sample();
         await this.onNewEntity(newData);
         return newData;
       },
-      onDelete: (event, data) => this.delete(event, data),
+
+      onDelete: (event, dataToDelete) => this.delete(event, dataToDelete),
 
       // Override using given options
       ...this.modalOptions,
 
-      // Give data
-      data: sample,
+      // Data to open
       isNew,
+      data: dataToOpen
     };
 
     const modal = await this.modalCtrl.create({
@@ -454,12 +459,17 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // server call for first sample and increment from server call value
     if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+
+      // TODO BLA review the code
+      //  => à clarifier, en utilisant une variable 'tagId'
+
       // skip first
       if (data.rankOrder === 1) {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
       } else if (data.rankOrder > 1 && !this.currentSample) {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
       } else if (this.currentSample) {
+        // TODO attention, récupérer auyssi plus tard
         const previousSample = await this.findRowBySample(this.currentSample);
         if (previousSample) { // row exist
           if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
@@ -472,16 +482,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         } else { // no tag id
           data.measurementValues[PmfmIds.TAG_ID] = '';
         }
-        if (data.measurementValues[PmfmIds.TAG_ID] !== '') {
-          if (data.measurementValues[PmfmIds.TAG_ID] < 10) {
-            data.measurementValues[PmfmIds.TAG_ID] = '000' + data.measurementValues[PmfmIds.TAG_ID];
-          } else if (data.measurementValues[PmfmIds.TAG_ID] < 100) {
-            data.measurementValues[PmfmIds.TAG_ID] = '00' + data.measurementValues[PmfmIds.TAG_ID];
-          } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
-            data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
-          } else {
-            data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID].toString;
-          }
+        if (isNotNilOrBlank(data.measurementValues[PmfmIds.TAG_ID])) {
+          data.measurementValues[PmfmIds.TAG_ID] = (''+data.measurementValues[PmfmIds.TAG_ID]).padStart(this.tagIdMinLength, this.tagIdPadString);
         }
       }
     }
@@ -490,6 +492,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING)) {
       // skip first
       if (data.rankOrder > 1 && !this.currentSample) {
+        // TODO BLA: review this code
+        //  => à optimiser !! ici on récupère le sample précédent 2 fois : pour le TAG_ID et ici, mais pas avec la meme méthode.
         const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
         data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
       } else if (this.currentSample) {
@@ -542,7 +546,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return true;
   }
 
-  protected prepareEntityToSave(sample: Sample) {
+  protected prepareEntityToSave(data: Sample) {
     // Override by subclasses
   }
 

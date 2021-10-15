@@ -36,22 +36,6 @@ export interface OperationFromObjectOptions {
   withBatchTree?: boolean;
 }
 
-export declare interface OperationType {
-  id: number;
-  label: string;
-}
-
-export const defaultOperationTypesList: OperationType[] = [
-  {
-    id: 0,
-    label: "TRIP.OPERATION.EDIT.TYPE.PARENT"
-  },
-  {
-    id: 1,
-    label: "TRIP.OPERATION.EDIT.TYPE.CHILD"
-  }
-];
-
 @EntityClass({typename: 'OperationVO'})
 export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
@@ -77,7 +61,6 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   samples: Sample[] = null;
   catchBatch: Batch = null;
   fishingAreas: FishingArea[] = [];
-  operationTypeId: number;
   parentOperationId: number = null;
   parentOperation: Operation = null;
   qualityFlagId:  number = null;
@@ -179,7 +162,6 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     else {
       target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
-      target.operationTypeId = this.parentOperation ? 1 : 0;
     }
 
     return target;
@@ -257,8 +239,6 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     //Child Operation
     this.childOperationId = source.childOperationId;
     this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
-
-    this.operationTypeId = this.parentOperationId ? 1 : 0;
   }
 
   equals(other: Operation): boolean {

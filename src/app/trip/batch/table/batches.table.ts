@@ -257,7 +257,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       });
   }
 
-  protected prepareEntityToSave(batch: T) {
+  protected prepareEntityToSave(data: T) {
     // Override by subclasses
   }
 

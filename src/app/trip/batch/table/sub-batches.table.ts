@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {isObservable, Observable, Subscription} from 'rxjs';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {FormGroup, Validators} from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { isObservable, Observable, Subscription } from 'rxjs';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { FormGroup, Validators } from '@angular/forms';
 import {
   AppFormUtils,
   EntityFilter,
-  EntityUtils,
+  EntityUtils, ENVIRONMENT,
   FilterFn,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -21,20 +21,20 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../../measurement/measurements.table.class';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
-import {SubBatchForm} from '../form/sub-batch.form';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {SubBatchModal} from '../modal/sub-batch.modal';
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
-import {SortDirection} from '@angular/material/sort';
-import {SubBatch, SubBatchUtils} from '../../services/model/subbatch.model';
-import {BatchGroup} from '../../services/model/batch-group.model';
-import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
-import {environment} from '../../../../environments/environment';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
+import { SubBatchForm } from '../form/sub-batch.form';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { SubBatchModal } from '../modal/sub-batch.modal';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
+import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { SortDirection } from '@angular/material/sort';
+import { SubBatch, SubBatchUtils } from '../../services/model/subbatch.model';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { PmfmValidators } from '../../../referential/services/validator/pmfm.validators';
+import { environment } from '../../../../environments/environment';
+import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -58,7 +58,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   }
 }
 
-const subBatchTableOptionsFactory = (injector: Injector) => {
+const subBatchTableOptionsFactory = () => {
   return {
     prependNewElements: false,
     suppressErrors: environment.production,
@@ -75,8 +75,7 @@ const subBatchTableOptionsFactory = (injector: Injector) => {
     {provide: ValidatorService, useExisting: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: subBatchTableOptionsFactory,
-      deps: [Injector]
+      useFactory: subBatchTableOptionsFactory
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -397,7 +396,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     return this.memoryDataService.value;
   }
 
-  protected prepareEntityToSave(batch: SubBatch) {
+  protected prepareEntityToSave(data: SubBatch) {
     // Override by subclasses
   }
 

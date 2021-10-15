@@ -8,7 +8,7 @@ import {Environment} from "@sumaris-net/ngx-components";
 
 const pkg = require('../../package.json');
 
-export const environment: Environment = Object.freeze({
+export const environment = Object.freeze(<Environment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,

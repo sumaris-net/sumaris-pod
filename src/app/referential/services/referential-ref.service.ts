@@ -23,11 +23,12 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService,
+  SuggestService
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
-import { Metier, TaxonGroupRef, TaxonNameRef } from './model/taxon.model';
+import { TaxonGroupRef } from './model/taxon-group.model';
+import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { Moment } from 'moment';
@@ -35,6 +36,7 @@ import { environment } from '@environments/environment';
 import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
+import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{

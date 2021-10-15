@@ -94,9 +94,9 @@
         <ion-label translate>TRIP.OPERATION.LIST.OPERATION_TYPE</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon *ngIf="row.currentData.operationTypeId === 0 else child" matPrefix svgIcon="down-arrow"></mat-icon>
-        <ng-template #child>
-          <mat-icon matPrefix svgIcon="rollback-arrow"></mat-icon>
+        <mat-icon *ngIf="row.currentData.parentOperation?.id else parentIcon" matPrefix svgIcon="rollback-arrow"></mat-icon>
+        <ng-template #parentIcon>
+          <mat-icon matPrefix svgIcon="down-arrow"></mat-icon>
         </ng-template>
       </td>
     </ng-container>

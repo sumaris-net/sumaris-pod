@@ -44,9 +44,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   enableCatchForm = false;
   enableSubBatchesTab = false;
-
-  // Need when subbatches table not visible
-  subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
+  subBatchesService = new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
+    SubBatch, SubBatchFilter, {
+      equals: Batch.equals
+    }
+  )
 
   data: Batch;
   $programLabel = new BehaviorSubject<string>(undefined);
@@ -95,7 +97,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   get dirty(): boolean {
-    return super.dirty || (this.subBatchesService && this.subBatchesService.dirty);
+    return super.dirty || (!this.showSubBatchesTable && this.subBatchesService.dirty);
   }
 
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
@@ -188,14 +190,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
             // Will refresh the tables (inside the setter):
             .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
         );
-      } else {
-        this.subBatchesService = new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
-          SubBatch, SubBatchFilter, {
-            equals: Batch.equals
-          }
-        );
       }
     }
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.subBatchesService.ngOnDestroy();
   }
 
   protected setProgram(program: Program) {
@@ -352,9 +354,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       await AppTableUtils.waitIdle(this.subBatchesTable);
 
       this.subBatchesTable.markAsDirty();
-    } else {
+    } else  {
       await this.subBatchesService.saveAll(subbatches);
-      //if (!this._dirty) this.markAsDirty();
     }
   }
 

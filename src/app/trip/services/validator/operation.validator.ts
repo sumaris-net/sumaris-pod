@@ -66,7 +66,6 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
         physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
-        operationTypeId: [data && data.operationTypeId || null],
         parentOperation: [data && data.parentOperation || null],
         childOperation: [data && data.childOperation || null],
         qualityFlagId: [data && data.qualityFlagId || null],

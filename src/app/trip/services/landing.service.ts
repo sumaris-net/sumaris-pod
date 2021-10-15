@@ -291,7 +291,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
   watchAll(offset: number, size: number,
            sortBy?: string, sortDirection?: SortDirection,
-           dataFilter?: LandingFilter|any,
+           dataFilter?: Partial<LandingFilter>,
            opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
     dataFilter = this.asFilter(dataFilter);
@@ -367,7 +367,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
           // Compute rankOrder, by tripId or observedLocationId
           if (!opts || opts.computeRankOrder !== false) {
-            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter as LandingFilter);
           }
 
           return {data: entities, total};

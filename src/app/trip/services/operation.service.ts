@@ -29,7 +29,7 @@ import {
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
-  QueryVariables,
+  QueryVariables, removeDuplicatesFromArray
 } from '@sumaris-net/ngx-components';
 import {Measurement} from './model/measurement.model';
 import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
@@ -47,6 +47,10 @@ import {Geolocation} from '@ionic-native/geolocation/ngx';
 import {GeolocationOptions} from '@ionic-native/geolocation';
 import moment from 'moment';
 import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { MetierService } from '@app/referential/services/metier.service';
 
 
 export const recursiveFragments = {
@@ -299,6 +303,10 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   computeBatchIndividualCount?: boolean;
 }
 
+export declare interface OperationMetierFilter {
+  searchJoin?: string;
+}
+
 export declare interface OperationServiceWatchOptions extends OperationFromObjectOptions, EntitiesServiceWatchOptions {
 
   computeRankOrder?: boolean;
@@ -319,6 +327,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService,
+    protected metierService: MetierService,
     protected entities: EntitiesStorage,
     @Optional() protected geolocation: Geolocation
   ) {
@@ -697,20 +706,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * Load many local operations
    */
   watchAllLocally(offset: number,
-                 size: number,
-                 sortBy?: string,
-                 sortDirection?: SortDirection,
-                 dataFilter?: OperationFilter,
-                 opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
+                  size: number,
+                  sortBy?: string,
+                  sortDirection?: SortDirection,
+                  filter?: Partial<OperationFilter>,
+                  opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
 
 
-    if (!dataFilter || (isNil(dataFilter.tripId) && isNil(dataFilter.programLabel))) {
+    if (!filter || (isNil(filter.tripId) && isNil(filter.programLabel))) {
       console.warn('[operation-service] Trying to load operations without \'filter.tripId\' and \'filter.programLabel\'. Skipping.');
       return EMPTY;
     }
-    if (dataFilter.tripId >= 0) throw new Error('Invalid \'filter.tripId\': must be a local ID (id<0)!');
+    if (filter.tripId >= 0) throw new Error('Invalid \'filter.tripId\': must be a local ID (id<0)!');
 
-    dataFilter = this.asFilter(dataFilter);
+    filter = this.asFilter(filter);
 
     const variables = {
       offset: offset || 0,
@@ -718,7 +727,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter.asFilterFn()
+      filter: filter.asFilterFn()
     };
 
     if (this._debug) console.debug('[operation-service] Loading operations locally... using options:', variables);
@@ -730,11 +739,51 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
         // Compute rankOrder and re-sort (if enable AND all data fetched)
         if (!opts || opts.computeRankOrder !== false) {
-          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, filter as OperationFilter);
         }
 
         return {data: entities, total};
       }));
+  }
+
+
+  async loadPracticedMetier(offset: number,
+                           size: number,
+                           sortBy?: string,
+                           sortDirection?: SortDirection,
+                           filter?: Partial<MetierFilter>,
+                           opts?: {
+                             [key: string]: any;
+                             fetchPolicy?: FetchPolicy;
+                             debug?: boolean;
+                             toEntity?: boolean;
+                             withTotal?: boolean;
+                           }): Promise<LoadResult<Metier>> {
+
+    const online = !(this.network.offline && (!opts || opts.fetchPolicy !== 'network-only'));
+
+    if (online) {
+      return this.metierService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    const {data, total} = await firstNotNilPromise(this.watchAllLocally(offset, size, sortBy, sortDirection, {
+        vesselId: filter.vesselId,
+        startDate: filter.startDate,
+        endDate: filter.endDate,
+        gearIds: filter.gearIds,
+        programLabel: filter.programLabel
+      },
+      {
+        toEntity: false,
+        fullLoad: false,
+        withTotal: opts?.withTotal
+      }
+    ));
+    const useChildAttributes = filter && (filter.searchJoin === 'TaxonGroup' || filter.searchJoin === 'Gear') ? filter.searchJoin : undefined;
+    const entities = (data || []).map(source => source.metier)
+      .filter((metier, i, res) => res.findIndex(m => m.id === metier.id) !== -1)
+      .map(metier => Metier.fromObject(metier, { useChildAttributes }));
+    return {data: entities, total};
   }
 
   /**
@@ -878,7 +927,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /**
    * Save an operation on the local storage
-   * @param data
+   *
+   * @param entity
+   * @param opts
    */
   protected async saveLocally(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
     if (entity.tripId >= 0) throw new Error('Must be a local entity');

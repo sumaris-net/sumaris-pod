@@ -28,31 +28,30 @@ export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists
       ...LightTaxonNameFragment
     }
   }
-  ${ReferentialFragments.fullTaxonName}`,
+  ${ReferentialFragments.lightTaxonName}`,
 
-  loadAllWithTotal: gql`
-    query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
-      data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-        ...LightTaxonNameFragment
-      }
-      total: taxonNameCount(filter: $filter)
+  loadAllWithTotal: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
+    data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+      ...LightTaxonNameFragment
     }
-    ${ReferentialFragments.lightTaxonName}`,
+    total: taxonNameCount(filter: $filter)
+  }
+  ${ReferentialFragments.lightTaxonName}`,
 
   countAll: gql`query TaxonNameCount($filter: TaxonNameFilterVOInput){
-      total: taxonNameCount(filter: $filter)
+    total: taxonNameCount(filter: $filter)
   }`,
 
   load:  gql`query taxonName($label: String, $id: Int){
-      data: taxonName(label: $label, id: $id){
-        ...FullTaxonNameFragment
-      }
+    data: taxonName(label: $label, id: $id){
+      ...FullTaxonNameFragment
     }
-    ${ReferentialFragments.fullTaxonName}`,
+  }
+  ${ReferentialFragments.fullTaxonName}`,
 
   referenceTaxonExists: gql`query referenceTaxonExists($id: Int){
-      data: referenceTaxonExists(id: $id)
-    }`
+    data: referenceTaxonExists(id: $id)
+  }`
 }
 
 const TaxonNameMutations: BaseEntityGraphqlMutations = {

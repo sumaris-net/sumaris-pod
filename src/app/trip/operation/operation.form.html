@@ -7,60 +7,26 @@
   </ion-item>
 
   <ion-grid class="ion-no-padding">
-    <!--    <ion-row class="ion-no-padding" *ngIf="$useLinkedOperation|async">-->
-    <!--      <ion-col size="12" size-md="3" size-lg="3">-->
-    <!--        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>-->
-    <!--      </ion-col>-->
-    <!--      <ion-col size="" size-md="">-->
-    <!--        <mat-form-field>-->
-    <!--          <mat-select [formControl]="form.controls.operationTypeId"-->
-    <!--                      [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"-->
-    <!--                      [tabindex]="tabindex"-->
-    <!--                      required>-->
-    <!--            <mat-option *ngFor="let item of operationTypesList" [value]="item.id">-->
-    <!--              {{ item.label |translate }}-->
-    <!--            </mat-option>-->
-    <!--          </mat-select>-->
-    <!--          <input matInput type="text" hidden-->
-    <!--                 [formControl]="form.controls.qualityFlagId">-->
-    <!--        </mat-form-field>-->
-    <!--      </ion-col>-->
-    <!--      <ion-col size="5" size-md="5" *ngIf="hasChildOperation">-->
-    <!--        <mat-form-field>-->
-    <!--          <input matInput type="text"-->
-    <!--                 [formControl]="form.controls.parentOperationLabel"-->
-    <!--                 [placeholder]="'TRIP.OPERATION.EDIT.TYPE.PARENT'|translate"-->
-    <!--                 (click)="addParentOperation()"-->
-    <!--                 [tabindex]="tabindex"-->
-    <!--                 readonly>-->
-    <!--          <button matSuffix type="button" mat-icon-button-->
-    <!--                  tabindex="-1"-->
-    <!--                  (click)="addParentOperation()">-->
-    <!--            <mat-icon>more_horiz</mat-icon>-->
-    <!--          </button>-->
-    <!--          <input matInput type="text" hidden-->
-    <!--                 [formControl]="form.controls.parentOperation">-->
-    <!--        </mat-form-field>-->
-    <!--      </ion-col>-->
-    <!--    </ion-row>-->
 
-    <ion-row class="ion-no-padding high" *ngIf="$useLinkedOperation|async">
+    <ion-row class="ion-no-padding high" *ngIf="allowParentOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
       <ion-col size="4" size-md="4">
 
         <mat-form-field *ngIf="!mobile else operationTypeButtonField">
-          <mat-select [formControl]="form.controls.operationTypeId"
+
+          <input matInput type="text" hidden
+                 formControlName="parentOperation"
+                 required>
+          <mat-select (selectionChange)="onChildOperationChanged($event)"
                       [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
                       [tabindex]="tabindex"
                       required>
-            <mat-option *ngFor="let item of operationTypesList" [value]="item.id">
+            <mat-option *ngFor="let item of isChildOperationItems" [value]="item.value">
               {{ item.label |translate }}
             </mat-option>
           </mat-select>
-          <input matInput type="text" hidden
-                 [formControl]="form.controls.qualityFlagId">
         </mat-form-field>
 
         <ng-template #operationTypeButtonField>
@@ -70,14 +36,14 @@
                    required>
             <ion-grid class="ion-no-padding">
               <ion-row class="ion-no-padding">
-                <ion-col *ngFor="let item of operationTypesList; index as i;">
+                <ion-col *ngFor="let item of isChildOperationItems; index as i;">
                   <ion-button class="mat-form-field-button"
-                              [tabindex]="tabindex"
-                              (click)="onOperationTypeChanged(item.id)"
-                              (keyup.enter)="onOperationTypeChanged(item.id)"
+                              [tabindex]="tabindex+1"
+                              (click)="onChildOperationChanged(item.value)"
+                              (keyup.enter)="onChildOperationChanged(item.value)"
                               fill="solid"
                               expand="full"
-                              [color]="(operationType === item.id ? 'accent' : 'light')">
+                              [color]="isChildOperation === item.value ? 'accent' : 'light'">
                     <ion-label>{{item.label|translate}}</ion-label>
                   </ion-button>
                 </ion-col>
@@ -88,14 +54,14 @@
         <input matInput type="text" hidden
                [formControl]="form.controls.qualityFlagId">
       </ion-col>
-      <ion-col size="" size-md="" *ngIf="hasChildOperation">
+      <ion-col [class.cdk-visually-hidden]="!isChildOperation">
         <mat-form-field>
-          <input matInput type="text"
-                 [formControl]="form.controls.parentOperationLabel"
+          <input matInput type="text"  [value]="$parentOperationLabel|async"
                  [placeholder]="'TRIP.OPERATION.EDIT.TYPE.PARENT'|translate"
                  (click)="addParentOperation()"
-                 [tabindex]="tabindex"
+                 [tabindex]="tabindex+1"
                  readonly>
+
           <button *ngIf="!form.controls.parentOperation.value else optionsButton" matSuffix type="button" mat-icon-button
                   tabindex="-1"
                   (click)="addParentOperation()">
@@ -151,7 +117,7 @@
                                 [config]="autocompleteFields.physicalGear"
                                 [tabindex]="tabindex+2"
                                 [required]="true"
-                                [readonly]="operationType === 1">
+                                [readonly]="isChildOperation">
         </mat-autocomplete-field>
 
       </ion-col>
@@ -164,7 +130,7 @@
                                 [tabindex]="tabindex+3"
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
-                                [readonly]="operationType === 1">
+                                [readonly]="isChildOperation">
           <!-- Reset filter -->
           <button mat-icon-button matSuffix (click)="toggleMetierFilter($event)"
                   *ngIf="showMetierFilter">
@@ -177,8 +143,9 @@
     <!-- Start -->
     <ion-row class="ion-no-padding">
       <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label *ngIf="$useLinkedOperation|async else start" class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_PARENT_OPERATION</ion-label>
-        <ng-template #start>
+        <ion-label *ngIf="allowParentOperation else startLabel"
+                   class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_PARENT_OPERATION</ion-label>
+        <ng-template #startLabel>
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START</ion-label>
         </ng-template>
       </ion-col>
@@ -192,10 +159,10 @@
                                    [required]="true"
                                    [tabindex]="tabindex+4"
                                    [startDate]="trip?.departureDateTime"
-                                   [readonly]="($useLinkedOperation|async) && operationType === 1">
+                                   [readonly]="isChildOperation">
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="!($useLinkedOperation|async) || operationType  !== 1">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="isChildOperation !== true">
               <mat-latlong-field formControlName="latitude" type="latitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
@@ -205,7 +172,7 @@
                                  (focusout)="checkDistanceValidity()">
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="!($useLinkedOperation|async) || operationType !== 1">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="isChildOperation !== true">
               <mat-latlong-field formControlName="longitude"
                                  type="longitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
@@ -235,7 +202,7 @@
     </ion-row>
 
     <!-- Start fishing -->
-    <ion-row class="ion-no-padding" *ngIf="$useLinkedOperation|async">
+    <ion-row class="ion-no-padding" *ngIf="allowParentOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_PARENT_OPERATION</ion-label>
       </ion-col>
@@ -245,12 +212,12 @@
 
             <ion-col size="12" size-lg="4" *ngIf="form.controls.fishingStartDateTime as fishingStartDateTime">
               <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
-                                   [formControl]=fishingStartDateTime
-                                   (focusout)="checkDistanceValidity()"
+                                   [formControl]="fishingStartDateTime"
                                    [required]="true"
                                    [tabindex]="tabindex+9"
                                    [startDate]="form.controls.startDateTime.value"
-                                   [readonly]="($useLinkedOperation|async) && operationType === 1">
+                                   (focusout)="checkDistanceValidity()"
+                                   [readonly]="isChildOperation">
                 <mat-hint align="end" *ngIf="fishingStartDateTime.value && fishingStartDateTime.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
                   startValue: form.controls.startDateTime.value,
@@ -259,7 +226,7 @@
                 </mat-hint>
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']" *ngIf="!($useLinkedOperation|async) || operationType  !== 1">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']" *ngIf="isChildOperation !== true">
               <mat-latlong-field formControlName="latitude"
                                  type="latitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
@@ -270,7 +237,7 @@
                                  (focusout)="checkDistanceValidity()">
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']" *ngIf="!($useLinkedOperation|async) || operationType  !== 1">
+            <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']" *ngIf="isChildOperation !== true">
               <mat-latlong-field formControlName="longitude" type="longitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
@@ -299,7 +266,7 @@
     </ion-row>
 
     <!-- End fishing -->
-    <ion-row class="ion-no-padding" *ngIf="($useLinkedOperation|async) && operationType === 1">
+    <ion-row class="ion-no-padding" *ngIf="isChildOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_CHILD_OPERATION</ion-label>
       </ion-col>
@@ -355,9 +322,9 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row class="ion-no-padding" *ngIf="!($useLinkedOperation|async) || operationType === 1">
+    <ion-row class="ion-no-padding" *ngIf="isChildOperation">
       <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label *ngIf="$useLinkedOperation|async else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
+        <ion-label *ngIf="allowParentOperation else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
         <ng-template #end>
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END</ion-label>
         </ng-template>
@@ -369,13 +336,13 @@
               <mat-date-time-field [formControl]="endDateTimeControl"
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
-                                   [startDate]="($useLinkedOperation|async) ? form.controls.fishingEndDateTime.value  : form.controls.startDateTime.value"
+                                   [startDate]="allowParentOperation ? form.controls.fishingEndDateTime.value  : form.controls.startDateTime.value"
                                    [required]="false"
                                    [clearable]="usageMode|isOnField">
 
                 <mat-hint align="end" *ngIf="endDateTimeControl.value && endDateTimeControl.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
-                  startValue: $useLinkedOperation ? form.controls.fishingEndDateTime.value : form.controls.startDateTime.value,
+                  startValue: allowParentOperation ? form.controls.fishingEndDateTime.value : form.controls.startDateTime.value,
                   endValue: endDateTimeControl.value
                 } | dateDiffDuration }}
                 </mat-hint>

@@ -13,7 +13,7 @@ import 'zone.js/dist/zone-error';
 
 const pkg = require('../../package.json');
 
-export const environment: Environment = Object.freeze({
+export const environment = Object.freeze(<Environment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
@@ -103,6 +103,15 @@ export const environment: Environment = Object.freeze({
   // Storage
   storage: {
     driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  },
+
+  // Default login user
+  defaultAuthValues: {
+    // Basic auth (using Person.username)
+    // username: 'admq2', password: 'q22006'
+
+    // Token auth (using Person.pubkey)
+    username: 'admin@sumaris.net', password: 'admin',
   }
 });
 
