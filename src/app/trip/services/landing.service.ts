@@ -1,5 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import {
+  BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   chainPromises,
   EntitiesServiceWatchOptions,
@@ -50,7 +51,6 @@ const moment = momentImported;
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
-  withoutExpectedSales?: boolean;
   tripId?: number;
 
   enableOptimisticResponse?: boolean;
@@ -145,46 +145,6 @@ export const LandingFragments = {
       ...SampleFragment
     }
     samplesCount
-  }`,
-  landingWithoutExpectedSales: gql`fragment LandingWithoutExpectedSalesFragment on LandingVO {
-    id
-    program {
-      id
-      label
-    }
-    dateTime
-    location {
-      ...LocationFragment
-    }
-    creationDate
-    updateDate
-    controlDate
-    validationDate
-    qualificationDate
-    comments
-    rankOrder
-    observedLocationId
-    tripId
-    trip {
-      ...LandedTripWithoutExpectedSalesFragment
-    }
-    vesselSnapshot {
-      ...VesselSnapshotFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    observers {
-      ...LightPersonFragment
-    }
-    measurementValues
-    samples {
-      ...SampleFragment
-    }
-    samplesCount
   }`
 };
 
@@ -232,7 +192,7 @@ const LandingQueries = {
   ${TripFragments.landedTrip}`
 };
 
-const LandingMutations = {
+const LandingMutations: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveLanding($data:LandingVOInput!){
     data: saveLanding(landing: $data){
       ...LandingFragment
@@ -245,19 +205,6 @@ const LandingMutations = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
-
-  saveWithoutExpectedSales: gql`mutation SaveLanding($data:LandingVOInput!){
-    data: saveLanding(landing: $data){
-      ...LandingWithoutExpectedSalesFragment
-    }
-  }
-  ${LandingFragments.landingWithoutExpectedSales}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${VesselSnapshotFragments.vesselSnapshot}
-  ${DataFragments.sample}
-  ${TripFragments.landedTripWithoutExpectedSales}`,
 
   saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
     data: saveLandings(landings: $data){
@@ -575,10 +522,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     //if (this._debug)
       console.debug("[landing-service] Saving landing (minified):", json);
 
-    const mutation = (opts && opts.withoutExpectedSales) ? LandingMutations.saveWithoutExpectedSales : this.mutations.save;
-
     await this.graphql.mutate<{ data: any }>({
-      mutation: mutation,
+      mutation: this.mutations.save,
       variables: {
         data: json
       },
