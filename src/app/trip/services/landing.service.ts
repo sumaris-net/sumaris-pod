@@ -27,7 +27,7 @@ import {
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { Landing } from './model/landing.model';
 import { gql } from '@apollo/client/core';
-import { DataFragments, Fragments } from './trip.queries';
+import {DataFragments, Fragments} from './trip.queries';
 import { ErrorCodes } from './trip.errors';
 import { filter, map, tap } from 'rxjs/operators';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
@@ -42,9 +42,8 @@ import { ReferentialFragments } from '@app/referential/services/referential.frag
 import { LandingFilter } from './filter/landing.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
-import { TripFragments, TripService } from '@app/trip/services/trip.service';
+import { TripService } from '@app/trip/services/trip.service';
 import { Trip } from '@app/trip/services/model/trip.model';
-import { environment } from '@environments/environment';
 
 const moment = momentImported;
 
@@ -106,6 +105,7 @@ export const LandingFragments = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${ReferentialFragments.referential}
   `,
+
   landing: gql`fragment LandingFragment on LandingVO {
     id
     program {
@@ -126,7 +126,22 @@ export const LandingFragments = {
     observedLocationId
     tripId
     trip {
-      ...LandedTripFragment
+      id
+      departureDateTime
+      returnDateTime
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualityFlagId
+      comments
+      metiers {
+        ...MetierFragment
+      }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
     }
     vesselSnapshot {
       ...VesselSnapshotFragment
@@ -160,7 +175,8 @@ const LandingQueries = {
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`,
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}`,
 
   loadAll: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -189,7 +205,8 @@ const LandingQueries = {
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}`
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -204,7 +221,8 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`,
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}`,
 
   saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
     data: saveLandings(landings: $data){
@@ -217,7 +235,9 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`,
+  ${Fragments.measurement}
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}`,
 
   deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
@@ -236,7 +256,8 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${Fragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}`
 };
 
 
