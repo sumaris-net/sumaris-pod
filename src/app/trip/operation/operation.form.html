@@ -8,11 +8,11 @@
 
   <ion-grid class="ion-no-padding">
 
-    <ion-row class="ion-no-padding high" *ngIf="allowParentOperation||($isChildOperation|async)">
+    <ion-row class="ion-no-padding high" *ngIf="allowParentOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
-      <ion-col size="4" size-md="4">
+      <ion-col size="6" size-md="">
 
         <mat-form-field *ngIf="!mobile else isChildOperationButtons">
 
@@ -55,22 +55,28 @@
         <input matInput type="text" hidden
                [formControl]="form.controls.qualityFlagId">
       </ion-col>
-      <ion-col [class.cdk-visually-hidden]="!isChildOperation">
-        <mat-form-field>
-          <input matInput type="text"  [value]="$parentOperationLabel|async"
-                 [placeholder]="'TRIP.OPERATION.EDIT.TYPE.PARENT'|translate"
+
+      <ion-col size="6" size-md="" >
+        <mat-form-field [class.cdk-visually-hidden]="!isChildOperation">
+          <input matInput type="text" hidden
+                 [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION'|translate"
+                 [formControl]="parentControl">
+          <input matInput type="text" class="cursor-pointer"
+                 [value]="$parentOperationLabel|async"
                  (click)="addParentOperation()"
                  [tabindex]="tabindex+1"
                  readonly>
 
-          <button *ngIf="!form.controls.parentOperation.value else optionsButton" matSuffix type="button" mat-icon-button
+          <button *ngIf="!form.controls.parentOperation.value else optionsButton"
+                  matSuffix mat-icon-button type="button"
                   tabindex="-1"
                   (click)="addParentOperation()">
-            <mat-icon>library_add</mat-icon>
+            <mat-icon>more_horiz</mat-icon>
           </button>
           <ng-template #optionsButton>
-            <button slot="end" mat-icon-button matSuffix
+            <button slot="end" mat-icon-button matSuffix type="button"
                     [matMenuTriggerFor]="optionsMenu"
+                    tabindex="-1"
                     [title]=" 'COMMON.BTN_OPTIONS'|translate">
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -82,11 +88,11 @@
                       tabindex="-1"
                       (click)="addParentOperation()">
                 <ion-label>
-                  <mat-icon>library_add</mat-icon>
+                  <mat-icon>more_horiz</mat-icon>
                   <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
                 </ion-label>
               </button>
-              <button mat-menu-item type="button"
+              <button mat-menu-item type="button" [disabled]="form.controls.parentOperation.value?.id | isNilOrBlank"
                       tabindex="-1"
                       (click)="updateParentOperation()">
                 <ion-label>
@@ -97,11 +103,8 @@
               </button>
             </mat-menu>
           </ng-template>
+          <mat-error *ngIf="parentControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
-          <input matInput type="text" hidden
-                 [formControl]="form.controls.parentOperation">
-          <input matInput type="text" hidden
-                 [formControl]="form.controls.childOperation">
         </mat-form-field>
       </ion-col>
     </ion-row>

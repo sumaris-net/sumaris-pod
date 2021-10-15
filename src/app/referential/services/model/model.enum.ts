@@ -81,7 +81,7 @@ export const PmfmIds = {
   REFUSED_SURVEY: 266,
 
   /* ACOST pmfms */
-  HAS_INDIVIDUAL_MEASUREMENT: 381,
+  HAS_INDIVIDUAL_MEASURE: 381
 };
 
 export const QualitativeLabels = {

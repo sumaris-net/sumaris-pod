@@ -583,13 +583,15 @@
         "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
         "END_CHILD_OPERATION" : "Fin virage :",
+        "PARENT_OPERATION" : "Opération associée",
+        "PLEASE_SELECT_HELP": "Sélectionner une opération",
         "TYPE": {
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
         },
-        "BTN_EDIT_PARENT" : "Modifier le filage",
-        "BTN_SELECT_PARENT" : "Sélectionner le filage"
+        "BTN_EDIT_PARENT" : "Modifier le filage...",
+        "BTN_SELECT_PARENT" : "Sélectionner le filage..."
       },
       "PARENT": {
         "TITLE" : "Sélectionner filage",

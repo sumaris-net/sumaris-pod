@@ -6,7 +6,7 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [backHref]="defaultBackHref"
+             [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
 
   <ion-title [innerHTML]="$title|async"></ion-title>
@@ -185,7 +185,8 @@
                                 [usageMode]="usageMode"
                                 [tabindex]="1"
                                 [debug]="debug"
-                                [programLabel]="$programLabel|async">
+                                [programLabel]="$programLabel|async"
+                                [allowParentOperation]="$allowParentOperation|async">
 
 
               <!-- Other features (Measurements) -->
@@ -198,7 +199,7 @@
                     <app-form-measurements #measurementsForm
                                            entityName="VesselUseMeasurement"
                                            [forceOptional]="usageMode|isOnField"
-                                           [acquisitionLevel]="acquisitionLevel|async"
+                                           [acquisitionLevel]="$acquisitionLevel|async"
                                            [debug]="debug"
                                            [programLabel]="$programLabel|async"
                                            [tabindex]="30">

@@ -49,9 +49,10 @@ const moment = momentImported;
 export class OperationPage extends AppEntityEditor<Operation, OperationService> {
 
   private _lastOperationsTripId: number;
-  acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+  private _measurementSubscription: Subscription;
 
-  individualMeasurementSubscription: Subscription;
+  $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+
   measurements: Measurement[];
   trip: Trip;
   $programLabel = new BehaviorSubject<string>(null);
@@ -204,10 +205,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         .pipe(
           debounceTime(400),
           filter(isNotNil),
-          mergeMap(pmfms => this.measurementsForm.ready()),
-          map(_ => this.measurementsForm.form)
+          mergeMap(_ => this.measurementsForm.ready()),
         )
-        .subscribe(formGroup => this.onMeasurementsFormReady(formGroup))
+        .subscribe(_ => this.onMeasurementsFormReady())
     );
 
     // Configure page, from Program's properties
@@ -228,15 +228,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   /**
    * Configure specific behavior
    */
-  protected async onMeasurementsFormReady(formGroup: FormGroup) {
+  protected async onMeasurementsFormReady() {
 
-    let hasSpecificBehaviour = false;
+    if (this._measurementSubscription) this._measurementSubscription.unsubscribe();
+    this._measurementSubscription = new Subscription();
+
+    const formGroup = this.measurementsForm.form as FormGroup;
+    let showDefaultTables = true;
 
     // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables
     const samplingTypeControl = formGroup?.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
     if (isNotNil(samplingTypeControl)) {
-      hasSpecificBehaviour = true;
-      this.registerSubscription(
+      showDefaultTables = false;
+      this._measurementSubscription.add(
         samplingTypeControl.valueChanges
           .pipe(
             debounceTime(400),
@@ -277,8 +281,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // If PMFM "Is Sampling ?" exists, then use to enable/disable some tables
     const isSamplingControl = formGroup?.controls[PmfmIds.IS_SAMPLING];
     if (isNotNil(isSamplingControl)) {
-      hasSpecificBehaviour = true;
-      this.registerSubscription(
+      showDefaultTables = false;
+      this._measurementSubscription.add(
         isSamplingControl.valueChanges
           .pipe(
             debounceTime(400),
@@ -310,35 +314,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           })
       );
     }
-    const hasMeasureControl = formGroup.controls[PmfmIds.HAS_INDIVIDUAL_MEASUREMENT];
-    if (isNotNil(hasMeasureControl)) {
-      hasSpecificBehaviour = true;
-      this.registerSubscription(
-        hasMeasureControl.valueChanges
-          .pipe(
-            debounceTime(400),
-            startWith<any, any>(hasMeasureControl.value),
-            filter(isNotNil),
-            distinctUntilChanged()
-          )
-          .subscribe(hasMeasure => {
-            this.batchTree.asyncFormValues.next(
-              {
-                hasIndividualMeasurement: hasMeasure,
-                hasIndividualMeasurementByDefault: hasMeasure
-              }
-            );
-          })
-      );
-    }
+
 
     const allowParentOperation = await firstNotNilPromise(this.$allowParentOperation);
     if (allowParentOperation) {
-      hasSpecificBehaviour = true;
-      this.registerSubscription(
+      showDefaultTables = false;
+      this._measurementSubscription.add(
         this.opeForm.parentChanges
           .pipe(
-            //debounceTime(400), // to wait subBatchesTable initialization
             map(parent => !!parent), // into boolean
             distinctUntilChanged()
           )
@@ -362,15 +345,38 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             }
 
             // Change acquisition level, if need
-            if (this.measurementsForm.acquisitionLevel !== acquisitionLevel) {
-              await this.measurementsForm.setAcquisitionLevel(acquisitionLevel, []);
+            if (this.$acquisitionLevel.value !== acquisitionLevel) {
+              this.measurementsForm.setAcquisitionLevel(acquisitionLevel, []);
+              this.$acquisitionLevel.next(acquisitionLevel);
             }
           })
       );
     }
 
-    // Apply default behaviour
-    if (!hasSpecificBehaviour) {
+    const hasMeasureControl = formGroup?.controls[PmfmIds.HAS_INDIVIDUAL_MEASURE];
+    if (isNotNil(hasMeasureControl)) {
+      showDefaultTables = false;
+      this._measurementSubscription.add(
+        hasMeasureControl.valueChanges
+          .pipe(
+            debounceTime(400),
+            startWith<any, any>(hasMeasureControl.value),
+            filter(isNotNil),
+            distinctUntilChanged()
+          )
+          .subscribe(hasMeasure => {
+            this.batchTree.asyncFormValues.next(
+              {
+                hasIndividualMeasurement: hasMeasure,
+                hasIndividualMeasurementByDefault: hasMeasure
+              }
+            );
+          })
+      );
+    }
+
+    // Show default tables
+    if (showDefaultTables) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
       this.showSampleTables = false;
       this.showBatchTables = true;
@@ -383,7 +389,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Abnormal trip => Set comment as required
     const tripProgressControl = formGroup?.controls[PmfmIds.TRIP_PROGRESS];
     if (isNotNil(samplingTypeControl)) {
-      this.registerSubscription(
+      this._measurementSubscription.add(
         tripProgressControl.valueChanges
           .pipe(
             debounceTime(400),
@@ -397,7 +403,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               commentControl.setValidators(Validators.required);
               commentControl.markAsTouched({onlySelf: true});
             } else {
-              commentControl.setValidators(null);
+              commentControl.clearValidators();
             }
             commentControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
           })
@@ -407,7 +413,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   ngOnDestroy() {
     super.ngOnDestroy();
-
+    this._measurementSubscription?.unsubscribe();
     this.$lastOperations.complete();
     this.$program.complete();
     this.$programLabel.complete();
