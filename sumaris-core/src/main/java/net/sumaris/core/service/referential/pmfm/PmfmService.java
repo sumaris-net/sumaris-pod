@@ -70,9 +70,6 @@ public interface PmfmService {
     boolean isSurveyPmfm(int pmfmId);
 
     @Transactional(readOnly = true)
-    boolean isMultiplePmfm(int pmfmId);
-
-    @Transactional(readOnly = true)
     String computeCompleteName(int pmfmId);
 
     /**
