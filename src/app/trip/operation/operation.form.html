@@ -29,8 +29,7 @@
         <ng-template #isChildOperationButtons>
           <mat-form-field floatLabel="always">
             <input matInput type="text" hidden
-                   formControlName="parentOperation"
-                   required>
+                   formControlName="parentOperation">
             <ion-grid class="ion-no-padding">
               <ion-row class="ion-no-padding">
                 <ion-col *ngFor="let item of isChildOperationItems; index as i;">
@@ -130,10 +129,15 @@
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
                                 [readonly]="$isChildOperation|async">
+
           <!-- Reset filter -->
-          <button mat-icon-button matSuffix (click)="toggleMetierFilter($event)"
-                  *ngIf="showMetierFilter">
-            <mat-icon [color]="enableMetierFilter && 'accent'">filter_list_alt</mat-icon>
+          <button matAfter type="button" mat-icon-button
+                  *ngIf="showMetierFilter"
+                  tabindex="-1"
+                  [title]="'COMMON.BTN_FILTER'|translate"
+                  (click)="toggleMetierFilter($event)"
+                  [color]="enableMetierFilter ? 'primary' : undefined">
+            <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
       </ion-col>

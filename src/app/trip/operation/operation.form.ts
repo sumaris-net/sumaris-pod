@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorService } from '../services/validator/operation.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output} from '@angular/core';
+import {OperationValidatorService} from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   AccountService,
   AppForm, AppFormUtils,
@@ -20,21 +20,21 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
-import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
-import { distinctUntilChanged, startWith } from 'rxjs/operators';
-import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
-import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
-import { QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Router } from '@angular/router';
-import { SubBatch } from '@app/trip/services/model/subbatch.model';
+import {AbstractControl, FormControl, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
+import {distinctUntilChanged, startWith} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ModalController} from '@ionic/angular';
+import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {SubBatch} from '@app/trip/services/model/subbatch.model';
 
 const moment = momentImported;
 
@@ -42,11 +42,11 @@ const moment = momentImported;
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
     value: false,
-    label: "TRIP.OPERATION.EDIT.TYPE.PARENT"
+    label: 'TRIP.OPERATION.EDIT.TYPE.PARENT'
   },
   {
     value: true,
-    label: "TRIP.OPERATION.EDIT.TYPE.CHILD"
+    label: 'TRIP.OPERATION.EDIT.TYPE.CHILD'
   }
 ]);
 
@@ -130,7 +130,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected operationService: OperationService,
-    protected metierService: MetierService,
     protected pmfmService: PmfmService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
@@ -197,7 +196,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
-    this.onIsChildOperationChanged(isNotNil(data.parentOperation?.id), {emitEvent: false});
+    if (this.allowParentOperation) {
+      this.onIsChildOperationChanged(isNotNil(data.parentOperation?.id), {emitEvent: false});
+    }
     super.setValue(data, opts);
   }
 
@@ -331,7 +332,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     const startDateTimeControl = this.form.get('startDateTime');
     const fishingStartDateTimeControl = this.form.get('fishingStartDateTime');
 
-    this.parentControl.setValue(operation)
+    this.parentControl.setValue(operation);
 
     if (this._trip.id === operation.tripId) {
       physicalGearControl.patchValue(operation.physicalGear);
@@ -500,7 +501,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   onIsChildOperationChanged(isChildOperation: boolean, opts?: { emitEvent?: boolean; }) {
     isChildOperation = isChildOperation === true;
 
-    if (this.$isChildOperation.value !== isChildOperation){
+    if (this.$isChildOperation.value !== isChildOperation) {
 
       this.$isChildOperation.next(isChildOperation);
       console.debug('[operation-form] Is child operation ? ', isChildOperation);
@@ -509,6 +510,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       if (isChildOperation) {
 
         this.parentControl.enable();
+        this.parentControl.setValidators(Validators.required);
 
         if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
           // Keep filled values
@@ -602,7 +604,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         // Error if fishingEndDateTime <= fishingStartDateTime
         if (fishingStartDateTime && fishingEndDateTime?.isSameOrBefore(fishingStartDateTime)) {
           console.warn(`[operation] Invalid operation fishingEndDateTime: before fishingStartDateTime! `, fishingEndDateTime, fishingStartDateTime);
-          return <ValidationErrors>{ msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION') };
+          return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')};
         }
         // OK: clear existing errors
         SharedValidators.clearError(control, 'msg');

@@ -322,6 +322,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this._measurementSubscription.add(
         this.opeForm.onParentChanges
           .pipe(
+            startWith<Operation>(this.opeForm.parentControl.value as Operation),
             map(parent => !!parent), // into boolean
             distinctUntilChanged()
           )
@@ -434,7 +435,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = allowParentOperation;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
-
+    this.opeForm.startProgram = program.creationDate;
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
@@ -621,23 +622,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const canContinue = await savePromise;
     if (canContinue) {
       return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
-    }
-  }
-
-  protected setOperationTypeParams() {
-    if (this.opeForm.operationType === 1) {
-      this.tabGroup._tabs.last.disabled = false;
-      this.showBatchTables = true;
-      this.batchTree.enable();
-      this.setSafeIndividualMeasurementSubscription();
-    } else {
-      this.tabGroup._tabs.last.disabled = true;
-      this.showBatchTables = false;
-      this.batchTree.disable();
-      if (this.individualMeasurementSubscription) {
-        this.individualMeasurementSubscription.unsubscribe();
-        this.individualMeasurementSubscription = undefined;
-      }
     }
   }
 

@@ -273,8 +273,10 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
       const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
         name: this.dataService.featureName
       };
+      const filter = this.asFilter(this.filterForm.value);
       const value = <TripOfflineFilter>{
-        ...this.filter,
+        vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
+        programLabel: filter.program && filter.program.label || undefined,
         ...feature.filter
       };
       const modal = await this.modalCtrl.create({

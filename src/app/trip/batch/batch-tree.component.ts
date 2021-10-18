@@ -324,7 +324,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           linkDataToParent: false // Not need here
         });
         this.subBatchesTable.value = subBatches;
-      } else if (subBatches && subBatches.length > 0) {
+      } else {
         this.subBatchesService.value = subBatches;
       }
     }

@@ -2,7 +2,7 @@ import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
 import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
+import {distinctUntilChanged, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {Program} from "../../referential/services/model/program.model";
 import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
 import {AppEditorOptions, AppEntityEditor}  from "@sumaris-net/ngx-components";
@@ -251,6 +251,9 @@ export abstract class AppRootDataEditor<
   private startListenProgramChanges() {
     this.registerSubscription(
       this.programControl.valueChanges
+        .pipe(
+          startWith<Program>(this.programControl.value as Program)
+        )
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);
