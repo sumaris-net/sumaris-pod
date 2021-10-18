@@ -63,6 +63,7 @@ import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -818,15 +819,36 @@ export class TripService
     const res = await this.operationService.loadAllByTrip({tripId: localId},
       {fullLoad: true, computeRankOrder: false});
 
-    const childOperations = res.data && res.data.filter(operation => operation.parentOperationId && operation.parentOperationId < 0);
-    const parentOperations = res.data && res.data.filter(operation => operation.childOperationId && operation.childOperationId < 0);
+    const childOperations = new Array<Operation>();
+    const parentOperations = new Array<Operation>();
+    const parentOperationsWithNoChild = new Array<Operation>();
+    const otherOperations = new Array<Operation>();
+    const operationToDeleteLocally = [];
+    const operationToSaveLocally = [];
+
+    //sort operations to saving in good order
+    if (res.data) {
+      res.data.forEach(operation => {
+        if (operation.parentOperationId && operation.parentOperationId < 0) {
+          childOperations.push(operation);
+        } else if (operation.childOperationId && operation.childOperationId < 0) {
+          parentOperations.push(operation);
+        } else if (!operation.childOperationId && !operation.parentOperationId && operation.qualityFlagId === QualityFlagIds.NOT_COMPLETED) {
+          parentOperationsWithNoChild.push(operation);
+        } else {
+          otherOperations.push(operation);
+          if (operation.parentOperation != null) {
+            operationToDeleteLocally.push(operation.parentOperationId);
+          }
+        }
+      });
+    }
 
     if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
       throw new Error('Could not synchronize child operation before its parent');
     }
 
-    entity.operations = res && res.data.filter(operation => (!operation.parentOperationId || operation.parentOperationId > 0)
-      && (!operation.childOperationId || operation.childOperationId > 0)) || [];
+    entity.operations = otherOperations;
 
     try {
 
@@ -859,11 +881,28 @@ export class TripService
     }
     await this.operationService.saveAll(childOperations, opts);
 
+    for (const operation of parentOperationsWithNoChild) {
+      operation.tripId = entity.id;
+      const savedOperation = await this.operationService.save(operation, opts);
+      operationToSaveLocally.push(savedOperation.id);
+
+    }
+
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
-      // Delete trip's operations + parent operation
-      await this.operationService.deleteLocally({includedIds: parentOperations.map(o => o.id), tripId: localId});
+      // Delete trip's operations +  parent from other trip which have now child operation
+      await this.operationService.deleteLocally({tripId: localId, orIncludedIds: operationToDeleteLocally});
+
+      // Saved locally new parent operation which wait child operation
+      if (operationToSaveLocally.length > 0) {
+        const operations = await this.operationService.loadAll(0, 999, null, null,
+          {
+            includedIds: operationToSaveLocally,
+            programLabel: entity.program.label
+          });
+        await this.operationService.saveAllLocally(operations.data);
+      }
 
       // Delete trip
       await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
@@ -1242,23 +1281,21 @@ export class TripService
     const feature = this.settings.getOfflineFeature(this.featureName);
     const tripFilter = TripOfflineFilter.toTripFilter(feature && feature.filter);
     if (tripFilter) {
+      const filter = {
+        programLabel: tripFilter.program.label,
+        vesselId: tripFilter.vesselId,
+        startDate: tripFilter.startDate
+      };
+
       return [
-        ...super.getImportJobs(opts),
+        ...super.getImportJobs({...opts, dataFilter: filter}),
         JobUtils.defer((p, o) => this.operationService.executeImport(p, {
           ...o,
-          filter: {
-            programLabel: tripFilter.program.label,
-            vesselId: tripFilter.vesselId,
-            startDate: tripFilter.startDate
-          }
+         filter
         }), opts),
         JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
           ...o,
-          filter: {
-            program: tripFilter.program,
-            vesselId: tripFilter.vesselId,
-            startDate: tripFilter.startDate
-          }
+          filter
         }), opts)
       ];
     } else {

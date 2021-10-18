@@ -497,7 +497,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       this.confirmEditCreate(null, row);
       this.editedRow = null;
     }
-    else {
+    else if (this.inlineEdition) {
       this.editedRow = row;
     }
 

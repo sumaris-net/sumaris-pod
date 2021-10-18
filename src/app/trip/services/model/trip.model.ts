@@ -29,6 +29,7 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
   sampleAsTree?: boolean;
+  keepTrip?: boolean; //Allow to keep trip, needed to apply filter on local storage
 }
 
 export interface OperationFromObjectOptions {
@@ -63,7 +64,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   fishingAreas: FishingArea[] = [];
   parentOperationId: number = null;
   parentOperation: Operation = null;
-  qualityFlagId:  number = null;
+  qualityFlagId: number = null;
   childOperationId: number = null;
   childOperation: Operation = null;
 
@@ -153,17 +154,21 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     target.parentOperationId = this.parentOperationId || this.parentOperation && this.parentOperation.id;
     target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
 
-    if (opts.minify){
+    if (opts.minify) {
       delete target.operationTypeId;
       delete target.parentOperation;
       delete target.childOperation;
-      delete target.trip;
-    }
-    else {
+    } else {
       target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
+    if (opts.keepTrip) {
+      target.trip = this.trip && this.trip || undefined;
+
+    } else {
+      delete target.trip;
+    }
     return target;
   }
 
@@ -339,7 +344,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
       ...source.measurementValues // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {
-      console.warn("Source as no measurement. Should never occur! ", source);
+      console.warn('Source as no measurement. Should never occur! ', source);
     }
 
     // Products
@@ -378,7 +383,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 }
 
-@EntityClass({typename: "TripVO"})
+@EntityClass({typename: 'TripVO'})
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
   static fromObject: (source: any, opts?: any) => Trip;
@@ -541,8 +546,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
     if (source.trip) {
       this.trip = source.trip && Trip.fromObject(source.trip);
       this.tripId = this.trip && this.trip.id;
-    }
-    else {
+    } else {
       this.trip = null;
       this.tripId = null;
     }

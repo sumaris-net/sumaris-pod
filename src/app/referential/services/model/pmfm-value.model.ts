@@ -45,16 +45,23 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static fromModelValue(value: any, pmfm: IPmfm): PmfmValue {
+  static fromModelValue(value: any, pmfm: IPmfm): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
     switch (pmfm.type) {
       case 'qualitative_value':
         if (isNotNil(value)) {
-          const qvId = (typeof value === 'object') ? value.id : parseInt(value);
-          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
-            .find(qv => qv.id === qvId) || null;
+          if (Array.isArray(value)){
+              const qvIds = value.map(v => v && (typeof v === 'object') ? v.id : parseInt(v));
+            return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+              .filter(qv => qvIds.indexOf(qv.id) !== -1) || null;
+          }
+          else {
+            const qvId = (typeof value === 'object') ? value.id : parseInt(value);
+            return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+              .find(qv => qv.id === qvId) || null;
+          }
         }
         return null;
       case 'integer':

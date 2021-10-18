@@ -188,6 +188,10 @@ export class Batch<
       this.measurementValues = MeasurementUtils.toMeasurementValues(measurements);
     }
 
+    if (source.measurementValuesMultiples) {
+      this.measurementValues = { ...source.measurementValuesMultiples, ...this.measurementValues};
+    }
+
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Batch.fromObject(child, opts));
     }

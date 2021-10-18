@@ -3,13 +3,26 @@ import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {FloatLabelType} from '@angular/material/form-field';
 import {BehaviorSubject, isObservable, Observable} from 'rxjs';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormArray, FormBuilder, FormControl, FormGroup} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {filter, throttleTime} from 'rxjs/operators';
-import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
-import {AppForm, filterNotNil, firstNotNilPromise, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService} from '@sumaris-net/ngx-components';
+import {IEntityWithMeasurement, MeasurementFormValue, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {
+  AppForm,
+  filterNotNil,
+  firstNotNilPromise,
+  FormArrayHelper,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  ReferentialRef,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -20,15 +33,6 @@ export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T
 // tslint:disable-next-line:directive-class-suffix
 export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>> extends AppForm<T> implements OnInit {
 
-  protected _onValueChanged = new EventEmitter<T>();
-  protected _onRefreshPmfms = new EventEmitter<any>();
-  protected _gearId: number = null;
-  protected _acquisitionLevel: string;
-  protected _ready = false;
-  protected _forceOptional = false;
-  protected _measurementValuesForm: FormGroup;
-  protected data: T;
-
   loading = false; // Important, must be false
   loadingPmfms = true; // Important, must be true
   $loadingControls = new BehaviorSubject<boolean>(true);
@@ -37,6 +41,17 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
+  formArraysControls: FormArray[];
+  formArrayHelpers = new Map<string, FormArrayHelper<ReferentialRef>>();
+
+  protected _onValueChanged = new EventEmitter<T>();
+  protected _onRefreshPmfms = new EventEmitter<any>();
+  protected _gearId: number = null;
+  protected _acquisitionLevel: string;
+  protected _ready = false;
+  protected _forceOptional = false;
+  protected _measurementValuesForm: FormGroup;
+  protected data: T;
 
   get forceOptional(): boolean {
     return this._forceOptional;
@@ -49,7 +64,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
   @Input() requiredStrategy = false;
   @Input() requiredGear = false;
 
@@ -166,7 +181,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  setValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
@@ -183,13 +198,17 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       data.program = program;
     }
 
+    this.formArrayHelpers.forEach((formArrayHelper, id) => {
+      formArrayHelper.resize(Math.max(1, ((data.measurementValues[id] || [])as []).length));
+    });
+
     super.setValue(data, opts);
 
     // Restore form status
     this.restoreFormStatus({onlySelf: true, emitEvent: opts && opts.emitEvent});
   }
 
-  reset(data?: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
+  reset(data?: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts); // Loop
       return;
@@ -207,7 +226,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   isReady(): boolean {
-    return this._ready || (!this.$loadingControls.getValue()  && !this.loadingPmfms);
+    return this._ready || (!this.$loadingControls.getValue() && !this.loadingPmfms);
   }
 
   async ready(): Promise<void> {
@@ -237,6 +256,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.$pmfms.next(undefined);
   }
 
+  addFormControlToFormArray(pmfm: DenormalizedPmfmStrategy) {
+    const formArrayHelper = this.formArrayHelpers.get(pmfm.id.toString());
+
+    if (formArrayHelper.size() < pmfm.acquisitionNumber){
+      this.formArrayHelpers.get(pmfm.id.toString()).add();
+    }
+  }
+
   /* -- protected methods -- */
 
   protected setProgramLabel(value: string) {
@@ -264,9 +291,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * @param data
    * @param opts
    */
-  protected async safeSetValue(data: T, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
+  protected async safeSetValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
     if (!data) {
-      console.warn("Trying to set undefined value to meas form. Skipping");
+      console.warn('Trying to set undefined value to meas form. Skipping');
       return;
     }
 
@@ -308,8 +335,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     if (this.data && this.data.fromObject) {
       this.data.fromObject(json);
-    }
-    else {
+    } else {
       this.data = json;
     }
 
@@ -343,8 +369,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       if (isEmptyArray(pmfms)) {
         if (this.debug) console.warn(`${this.logPrefix} No pmfm found, for {program: ${this.programLabel}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
         pmfms = []; // Create a new array, to force refresh in components that use '!==' to filter events
-      }
-      else {
+      } else {
 
         // If force to optional, create a copy of each pmfms that should be forced
         if (this._forceOptional) {
@@ -357,21 +382,18 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
             // Return original pmfm, as not need to be overrided
             return pmfm;
           });
-        }
-        else {
-          pmfms = pmfms.slice(); // Do a copy, to force erfresh when comparing using '===' in components
+        } else {
+          pmfms = pmfms.slice(); // Do a copy, to force refresh when comparing using '===' in components
         }
       }
 
       // Apply
       await this.setPmfms(pmfms);
-    }
-    catch (err) {
+    } catch (err) {
       console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
       this.loadingPmfms = false;
       this.$pmfms.next(null); // Reset pmfms
-    }
-    finally {
+    } finally {
       if (this.enabled) this.loading = false;
       this.markForCheck();
     }
@@ -411,9 +433,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         this.measurementValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms: []});
         this._measurementValuesForm.reset({}, {onlySelf: true, emitEvent: false});
       }
-    }
-
-    else {
+    } else {
       if (this.debug) console.debug(`${this.logPrefix} Updating form controls, using pmfms:`, pmfms);
 
       // Create measurementValues form group
@@ -427,6 +447,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Or update if already exist
       else {
         this.measurementValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms});
+        this.initFormArraysHelpers();
       }
     }
 
@@ -475,8 +496,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (isObservable<IPmfm[]>(value)) {
       if (this.debug) console.debug(`${this.logPrefix} setPmfms(): waiting pmfms observable to emit...`);
       pmfms = await firstNotNilPromise(value);
-    }
-    else {
+    } else {
       pmfms = value;
     }
 
@@ -496,7 +516,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return pmfms;
   }
 
-  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected restoreFormStatus(opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
     const form = this.measurementValuesForm;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
@@ -514,4 +534,38 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected initFormArraysHelpers() {
+    // Create helper, if needed
+    const formArraysControlsNames = new Array<string>();
+    this.formArraysControls = new Array<FormArray>();
+    for (const control in this.measurementValuesForm.controls) {
+      if (this.measurementValuesForm.get(control) instanceof FormArray) {
+        formArraysControlsNames.push(control);
+        this.formArraysControls.push(this.measurementValuesForm.get(control) as FormArray);
+      }
+    }
+    formArraysControlsNames.forEach(formArrayName => {
+      if (!this.formArrayHelpers || !this.formArrayHelpers[formArrayName]) {
+        this.formArrayHelpers.set(formArrayName, new FormArrayHelper<MeasurementFormValue>(
+          FormArrayHelper.getOrCreateArray(this.formBuilder, this.measurementValuesForm, formArrayName),
+          (measurementFormValue) => this.getArrayControl(measurementFormValue),
+          ReferentialUtils.equals,
+          ReferentialUtils.isEmpty,
+          {
+            allowEmptyArray: false
+          }
+        ));
+      }
+      // Helper exists: update options
+      else {
+        this.formArrayHelpers[formArrayName].allowEmptyArray = false;
+      }
+    });
+  }
+
+  protected getArrayControl(measurementFormValue?: MeasurementFormValue): FormControl {
+    return this.formBuilder.control(measurementFormValue || null);
+  }
+
 }

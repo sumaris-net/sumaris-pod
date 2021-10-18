@@ -1,27 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {AbstractControl, FormBuilder, FormControl} from "@angular/forms";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {BatchGroupValidatorService} from "../../services/validator/batch-group.validator";
-import {BehaviorSubject} from "rxjs";
-import {BatchForm} from "./batch.form";
-import {filter, switchMap} from "rxjs/operators";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {MeasurementsValidatorService} from "../../services/validator/measurement.validator";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {IPmfm, PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {InputElement} from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {fadeInAnimation} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {AbstractControl, FormBuilder, FormControl} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {AppFormUtils, fadeInAnimation, firstNotNilPromise, InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {BatchGroupValidatorService} from '../../services/validator/batch-group.validator';
+import {BehaviorSubject} from 'rxjs';
+import {BatchForm} from './batch.form';
+import {filter, switchMap} from 'rxjs/operators';
+import {BatchGroup} from '../../services/model/batch-group.model';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-batch-group-form',
@@ -47,7 +39,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   @Input() hasIndividualMeasurementByDefault: boolean;
 
-  @ViewChildren("firstInput") firstInputFields !: QueryList<InputElement>;
+  @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
 
   @ViewChildren('childForm') childrenForms !: QueryList<BatchForm>;
 
@@ -64,7 +56,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   get pending(): boolean {
     return this.form.pending || this.hasIndividualMeasureControl.pending ||
-       (this.childrenForms && this.childrenForms.find(child => child.pending) && true) || false;
+      (this.childrenForms && this.childrenForms.find(child => child.pending) && true) || false;
   }
 
   get dirty(): boolean {
@@ -72,19 +64,19 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       (this.childrenForms && this.childrenForms.find(child => child.dirty) && true) || false;
   }
 
-  markAsTouched(opts?: {onlySelf?: boolean; emitEvent?: boolean; }) {
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
     super.markAsTouched(opts);
     (this.childrenForms || []).forEach(child => child.markAsTouched(opts));
     this.hasIndividualMeasureControl.markAsTouched(opts);
   }
 
-  markAsPristine(opts?: {onlySelf?: boolean; }) {
+  markAsPristine(opts?: { onlySelf?: boolean; }) {
     super.markAsPristine(opts);
     (this.childrenForms || []).forEach(child => child.markAsPristine(opts));
     this.hasIndividualMeasureControl.markAsPristine(opts);
   }
 
-  markAsUntouched(opts?: {onlySelf?: boolean; }) {
+  markAsUntouched(opts?: { onlySelf?: boolean; }) {
     super.markAsUntouched(opts);
     (this.childrenForms || []).forEach(child => child.markAsUntouched(opts));
     this.hasIndividualMeasureControl.markAsUntouched(opts);
@@ -138,7 +130,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   ngOnInit() {
     super.ngOnInit();
 
-    console.debug('[batch-group.form] hasIndividualMeasurementByDefault', this.hasIndividualMeasurementByDefault);
+   if (this.debug) console.debug('[batch-group-form] hasIndividualMeasurementByDefault : ', this.hasIndividualMeasurementByDefault);
     // Set isSampling on each child forms, when has indiv. measure changed
     this.registerSubscription(
       this.hasIndividualMeasureControl.valueChanges
@@ -185,13 +177,13 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.hasIndividualMeasureControl = new FormControl(false);
   }
 
-  setValue(data: BatchGroup, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  setValue(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
     if (!this.isReady() || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
 
-    if (this.debug) console.debug("[batch-group-form] setValue() with value:", data);
+    if (this.debug) console.debug('[batch-group-form] setValue() with value:', data);
     let hasIndividualMeasure = data.observedIndividualCount > 0 || this.hasIndividualMeasurementByDefault;
 
     if (!this.qvPmfm) {
@@ -254,8 +246,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     // Not allow to change 'has measure' field
     if (data.observedIndividualCount > 0) {
       this.hasIndividualMeasureControl.disable();
-    }
-    else if (this.enabled) {
+    } else if (this.enabled) {
       this.hasIndividualMeasureControl.enable();
     }
   }
@@ -266,11 +257,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }
 
   logFormErrors(logPrefix: string) {
-    logPrefix = logPrefix || '';
+    logPrefix = logPrefix || '';
     AppFormUtils.logFormErrors(this.form, logPrefix);
     if (this.childrenForms) this.childrenForms.forEach((childForm, index) => {
-        AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
-      });
+      AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
+    });
   }
 
   protected mapPmfms(pmfms: IPmfm[]) {
@@ -334,15 +325,21 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         const sampleBatch = BatchUtils.getSamplingChild(child);
-        if (sampleBatch && !form.showWeight && isNotNil(sampleBatch.individualCount) && isNotNil(child.individualCount)){
+        if (sampleBatch && !form.showWeight && isNotNil(sampleBatch.individualCount) && isNotNil(child.individualCount)) {
           sampleBatch.samplingRatio = sampleBatch.individualCount / child.individualCount;
           sampleBatch.samplingRatioText = `${sampleBatch.individualCount}/${child.individualCount}`;
         }
+
+        // Other Pmfms
+        Object.keys(form.measurementValuesForm.value).filter(key => !child.measurementValues[key]).forEach(key =>{
+          child.measurementValues[key] = form.measurementValuesForm.value[key];
+        });
+
         return child;
       });
     }
 
-    if (this.debug) console.debug("[batch-group-form] getValue():", data);
+    if (this.debug) console.debug('[batch-group-form] getValue():', data);
 
     return data;
   }

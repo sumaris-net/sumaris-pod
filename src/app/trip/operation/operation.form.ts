@@ -277,7 +277,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           hasNoChildOperation: true,
           endDate,
           startDate,
-          includedIds: isNotNil(parentOperation) ? [parentOperation.id] : null,
+          orIncludedIds: isNotNil(parentOperation) ? [parentOperation.id] : null,
           gearIds: this._physicalGearsSubject.getValue().map(physicalGear => physicalGear.gear.id)
         },
         physicalGears: this._physicalGearsSubject.getValue(),

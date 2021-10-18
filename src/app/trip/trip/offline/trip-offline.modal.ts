@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {FormBuilder, Validators} from '@angular/forms';
@@ -26,12 +26,12 @@ const moment = momentImported;
   templateUrl: './trip-offline.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripOfflineModal extends AppForm<TripOfflineFilter> {
+export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnInit{
 
   loading = true;
   mobile: boolean;
 
-  periodDurations: { value: number; unit: DurationConstructor; }[] = [
+  periodDurations: { value: number; unit: DurationConstructor }[] = [
     {value: 1, unit: 'week'},
     {value: 15, unit: 'day'},
     {value: 1, unit: 'month'},
@@ -115,7 +115,7 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> {
         mergeMap(program => {
           if (!program) return Promise.resolve();
           return this.vesselSnapshotService.loadAll(0, 100, displayAttributes[0],  "asc", {
-              program: program
+              program
           });
         }),
         map(res => {

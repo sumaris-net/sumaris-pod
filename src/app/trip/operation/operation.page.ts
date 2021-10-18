@@ -624,6 +624,23 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  protected setOperationTypeParams() {
+    if (this.opeForm.operationType === 1) {
+      this.tabGroup._tabs.last.disabled = false;
+      this.showBatchTables = true;
+      this.batchTree.enable();
+      this.setSafeIndividualMeasurementSubscription();
+    } else {
+      this.tabGroup._tabs.last.disabled = true;
+      this.showBatchTables = false;
+      this.batchTree.disable();
+      if (this.individualMeasurementSubscription) {
+        this.individualMeasurementSubscription.unsubscribe();
+        this.individualMeasurementSubscription = undefined;
+      }
+    }
+  }
+
   async setValue(data: Operation) {
 
     // set parent trip
