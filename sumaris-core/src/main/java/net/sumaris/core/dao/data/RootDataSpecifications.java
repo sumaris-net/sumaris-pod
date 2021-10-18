@@ -42,22 +42,18 @@ public interface RootDataSpecifications<E extends IRootDataEntity<? extends Seri
     String PROGRAM_LABEL_PARAM = "programLabel";
 
     default Specification<E> hasRecorderPersonId(Integer recorderPersonId) {
+        if (recorderPersonId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_PERSON_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(E.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), param)
-            );
+            return criteriaBuilder.equal(root.get(E.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), param);
         }).addBind(RECORDER_PERSON_ID_PARAM, recorderPersonId);
     }
 
     default Specification<E> hasProgramLabel(String programLabel) {
+        if (programLabel == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.LABEL), param)
-            );
+            return criteriaBuilder.equal(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.LABEL), param);
         }).addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
 
