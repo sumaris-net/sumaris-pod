@@ -10,6 +10,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ITreeItemEntity,
+  notNilOrDefault,
   ReferentialAsObjectOptions,
   referentialToString,
   ReferentialUtils,
@@ -19,7 +20,7 @@ import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.mod
 import {PmfmValueUtils} from '../../../referential/services/model/pmfm-value.model';
 import {IPmfm} from '../../../referential/services/model/pmfm.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -36,14 +37,12 @@ export interface BatchFromObjectOptions {
 // WARN: always recreate en entity, even if source is a Batch
 // because options can have changed
 @EntityClass({typename: 'BatchVO', fromObjectReuseStrategy: 'clone'})
-export class Batch<
-  T extends Batch<T, ID> = Batch<any, any>,
+export class Batch<T extends Batch<T, ID> = Batch<any, any>,
   ID = number,
   O extends BatchAsObjectOptions = BatchAsObjectOptions,
   FO extends BatchFromObjectOptions = BatchFromObjectOptions>
   extends DataEntity<T, ID, O, FO>
-  implements
-    IEntityWithMeasurement<T, ID>,
+  implements IEntityWithMeasurement<T, ID>,
     ITreeItemEntity<Batch> {
 
   static SAMPLING_BATCH_SUFFIX = '.%';
@@ -143,13 +142,21 @@ export class Batch<
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    target.measurementValuesMultiples = Object.getOwnPropertyNames(this.measurementValues)
+      .reduce((map, pmfmId) => {
+        const value = notNilOrDefault(this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id, this.measurementValues[pmfmId]);
+        if (value instanceof Array) {
+          map[pmfmId] = value.map(val => val && val.id);
+        }
+        return map;
+      }, {});
 
     if (opts && opts.minify) {
       // Parent Id not need, as the tree batch will be used by pod
@@ -189,7 +196,7 @@ export class Batch<
     }
 
     if (source.measurementValuesMultiples) {
-      this.measurementValues = { ...source.measurementValuesMultiples, ...this.measurementValues};
+      this.measurementValues = {...source.measurementValuesMultiples, ...this.measurementValues};
     }
 
     if (source.children && (!opts || opts.withChildren !== false)) {
@@ -266,7 +273,7 @@ export class BatchUtils {
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
 
-  public static getAcquisitionLevelFromLabel(batch: Batch): string|undefined {
+  public static getAcquisitionLevelFromLabel(batch: Batch): string | undefined {
     if (!batch || !batch.label) return undefined;
     const parts = batch.label.split('#');
     return parts.length > 0 && parts[0];
@@ -333,19 +340,18 @@ export class BatchUtils {
 
   static getChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
     return (batch.children || []).reduce((res, child) => {
-      if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
+      if (child.label && child.label.startsWith(acquisitionLevel + '#')) return res.concat(child);
       return res.concat(BatchUtils.getChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
   }
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
     return batch && (batch.children || []).findIndex(child => {
-      return (child.label && child.label.startsWith(acquisitionLevel + "#")) ||
+      return (child.label && child.label.startsWith(acquisitionLevel + '#')) ||
         // If children, recursive call
         (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
     }) !== -1;
   }
-
 
 
   /**
@@ -379,8 +385,7 @@ export class BatchUtils {
         console.warn(`[batch-utils] Fix batch {${source.label}} individual count  ${source.individualCount} => ${sumChildrenIndividualCount}`);
         //source.individualCount = childrenIndividualCount;
         source.qualityFlagId = QualityFlagIds.BAD;
-      }
-      else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
+      } else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
         // Create a sampling batch, to hold the sampling individual count
         const samplingBatch = new Batch();
         samplingBatch.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
@@ -394,7 +399,7 @@ export class BatchUtils {
 
   static computeRankOrder(source: Batch) {
 
-    if (!source.label || !source.children ) return; // skip
+    if (!source.label || !source.children) return; // skip
 
     // Sort by id and rankOrder (new batch at the end)
     source.children = source.children
@@ -462,8 +467,7 @@ export class BatchUtils {
           }
           message += ' ' + key + ':' + value;
         });
-    }
-    else {
+    } else {
 
       if (isNotNil(batch.id)) {
         message += ' id:' + batch.id;
@@ -474,8 +478,7 @@ export class BatchUtils {
         if (batch.parent) {
           if (isNotNil(batch.parent.id)) {
             message += ' parent.id:' + batch.parent.id;
-          }
-          else if (isNotNil(batch.parent.label)) {
+          } else if (isNotNil(batch.parent.label)) {
             message += ' parent.label:' + batch.parent.label;
           }
         }
@@ -508,11 +511,11 @@ export class BatchUtils {
 
     // Print
     if (opts.println) opts.println(message);
-    else  console.debug(message);
+    else console.debug(message);
 
     const childrenCount = batch.children && batch.children.length || 0;
     if (childrenCount > 0) {
-      batch.children.forEach((b, index, ) => {
+      batch.children.forEach((b, index,) => {
         const childOpts = (index === childrenCount - 1) ? {
           println: opts.println,
           indent: nextIndent + ' \\- ',
@@ -526,7 +529,6 @@ export class BatchUtils {
       });
     }
   }
-
 
 
 }
