@@ -325,7 +325,7 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row class="ion-no-padding" *ngIf="isChildOperation">
+    <ion-row class="ion-no-padding" *ngIf="!allowParentOperation || isChildOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label *ngIf="allowParentOperation else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
         <ng-template #end>
