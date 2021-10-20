@@ -313,7 +313,8 @@ public class OperationRepositoryImpl
                 .and(inGearIds(filter.getGearIds()))
                 .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
                 .and(hasQualityFlagId(filter.getQualityFlagId()))
-                .or(includedIds(filter.getIncludedIds()));
+                .and(includedIds(filter.getIncludedIds()))
+                .or(includedIds(filter.getOrIncludedIds()));
     }
 
     @Override
