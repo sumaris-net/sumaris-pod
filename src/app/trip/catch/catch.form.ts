@@ -42,10 +42,13 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   ngOnInit() {
     super.ngOnInit();
-    console.debug('[catch-form]');
+
     // Dispatch pmfms by category, using label
     firstNotNilPromise(this.$pmfms)
       .then(pmfms => {
+        // DEBUG
+        //console.debug('[catch-form] Dispatch pmfms by form', pmfms);
+
         this.$onDeckPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('ON_DECK_') === 0));
         this.$sortingPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('SORTING_') === 0));
         this.$weightAndOtherPmfms.next(pmfms.filter(p =>
