@@ -800,7 +800,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     ));
     const useChildAttributes = filter && (filter.searchJoin === 'TaxonGroup' || filter.searchJoin === 'Gear') ? filter.searchJoin : undefined;
     const entities = (data || []).map(source => source.metier)
-      .filter((metier, i, res) => res.findIndex(m => m.id === metier.id) !== -1)
+      .filter((metier, i, res) => res.findIndex(m => m.id === metier.id) === i)
       .map(metier => Metier.fromObject(metier, { useChildAttributes }));
     return {data: entities, total};
   }

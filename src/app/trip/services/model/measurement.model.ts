@@ -354,13 +354,7 @@ export class MeasurementValuesUtils {
           else if (value instanceof Date) {
             map[pmfmId] = toDateISOString(moment(value));
           } else if (value instanceof Array) {
-            map[pmfmId] = '';
-            value.forEach(val => {
-              if (val && val.id) {
-                map[pmfmId] += ';' + (val.id);
-              }
-            });
-            map[pmfmId] = map[pmfmId].substr(1);
+            // Do nothing, managed in measurementValuesMultiples property
           }
           // String, number
           else {
