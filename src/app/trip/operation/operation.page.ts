@@ -277,8 +277,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             // Force first tab index
             this.batchTree.setSelectedTabIndex(0);
             this.selectedSampleTabIndex = 0;
-            if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
-
             this.updateTablesState();
             this.markForCheck();
           })
@@ -316,7 +314,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             // Force first tab index
             this.batchTree.setSelectedTabIndex(0);
             this.selectedSampleTabIndex = 0;
-            if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
             this.updateTablesState();
             this.markForCheck();
           })
@@ -356,6 +353,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               this.$acquisitionLevel.next(acquisitionLevel);
             }
 
+            this.batchTree.setSelectedTabIndex(0);
+            this.selectedSampleTabIndex=0;
             this.updateTablesState();
             this.markForCheck();
           })
@@ -390,8 +389,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.showCatchTab = true;
       this.showSampleTables = false;
       this.showBatchTables = true;
-      if (this.batchTree) this.batchTree.realignInkBar();
-      if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
       this.updateTablesState();
       this.markForCheck();
     }
@@ -857,9 +854,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.samplesTable.disabled) this.samplesTable.enable();
         if (this.individualMonitoringTable.disabled) this.individualMonitoringTable.enable();
         if (this.individualReleaseTable.disabled) this.individualReleaseTable.enable();
+        if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
       }
-      if (this.showCatchTab && this.batchTree.disabled) {
-        this.batchTree.enable();
+      if (this.showCatchTab) {
+        if (this.batchTree.disabled) this.batchTree.enable();
+        if (this.showBatchTables) this.batchTree.realignInkBar();
       }
     }
     else {
