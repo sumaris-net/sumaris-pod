@@ -62,6 +62,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _physicalGearsSubject = new BehaviorSubject<PhysicalGear[]>(undefined);
   private _metiersSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _showMetierFilter = false;
+  private _allowParentOperation = false;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -93,7 +94,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return this._showMetierFilter;
   }
 
-  @Input() allowParentOperation: boolean;
+  @Input() set allowParentOperation(value: boolean) {
+    if (this._allowParentOperation !== value) {
+      this._allowParentOperation = value;
+      // TODO find a way to avoid duplicate execution
+      this.updateFormGroup();
+    }
+  }
+
+  get allowParentOperation(): boolean {
+    return this._allowParentOperation;
+  }
+
   @Input() usageMode: UsageMode;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
@@ -111,6 +123,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return this.$isChildOperation.value === true;
   }
 
+  @Input()
+  set isChildOperation(value: boolean) {
+    this.setIsChildOperation(value);
+  }
+
+  get isParentOperation(): boolean {
+    return this.$isChildOperation.value !== true;
+  }
 
   get parentControl(): FormControl {
     return this.form.get('parentOperation') as FormControl;
@@ -196,9 +216,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
-    if (this.allowParentOperation) {
-      this.onIsChildOperationChanged(isNotNil(data.parentOperation?.id), {emitEvent: false});
+
+    const hasParent = isNotNil(data.parentOperation?.id);
+    this.setIsChildOperation(hasParent, {emitEvent: false});
+    if (hasParent && !this.allowParentOperation) {
+      // Force to allow parent, to show existing parent data
+      this.allowParentOperation = true;
     }
+
     super.setValue(data, opts);
   }
 
@@ -498,43 +523,36 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  onIsChildOperationChanged(isChildOperation: boolean, opts?: { emitEvent?: boolean; }) {
-    isChildOperation = isChildOperation === true;
+  setIsChildOperation(isChildOperation: boolean, opts?: { emitEvent?: boolean; }) {
+    if (this.$isChildOperation.value === isChildOperation) return; // Skip if same
 
-    if (this.$isChildOperation.value !== isChildOperation) {
+    this.$isChildOperation.next(isChildOperation);
+    console.debug('[operation-form] Is child operation ? ', isChildOperation);
 
-      this.$isChildOperation.next(isChildOperation);
-      console.debug('[operation-form] Is child operation ? ', isChildOperation);
+    // Virage
+    if (isChildOperation) {
+      if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
+        // Keep filled values
+        this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
+        this.updateFormGroup();
 
-      // Virage
-      if (isChildOperation) {
+        // Propage to page, that there is an operation
+        setTimeout(() => this.onParentChanges.next(new Operation()), 600);
 
-        this.parentControl.enable();
-        this.parentControl.setValidators(Validators.required);
-
-        if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
-          // Keep filled values
-          this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
-
-          // Propage to page, that there is an operation
-          setTimeout(() => this.onParentChanges.next(new Operation()), 600);
-
-          // Select a parent (or same if user cancelled)
-          this.addParentOperation();
-        }
+        // Select a parent (or same if user cancelled)
+        this.addParentOperation();
       }
+    }
 
-      // Filage or other case
-      else {
-        this.form.patchValue({
-          qualityFlagId: QualityFlagIds.NOT_COMPLETED,
-          parentOperation: null
-        });
-        SharedValidators.clearError(this.parentControl, 'required');
-        this.parentControl.disable();
+    // Filage or other case
+    else {
+      this.form.patchValue({
+        qualityFlagId: QualityFlagIds.NOT_COMPLETED,
+        parentOperation: null
+      });
+      if (!opts || opts.emitEvent !== false) {
+        this.updateFormGroup();
       }
-
-      this.setValidators();
     }
   }
 
@@ -580,72 +598,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
-  protected setValidators() {
-    // Add validator on date
-    let endDateTimeControlName;
-    let disabledEndDateTimeControlName;
-    const childOperation = this.form.get('childOperation').value;
+  protected updateFormGroup() {
 
-    if (!this.allowParentOperation || this.isChildOperation) {
-      endDateTimeControlName = 'endDateTime';
-      disabledEndDateTimeControlName = 'fishingStartDateTime';
-    } else {
-      endDateTimeControlName = 'fishingStartDateTime';
-      disabledEndDateTimeControlName = 'endDateTime';
-    }
-
-    // Start date end child operation
-    if (this.isChildOperation) {
-      //this.parentControl.setValidators(Validators.required);
-      this.form.get('fishingEndDateTime').setValidators(Validators.required);
-      this.form.get('fishingEndDateTime').setAsyncValidators(async (control) => {
-        const fishingEndDateTime = fromDateISOString(control.value);
-        const fishingStartDateTime = fromDateISOString((control.parent as FormGroup).get('fishingStartDateTime').value);
-        // Error if fishingEndDateTime <= fishingStartDateTime
-        if (fishingStartDateTime && fishingEndDateTime?.isSameOrBefore(fishingStartDateTime)) {
-          console.warn(`[operation] Invalid operation fishingEndDateTime: before fishingStartDateTime! `, fishingEndDateTime, fishingStartDateTime);
-          return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')};
-        }
-        // OK: clear existing errors
-        SharedValidators.clearError(control, 'msg');
-        return null;
-      });
-    } else {
-      //this.parentControl.clearValidators();
-      this.form.get('fishingEndDateTime').clearValidators();
-      this.form.get('fishingEndDateTime').clearAsyncValidators();
-    }
-
-    this.form.get(disabledEndDateTimeControlName).clearAsyncValidators();
-    SharedValidators.clearError(this.form.get(disabledEndDateTimeControlName), 'required');
-
-    this.form.get(endDateTimeControlName).setAsyncValidators(async (control) => {
-      if (this.usageMode !== 'FIELD' && !control.value) {
-        return <ValidationErrors>{required: true};
-      }
-      if (!control.touched && !control.dirty) return null;
-
-      const endDateTime = fromDateISOString(control.value);
-
-      // Make sure trip.departureDateTime < operation.endDateTime
-      if (endDateTime && this.trip.departureDateTime && this.trip.departureDateTime.isBefore(endDateTime) === false) {
-        console.warn(`[operation] Invalid operation ${endDateTimeControlName}: before the trip!`, endDateTime, this.trip.departureDateTime);
-        return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP')};
-      }
-      // Make sure operation.endDateTime < trip.returnDateTime
-      else if (endDateTime && this.trip.returnDateTime && endDateTime.isBefore(this.trip.returnDateTime) === false) {
-        console.warn(`[operation] Invalid operation ${endDateTimeControlName}: after the trip! `, endDateTime, this.trip.returnDateTime);
-        return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP')};
-      } else if (childOperation != null && endDateTime && endDateTime.isBefore(childOperation.fishingEndDateTime) === false) {
-        console.warn(`[operation] Invalid operation ${endDateTimeControlName}: after the child operation's start! `, endDateTime, childOperation.fishingEndDateTime);
-        return <ValidationErrors>{msg: this.translate.instant('TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')};
-      }
-
-      // OK: clear existing errors
-      SharedValidators.clearError(control, 'msg');
-      SharedValidators.clearError(control, 'required');
-      return null;
-    });
+    this.validatorService.updateFormGroup(this.form, {
+      trip: this.trip,
+      withChild: this.allowParentOperation && this.isParentOperation,
+      withParent: this.isChildOperation
+    })
 
     this.form.updateValueAndValidity();
     this.markForCheck();

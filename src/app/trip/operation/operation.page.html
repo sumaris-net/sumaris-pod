@@ -181,12 +181,12 @@
           <ion-col class="ion-padding">
             <!-- form -->
             <app-form-operation #opeForm
-                                (onSubmit)="save($event)" [showError]="false"
+                                (onSubmit)="save($event)"
+                                [showError]="false"
                                 [usageMode]="usageMode"
                                 [tabindex]="1"
                                 [debug]="debug"
-                                [programLabel]="$programLabel|async"
-                                [allowParentOperation]="$allowParentOperation|async">
+                                [programLabel]="$programLabel|async">
 
 
               <!-- Other features (Measurements) -->

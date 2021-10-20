@@ -15,7 +15,7 @@
       <ion-col size="6" size-md="">
 
         <mat-form-field *ngIf="!mobile else isChildOperationButtons">
-          <mat-select matInput (selectionChange)="onIsChildOperationChanged($event.value)"
+          <mat-select matInput (selectionChange)="setIsChildOperation($event.value)"
                       [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
                       [tabindex]="tabindex"
                       [value]="($isChildOperation|async) === true"
@@ -35,8 +35,8 @@
                 <ion-col *ngFor="let item of isChildOperationItems; index as i;">
                   <ion-button class="mat-form-field-button"
                               [tabindex]="tabindex+1"
-                              (click)="onIsChildOperationChanged(item.value)"
-                              (keyup.enter)="onIsChildOperationChanged(item.value)"
+                              (click)="setIsChildOperation(item.value)"
+                              (keyup.enter)="setIsChildOperation(item.value)"
                               fill="solid"
                               expand="full"
                               [color]="isChildOperation === item.value ? 'accent' : 'light'">

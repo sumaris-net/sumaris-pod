@@ -347,9 +347,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               acquisitionLevel = AcquisitionLevelCodes.OPERATION;
             }
 
-            if (this.opeForm.$isChildOperation.getValue() === undefined) {
+            /*if (this.opeForm.$isChildOperation.getValue() === undefined) {
               this.opeForm.onIsChildOperationChanged(hasParent, {emitEvent: false});
-            }
+            }*/
 
             // Change acquisition level, if need
             if (this.$acquisitionLevel.value !== acquisitionLevel) {
