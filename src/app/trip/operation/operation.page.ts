@@ -279,6 +279,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.selectedSampleTabIndex = 0;
             if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
 
+            this.updateTablesState();
             this.markForCheck();
           })
       );
@@ -316,6 +317,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.batchTree.setSelectedTabIndex(0);
             this.selectedSampleTabIndex = 0;
             if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+            this.updateTablesState();
             this.markForCheck();
           })
       );
@@ -338,16 +340,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               if (this.debug) console.debug('[operation] Enable batch tables');
               this.showCatchTab = true;
               this.showBatchTables = true;
-              this.batchTree.enable();
-              this.samplesTable.enable();
+              this.showSampleTables = false;
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
               this.showCatchTab = false;
               this.showBatchTables = false;
               this.showSampleTables = false;
-              this.batchTree.disable();
-              this.samplesTable.disable();
               acquisitionLevel = AcquisitionLevelCodes.OPERATION;
             }
 
@@ -356,6 +355,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               this.measurementsForm.setAcquisitionLevel(acquisitionLevel, []);
               this.$acquisitionLevel.next(acquisitionLevel);
             }
+
+            this.updateTablesState();
+            this.markForCheck();
           })
       );
     }
@@ -390,6 +392,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.showBatchTables = true;
       if (this.batchTree) this.batchTree.realignInkBar();
       if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+      this.updateTablesState();
       this.markForCheck();
     }
 
@@ -734,9 +737,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.individualReleaseTable,
       () => this.showCatchTab && this.batchTree
     ]);
-    if (!this.mobile) {
-      //this.addChildForm(() => this.subBatchesTable);
-    }
   }
 
   protected async waitWhilePending(): Promise<void> {
@@ -848,6 +848,29 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // If new data, auto fill the table
     if (this.isNewData && !this.loading) {
       await this.batchTree.autoFill({defaultTaxonGroups, forceIfDisabled: true});
+    }
+  }
+
+  protected updateTablesState() {
+    if (this.enabled) {
+      if (this.showSampleTables) {
+        if (this.samplesTable.disabled) this.samplesTable.enable();
+        if (this.individualMonitoringTable.disabled) this.individualMonitoringTable.enable();
+        if (this.individualReleaseTable.disabled) this.individualReleaseTable.enable();
+      }
+      if (this.showCatchTab && this.batchTree.disabled) {
+        this.batchTree.enable();
+      }
+    }
+    else {
+      if (this.showSampleTables) {
+        if (this.samplesTable.enabled) this.samplesTable.disable();
+        if (this.individualMonitoringTable.enabled) this.individualMonitoringTable.disable();
+        if (this.individualReleaseTable.enabled) this.individualReleaseTable.disable();
+      }
+      if (this.showCatchTab && this.batchTree.enabled) {
+        this.batchTree.disable();
+      }
     }
   }
 
