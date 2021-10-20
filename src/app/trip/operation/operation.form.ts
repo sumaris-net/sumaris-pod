@@ -241,6 +241,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         physicalGear = (trip.gears || []).find(g => g.id === physicalGear.id) || physicalGear;
         if (physicalGear) physicalGearControl.patchValue(physicalGear);
       }
+
+      // Update form group
+      this.updateFormGroup();
     }
   }
 
@@ -604,7 +607,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       trip: this.trip,
       withChild: this.allowParentOperation && this.isParentOperation,
       withParent: this.isChildOperation
-    })
+    });
 
     this.form.updateValueAndValidity();
     this.markForCheck();
