@@ -302,7 +302,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    *
    * @params opts.includeTaxonGroups : include taxon label
    */
-  async autoFillTable(opts?: { defaultTaxonGroups?: string[] }) {
+  async autoFillTable(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean;  }) {
     // Wait table is ready
     await this.ready();
 
@@ -311,9 +311,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       await firstFalsePromise(this.loadingSubject);
     }
 
-    // Skip when disabled or still editing a row
-    if (this.disabled || !this.confirmEditCreate()) {
-      console.warn('[batch-group-table] Skipping autofill, as table is disabled or still editing a row');
+    // Skip when disabled
+    if ((!opts || opts.forceIfDisabled !== true) && this.disabled) {
+      console.warn('[batch-group-table] Skipping autofill as table is disabled');
+      return;
+    }
+
+    // Skip when editing a row
+    if (!this.confirmEditCreate()) {
+      console.warn('[batch-group-table] Skipping autofill, as table still editing a row');
       return;
     }
 

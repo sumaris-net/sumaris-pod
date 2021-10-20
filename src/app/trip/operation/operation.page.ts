@@ -199,16 +199,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           this.individualReleaseTable.availableParents = availableParents;
         }));
 
-    if (!this.measurementsForm) return;
-    this.registerSubscription(
-      this.measurementsForm.$pmfms
-        .pipe(
-          debounceTime(400),
-          filter(isNotNil),
-          mergeMap(_ => this.measurementsForm.ready()),
-        )
-        .subscribe(_ => this.onMeasurementsFormReady())
-    );
+    if (this.measurementsForm) {
+      this.registerSubscription(
+        this.measurementsForm.$pmfms
+          .pipe(
+            debounceTime(400),
+            filter(isNotNil),
+            mergeMap(_ => this.measurementsForm.ready()),
+          )
+          .subscribe(_ => this.onMeasurementsFormReady())
+      );
+    }
 
     // Configure page, from Program's properties
     this.registerSubscription(
@@ -229,6 +230,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
    * Configure specific behavior
    */
   protected async onMeasurementsFormReady() {
+
+    console.debug('[operation-page] Measurement form is ready');
 
     if (this._measurementSubscription) this._measurementSubscription.unsubscribe();
     this._measurementSubscription = new Subscription();
@@ -254,16 +257,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             switch (qvLabel as string) {
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
                 if (this.debug) console.debug('[operation] Enable survival test tables');
+                this.showCatchTab = true;
                 this.showSampleTables = true;
                 this.showBatchTables = false;
                 break;
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.CATCH_HAUL:
                 if (this.debug) console.debug('[operation] Enable batch sampling tables');
+                this.showCatchTab = true;
                 this.showSampleTables = false;
                 this.showBatchTables = true;
                 break;
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.UNSAMPLED:
                 if (this.debug) console.debug('[operation] Disable survival test and batch sampling tables');
+                this.showCatchTab = true;
                 this.showSampleTables = false;
                 this.showBatchTables = false;
             }
@@ -379,9 +385,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Show default tables
     if (showDefaultTables) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
+      this.showCatchTab = true;
       this.showSampleTables = false;
       this.showBatchTables = true;
-      this.showCatchTab = true;
       if (this.batchTree) this.batchTree.realignInkBar();
       if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
       this.markForCheck();
@@ -501,14 +507,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
 
-  }
-
-  async updateView(data: Operation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
-    await super.updateView(data, opts);
-
-    if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
-      this.batchTree.autoFill();
-    }
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -849,7 +847,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // If new data, auto fill the table
     if (this.isNewData && !this.loading) {
-      await this.batchTree.autoFill({defaultTaxonGroups});
+      await this.batchTree.autoFill({defaultTaxonGroups, forceIfDisabled: true});
     }
   }
 

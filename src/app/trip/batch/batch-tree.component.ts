@@ -371,7 +371,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
 
-  autoFill(opts?: { defaultTaxonGroups?: string[]; }): Promise<void> {
+  autoFill(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean; }): Promise<void> {
     return this.batchGroupsTable.autoFillTable(opts);
   }
 
