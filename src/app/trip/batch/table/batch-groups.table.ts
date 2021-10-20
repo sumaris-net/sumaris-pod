@@ -206,11 +206,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.registerSubscription(
       this.asyncFormValues.subscribe(value => {
         if (this.hasIndividualMeasurement !== value.hasIndividualMeasurement) {
-          this.hasIndividualMeasurement = !this.hasIndividualMeasurement;
+          //True by default
+          this.hasIndividualMeasurement = value.hasIndividualMeasurement !== false;
 
           if ((this.mobile && this.hasIndividualMeasurement)) {
             this.nbDisplayedColumns = 2;
-          } else if (!this.mobile && !this.hasIndividualMeasurement){
+          } else if (!this.mobile && !this.hasIndividualMeasurement) {
             this.nbDisplayedColumns = this.nbDynamicColumns - 3;
           } else if (this.mobile) {
             this.nbDisplayedColumns = 1;
@@ -302,7 +303,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    *
    * @params opts.includeTaxonGroups : include taxon label
    */
-  async autoFillTable(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean;  }) {
+  async autoFillTable(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean; }) {
     // Wait table is ready
     await this.ready();
 
@@ -458,7 +459,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       const childLabel = `${batch.label}.${qv.label}`;
       const child: Batch = isNotNil(batch.id) && (batch.children || []).find(b => b.label === childLabel) || new Batch();
-      const currentMeasurementValues = child.measurementValues;
+      const currentMeasurementValues = batch?.children?.find(b => b.label === childLabel)?.measurementValues || {};
 
       child.rankOrder = qvIndex + 1;
       child.measurementValues = {};
@@ -486,10 +487,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       }
 
       //Additional pmfms
-      Object.keys(groupColumnValues).forEach(pmfmId => {
-        if (parseInt(pmfmId) > 9 && !child.measurementValues[pmfmId] && (child.children.length === 0 || !child.children[0].measurementValues[pmfmId])) {
-          child.measurementValues[pmfmId] = currentMeasurementValues[pmfmId];
-        }
+      this._initialPmfms.filter(pmfm => pmfm.id !== this.qvPmfm.id && pmfm.id !== this.defaultWeightPmfm.id).forEach(pmfm => {
+        child.measurementValues[pmfm.id] = currentMeasurementValues[pmfm.id] || pmfm.defaultValue;
       });
 
       return res.concat(child);
@@ -621,7 +620,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     value = weightPmfm && measurementValues[weightPmfm.id];
     if (isNotNil(value)) {
       return {
-        value: value,
+        value,
         estimated: false,
         computed: true,
         methodId: MethodIds.CALCULATED
@@ -659,13 +658,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     const inverseOrder = individualCountIndex < weightIndex;
 
     const dynamicColumnKeys = (this.dynamicColumns || [])
-      .map(c => {
-        return {
-          key: c.key,
-          rankOrder: c.rankOrder + (inverseOrder &&
-            ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
-        };
-      })
+      .map(c => ({
+        key: c.key,
+        rankOrder: c.rankOrder + (inverseOrder &&
+          ((c.key.endsWith('_WEIGHT') && 1) || (c.key.endsWith('_INDIVIDUAL_COUNT') && -1)) || 0)
+      }))
       .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
       .map(c => c.key);
 

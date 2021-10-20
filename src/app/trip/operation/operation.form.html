@@ -132,7 +132,7 @@
 
           <!-- Reset filter -->
           <button matAfter type="button" mat-icon-button
-                  *ngIf="showMetierFilter"
+                  *ngIf="showMetierFilter && !isChildOperation"
                   tabindex="-1"
                   [title]="'COMMON.BTN_FILTER'|translate"
                   (click)="toggleMetierFilter($event)"
