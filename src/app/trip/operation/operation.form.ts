@@ -552,7 +552,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Filage or other case
     else {
       this.form.patchValue({
-        qualityFlagId: QualityFlagIds.NOT_COMPLETED,
         parentOperation: null
       });
       if (!opts || opts.emitEvent !== false) {

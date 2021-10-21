@@ -4,7 +4,7 @@ import { AbstractControlOptions, FormBuilder, FormGroup, ValidationErrors, Valid
 import { PositionValidatorService } from './position.validator';
 import { fromDateISOString, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { MeasurementsValidatorService } from './measurement.validator';
 import { Operation, Trip } from '../model/trip.model';
@@ -96,6 +96,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const endDateTimeValidators: ValidatorFn[] = [];
     const parentControl = formGroup.get('parentOperation');
     const childControl = formGroup.get('childOperation');
+    const qualityFlagControl = formGroup.get('qualityFlagId');
 
     // iS child
     if (opts?.withParent) {
@@ -116,6 +117,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         SharedValidators.clearError(control, 'msg');
         return null;
       });
+
+      qualityFlagControl.clearValidators();
 
       endDateTimeControlName = 'endDateTime';
       disabledEndDateTimeControlName = 'fishingStartDateTime';
@@ -140,6 +143,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'};
         }
       });
+
+      qualityFlagControl.setValidators(Validators.required);
+      qualityFlagControl.setValue(QualityFlagIds.NOT_COMPLETED);
     }
 
     // Default case
@@ -154,6 +160,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       formGroup.get('fishingEndDateTime').clearAsyncValidators();
       endDateTimeControlName = 'endDateTime';
       disabledEndDateTimeControlName = 'fishingStartDateTime';
+
+      qualityFlagControl.clearValidators();
     }
 
     // Add required
@@ -167,14 +175,17 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         //if (!control.touched && !control.dirty) return null;
 
         const endDateTime = fromDateISOString(control.value);
+        const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
+        const tripReturnDateTime = fromDateISOString(trip.returnDateTime);
+
         // Make sure trip.departureDateTime < operation.endDateTime
-        if (endDateTime && trip.departureDateTime && trip.departureDateTime.isBefore(endDateTime) === false) {
-          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: before the trip!`, endDateTime, trip.departureDateTime);
+        if (endDateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(endDateTime) === false) {
+          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: before the trip!`, endDateTime, tripDepartureDateTime);
           return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP'};
         }
         // Make sure operation.endDateTime < trip.returnDateTime
-        else if (endDateTime && trip.returnDateTime && endDateTime.isBefore(trip.returnDateTime) === false) {
-          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: after the trip! `, endDateTime, trip.returnDateTime);
+        else if (endDateTime && tripReturnDateTime && endDateTime.isBefore(tripReturnDateTime) === false) {
+          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: after the trip! `, endDateTime, tripReturnDateTime);
           return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP'};
         }
       });
