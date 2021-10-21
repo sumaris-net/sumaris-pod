@@ -214,7 +214,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         data.program = ReferentialRef.fromObject(contextualProgram);
         this.$programLabel.next(data.program.label);
       } else {
-        if (this) {
+        if (!this.isOnFieldMode) {
           // Fil defaults, using filter applied on trips table
           const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
           if (searchFilter) {
