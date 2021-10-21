@@ -458,7 +458,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
 
     // server call for first sample and increment from server call value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel) {
 
       // TODO BLA review the code
       //  => à clarifier, en utilisant une variable 'tagId'
