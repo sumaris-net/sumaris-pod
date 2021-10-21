@@ -1,15 +1,14 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
-  firstNotNil,
-  firstNotNilPromise,
+  firstNotNilPromise, firstTruePromise,
   HistoryPageReference,
   IEntity,
   isNil,
@@ -20,22 +19,22 @@ import {
   ReferentialUtils,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap} from 'rxjs/operators';
-import {FormGroup, Validators} from '@angular/forms';
+import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
-import {IndividualMonitoringSubSamplesTable} from '../sample/individualmonitoring/individual-monitoring-samples.table';
-import {Program} from '@app/referential/services/model/program.model';
-import {SubSamplesTable} from '../sample/sub-samples.table';
-import {SamplesTable} from '../sample/samples.table';
-import {Operation, Trip} from '../services/model/trip.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
-import {BatchTreeComponent} from '../batch/batch-tree.component';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, combineLatest, Subject, Subscription} from 'rxjs';
-import {Measurement} from '@app/trip/services/model/measurement.model';
+import { IndividualMonitoringSubSamplesTable } from '../sample/individualmonitoring/individual-monitoring-samples.table';
+import { Program } from '@app/referential/services/model/program.model';
+import { SubSamplesTable } from '../sample/sub-samples.table';
+import { SamplesTable } from '../sample/samples.table';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { BatchTreeComponent } from '../batch/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { Measurement } from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 
@@ -52,6 +51,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   private _measurementSubscription: Subscription;
 
   $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+  $ready = new BehaviorSubject(false);
 
   measurements: Measurement[];
   trip: Trip;
@@ -73,11 +73,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showSampleTables = false;
   showBatchTables = false;
   enableSubBatchesTable = false;
-
-  $allowParentOperation = new BehaviorSubject<boolean>(undefined);
-
   mobile: boolean;
-
   sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
@@ -205,7 +201,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           .pipe(
             debounceTime(400),
             filter(isNotNil),
-            mergeMap(_ => this.measurementsForm.ready()),
+            mergeMap(_ => this.measurementsForm.ready())
           )
           .subscribe(_ => this.onMeasurementsFormReady())
       );
@@ -225,11 +221,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
   }
 
+  protected async ready() {
+    if (this.$ready.value === true) return;
+    await firstTruePromise(this.$ready);
+  }
 
   /**
    * Configure specific behavior
    */
   protected async onMeasurementsFormReady() {
+
+    // Wait program to be loaded
+    await this.ready();
 
     console.debug('[operation-page] Measurement form is ready');
 
@@ -320,9 +323,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       );
     }
 
-
-    const allowParentOperation = await firstNotNilPromise(this.$allowParentOperation);
-    if (allowParentOperation) {
+    if (this.opeForm.allowParentOperation) {
       showDefaultTables = false;
       this._measurementSubscription.add(
         this.opeForm.onParentChanges
@@ -346,10 +347,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               this.showSampleTables = false;
               acquisitionLevel = AcquisitionLevelCodes.OPERATION;
             }
-
-            /*if (this.opeForm.$isChildOperation.getValue() === undefined) {
-              this.opeForm.onIsChildOperationChanged(hasParent, {emitEvent: false});
-            }*/
 
             // Change acquisition level, if need
             if (this.$acquisitionLevel.value !== acquisitionLevel) {
@@ -393,6 +390,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.showCatchTab = true;
       this.showSampleTables = false;
       this.showBatchTables = true;
+      //this.cd.detectChanges();
       this.updateTablesState();
       this.markForCheck();
     }
@@ -436,14 +434,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
-    const allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
-    this.$allowParentOperation.next(allowParentOperation);
-
     this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
-    this.opeForm.allowParentOperation = allowParentOperation;
+    this.opeForm.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
@@ -455,6 +450,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);
+
+    this.$ready.next(true);
   }
 
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -735,7 +732,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.samplesTable,
       this.individualMonitoringTable,
       this.individualReleaseTable,
-      () => this.showCatchTab && this.batchTree
+      () => this.batchTree
     ]);
   }
 

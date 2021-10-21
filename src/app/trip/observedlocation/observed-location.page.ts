@@ -119,11 +119,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   /* -- protected methods  -- */
 
-
-
-
-
-
   updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     super.updateViewState(data);
 
@@ -141,6 +136,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.tabGroup.realignInkBar();
     }
   }
+
+
+
 
   async onOpenLanding({id, row}) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
@@ -312,8 +310,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
     this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
-    this.cd.detectChanges();
-
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -322,6 +318,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
 
+    this.cd.detectChanges();
     const landingsTable = this.landingsTable;
     if (landingsTable) {
       landingsTable.i18nColumnSuffix = i18nSuffix;
@@ -335,9 +332,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+
+      this.landingsTable.parent = this.data;
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+      this.aggregatedLandingsTable.parent = this.data;
     }
 
     this.$ready.next(true);
@@ -353,7 +353,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       console.debug('[observed-location] New entity: set default values...');
 
-      // Fil defaults, using filter applied on trips table
+      // Fill defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
       if (searchFilter) {
         // Synchronization status
@@ -407,26 +407,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Set data to form
     this.observedLocationForm.value = data;
 
+    console.info('[observed-location] Setting landing', data);
+
     const isNew = isNil(data.id);
     if (!isNew) {
       // Propagate program to form
       this.$programLabel.next(data.program.label);
-    }
-
-    // Wait for child table ready
-    await this.ready();
-    this.updateViewState(data);
-
-    // Propagate parent to landings table
-    if (!isNew) {
-      if (this.landingsTable) {
-        if (this.debug) console.debug('[observed-location] Propagate observed location to landings table');
-        this.landingsTable.setParent(data);
-      }
-      if (this.aggregatedLandingsTable) {
-        if (this.debug) console.debug('[observed-location] Propagate observed location to aggregated landings form');
-        this.aggregatedLandingsTable.setParent(data);
-      }
     }
   }
 
@@ -461,13 +447,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected async computeTitle(data: ObservedLocation): Promise<string> {
 
-    //await this.ready();
-    await firstNotNilPromise(this.$ready);
-
     // new data
     if (this.isNewData) {
       return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
+
+    // Make sure i18nContext is loaded
+    await this.ready();
 
     // Existing data
     return this.translate.get(`OBSERVED_LOCATION.EDIT.${this.i18nContext.suffix}TITLE`, {

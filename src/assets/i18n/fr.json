@@ -578,7 +578,7 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
-        "DISTANCE_TRAVELED" : "Distance parcourue :",
+        "DISTANCE_DOTS" : "Dist. :",
         "START_PARENT_OPERATION" : "Début pose :",
         "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
