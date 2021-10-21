@@ -51,9 +51,18 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   mobile: boolean;
   $title = new BehaviorSubject<string>(undefined);
 
-  @Input() i18nPrefix: string;
+  @Input() isNew: boolean;
+  @Input() data: Sample;
+  @Input() disabled: boolean;
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;
+  @Input() usageMode: UsageMode;
+
+  @Input() i18nPrefix: string;
+  @Input() showLabel = false;
+  @Input() showDateTime = true;
+  @Input() showTaxonGroup = true;
+  @Input() showTaxonName = true;
 
   // Avoid to load PMFM from program
   @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
@@ -71,16 +80,6 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
 
-  @Input() disabled: boolean;
-  @Input() isNew: boolean;
-
-  @Input() usageMode: UsageMode;
-
-  @Input() showLabel = false;
-  @Input() showDateTime = true;
-  @Input() showTaxonGroup = true;
-  @Input() showTaxonName = true;
-
 
   @Input() onReady: (modal: SampleModal) => void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -89,7 +88,6 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
 
-  @Input() data: Sample;
 
   @ViewChild('form', { static: true }) form: SampleForm;
   @ViewChild(IonContent) content: IonContent;

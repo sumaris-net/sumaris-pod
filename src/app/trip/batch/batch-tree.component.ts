@@ -59,8 +59,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
   @Input() showSubBatchesTable: boolean;
-  @Input() hasIndividualMeasurement = new BehaviorSubject<boolean>(true);
-  @Input() asyncFormValues = new BehaviorSubject<any>({});
+  @Input() showSamplingBatchColumns: boolean;
 
   get isNewData(): boolean {
     return false;
@@ -131,26 +130,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     // Set defaults
     this.showCatchForm = toBoolean(this.showCatchForm, true);
     this.showBatchTables = toBoolean(this.showBatchTables, true);
-    this.showSubBatchesTable = toBoolean(this.showSubBatchesTable, !this.mobile);
+    this.showSamplingBatchColumns = toBoolean(this.showSamplingBatchColumns, true);
+    this.showSubBatchesTable = this.showSamplingBatchColumns && toBoolean(this.showSubBatchesTable, !this.mobile);
 
     super.ngOnInit();
 
     this.registerForms();
-
-    this.registerSubscription(
-      this.asyncFormValues.pipe(
-        filter(() => !this.loading)
-      ).subscribe(
-        value => {
-          this.batchGroupsTable.asyncFormValues.next(value);
-          if (isNotNil(value.hasIndividualMeasurement) && !value.hasIndividualMeasurement) {
-            this.showSubBatchesTable = false;
-          } else {
-            this.showSubBatchesTable = !this.mobile;
-          }
-        }
-      )
-    );
   }
 
   ngAfterViewInit() {

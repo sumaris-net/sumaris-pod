@@ -35,9 +35,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   @Input() showChildrenSampleBatch = true;
 
-  @Input() hasIndividualMeasurement: boolean;
+  @Input() showSamplingBatch: boolean;
 
-  @Input() hasIndividualMeasurementByDefault: boolean;
+  @Input() defaultIsSampling: boolean;
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
 
@@ -130,7 +130,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   ngOnInit() {
     super.ngOnInit();
 
-   if (this.debug) console.debug('[batch-group-form] hasIndividualMeasurementByDefault : ', this.hasIndividualMeasurementByDefault);
+   if (this.debug) console.debug('[batch-group-form] hasIndividualMeasurementByDefault : ', this.defaultIsSampling);
     // Set isSampling on each child forms, when has indiv. measure changed
     this.registerSubscription(
       this.hasIndividualMeasureControl.valueChanges
@@ -184,7 +184,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     }
 
     if (this.debug) console.debug('[batch-group-form] setValue() with value:', data);
-    let hasIndividualMeasure = data.observedIndividualCount > 0 || this.hasIndividualMeasurementByDefault;
+    let hasIndividualMeasure = data.observedIndividualCount > 0 || this.defaultIsSampling;
 
     if (!this.qvPmfm) {
       super.setValue(data);

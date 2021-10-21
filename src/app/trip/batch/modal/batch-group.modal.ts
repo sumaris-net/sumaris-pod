@@ -10,7 +10,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import { Entity, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -25,6 +25,17 @@ import {BatchGroup} from "../../services/model/batch-group.model";
 import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../../environments/environment";
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+
+
+export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
+
+  showSamplingBatch: boolean;
+  defaultIsSampling: boolean;
+
+}
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -32,47 +43,35 @@ import {environment} from "../../../../environments/environment";
   styleUrls: ['batch-group.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupModal implements OnInit, OnDestroy {
+export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptions {
 
   private _subscription = new Subscription();
 
   debug = false;
   loading = false;
   mobile: boolean;
-  data: BatchGroup;
   $title = new BehaviorSubject<string>(undefined);
 
-  @Input() acquisitionLevel: string;
-
-  @Input() programLabel: string;
-
-  @Input() disabled: boolean;
-
+  @Input() data: BatchGroup;
   @Input() isNew: boolean;
-
+  @Input() disabled: boolean;
+  @Input() usageMode: UsageMode;
+  @Input() acquisitionLevel: string;
+  @Input() programLabel: string;
   @Input() showTaxonGroup = true;
-
   @Input() showTaxonName = true;
-
+  @Input() showIndividualCount = false;
   @Input() taxonGroupsNoWeight: string[];
-
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
-
   @Input() qvPmfm: PmfmStrategy;
-
-  @Input() hasIndividualMeasurement: boolean;
-
-  @Input() hasIndividualMeasurementByDefault: boolean;
-
+  @Input() showSamplingBatch: boolean;
+  @Input() defaultIsSampling: boolean;
   @Input() maxVisibleButtons: number;
 
-  @Input()
-  set value(value: BatchGroup) {
-    this.data = value;
-  }
+  // TODO BLA: voir si on peut passer ces pmfms au BatchGroupForm
+  @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
 
   @Input() openSubBatchesModal: (parent: Batch) => Promise<BatchGroup>;
-
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;
@@ -129,20 +128,16 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-
     this.isNew = toBoolean(this.isNew, !this.data);
-    this.data = this.data || new BatchGroup();
-    this.form.setValue(this.data);
-
+    this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
 
     if (this.disabled) {
       this.disable();
     }
-    else {
-      this.enable();
-    }
 
+    this.data = this.data || new BatchGroup();
+    this.form.setValue(this.data);
 
     // Update title, when form change
     this._subscription.add(

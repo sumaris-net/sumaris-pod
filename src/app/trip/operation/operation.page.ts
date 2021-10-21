@@ -374,12 +374,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             distinctUntilChanged()
           )
           .subscribe(hasMeasure => {
-            this.batchTree.asyncFormValues.next(
-              {
-                hasIndividualMeasurement: hasMeasure,
-                hasIndividualMeasurementByDefault: hasMeasure
-              }
-            );
+            this.batchTree.showSamplingBatchColumns = hasMeasure;
+            this.batchTree.batchGroupsTable.modalOptions = {
+              ...this.batchTree.batchGroupsTable.modalOptions,
+              showSamplingBatch: hasMeasure,
+              defaultIsSampling: hasMeasure
+            };
+            //this.markForCheck(); // TODO BLA voir si besoin ?
           })
       );
     }

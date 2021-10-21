@@ -26,7 +26,7 @@ import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import { SubBatchForm } from '../form/sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { SubBatchModal } from '../modal/sub-batch.modal';
+import { ISubBatchModalOptions, SubBatchModal } from '../modal/sub-batch.modal';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
@@ -35,6 +35,7 @@ import { BatchGroup } from '../../services/model/batch-group.model';
 import { PmfmValidators } from '../../../referential/services/validator/pmfm.validators';
 import { environment } from '../../../../environments/environment';
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -592,15 +593,16 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     const modal = await this.modalCtrl.create({
       component: SubBatchModal,
-      componentProps: {
+      componentProps: /*<ISubBatchModalOptions>*/{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         availableParents: this.availableParents,
-        value: batch,
+        data: batch,
         isNew: isNew,
         disabled: this.disabled,
         qvPmfm: this.qvPmfm,
         showParent: this.showParentColumn,
+        showTaxonGroup: false, // Not used
         showTaxonName: this.showTaxonNameColumn,
         showIndividualCount: this.showIndividualCount
       }, keyboardClose: true

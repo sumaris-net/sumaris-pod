@@ -56,7 +56,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   @Input() showTotalIndividualCount = false;
   @Input() showIndividualCount = false;
   @Input() showEstimatedWeight = false;
-  @Input() showSampleBatch = false;
+  @Input() showSamplingBatch = false;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() mapPmfmFn: (pmfms: IPmfm[]) => IPmfm[];
@@ -242,7 +242,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       MeasurementValuesUtils.normalizeEntityToForm(data, this.$allPmfms.getValue(), this.form);
     }
 
-    if (this.showSampleBatch) {
+    if (this.showSamplingBatch) {
 
       this.childrenFormHelper.resize(1);
       const samplingFormGroup = this.childrenFormHelper.at(0) as FormGroup;
@@ -298,7 +298,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue())
     };
 
-    if (this.showSampleBatch) {
+    if (this.showSamplingBatch) {
 
       if (this.isSampling) {
         const child = BatchUtils.getOrCreateSamplingChild(data);
@@ -417,7 +417,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.weightPmfmsByMethod = {};
     this.weightPmfms.forEach(p => this.weightPmfmsByMethod[p.methodId] = p);
 
-    this.showSampleBatch = toBoolean(this.showSampleBatch, isNotNil(this.defaultWeightPmfm));
+    this.showSamplingBatch = toBoolean(this.showSamplingBatch, isNotNil(this.defaultWeightPmfm));
     this.$allPmfms.next(pmfms);
 
     // Exclude hidden and weight PMFMs
@@ -441,7 +441,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
 
     // If the sample batch exists
-    if (this.showSampleBatch) {
+    if (this.showSamplingBatch) {
 
       childrenFormHelper.resize(1);
       const samplingForm = childrenFormHelper.at(0) as FormGroup;
@@ -525,7 +525,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       this.samplingFormValidator = undefined;
 
     }
-    if (this.showSampleBatch && this.showWeight) {
+    if (this.showSamplingBatch && this.showWeight) {
       this.samplingFormValidator = this.validatorService.addSamplingFormValidators(this.form, {
         requiredSampleWeight: this.requiredSampleWeight
       });

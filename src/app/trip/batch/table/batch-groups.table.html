@@ -63,10 +63,10 @@
     <mat-header-cell *matHeaderCellDef class="qv"
                      [class.even]="col.qvIndex | even"
                      [class.odd]="col.qvIndex | odd"
-                     [class.hidden-mobile]="col.rankOrder % 5 !== 0"
-                     [class.show]="col.rankOrder % 5 === 0"
-                     [style.flex]="nbDisplayedColumns">
-      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % 5 === 0">
+                     [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0"
+                     [class.show]="col.rankOrder % qvColumnCount === 0"
+                     [style.flex]="qvDisplayColumnCount">
+      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % qvColumnCount === 0">
         <span>{{qvPmfm.qualitativeValues[col.qvIndex].name}}</span><br/>
         <mat-checkbox *ngIf="weightMethodForm"
                       [formControl]="weightMethodForm.controls[col.qvIndex]"
@@ -205,12 +205,12 @@
   <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
 
     <mat-header-cell *matHeaderCellDef
-                     [class.total]="col.rankOrder % this.nbDynamicColumns < 2"
+                     [class.total]="col.rankOrder % qvColumnCount < 2"
                      [class.odd]="isQvOdd(col)"
                      [class.even]="isQvEven(col)"
-                     [class.hidden-lg]="col.rankOrder % this.nbDynamicColumns >= nbDisplayedColumns"
-                     [class.hidden-xs]="col.rankOrder % this.nbDynamicColumns !== 0"
-                     [class.hidden-mobile]="col.rankOrder % this.nbDynamicColumns !== 0 && col.rankOrder % this.nbDynamicColumns !== 3"
+                     [class.hidden-lg]="col.rankOrder % qvColumnCount >= qvDisplayColumnCount"
+                     [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
+                     [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && col.rankOrder % qvColumnCount !== 3"
                      class="mat-cell-content-start-padding">
       <mat-label>
         <span>{{col.label|translate}}</span>
@@ -219,11 +219,11 @@
     </mat-header-cell>
 
     <mat-cell *matCellDef="let row"
-              [class.total]="col.rankOrder % this.nbDynamicColumns < 2"
+              [class.total]="col.rankOrder % qvColumnCount < 2"
               [class.odd]="isQvOdd(col)"
               [class.even]="isQvEven(col)"
-              [class.hidden-lg]="col.rankOrder % this.nbDynamicColumns >= nbDisplayedColumns"
-              [class.hidden-xs]="col.rankOrder % this.nbDynamicColumns !== 0"
+              [class.hidden-lg]="col.rankOrder % qvColumnCount >= qvDisplayColumnCount"
+              [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
               [class.mat-cell-computed]="col.computed"
               class="mat-cell-content-start-padding">
 
@@ -343,11 +343,11 @@
     <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
 
       <mat-header-cell *matHeaderCellDef
-                       [class.total]="col.rankOrder % this.nbDynamicColumns < 2 && nbDisplayedColumns > 1"
+                       [class.total]="col.rankOrder % qvColumnCount < 2 && qvDisplayColumnCount > 1"
                        [class.odd]="isQvOdd(col)"
                        [class.even]="isQvEven(col)"
-                       [class.hidden-xs]="col.rankOrder % this.nbDynamicColumns !== 0"
-                       [class.hidden-mobile]="col.rankOrder % this.nbDynamicColumns !== 0 && (!hasIndividualMeasurement || col.rankOrder % this.nbDynamicColumns !== 3)"
+                       [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
+                       [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && (!showSamplingBatchColumns || col.rankOrder % qvColumnCount !== 3)"
                        class="mat-cell-content-start-padding">
         <mat-label>
           <span>{{col.label|translate}}</span>
@@ -356,11 +356,11 @@
       </mat-header-cell>
 
       <mat-cell *matCellDef="let row"
-                [class.total]="col.rankOrder % this.nbDynamicColumns < 2 && nbDisplayedColumns > 1"
+                [class.total]="col.rankOrder % qvColumnCount < 2 && qvDisplayColumnCount > 1"
                 [class.odd]="col.qvIndex | odd"
                 [class.even]="col.qvIndex | even"
-                [class.hidden-xs]="col.rankOrder % this.nbDynamicColumns !== 0"
-                [class.hidden-mobile]="col.rankOrder % this.nbDynamicColumns !== 0 && (!hasIndividualMeasurement || col.rankOrder % this.nbDynamicColumns !== 3)"
+                [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
+                [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && (!showSamplingBatchColumns || col.rankOrder % qvColumnCount !== 3)"
                 [class.mat-cell-computed]="col.computed"
                 class="mat-cell-content-start-padding">
 
@@ -378,7 +378,7 @@
 
               <ng-template #missingValue>
                 <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
-                <ion-label *ngIf="col.rankOrder % this.nbDynamicColumns === 3 && measurementValues[col.rankOrder-1] == null && measurementValues[col.rankOrder+1] !== null"
+                <ion-label *ngIf="col.rankOrder % qvColumnCount === 3 && measurementValues[col.rankOrder-1] == null && measurementValues[col.rankOrder+1] !== null"
                            color="danger">
                   <ion-icon color="danger" class="text-size" name="warning"></ion-icon>
                   <ion-text translate>COMMON.MISSING</ion-text>
@@ -386,7 +386,7 @@
 
                 <!-- If only individual count filled, display it -->
                 <ion-label
-                  *ngIf="col.rankOrder % this.nbDynamicColumns === 0 && measurementValues[col.rankOrder] === null && measurementValues[col.rankOrder+1] !== null">
+                  *ngIf="col.rankOrder % qvColumnCount === 0 && measurementValues[col.rankOrder] === null && measurementValues[col.rankOrder+1] !== null">
                   {{ measurementValues[col.rankOrder+1] | numberFormat }} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
                 </ion-label>
               </ng-template>
