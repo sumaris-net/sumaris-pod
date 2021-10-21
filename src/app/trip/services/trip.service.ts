@@ -891,8 +891,11 @@ export class TripService
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
-      // Delete trip's operations +  parent from other trip which have now child operation
-      await this.operationService.deleteLocally({tripId: localId, orIncludedIds: operationToDeleteLocally});
+      // Delete trip's operations
+      await this.operationService.deleteLocally({tripId: localId});
+
+      // Delete parent from other trip which have child operation now
+      await this.operationService.deleteLocally({includedIds: operationToDeleteLocally});
 
       // Saved locally new parent operation which wait child operation
       if (operationToSaveLocally.length > 0) {
