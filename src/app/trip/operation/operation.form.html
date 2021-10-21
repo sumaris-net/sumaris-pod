@@ -171,8 +171,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+6"
                                  [required]="true"
-                                 [defaultSign]="defaultLatitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="isChildOperation !== true">
@@ -182,8 +181,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+8"
                                  [required]="true"
-                                 [defaultSign]="defaultLongitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event,'startPosition')"
                         tabindex="-1"
@@ -219,7 +217,6 @@
                                    [required]="true"
                                    [tabindex]="tabindex+9"
                                    [startDate]="form.controls.startDateTime.value"
-                                   (focusout)="checkDistanceValidity()"
                                    [readonly]="isChildOperation">
                 <mat-hint align="end" *ngIf="fishingStartDateTime.value && fishingStartDateTime.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
@@ -236,8 +233,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+11"
                                  [required]="usageMode|isNotOnField"
-                                 [defaultSign]="defaultLatitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']" *ngIf="isChildOperation !== true">
@@ -246,8 +242,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+13"
                                  [required]="usageMode|isNotOnField"
-                                 [defaultSign]="defaultLongitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'endPosition')"
                         tabindex="-1"
@@ -257,7 +252,7 @@
                 <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-error>
                 <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-hint>
                 <mat-hint align="end" *ngIf="!distanceWarning && !distanceError">
-                  <span translate>TRIP.OPERATION.EDIT.DISTANCE_TRAVELED</span>
+                  <span translate>TRIP.OPERATION.EDIT.DISTANCE_DOTS</span>
                   {{ distance }} miles
                 </mat-hint>
               </mat-latlong-field>
@@ -291,8 +286,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+4"
                                  [required]="true"
-                                 [defaultSign]="defaultLatitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition">
@@ -302,8 +296,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+6"
                                  [required]="true"
-                                 [defaultSign]="defaultLongitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event,'startPosition')"
                         tabindex="-1"
@@ -358,8 +351,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+12"
                                  [required]="usageMode|isNotOnField"
-                                 [defaultSign]="defaultLatitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls['endPosition']">
@@ -368,8 +360,7 @@
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+15"
                                  [required]="usageMode|isNotOnField"
-                                 [defaultSign]="defaultLongitudeSign"
-                                 (focusout)="checkDistanceValidity()">
+                                 [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event, 'endPosition')"
                         tabindex="-1"
@@ -379,7 +370,7 @@
                 <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-error>
                 <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-hint>
                 <mat-hint align="end" *ngIf="!distanceWarning && !distanceError">
-                  <span translate>TRIP.OPERATION.EDIT.DISTANCE_TRAVELED</span>
+                  <span translate>TRIP.OPERATION.EDIT.DISTANCE_DOTS</span>
                   {{ distance }} miles
                 </mat-hint>
               </mat-latlong-field>

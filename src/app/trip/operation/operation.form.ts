@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output} from '@angular/core';
-import {OperationValidatorService} from '../services/validator/operation.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
+import { OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import {
   AccountService,
-  AppForm, AppFormUtils,
+  AppForm,
   DateFormatPipe,
   EntityUtils,
   fromDateISOString,
@@ -18,23 +18,22 @@ import {
   ReferentialUtils,
   SharedValidators,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {AbstractControl, FormControl, FormGroup, ValidationErrors, Validators} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
-import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
-import {distinctUntilChanged, startWith} from 'rxjs/operators';
-import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {OperationService} from '@app/trip/services/operation.service';
-import {ModalController} from '@ionic/angular';
-import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {Router} from '@angular/router';
-import {SubBatch} from '@app/trip/services/model/subbatch.model';
+import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
+import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
+import { BehaviorSubject, merge } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { OperationService } from '@app/trip/services/operation.service';
+import { ModalController } from '@ionic/angular';
+import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { Router } from '@angular/router';
 
 const moment = momentImported;
 
@@ -201,9 +200,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       merge(
         this.form.get('startPosition').valueChanges,
         this.form.get('endPosition').valueChanges
-      ).subscribe(
-        () => this.updateDistance()
       )
+        .pipe(debounceTime(200))
+        .subscribe(() => this.computeDistance())
     );
   }
 
@@ -267,11 +266,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       const endDateTimeControlName = this.isChildOperation ? 'endDateTime' : 'fishingStartDateTime';
       this.form.get(endDateTimeControlName).setValue(moment(), {emitEvent: false, onlySelf: true});
     }
+
+    this.computeDistance({emitEvent: false /* */ });
+
     this.form.markAsDirty({onlySelf: true});
-    this.updateDistance();
     this.form.updateValueAndValidity();
     this.markForCheck();
-    this.checkDistanceValidity();
   }
 
   copyPosition(event: UIEvent, source: string, target: string) {
@@ -400,7 +400,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return operation;
   }
 
-  checkDistanceValidity() {
+  updateDistanceValidity() {
     if (this.maxDistanceError && this.maxDistanceError > 0 && this.distance > this.maxDistanceError) {
       console.error('Too long distance (> ' + this.maxDistanceError + ') between start and end positions');
       this.setPositionError(true, false);
@@ -571,13 +571,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     longitudeControl.patchValue(position && position.longitude || null);
   }
 
-  protected updateDistance() {
-    const latitude1 = this.form.get('startPosition').get('latitude').value;
-    const longitude1 = this.form.get('startPosition').get('longitude').value;
-    const latitude2 = this.form.get('endPosition').get('latitude').value;
-    const longitude2 = this.form.get('endPosition').get('longitude').value;
+  protected computeDistance(opts?: {emitEvent?: boolean}) {
+    const startPosition = this.form.get('startPosition').value;
+    const endPosition = this.form.get('endPosition').value;
 
-    this.distance = this.operationService.getDistanceBetweenPositions({latitude: latitude1, longitude: longitude1}, {latitude: latitude2, longitude: longitude2});
+    this.distance = this.operationService.getDistanceBetweenPositions(startPosition, endPosition);
+    this.updateDistanceValidity();
+
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   protected setPositionError(hasError: boolean, hasWarning: boolean) {
