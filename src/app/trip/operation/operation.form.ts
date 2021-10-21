@@ -292,7 +292,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     const value = this.form.value as Partial<Operation>;
     const endDate = value.fishingEndDateTime || this.trip.returnDateTime;
-    const parentOperation = value.parentOperation;
+    const parent = value.parentOperation;
     const startDate = fromDateISOString(this._trip.departureDateTime).clone().add(-15, 'day');
 
     const modal = await this.modalCtrl.create({
@@ -306,12 +306,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           hasNoChildOperation: true,
           endDate,
           startDate,
-          orIncludedIds: isNotNil(parentOperation) ? [parentOperation.id] : null,
           gearIds: this._physicalGearsSubject.getValue().map(physicalGear => physicalGear.gear.id)
         },
         physicalGears: this._physicalGearsSubject.getValue(),
         programLabel: this.programLabel,
-        enableGeolocation: this.enableGeolocation
+        enableGeolocation: this.enableGeolocation,
+        parent
       },
       keyboardClose: true,
       cssClass: 'modal-large'

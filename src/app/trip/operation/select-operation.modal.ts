@@ -22,6 +22,7 @@ export class SelectOperationModal implements OnInit {
   @Input() programLabel: string;
   @Input() enableGeolocation: boolean;
   @Input() physicalGears: PhysicalGear[];
+  @Input() parent: Operation;
 
   get loading(): boolean {
     return this.table && this.table.loading;
