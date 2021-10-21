@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -43,15 +42,10 @@ public interface OperationSpecifications
 
     default Specification<Operation> hasTripId(Integer tripId) {
         if (tripId == null) return null;
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(TRIP_ID_PARAM, tripId);
-        return specification;
+            return criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param);
+        }).addBind(TRIP_ID_PARAM, tripId);
     }
 
 

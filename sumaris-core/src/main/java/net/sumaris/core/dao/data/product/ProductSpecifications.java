@@ -44,51 +44,35 @@ public interface ProductSpecifications extends DataSpecifications<Product> {
     String EXPECTED_SALE_ID_PARAM = "expectedSaleId";
 
     default Specification<Product> hasLandingId(Integer landingId) {
-        BindableSpecification<Product> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (landingId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LANDING_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Product.Fields.LANDING).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(LANDING_ID_PARAM, landingId);
-        return specification;
+            return criteriaBuilder.equal(root.get(Product.Fields.LANDING).get(IEntity.Fields.ID), param);
+        }).addBind(LANDING_ID_PARAM, landingId);
     }
 
     default Specification<Product> hasOperationId(Integer operationId) {
-        BindableSpecification<Product> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (operationId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, OPERATION_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Product.Fields.OPERATION).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(OPERATION_ID_PARAM, operationId);
-        return specification;
+            return criteriaBuilder.equal(root.get(Product.Fields.OPERATION).get(IEntity.Fields.ID), param);
+        }).addBind(OPERATION_ID_PARAM, operationId);
     }
 
     default Specification<Product> hasSaleId(Integer saleId) {
-        BindableSpecification<Product> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (saleId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, SALE_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Product.Fields.SALE).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(SALE_ID_PARAM, saleId);
-        return specification;
+            return criteriaBuilder.equal(root.get(Product.Fields.SALE).get(IEntity.Fields.ID), param);
+        }).addBind(SALE_ID_PARAM, saleId);
     }
 
     default Specification<Product> hasExpectedSaleId(Integer expectedSaleId) {
-        BindableSpecification<Product> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (expectedSaleId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, EXPECTED_SALE_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Product.Fields.EXPECTED_SALE).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(EXPECTED_SALE_ID_PARAM, expectedSaleId);
-        return specification;
+            return criteriaBuilder.equal(root.get(Product.Fields.EXPECTED_SALE).get(IEntity.Fields.ID), param);
+        }).addBind(EXPECTED_SALE_ID_PARAM, expectedSaleId);
     }
 
     List<ProductVO> saveByOperationId(int operationId, @Nonnull List<ProductVO> products);

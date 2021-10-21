@@ -46,39 +46,27 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
     String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
 
     default Specification<ObservedLocation> hasLocationId(Integer locationId) {
-        BindableSpecification<ObservedLocation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (locationId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(LOCATION_ID_PARAM, locationId);
-        return specification;
+            return criteriaBuilder.equal(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID), param);
+        }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     default Specification<ObservedLocation> withStartDate(Date startDate) {
-        BindableSpecification<ObservedLocation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (startDate == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Date> param = criteriaBuilder.parameter(Date.class, START_DATE_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.greaterThanOrEqualTo(root.get(ObservedLocation.Fields.END_DATE_TIME), param)
-            );
-        });
-        specification.addBind(START_DATE_PARAM, startDate);
-        return specification;
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(ObservedLocation.Fields.END_DATE_TIME), param);
+        }).addBind(START_DATE_PARAM, startDate);
     }
 
     default Specification<ObservedLocation> withEndDate(Date endDate) {
-        BindableSpecification<ObservedLocation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (endDate == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Date> param = criteriaBuilder.parameter(Date.class, END_DATE_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.lessThanOrEqualTo(root.get(ObservedLocation.Fields.START_DATE_TIME), param)
-            );
-        });
-        specification.addBind(END_DATE_PARAM, endDate);
-        return specification;
+            return criteriaBuilder.lessThanOrEqualTo(root.get(ObservedLocation.Fields.START_DATE_TIME), param);
+        }).addBind(END_DATE_PARAM, endDate);
     }
 
     default Specification<ObservedLocation> hasObserverPersonIds(Integer... observerPersonIds) {

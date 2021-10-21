@@ -41,12 +41,10 @@ public interface ExtractionProductSpecifications {
     String PERSON_ID_ID_PARAM = "personId";
 
     default Specification<ExtractionProduct> withRecorderDepartmentId(Integer departmentId) {
+        if (departmentId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, DEPARTMENT_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter)
-            );
+            return criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter);
         }).addBind(DEPARTMENT_ID_PARAM, departmentId);
     }
 

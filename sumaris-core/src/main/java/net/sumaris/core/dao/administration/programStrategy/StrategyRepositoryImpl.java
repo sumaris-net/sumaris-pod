@@ -419,20 +419,6 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    @Caching(
-            evict = {
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
-            }
-    )
-    public void deleteById(Integer id) {
-        super.deleteById(id);
-    }
-
-    @Override
     protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
         final StrategyFetchOptions opts = StrategyFetchOptions.nullToDefault(fetchOptions);
 
