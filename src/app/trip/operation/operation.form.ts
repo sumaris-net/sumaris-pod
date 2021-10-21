@@ -586,15 +586,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   protected setPositionError(hasError: boolean, hasWarning: boolean) {
     if (hasError) {
-      this.form.get('endPosition').get('longitude').setErrors({tooLong: true});
-      this.form.get('endPosition').get('latitude').setErrors({tooLong: true});
-      this.form.get('startPosition').get('longitude').setErrors({tooLong: true});
-      this.form.get('startPosition').get('latitude').setErrors({tooLong: true});
+      this.form.get('endPosition.longitude').setErrors({tooLong: true});
+      this.form.get('endPosition.latitude').setErrors({tooLong: true});
+      this.form.get('startPosition.longitude').setErrors({tooLong: true});
+      this.form.get('startPosition.latitude').setErrors({tooLong: true});
     } else {
-      SharedValidators.clearError(this.form.get('endPosition').get('longitude'), 'tooLong');
-      SharedValidators.clearError(this.form.get('endPosition').get('latitude'), 'tooLong');
-      SharedValidators.clearError(this.form.get('startPosition').get('longitude'), 'tooLong');
-      SharedValidators.clearError(this.form.get('startPosition').get('latitude'), 'tooLong');
+      SharedValidators.clearError(this.form.get('endPosition.longitude'), 'tooLong');
+      SharedValidators.clearError(this.form.get('endPosition.latitude'), 'tooLong');
+      SharedValidators.clearError(this.form.get('startPosition.longitude'), 'tooLong');
+      SharedValidators.clearError(this.form.get('startPosition.latitude'), 'tooLong');
     }
 
     this.distanceError = hasError;

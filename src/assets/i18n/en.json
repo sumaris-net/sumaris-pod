@@ -580,13 +580,13 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear",
-        "DISTANCE_TRAVELED" : "Traveled distance :",
-        "START_PARENT_OPERATION" : "Start laying :",
-        "END_PARENT_OPERATION" : "End laying / Start Fishing :",
-        "START_CHILD_OPERATION" : "End fishing / Start hauling :",
-        "END_CHILD_OPERATION" : "End hauling :",
+        "DISTANCE_DOTS" : "Dist.:",
+        "START_PARENT_OPERATION" : "Start laying:",
+        "END_PARENT_OPERATION" : "End laying / Start Fishing:",
+        "START_CHILD_OPERATION" : "End fishing / Start hauling:",
+        "END_CHILD_OPERATION" : "End hauling:",
         "TYPE": {
-          "TITLE" : "Operation type :",
+          "TITLE" : "Operation type:",
           "PARENT" : "Setting",
           "CHILD" : "Hauling"
         },
@@ -630,7 +630,7 @@
         "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
-        "TOO_LONG_DISTANCE" : "Traveled distance too long"
+        "TOO_LONG_DISTANCE" : "Distance too long"
       }
     },
     "CATCH": {

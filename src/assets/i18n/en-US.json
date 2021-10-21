@@ -501,6 +501,10 @@
         "LOCAL_TRASH_CLEANED": "Local trash has been cleaned"
       }
     },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuring offline mode",
+      "DURATION_PLACEHOLDER": "Period to import"
+    },
     "ERROR": {
       "LOAD_TRIP_ERROR": "Error while loading the trip.",
       "LOAD_TRIPS_ERROR": "Error while loading trips.",
@@ -575,7 +579,28 @@
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Other features:",
-        "NO_TARGET_SPECIES_FOUND": "No species for this gear"
+        "NO_TARGET_SPECIES_FOUND": "No species for this gear",
+        "DISTANCE_DOTS" : "Dist.:",
+        "START_PARENT_OPERATION" : "Start laying:",
+        "END_PARENT_OPERATION" : "End laying / Start Fishing:",
+        "START_CHILD_OPERATION" : "End fishing / Start hauling:",
+        "END_CHILD_OPERATION" : "End hauling:",
+        "TYPE": {
+          "TITLE" : "Operation type:",
+          "PARENT" : "Setting",
+          "CHILD" : "Hauling"
+        },
+        "BTN_EDIT_PARENT" : "Edit setting",
+        "BTN_SELECT_PARENT" : "Select setting"
+      },
+      "PARENT": {
+        "TITLE" : "Select setting",
+        "TRIP" : "{{vessel}} - Trip {{departureDateTime}}",
+        "FILTER" : {
+          "SEARCH_TEXT" : "Search : code gear / target species",
+          "START_DATE" : "Start period",
+          "GEAR" : "Gear"
+        }
       },
       "MAP": {
         "TITLE": "Positions map",
@@ -592,7 +617,8 @@
         "FISHING_END_DATE_TIME": "Towing",
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
-        "COMMENTS": "Comments"
+        "COMMENTS": "Comments",
+        "OPERATION_TYPE" : "Type"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
@@ -601,7 +627,10 @@
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
+        "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
+        "TOO_LONG_DISTANCE" : "Distance too long"
       }
     },
     "CATCH": {
