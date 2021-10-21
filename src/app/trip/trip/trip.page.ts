@@ -190,7 +190,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
       console.debug("[trip] New entity: set default values...");
 
-      // Fil defaults, using filter applied on trips table
+      // Fill defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
       if (searchFilter) {
 

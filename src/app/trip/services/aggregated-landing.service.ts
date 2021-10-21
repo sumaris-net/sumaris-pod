@@ -114,6 +114,11 @@ export class AggregatedLandingService
     dataFilter = this.asFilter(dataFilter);
     this._lastFilter = dataFilter.clone();
 
+    if (!dataFilter || dataFilter.isEmpty()) {
+      console.warn('[aggregated-landing-service] Trying to load landing without \'filter\'. Skipping.');
+      return EMPTY;
+    }
+
     // Load offline
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offline) {
