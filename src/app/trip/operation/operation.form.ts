@@ -267,10 +267,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.form.get(endDateTimeControlName).setValue(moment(), {emitEvent: false, onlySelf: true});
     }
 
-    this.computeDistance({emitEvent: false /* */ });
 
     this.form.markAsDirty({onlySelf: true});
     this.form.updateValueAndValidity();
+
+    this.computeDistance({emitEvent: false /* done after */ });
+
     this.markForCheck();
   }
 
