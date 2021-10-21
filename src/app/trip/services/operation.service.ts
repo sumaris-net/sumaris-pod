@@ -992,7 +992,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity);
 
-    const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false, keepTrip: true});
+    const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false, keepTrip: true}); // Trip is needed to apply filter on it
     if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
 
     // Save response locally
@@ -1000,7 +1000,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     if (isNotNil(entity.parentOperation)) {
       entity.parentOperation.childOperationId = entity.id;
-      const jsonLocalParent = this.asObject(entity.parentOperation, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false});
+      const jsonLocalParent = this.asObject(entity.parentOperation, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false, keepTrip: true});
 
       await this.entities.save(jsonLocalParent);
     }

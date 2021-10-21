@@ -293,7 +293,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
   async mapOperations(operations: Operation[]): Promise<Operation[]> {
 
-    if (this.parent){
+    if (this.parent && operations.findIndex(o => o.id === this.parent.id) === -1){
       operations.push(this.parent)
     }
 
