@@ -171,8 +171,27 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       console.debug("[observed-location] New entity: set default values...");
 
-      this.showLandingTab = true;
+      // TODO find a way to factorise code
+      // Fil defaults, using filter applied on trips table
+      const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+      if (searchFilter) {
+        console.info("searchFilter: ", searchFilter);
+        // Synchronization status
+        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+          data.synchronizationStatus = 'DIRTY';
+        }
 
+        // program
+        if (searchFilter.program && searchFilter.program.label) {
+          data.program = ReferentialRef.fromObject(searchFilter.program);
+          this.$programLabel.next(data.program.label);
+        }
+
+        // Location
+        if (searchFilter.location) {
+          data.location = ReferentialRef.fromObject(searchFilter.location);
+        }
+      }
       // Listen first opening the operations tab, then save
       this.registerSubscription(
         this.tabGroup.selectedTabChange
@@ -185,26 +204,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         );
     }
 
-    // Fil defaults, using filter applied on trips table
-    const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
-    if (searchFilter) {
-      console.info("searchFilter: ", searchFilter);
-      // Synchronization status
-      if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
-        data.synchronizationStatus = 'DIRTY';
-      }
-
-      // program
-      if (searchFilter.program && searchFilter.program.label) {
-        data.program = ReferentialRef.fromObject(searchFilter.program);
-        this.$programLabel.next(data.program.label);
-      }
-
-      // Location
-      if (searchFilter.location) {
-        data.location = ReferentialRef.fromObject(searchFilter.location);
-      }
-    }
+    this.showLandingTab = true;
 
     // Set contextual program, if any
     {
@@ -214,6 +214,28 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         data.program = ReferentialRef.fromObject(contextualProgram);
         this.$programLabel.next(data.program.label);
       } else {
+        if (this) {
+          // Fil defaults, using filter applied on trips table
+          const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+          if (searchFilter) {
+            console.info("searchFilter: ", searchFilter);
+            // Synchronization status
+            if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+              data.synchronizationStatus = 'DIRTY';
+            }
+
+            // program
+            if (searchFilter.program && searchFilter.program.label) {
+              data.program = ReferentialRef.fromObject(searchFilter.program);
+              this.$programLabel.next(data.program.label);
+            }
+
+            // Location
+            if (searchFilter.location) {
+              data.location = ReferentialRef.fromObject(searchFilter.location);
+            }
+          }
+        }
         this.$ready.next(true);
       }
     }
