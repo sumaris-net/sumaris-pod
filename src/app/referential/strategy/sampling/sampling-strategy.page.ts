@@ -208,7 +208,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   async save(event?: Event, options?: any): Promise<boolean> {
     // Check access concurence
-    this.form.get('label').setValue(this.form.get('label').value.replace(/\s/g, "")); // remove whitespace
+    this.form.get('label').setValue(this.form.get('label').value?.replace(/\s/g, "")); // remove whitespace
     await this.clearCannotComputeTaxonBeforeSave();
     this.form.get('label').updateValueAndValidity();
     return super.save(event, options);
