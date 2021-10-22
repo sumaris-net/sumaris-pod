@@ -403,13 +403,13 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             if (!existingEffort) {
               // Do a copy, to be able to increment if more than one effort by quarter
               strategy.effortByQuarter[effort.quarter] = effort.clone();
-              existingEffort.expectedEffort += effort.expectedEffort;
             }
             // More than one effort, on this quarter
             else {
               // Merge properties
               existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
               existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
+              existingEffort.expectedEffort += effort.expectedEffort;
               existingEffort.realizedEffort += effort.realizedEffort;
               existingEffort.landingCount += effort.landingCount;
             }
