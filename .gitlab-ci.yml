@@ -288,6 +288,12 @@ docker:imagine:
         IMAGE_TAG: 'imagine'
     only:
         - feature/imagine
+
+docker:imagine:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: 'imagine_test'
+    only:
         - feature/imagine-569
 
 docker:release:
