@@ -111,6 +111,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: ColumnDefinition[];
   qvDisplayColumnCount: number;
+  modalOptions: Partial<IBatchGroupModalOptions>;
 
   // TODO Top group header
   //showGroupHeader = false;
@@ -149,7 +150,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   @Input() defaultIsSampling = false;
   @Input() taxonGroupsNoWeight: string[];
   @Input() mobile: boolean;
-  @Input() modalOptions: Partial<IBatchGroupModalOptions>;
+
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 

@@ -45,15 +45,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   private _allowSubBatches: boolean;
 
   enableCatchForm = false;
-  subBatchesService = new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
-    SubBatch, SubBatchFilter, {
-      equals: Batch.equals
-    }
-  )
+  readonly subBatchesServiceIfMobile: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
   $programLabel = new BehaviorSubject<string>(undefined);
-  readonly createSubBatchesTable: boolean; // Cannot be changed, because of logic in the ngAfterViewInit
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -62,15 +57,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() showBatchTables: boolean;
 
   @Input() set allowSamplingBatches(allow: boolean) {
-    if (this._allowSamplingBatches !== allow) {
-      this._allowSamplingBatches = allow;
-      this.batchGroupsTable.showSamplingBatchColumns = allow;
-      if (!this.loading) this.markForCheck();
-    }
+    this.batchGroupsTable.showSamplingBatchColumns = allow;
   }
 
   get allowSamplingBatches(): boolean {
-    return this._allowSamplingBatches;
+    return this.batchGroupsTable.showSamplingBatchColumns;
   }
 
   @Input() set allowSubBatches(allow: boolean) {
@@ -134,7 +125,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   get dirty(): boolean {
-    return super.dirty || (!this.createSubBatchesTable && this.subBatchesService.dirty);
+    return super.dirty || (this.subBatchesServiceIfMobile && this.subBatchesServiceIfMobile.dirty);
   }
 
 
@@ -162,7 +153,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Defaults
     this.mobile = this.platform.mobile;
-    this.createSubBatchesTable = !this.mobile;
+    this.subBatchesServiceIfMobile = this.mobile ? null : new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
+      SubBatch, SubBatchFilter, {
+        equals: Batch.equals
+      });
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -225,7 +219,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.subBatchesService.ngOnDestroy();
+    this.subBatchesServiceIfMobile?.ngOnDestroy();
   }
 
   protected setProgram(program: Program) {
@@ -300,10 +294,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     ];
     if (this.showBatchTables) {
       promises.push(this.batchGroupsTable.ready());
-
-      if (this.createSubBatchesTable) {
-        promises.push(this.subBatchesTable.ready());
-      }
+      if (this.subBatchesTable) promises.push(this.subBatchesTable.ready());
     }
     return Promise.all(promises);
   }
@@ -353,7 +344,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         });
         this.subBatchesTable.value = subBatches;
       } else {
-        this.subBatchesService.value = subBatches;
+        this.subBatchesServiceIfMobile.value = subBatches;
       }
     }
 
@@ -366,7 +357,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   protected registerForms() {
     this.addChildForms([this.catchBatchForm, this.batchGroupsTable]);
-    if (this.createSubBatchesTable) {
+    if (this.subBatchesTable) {
       this.addChildForm(() => this.allowSubBatches && this.subBatchesTable);
     }
   }
@@ -383,7 +374,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       this.subBatchesTable.markAsDirty();
     } else  {
-      await this.subBatchesService.saveAll(subbatches);
+      await this.subBatchesServiceIfMobile.saveAll(subbatches);
     }
   }
 
@@ -393,7 +384,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // On each tables, confirm the current editing row
     if (this.showBatchTables && this.batchGroupsTable) this.batchGroupsTable.confirmEditCreate();
-    if (this.createSubBatchesTable && this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
+    if (this.allowSubBatches && this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
 
     return result;
   }
@@ -409,7 +400,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.selectedTabIndex = value;
     } else {
       super.setSelectedTabIndex(value, {
-        realignInkBar: this.createSubBatchesTable, // Tab header are visible only if subBatches table is visible
+        realignInkBar: !this.mobile, // Tab header are visible only on desktop
         ...opts
       });
     }
@@ -456,15 +447,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       return this.subBatchesTable.value;
     } else {
-      return this.subBatchesService.value;
+      return this.subBatchesServiceIfMobile.value;
     }
   }
 
   protected resetSubBatches() {
-    this.subBatchesService.setValue([]);
-    if (this.subBatchesTable) {
-      this.subBatchesTable.value = [];
-    }
+    if (this.subBatchesTable) this.subBatchesTable.value = [];
+    if (this.subBatchesServiceIfMobile) this.subBatchesServiceIfMobile.setValue([]);
   }
 
   markForCheck() {
