@@ -409,7 +409,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
               // Merge properties
               existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
               existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
-              existingEffort.expectedEffort += effort.expectedEffort;
               existingEffort.realizedEffort += effort.realizedEffort;
               existingEffort.landingCount += effort.landingCount;
             }
