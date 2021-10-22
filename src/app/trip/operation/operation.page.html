@@ -227,6 +227,7 @@
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
+                      [showSamplingBatchColumns]="showSamplingBatchColumns"
                       [programLabel]="$programLabel | async"
                       [usageMode]="usageMode"
                       [debug]="debug">
@@ -274,11 +275,11 @@
                       *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
           </ng-template>
 
-          <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
+          <app-individual-monitoring-table #individualMonitoringTable [debug]="debug"
                                            [programLabel]="$programLabel | async"
                                            [usageMode]="usageMode"
-                                           [useSticky]="!mobile"
-          ></app-individual-monitoring-table>
+                                           [useSticky]="!mobile">
+          </app-individual-monitoring-table>
 
           <!-- final space-->
           <p visible-xs visible-sm visible-mobile>&nbsp;</p>

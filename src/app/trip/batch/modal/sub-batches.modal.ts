@@ -1,18 +1,31 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
-import {SubBatchForm} from '../form/sub-batch.form';
-import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
-import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from '../table/sub-batches.table';
-import {AppMeasurementsTableOptions} from '../../measurement/measurements.table.class';
-import {Animation, IonContent, ModalController} from '@ionic/angular';
-import {isObservable, Observable, of, Subject} from 'rxjs';
-import {createAnimation} from '@ionic/core';
-import {SubBatch} from '../../services/model/subbatch.model';
-import {BatchGroup} from '../../services/model/batch-group.model';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { SubBatchForm } from '../form/sub-batch.form';
+import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
+import { SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from '../table/sub-batches.table';
+import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
+import { Animation, IonContent, ModalController } from '@ionic/angular';
+import { isObservable, Observable, of, Subject } from 'rxjs';
+import { createAnimation } from '@ionic/core';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 
+export interface ISubBatchesModalOptions {
+
+  disabled: boolean;
+  showParentGroup: boolean;
+  showTaxonNameColumn: boolean;
+  showIndividualCount: boolean;
+
+  parentGroup: BatchGroup;
+  availableParents: BatchGroup[] | Observable<BatchGroup[]>;
+  availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  onNewParentClick: () => Promise<BatchGroup | undefined>;
+  maxVisibleButtons: number;
+}
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // do NOT use individual count
@@ -37,7 +50,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchesModal extends SubBatchesTable implements OnInit {
+export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatchesModalOptions {
 
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;

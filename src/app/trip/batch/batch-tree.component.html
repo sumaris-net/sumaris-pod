@@ -11,7 +11,7 @@
 <mat-tab-group #tabGroup
                class="mat-tab-group-header-pagination-hidden"
                [class.cdk-visually-hidden]="!showBatchTables"
-               [class.mat-tab-group-header-hidden]="!showSubBatchesTable"
+               [class.mat-tab-group-header-hidden]="!createSubBatchesTable"
                [(selectedIndex)]="selectedTabIndex"
                (selectedTabChange)="onTabChange($event)"
                [animationDuration]="tabGroupAnimationDuration">
@@ -36,8 +36,8 @@
                             [showTaxonGroupColumn]="true"
                             [showTaxonNameColumn]="true"
                             [showCommentsColumn]="false"
+                            [showSamplingBatchColumns]="allowSamplingBatches"
                             [defaultTaxonGroups]="defaultTaxonGroups"
-                            [showSamplingBatchColumns]="showSamplingBatchColumns"
                             (onSubBatchesChanges)="onSubBatchesChanges($event)">
     </app-batch-groups-table>
 
@@ -48,7 +48,7 @@
 
   <!-- TAB: individual measure -->
   <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-           [disabled]="!enableSubBatchesTab">
+           [disabled]="!allowSubBatches">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
@@ -57,7 +57,7 @@
     </ng-template>
 
     <app-sub-batches-table #subBatchesTable
-                           *ngIf="showSubBatchesTable"
+                           *ngIf="createSubBatchesTable"
                            acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                            [programLabel]="$programLabel | async"
                            [usageMode]="usageMode"

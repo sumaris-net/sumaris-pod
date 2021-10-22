@@ -8,7 +8,8 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
-  firstNotNilPromise, firstTruePromise,
+  firstNotNilPromise,
+  firstTruePromise,
   HistoryPageReference,
   IEntity,
   isNil,
@@ -17,10 +18,10 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialUtils,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap } from 'rxjs/operators';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { IndividualMonitoringSubSamplesTable } from '../sample/individualmonitoring/individual-monitoring-samples.table';
@@ -72,7 +73,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showCatchTab = false;
   showSampleTables = false;
   showBatchTables = false;
-  enableSubBatchesTable = false;
   mobile: boolean;
   sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
 
@@ -374,13 +374,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             distinctUntilChanged()
           )
           .subscribe(hasMeasure => {
-            this.batchTree.showSamplingBatchColumns = hasMeasure;
-            this.batchTree.batchGroupsTable.modalOptions = {
-              ...this.batchTree.batchGroupsTable.modalOptions,
-              showSamplingBatch: hasMeasure,
-              defaultIsSampling: hasMeasure
-            };
-            //this.markForCheck(); // TODO BLA voir si besoin ?
+            this.batchTree.allowSamplingBatches = hasMeasure;
+            this.batchTree.defaultIsSampling = hasMeasure;
+            this.batchTree.allowSubBatches = hasMeasure;
           })
       );
     }
@@ -445,9 +441,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
 
-    this.batchTree.batchGroupsTable.modalOptions = {
-      maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
-    };
+    this.batchTree.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);
