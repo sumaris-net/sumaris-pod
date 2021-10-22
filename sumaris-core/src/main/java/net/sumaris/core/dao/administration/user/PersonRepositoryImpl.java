@@ -23,8 +23,8 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
@@ -61,8 +61,10 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.sql.Timestamp;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -112,7 +114,7 @@ public class PersonRepositoryImpl
 
     @Override
     public Optional<PersonVO> findByUsername(String username) {
-        return findAll(hasUsername(username)).stream().findFirst().map(this::toVO);
+        return findAll(hasUsername(username)).stream().filter(p -> StatusEnum.ENABLE.equals(p.getStatus())).findFirst().map(this::toVO);
     }
 
     @Override
