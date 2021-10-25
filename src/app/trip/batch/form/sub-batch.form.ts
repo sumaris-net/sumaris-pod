@@ -51,11 +51,10 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   implements OnInit, OnDestroy {
 
-  protected _qvPmfm: DenormalizedPmfmStrategy;
+  protected _qvPmfm: IPmfm;
   protected _availableParents: BatchGroup[] = [];
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
-
   protected _disableByDefaultControls: AbstractControl[] = [];
 
   mobile: boolean;
@@ -65,16 +64,17 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
 
-  @Input() tabindex: number;
-
-  @Input()
-  floatLabel: FloatLabelType;
-
-  @Input() usageMode: UsageMode;
-
   @Input() showParentGroup = true;
-
+  @Input() showIndividualCount = true;
+  @Input() tabindex: number;
+  @Input() floatLabel: FloatLabelType;
+  @Input() usageMode: UsageMode;
+  @Input() showError = true;
+  @Input() showSubmitButton = true;
+  @Input() displayParentPmfm: IPmfm;
+  @Input() isNew: boolean;
   @Input() maxVisibleButtons: number;
+  @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   @Input() set showTaxonName(show) {
     this._showTaxonName = show;
@@ -97,27 +97,15 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return this.$taxonNames.getValue();
   }
 
-  @Input() showIndividualCount = true;
-
-  @Input() displayParentPmfm: PmfmStrategy;
-
-  @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
-
-  @Input() showError = true;
-
-  @Input() showSubmitButton = true;
-
-  @Input() isNew: boolean;
-
-  @Input() set qvPmfm(value: DenormalizedPmfmStrategy) {
+  @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
     // If already loaded, re apply pmfms, to be able to execute mapPmfms
-    if (value && !this.loadingPmfms) {
+    if (value && !this.loading) {
       this.setPmfms(this.$pmfms);
     }
   }
 
-  get qvPmfm(): DenormalizedPmfmStrategy {
+  get qvPmfm(): IPmfm {
     return this._qvPmfm;
   }
 
@@ -248,18 +236,20 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       // Mobile
       if (this.mobile) {
 
-        this.ready().then(() => {
-          let currentParenLabel;
 
-          // Compute taxon names when parent has changed
+        // Compute taxon names when parent has changed
+        let currentParenLabel;
+        this.registerSubscription(
           parentControl.valueChanges
             .pipe(
-              filter(parent => isNotNilOrBlank(parent) && isNotNilOrBlank(parent.label) && currentParenLabel !== parent.label),
+              filter(parent => isNotNilOrBlank(parent?.label) && currentParenLabel !== parent.label),
               tap(parent => currentParenLabel = parent.label),
-              mergeMap((_) => this.suggestTaxonNames())
+              mergeMap((_) => this.suggestTaxonNames()),
+              tap(({data}) => this.$taxonNames.next(data)) // Update taxon names
             )
-            // Update taxon names
-            .subscribe(({data}) => this.$taxonNames.next(data));
+            .subscribe());
+
+        this.waitIdle().then(() => {
 
           // Update taxonName when need
           let lastTaxonName: TaxonNameRef;
@@ -350,7 +340,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
           this.data.parentGroup = parentGroup;
 
           // Update pmfms (it can depends on the selected parent's taxon group)
-          this.refreshPmfms();
+          this.loadPmfms();
         }));
 
 
@@ -486,7 +476,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   protected async ngInitExtension() {
 
-    await this.ready();
+    await this.waitIdle();
 
     const discardOrLandingControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_OR_LANDING);
     const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);

@@ -18,7 +18,7 @@ import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/servic
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "../form/batch-group.form";
 import {isNil, toBoolean} from "@sumaris-net/ngx-components";
-import {debounceTime, map, startWith} from "rxjs/operators";
+import { debounceTime, filter, map, mergeMap, startWith } from 'rxjs/operators';
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {Alerts} from "@sumaris-net/ngx-components";
 import {BatchGroup} from "../../services/model/batch-group.model";
@@ -131,7 +131,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
-
     if (this.disabled) {
       this.disable();
     }
@@ -146,6 +145,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
         this.form.form.get('taxonName').valueChanges
       )
       .pipe(
+        filter(_ => !this.form.loading),
         debounceTime(500),
         map(() => this.form.value),
         // Start with current data

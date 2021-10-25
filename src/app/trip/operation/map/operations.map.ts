@@ -117,7 +117,8 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     protected programRefService: ProgramRefService
   ) {
     super(route, router, alertCtrl, translate);
-    this.loading = false;
+
+    this.markAsLoaded({emitEvent: false});
 
     setTimeout(async () => {
       this.ready = true;
@@ -196,7 +197,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
   async load(id?: number, opts?:  any) {
     if (!this.ready) return; // Skip
 
-    this.loading = true;
+    this.markAsLoading();
     this.error = null;
 
     try {
@@ -272,8 +273,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit {
     } catch (err) {
       this.error = err && err.message || err;
     } finally {
-      this.loading = false;
-      this.markForCheck();
+      this.markAsLoaded();
     }
   }
 

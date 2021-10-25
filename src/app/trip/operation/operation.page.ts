@@ -731,7 +731,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     ]);
   }
 
-  protected async waitWhilePending(): Promise<void> {
+  protected async waitWhilePending(): Promise<boolean> {
     this.form.updateValueAndValidity();
     return super.waitWhilePending();
   }

@@ -1,28 +1,35 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
-import {EntityUtils} from '@sumaris-net/ngx-components';
-import {IReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
-import {UsageMode} from '@sumaris-net/ngx-components';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import {
+  AppFormUtils,
+  EntityUtils,
+  firstTruePromise,
+  FormArrayHelper,
+  IReferentialRef,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  PlatformService,
+  ReferentialUtils,
+  SharedFormGroupValidators,
+  toBoolean,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 
-import {debounceTime, filter, first} from 'rxjs/operators';
-import {AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns} from '../../../referential/services/model/model.enum';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {LocalSettingsService} from '@sumaris-net/ngx-components';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {isNil, isNotNil, isNotNilOrBlank, toBoolean} from '@sumaris-net/ngx-components';
-import {BatchValidatorService} from '../../services/validator/batch.validator';
-import {firstNotNilPromise} from '@sumaris-net/ngx-components';
-import {PlatformService} from '@sumaris-net/ngx-components';
-import {SharedFormGroupValidators} from '@sumaris-net/ngx-components';
-import {AppFormUtils, FormArrayHelper} from '@sumaris-net/ngx-components';
-import {ProgramRefService} from '../../../referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import { debounceTime, filter } from 'rxjs/operators';
+import { AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { BatchValidatorService } from '../../services/validator/batch.validator';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-batch-form',
@@ -31,13 +38,14 @@ import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementValuesForm<T>
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy, AfterViewInit {
 
-  protected $initialized = new BehaviorSubject<boolean>(false);
+  protected _$afterViewInit = new BehaviorSubject<boolean>(false);
   protected _requiredWeight = false;
   protected _showWeight = true;
   protected _requiredSampleWeight = false;
   protected _requiredIndividualCount = false;
+  protected _initialPmfms: IPmfm[];
 
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
@@ -47,7 +55,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   childrenFormHelper: FormArrayHelper<Batch>;
   samplingFormValidator: Subscription;
   taxonNameFilter: any;
-  $allPmfms = new BehaviorSubject<IPmfm[]>(null);
 
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
@@ -164,8 +171,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
-    // This will cause update controls
-    this.$initialized.next(true);
 
     // Taxon group combo
     if (isNotNil(this.availableTaxonGroups)) {
@@ -194,10 +199,15 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       this.form.get('taxonGroup').valueChanges
         .pipe(
           debounceTime(250),
-          filter((value) => this.showTaxonGroup && this.showTaxonName)
+          filter(_ => this.showTaxonGroup && this.showTaxonName)
         )
         .subscribe(taxonGroup => this.updateTaxonNameFilter({taxonGroup}))
     );
+  }
+
+  ngAfterViewInit() {
+    // This will cause update controls
+    this._$afterViewInit.next(true);
   }
 
   ngOnDestroy() {
@@ -207,7 +217,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
 
-    if (!this.isReady() || !this.data) {
+    if (this.loading || !this.data) {
       this.safeSetValue(data, opts);
       return;
     }
@@ -239,7 +249,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (!opts || opts.normalizeEntityToForm !== false) {
       // IMPORTANT: applying normalisation of measurement values on ALL pmfms (not only displayed pmfms)
       // This is required by the batch-group-form component, to keep the value of hidden PMFM, such as Landing/Discard Pmfm
-      MeasurementValuesUtils.normalizeEntityToForm(data, this.$allPmfms.getValue(), this.form);
+      MeasurementValuesUtils.normalizeEntityToForm(data, this._initialPmfms, this.form);
     }
 
     if (this.showSamplingBatch) {
@@ -295,7 +305,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Convert measurements
     json.measurementValues = {
       ...data.measurementValues,
-      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this.$allPmfms.getValue())
+      ...MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, this._initialPmfms)
     };
 
     if (this.showSamplingBatch) {
@@ -368,24 +378,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   /* -- protected methods -- */
 
-  protected async onInitialized(): Promise<void> {
-    // Wait end of ngInit()
-    if (this.$initialized.getValue() !== true) {
-      await this.$initialized
-        .pipe(
-          filter((initialized) => initialized === true),
-          first()
-        ).toPromise();
-    }
-  }
-
-  // Wait form controls ready
-  async ready(): Promise<void> {
-    await super.ready();
-
-    // Wait all pmfms to be loaded
-    if (isNil(this.$allPmfms.getValue())) {
-      await firstNotNilPromise(this.$allPmfms);
+  protected async viewInitialized(): Promise<void> {
+    // Wait ngAfterViewInit()
+    if (this._$afterViewInit.value !== true) {
+      await firstTruePromise(this._$afterViewInit);
     }
   }
 
@@ -406,10 +402,9 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+    if (!pmfms) return; // Skip if empty
 
-    if (this.mapPmfmFn) {
-      pmfms = this.mapPmfmFn(pmfms);
-    }
+    this._initialPmfms = pmfms; // Copy original pmfms list
 
     // Read weight PMFMs
     this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label));
@@ -418,7 +413,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.weightPmfms.forEach(p => this.weightPmfmsByMethod[p.methodId] = p);
 
     this.showSamplingBatch = toBoolean(this.showSamplingBatch, isNotNil(this.defaultWeightPmfm));
-    this.$allPmfms.next(pmfms);
 
     // Exclude hidden and weight PMFMs
     return pmfms.filter(p => !PmfmUtils.isWeight(p) && !p.hidden);
@@ -427,15 +421,15 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected async onUpdateControls(form?: FormGroup): Promise<void> {
     form = form || this.form;
 
-    // Wait end of ngInit()
-    await this.onInitialized();
+    // Wait ngAfterViewInit()
+    await this.viewInitialized();
 
     const childrenFormHelper = this.getChildrenFormHelper(form);
 
     // Add pmfms to form
     const measFormGroup = form.get('measurementValues') as FormGroup;
     if (measFormGroup) {
-      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this.$allPmfms.getValue()});
+      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
     }
 
     const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;

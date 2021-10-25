@@ -214,8 +214,8 @@ export class BatchTreeTestPage implements OnInit {
     this.desktopBatchTree.enable();
 
     setTimeout(() => {
-      this.mobileBatchTree.ready().then( () => this.mobileBatchTree.autoFill());
-      this.desktopBatchTree.ready().then( () => this.desktopBatchTree.autoFill())
+      this.mobileBatchTree.waitIdle().then( () => this.mobileBatchTree.autoFill());
+      this.desktopBatchTree.waitIdle().then( () => this.desktopBatchTree.autoFill())
     });
   }
 

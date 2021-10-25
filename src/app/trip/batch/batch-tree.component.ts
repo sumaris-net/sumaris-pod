@@ -1,5 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import {
+  AppFormUtils,
   AppTabEditor,
   AppTableUtils,
   firstTruePromise,
@@ -10,7 +11,7 @@ import {
   isNotNilOrBlank,
   PlatformService,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from '@ionic/angular';
 import {BehaviorSubject, defer} from 'rxjs';
@@ -41,7 +42,6 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit {
 
   private _gearId: number;
-  private _allowSamplingBatches: boolean;
   private _allowSubBatches: boolean;
 
   enableCatchForm = false;
@@ -128,8 +128,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return super.dirty || (this.subBatchesServiceIfMobile && this.subBatchesServiceIfMobile.dirty);
   }
 
-
-
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
@@ -153,10 +151,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Defaults
     this.mobile = this.platform.mobile;
-    this.subBatchesServiceIfMobile = this.mobile ? null : new InMemoryEntitiesService<SubBatch, SubBatchFilter>(
-      SubBatch, SubBatchFilter, {
-        equals: Batch.equals
-      });
+    this.subBatchesServiceIfMobile = this.mobile
+      ? new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
+          equals: Batch.equals
+        })
+      : null;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -288,22 +287,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.data;
   }
 
-  ready(): Promise<any> {
-    const promises = [
-      this.catchBatchForm.ready()
-    ];
-    if (this.showBatchTables) {
-      promises.push(this.batchGroupsTable.ready());
-      if (this.subBatchesTable) promises.push(this.subBatchesTable.ready());
-    }
-    return Promise.all(promises);
-  }
 
   /* -- protected method -- */
 
   async setValue(catchBatch: Batch) {
 
-    this.loading = true;
+    this.markAsLoading();
 
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
@@ -330,7 +319,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.batchGroupsTable.value = batchGroups;
 
       // Wait batch group table ready (need to be sure the QV pmfm is set)
-      await this.batchGroupsTable.ready();
+      await this.batchGroupsTable.waitIdle();
+
       const groupQvPmfm = this.batchGroupsTable.qvPmfm;
       const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
         groupQvPmfm
@@ -348,7 +338,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       }
     }
 
-    this.loading = false;
+    this.markAsLoaded();
   }
 
   protected get form(): FormGroup {
@@ -430,6 +420,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this.showBatchTables && this.batchGroupsTable.invalid) return 0;
     if (this.allowSubBatches && this.subBatchesTable.invalid) return 1;
     return -1;
+  }
+
+  waitIdle(): Promise<any> {
+    return AppFormUtils.waitIdle(this);
   }
 
   /* -- protected methods -- */

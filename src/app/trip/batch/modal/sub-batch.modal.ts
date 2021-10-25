@@ -82,7 +82,7 @@ export class SubBatchModal implements OnInit {
     // Compute the title
     this.computeTitle();
 
-    await this.form.ready();
+    await this.form.waitIdle();
     this.form.value = this.data;
 
     if (!this.isNew) {

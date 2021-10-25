@@ -74,7 +74,7 @@ export class SamplingLandingPage extends LandingPage {
 
     const [program] = await Promise.all([
       firstNotNilPromise(this.$program),
-      this.landingForm.ready()
+      this.landingForm.waitIdle()
     ]);
 
     if (strategy &&  strategy.label) {

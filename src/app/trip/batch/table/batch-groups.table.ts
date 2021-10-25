@@ -788,11 +788,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return data;
   }
 
-  protected async openDetailModal(batch?: BatchGroup): Promise<BatchGroup | undefined> {
-    const isNew = !batch && true;
+  protected async openDetailModal(batchGroup?: BatchGroup): Promise<BatchGroup | undefined> {
+    const isNew = !batchGroup && true;
     if (isNew) {
-      batch = new BatchGroup();
-      await this.onNewEntity(batch);
+      batchGroup = new BatchGroup();
+      await this.onNewEntity(batchGroup);
     }
 
     this.markAsLoading();
@@ -801,12 +801,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       component: BatchGroupModal,
       backdropDismiss: false,
       componentProps: <IBatchGroupModalOptions>{
+        // TODO replace program/acquisitionLevel used, using existing pmfms
+        pmfms: this._initialPmfms,
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
-        disabled: this.disabled,
-        data: batch,
-        isNew,
         qvPmfm: this.qvPmfm,
+        disabled: this.disabled,
+        data: batchGroup,
+        isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         availableTaxonGroups: this.availableTaxonGroups,

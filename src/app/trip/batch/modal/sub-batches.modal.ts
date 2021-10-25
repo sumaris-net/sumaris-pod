@@ -60,17 +60,22 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   $title = new Subject<string>();
 
+  get dirty(): boolean {
+    return super.dirty || (this.form && this.form.dirty);
+  }
+
+  get valid(): boolean {
+    return this.form && this.form.valid;
+  }
+
+  get invalid(): boolean {
+    return this.form && this.form.invalid;
+  }
+
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
-
-  @Input()
-  availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
-
-  @Input()
-  showParentGroup: boolean;
-
-  @Input()
-  parentGroup: BatchGroup;
-
+  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  @Input() showParentGroup: boolean;
+  @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
 
   @Input() set disabled(value: boolean) {
@@ -86,19 +91,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
   @ViewChild(IonContent) content: IonContent;
-
-  get dirty(): boolean {
-    return super.dirty || (this.form && this.form.dirty);
-  }
-
-  get valid(): boolean {
-    return this.form && this.form.valid;
-  }
-
-  get invalid(): boolean {
-    return this.form && this.form.invalid;
-  }
-
 
   constructor(
     protected injector: Injector,
@@ -132,7 +124,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     this.showForm = this.showForm && (this.form && !this.disabled);
 
-    if (this.form) await this.form.ready();
+    if (this.form) await this.form.waitIdle();
 
     if (this.form) {
       // Reset the form, using default value

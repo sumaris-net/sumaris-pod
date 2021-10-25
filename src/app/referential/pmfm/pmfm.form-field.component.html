@@ -86,6 +86,7 @@
 
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
+                     [style]="style"
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
@@ -137,6 +138,8 @@
                      [readonly]="readonly"
                      [compact]="compact"
                      [tabindex]="tabindex"
+                     [style]="style"
+                     [maxVisibleButtons]="maxVisibleButtons"
                      (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
       <ng-content select="[matSuffix]"></ng-content>

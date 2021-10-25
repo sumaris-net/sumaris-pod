@@ -46,6 +46,8 @@ import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
 import {IonButton} from '@ionic/angular';
 import {DOCUMENT} from '@angular/common';
 
+export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
+
 @Component({
   selector: 'app-pmfm-qv-field',
   styleUrls: ['./pmfm-qv.form-field.component.scss'],
@@ -92,7 +94,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() readonly = false;
   @Input() compact = false;
   @Input() clearable = false;
-  @Input() style: 'autocomplete' | 'select' | 'button';
+  @Input() style: PmfmQvFormFieldStyle;
   @Input() searchAttributes: string[];
   @Input() sortAttribute: string;
   @Input() maxVisibleButtons: number;
@@ -156,7 +158,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
     const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
     this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || attributes;
-    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
+    this.sortAttribute =  isNotNil(this.sortAttribute)
+      ? this.sortAttribute
+      : (this.style === 'button' ? 'name' : attributes[0]);
 
     // Sort values
     this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
@@ -196,8 +200,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (this.style === 'button') {
 
       this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
-      if (this._qualitativeValues.length < this.maxVisibleButtons) {
-        this.maxVisibleButtons = 999; // Not need to limit
+      if (this._qualitativeValues.length <= this.maxVisibleButtons) {
+        this.maxVisibleButtons = 999; // Hide the expand button
       }
       this.buttonsColCount = Math.min(Math.min(this.maxVisibleButtons, this._qualitativeValues.length), 10);
 

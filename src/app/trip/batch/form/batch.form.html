@@ -34,36 +34,55 @@
       </ion-col>
     </ion-row>
 
-    <ion-spinner class="ion-align-self-center" *ngIf="loading"></ion-spinner>
-
     <!-- Measurements -->
-    <ion-row class="ion-no-padding">
+    <ion-row class="ion-no-padding" [formGroup]="measurementValuesForm">
       <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
                size="12" class="ion-no-padding">
+        <ng-container [ngSwitch]="pmfm.type">
 
-        <!-- If mobile + qualitative value: force 'button' style -->
-        <ng-container *ngIf="mobile && pmfm.isQualitative; else otherField">
-          <app-pmfm-qv-field #matInput
-                             [pmfm]="pmfm"
-                             [hidden]="pmfm.hidden"
-                             [style]="'button'"
-                             [formControl]="form.get('measurementValues.'+ pmfm.id)"
-                             [compact]="compact"
-                             [maxVisibleButtons]="maxVisibleButtons"
-                             [tabindex]="tabindex+2 + i*2">
-          </app-pmfm-qv-field>
+          <!-- Qualitative value -->
+          <ng-container *ngSwitchCase="'qualitative_value'">
+            <!-- If mobile + qualitative value: force 'button' style -->
+            <ng-container *ngIf="mobile && !pmfm.hidden; else defaultPmfmField">
+              <app-pmfm-qv-field #matInput
+                                 [pmfm]="pmfm"
+                                 [hidden]="pmfm.hidden"
+                                 [style]="'button'"
+                                 [formControlName]="pmfm.id|toString"
+                                 [compact]="compact"
+                                 [maxVisibleButtons]="maxVisibleButtons"
+                                 [tabindex]="tabindex+2 + i*2">
+              </app-pmfm-qv-field>
+            </ng-container>
+          </ng-container>
+
+          <!-- Boolean -->
+          <ng-container *ngSwitchCase="'boolean'">
+            <!-- If mobile, force 'button' style -->
+            <mat-boolean-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
+                               [style]="'button'"
+                               [placeholder]="pmfm|pmfmName"
+                               [formControlName]="pmfm.id|toString"
+                               [compact]="compact"
+                               [tabindex]="tabindex+2 + i*2">
+            </mat-boolean-field>
+          </ng-container>
+
+          <!-- other PMFM types -->
+          <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
+          </ng-container>
+
         </ng-container>
 
         <!-- NOT qualitative value -->
-        <ng-template #otherField>
+        <ng-template #defaultPmfmField>
           <app-pmfm-field #matInput [pmfm]="pmfm"
                           [hidden]="pmfm.hidden"
-                          [formControl]="form.get('measurementValues.'+ pmfm.id)"
+                          [formControlName]="pmfm.id|toString"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>
         </ng-template>
-
       </ion-col>
     </ion-row>
 
@@ -207,3 +226,8 @@
 
 
 </form>
+
+
+<ng-template #loadingSpinner>
+  <ion-spinner class="ion-align-self-center"></ion-spinner>
+</ng-template>

@@ -179,7 +179,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   }
 
   async ready(): Promise<void> {
-    await this.form.ready();
+    await this.form.waitIdle();
   }
 
   async onSubmit(event?: UIEvent) {

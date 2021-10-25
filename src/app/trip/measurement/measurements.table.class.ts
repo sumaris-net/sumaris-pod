@@ -7,9 +7,9 @@ import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {
-  Alerts,
+  Alerts, AppFormUtils,
   AppTable,
-  AppTableDataSourceOptions,
+  AppTableDataSourceOptions, AppTableUtils,
   EntitiesTableDataSource,
   Entity,
   filterNotNil,
@@ -19,7 +19,7 @@ import {
   isNotNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
 import {MeasurementsDataService} from './measurements.service';
@@ -137,6 +137,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   get dataService(): IEntitiesService<T, F> {
     return this.measurementsDataService.delegate;
+  }
+
+  get loading(): boolean {
+    return super.loading && isNotNil(this.$pmfms.value);
   }
 
   protected constructor(
@@ -322,6 +326,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) {
       this.updateColumns();
     }
+  }
+
+  async waitIdle(): Promise<any> {
+    if (isNotNil(this.$pmfms.value)) return AppTableUtils.waitIdle(this);
+
+    // Wait pmfms load, and controls load
+    await firstNotNilPromise(this.$pmfms);
+
+    return AppTableUtils.waitIdle(this);
   }
 
   async ready() {

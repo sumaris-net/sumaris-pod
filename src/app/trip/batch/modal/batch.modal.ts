@@ -54,8 +54,6 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() showSamplingBatch = false;
   @Input() maxVisibleButtons: number;
   @Input() usageMode: UsageMode;
-
-  // TODO BLA: voir si on peut passer ces pmfms au BatchGroupForm
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
 
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;

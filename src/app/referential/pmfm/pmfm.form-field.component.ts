@@ -6,9 +6,12 @@ import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import { PmfmValidators } from '../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
+import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
 
 const noop = () => {
 };
+
+export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' | 'button' ;
 
 @Component({
   selector: 'app-pmfm-field',
@@ -43,6 +46,8 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() weightDisplayedUnit: string;
+  @Input() style: PmfmFormFieldStyle;
+  @Input() maxVisibleButtons: number;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
