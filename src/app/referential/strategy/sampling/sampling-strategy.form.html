@@ -149,7 +149,7 @@
                 [disabled]="isLocationDisable(i)"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="appliedStrategiesHelper.removeAt(i)">
+                (click)="removeAppliedStrategies(i)">
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
