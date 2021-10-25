@@ -123,6 +123,7 @@ export class BatchGroupFormTestPage implements OnInit {
   $gearId = new BehaviorSubject<number>(undefined);
   form: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
+  hasSamplingBatch = true;
 
   outputs: {
     [key: string]: string;

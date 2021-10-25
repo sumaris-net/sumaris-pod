@@ -33,7 +33,9 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
 
   showSamplingBatch: boolean;
-  defaultIsSampling: boolean;
+
+  allowSubBatches: boolean;
+  defaultHasSubBatches: boolean;
 
 }
 
@@ -56,20 +58,21 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() isNew: boolean;
   @Input() disabled: boolean;
   @Input() usageMode: UsageMode;
+
+  @Input() qvPmfm: PmfmStrategy;
+  @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;
+
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showIndividualCount = false;
+  @Input() showSamplingBatch: boolean;
+  @Input() allowSubBatches = true;
+  @Input() defaultHasSubBatches: boolean;
   @Input() taxonGroupsNoWeight: string[];
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
-  @Input() qvPmfm: PmfmStrategy;
-  @Input() showSamplingBatch: boolean;
-  @Input() defaultIsSampling: boolean;
   @Input() maxVisibleButtons: number;
-
-  // TODO BLA: voir si on peut passer ces pmfms au BatchGroupForm
-  @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
 
   @Input() openSubBatchesModal: (parent: Batch) => Promise<BatchGroup>;
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
@@ -272,7 +275,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     this.data.observedIndividualCount = updatedParent.observedIndividualCount;
     this.form.form.patchValue({observedIndividualCount: updatedParent.observedIndividualCount}, {emitEvent: false});
-    this.form.hasIndividualMeasure = (updatedParent.observedIndividualCount > 0);
+    this.form.hasSubBatches = (updatedParent.observedIndividualCount > 0);
     this.form.markAsDirty();
   }
 

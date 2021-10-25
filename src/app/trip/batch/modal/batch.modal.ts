@@ -50,8 +50,8 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() showTaxonName = true;
   @Input() showIndividualCount = false;
   @Input() showTotalIndividualCount = false;
-  @Input() qvPmfm: PmfmStrategy;
   @Input() showSamplingBatch = false;
+  @Input() qvPmfm: PmfmStrategy;
   @Input() maxVisibleButtons: number;
   @Input() usageMode: UsageMode;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];

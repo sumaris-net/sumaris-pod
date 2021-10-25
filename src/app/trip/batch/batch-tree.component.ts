@@ -116,12 +116,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.batchGroupsTable.defaultTaxonGroups;
   }
 
-  @Input() set defaultIsSampling(value: boolean) {
-    this.batchGroupsTable.defaultIsSampling = value;
+  @Input() set defaultHasSubBatches(value: boolean) {
+    this.batchGroupsTable.defaultHasSubBatches = value;
   }
 
-  get defaultIsSampling(): boolean {
-    return this.batchGroupsTable.defaultIsSampling;
+  get defaultHasSubBatches(): boolean {
+    return this.batchGroupsTable.defaultHasSubBatches;
   }
 
   get dirty(): boolean {

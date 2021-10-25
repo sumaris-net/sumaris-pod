@@ -145,59 +145,18 @@
   <form *ngIf="$pmfms | async as pmfms; else loadingSpinner"
         [formGroup]="measurementValuesForm">
 
-    <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-      <app-pmfm-field #inputField
-                      [pmfm]="pmfm"
-                      [floatLabel]="floatLabel"
-                      [hidden]="pmfm.hidden"
-                      [formControlName]="pmfm.id.toString()"
-                      [compact]="mobile"
-                      (keyup.enter)="focusNextInputOrSubmit($event, last)"
-                      [tabindex]="tabindex + 20 + i*2"
-                      [style]="mobile && 'button'"
-                      [maxVisibleButtons]="maxVisibleButtons">
-      </app-pmfm-field>
-
-      <ng-container [ngSwitch]="pmfm.type">
-
-        <!-- Qualitative value -->
-        <ng-container *ngSwitchCase="'qualitative_value'">
-          <!-- If mobile, force 'button' style -->
-          <app-pmfm-qv-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
-                             [pmfm]="pmfm"
-                             [style]="'button'"
-                             [floatLabel]="floatLabel"
-                             [sortAttribute]="['name']"
-                             [formControlName]="pmfm.id|toString"
-                             [compact]="compact"
-                             [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInputOrSubmit($event, last)"
-                             [maxVisibleButtons]="maxVisibleButtons">
-          </app-pmfm-qv-field>
-        </ng-container>
-
-        <!-- Boolean -->
-        <ng-container *ngSwitchCase="'boolean'">
-          <!-- If mobile, force 'button' style -->
-          <mat-boolean-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
-                             [style]="'button'"
-                             [placeholder]="pmfm|pmfmName"
-                             [formControlName]="pmfm.id|toString"
-                             [compact]="compact"
-                             [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
-          </mat-boolean-field>
-        </ng-container>
-
-        <!-- other PMFM types -->
-        <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
-        </ng-container>
-      </ng-container>
-
-      <ng-template #defaultPmfmField>
-
-      </ng-template>
-    </ng-container>
+    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last"
+                    #inputField
+                    [formControlName]="pmfm.id|toString"
+                    [pmfm]="pmfm"
+                    [floatLabel]="floatLabel"
+                    [hidden]="pmfm.hidden"
+                    [compact]="mobile"
+                    (keyup.enter)="focusNextInputOrSubmit($event, last)"
+                    [tabindex]="tabindex + 20 + i*2"
+                    [style]="mobile && 'button'"
+                    [maxVisibleButtons]="maxVisibleButtons">
+    </app-pmfm-field>
   </form>
 
 

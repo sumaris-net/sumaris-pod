@@ -33,8 +33,9 @@
                         [showIndividualCount]="showIndividualCount"
                         [availableTaxonGroups]="availableTaxonGroups"
                         [taxonGroupsNoWeight]="taxonGroupsNoWeight"
-                        [showSamplingBatch]="showSamplingBatch"
-                        [defaultIsSampling]="defaultIsSampling"
+                        [showChildrenSamplingBatch]="showSamplingBatch"
+                        [allowSubBatches]="allowSubBatches"
+                        [defaultHasSubBatches]="defaultHasSubBatches"
                         [maxVisibleButtons]="maxVisibleButtons"
                         (onSubmit)="close($event)"
                         [pmfms]="pmfms"
@@ -42,7 +43,7 @@
 
       <!-- open individual modal -->
       <ion-button afterSpeciesButtons mat-button
-                  *ngIf="openSubBatchesModal && form.hasIndividualMeasure"
+                  *ngIf="openSubBatchesModal && form.hasSubBatches"
                   fill="clear" color="tertiary" expand="full"
                   (click)="onShowSubBatchesButtonClick($event)">
         <mat-icon slot="start">assessment</mat-icon>

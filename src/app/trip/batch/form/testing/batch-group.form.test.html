@@ -42,6 +42,15 @@
          </mat-autocomplete-field>
        </ion-col>
      </ion-row>
+     <ion-row>
+       <!-- Is sampling -->
+       <ion-col>
+         <mat-checkbox (change)="hasSamplingBatch=!hasSamplingBatch"
+                       [checked]="hasSamplingBatch">
+           <mat-label>Is Sampling ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+     </ion-row>
 
      <!-- examples data -->
      <ion-row><ion-col><ion-text><h4>Input data</h4></ion-text></ion-col></ion-row>
@@ -69,6 +78,7 @@
        </ion-col>
      </ion-row>
 
+
       <!-- mobile -->
       <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
       <ion-row>
@@ -80,7 +90,8 @@
                                 [showSamplingBatch]="true"
                                 [gearId]="$gearId|async"
                                 [usageMode]="'FIELD'"
-                                [debug]="true">
+                                [debug]="true"
+                                [showChildrenSamplingBatch]="hasSamplingBatch">
           </app-batch-group-form>
         </ion-col>
 

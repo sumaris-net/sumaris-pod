@@ -55,7 +55,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
-  private _rowAnimation: Animation;
   private isOnFieldMode: boolean;
 
   $title = new Subject<string>();
@@ -143,20 +142,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           .subscribe(parent => this.onParentChange(parent))
       );
     }
-
-    this._rowAnimation = createAnimation()
-
-      .duration(300)
-      .direction('normal')
-      .iterations(1)
-      .keyframes([
-        { offset: 0, transform: 'scale(1.5)', opacity: '0.5'},
-        { offset: 1, transform: 'scale(1)', opacity: '1' }
-      ])
-      .beforeStyles({
-        color: 'var(--ion-color-accent-contrast)',
-        background: 'var(--ion-color-accent)'
-      });
 
     const data$: Observable<SubBatch[]> = isObservable<SubBatch[]>(this.availableSubBatches) ? this.availableSubBatches :
       of(this.availableSubBatches);
@@ -392,15 +377,41 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Selection the row (this will apply CSS class mat-row-selected)
     this.selection.select(row);
-    this.markForCheck();
+    this.cd.detectChanges();
 
-    setTimeout(() => {
-      // If row is still selected: unselect it
-      if (this.selection.isSelected(row)) {
-        this.selection.deselect(row);
-        this.markForCheck();
-      }
-    }, 1500);
+    const rowAnimation = createAnimation()
+      .addElement(document.querySelectorAll('.mat-row-selected'))
+      .beforeStyles({ 'transition-timing-function': 'ease-out' })
+      .keyframes([
+        { offset: 0, opacity: '0.5', transform: 'scale(1.5)', background: 'var(--ion-color-accent)'},
+        { offset: 0.5, opacity: '1', transform: 'scale(0.9)'},
+        { offset: 0.7, transform: 'scale(1.1)'},
+        { offset: 0.9, transform: 'scale(1)'},
+        { offset: 1, background: 'var(--ion-color-base)'}
+      ]);
+
+    const cellAnimation =  createAnimation()
+      .addElement(document.querySelectorAll('.mat-row-selected .mat-cell'))
+      .beforeStyles({
+        color: 'var(--ion-color-accent-contrast)'
+      })
+      .keyframes([
+        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)'},
+        { offset: 0.8},
+        { offset: 1, 'font-weight': 'normal', color: 'var(--ion-color-base)'}
+      ]);
+
+    Promise.all([
+      rowAnimation.duration(500).play(),
+      cellAnimation.duration(500).play()
+    ])
+      .then(() => {
+        // If row is still selected: unselect it
+        if (this.selection.isSelected(row)) {
+          this.selection.deselect(row);
+          this.markForCheck();
+        }
+      });
   }
 
 

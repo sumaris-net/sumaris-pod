@@ -118,6 +118,31 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   //groupHeaderStartColSpan: number;
   //groupHeaderEndColSpan: number;
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.disable(opts);
+    if (this.weightMethodForm) this.weightMethodForm.disable(opts);
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.enable(opts);
+    if (this.weightMethodForm) this.weightMethodForm.enable(opts);
+  }
+
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAsPristine();
+    if (this.weightMethodForm) this.weightMethodForm.markAsPristine(opts);
+  }
+
+  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAsTouched(opts);
+    if (this.weightMethodForm) this.weightMethodForm.markAsTouched(opts);
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAsUntouched(opts);
+    if (this.weightMethodForm) this.weightMethodForm.markAsUntouched(opts);
+  }
+
   @Input() useSticky = false;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
@@ -147,39 +172,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return this._defaultTaxonGroups;
   }
 
-  @Input() defaultIsSampling = false;
+  @Input() allowSubBatches = true;
+  @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[];
   @Input() mobile: boolean;
 
-
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
+
   @ViewChild(MatMenuTrigger) rowMenuTrigger: MatMenuTrigger;
-
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.disable(opts);
-    if (this.weightMethodForm) this.weightMethodForm.disable(opts);
-  }
-
-  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.enable(opts);
-    if (this.weightMethodForm) this.weightMethodForm.enable(opts);
-  }
-
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.markAsPristine();
-    if (this.weightMethodForm) this.weightMethodForm.markAsPristine(opts);
-  }
-
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.markAsTouched(opts);
-    if (this.weightMethodForm) this.weightMethodForm.markAsTouched(opts);
-  }
-
-  markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.markAsUntouched(opts);
-    if (this.weightMethodForm) this.weightMethodForm.markAsUntouched(opts);
-  }
 
   constructor(
     injector: Injector,
@@ -801,10 +802,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       component: BatchGroupModal,
       backdropDismiss: false,
       componentProps: <IBatchGroupModalOptions>{
-        // TODO replace program/acquisitionLevel used, using existing pmfms
-        pmfms: this._initialPmfms,
-        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
+        pmfms: this._initialPmfms,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
         data: batchGroup,
@@ -814,7 +813,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         availableTaxonGroups: this.availableTaxonGroups,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         showSamplingBatch: this.showSamplingBatchColumns,
-        defaultIsSampling: this.defaultIsSampling,
+        allowSubBatches: this.allowSubBatches,
+        defaultHasSubBatches: this.defaultHasSubBatches,
         openSubBatchesModal: (parent) => this.openSubBatchesModalFromParentModal(parent),
         onDelete: (event, batchGroup) => this.deleteBatchGroup(event, batchGroup),
         // Override using given options

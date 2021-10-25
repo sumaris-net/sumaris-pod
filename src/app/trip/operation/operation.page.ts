@@ -375,7 +375,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           )
           .subscribe(hasMeasure => {
             this.batchTree.allowSamplingBatches = hasMeasure;
-            this.batchTree.defaultIsSampling = hasMeasure;
+            this.batchTree.defaultHasSubBatches = hasMeasure;
             this.batchTree.allowSubBatches = hasMeasure;
           })
       );
