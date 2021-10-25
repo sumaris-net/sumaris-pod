@@ -91,14 +91,16 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
     }
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-    this.placeholder = this.placeholder.replace('kg', this.weightDisplayedUnit);
+    if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
+      this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
+    }
     this.required = toBoolean(this.required, this.pmfm.required);
 
     this.updateTabIndex();
 
     // Compute the field type (use special case for Latitude/Longitude)
     let type = this.pmfm.type;
-    if (this.hidden) {
+    if (this.hidden || this.pmfm.hidden) {
       type = "hidden";
     }
     else if (type === "double") {
