@@ -289,10 +289,11 @@ docker:imagine:
     only:
         - feature/imagine
 
+# to run specific feature
 docker:feature:
     extends: .docker-build
     variables:
-        IMAGE_TAG: 'imagine_test'
+        IMAGE_TAG: 'feature'
     only:
         - feature/imagine-569
 
