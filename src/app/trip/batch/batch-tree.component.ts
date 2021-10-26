@@ -355,7 +355,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       }
     }
     finally {
-      this.markAsLoaded();
+      this.markAsLoaded({emitEvent: false});
       this.markAsPristine();
     }
   }
