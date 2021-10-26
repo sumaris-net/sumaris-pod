@@ -36,6 +36,7 @@ import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { Measurement } from '@app/trip/services/model/measurement.model';
+import { fromDateISOString } from '../../../../ngx-sumaris-components/src/app/shared/dates';
 
 const moment = momentImported;
 
@@ -721,7 +722,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return this.settings.isUsageMode('FIELD') && (
       isNil(this.trip) || (
       isNotNil(this.trip.departureDateTime)
-      && this.trip.departureDateTime.diff(moment(), 'day') < 15))
+      && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
       ? 'FIELD' : 'DESK';
   }
 
@@ -733,7 +734,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.samplesTable,
       this.individualMonitoringTable,
       this.individualReleaseTable,
-      () => this.batchTree
+      this.batchTree
     ]);
   }
 
@@ -885,18 +886,24 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return parentUrl && `${parentUrl}/operation/${id}`;
   }
 
-  get dirty(): boolean {
-    return this._dirty || (this.children && this.children.filter(c => c.enabled).findIndex(c => c.dirty) !== -1);
-  }
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
   markAsLoaded(opts?: { emitEvent?: boolean }) {
     super.markAsLoaded(opts);
-    this.batchTree.markAsLoaded(opts);
+    this.children?.forEach(c => c.markAsLoaded(opts));
   }
 
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsPristine(opts);
+    this.children?.forEach(c => c.markAsLoaded(opts));
 
+    setTimeout(() => {
+
+      this.children?.filter(c => c.dirty).forEach(c => {
+        console.warn('TODO dirty: ', c.constructor.name);
+      })
+    }, 800);
+  }
 }

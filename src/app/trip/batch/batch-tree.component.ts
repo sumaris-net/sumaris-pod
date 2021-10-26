@@ -123,7 +123,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   get dirty(): boolean {
-    return super.dirty || (this._subBatchesService && this._subBatchesService.dirty);
+    return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
@@ -302,58 +302,62 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.data;
   }
 
-
   /* -- protected method -- */
 
   async setValue(catchBatch: Batch) {
-
-    this.markAsLoading();
 
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
       throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH);
     }
 
-    catchBatch = catchBatch || Batch.fromObject({
-      rankOrder: 1,
-      label: AcquisitionLevelCodes.CATCH_BATCH
-    });
+    this.markAsLoading();
 
-    this.data = catchBatch;
+    try {
 
-    // Set catch batch
-    this.catchBatchForm.gearId = this._gearId;
-    this.catchBatchForm.value = catchBatch.clone({withChildren: false});
-
-    if (this.batchGroupsTable) {
-      // Retrieve batch group (make sure label start with acquisition level)
-      // Then convert into batch group entities
-      const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(catchBatch);
-
-      // Apply to table
-      this.batchGroupsTable.value = batchGroups;
-
-      // Wait batch group table ready (need to be sure the QV pmfm is set)
-      await this.batchGroupsTable.waitIdle();
-
-      const groupQvPmfm = this.batchGroupsTable.qvPmfm;
-      const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
-        groupQvPmfm
+      catchBatch = catchBatch || Batch.fromObject({
+        rankOrder: 1,
+        label: AcquisitionLevelCodes.CATCH_BATCH
       });
 
-      if (this.subBatchesTable) {
-        this.subBatchesTable.qvPmfm = groupQvPmfm;
-        this.subBatchesTable.setAvailableParents(batchGroups, {
-          emitEvent: false,
-          linkDataToParent: false // Not need here
+      this.data = catchBatch;
+
+      // Set catch batch
+      this.catchBatchForm.gearId = this._gearId;
+      this.catchBatchForm.value = catchBatch.clone({ withChildren: false });
+
+      if (this.batchGroupsTable) {
+        // Retrieve batch group (make sure label start with acquisition level)
+        // Then convert into batch group entities
+        const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(catchBatch);
+
+        // Apply to table
+        this.batchGroupsTable.value = batchGroups;
+
+        // Wait batch group table ready (need to be sure the QV pmfm is set)
+        await this.batchGroupsTable.waitIdle();
+
+        const groupQvPmfm = this.batchGroupsTable.qvPmfm;
+        const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
+          groupQvPmfm
         });
-        this.subBatchesTable.value = subBatches;
-      } else {
-        this._subBatchesService.value = subBatches;
+
+        if (this.subBatchesTable) {
+          this.subBatchesTable.qvPmfm = groupQvPmfm;
+          this.subBatchesTable.setAvailableParents(batchGroups, {
+            emitEvent: false,
+            linkDataToParent: false // Not need here
+          });
+          this.subBatchesTable.value = subBatches;
+        } else {
+          this._subBatchesService.value = subBatches;
+        }
       }
     }
-
-    this.markAsLoaded();
+    finally {
+      this.markAsLoaded();
+      this.markAsPristine();
+    }
   }
 
   protected get form(): FormGroup {
