@@ -480,7 +480,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
             data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
           } else {
-            data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID].toString;
+            data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID];
           }
         }
       }
