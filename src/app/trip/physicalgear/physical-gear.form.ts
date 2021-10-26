@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Vi
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {Moment} from 'moment';
 import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap} from 'rxjs/operators';
+import { distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormBuilder} from "@angular/forms";
@@ -30,9 +30,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   mobile: boolean;
 
   @Input() showComment = true;
-
   @Input() tabindex: number;
-
   @Input() canEditRankOrder = false;
 
   @Input()
@@ -88,10 +86,12 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     this.form.get('gear').valueChanges
       .pipe(
-        filter(value => ReferentialUtils.isNotEmpty(value) && !this.loading)
+        filter(ReferentialUtils.isNotEmpty)
       )
       .subscribe(value => {
-        this.data.gear = value;
+        if (this.data && this.data.gear !== value) {
+          this.data.gear = value;
+        }
         this.gearId = value.id;
       });
   }
