@@ -195,7 +195,7 @@ export class BatchTreeTestPage implements OnInit {
 
 
     this.form.patchValue({
-      program: {id: 10, label: 'ADAP-MER' },
+      program: {id: 1, label: 'SUMARiS' },
       gear: {id: 6, label: 'OTB'},
       example: {id: 1, label: 'default'}
     });

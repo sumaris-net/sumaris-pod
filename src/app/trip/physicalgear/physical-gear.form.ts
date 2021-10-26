@@ -84,16 +84,18 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       mobile: this.mobile
     });
 
-    this.form.get('gear').valueChanges
-      .pipe(
-        filter(ReferentialUtils.isNotEmpty)
-      )
-      .subscribe(value => {
-        if (this.data && this.data.gear !== value) {
-          this.data.gear = value;
-        }
-        this.gearId = value.id;
-      });
+    this.registerSubscription(
+      this.form.get('gear').valueChanges
+        .pipe(
+          filter(ReferentialUtils.isNotEmpty)
+        )
+        .subscribe(value => {
+          if (this.data && this.data.gear !== value) {
+            this.data.gear = value;
+          }
+          this.gearId = value.id;
+        })
+    );
   }
 
   setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {

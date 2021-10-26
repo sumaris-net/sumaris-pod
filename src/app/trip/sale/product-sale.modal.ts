@@ -64,7 +64,7 @@ export class ProductSaleModal implements OnInit, OnDestroy {
 
     if (this.productSaleForm.invalid) {
       AppFormUtils.logFormErrors(this.productSaleForm.form);
-      this.productSaleForm.markAsTouched({emitEvent: true});
+      this.productSaleForm.markAllAsTouched();
       return;
     }
 

@@ -67,9 +67,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       (this.children && this.children.find(child => child.dirty) && true) || false;
   }
 
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.markAsTouched(opts);
-    (this.children || []).forEach(child => child.markAsTouched(opts));
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAllAsTouched(opts);
+    this.children?.forEach(f => f.markAllAsTouched(opts));
     this.hasSubBatchesControl.markAsTouched(opts);
   }
 
@@ -155,6 +155,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this.hasSubBatchesControl = new FormControl(false);
+    this.showSamplingBatch = false;
 
     // Create animation
     this._fadeInAnimation = createAnimation()
@@ -264,7 +265,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       this.computeShowTotalIndividualCount(data);
 
-      // Show QV card
+      // Show QV cards
       this._fadeInAnimation
         .addElement(document.querySelectorAll('ion-card.qv'))
         .play();

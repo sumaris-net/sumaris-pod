@@ -18,7 +18,7 @@
     <ion-label translate>TRIP.OPERATION.BTN_HISTORY</ion-label>
   </ion-button>
 
-  <ion-spinner *ngIf="loading"></ion-spinner>
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
   <button slot="end" mat-icon-button
           [matMenuTriggerFor]="optionsMenu"
@@ -139,21 +139,10 @@
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-buttons collapse="true" slot="end">
-        <ion-button>Click Me</ion-button>
-      </ion-buttons>
-      <ion-title size="large">Settings</ion-title>
-    </ion-toolbar>
-    <ion-toolbar>
-      <ion-searchbar></ion-searchbar>
-    </ion-toolbar>
-  </ion-header>
-
+  <ion-spinner class="ion-align-self-center" *ngIf="pending"></ion-spinner>
 
   <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
+                 class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
@@ -227,7 +216,6 @@
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
-                      [showSamplingBatchColumns]="showSamplingBatchColumns"
                       [programLabel]="$programLabel | async"
                       [usageMode]="usageMode"
                       [debug]="debug">

@@ -117,6 +117,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl.markAsTouched(opts);
   }
 
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAllAsTouched(opts);
+    this.strategyControl.markAsTouched(opts);
+  }
+
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
   }

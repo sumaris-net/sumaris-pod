@@ -241,7 +241,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sample-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.markAsTouched({emitEvent: true});
+      this.form.markAllAsTouched();
       this.scrollToTop();
       return undefined;
     }

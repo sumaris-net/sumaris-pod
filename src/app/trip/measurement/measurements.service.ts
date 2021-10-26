@@ -139,7 +139,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       .pipe(
         filter(isNotNil),
         first(),
-        switchMap((pmfms) => {
+        switchMap(pmfms => {
           let cleanSortBy = sortBy;
 
           // Do not apply sortBy to delegated service, when sort on a pmfm

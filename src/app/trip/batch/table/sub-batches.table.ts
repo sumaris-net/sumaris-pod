@@ -389,6 +389,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
    */
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean; }) {
     this.memoryDataService.value = data;
+    this.markAsLoaded();
   }
 
   /* -- protected methods -- */

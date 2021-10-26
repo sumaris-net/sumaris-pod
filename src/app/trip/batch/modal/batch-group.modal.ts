@@ -225,7 +225,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
         // Invalid not allowed: stop
         if (!allowInvalid) {
           if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
-          this.form.markAsTouched({emitEvent: true});
+          this.form.markAllAsTouched();
           return undefined;
         }
       }

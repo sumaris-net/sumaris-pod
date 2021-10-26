@@ -8,8 +8,8 @@ import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/validator/batch.validator';
 import {firstNotNilPromise, LocalSettingsService} from '@sumaris-net/ngx-components';
 import {Batch} from '../services/model/batch.model';
-import {ProgramRefService} from '../../referential/services/program-ref.service';
-import {IPmfm} from '../../referential/services/model/pmfm.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'form-catch-batch',

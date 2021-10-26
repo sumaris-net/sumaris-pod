@@ -78,6 +78,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   $isChildOperation = new BehaviorSubject<boolean>(undefined);
   $parentOperationLabel = new BehaviorSubject<string>('');
 
+
   @Input() showComment = true;
   @Input() showError = true;
 
@@ -267,7 +268,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.form.get(endDateTimeControlName).setValue(moment(), {emitEvent: false, onlySelf: true});
     }
 
-
     this.form.markAsDirty({onlySelf: true});
     this.form.updateValueAndValidity();
 
@@ -419,14 +419,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.enableMetierFilter = !this.enableMetierFilter;
     const physicalGear = this.form.get('physicalGear').value;
 
-    if (physicalGear) {
-      // Refresh metiers
-      this.loadMetiers(physicalGear);
-    }
+    // Refresh metiers
+    if (physicalGear) this.loadMetiers(physicalGear);
   }
 
   async updateParentOperation() {
-    //console.debug(this.form.get('parentOperation'));
     const parent = this.parentControl.value;
 
     if (parent) {
@@ -532,7 +529,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     if (this.$isChildOperation.value === isChildOperation) return; // Skip if same
 
     this.$isChildOperation.next(isChildOperation);
-    console.debug('[operation-form] Is child operation ? ', isChildOperation);
+    if (this.debug) console.debug('[operation-form] Is child operation ? ', isChildOperation);
 
     // Virage
     if (isChildOperation) {

@@ -140,7 +140,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   get loading(): boolean {
-    return super.loading && isNotNil(this.$pmfms.value);
+    return this.measurementsDataService.loadingPmfms && isNotNil(this.$pmfms.value);
   }
 
   protected constructor(
@@ -338,10 +338,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   async ready() {
+    if (isNotNil(this.$pmfms.value)) return;
+
     // Wait pmfms load, and controls load
-    if (isNil(this.$pmfms.getValue())) {
-      await firstNotNilPromise(this.$pmfms);
-    }
+    await firstNotNilPromise(this.$pmfms);
   }
 
   /**

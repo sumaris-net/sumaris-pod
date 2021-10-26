@@ -108,7 +108,7 @@ export class SubBatchModal implements OnInit {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.markAsTouched({emitEvent: true});
+      this.form.markAllAsTouched();
       return;
     }
 

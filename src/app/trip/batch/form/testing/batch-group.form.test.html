@@ -16,15 +16,18 @@
 
      <!-- Filter -->
      <ion-row>
+
+       <!-- Program -->
        <ion-col>
-         <mat-autocomplete-field formControlName="program"
+         <mat-autocomplete-field formControlName="program" class="min-width-large ion-text-wrap"
                                  [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
+                                 [config]="autocomplete.fields.program"
                                  [tabindex]="1"
-                                 [required]="true"
-                                 [config]="autocomplete.fields.program">
+                                 required>
          </mat-autocomplete-field>
        </ion-col>
 
+       <!-- Gear  -->
        <ion-col>
          <mat-autocomplete-field formControlName="gear"
                                  [placeholder]="'TRIP.PHYSICAL_GEAR.LIST.GEAR'|translate"
@@ -33,6 +36,8 @@
                                  [config]="autocomplete.fields.gear">
          </mat-autocomplete-field>
        </ion-col>
+
+       <!-- Example select -->
        <ion-col>
          <mat-autocomplete-field formControlName="example"
                                  placeholder="Data example"
@@ -69,10 +74,10 @@
            <ion-label>Apply</ion-label>
          </ion-button>
        </ion-col>
-       <ion-col size="10">
+       <ion-col size="10" *ngIf="outputs.example; let content">
          <ion-text color="medium">
            <h4>Output: </h4>
-           <p [innerHTML]="outputs.example">
+           <p [innerHTML]="content">
            </p>
          </ion-text>
        </ion-col>
@@ -87,11 +92,11 @@
           <app-batch-group-form #mobileForm
                                 [programLabel]="$programLabel | async"
                                 [showTaxonName]="false"
-                                [showSamplingBatch]="true"
+                                [showChildrenSamplingBatch]="hasSamplingBatch"
+                                [allowSubBatches]="hasSamplingBatch"
                                 [gearId]="$gearId|async"
                                 [usageMode]="'FIELD'"
-                                [debug]="true"
-                                [showChildrenSamplingBatch]="hasSamplingBatch">
+                                [debug]="true">
           </app-batch-group-form>
         </ion-col>
 
@@ -101,78 +106,24 @@
           <ion-button (click)="dumpBatchGroupForm(mobileForm, 'mobile')"
                       matTooltip="Output data to log"
                       fill="outline">
-            <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
-          </ion-button>
-
-          <!-- copy to -->
-          <ion-button (click)="copyBatchGroup(mobileForm, desktopForm)"
-                      matTooltip="Copy to desktop table"
-                      fill="outline">
-            <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
+            <ion-label>Dump</ion-label>
           </ion-button>
 
           <!-- Reload from himself -->
           <ion-button (click)="copyBatchGroup(mobileForm, mobileForm)"
                       matTooltip="Reload from himself data"
                       fill="outline">
-            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
+            <ion-label>Reload</ion-label>
           </ion-button>
         </ion-col>
-        <ion-col size="10">
+        <ion-col size="10" *ngIf="outputs.mobile; let content">
           <ion-text color="medium">
             <h4>Output: </h4>
-            <p [innerHTML]="outputs.mobile">
+            <p [innerHTML]="content">
             </p>
           </ion-text>
         </ion-col>
       </ion-row>
-
-     <!-- desktop -->
-     <ion-row><ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col></ion-row>
-     <ion-row>
-       <ion-col size="12">
-
-         <!--<app-batch-group-form #desktopForm
-                         [programLabel]="$programLabel|async"
-                         [gearId]="$gearId|async"
-                         [usageMode]="'FIELD'"
-                         debug="true">
-         </app-batch-group-form>-->
-       </ion-col>
-
-       <!-- buttons -->
-       <ion-col size="2">
-         <!-- log tree -->
-         <ion-button (click)="dumpBatchGroupForm(desktopForm, 'desktop')"
-                     matTooltip="Output data to log"
-                     fill="outline">
-           <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
-         </ion-button>
-
-         <!-- copy to -->
-         <ion-button (click)="copyBatchGroup(desktopForm, mobileForm)"
-                     matTooltip="Copy data to mobile table"
-                     fill="outline">
-           <ion-icon name="arrow-up" slot="icon-only"></ion-icon>
-         </ion-button>
-
-         <!-- Reload from himself -->
-         <ion-button (click)="copyBatchGroup(desktopForm, desktopForm)"
-                     matTooltip="Reload from himself data"
-                     fill="outline">
-           <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
-         </ion-button>
-
-       </ion-col>
-       <ion-col size="10">
-         <ion-text color="medium">
-           <h4>Output: </h4>
-           <p [innerHTML]="outputs.desktop">
-           </p>
-         </ion-text>
-       </ion-col>
-
-     </ion-row>
     </ion-grid>
 
   </form>

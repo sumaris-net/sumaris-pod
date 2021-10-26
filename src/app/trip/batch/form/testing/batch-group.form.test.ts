@@ -4,13 +4,8 @@ import { BehaviorSubject } from 'rxjs';
 import { Batch, BatchUtils } from '../../../services/model/batch.model';
 import { ReferentialRefService } from '../../../../referential/services/referential-ref.service';
 import { mergeMap } from 'rxjs/operators';
-import { BatchTreeComponent } from '../../batch-tree.component';
-import { MatAutocompleteConfigHolder } from '@sumaris-net/ngx-components';
-import { SharedValidators } from '@sumaris-net/ngx-components';
+import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '../../../../referential/services/model/model.enum';
-import { isEmptyArray, isNotNil, toNumber } from '@sumaris-net/ngx-components';
-import { EntityUtils } from '@sumaris-net/ngx-components';
-import { EntitiesStorage } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '../../../../referential/services/program-ref.service';
 import { BatchGroupForm } from '@app/trip/batch/form/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/services/model/batch-group.model';
@@ -130,7 +125,6 @@ export class BatchGroupFormTestPage implements OnInit {
   } = {};
 
   @ViewChild('mobileForm', { static: true }) mobileForm: BatchGroupForm;
-  @ViewChild('desktopForm', { static: true }) desktopForm: BatchGroupForm;
 
   constructor(
     formBuilder: FormBuilder,
@@ -211,15 +205,9 @@ export class BatchGroupFormTestPage implements OnInit {
     // DEBUG
     //console.debug('[batch-group-form] Applying data:', data);
 
-    if (this.mobileForm) {
-      this.mobileForm.value = data.clone();
-      this.mobileForm.enable();
-    }
+    this.mobileForm.value = data.clone();
+    this.mobileForm.enable();
 
-    if (this.desktopForm) {
-      this.desktopForm.value = data.clone();
-      this.desktopForm.enable();
-    }
   }
 
   doSubmit(event?: UIEvent) {

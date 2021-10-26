@@ -189,8 +189,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     await AppFormUtils.waitWhilePending(this.vesselForm);
 
     if (this.vesselForm.invalid) {
-      this.vesselForm.markAsTouched({emitEvent: true});
-
+      this.vesselForm.markAllAsTouched();
       AppFormUtils.logFormErrors(this.vesselForm.form);
       return;
     }

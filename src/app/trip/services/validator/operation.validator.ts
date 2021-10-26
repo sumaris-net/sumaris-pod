@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { PositionValidatorService } from './position.validator';
 import { fromDateISOString, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
@@ -91,8 +91,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // DEBUG
     //console.debug(`[operation-validator] Updating form group validators`);
 
-    let endDateTimeControlName;
-    let disabledEndDateTimeControlName;
+    let enabledEndDateTimeControl: AbstractControl;
+    let disabledEndDateTimeControl: AbstractControl;
     const endDateTimeValidators: ValidatorFn[] = [];
     const parentControl = formGroup.get('parentOperation');
     const childControl = formGroup.get('childOperation');
@@ -106,6 +106,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       formGroup.get('fishingEndDateTime').setValidators(Validators.required);
       formGroup.get('fishingEndDateTime').setAsyncValidators(async (control) => {
+        if (!control.touched && !control.dirty) return null;
+
         const fishingEndDateTime = fromDateISOString(control.value);
         const fishingStartDateTime = fromDateISOString((control.parent as FormGroup).get('fishingStartDateTime').value);
         // Error if fishingEndDateTime <= fishingStartDateTime
@@ -120,8 +122,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       qualityFlagControl.clearValidators();
 
-      endDateTimeControlName = 'endDateTime';
-      disabledEndDateTimeControlName = 'fishingStartDateTime';
+      enabledEndDateTimeControl = formGroup.get('endDateTime');
+      disabledEndDateTimeControl = formGroup.get('fishingStartDateTime');
     }
 
     // Is parent
@@ -132,14 +134,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       formGroup.get('fishingEndDateTime').clearValidators();
       formGroup.get('fishingEndDateTime').clearAsyncValidators();
 
-      endDateTimeControlName = 'fishingStartDateTime';
-      disabledEndDateTimeControlName = 'endDateTime';
+      enabledEndDateTimeControl = formGroup.get('fishingStartDateTime');
+      disabledEndDateTimeControl = formGroup.get('endDateTime');
 
       endDateTimeValidators.push((control) => {
         const endDateTime = fromDateISOString(control.value);
         const fishingEndDateTime = fromDateISOString(childControl.value?.fishingEndDateTime);
         if (fishingEndDateTime && endDateTime && endDateTime.isBefore(fishingEndDateTime) === false) {
-          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: after the child operation's start! `, endDateTime, fishingEndDateTime);
+          console.warn(`[operation] Invalid operation: after the child operation's start! `, endDateTime, fishingEndDateTime);
           return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'};
         }
       });
@@ -158,8 +160,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       formGroup.get('fishingEndDateTime').clearValidators();
       formGroup.get('fishingEndDateTime').clearAsyncValidators();
-      endDateTimeControlName = 'endDateTime';
-      disabledEndDateTimeControlName = 'fishingStartDateTime';
+      enabledEndDateTimeControl = formGroup.get('endDateTime');
+      disabledEndDateTimeControl = formGroup.get('fishingStartDateTime');
 
       qualityFlagControl.clearValidators();
     }
@@ -171,35 +173,34 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const trip = opts.trip;
     if (trip) {
       endDateTimeValidators.push((control) => {
-        // TODO
-        //if (!control.touched && !control.dirty) return null;
-
         const endDateTime = fromDateISOString(control.value);
         const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
         const tripReturnDateTime = fromDateISOString(trip.returnDateTime);
 
         // Make sure trip.departureDateTime < operation.endDateTime
         if (endDateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(endDateTime) === false) {
-          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: before the trip!`, endDateTime, tripDepartureDateTime);
+          console.warn(`[operation] Invalid operation: before the trip`, endDateTime, tripDepartureDateTime);
           return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP'};
         }
         // Make sure operation.endDateTime < trip.returnDateTime
         else if (endDateTime && tripReturnDateTime && endDateTime.isBefore(tripReturnDateTime) === false) {
-          console.warn(`[operation] Invalid operation ${endDateTimeControlName}: after the trip! `, endDateTime, tripReturnDateTime);
+          console.warn(`[operation] Invalid operation: after the trip`, endDateTime, tripReturnDateTime);
           return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP'};
         }
       });
     }
 
+    // Clean control to disable
+    disabledEndDateTimeControl.clearAsyncValidators();
+    SharedValidators.clearError(disabledEndDateTimeControl, 'required');
 
-    formGroup.get(disabledEndDateTimeControlName).clearAsyncValidators();
-    SharedValidators.clearError(formGroup.get(disabledEndDateTimeControlName), 'required');
-    formGroup.get(endDateTimeControlName).setAsyncValidators(async (control) => {
+    // Add validators to end date control
+    enabledEndDateTimeControl.setAsyncValidators(async (control) => {
+      if (!control.touched && !control.dirty) return null;
 
       const errors: ValidationErrors = endDateTimeValidators
         .map(validator => validator(control))
         .find(isNotNil) || null;
-      //if (!control.touched && !control.dirty) return null;
 
       // Clear unused errors
       if (!errors || !errors.msg) SharedValidators.clearError(control, 'msg');

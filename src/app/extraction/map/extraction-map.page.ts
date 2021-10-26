@@ -270,6 +270,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     super.markAsTouched(opts);
     AppFormUtils.markAsTouched(this.form);
   }
+
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAllAsTouched(opts);
+    AppFormUtils.markAllAsTouched(this.form, opts);
+  }
+
   constructor(
     route: ActivatedRoute,
     router: Router,

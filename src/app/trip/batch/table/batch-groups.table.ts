@@ -138,6 +138,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (this.weightMethodForm) this.weightMethodForm.markAsTouched(opts);
   }
 
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
+    super.markAllAsTouched(opts);
+    if (this.weightMethodForm) this.weightMethodForm.markAllAsTouched();
+  }
+
   markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
     super.markAsUntouched(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAsUntouched(opts);
@@ -293,13 +298,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    * @params opts.includeTaxonGroups : include taxon label
    */
   async autoFillTable(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean; }) {
-    // Wait table is ready
-    await this.ready();
-
-    // Wait table loaded
-    if (this.loading) {
-      await firstFalsePromise(this.loadingSubject);
-    }
+    // Wait table ready
+    await this.waitIdle();
 
     // Skip when disabled
     if ((!opts || opts.forceIfDisabled !== true) && this.disabled) {
