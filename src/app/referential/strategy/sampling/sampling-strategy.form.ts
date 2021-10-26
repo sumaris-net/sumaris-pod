@@ -285,10 +285,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    if (!this.appliedPeriodsHelper) {
-      this.initAppliedPeriodHelper();
-    }
-
     this.appliedPeriodsForm.setAsyncValidators([
       async (control) => {
         const minLength = 1;
@@ -602,6 +598,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       return firstArrayValue(res && res.data || []);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
+    }
+  }
+
+  removeAppliedStrategies(index: number) {
+    // first element AND more than one element
+    // this.appliedPeriodsForm.controls become empty array
+    let appliedPeriodsFormControls: any = null;
+    if (index === 0 && this.appliedStrategiesHelper.size() > 1) {
+      appliedPeriodsFormControls = this.appliedPeriodsForm.controls;
+    }
+    this.appliedStrategiesHelper.removeAt(index);
+    if (index === 0) {
+      if (appliedPeriodsFormControls) {
+        this.appliedPeriodsForm.controls = appliedPeriodsFormControls;
+      }
     }
   }
 
