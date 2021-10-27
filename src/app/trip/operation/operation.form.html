@@ -249,11 +249,10 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-error>
-                <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-hint>
-                <mat-hint align="end" *ngIf="!distanceWarning && !distanceError">
-                  <span translate>TRIP.OPERATION.EDIT.DISTANCE_DOTS</span>
-                  {{ distance }} miles
+                <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-error>
+                <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-hint>
+                <mat-hint align="end" *ngIf="!distanceWarning && distance">
+                  {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
                 </mat-hint>
               </mat-latlong-field>
             </ion-col>
@@ -367,11 +366,10 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-error>
-                <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate}} ({{ distance }} miles)</mat-hint>
-                <mat-hint align="end" *ngIf="!distanceWarning && !distanceError">
-                  <span translate>TRIP.OPERATION.EDIT.DISTANCE_DOTS</span>
-                  {{ distance }} miles
+                <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-error>
+                <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-hint>
+                <mat-hint align="end" *ngIf="!distanceError && !distanceWarning && distance">
+                  {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
                 </mat-hint>
               </mat-latlong-field>
             </ion-col>

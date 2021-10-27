@@ -2,7 +2,7 @@ import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 
 
-export const Fragments = {
+export const DataCommonFragments = {
   referential: ReferentialFragments.referential,
   department: ReferentialFragments.department,
   lightDepartment: ReferentialFragments.lightDepartment,
@@ -106,7 +106,7 @@ export const DataFragments = {
     landingId
     __typename
   }
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   ${ReferentialFragments.taxonName}`,
   batch: gql`fragment BatchFragment on BatchVO {
     id
@@ -130,7 +130,7 @@ export const DataFragments = {
     qualityFlagId
     __typename
   }
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   ${ReferentialFragments.taxonName}`,
   packet: gql`fragment PacketFragment on PacketVO {
     id
@@ -147,7 +147,7 @@ export const DataFragments = {
     operationId
     __typename
   }
-  ${Fragments.packetComposition}`,
+  ${DataCommonFragments.packetComposition}`,
   product: gql`fragment ProductFragment on ProductVO {
     id
     label
@@ -172,7 +172,7 @@ export const DataFragments = {
     batchId
     __typename
   }
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   `,
   fishingArea: gql`fragment FishingAreaFragment on FishingAreaVO {
     id
@@ -194,8 +194,8 @@ export const DataFragments = {
     operationId
     __typename
   }
-  ${Fragments.location}
-  ${Fragments.referential}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.referential}
   `
 };
 
@@ -257,7 +257,7 @@ export const OperationGroupFragment = {
   ${DataFragments.product}
   ${DataFragments.sample}
   ${DataFragments.fishingArea}
-  ${Fragments.measurement}
+  ${DataCommonFragments.measurement}
   `
 };
 
@@ -275,8 +275,8 @@ export const SaleFragments = {
       ...LocationFragment
     }
   }
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   `,
   sale: gql`fragment SaleFragment on SaleVO {
     id
@@ -297,9 +297,9 @@ export const SaleFragments = {
       ...ProductFragment
     }
   }
-  ${Fragments.referential}
-  ${Fragments.location}
-  ${Fragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.measurement}
   ${DataFragments.product}
   `
 };
@@ -315,8 +315,8 @@ export const ExpectedSaleFragments = {
       ...LocationFragment
     }
   }
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   `,
   expectedSale: gql`fragment ExpectedSaleFragment on ExpectedSaleVO {
     id
@@ -334,9 +334,9 @@ export const ExpectedSaleFragments = {
       ...ProductFragment
     }
   }
-  ${Fragments.referential}
-  ${Fragments.location}
-  ${Fragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.measurement}
   ${DataFragments.product}
   `
 };

@@ -4,7 +4,7 @@ import {AccountService}  from "@sumaris-net/ngx-components";
 import {Observable} from "rxjs";
 import * as momentImported from "moment";
 import {gql} from "@apollo/client/core";
-import {DataFragments, Fragments} from "./trip.queries";
+import {DataFragments, DataCommonFragments} from "./trip.queries";
 import {ErrorCodes} from "./trip.errors";
 import {filter, map} from "rxjs/operators";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
@@ -73,9 +73,9 @@ export const ObservedLocationFragments = {
       ...LightPersonFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}
   `,
   observedLocation: gql`fragment ObservedLocationFragment on ObservedLocationVO {
     id
@@ -115,9 +115,9 @@ const ObservedLocationQueries = {
     }
   }
   ${ObservedLocationFragments.observedLocation}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}`,
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`,
 
   loadAll: gql`query ObservedLocations($filter: ObservedLocationFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $trash: Boolean){
     data: observedLocations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash){
@@ -142,9 +142,9 @@ const ObservedLocationMutations = {
     }
   }
   ${ObservedLocationFragments.observedLocation}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}`,
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`,
 
   saveWithLandings: gql`mutation SaveObservedLocationWithLandings($data: ObservedLocationVOInput!, $options: ObservedLocationSaveOptionsInput!){
     data: saveObservedLocation(observedLocation: $data, options: $options){
@@ -156,9 +156,9 @@ const ObservedLocationMutations = {
   }
   ${ObservedLocationFragments.observedLocation}
   ${LandingFragments.landing}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}`,
 
@@ -172,9 +172,9 @@ const ObservedLocationMutations = {
     }
   }
   ${ObservedLocationFragments.observedLocation}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}`,
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`,
 
   validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
     data: validateObservedLocation(observedLocation: $data){
@@ -182,9 +182,9 @@ const ObservedLocationMutations = {
     }
   }
   ${ObservedLocationFragments.observedLocation}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}`,
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`,
 
   unvalidate: gql`mutation UnvalidateObservedLocation($data: ObservedLocationVOInput!){
     data: unvalidateObservedLocation(observedLocation: $data){
@@ -192,9 +192,9 @@ const ObservedLocationMutations = {
     }
   }
   ${ObservedLocationFragments.observedLocation}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}`,
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`,
 
   qualify: gql`mutation QualifyObservedLocation($data: ObservedLocationVOInput!){
     data: qualifyObservedLocation(observedLocation: $data){
@@ -202,9 +202,9 @@ const ObservedLocationMutations = {
     }
   }
   ${ObservedLocationFragments.observedLocation}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.location}`
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`
 };
 
 

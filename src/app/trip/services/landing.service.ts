@@ -27,7 +27,7 @@ import {
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { Landing } from './model/landing.model';
 import { gql } from '@apollo/client/core';
-import { DataFragments, Fragments } from './trip.queries';
+import { DataFragments, DataCommonFragments } from './trip.queries';
 import { ErrorCodes } from './trip.errors';
 import { filter, map, tap } from 'rxjs/operators';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
@@ -100,9 +100,9 @@ export const LandingFragments = {
     measurementValues
     samplesCount
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${ReferentialFragments.referential}
   `,
@@ -155,9 +155,9 @@ const LandingQueries = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
@@ -184,9 +184,9 @@ const LandingQueries = {
     total: landingsCount(filter: $filter)
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`
@@ -199,9 +199,9 @@ const LandingMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
@@ -212,9 +212,9 @@ const LandingMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
@@ -231,9 +231,9 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`

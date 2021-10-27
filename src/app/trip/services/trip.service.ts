@@ -31,7 +31,7 @@ import {
   toNumber,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import { DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
+import { DataFragments, ExpectedSaleFragments, DataCommonFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -102,11 +102,11 @@ export const TripFragments = {
       ...LightPersonFragment
     }
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}`,
+  ${DataCommonFragments.referential}`,
 
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -157,14 +157,14 @@ export const TripFragments = {
       ...FishingAreaFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
-  ${Fragments.metier},
+  ${DataCommonFragments.metier},
   ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
@@ -225,13 +225,13 @@ export const TripFragments = {
       ...FishingAreaFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.metier}
+  ${DataCommonFragments.metier}
   ${PhysicalGearFragments.physicalGear}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}

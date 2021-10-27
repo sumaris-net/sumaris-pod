@@ -578,7 +578,7 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
-        "DISTANCE_DOTS" : "Dist. :",
+        "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
         "START_PARENT_OPERATION" : "Début pose :",
         "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
@@ -631,7 +631,7 @@
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
-        "TOO_LONG_DISTANCE" : "Distance trop grande"
+        "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)"
       }
     },
     "CATCH": {

@@ -8,7 +8,7 @@ import {AccountService}  from "@sumaris-net/ngx-components";
 import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {FeatureCollection} from "geojson";
-import {Fragments} from "../../trip/services/trip.queries";
+import {DataCommonFragments} from "../../trip/services/trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
@@ -59,8 +59,8 @@ export const AggregationFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   `
 };
 

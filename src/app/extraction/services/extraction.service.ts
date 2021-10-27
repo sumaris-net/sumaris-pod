@@ -8,7 +8,7 @@ import {AccountService, LoadResult} from "@sumaris-net/ngx-components";
 import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
 import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Fragments} from "../../trip/services/trip.queries";
+import {DataCommonFragments} from "../../trip/services/trip.queries";
 import {SortDirection} from "@angular/material/sort";
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
@@ -37,7 +37,7 @@ export const ExtractionFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.lightDepartment}`,
+  ${DataCommonFragments.lightDepartment}`,
   column: gql`fragment ExtractionColumnFragment on ExtractionTableColumnVO {
     label
     name

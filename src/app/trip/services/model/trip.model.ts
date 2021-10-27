@@ -16,6 +16,7 @@ import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import { Metier } from "@app/referential/services/model/metier.model";
+import { IPosition } from '@app/trip/services/model/position.model';
 
 /* -- Helper function -- */
 
@@ -566,7 +567,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
 }
 
 @EntityClass({typename: 'VesselPositionVO'})
-export class VesselPosition extends DataEntity<VesselPosition> {
+export class VesselPosition extends DataEntity<VesselPosition> implements IPosition {
 
   static fromObject: (source: any, opts?: any) => VesselPosition;
 

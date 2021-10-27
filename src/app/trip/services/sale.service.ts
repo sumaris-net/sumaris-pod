@@ -3,7 +3,7 @@ import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ErrorCodes } from './trip.errors';
-import { DataFragments, Fragments } from './trip.queries';
+import { DataFragments, DataCommonFragments } from './trip.queries';
 import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, IEntitiesService, LoadResult } from '@sumaris-net/ngx-components';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -32,10 +32,10 @@ export const SaleFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   `,
   sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
@@ -66,13 +66,13 @@ export const SaleFragments = {
       ...LightPersonFragment
     }
   }
-  ${Fragments.lightPerson}
-  ${Fragments.lightDepartment}
-  ${Fragments.measurement}
-  ${Fragments.location}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.location}
   ${DataFragments.sample}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   `
 };
 
