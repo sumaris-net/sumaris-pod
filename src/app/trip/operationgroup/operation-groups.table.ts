@@ -5,15 +5,16 @@ import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
 import {BehaviorSubject} from 'rxjs';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {InMemoryEntitiesService, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
+import {InMemoryEntitiesService, isNil, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
 import {MetierService} from '@app/referential/services/metier.service';
-import {OperationGroup, PhysicalGear} from '../services/model/trip.model';
+import {OperationGroup} from '../services/model/trip.model';
 import {environment} from '@environments/environment';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
 
-export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'gear', 'targetSpecies'];
+export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
+export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -69,7 +70,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       {
         prependNewElements: false,
         suppressErrors: environment.production,
-        reservedStartColumns: OPERATION_GROUP_RESERVED_START_COLUMNS,
+        reservedStartColumns: platform.is('mobile') ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
         reservedEndColumns: platform.is('mobile') ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
       });
@@ -181,17 +182,14 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     return canDeleteRow;
   }
 
-
-  referentialToString = referentialToString;
-
   /* -- protected methods -- */
 
   private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
-  if (this.mobile) {
-    pmfms.forEach(pmfm => pmfm.hidden = true);
-    // return [];
-  }
+  // if (this.mobile) {
+  //   pmfms.forEach(pmfm => pmfm.hidden = true);
+  //   // return [];
+  // }
 
     return pmfms;
   }
@@ -228,9 +226,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   protected async onNewEntity(data: OperationGroup): Promise<void> {
     if (isNil(data.rankOrderOnPeriod)) {
       data.rankOrderOnPeriod = await this.getNextRankOrderOnPeriod();
-    }
-    if (!this.inlineEdition && isNil(data.physicalGear)) {
-      data.physicalGear = new PhysicalGear();
     }
   }
 

@@ -96,7 +96,7 @@
   <!-- physical gear -->
   <ng-container matColumnDef="gear">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.GEAR</ion-label>
+      <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
     </th>
     <td mat-cell *matCellDef="let row">
       <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
@@ -152,11 +152,6 @@
       </button>
     </th>
     <td mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-
       <!-- undo or delete  -->
       <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
               (click)="cancelOrDelete($event, row)">

@@ -1,5 +1,5 @@
-import { Moment } from 'moment';
-import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import {Moment} from 'moment';
+import {DataEntity, DataEntityAsObjectOptions,} from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
 import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
@@ -15,7 +15,7 @@ import {IWithPacketsEntity, Packet} from './packet.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import { Metier } from "@app/referential/services/model/metier.model";
+import {Metier} from '@app/referential/services/model/metier.model';
 
 /* -- Helper function -- */
 

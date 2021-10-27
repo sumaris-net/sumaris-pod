@@ -1,30 +1,20 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
-import {
-  AccountService,
-  IReferentialRef,
-  isNotNil,
-  LocalSettingsService,
-  PlatformService, ReferentialRef, SharedFormGroupValidators,
-  UsageMode
-} from '@sumaris-net/ngx-components';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {OperationGroup, PhysicalGear, Trip} from '../services/model/trip.model';
+import {AccountService, IReferentialRef, isNotNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {OperationGroup} from '../services/model/trip.model';
 import {BehaviorSubject} from 'rxjs';
-import {MetierService} from '../../referential/services/metier.service';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {MetierService} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {MeasurementValuesForm} from '@app/trip/measurement/measurement-values.form.class';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BatchValidatorService} from '@app/trip/services/validator/batch.validator';
 import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
-import {referentialToString} from '@sumaris-net/ngx-components';
 import {OperationGroupValidatorService} from '@app/trip/services/validator/operation-group.validator';
-import {debounceTime, filter, first} from 'rxjs/operators';
-import {Metier} from '@app/referential/services/model/taxon.model';
+import {filter, first} from 'rxjs/operators';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {environment} from '@environments/environment';
-import {BatchUtils} from '@app/trip/services/model/batch.model';
+import {Metier} from '@app/referential/services/model/metier.model';
 
 
 @Component({
@@ -84,7 +74,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
-    this.gear = this.data.physicalGear?.gear || this.data.metier?.gear;
+    this.gear = this.data.metier?.gear;
     this.metier = this.data.metier;
 
     this.displayAttributes = {
@@ -124,12 +114,10 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
       this.metier = this.data.metier;
       console.debug('[operation-group.form] Taxon group : ', this.metier.taxonGroup);
 
-      if (!this.data.physicalGear.gear || this.data.physicalGear.gear.id !== this.data.metier.gear.id) {
+      if (this.data.physicalGearId !== this.data.metier.gear.id) {
 
-        this.data.physicalGear = this.data.physicalGear || new PhysicalGear();
-        this.data.physicalGear.gear = this.data.metier.gear;
-
-        this.gear =  this.data.physicalGear.gear;
+        this.data.physicalGearId = this.data.physicalGearId || null;
+        this.gear = this.data.metier.gear;
       }
     }
   }
