@@ -91,9 +91,7 @@ export class SubBatchModal implements OnInit {
     }
 
     if (!this.disabled) {
-      //setTimeout(() => {
-        this.form.enable({emitEvent: false});
-      //}, 500);
+      this.form.enable({emitEvent: false});
     }
 
   }

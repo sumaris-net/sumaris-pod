@@ -320,9 +320,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           hasNoChildOperation: true,
           endDate,
           startDate,
-          gearIds: this._physicalGearsSubject.getValue().map(physicalGear => physicalGear.gear.id)
+          gearIds: (this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id)
         },
-        physicalGears: this._physicalGearsSubject.getValue(),
+        physicalGears: this._physicalGearsSubject.value,
         programLabel: this.programLabel,
         enableGeolocation: this.enableGeolocation,
         parent

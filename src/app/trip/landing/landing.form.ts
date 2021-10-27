@@ -23,12 +23,12 @@ import {
   PersonService,
   PersonUtils,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, SharedFormArrayValidators, SharedValidators,
   StatusIds,
   suggestFromArray,
   toBoolean,
   toDateISOString,
-  UserProfileLabel
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from '../services/model/landing.model';
@@ -358,17 +358,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
             measControl.setValue(strategyLabel);
           }
-        })
-      );
 
-    this.registerSubscription(
-      this.$strategyLabel
-        .subscribe(strategyLabel => {
           this.fishingAreaFields?.forEach(fishingArea => {
             fishingArea.reloadItems();
           });
         })
-    );
+      );
 
     // Init trip form (if enable)
     if (this.showTrip) {
@@ -430,7 +425,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       trip.metiers = isNotEmptyArray(trip.metiers) ? trip.metiers : [null];
       this.metiersHelper.resize(Math.max(1, trip.metiers.length));
     } else {
-      this.metiersHelper.removeAllEmpty();
+      this.metiersHelper?.removeAllEmpty();
     }
 
     // Resize fishing areas array
@@ -438,17 +433,25 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       trip.fishingAreas = isNotEmptyArray(trip.fishingAreas) ? trip.fishingAreas : [null];
       this.fishingAreasHelper.resize(Math.max(1, trip.fishingAreas.length));
     } else {
-      this.fishingAreasHelper.removeAllEmpty();
+      this.fishingAreasHelper?.removeAllEmpty();
     }
-
-    // Propagate the strategy
-    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()];
-    this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
 
     // DEBUG
     //console.debug('[landing-form] safeSetValue', data);
 
     await super.safeSetValue(data, opts);
+  }
+
+  protected configure(data: Partial<Landing>) {
+    if (!data) return; // Skip
+
+    super.configure(data);
+
+    // Propagate the strategy
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    if (strategyLabel) {
+      this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
+    }
   }
 
   protected getValue(): Landing {
@@ -672,6 +675,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     if (this.metiersHelper.size() === 0) {
       this.metiersHelper.resize(1);
     }
+    this.metiersHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
   protected initFishingAreas(form: FormGroup) {
@@ -685,6 +689,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     if (this.fishingAreasHelper.size() === 0) {
       this.fishingAreasHelper.resize(1);
     }
+    this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
   protected markForCheck() {

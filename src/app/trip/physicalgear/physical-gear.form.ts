@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {Moment} from 'moment';
-import {BehaviorSubject} from 'rxjs';
-import { distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, merge } from 'rxjs';
+import { distinctUntilChanged, filter, map, mergeMap, tap } from 'rxjs/operators';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormBuilder} from "@angular/forms";
@@ -84,25 +84,14 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       mobile: this.mobile
     });
 
+    // Propage data.gear into gearId
     this.registerSubscription(
       this.form.get('gear').valueChanges
         .pipe(
           filter(ReferentialUtils.isNotEmpty)
         )
-        .subscribe(value => {
-          if (this.data && this.data.gear !== value) {
-            this.data.gear = value;
-          }
-          this.gearId = value.id;
-        })
+        .subscribe(gear => this.configure({gear}))
     );
-  }
-
-  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
-    if (data && ReferentialUtils.isNotEmpty(data.gear)) {
-      this.gearId = data.gear.id;
-    }
-    super.setValue(data, opts);
   }
 
   focusFirstInput() {
@@ -111,13 +100,19 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   /* -- protected methods -- */
 
-  protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }): Promise<void> {
+  protected configure(data: Partial<PhysicalGear>) {
+    console.warn('TODO CONFIGURING', data);
 
-    if (data && ReferentialUtils.isNotEmpty(data.gear)) {
+    if (!data) return; // Skip
+
+    super.configure(data);
+
+    if (ReferentialUtils.isNotEmpty(data.gear)) {
+      // Update existing date
+      if (this.data) this.data.gear = data.gear;
+      // Propage gear
       this.gearId = data.gear.id;
     }
-
-    await super.safeSetValue(data, opts);
   }
 
   referentialToString = referentialToString;

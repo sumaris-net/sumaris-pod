@@ -2,15 +2,14 @@ import { ChangeDetectorRef, Directive, EventEmitter, Input, OnDestroy, OnInit, O
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { BehaviorSubject, isObservable, Observable, Subject, timer } from 'rxjs';
+import { BehaviorSubject, isObservable, merge, Observable, timer } from 'rxjs';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { filter, first, map, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementFormValue, MeasurementValuesUtils } from '../services/model/measurement.model';
 import {
   AppForm,
   firstNotNilPromise,
-  firstTruePromise,
   FormArrayHelper,
   isNil,
   isNotEmptyArray,
@@ -18,12 +17,12 @@ import {
   LocalSettingsService,
   ReferentialRef,
   ReferentialUtils,
+  toNumber,
   WaitOptions,
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import Timer = NodeJS.Timer;
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -83,7 +82,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set programLabel(value: string) {
-    this.setProgramLabel(value);
+    this.setProgramLabel(value, {emitEvent: !this.starting});
   }
 
   get programLabel(): string {
@@ -92,7 +91,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set strategyLabel(value: string) {
-    this.setStrategyLabel(value);
+    this.setStrategyLabel(value, {emitEvent: !this.starting});
   }
 
   get strategyLabel(): string {
@@ -113,10 +112,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set gearId(value: number) {
-    if (this._gearId !== value && isNotNil(value)) {
-      this._gearId = value;
-      if (!this.starting || this.requiredGear) this._onRefreshPmfms.emit();
-    }
+    this.setGearId(value, {emitEvent: !this.starting});
   }
 
   get gearId(): number {
@@ -145,6 +141,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   @Output() valueChanges = new EventEmitter<any>();
+
   @Output() get strategyLabelChanges(): Observable<string> {
     return this.$strategyLabel.asObservable();
   }
@@ -178,14 +175,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.loading && isNotEmptyArray(this.valueChanges.observers))
+          filter(() => !this.applyingValue && isNotEmptyArray(this.valueChanges.observers))
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
-
-    if (this.data) {
-      this._onValueChanged.emit(this.data);
-    }
 
     // Try to load pmfms
     this.setLoadingProgression(MeasurementFormLoadingSteps.LOADING_PMFMS);
@@ -250,6 +243,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    */
   public unload() {
     this.data = null;
+    this.applyingValue = false;
     this._measurementValuesForm = null;
     this.markAsLoading();
     this.$pmfms.next(undefined);
@@ -265,8 +259,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   markAsLoading(opts?: {step?: number; emitEvent?: boolean;}) {
 
+    // /!\ do NOT used STARTING step anymore (only used to avoid to many refresh, BEFORE ngOnInit())
+    const step = toNumber(opts && opts.step, MeasurementFormLoadingSteps.LOADING_PMFMS);
+
     // Emit, if changed
-    const step = (opts && opts.step) || MeasurementFormLoadingSteps.STARTING;
     if (this.$loadingStep.value !== step) {
       if (this.debug) console.debug(`${this.logPrefix} Loading step -> ${step}`);
       this.$loadingStep.next(step);
@@ -282,38 +278,54 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   waitIdle(opts?: WaitOptions): Promise<boolean> {
     let idle$ = this.$loadingStep
       .pipe(
-        map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
+        // DEBUG
+        //tap(_ => console.debug(this.logPrefix + 'waiting idle...')),
+
+        filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY),
+        map(_ => true)
       );
 
     // Add timeout
     if (opts && opts.timeout) {
-      idle$ = idle$.pipe(
-        takeUntil(timer(opts.timeout))
+      idle$ = merge(
+        idle$,
+        timer(opts.timeout).pipe(map(_ => {
+          throw new Error(`waitIdle Timeout (after ${opts.timeout}ms)`);
+        }))
       );
     }
 
-    return firstTruePromise(idle$);
+    return firstNotNilPromise(idle$);
   }
 
   /* -- protected methods -- */
 
-  protected setProgramLabel(value: string) {
+  protected setProgramLabel(value: string, opts?: {emitEvent?: boolean}) {
     if (isNotNil(value) && this.$programLabel.value !== value) {
 
       this.$programLabel.next(value);
 
       // Reload pmfms
-      if (!this.starting) this._onRefreshPmfms.emit();
+      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
-  protected setStrategyLabel(value: string) {
+  protected setStrategyLabel(value: string, opts?: {emitEvent?: boolean}) {
     if (isNotNil(value) && this.$strategyLabel.value !== value) {
 
       this.$strategyLabel.next(value);
 
       // Reload pmfms
-      if (!this.loading && this.requiredStrategy) this._onRefreshPmfms.emit();
+      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+    }
+  }
+
+  protected setGearId(value: number, opts?: {emitEvent?: boolean}) {
+    if (isNotNil(value) && this._gearId !== value) {
+      this._gearId = value;
+
+      // Reload pmfms
+      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
@@ -326,21 +338,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!data) return; // Trying to set undefined value to meas form. Skipping
     if (this.applyingValue) return // Already applying a value. Skipping
 
-    // Propagate the program
-    if (data.program?.label) {
-      this.programLabel = data.program.label;
-    }
-
     // Will avoid data to be set (see updateFormGroup())
     this.applyingValue = true;
 
     try {
       // This line is required by physical gear modal
       this.data = data;
-      this._onValueChanged.emit(data);
+      this.valueChanges.emit(data);
+      this.configure(data);
 
       // Wait form idle (e.g. loading pmfms, update form groups, etc.)
-      await this.waitIdle();
+      if (this.loading && this.canLoadPmfms()) {
+        await this.waitIdle({timeout: 1000});
+      }
 
       this.setValue(this.data, {...opts, emitEvent: true});
 
@@ -378,16 +388,24 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.markAsLoading({step})
   }
 
-  protected async loadPmfms() {
+  /**
+   * Check if can load (must have: program, acquisition - and gear if required)
+   */
+  protected canLoadPmfms(): boolean{
     // Check if can load (must have: program, acquisition - and gear if required)
     if (isNil(this.programLabel) || (this.requiredStrategy && isNil(this.strategyLabel))
       || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
 
       // DEBUG
-      //console.debug('loadPmfms -> cannot be call');
+      //if (this.debug) console.debug(`${this.logPrefix} cannot load pmfms (missing some inputs)`);
 
-      return;
+      return false;
     }
+    return true;
+  }
+
+  protected async loadPmfms() {
+    if (!this.canLoadPmfms()) return;
 
     // DEBUG
     //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
@@ -484,7 +502,13 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     // Keep loading status if data not apply fully
     if (!this.applyingValue) {
       if (this.data && pmfms.length && form) {
-        this.setValue(this.data, {onlySelf: true, emitEvent: false});
+        this.applyingValue = true;
+        try {
+          this.setValue(this.data, {onlySelf: true, emitEvent: false});
+        }
+        finally {
+          this.applyingValue = false;
+        }
       }
       // No data defined yet
       else {
@@ -557,6 +581,17 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected get logPrefix(): string {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';
     return `[meas-values-form-${acquisitionLevel}]`;
+  }
+
+  protected configure(data: Partial<T>) {
+    if (!data) return; // Skip
+
+    if (data.program?.label) {
+      // Update existing date
+      if (this.data) this.data.program = data.program;
+      // Propage program
+      this.setProgramLabel(data.program?.label);
+    }
   }
 
   protected markForCheck() {
