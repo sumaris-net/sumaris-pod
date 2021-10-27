@@ -684,8 +684,10 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "operation", description = "Get an operation")
     @Transactional(readOnly = true)
     @IsUser
-    public OperationVO getOperation(@GraphQLArgument(name = "id") int id) {
-        return operationService.get(id);
+    public OperationVO getOperation(@GraphQLArgument(name = "id") int id,
+                                    @GraphQLEnvironment() ResolutionEnvironment env) {
+        Set<String> fields = GraphQLUtils.fields(env);
+        return operationService.get(id, getOperationFetchOptions(fields));
     }
 
     @GraphQLMutation(name = "saveOperations", description = "Create or update many operations")

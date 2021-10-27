@@ -159,7 +159,7 @@ public class OperationRepositoryImpl
         // ParentOperation
         if (source.getParentOperation() != null) {
             target.setParentOperationId(source.getParentOperation().getId());
-            if (fetchOptions != null || fetchOptions.isWithParentOperation()) {
+            if (fetchOptions != null && fetchOptions.isWithParentOperation()) {
                 fetchOptions = OperationFetchOptions.clone(fetchOptions);
                 fetchOptions.setWithParentOperation(false);
                 fetchOptions.setWithChildOperation(false);
@@ -170,7 +170,7 @@ public class OperationRepositoryImpl
         // ChildOperation
         else if (source.getChildOperation() != null) {
             target.setChildOperationId(source.getChildOperation().getId());
-            if (fetchOptions == null || fetchOptions.isWithChildOperation()) {
+            if (fetchOptions != null && fetchOptions.isWithChildOperation()) {
                 fetchOptions = OperationFetchOptions.clone(fetchOptions);
                 fetchOptions.setWithParentOperation(false);
                 fetchOptions.setWithChildOperation(false);

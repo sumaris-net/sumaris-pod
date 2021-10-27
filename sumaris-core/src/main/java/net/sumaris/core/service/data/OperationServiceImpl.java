@@ -139,6 +139,11 @@ public class OperationServiceImpl implements OperationService {
         return operationRepository.get(operationId);
     }
 
+    @Override
+    public OperationVO get(int operationId, OperationFetchOptions o) {
+        return operationRepository.get(operationId, o);
+    }
+
 
     @Override
     public int getProgramIdById(int id) {
