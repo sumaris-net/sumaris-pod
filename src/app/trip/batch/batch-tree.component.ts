@@ -409,7 +409,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.selectedTabIndex = value;
     } else {
       super.setSelectedTabIndex(value, {
-        realignInkBar: !this.mobile, // Tab header are visible only on desktop
+        realignInkBar: !this.mobile, // Tab header are NOT visible on mobile
         ...opts
       });
     }

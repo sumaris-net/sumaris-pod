@@ -104,7 +104,7 @@
                             [requiredWeight]="hasSubBatches && showChildrenWeight"
                             [requiredSampleWeight]="hasSubBatches && showChildrenWeight"
                             [requiredIndividualCount]="hasSubBatches && !showChildrenWeight"
-                            [showSamplingBatch]="hasSubBatches && showChildrenSamplingBatch"
+                            [showSamplingBatch]="hasSubBatches || showChildrenSamplingBatch"
                             [showWeight]="showChildrenWeight"
                             [showTotalIndividualCount]="showTotalIndividualCount"
                             [showIndividualCount]="showIndividualCount"

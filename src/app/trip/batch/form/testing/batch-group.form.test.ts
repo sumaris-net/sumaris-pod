@@ -134,7 +134,7 @@ export class BatchGroupFormTestPage implements OnInit {
   ) {
 
     this.form = formBuilder.group({
-      program: [{ id: 10, label: 'ADAP-MER' }, Validators.compose([Validators.required, SharedValidators.entity])],
+      program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required],
     });

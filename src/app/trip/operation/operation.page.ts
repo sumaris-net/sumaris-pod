@@ -71,7 +71,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   // All second tabs components are disabled, by default
   // (waiting PMFM measurements to decide that to show)
-  showCatchTab = false;
+  enableCatchTab = true;
   showSampleTables = false;
   showBatchTables = false;
   mobile: boolean;
@@ -247,6 +247,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const samplingTypeControl = formGroup?.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
     if (isNotNil(samplingTypeControl)) {
       showDefaultTables = false;
+      this.enableCatchTab = this.batchTree.catchBatchForm.hasPmfms;
       this._measurementSubscription.add(
         samplingTypeControl.valueChanges
           .pipe(
@@ -261,19 +262,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             switch (qvLabel as string) {
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
                 if (this.debug) console.debug('[operation] Enable survival test tables');
-                this.showCatchTab = true;
+                this.enableCatchTab = true;
                 this.showSampleTables = true;
                 this.showBatchTables = false;
                 break;
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.CATCH_HAUL:
                 if (this.debug) console.debug('[operation] Enable batch sampling tables');
-                this.showCatchTab = true;
+                this.enableCatchTab = true;
                 this.showSampleTables = false;
                 this.showBatchTables = true;
                 break;
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.UNSAMPLED:
                 if (this.debug) console.debug('[operation] Disable survival test and batch sampling tables');
-                this.showCatchTab = true;
+                this.enableCatchTab = true;
                 this.showSampleTables = false;
                 this.showBatchTables = false;
             }
@@ -306,20 +307,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
             if (isSampling) {
               if (this.debug) console.debug('[operation] Enable batch sampling tables');
-              this.showCatchTab = true;
+              this.enableCatchTab = true;
               this.tabCount = 2;
               this.showBatchTables = true;
               this.showSampleTables = false;
             } else {
               if (this.debug) console.debug('[operation] Disable batch sampling tables');
-              this.showCatchTab = this.batchTree.showCatchForm;
-              this.tabCount = this.showCatchTab ? 2 : 1;
+              this.enableCatchTab = this.batchTree.showCatchForm;
+              this.tabCount = this.enableCatchTab ? 2 : 1;
               this.showBatchTables = false;
               this.showSampleTables = false;
             }
 
             // Force first tab index
-            this.batchTree.setSelectedTabIndex(0);
+            this.batchTree.allowSamplingBatches = isSampling;
+            this.batchTree.defaultHasSubBatches = isSampling;
+            this.batchTree.allowSubBatches = isSampling;
             this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
@@ -340,14 +343,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             let acquisitionLevel: AcquisitionLevelType;
             if (hasParent) {
               if (this.debug) console.debug('[operation] Enable batch tables');
-              this.showCatchTab = true;
+              this.enableCatchTab = true;
               this.tabCount = 2;
               this.showBatchTables = true;
               this.showSampleTables = false;
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
-              this.showCatchTab = false;
+              this.enableCatchTab = false;
               this.tabCount = 1;
               this.showBatchTables = false;
               this.showSampleTables = false;
@@ -390,7 +393,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Show default tables
     if (showDefaultTables) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
-      this.showCatchTab = true;
+      this.enableCatchTab = true;
       this.tabCount = 2;
       this.showSampleTables = false;
       this.showBatchTables = true;
@@ -701,7 +704,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
 
     // If tab 1, open the invalid sub tab
-    if (invalidTabIndex === 1 && this.showCatchTab) {
+    if (invalidTabIndex === 1 && this.enableCatchTab) {
       if (this.showBatchTables) {
         this.batchTree.setSelectedTabIndex(batchTreeInvalidSubTab);
       } else if (this.showSampleTables) {
@@ -748,7 +751,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const data = await super.getValue();
 
     // Batches
-    if (this.showCatchTab) {
+    if (this.enableCatchTab) {
       await this.batchTree.save();
 
       // Get batch tree,rom the batch tree component
@@ -871,9 +874,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.individualReleaseTable.disabled) this.individualReleaseTable.enable();
         if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
       }
-      if (this.showCatchTab) {
+      else {
+        this.selectedSampleTabIndex = 0;
+      }
+      if (this.enableCatchTab) {
         if (this.batchTree.disabled) this.batchTree.enable();
         if (this.showBatchTables) this.batchTree.realignInkBar();
+      }
+      else {
+        this.batchTree.setSelectedTabIndex(0);
       }
     }
     else {
@@ -882,7 +891,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.individualMonitoringTable.enabled) this.individualMonitoringTable.disable();
         if (this.individualReleaseTable.enabled) this.individualReleaseTable.disable();
       }
-      if (this.showCatchTab && this.batchTree.enabled) {
+      if (this.enableCatchTab && this.batchTree.enabled) {
         this.batchTree.disable();
       }
     }
