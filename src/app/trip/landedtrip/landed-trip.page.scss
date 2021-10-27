@@ -1,6 +1,6 @@
-:host {
-  --ion-tab-min-height: calc(100%);
-}
+//:host {
+//  --ion-tab-min-height: calc(100%);
+//}
 app-toolbar ion-spinner {
   width: 20px;
   height: 20px;
@@ -13,8 +13,12 @@ ion-col>ion-label {
 }
 
 .mat-tab-group {
-
-  .mat-tab-body .mat-tab-body-content {
-    min-height: var(--ion-tab-min-height, 250px);
-  }
+  --mat-tab-body-content-height: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px);
 }
+
+//.mat-tab-group {
+//
+//  .mat-tab-body .mat-tab-body-content {
+//    min-height: var(--ion-tab-min-height, 250px);
+//  }
+//}

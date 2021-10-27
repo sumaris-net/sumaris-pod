@@ -45,6 +45,7 @@ import { environment } from '@environments/environment';
 import { Sample } from '../services/model/sample.model';
 import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
 import { TableElement } from '@e-is/ngx-material-table';
+import {platform} from 'os';
 
 const moment = momentImported;
 
@@ -65,6 +66,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   showCatchTab = false;
   showSaleTab = false;
   showExpenseTab = false;
+  mobile = false;
 
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<ReferentialRef[]>(null);
@@ -93,6 +95,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
+    protected platform: PlatformService,
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
@@ -107,6 +110,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         tabCount: 4
       });
 
+    this.mobile = platform.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }

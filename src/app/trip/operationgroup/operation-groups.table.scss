@@ -1,3 +1,12 @@
+.table-container {
+  height: calc(100% - var(--table-toolbar-height) - 1px);
+
+  --table-toolbar-height: 0px;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+}
+
 .mat-header-row,
 .mat-row {
   max-height: 140px;

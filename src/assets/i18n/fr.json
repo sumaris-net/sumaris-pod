@@ -634,6 +634,14 @@
         "TOO_LONG_DISTANCE" : "Distance trop grande"
       }
     },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "Nouvel effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
+      }
+    },
     "CATCH": {
       "FORM": {
         "ON_DECK": "Arrivée sur pont :",
