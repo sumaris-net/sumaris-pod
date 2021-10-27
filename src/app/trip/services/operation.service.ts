@@ -53,43 +53,7 @@ import {MetierService} from '@app/referential/services/metier.service';
 import {mergeMap} from 'rxjs/internal/operators';
 
 
-export const recursiveFragments = {
-  lightOperationFields: gql`fragment LightOperationFragmentFields on OperationVO {
-    id
-    startDateTime
-    endDateTime
-    fishingStartDateTime
-    fishingEndDateTime
-    rankOrderOnPeriod
-    tripId
-    comments
-    hasCatch
-    updateDate
-    qualityFlagId
-    physicalGearId
-    physicalGear {
-      id
-      rankOrder
-      gear {
-          ...ReferentialFragment
-      }
-    }
-    metier {
-      ...MetierFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    positions {
-      ...PositionFragment
-    }
-  }
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.metier}
-  ${ReferentialFragments.referential}
-  ${Fragments.position}
-  `,
-
+export const OperationFields = {
   operationFields: gql`fragment OperationFragmentFields on OperationVO {
     id
     startDateTime
@@ -142,24 +106,46 @@ export const recursiveFragments = {
   ${Fragments.measurement}
   ${DataFragments.sample}
   ${DataFragments.batch}
-  ${DataFragments.fishingArea}
-  `
+  ${DataFragments.fishingArea}`
 };
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
-    ...LightOperationFragmentFields
+    id
+    startDateTime
+    endDateTime
+    fishingStartDateTime
+    fishingEndDateTime
+    rankOrderOnPeriod
+    tripId
+    comments
+    hasCatch
+    updateDate
+    qualityFlagId
+    physicalGearId
+    physicalGear {
+      id
+      rankOrder
+      gear {
+        ...ReferentialFragment
+      }
+    }
+    metier {
+      ...MetierFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    positions {
+      ...PositionFragment
+    }
     parentOperationId
-    parentOperation {
-      ...LightOperationFragmentFields
-    }
     childOperationId
-    childOperation {
-      ...LightOperationFragmentFields
-    }
   }
-  ${recursiveFragments.lightOperationFields}
-  `,
+  ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.metier}
+  ${ReferentialFragments.referential}
+  ${Fragments.position}`,
 
   operation: gql`fragment OperationFragment on OperationVO {
     ...OperationFragmentFields
@@ -173,7 +159,7 @@ export const OperationFragments = {
     }
   }
 
-  ${recursiveFragments.operationFields}
+  ${OperationFields.operationFields}
   `
 };
 
@@ -301,6 +287,7 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   tripId?: number;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
+  withChildOperation?: boolean;
 }
 
 export declare interface OperationMetierFilter {
@@ -541,6 +528,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param data
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
+
+    // Save child
+    if (opts?.withChildOperation && entity.childOperation) {
+      entity.childOperation = await this.save(entity.childOperation, {...opts, withChildOperation: false});
+      entity.childOperationId = entity.childOperation.id;
+    }
 
     // If parent is a local entity: force to save locally
     if (entity.tripId < 0) {

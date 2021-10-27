@@ -447,6 +447,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+    this.saveOptions.withChildOperation = this.opeForm.allowParentOperation;
 
     this.batchTree.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     // Autofill batch group table (e.g. with taxon groups found in strategies)
@@ -788,7 +789,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       data.childOperation.parentOperationId = data.id;
       data.childOperation.parentOperation = data;
 
-      await this.dataService.save(data.childOperation);
+      this.saveOptions.withChildOperation = true;
+    }
+    else {
+      this.saveOptions.withChildOperation = false;
     }
 
     return data;
@@ -803,7 +807,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
     // Force to pass specific saved options to dataService.save()
-    return await super.save(event, {...this.saveOptions, ...opts});
+    return await super.save(event, <OperationSaveOptions>{
+      ...this.saveOptions,
+      ...opts
+    });
   }
 
   async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
@@ -895,15 +902,4 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.children?.forEach(c => c.markAsLoaded(opts));
   }
 
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsPristine(opts);
-    this.children?.forEach(c => c.markAsLoaded(opts));
-
-    setTimeout(() => {
-
-      this.children?.filter(c => c.dirty).forEach(c => {
-        console.warn('TODO dirty: ', c.constructor.name);
-      })
-    }, 800);
-  }
 }

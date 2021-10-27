@@ -437,7 +437,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   getFirstInvalidTabIndex(): number {
     if (this.showCatchForm && this.catchBatchForm.invalid) return 0;
     if (this.showBatchTables && this.batchGroupsTable.invalid) return 0;
-    if (this.allowSubBatches && this.subBatchesTable.invalid) return 1;
+    if (this.allowSubBatches && this.subBatchesTable?.invalid) return 1;
     return -1;
   }
 
