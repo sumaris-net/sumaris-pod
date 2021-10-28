@@ -1557,9 +1557,6 @@
         }
       }
     },
-    "PRODUCT": {
-      "NEW_NAME": "Product {{name}}"
-    },
     "FILTER": {
       "TITLE": "Filter criteria:",
       "CRITERION_NAME": "Column",
@@ -1587,7 +1584,7 @@
     "MAP": {
       "BTN_MAP_LIST": "List of maps",
       "BTN_MAPS": "Maps",
-      "BTN_SELECT_TYPE_HELP": "Show all availables maps",
+      "BTN_SELECT_TYPE_HELP": "Show all available maps",
       "BTN_SELECT_AGG": "Indicator ?",
       "BTN_ADD_CHART": "Chart...",
       "BTN_ADD_CHART_HELP": "Add a chart",
@@ -1700,6 +1697,7 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
     },
     "PRODUCT": {
+      "NEW_NAME": "Product {{name}}",
       "P01_RDB": {
         "TITLE": "ICES Data call (RDB v1.3)"
       }

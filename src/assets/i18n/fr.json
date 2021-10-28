@@ -949,7 +949,7 @@
     },
     "ERROR": {
       "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0",
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -1602,9 +1602,6 @@
         }
       }
     },
-    "PRODUCT": {
-      "NEW_NAME": "Produit {{name}}"
-    },
     "FILTER": {
       "TITLE": "Filtrer les données :",
       "CRITERION_NAME": "Critère de filtre",
@@ -1745,6 +1742,7 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
+      "NEW_NAME": "Produit {{name}}",
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
