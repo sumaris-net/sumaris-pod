@@ -2,7 +2,6 @@ import { Injectable, Optional } from '@angular/core';
 import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
-import { ErrorCodes } from './trip.errors';
 import { DataCommonFragments, DataFragments } from './trip.queries';
 import {
   AccountService,
@@ -53,6 +52,7 @@ import { MetierService } from '@app/referential/services/metier.service';
 import { mergeMap } from 'rxjs/internal/operators';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { IPosition } from '@app/trip/services/model/position.model';
+import { ErrorCodes } from '@app/data/services/errors';
 
 
 export const OperationFields = {
@@ -403,7 +403,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR'},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -450,7 +450,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Load locally
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME);
-        if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'};
+        if (!json) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
         if (isNotNil(json.parentOperationId) && isNil(json.parentOperation)) {
           json.parentOperation = await this.entities.load<Operation>(json.parentOperationId, Operation.TYPENAME);
         } else if (isNotNil(json.childOperationId) && isNil(json.childOperation)) {
@@ -463,7 +463,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         const res = await this.graphql.query<{ data: Operation }>({
           query: OperationQueries.load,
           variables: {id},
-          error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         json = res && res.data;
@@ -494,8 +494,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         interval: 10
       },
       error: {
-        code: ErrorCodes.SUBSCRIBE_OPERATION_ERROR,
-        message: 'TRIP.OPERATION.ERROR.SUBSCRIBE_OPERATION_ERROR'
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
@@ -559,7 +559,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       variables: {
         data: [json]
       },
-      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR'},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       offlineResponse: async (context) => {
         // Make sure to fill id, with local ids
         await this.fillOfflineDefaultProperties(entity);
@@ -1024,8 +1024,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     (entity.measurements || []).forEach(m => this.fillRecorderDepartment(m, department));
 
     // Fill position dates
-    entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
-    entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime || entity.startPosition.dateTime;
+    if (entity.startPosition) entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
+    if (entity.endPosition) entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime || entity.startPosition?.dateTime;
 
     // Fill trip ID
     if (isNil(entity.tripId) && options) {

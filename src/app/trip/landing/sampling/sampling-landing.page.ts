@@ -145,7 +145,7 @@ export class SamplingLandingPage extends LandingPage {
 
     if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {
       const recorderIsNotObserver = !(this.parent.observers && this.parent.observers.find(p => p.equals(data.recorderPerson)));
-      this.warning = recorderIsNotObserver ? 'LANDING.ERROR.NOT_OBSERVER_ERROR' : null;
+      this.warning = recorderIsNotObserver ? 'LANDING.WARNING.NOT_OBSERVER_ERROR' : null;
     }
 
     // Remove sample's TAG_ID prefix

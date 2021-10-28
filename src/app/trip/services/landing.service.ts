@@ -28,7 +28,6 @@ import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { Landing } from './model/landing.model';
 import { gql } from '@apollo/client/core';
 import { DataFragments, DataCommonFragments } from './trip.queries';
-import { ErrorCodes } from './trip.errors';
 import { filter, map, tap } from 'rxjs/operators';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
 import { Sample } from './model/sample.model';
@@ -45,6 +44,7 @@ import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIAL
 import { TripFragments, TripService } from '@app/trip/services/trip.service';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { environment } from '@environments/environment';
+import { ErrorCodes } from '@app/data/services/errors';
 
 const moment = momentImported;
 
@@ -340,7 +340,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       totalFieldName: withTotal ? "total" : undefined,
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -411,7 +411,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           variables: {
             id: id
           },
-          error: {code: ErrorCodes.LOAD_LANDING_ERROR, message: "LANDING.ERROR.LOAD_ERROR"},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -454,7 +454,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       variables: {
         data: json
       },
-      error: {code: ErrorCodes.SAVE_LANDINGS_ERROR, message: "LANDING.ERROR.SAVE_ALL_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR"},
       update: (proxy, {data}) => {
 
         if (this._debug) console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`);
@@ -533,7 +533,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         data: json
       },
       offlineResponse,
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "ERROR.SAVE_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR"},
       update: async (proxy, {data}) => {
         const savedEntity = data && data.data ;
 
@@ -702,8 +702,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         interval: 10
       },
       error: {
-        code: ErrorCodes.SUBSCRIBE_LANDING_ERROR,
-        message: 'LANDING.ERROR.SUBSCRIBE_ERROR'
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
