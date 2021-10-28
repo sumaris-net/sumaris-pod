@@ -317,6 +317,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     dataFilter = this.asFilter(dataFilter);
 
+    if (!dataFilter || dataFilter.isEmpty()) {
+      console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
+      return EMPTY;
+    }
+
     // Load offline
     const offline = this.network.offline
       || (dataFilter && (
@@ -326,7 +331,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
-    const groupByVessel = dataFilter && dataFilter.groupByVessel === true;
+    const groupByVessel = dataFilter?.groupByVessel === true;
     if (groupByVessel || size === -1) {
       // sortBy = 'dateTime';
       // sortDirection = 'desc';
@@ -338,7 +343,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       size: size || 20,
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: dataFilter?.asPodObject()
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
     let now = this._debug && Date.now();

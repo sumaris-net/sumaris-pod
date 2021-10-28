@@ -5,7 +5,7 @@ import {BaseGraphqlService, EntitiesStorage, GraphqlService, IEntitiesService, i
 import {gql} from '@apollo/client/core';
 import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
 import {ReferentialFragments} from '../../referential/services/referential.fragments';
-import {Observable} from 'rxjs';
+import {EMPTY, Observable} from 'rxjs';
 import {filter, map} from 'rxjs/operators';
 import {SortDirection} from '@angular/material/sort';
 import {DataEntityAsObjectOptions} from '../../data/services/model/data-entity.model';
@@ -91,6 +91,11 @@ export class AggregatedLandingService
     // Update previous filter
     dataFilter = this.asFilter(dataFilter);
     this._lastFilter = dataFilter.clone();
+
+    if (!dataFilter || dataFilter.isEmpty()) {
+      console.warn('[aggregated-landing-service] Trying to load landing without \'filter\'. Skipping.');
+      return EMPTY;
+    }
 
     // TODO: manage offset/size/sort ?
     const variables: any = {};

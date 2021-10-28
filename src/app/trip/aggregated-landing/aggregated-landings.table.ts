@@ -98,6 +98,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     }
   }
 
+  @Input()
+  set parent(value: ObservedLocation | undefined) {
+    this.setParent(value);
+  }
+
   constructor(
     public network: NetworkService,
     protected injector: Injector,
@@ -167,18 +172,21 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.registerSubscription(filterNotNil(this.$dates).subscribe(() => this.updateColumns()));
   }
 
-  setParent(parent: ObservedLocation) {
-    const filter = new AggregatedLandingFilter();
+  setParent(parent: ObservedLocation|undefined) {
     // Filter on parent
-    if (parent) {
+    if (!parent) {
+      this.setFilter(null); // Null filter will return EMPTY observable, in the data service
+    } else {
+      const filter = new AggregatedLandingFilter();
       this.startDate = parent.startDateTime;
       filter.observedLocationId = parent.id;
       filter.programLabel = this._program;
       filter.locationId = parent.location && parent.location.id;
       filter.startDate = parent.startDateTime;
       filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, "day");
+      this.setFilter(filter);
+
     }
-    this.setFilter(filter);
   }
 
   setFilter(filter: AggregatedLandingFilter, opts?: { emitEvent: boolean }) {

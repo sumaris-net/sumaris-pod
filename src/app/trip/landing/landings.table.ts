@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import {isNotNil, StatusIds} from '@sumaris-net/ngx-components';
+import {isNil, isNotNil} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
@@ -176,6 +176,11 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     return this.getShowColumn('samplesCount');
   }
 
+  @Input()
+  set parent(value: ObservedLocation | Trip | undefined) {
+    this.setParent(value);
+  }
+
   constructor(
     injector: Injector
   ) {
@@ -248,8 +253,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.onNewTrip.unsubscribe();
   }
 
-  setParent(data: ObservedLocation | Trip) {
-    if (!data) {
+  setParent(data: ObservedLocation | Trip | undefined) {
+    if (isNil(data?.id)) {
       this._parentDateTime = undefined;
       this.setFilter(LandingFilter.fromObject({}));
     } else if (data instanceof ObservedLocation) {
