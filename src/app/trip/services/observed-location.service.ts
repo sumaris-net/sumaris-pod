@@ -33,6 +33,7 @@ import {VESSEL_FEATURE_NAME} from "../../vessel/services/config/vessel.config";
 import {LandingFilter} from "./filter/landing.filter";
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from "./filter/observed-location.filter";
 import {SampleFilter} from '@app/trip/services/filter/sample.filter';
+import { TripFragments } from '@app/trip/services/trip.service';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -156,6 +157,7 @@ const ObservedLocationMutations = {
   }
   ${ObservedLocationFragments.observedLocation}
   ${LandingFragments.landing}
+  ${TripFragments.landedTrip}
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.location}
