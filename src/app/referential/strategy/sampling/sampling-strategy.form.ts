@@ -1096,14 +1096,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       dateAsMoment = date;
     }
     if (!dateAsMoment || dateAsMoment.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
-    const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
-    const formYear = dateAsMoment.format('YY');
-    if (storedDataYear === formYear) {
-      // Don't call label generation when year hasn't changed
-    }
-    else {
-      await this.generateLabel(dateAsMoment);
-    }
+
+    await this.generateLabel(dateAsMoment);
   }
 
   protected async onTaxonChange() {
