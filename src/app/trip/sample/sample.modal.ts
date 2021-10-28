@@ -221,7 +221,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     if (!this.onDelete) return; // Skip
 
     const result = await this.onDelete(event, this.data);
-    console.log('DELETING', result);
+
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
 
     if (result) {

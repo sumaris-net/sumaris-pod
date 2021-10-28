@@ -281,8 +281,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     );
   }
 
-  loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
-    return this.watchAllByObservedLocation(filter, opts).toPromise();
+  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
   }
 
   watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {

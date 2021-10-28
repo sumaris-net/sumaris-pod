@@ -577,24 +577,29 @@ export class ObservedLocationService
     const localEntities = entities && entities
       .filter(DataRootEntityUtils.isLocal);
 
-    if (isEmptyArray(localEntities)) return; // Skip if empty
+    await chainPromises((localEntities || [])
+      .map(entity => () => this.deleteLocally(entity, opts))
+    );
+  }
 
+  async deleteLocally(entity: ObservedLocation, opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
     const trash = !opts || opts !== false;
     const trashUpdateDate = trash && momentImported();
 
-    if (this._debug) console.debug(`[observedLocation-service] Deleting locally... {trash: ${trash}`);
+    if (this._debug) console.debug(`[observedLocation-service] Deleting observed location #${entity.id}... {trash: ${trash}`);
 
-    await chainPromises(localEntities.map(entity => async () => {
-
+    try {
       // Load children
-      const res = await this.landingService.loadAllByObservedLocation({observedLocationId: entity.id},
-        {fullLoad: true, computeRankOrder: false});
+      const res = await this.landingService.loadAllByObservedLocation({ observedLocationId: entity.id },
+        { fullLoad: true, computeRankOrder: false });
       const landings = res && res.data;
 
-      await this.entities.delete(entity, {entityName: ObservedLocation.TYPENAME});
+      await this.entities.delete(entity, { entityName: ObservedLocation.TYPENAME });
 
       if (isNotNil(landings)) {
-        await this.landingService.deleteAll(landings, {trash: false});
+        await this.landingService.deleteAll(landings, { trash: false });
       }
 
       if (trash) {
@@ -602,13 +607,16 @@ export class ObservedLocationService
         entity.landings = landings;
         entity.updateDate = trashUpdateDate;
 
-        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
+        const json = entity.asObject({ ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false });
 
         // Add to trash
-        await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
+        await this.entities.saveToTrash(json, { entityName: ObservedLocation.TYPENAME });
       }
-
-    }));
+    }
+    catch (err) {
+      console.error('Error during observation location deletion: ', err);
+      throw {code: ErrorCodes.DELETE_OBSERVED_LOCATION_ERROR, message: "OBSERVED_LOCATION.ERROR.DELETE_ERROR"};
+    }
   }
 
   async control(entity: ObservedLocation): Promise<FormErrors> {

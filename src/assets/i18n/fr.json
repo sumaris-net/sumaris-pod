@@ -889,7 +889,8 @@
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
-      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation."
+      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
+      "DELETE_ERROR": "Erreur lors de la suppression"
     },
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
