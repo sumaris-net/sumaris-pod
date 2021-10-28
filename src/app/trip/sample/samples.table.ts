@@ -317,7 +317,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         return newData;
       },
 
-      onDelete: (event, dataToDelete) => this.delete(event, dataToDelete),
+      onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
 
       // Override using given options
       ...this.modalOptions,
@@ -470,7 +470,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
       } else if (this.currentSample) {
         // TODO attention, récupérer auyssi plus tard
-        const previousSample = await this.findRowBySample(this.currentSample);
+        const previousSample = await this.findRowByEntity(this.currentSample);
         if (previousSample) { // row exist
           if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
             data.measurementValues[PmfmIds.TAG_ID] = '';
@@ -497,7 +497,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
         data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
       } else if (this.currentSample) {
-        const previousSample = await this.findRowBySample(this.currentSample);
+        const previousSample = await this.findRowByEntity(this.currentSample);
         if (previousSample) {
           data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData?.measurementValues[PmfmIds.DRESSING];
         } else {
@@ -550,21 +550,21 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Override by subclasses
   }
 
-  protected async findRowBySample(data: Sample): Promise<TableElement<Sample>> {
+  protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error("Missing argument data or data.rankOrder");
     return (await this.dataSource.getRows())
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
 
-  async delete(event: UIEvent, data: Sample): Promise<boolean> {
-    const row = await this.findRowBySample(data);
+  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
     if (!row) return true;
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.deleteRow(event, row, {interactive: false /*already confirmed*/});
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
     }
     return canDeleteRow;
   }
