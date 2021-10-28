@@ -291,6 +291,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   }
 
   protected getValue(): T {
+    if (!this.data) return undefined;
     const json = this.form.value;
     const data = this.data;
 

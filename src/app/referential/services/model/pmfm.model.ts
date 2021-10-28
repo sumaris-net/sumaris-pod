@@ -24,6 +24,8 @@ export interface IPmfm<
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
 
+  acquisitionNumber?: number; // Optional (not exists in Pmfm)
+
   matrixId: number;
   fractionId: number;
   methodId: number;
@@ -240,6 +242,14 @@ export abstract class PmfmUtils {
 
   static isFullPmfm(pmfm: IPmfm): pmfm is IFullPmfm {
     return pmfm['parameter'] && true;
+  }
+
+  static isMultipleAcquisition(pmfm: IPmfm): boolean {
+    return pmfm.acquisitionNumber > 1;
+  }
+
+  static isSingleAcquisition(pmfm: IPmfm): boolean {
+    return (pmfm.acquisitionNumber || 1) === 1;
   }
 
   /**

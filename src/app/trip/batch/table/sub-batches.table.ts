@@ -268,7 +268,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
             const row = this.editedRow;
 
-            const pmfms = this.$pmfms.getValue() || [];
+            const pmfms = this.$pmfms.value || [];
             const formEnabled = row.validator.enabled;
             const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
 
@@ -464,7 +464,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
 
     // Reset the form with the new batch
-    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.getValue(), this.form.form);
+    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.value, this.form.form);
     this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
     // If need, enable the form
@@ -624,7 +624,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Make sure individual count if init
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
-    const pmfms = this.$pmfms.getValue() || [];
+    const pmfms = this.$pmfms.value || [];
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
 
     // If individual count column is shown (can be greater than 1)
@@ -787,7 +787,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected refreshPmfms() {
-    const pmfms = this.$pmfms.getValue();
+    const pmfms = this.$pmfms.value;
     if (!pmfms) return; // Not loaded
 
     this.measurementsDataService.pmfms = pmfms;

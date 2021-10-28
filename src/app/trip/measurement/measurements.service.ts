@@ -256,7 +256,8 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       pmfms = (res instanceof Promise) ? await res : res;
     }
 
-    if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
+
+    if (pmfms instanceof Array && pmfms !== this.$pmfms.value) {
 
       // DEBUG log
       if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);

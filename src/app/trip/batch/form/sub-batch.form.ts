@@ -1,12 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {Batch} from '../../services/model/batch.model';
-import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
-import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Batch } from '../../services/model/batch.model';
+import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import {
   AppFormUtils,
   EntityUtils,
@@ -26,20 +26,19 @@ import {
   SharedValidators,
   startsWithUpperCase,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy, PmfmStrategy} from '../../../referential/services/model/pmfm-strategy.model';
-import {BehaviorSubject, combineLatest} from 'rxjs';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {PmfmFormField} from '../../../referential/pmfm/pmfm.form-field.component';
-import {SubBatch} from '../../services/model/subbatch.model';
-import {BatchGroup} from '../../services/model/batch-group.model';
-import {TranslateService} from '@ngx-translate/core';
-import {FloatLabelType} from '@angular/material/form-field';
-import {ProgramRefService} from '../../../referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { TranslateService } from '@ngx-translate/core';
+import { FloatLabelType } from '@angular/material/form-field';
+import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 

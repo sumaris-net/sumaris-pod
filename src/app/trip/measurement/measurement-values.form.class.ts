@@ -228,7 +228,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // Adapt measurement values to form (if not skip)
     if (!opts || opts.normalizeEntityToForm !== false) {
-      MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.getValue(), this.form);
+      MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.value, this.form);
     }
 
     super.reset(data, opts);
@@ -369,7 +369,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const measurementValuesForm = this.measurementValuesForm;
     if (measurementValuesForm) {
       // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => measurementValuesForm.controls[pmfm.id].dirty);
+      const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id].dirty);
       if (dirtyPmfms.length) {
         json.measurementValues = Object.assign({}, this.data && this.data.measurementValues || {}, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
       }
@@ -411,7 +411,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
 
     this.setLoadingProgression(MeasurementFormLoadingSteps.LOADING_PMFMS);
-    this.$pmfms.next(null);
+    this.$pmfms.next(undefined);
 
     try {
       // Load pmfms
@@ -526,7 +526,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!value) {
       // Reset pmfms and the loading step
       if (this.$loadingStep.value > MeasurementFormLoadingSteps.LOADING_PMFMS || isNotNil(this.$pmfms.value)) {
-        if (this.debug && isNotNil(this.$pmfms.value)) console.warn(`${this.logPrefix} setPmfms(null|undefined): resetting pmfms`);
+        if (this.debug && this.$pmfms.value) console.warn(`${this.logPrefix} setPmfms(null|undefined): resetting pmfms`);
         this.markAsLoading();
         this.$pmfms.next(undefined);
       }
@@ -555,6 +555,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // Apply (if changed)
     if (pmfms !== this.$pmfms.value) {
+      // DEBUG log
+      //if (this.debug) console.debug(`${this.logPrefix} Pmfms loaded {acquisitionLevel: '${this._acquisitionLevel}'}`, pmfms);
+
       // next step
       this.setLoadingProgression(MeasurementFormLoadingSteps.UPDATING_FORM_GROUP);
 
