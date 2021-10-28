@@ -4,7 +4,7 @@ import {
   AppTabEditor,
   AppTableUtils,
   firstTruePromise,
-  InMemoryEntitiesService,
+  InMemoryEntitiesService, isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -46,6 +46,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   data: Batch;
   $programLabel = new BehaviorSubject<string>(undefined);
+  showSubBatchesTable = false;
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -211,8 +212,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Enable sub batches table, only when table pmfms ready
       firstTruePromise(this.subBatchesTable.$pmfms
-        .pipe(map(isNotEmptyArray))
-      ).then(() => this.allowSubBatches = true);
+        .pipe(map(isEmptyArray))
+      ).then(() => this.showSubBatchesTable = true);
 
       // Update available parent on individual batch table, when batch group changes
       this.registerSubscription(
@@ -220,10 +221,18 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
           .pipe(
             // skip if loading, or hide
             filter(() => !this.loading && this.allowSubBatches),
-            debounceTime(400)
+            debounceTime(400),
+            map(value => value || [])
           )
           // Will refresh the tables (inside the setter):
-          .subscribe(rootBatches => this.subBatchesTable.availableParents = (rootBatches || []))
+          .subscribe(batchGroups => {
+            const isNotEmpty = batchGroups.length > 0;
+            if (isNotEmpty) this.subBatchesTable.availableParents = batchGroups;
+            if (this.showSubBatchesTable !== isNotEmpty) {
+              this.showSubBatchesTable = isNotEmpty;
+              this.markForCheck();
+            }
+          })
       );
     }
   }

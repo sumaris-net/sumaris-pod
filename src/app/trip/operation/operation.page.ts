@@ -235,7 +235,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Wait program to be loaded
     await this.ready();
 
-    console.debug('[operation-page] Measurement form is ready');
+    // DEBUG
+    //console.debug('[operation-page] Measurement form is ready');
 
     if (this._measurementSubscription) this._measurementSubscription.unsubscribe();
     this._measurementSubscription = new Subscription();

@@ -26,7 +26,6 @@ import { Animation } from '@ionic/angular';
 })
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
-
   private _fadeInAnimation: Animation;
 
   $childrenPmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -35,6 +34,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input() qvPmfm: IPmfm;
   @Input() taxonGroupsNoWeight: string[];
   @Input() showChildrenWeight = true;
+  @Input() showChildrenIndividualCount = false;
   @Input() showChildrenSamplingBatch = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
@@ -159,11 +159,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     // Create animation
     this._fadeInAnimation = createAnimation()
-      .duration(200)
+      .duration(300)
       .direction('normal')
       .iterations(1)
       .beforeStyles({
-        transition: '.3s ease-out',
+        'transition-timing-function': 'ease-in',
         transform: 'scale(0.5)',
         opacity: '0'
       })
@@ -172,7 +172,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       ]);
 
     // DEBUG
-    this.debug = true;
+    //this.debug = !environment.production;
   }
 
   protected get logPrefix(): string {
@@ -188,33 +188,66 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.registerSubscription(
       this.hasSubBatchesControl.valueChanges
         .pipe(filter(() => !this.applyingValue && !this.loading))
-        .subscribe(value => {
-          (this.children || []).forEach((childForm, index) => {
-            childForm.setIsSampling(value, {emitEvent: true}/*Important, to force async validator*/);
-          });
-          //this.markForCheck();
-        }));
+        .subscribe(hasSubBatches => {
+            hasSubBatches = hasSubBatches && !this.showIndividualCount;
+            (this.children || []).forEach((childForm, index) => {
+              childForm.setIsSampling(hasSubBatches, {emitEvent: true} /*Important, to force async validator*/);
+            });
+          }));
 
     // Listen form changes
     this.registerSubscription(
       this.form.valueChanges
-        .pipe(
-          //throttleTime(500)
-        )
+        .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe((batch) => this.computeShowTotalIndividualCount(batch)));
   }
 
-  setValue(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
-    if (this.loading || !this.data) {
-      this.safeSetValue(data, opts);
-      return;
+  focusFirstInput() {
+    const element = this.firstInputFields.first;
+    if (element) element.focus();
+  }
+
+  logFormErrors(logPrefix: string) {
+    logPrefix = logPrefix || '';
+    AppFormUtils.logFormErrors(this.form, logPrefix);
+    if (this.children) this.children.forEach((childForm, index) => {
+      AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
+    });
+  }
+
+  /* -- protected methods -- */
+
+  protected mapPmfms(pmfms: IPmfm[]) {
+
+    if (this.debug) console.debug('[batch-group-form] mapPmfm()...');
+
+    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+    if (this.qvPmfm) {
+
+      // Create a copy, to keep original pmfm unchanged
+      this.qvPmfm = this.qvPmfm.clone();
+
+      // Hide for children form, and change it as required
+      this.qvPmfm.hidden = true;
+      this.qvPmfm.required = true;
+
+      // Replace in the list
+      this.$childrenPmfms.next(pmfms.map(p => p.id === this.qvPmfm.id ? this.qvPmfm : p));
+
+      // Do not display PMFM in the root batch
+      pmfms = [];
     }
 
-    if (this.debug) console.debug('[batch-group-form] setValue() with value:', data);
+    return super.mapPmfms(pmfms);
+  }
+
+  protected async updateView(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+
+    if (this.debug) console.debug('[batch-group-form] updateView() with value:', data);
     let hasSubBatches = data.observedIndividualCount > 0 || this.defaultHasSubBatches || false;
 
     if (!this.qvPmfm) {
-      super.setValue(data);
+      await super.updateView(data);
 
       // Should have sub batches, when sampling batch exists
       hasSubBatches = hasSubBatches || isNotNil(BatchUtils.getSamplingChild(data));
@@ -245,9 +278,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       });
 
       // Set value (batch group)
-      super.setValue(data, opts);
+      await super.updateView(data, opts);
 
       // Then set value of each child form
+      this.cd.detectChanges();
+
       this.children.forEach((childForm, index) => {
         const childBatch = data.children[index] || new Batch();
         childForm.showWeight = this.showChildrenWeight;
@@ -281,57 +316,19 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     } else if (this.enabled) {
       this.hasSubBatchesControl.enable();
     }
-
-
   }
-
-  focusFirstInput() {
-    const element = this.firstInputFields.first;
-    if (element) element.focus();
-  }
-
-  logFormErrors(logPrefix: string) {
-    logPrefix = logPrefix || '';
-    AppFormUtils.logFormErrors(this.form, logPrefix);
-    if (this.children) this.children.forEach((childForm, index) => {
-      AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
-    });
-  }
-
-  protected mapPmfms(pmfms: IPmfm[]) {
-
-    if (this.debug) console.debug('[batch-group-form] mapPmfm()...');
-
-    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
-    if (this.qvPmfm) {
-
-      // Create a copy, to keep original pmfm unchanged
-      this.qvPmfm = this.qvPmfm.clone();
-
-      // Hide for children form, and change it as required
-      this.qvPmfm.hidden = true;
-      this.qvPmfm.required = true;
-
-      // Replace in the list
-      this.$childrenPmfms.next(pmfms.map(p => p.id === this.qvPmfm.id ? this.qvPmfm : p));
-
-      // Do not display PMFM in the root batch
-      pmfms = [];
-    }
-
-    return super.mapPmfms(pmfms);
-  }
-
-  /* -- protected methods -- */
 
   protected getValue(): BatchGroup {
     const data = super.getValue();
+    if (!data) return; // No set yet
 
     // If has children form
     if (this.qvPmfm) {
       data.children = this.children.map((form, index) => {
         const qv = this.qvPmfm.qualitativeValues[index];
         const child = form.value;
+        if (!child) return; // No set yet
+
         child.rankOrder = index + 1;
         child.label = `${data.label}.${qv.label}`;
         child.measurementValues = child.measurementValues || {};
@@ -360,15 +357,18 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   protected computeShowTotalIndividualCount(data?: Batch) {
     data = data || this.data;
+    if (this.debug) console.debug('[batch-group-form] computeShowTotalIndividualCount():', data);
+
     // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
     // but some species (e.g. RJB) can have no weight.
-    const showTotalIndividualCount = data && ReferentialUtils.isNotEmpty(data.taxonGroup) &&
+    const showChildrenIndividualCount = data && ReferentialUtils.isNotEmpty(data.taxonGroup) &&
       (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
-    if (showTotalIndividualCount !== this.showTotalIndividualCount) {
-      this.showTotalIndividualCount = showTotalIndividualCount;
-      this.showChildrenWeight = !showTotalIndividualCount; // Hide weight
-      this.showChildrenSamplingBatch = !showTotalIndividualCount;
+    if (this.showChildrenIndividualCount !== showChildrenIndividualCount) {
+      this.showChildrenIndividualCount = showChildrenIndividualCount;
+      this.showSampleIndividualCount = showChildrenIndividualCount;
+      this.showChildrenWeight = !showChildrenIndividualCount; // Hide weight
+      this.showChildrenSamplingBatch = !showChildrenIndividualCount;
       this.markForCheck();
     }
   }
