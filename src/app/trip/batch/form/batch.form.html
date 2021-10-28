@@ -124,7 +124,7 @@
     </ion-row>
 
     <!-- Total NB individual  -->
-    <ion-row class="ion-no-padding" *ngIf="showTotalIndividualCount">
+    <ion-row class="ion-no-padding" *ngIf="showIndividualCount">
       <ion-col class="ion-no-padding">
         <mat-form-field>
           <input matInput
@@ -190,7 +190,7 @@
         </ion-col>
 
         <!-- Sampling weight -->
-        <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm">
+        <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm && showSampleWeight">
 
           <app-pmfm-field #matInput
                           [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
@@ -205,7 +205,7 @@
         </ion-col>
 
         <!-- Sampling individual count -->
-        <ion-col size="4" class="ion-no-padding" *ngIf="showIndividualCount">
+        <ion-col size="4" class="ion-no-padding" *ngIf="showSampleIndividualCount">
           <mat-form-field>
             <input matInput
                    formControlName="individualCount"

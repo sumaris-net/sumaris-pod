@@ -95,11 +95,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   @Input() displayParentPmfm: IPmfm;
-
   @Input() showForm = false;
-
   @Input() tabindex: number;
-
   @Input() usageMode: UsageMode;
 
   @Input() set qvPmfm(value: IPmfm) {
@@ -177,6 +174,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   get dirty(): boolean {
     return super.dirty || this.memoryDataService.dirty;
+  }
+
+  get hasPmfms(): boolean {
+    return isNotEmptyArray(this.$pmfms.value);
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
@@ -465,7 +466,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     // Reset the form with the new batch
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.value, this.form.form);
-    this.form.reset(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
+    this.form.setValue(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
     // If need, enable the form
     if (this.form.disabled) {
@@ -540,7 +541,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        if (PmfmUtils.isDenormalizedPmfm(pmfm) && isNotEmptyArray(pmfm.taxonGroupIds) && pmfm.taxonGroupIds.some(id => parentTaxonGroupIds.includes(id))) {
+        // Hidden PMFM that are not for existing taxon groups
+        if (PmfmUtils.isDenormalizedPmfm(pmfm)
+          && isNotEmptyArray(pmfm.taxonGroupIds)
+          && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
           pmfm = pmfm.clone(); // Keep original
           pmfm.hidden = true;
           pmfm.required = false;

@@ -221,7 +221,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.formControl.value;
   }
 
-  writeValue(obj: any, event?: UIEvent): void {
+  writeValue(obj: any, event?: UIEvent) {
     if (obj !== this.formControl.value) {
       this.formControl.patchValue(obj, {emitEvent: false});
       this._onChangeCallback(obj);

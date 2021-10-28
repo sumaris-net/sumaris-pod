@@ -60,8 +60,9 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   @Input() usageMode: UsageMode;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
-  @Input() showTotalIndividualCount = false;
   @Input() showIndividualCount = false;
+  @Input() showSampleIndividualCount = false;
+  @Input() showSampleWeight = false;
   @Input() showEstimatedWeight = false;
   @Input() showSamplingBatch = false;
   @Input() showError = true;
@@ -72,7 +73,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   @Input() set showWeight(value: boolean) {
     if (this._showWeight !== value) {
       this._showWeight = value;
-      this.onUpdateControls();
+      this.onUpdateFormGroup();
     }
   }
 
@@ -100,7 +101,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   set requiredSampleWeight(value: boolean) {
     if (this._requiredSampleWeight !== value) {
       this._requiredSampleWeight = value;
-      this.onUpdateControls();
+      this.onUpdateFormGroup();
     }
   }
 
@@ -112,7 +113,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   set requiredWeight(value: boolean) {
     if (this._requiredWeight !== value) {
       this._requiredWeight = value;
-      this.onUpdateControls();
+      this.onUpdateFormGroup();
     }
   }
 
@@ -124,7 +125,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   set requiredIndividualCount(value: boolean) {
     if (this._requiredIndividualCount !== value) {
       this._requiredIndividualCount = value;
-      this.onUpdateControls();
+      this.onUpdateFormGroup();
     }
   }
 
@@ -151,7 +152,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onUpdateControls: (form) => this.onUpdateControls(form)
+        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       });
     this.mobile = platform.mobile;
 
@@ -212,15 +213,11 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   ngOnDestroy() {
     super.ngOnDestroy();
+    this._$afterViewInit.complete();
     if (this.samplingFormValidator) this.samplingFormValidator.unsubscribe();
   }
 
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
-
-    if (this.loading || !this.data) {
-      this.safeSetValue(data, opts);
-      return;
-    }
+  protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
 
     // Fill weight, if a weight PMFM exists
     if (this.defaultWeightPmfm && this.showWeight) {
@@ -284,7 +281,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       this.childrenFormHelper.disable();
     }
 
-    super.setValue(data, {
+    await super.updateView(data, {
       // Always skip normalization (already done)
       normalizeEntityToForm: false
     });
@@ -379,8 +376,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   /* -- protected methods -- */
 
-  protected async viewInitialized(): Promise<void> {
-    // Wait ngAfterViewInit()
+  /**
+   * Wait ngAfterViewInit()
+   */
+  protected async waitViewInit(): Promise<void> {
     if (this._$afterViewInit.value !== true) {
       await firstTruePromise(this._$afterViewInit);
     }
@@ -419,11 +418,11 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return pmfms.filter(p => !PmfmUtils.isWeight(p) && !p.hidden);
   }
 
-  protected async onUpdateControls(form?: FormGroup): Promise<void> {
+  protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
     form = form || this.form;
 
     // Wait ngAfterViewInit()
-    await this.viewInitialized();
+    await this.waitViewInit();
 
     const childrenFormHelper = this.getChildrenFormHelper(form);
 

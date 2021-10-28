@@ -134,7 +134,7 @@
                       [class.cdk-visually-hidden]="!showAllButtons && selectedIndex !== i && i+1 > maxVisibleButtons"
                       class="mat-form-field-button"
                       [tabindex]="_tabindex !== undefined ? (_tabindex + i) : undefined"
-                      (click)="writeValue(item, $event)"
+                      (click)="writeValue(item)"
                       (keyup.enter)="writeValue(item, $event)"
                       [color]="selectedIndex === -1 ? 'tertiary': (selectedIndex === i ? 'accent' : 'light')">
             {{item.name || item.label}}

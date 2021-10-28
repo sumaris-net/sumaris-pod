@@ -101,13 +101,13 @@
                             [showTaxonName]="false"
                             [showTaxonGroup]="false"
                             [availableTaxonGroups]="[]"
+                            [showWeight]="showChildrenWeight"
+                            [showIndividualCount]="showChildrenIndividualCount"
+                            [showSamplingBatch]="showChildrenSamplingBatch"
+                            [showSampleWeight]="showChildrenWeight"
                             [requiredWeight]="hasSubBatches && showChildrenWeight"
                             [requiredSampleWeight]="hasSubBatches && showChildrenWeight"
-                            [requiredIndividualCount]="hasSubBatches && !showChildrenWeight"
-                            [showSamplingBatch]="hasSubBatches || showChildrenSamplingBatch"
-                            [showWeight]="showChildrenWeight"
-                            [showTotalIndividualCount]="showTotalIndividualCount"
-                            [showIndividualCount]="showIndividualCount"
+                            [requiredIndividualCount]="hasSubBatches && showChildrenIndividualCount"
                             [maxVisibleButtons]="maxVisibleButtons"
             ></app-batch-form>
           </ion-card-content>

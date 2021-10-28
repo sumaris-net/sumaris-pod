@@ -66,12 +66,13 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     );
   }
 
-  configure(data: Partial<Batch>) {
-     if (!data) return;
-     super.configure(data);
+  onEntityLoaded(data: Batch, opts?: any) {
+     super.onEntityLoaded(data, opts);
 
-     // Force the label
-      data.label = this._acquisitionLevel;
+    if (!data) return; // Skip
+
+    // Force the label
+     data.label = this._acquisitionLevel;
   }
 }
 

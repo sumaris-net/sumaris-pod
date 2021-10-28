@@ -24,8 +24,6 @@ export interface IPmfm<
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
 
-  acquisitionNumber?: number; // Optional (not exists in Pmfm)
-
   matrixId: number;
   fractionId: number;
   methodId: number;
@@ -33,11 +31,13 @@ export interface IPmfm<
   qualitativeValues: ReferentialRef[];
 
   unitLabel: string;
-  isQualitative: boolean;
-  required?: boolean;
-  isComputed: boolean;
-  hidden?: boolean;
   rankOrder?: number;
+
+  isQualitative: boolean;
+  isComputed: boolean;
+  isMultiple: boolean;
+  required?: boolean;
+  hidden?: boolean;
 
   displayConversion?: UnitConversion;
 }
@@ -195,6 +195,10 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
   get isComputed(): boolean {
     return PmfmUtils.isComputed(this);
   }
+
+  get isMultiple(): boolean {
+    return false; // Default value
+  }
 }
 
 export abstract class PmfmUtils {
@@ -242,14 +246,6 @@ export abstract class PmfmUtils {
 
   static isFullPmfm(pmfm: IPmfm): pmfm is IFullPmfm {
     return pmfm['parameter'] && true;
-  }
-
-  static isMultipleAcquisition(pmfm: IPmfm): boolean {
-    return pmfm.acquisitionNumber > 1;
-  }
-
-  static isSingleAcquisition(pmfm: IPmfm): boolean {
-    return (pmfm.acquisitionNumber || 1) === 1;
   }
 
   /**

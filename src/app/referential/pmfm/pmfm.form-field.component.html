@@ -1,12 +1,14 @@
-<ng-container [ngSwitch]="type">
-
-  <!-- hidden -->
-  <mat-form-field *ngSwitchCase="'hidden'" [floatLabel]="floatLabel" class="cdk-visually-hidden">
-    <input matInput type="text" hidden
-           [placeholder]="placeholder"
-           [formControl]="formControl"
-           [required]="required">
-  </mat-form-field>
+<ng-container [ngSwitch]="type" *ngIf="!pmfm.hidden">
+<!--
+  &lt;!&ndash; hidden &ndash;&gt;
+  <div *ngSwitchCase="'hidden'" class="cdk-visually-hidden">
+      &lt;!&ndash;<mat-form-field [floatLabel]="floatLabel">
+      <input matInput type="text" hidden
+             [placeholder]="placeholder"
+             [formControl]="formControl"
+             [required]="required">
+    </mat-form-field>&ndash;&gt;
+  </div>-->
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">

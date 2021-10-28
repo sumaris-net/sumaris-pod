@@ -398,7 +398,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.setFieldFilterEnable(fieldName, !this.isFieldFilterEnable(fieldName), field);
   }
 
-  async safeSetValue(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
+
+  protected onEntityLoaded(data: Landing, opts?: any) {
+    super.onEntityLoaded(data, opts);
+
+    if (!data) return; // Skip
+
+    // Propagate the strategy
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    if (strategyLabel) {
+      this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
+    }
+  }
+
+  protected async updateView(data: Landing, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }): Promise<void> {
     if (!data) return;
 
     // Resize observers array
@@ -437,28 +450,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // DEBUG
-    //console.debug('[landing-form] safeSetValue', data);
+    //console.debug('[landing-form] updateView', data);
 
-    await super.safeSetValue(data, opts);
+    await super.updateView(data, opts);
   }
 
-  protected configure(data: Partial<Landing>) {
-    if (!data) return; // Skip
-
-    super.configure(data);
-
-    // Propagate the strategy
-    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
-    if (strategyLabel) {
-      this.strategyControl.patchValue(ReferentialRef.fromObject({label: strategyLabel}));
-    }
-  }
 
   protected getValue(): Landing {
     // DEBUG
     //console.debug('[landing-form] get value');
 
     const data = super.getValue();
+    if (!data) return;
 
     // Re add the strategy label
     if (this.showStrategy) {

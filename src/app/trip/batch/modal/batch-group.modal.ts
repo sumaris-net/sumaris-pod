@@ -208,9 +208,13 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     try {
       // Wait pending async validator
       await AppFormUtils.waitWhilePending(this.form, {
-        timeout: 2000 // Workaround because from child form never finish FIXME
+        timeout: 2000 // Workaround because of child form never finish FIXME
       });
+    } catch(err) {
+      console.warn('FIXME - Batch group form pending timeout!');
+    }
 
+    try {
       const invalid = !this.valid;
       if (invalid) {
         let allowInvalid = !opts || opts.allowInvalid !== false;

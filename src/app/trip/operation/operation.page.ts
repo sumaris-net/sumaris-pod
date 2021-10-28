@@ -214,12 +214,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     );
 
     // Manage tab group
-    const queryParams = this.route.snapshot.queryParams;
-    const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
-    this.selectedBatchTabIndex = subTabIndex > 1 ? 1 : subTabIndex;
-    this.selectedSampleTabIndex = subTabIndex;
-    //if (this.batchTree) this.batchTree.setSelectedTabIndex(subTabIndex);
-    if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
+    {
+      const queryParams = this.route.snapshot.queryParams;
+      const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
+      this.selectedBatchTabIndex = subTabIndex;
+      this.selectedSampleTabIndex = subTabIndex;
+    }
   }
 
   protected async ready() {
@@ -280,7 +280,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             }
 
             // Force first tab index
-            this.batchTree.setSelectedTabIndex(0);
+            this.selectedBatchTabIndex = 0;
             this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
@@ -323,6 +323,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.batchTree.allowSamplingBatches = isSampling;
             this.batchTree.defaultHasSubBatches = isSampling;
             this.batchTree.allowSubBatches = isSampling;
+            this.selectedBatchTabIndex = 0;
             this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
@@ -363,8 +364,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               this.$acquisitionLevel.next(acquisitionLevel);
             }
 
-            this.batchTree.setSelectedTabIndex(0);
-            this.selectedSampleTabIndex=0;
+            this.selectedBatchTabIndex = 0;
+            this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
           })
@@ -397,7 +398,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.tabCount = 2;
       this.showSampleTables = false;
       this.showBatchTables = true;
-      //this.cd.detectChanges();
       this.updateTablesState();
       this.markForCheck();
     }
@@ -706,7 +706,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // If tab 1, open the invalid sub tab
     if (invalidTabIndex === 1 && this.enableCatchTab) {
       if (this.showBatchTables) {
-        this.batchTree.setSelectedTabIndex(batchTreeInvalidSubTab);
+        this.selectedBatchTabIndex = batchTreeInvalidSubTab;
       } else if (this.showSampleTables) {
         const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSampleTabIndex));
         if (this.selectedSampleTabIndex === 0 && !subTab0Invalid) {
@@ -716,8 +716,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         } else if (this.selectedSampleTabIndex === 2 && !subTab2Invalid) {
           this.selectedSampleTabIndex = invalidSubTabIndex;
         }
-        this.sampleTabGroup.realignInkBar();
       }
+      this.updateTablesState();
     }
     return invalidTabIndex;
   }
@@ -882,7 +882,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.showBatchTables) this.batchTree.realignInkBar();
       }
       else {
-        this.batchTree.setSelectedTabIndex(0);
+        this.selectedBatchTabIndex = 0;
       }
     }
     else {

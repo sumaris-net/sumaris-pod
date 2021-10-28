@@ -51,7 +51,9 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
+      allowSetValueBeforePmfms: false
+    });
     this._enable = true;
     this.mobile = platform.mobile;
     this.requiredGear = true;
@@ -90,7 +92,12 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
         .pipe(
           filter(ReferentialUtils.isNotEmpty)
         )
-        .subscribe(gear => this.configure({gear}))
+        .subscribe(gear => {
+          if (this.data) {
+            this.data.gear = gear;
+            this.onEntityLoaded(this.data);
+          }
+        })
     );
   }
 
@@ -100,16 +107,13 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   /* -- protected methods -- */
 
-  protected configure(data: Partial<PhysicalGear>) {
-    console.warn('TODO CONFIGURING', data);
+  protected onEntityLoaded(data: PhysicalGear, opts?: {[key: string]: any;}) {
 
     if (!data) return; // Skip
 
-    super.configure(data);
+    super.onEntityLoaded(data, opts);
 
     if (ReferentialUtils.isNotEmpty(data.gear)) {
-      // Update existing date
-      if (this.data) this.data.gear = data.gear;
       // Propage gear
       this.gearId = data.gear.id;
     }

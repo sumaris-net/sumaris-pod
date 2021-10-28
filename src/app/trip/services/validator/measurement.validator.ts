@@ -70,8 +70,8 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
 
-      // Single acquisition
-      if (!PmfmUtils.isSingleAcquisition(pmfm)) {
+      // Only one acquisition
+      if (!pmfm.isMultiple) {
         let formControl: AbstractControl = form.get(controlName);
         // If new pmfm: add as control
         if (!formControl) {
@@ -80,7 +80,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         }
       }
 
-      // Multiple acquisition
+      // Multiple acquisition: use form array
       else {
         const formArray = this.formBuilder.array([pmfm.defaultValue].map(value => {
           this.formBuilder.control(value || '', PmfmValidators.create(pmfm, null, opts));

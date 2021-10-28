@@ -315,7 +315,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       // Remove columns to hide
       .filter(column => !this.excludesColumns.includes(column));
 
-    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
+    // DEBUG
+    console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
     //if (!this.loading) this.markForCheck();
   }
 
