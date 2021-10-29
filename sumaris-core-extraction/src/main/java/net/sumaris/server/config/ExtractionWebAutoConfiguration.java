@@ -50,7 +50,7 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
-@ConditionalOnBean({WebMvcConfigurer.class, ExtractionConfiguration.class})
+@ConditionalOnBean({WebMvcConfigurer.class})
 @AutoConfigureAfter({ExtractionAutoConfiguration.class})
 @ConditionalOnProperty(
         prefix = "sumaris.extraction",
@@ -113,12 +113,7 @@ public class ExtractionWebAutoConfiguration {
         matchIfMissing = true
     )
     public SchedulingConfigurer schedulingConfigurer() {
-        return new SchedulingConfigurer() {
-            @Override
-            public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
-                taskRegistrar.setScheduler(extractionTaskExecutor());
-            }
-        };
+        return taskRegistrar -> taskRegistrar.setScheduler(extractionTaskExecutor());
     }
 
     @Bean
