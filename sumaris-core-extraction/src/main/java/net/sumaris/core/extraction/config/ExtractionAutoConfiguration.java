@@ -24,6 +24,10 @@ package net.sumaris.core.extraction.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
+import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.service.ExtractionProductService;
+import net.sumaris.core.extraction.service.ExtractionProductServiceImpl;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -48,5 +52,11 @@ public class ExtractionAutoConfiguration {
         ExtractionConfiguration instance = new ExtractionConfiguration(configuration);
         ExtractionConfiguration.setInstance(instance);
         return instance;
+    }
+
+    @Bean
+    public ExtractionProductService extractionProductService(ExtractionProductRepository productRepository,
+                                                             ExtractionTableDao tableDao){
+        return new ExtractionProductServiceImpl(productRepository, tableDao);
     }
 }

@@ -46,7 +46,6 @@ import net.sumaris.server.http.graphql.referential.TaxonNameGraphQLService;
 import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
 import net.sumaris.server.http.graphql.technical.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,6 +58,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 @Configuration
 @AutoConfigureOrder(3)
@@ -66,62 +66,57 @@ import java.io.Serializable;
 @Slf4j
 public class GraphQLConfiguration implements WebSocketConfigurer {
 
-    @Autowired
-    private AccountGraphQLService accountGraphQLService;
+    private final AccountGraphQLService accountGraphQLService;
+    private final AdministrationGraphQLService administrationService;
+    private final ProgramGraphQLService programService;
+    private final StrategyPredocGraphQLService strategyPredocService;
+    private final SoftwareGraphQLService softwareService;
+    private final ConfigurationGraphQLService configurationService;
+    private final SocialGraphQLService socialService;
+    private final TrashGraphQLService trashService;
+    private final DataGraphQLService dataService;
+    private final VesselGraphQLService vesselService;
+    private final ReferentialGraphQLService referentialService;
+    private final PmfmGraphQLService pmfmService;
+    private final ReferentialExternalGraphQLService referentialExternalService;
+    private final TaxonNameGraphQLService taxonNameGraphQLService;
+    private final AuthGraphQLService authGraphQLService;
+    private final ObjectMapper objectMapper;
+    private final Optional<ExtractionGraphQLService> extractionGraphQLService;
+    private final Optional<AggregationGraphQLService> aggregationGraphQLService;
+    private final Optional<CacheGraphQLService> cacheGraphQLService;
 
-    @Autowired
-    private AdministrationGraphQLService administrationService;
-
-    @Autowired
-    private ProgramGraphQLService programService;
-
-    @Autowired
-    private StrategyPredocGraphQLService strategyPredocService;
-
-    @Autowired
-    private SoftwareGraphQLService softwareService;
-
-    @Autowired
-    private ConfigurationGraphQLService configurationService;
-
-    @Autowired
-    private SocialGraphQLService socialService;
-
-    @Autowired
-    private TrashGraphQLService trashService;
-
-    @Autowired
-    private DataGraphQLService dataService;
-
-    @Autowired
-    private VesselGraphQLService vesselService;
-
-    @Autowired
-    private ReferentialGraphQLService referentialService;
-
-    @Autowired
-    private PmfmGraphQLService pmfmService;
-
-    @Autowired
-    private ReferentialExternalGraphQLService referentialExternalService;
-
-    @Autowired
-    private TaxonNameGraphQLService taxonNameGraphQLService;
-
-    @Autowired(required = false)
-    private ExtractionGraphQLService extractionGraphQLService;
-
-    @Autowired(required = false)
-    private AggregationGraphQLService aggregationGraphQLService;
-
-    @Autowired(required = false)
-    private CacheGraphQLService cacheGraphQLService;
-
-    @Autowired
-    private AuthGraphQLService authGraphQLService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    public GraphQLConfiguration(AccountGraphQLService accountGraphQLService, AdministrationGraphQLService administrationService,
+                                ProgramGraphQLService programService, StrategyPredocGraphQLService strategyPredocService,
+                                SoftwareGraphQLService softwareService, ConfigurationGraphQLService configurationService,
+                                SocialGraphQLService socialService, TrashGraphQLService trashService,
+                                DataGraphQLService dataService, VesselGraphQLService vesselService,
+                                ReferentialGraphQLService referentialService, PmfmGraphQLService pmfmService,
+                                ReferentialExternalGraphQLService referentialExternalService, TaxonNameGraphQLService taxonNameGraphQLService,
+                                AuthGraphQLService authGraphQLService, ObjectMapper objectMapper,
+                                Optional<ExtractionGraphQLService> extractionGraphQLService,
+                                Optional<AggregationGraphQLService> aggregationGraphQLService,
+                                Optional<CacheGraphQLService> cacheGraphQLService) {
+        this.accountGraphQLService = accountGraphQLService;
+        this.administrationService = administrationService;
+        this.programService = programService;
+        this.strategyPredocService = strategyPredocService;
+        this.softwareService = softwareService;
+        this.configurationService = configurationService;
+        this.socialService = socialService;
+        this.trashService = trashService;
+        this.dataService = dataService;
+        this.vesselService = vesselService;
+        this.referentialService = referentialService;
+        this.pmfmService = pmfmService;
+        this.referentialExternalService = referentialExternalService;
+        this.taxonNameGraphQLService = taxonNameGraphQLService;
+        this.authGraphQLService = authGraphQLService;
+        this.objectMapper = objectMapper;
+        this.extractionGraphQLService = extractionGraphQLService;
+        this.aggregationGraphQLService = aggregationGraphQLService;
+        this.cacheGraphQLService = cacheGraphQLService;
+    }
 
     @Bean
     public WebMvcConfigurer configureGraphQL() {
@@ -131,10 +126,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping(GraphQLPaths.BASE_PATH)
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                        .allowCredentials(true);
+                    .allowedOriginPatterns("*")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                    .allowCredentials(true);
             }
         };
     }
@@ -145,47 +140,44 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         log.info("Generating GraphQL schema (using SPQR)...");
 
-        GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
-                .withResolverBuilders(new AnnotatedResolverBuilder())
+        final GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
+            .withResolverBuilders(new AnnotatedResolverBuilder())
 
-                // Auth and technical
-                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
-                .withOperationsFromSingleton(accountGraphQLService, AccountGraphQLService.class)
-                .withOperationsFromSingleton(softwareService, SoftwareGraphQLService.class)
-                .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
-                .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
+            // Auth and technical
+            .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
+            .withOperationsFromSingleton(accountGraphQLService, AccountGraphQLService.class)
+            .withOperationsFromSingleton(softwareService, SoftwareGraphQLService.class)
+            .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
+            .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
 
-                // Administration & Referential
-                .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
-                .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
-                .withOperationsFromSingleton(strategyPredocService, StrategyPredocGraphQLService.class)
-                .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
-                .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
-                .withOperationsFromSingleton(taxonNameGraphQLService, TaxonNameGraphQLService.class)
-                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
+            // Administration & Referential
+            .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
+            .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
+            .withOperationsFromSingleton(strategyPredocService, StrategyPredocGraphQLService.class)
+            .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
+            .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
+            .withOperationsFromSingleton(taxonNameGraphQLService, TaxonNameGraphQLService.class)
+            .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
 
-                // Data
-                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
-                .withOperationsFromSingleton(vesselService, VesselGraphQLService.class)
+            // Data
+            .withOperationsFromSingleton(dataService, DataGraphQLService.class)
+            .withOperationsFromSingleton(vesselService, VesselGraphQLService.class)
 
-                // Social
-                .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
+            // Social
+            .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
 
-                .withTypeTransformer(new DefaultTypeTransformer(false, true)
-                        // Replace unbounded IEntity<ID> with IEntity<Serializable>
-                        .addUnboundedReplacement(IEntity.class, Serializable.class))
+            .withTypeTransformer(new DefaultTypeTransformer(false, true)
+                // Replace unbounded IEntity<ID> with IEntity<Serializable>
+                .addUnboundedReplacement(IEntity.class, Serializable.class))
 
-                .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
-                        .withPrototype(objectMapper)
-                        .build());
+            .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
+                .withPrototype(objectMapper)
+                .build());
 
         // Add optional services
-        if (cacheGraphQLService != null)
-            generator.withOperationsFromSingleton(cacheGraphQLService, CacheGraphQLService.class);
-        if (extractionGraphQLService != null)
-            generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
-        if (aggregationGraphQLService != null)
-            generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
+        cacheGraphQLService.ifPresent(service -> generator.withOperationsFromSingleton(service, CacheGraphQLService.class));
+        extractionGraphQLService.ifPresent(service -> generator.withOperationsFromSingleton(service, ExtractionGraphQLService.class));
+        aggregationGraphQLService.ifPresent(service -> generator.withOperationsFromSingleton(service, AggregationGraphQLService.class));
 
         return generator.generate();
     }
@@ -196,9 +188,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         log.info(String.format("Starting GraphQL websocket endpoint {%s}...", GraphQLPaths.SUBSCRIPTION_PATH));
 
         webSocketHandlerRegistry
-                .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+            .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
+            .setAllowedOriginPatterns("*")
+            .withSockJS();
     }
 
     @Bean
