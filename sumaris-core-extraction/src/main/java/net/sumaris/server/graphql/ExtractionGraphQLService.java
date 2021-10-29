@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionService.class})
 public class ExtractionGraphQLService {
 
     private ExtractionService extractionService;

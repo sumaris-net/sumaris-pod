@@ -47,6 +47,7 @@ import net.sumaris.server.http.graphql.security.AuthGraphQLService;
 import net.sumaris.server.http.graphql.social.SocialGraphQLService;
 import net.sumaris.server.http.graphql.technical.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -60,6 +61,7 @@ import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
 import java.io.Serializable;
 
 @Configuration
+@AutoConfigureOrder(3)
 @EnableWebSocket
 @Slf4j
 public class GraphQLConfiguration implements WebSocketConfigurer {
