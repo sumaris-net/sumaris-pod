@@ -44,6 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -52,6 +53,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Repository("denormalizedPmfmStrategyRepository")
 public class DenormalizedPmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, DenormalizedPmfmStrategyVO>
         implements DenormalizedPmfmStrategyRepository {

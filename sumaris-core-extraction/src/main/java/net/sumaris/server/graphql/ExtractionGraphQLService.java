@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;

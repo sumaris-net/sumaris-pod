@@ -51,6 +51,7 @@ JAVA_EXEC=${JAVA_HOME}/bin/java
 JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m"
 JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${SUMARIS_HOME}/config/"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${SUMARIS_HOME}"
+JAVA_OPTS="$JAVA_OPTS -Dsumaris.data.directory=${DATA_DIRECTORY}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${SUMARIS_LOG}"
 [[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"
 [[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"
