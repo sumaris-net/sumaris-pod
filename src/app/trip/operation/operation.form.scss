@@ -30,6 +30,12 @@ form {
         }
       }
     }
+
+    mat-boolean-field {
+      .mat-boolean-field-button {
+        margin-top: -12px;
+      }
+    }
   }
 }
 

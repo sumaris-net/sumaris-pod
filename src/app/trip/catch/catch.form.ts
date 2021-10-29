@@ -9,7 +9,7 @@ import {BatchValidatorService} from '../services/validator/batch.validator';
 import { firstNotNilPromise, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import {Batch} from '../services/model/batch.model';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -57,8 +57,19 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
           this.$weightAndOtherPmfms.next(pmfms.filter(p =>
             (p.label && p.label.indexOf('_WEIGHT') > 0
             || (p.label.indexOf('ON_DECK_') === -1 && p.label.indexOf('SORTING_') === -1))
-            && p.label.indexOf('MULTIPLE') === -1));
-          this.$multiplePmfms.next(pmfms.filter(p => p.label.indexOf('MULTIPLE') !== -1));
+            && p.isMultiple !== true));
+
+          // Special case for multiple PMFMs
+          this.$multiplePmfms.next(pmfms
+            .filter(p => p.isMultiple)
+            .map(p => {
+              if (PmfmUtils.isDenormalizedPmfm(p)) {
+                const target = p.clone() as IDenormalizedPmfm;
+                target.acquisitionNumber = 1;
+                return target;
+              }
+              return p;
+            }));
 
           this.hasPmfms = pmfms.length > 0;
           this.markForCheck();

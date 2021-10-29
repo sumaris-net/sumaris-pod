@@ -26,7 +26,7 @@ import { Animation } from '@ionic/angular';
 })
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
-  private _fadeInAnimation: Animation;
+  private _childrenAnimation: Animation;
 
   $childrenPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasSubBatchesControl: AbstractControl;
@@ -38,6 +38,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input() showChildrenSamplingBatch = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
+  @Input() animated = false; // Animate children card
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
   @ViewChildren('childForm') children !: QueryList<BatchForm>;
@@ -157,20 +158,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.hasSubBatchesControl = new FormControl(false);
     this.showSamplingBatch = false;
 
-    // Create animation
-    this._fadeInAnimation = createAnimation()
-      .duration(300)
-      .direction('normal')
-      .iterations(1)
-      .beforeStyles({
-        'transition-timing-function': 'ease-in',
-        transform: 'scale(0.5)',
-        opacity: '0'
-      })
-      .keyframes([
-        { offset: 1, transform: 'scale(1)', opacity: '1' }
-      ]);
-
     // DEBUG
     //this.debug = !environment.production;
   }
@@ -200,6 +187,23 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       this.form.valueChanges
         .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe((batch) => this.computeShowTotalIndividualCount(batch)));
+
+
+    // Create animation to display children forms
+    if (this.animated) {
+      this._childrenAnimation = createAnimation()
+        .duration(300)
+        .direction('normal')
+        .iterations(1)
+        .beforeStyles({
+          'transition-timing-function': 'ease-in',
+          transform: 'scale(0.5)',
+          opacity: '0'
+        })
+        .keyframes([
+          { offset: 1, transform: 'scale(1)', opacity: '1' }
+        ]);
+    }
   }
 
   focusFirstInput() {
@@ -300,10 +304,12 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       this.computeShowTotalIndividualCount(data);
 
-      // Show QV cards
-      this._fadeInAnimation
-        .addElement(document.querySelectorAll('ion-card.qv'))
-        .play();
+      // Play animation
+      if (this.animated) {
+        await this._childrenAnimation
+          .addElement(document.querySelectorAll('ion-card.qv'))
+          .play();
+      }
     }
 
     // Apply computed value

@@ -21,7 +21,7 @@ import {
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
 import { BehaviorSubject, merge } from 'rxjs';
@@ -76,8 +76,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   distanceWarning: boolean;
   enableMetierFilter = false;
 
-  isChildOperationItems = IS_CHILD_OPERATION_ITEMS;
-  $isChildOperation = new BehaviorSubject<boolean>(undefined);
+  isParentOperationControl: FormControl;
   $parentOperationLabel = new BehaviorSubject<string>('');
 
 
@@ -121,21 +120,27 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.setTrip(value);
   }
 
+  get parentControl(): FormControl {
+    return this.form.get('parentOperation') as FormControl;
+  }
+
+  get isParentOperation(): boolean {
+    return this.isParentOperationControl.value === true;
+  }
+
+  @Input()
+  set isParentOperation(value: boolean) {
+    this.setIsParentOperation(value);
+  }
+
+
   get isChildOperation(): boolean {
-    return this.$isChildOperation.value === true;
+    return this.isParentOperationControl.value !== true;
   }
 
   @Input()
   set isChildOperation(value: boolean) {
-    this.setIsChildOperation(value);
-  }
-
-  get isParentOperation(): boolean {
-    return this.$isChildOperation.value !== true;
-  }
-
-  get parentControl(): FormControl {
-    return this.form.get('parentOperation') as FormControl;
+    this.setIsParentOperation(!value);
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -161,6 +166,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   ) {
     super(dateFormat, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
+
+    // A boolean control, to store if parent is a parent or child opteration
+    this.isParentOperationControl = new FormControl(true, Validators.required);
   }
 
   ngOnInit() {
@@ -209,13 +217,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         .pipe(debounceTime(200))
         .subscribe(_ => this.updateDistance())
     );
+
+    this.registerSubscription(
+      this.isParentOperationControl.valueChanges
+        .pipe(distinctUntilChanged())
+        .subscribe(value => this.setIsParentOperation(value))
+    );
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
     this._physicalGearsSubject.complete();
     this._metiersSubject.complete();
-    this.$isChildOperation.complete();
     this.$parentOperationLabel.complete();
   }
 
@@ -229,11 +242,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
 
-    const hasParent = isNotNil(data.parentOperation?.id);
-    this.setIsChildOperation(hasParent, {emitEvent: false});
-    if (hasParent && !this.allowParentOperation) {
-      // Force to allow parent, to show existing parent data
+    const isChildOperation = isNotNil(data.parentOperation?.id);
+    if (isChildOperation || this.allowParentOperation) {
       this.allowParentOperation = true;
+      this.setIsParentOperation(!isChildOperation, {emitEvent: false});
     }
 
     super.setValue(data, opts);
@@ -549,14 +561,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  setIsChildOperation(isChildOperation: boolean, opts?: { emitEvent?: boolean; }) {
-    if (this.$isChildOperation.value === isChildOperation) return; // Skip if same
+  setIsParentOperation(value: boolean, opts?: { emitEvent?: boolean; }) {
 
-    this.$isChildOperation.next(isChildOperation);
-    if (this.debug) console.debug('[operation-form] Is child operation ? ', isChildOperation);
+    if (this.debug) console.debug('[operation-form] Is parent operation ? ', value);
 
-    // Virage
-    if (isChildOperation) {
+    if (this.isParentOperationControl.value !== value) {
+      this.isParentOperationControl.setValue(value);
+    }
+
+    // Parent operation (or parent not used)
+    if (value) {
+      this.form.patchValue({
+        parentOperation: null
+      });
+      if (!opts || opts.emitEvent !== false) {
+        this.updateFormGroup();
+      }
+    }
+
+    // Child operation (=Filage)
+    else {
       if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
         // Keep filled values
         this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
@@ -571,14 +595,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
 
     // Filage or other case
-    else {
-      this.form.patchValue({
-        parentOperation: null
-      });
-      if (!opts || opts.emitEvent !== false) {
-        this.updateFormGroup();
-      }
-    }
+
   }
 
   protected setPosition(positionControl: AbstractControl, position?: VesselPosition) {

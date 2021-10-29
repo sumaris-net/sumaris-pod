@@ -25,7 +25,7 @@ import {
   ReferentialUtils,
   SharedValidators,
   startsWithUpperCase,
-  toBoolean,
+  toBoolean, toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
@@ -208,6 +208,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.isNew = toBoolean(this.isNew, false);
+    this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
 
     // Get display attributes for parent
     this._parentAttributes = this.settings.getFieldDisplayAttributes('taxonGroup').map(attr => 'taxonGroup.' + attr)

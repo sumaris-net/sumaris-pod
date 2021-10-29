@@ -37,6 +37,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
 
+  openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
 }
 
 @Component({
@@ -74,7 +75,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() maxVisibleButtons: number;
 
-  @Input() openSubBatchesModal: (parent: Batch) => Promise<BatchGroup>;
+  @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;

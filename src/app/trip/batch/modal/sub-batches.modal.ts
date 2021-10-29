@@ -19,12 +19,13 @@ export interface ISubBatchesModalOptions {
   showParentGroup: boolean;
   showTaxonNameColumn: boolean;
   showIndividualCount: boolean;
+  maxVisibleButtons: number;
 
   parentGroup: BatchGroup;
+
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;
   availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   onNewParentClick: () => Promise<BatchGroup | undefined>;
-  maxVisibleButtons: number;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];

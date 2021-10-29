@@ -1,16 +1,7 @@
 <ng-container [ngSwitch]="type">
 
   <div *ngSwitchCase="'hidden'" class="cdk-visually-hidden">
-    <!--
-      &lt;!&ndash; hidden &ndash;&gt;
-      <div *ngSwitchCase="'hidden'" class="cdk-visually-hidden">
-          &lt;!&ndash;<mat-form-field [floatLabel]="floatLabel">
-          <input matInput type="text" hidden
-                 [placeholder]="placeholder"
-                 [formControl]="formControl"
-                 [required]="required">
-        </mat-form-field>&ndash;&gt;
-      </div>-->
+    <!-- nothing to display (hidden) -->
   </div>
 
   <!-- integer -->
@@ -97,8 +88,13 @@
                      [floatLabel]="floatLabel"
                      [required]="required"
                      [compact]="compact"
-                     [tabindex]="tabindex">
+                     [tabindex]="tabindex"
+                     [buttonsColCount]="maxVisibleButtons">
     <div matSuffix>
+      <!-- Add a fake fab button, to have same alignment as a pmfm QV field -->
+      <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
+                      style="visibility: hidden;">
+      </ion-fab-button>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
   </mat-boolean-field>
@@ -145,6 +141,7 @@
                      [tabindex]="tabindex"
                      [style]="style"
                      [maxVisibleButtons]="maxVisibleButtons"
+                     [buttonsColCount]="maxVisibleButtons"
                      (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
       <ng-content select="[matSuffix]"></ng-content>

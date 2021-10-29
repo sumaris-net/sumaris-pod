@@ -49,6 +49,7 @@ export interface IDenormalizedPmfm<
 
   completeName?: string;
   name?: string;
+  acquisitionNumber?: number;
 
   gearIds: number[];
   taxonGroupIds: number[];

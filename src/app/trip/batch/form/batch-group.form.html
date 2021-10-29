@@ -87,7 +87,7 @@
         <ion-card class="qv ion-no-margin ion-no-padding"
                   [class.even]="i % 2 === 0"
                   [class.odd]="i % 2 !== 0"
-                  [style.opacity]="0">
+                  [style.opacity]="animated ? 0 : 1">
 
           <ion-card-header>
             <ion-card-title>{{ qv.name }}</ion-card-title>

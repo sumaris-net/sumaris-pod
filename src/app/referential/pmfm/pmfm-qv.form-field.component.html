@@ -146,8 +146,8 @@
 
       <ng-content matSuffix select="[matAfter]"></ng-content>
 
-      <ion-fab-button matSuffix color="light" size="small"
-                      *ngIf="maxVisibleButtons !== 999"
+      <ion-fab-button matSuffix color="light" size="small" *ngIf="!compact && maxVisibleButtons !== 999"
+                      [class.hidden]="maxVisibleButtons === 999"
                       (click)="showAllButtons=!showAllButtons">
         <ion-icon [name]="showAllButtons && 'chevron-up-outline' || 'chevron-down-outline'"></ion-icon>
       </ion-fab-button>

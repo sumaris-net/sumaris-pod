@@ -721,7 +721,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     showParent?: boolean;
   }): Promise<SubBatch[] | undefined> {
 
-    if (this.debug) console.debug('[batches-table] Open individual measures modal...');
+    //if (this.debug)
+      console.debug('[batches-table] Open individual measures modal...');
 
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
@@ -744,9 +745,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         map((res: TableElement<BatchGroup>[]) => res.map(row => this.toEntity(row)))
       );
 
+    const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
-      backdropDismiss: false,
       componentProps: <ISubBatchesModalOptions>{
         programLabel: this.programLabel,
         acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
@@ -765,8 +766,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Override using input options
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons
       },
+      backdropDismiss: false,
       keyboardClose: true,
-      cssClass: 'modal-large'
+      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large'
     });
 
     // Open the modal
@@ -781,8 +783,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (isNil(data)) {
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
     } else {
-      //if (this.debug)
-      console.debug('[batches-table] Sub-batches modal result: ', data);
+      // DEBUG
+      //if (this.debug) console.debug('[batches-table] Sub-batches modal result: ', data);
+
       this.onSubBatchesChanges.emit(data);
     }
 
@@ -815,7 +818,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showSamplingBatch: this.showSamplingBatchColumns,
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
-        openSubBatchesModal: (parent) => this.openSubBatchesModalFromParentModal(parent),
+        openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         // Override using given options
         ...this.modalOptions

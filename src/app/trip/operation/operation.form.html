@@ -8,47 +8,18 @@
 
   <ion-grid class="ion-no-padding">
 
-    <ion-row class="ion-no-padding high" *ngIf="allowParentOperation">
+    <ion-row class="high" *ngIf="allowParentOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
       <ion-col size="6" size-md="">
 
-        <mat-form-field *ngIf="!mobile else isChildOperationButtons">
-          <mat-select matInput (selectionChange)="setIsChildOperation($event.value)"
-                      [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
-                      [tabindex]="tabindex"
-                      [value]="($isChildOperation|async) === true"
-                      required>
-            <mat-option *ngFor="let item of isChildOperationItems" [value]="item.value">
-              {{ item.label |translate }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <ng-template #isChildOperationButtons>
-          <mat-form-field floatLabel="always">
-            <input matInput type="text" hidden
-                   formControlName="parentOperation">
-            <ion-grid class="ion-no-padding">
-              <ion-row class="ion-no-padding">
-                <ion-col *ngFor="let item of isChildOperationItems; index as i;">
-                  <ion-button class="mat-form-field-button"
-                              [tabindex]="tabindex+1"
-                              (click)="setIsChildOperation(item.value)"
-                              (keyup.enter)="setIsChildOperation(item.value)"
-                              fill="solid"
-                              expand="full"
-                              [color]="isChildOperation === item.value ? 'accent' : 'light'">
-                    <ion-label>{{item.label|translate}}</ion-label>
-                  </ion-button>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
-          </mat-form-field>
-        </ng-template>
-        <input matInput type="text" hidden
-               [formControl]="form.controls.qualityFlagId">
+        <mat-boolean-field [style]="mobile && 'button' || 'radio'"
+                           [formControl]="isParentOperationControl"
+                           [yesLabel]="'TRIP.OPERATION.EDIT.TYPE.PARENT'"
+                           [noLabel]="'TRIP.OPERATION.EDIT.TYPE.CHILD'"
+                           [showButtonIcons]="false">
+        </mat-boolean-field>
       </ion-col>
 
       <ion-col size="6" size-md="" >
@@ -104,7 +75,7 @@
       </ion-col>
     </ion-row>
 
-    <ion-row class="ion-no-padding">
+    <ion-row>
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
       </ion-col>
@@ -144,7 +115,7 @@
     </ion-row>
 
     <!-- Start -->
-    <ion-row class="ion-no-padding">
+    <ion-row>
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label *ngIf="allowParentOperation else startLabel"
                    class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_PARENT_OPERATION</ion-label>
@@ -152,9 +123,9 @@
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START</ion-label>
         </ng-template>
       </ion-col>
-      <ion-col class="ion-no-padding">
+      <ion-col>
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
 
             <ion-col size="12" size-lg="4">
               <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
@@ -203,13 +174,13 @@
     </ion-row>
 
     <!-- Start fishing -->
-    <ion-row class="ion-no-padding" *ngIf="allowParentOperation">
+    <ion-row *ngIf="allowParentOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_PARENT_OPERATION</ion-label>
       </ion-col>
-      <ion-col class="ion-no-padding">
+      <ion-col>
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
 
             <ion-col size="12" size-lg="4" *ngIf="form.controls.fishingStartDateTime as fishingStartDateTime">
               <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
@@ -263,13 +234,13 @@
     </ion-row>
 
     <!-- End fishing -->
-    <ion-row class="ion-no-padding" *ngIf="isChildOperation">
+    <ion-row *ngIf="isChildOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_CHILD_OPERATION</ion-label>
       </ion-col>
-      <ion-col class="ion-no-padding">
+      <ion-col>
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
             <ion-col size="12" size-lg="4" *ngIf="form.controls.fishingEndDateTime as fishingEndDateTimeControl">
               <mat-date-time-field [formControl]="fishingEndDateTimeControl"
                                    [placeholder]="'COMMON.DATE'|translate"
@@ -317,16 +288,16 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row class="ion-no-padding" *ngIf="!allowParentOperation || isChildOperation">
+    <ion-row *ngIf="!allowParentOperation || isChildOperation">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label *ngIf="allowParentOperation else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
         <ng-template #end>
           <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END</ion-label>
         </ng-template>
       </ion-col>
-      <ion-col class="ion-no-padding">
+      <ion-col >
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
             <ion-col size="12" size-lg="4" *ngIf="form.controls.endDateTime as endDateTimeControl">
               <mat-date-time-field [formControl]="endDateTimeControl"
                                    [placeholder]="'COMMON.DATE'|translate"
@@ -382,7 +353,7 @@
     <ng-content></ng-content>
 
     <!-- Comments -->
-    <ion-row class="ion-no-padding" *ngIf="showComment">
+    <ion-row *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
           <textarea matInput #comments
