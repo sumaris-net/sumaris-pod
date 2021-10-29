@@ -49,29 +49,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@ConditionalOnBean(ExtractionConfiguration.class)
+@ConditionalOnBean({ExtractionConfiguration.class})
 @Slf4j
 public class ExtractionJob {
 
-    private ExtractionConfiguration configuration;
-    private ExtractionProductService productService;
-    private AggregationService aggregationService;
+    private final ExtractionProductService extractionProductService;
+    private final AggregationService aggregationService;
     private boolean ready = false;
 
     @Autowired
-    public ExtractionJob(ExtractionConfiguration configuration,
-                         ExtractionProductService productService,
+    public ExtractionJob(ExtractionProductService extractionProductService,
                          AggregationService aggregationService) {
         super();
-        this.configuration = configuration;
-        this.productService = productService;
+        this.extractionProductService = extractionProductService;
         this.aggregationService = aggregationService;
     }
 
     public ExtractionJob() {
         super();
-        this.configuration = ExtractionConfiguration.instance();
-        this.productService = ExtractionServiceLocator.extractionProductService();
+        this.extractionProductService = ExtractionServiceLocator.extractionProductService();
         this.aggregationService = ExtractionServiceLocator.aggregationService();
         this.ready = true;
     }
@@ -86,7 +82,7 @@ public class ExtractionJob {
         log.info("Updating {} extractions...", frequency.name().toLowerCase());
 
         // Get products to refresh
-        List<ExtractionProductVO> products = productService.findByFilter(ExtractionProductFilterVO.builder()
+        List<ExtractionProductVO> products = extractionProductService.findByFilter(ExtractionProductFilterVO.builder()
                 // Filter on public or private products
                 .statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
                 // With the expected frequency
