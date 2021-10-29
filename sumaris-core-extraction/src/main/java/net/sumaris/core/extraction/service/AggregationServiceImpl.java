@@ -83,13 +83,13 @@ import java.util.stream.Collectors;
 @ConditionalOnBean({ExtractionConfiguration.class})
 public class AggregationServiceImpl implements AggregationService {
 
-    private DataSource dataSource;
-    private ExtractionService extractionService;
-    private ExtractionProductService productService;
-    private ExtractionTableDao extractionTableDao;
-    private ObjectMapper objectMapper;
-    private ApplicationContext applicationContext;
-    private Optional<TaskExecutor> taskExecutor;
+    private final DataSource dataSource;
+    private final ExtractionService extractionService;
+    private final ExtractionProductService extractionProductService;
+    private final ExtractionTableDao extractionTableDao;
+    private final ObjectMapper objectMapper;
+    private final ApplicationContext applicationContext;
+    private final Optional<TaskExecutor> taskExecutor;
 
     private Map<IExtractionFormat, AggregationDao<?,?,?>> daosByFormat = Maps.newHashMap();
 
@@ -98,7 +98,7 @@ public class AggregationServiceImpl implements AggregationService {
                                   DataSource dataSource,
                                   ExtractionTableDao extractionTableDao,
                                   ExtractionService extractionService,
-                                  ExtractionProductService productService,
+                                  ExtractionProductService extractionProductService,
                                   Optional<TaskExecutor> taskExecutor) {
         this.applicationContext = applicationContext;
         this.objectMapper = objectMapper;
@@ -107,7 +107,7 @@ public class AggregationServiceImpl implements AggregationService {
         this.extractionTableDao = extractionTableDao;
 
         this.extractionService = extractionService;
-        this.productService = productService;
+        this.extractionProductService = extractionProductService;
 
         this.taskExecutor = taskExecutor;
     }
@@ -144,7 +144,7 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS)
     public AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductVO source = productService.get(id, fetchOptions);
+        ExtractionProductVO source = extractionProductService.get(id, fetchOptions);
         return toAggregationType(source);
     }
 
@@ -164,7 +164,7 @@ public class AggregationServiceImpl implements AggregationService {
         switch (type.getCategory()) {
             case PRODUCT:
                 // Get the product VO
-                source = productService.getByLabel(type.getLabel(), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
+                source = extractionProductService.getByLabel(type.getLabel(), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
                 // Execute, from product
                 return aggregateDao(source, filter, strata);
 
@@ -198,7 +198,7 @@ public class AggregationServiceImpl implements AggregationService {
                                              Page page) {
         Preconditions.checkNotNull(type);
 
-        ExtractionProductVO product = productService.getByLabel(type.getLabel(),
+        ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
@@ -240,7 +240,7 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(type);
         filter = ExtractionFilterVO.nullToEmpty(filter);
 
-        ExtractionProductVO product = productService.getByLabel(type.getLabel(),
+        ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
@@ -267,7 +267,7 @@ public class AggregationServiceImpl implements AggregationService {
         Preconditions.checkNotNull(type);
         filter = filter != null ? filter : new ExtractionFilterVO();
 
-        ExtractionProductVO product = productService.getByLabel(type.getLabel(),
+        ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
@@ -339,7 +339,7 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     public AggregationTypeVO updateProduct(int productId) {
 
-        ExtractionProductVO target = productService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE)
+        ExtractionProductVO target = extractionProductService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE)
             .orElseThrow(() -> new DataNotFoundException(String.format("Unknown product {id: %s}", productId)));
         Collection<String> tablesToDrop = Lists.newArrayList(target.getTableNames());
 
@@ -363,7 +363,7 @@ public class AggregationServiceImpl implements AggregationService {
         toProductVO(context, target);
 
         // Save the product
-        productService.save(target);
+        extractionProductService.save(target);
 
         // Drop old tables
         dropTables(tablesToDrop);
@@ -388,7 +388,7 @@ public class AggregationServiceImpl implements AggregationService {
         // Load the product
         ExtractionProductVO target = null;
         if (source.getId() != null) {
-            target = productService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+            target = extractionProductService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
         }
         boolean isNew = target == null;
         if (isNew) {
@@ -474,7 +474,7 @@ public class AggregationServiceImpl implements AggregationService {
         target.setProcessingFrequencyId(frequency.getId());
 
         // Save the product
-        target = productService.save(target);
+        target = extractionProductService.save(target);
 
         // Drop old tables
         dropTables(tablesToDrop);
@@ -534,7 +534,7 @@ public class AggregationServiceImpl implements AggregationService {
 
         final Boolean filterIsSpatial = filter.getIsSpatial();
 
-        return ListUtils.emptyIfNull(productService.findByFilter(filter, fetchOptions))
+        return ListUtils.emptyIfNull(extractionProductService.findByFilter(filter, fetchOptions))
             .stream()
             .filter(p -> filterIsSpatial == null || filterIsSpatial.equals(p.getIsSpatial()))
             .map(this::toAggregationType)

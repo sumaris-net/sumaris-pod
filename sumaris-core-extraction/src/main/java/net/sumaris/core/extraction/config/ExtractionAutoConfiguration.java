@@ -22,25 +22,32 @@
 
 package net.sumaris.core.extraction.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.service.ExtractionProductService;
-import net.sumaris.core.extraction.service.ExtractionProductServiceImpl;
+import net.sumaris.core.extraction.service.*;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+
+import javax.sql.DataSource;
+import java.util.Optional;
 
 @Slf4j
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @AutoConfigureOrder(1)
 @ConditionalOnProperty(
     prefix = "sumaris.extraction",
     name = {"enabled"},
     matchIfMissing = true
 )
+@ComponentScan("net.sumaris.core.extraction")
 public class ExtractionAutoConfiguration {
 
     public ExtractionAutoConfiguration() {
@@ -58,5 +65,17 @@ public class ExtractionAutoConfiguration {
     public ExtractionProductService extractionProductService(ExtractionProductRepository productRepository,
                                                              ExtractionTableDao tableDao){
         return new ExtractionProductServiceImpl(productRepository, tableDao);
+    }
+
+    @Bean
+    public AggregationService aggregationService(ApplicationContext applicationContext,
+                                                 ObjectMapper objectMapper,
+                                                 DataSource dataSource,
+                                                 ExtractionTableDao extractionTableDao,
+                                                 ExtractionService extractionService,
+                                                 ExtractionProductService extractionProductService,
+                                                 Optional<TaskExecutor> taskExecutor) {
+        return new AggregationServiceImpl(applicationContext, objectMapper, dataSource, extractionTableDao,
+            extractionService, extractionProductService, taskExecutor);
     }
 }
