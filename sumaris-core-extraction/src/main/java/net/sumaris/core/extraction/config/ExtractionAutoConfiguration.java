@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 
@@ -39,13 +40,14 @@ import javax.sql.DataSource;
 import java.util.Optional;
 
 @Slf4j
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @AutoConfigureOrder(1)
 @ConditionalOnProperty(
     prefix = "sumaris.extraction",
     name = {"enabled"},
     matchIfMissing = true
 )
+@ComponentScan("net.sumaris.core.extraction")
 public class ExtractionAutoConfiguration {
 
     public ExtractionAutoConfiguration() {
