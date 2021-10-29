@@ -721,8 +721,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     showParent?: boolean;
   }): Promise<SubBatch[] | undefined> {
 
-    //if (this.debug)
-      console.debug('[batches-table] Open individual measures modal...');
+    // DEBUG
+    //if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
