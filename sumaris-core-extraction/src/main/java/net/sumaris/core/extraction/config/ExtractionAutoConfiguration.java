@@ -25,17 +25,26 @@ package net.sumaris.core.extraction.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.extraction.dao.administration.ExtractionStrategyDao;
+import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.service.*;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.service.referential.ReferentialService;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
 
+import javax.cache.CacheManager;
 import javax.sql.DataSource;
 import java.util.Optional;
 
@@ -48,6 +57,7 @@ import java.util.Optional;
     matchIfMissing = true
 )
 @ComponentScan("net.sumaris.core.extraction")
+@EnableCaching
 public class ExtractionAutoConfiguration {
 
     public ExtractionAutoConfiguration() {
@@ -77,5 +87,24 @@ public class ExtractionAutoConfiguration {
                                                  Optional<TaskExecutor> taskExecutor) {
         return new AggregationServiceImpl(applicationContext, objectMapper, dataSource, extractionTableDao,
             extractionService, extractionProductService, taskExecutor);
+    }
+
+    @Bean
+    public ExtractionService extractionService(ExtractionConfiguration configuration,
+                                               ObjectMapper objectMapper,
+                                               DataSource dataSource,
+                                               ApplicationContext applicationContext, DatabaseSchemaDao databaseSchemaDao,
+                                               CacheManager cacheManager, SumarisDatabaseMetadata databaseMetadata,
+                                               ExtractionTripDao extractionRdbTripDao,
+                                               ExtractionStrategyDao extractionStrategyDao,
+                                               ExtractionTableDao extractionTableDao,
+                                               ExtractionCsvDao extractionCsvDao,
+                                               ExtractionProductService extractionProductService,
+                                               LocationService locationService,
+                                               ReferentialService referentialService,
+                                               Optional<TaskExecutor> taskExecutor) {
+        return new ExtractionServiceImpl(configuration, objectMapper, dataSource, applicationContext, databaseSchemaDao,
+            cacheManager, databaseMetadata, extractionRdbTripDao, extractionStrategyDao, extractionTableDao, extractionCsvDao,
+            extractionProductService, locationService, referentialService, taskExecutor);
     }
 }
