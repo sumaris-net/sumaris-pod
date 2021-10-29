@@ -41,7 +41,7 @@
                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
                  required>
           <ion-grid class="ion-no-padding" >
-            <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!applyingValue; else rowSkeleton">
+            <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!loading; else rowSkeleton">
               <ion-col>
                 <ion-button class="mat-form-field-button"
                             [disabled]="hasSubBatchesControl.disabled"

@@ -87,7 +87,7 @@
                                 [config]="autocompleteFields.physicalGear"
                                 [tabindex]="tabindex+2"
                                 [required]="true"
-                                [readonly]="$isChildOperation|async">
+                                [readonly]="isChildOperation">
         </mat-autocomplete-field>
       </ion-col>
 
@@ -99,7 +99,7 @@
                                 [tabindex]="tabindex+3"
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
-                                [readonly]="$isChildOperation|async">
+                                [readonly]="isChildOperation">
 
           <!-- Reset filter -->
           <button matAfter type="button" mat-icon-button
