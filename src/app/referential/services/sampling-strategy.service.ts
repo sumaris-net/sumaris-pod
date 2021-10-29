@@ -394,18 +394,20 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         const strategy = entities.find(s => s.label === effort.strategyLabel);
         if (strategy) {
           strategy.efforts = strategy.efforts || [];
-          strategy.efforts.push(effort);
 
           if (isNotNil(effort.quarter)) {
             strategy.effortByQuarter = strategy.effortByQuarter || {};
             const existingEffort = strategy.effortByQuarter[effort.quarter];
+
             // Set the quarter's effort
             if (!existingEffort) {
               // Do a copy, to be able to increment if more than one effort by quarter
-              strategy.effortByQuarter[effort.quarter] = effort.clone();
+              //strategy.effortByQuarter[effort.quarter] = effort.clone(); => Code disable since it keeps strategy efforts for deleted applied period efforts
             }
             // More than one effort, on this quarter
             else {
+              effort.expectedEffort = existingEffort.expectedEffort; // Update efforts expected effort with last value from effortByQuarter.
+              strategy.efforts.push(effort); // moved here from global loop in order to prevent copy of obsolete deleted efforts.
               // Merge properties
               existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
               existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);
