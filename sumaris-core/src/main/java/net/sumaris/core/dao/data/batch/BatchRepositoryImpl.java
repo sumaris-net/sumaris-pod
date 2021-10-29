@@ -293,7 +293,7 @@ public class BatchRepositoryImpl
 
         // Save each batches
         final boolean trace = log.isTraceEnabled();
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         long updatesCount = sources.stream().map(source -> {
 
             Batch target = null;
@@ -375,7 +375,7 @@ public class BatchRepositoryImpl
     protected BatchVO optimizedSave(BatchVO source,
                                     Batch entity,
                                     boolean checkUpdateDate,
-                                    Timestamp newUpdateDate,
+                                    Date newUpdateDate,
                                     boolean enableBatchHashOptimization) {
         Preconditions.checkNotNull(source);
 
@@ -460,6 +460,7 @@ public class BatchRepositoryImpl
                     measurementDao.toMeasurementsMap(source.getSortingMeasurements()),
                     measurementDao.toMeasurementsMap(source.getQuantificationMeasurements())
             ));
+            target.setMeasurementValuesMultiples(measurementDao.toMeasurementsMultiplesMap(source.getSortingMeasurements()));
         }
     }
 

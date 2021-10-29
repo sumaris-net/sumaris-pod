@@ -59,6 +59,9 @@ public interface OperationService {
 	@Transactional(readOnly = true)
 	OperationVO get(int id);
 
+	@Transactional(readOnly = true)
+	OperationVO get(int id, OperationFetchOptions o);
+
 	OperationVO save(OperationVO operation);
 
 	List<OperationVO> save(List<OperationVO> operations);

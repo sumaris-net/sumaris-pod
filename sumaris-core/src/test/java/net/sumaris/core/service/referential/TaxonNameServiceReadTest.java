@@ -47,7 +47,7 @@ public class TaxonNameServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void getAllByTaxonGroupId() {
-        List<TaxonNameVO> result = service.getAllByTaxonGroupId(fixtures.getTaxonGroupIdWithManyTaxonName());
+        List<TaxonNameVO> result = service.findAllByTaxonGroupId(fixtures.getTaxonGroupIdWithManyTaxonName());
         Assert.assertNotNull(result);
         Assert.assertTrue(result.size() > 0);
 

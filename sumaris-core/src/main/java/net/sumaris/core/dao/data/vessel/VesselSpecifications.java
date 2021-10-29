@@ -81,7 +81,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(cb.coalesce(features.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate),
+                        cb.lessThan(cb.coalesce(features.get(VesselFeatures.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate),
                         cb.greaterThan(features.get(VesselFeatures.Fields.START_DATE), endDate)
                     )
                 );
@@ -89,7 +89,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
 
             // Start date only
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(cb.coalesce(features.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate);
+                return cb.greaterThanOrEqualTo(cb.coalesce(features.get(VesselFeatures.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate);
             }
 
             // End date only
@@ -112,7 +112,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
                     // or NOT outside the start/end period
                     cb.not(
                         cb.or(
-                            cb.lessThan(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate),
+                            cb.lessThan(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate),
                             cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                         )
                     )
@@ -125,7 +125,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
                     // without VRP
                     cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
                     // VRP.end_date >= filter.startDate
-                    cb.greaterThanOrEqualTo(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME), startDate)
+                    cb.greaterThanOrEqualTo(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate)
                 );
             }
 

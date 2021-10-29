@@ -84,7 +84,9 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class Daos {
 
-    public final static Date NVL_END_DATE_TIME = Dates.fromISODateTimeString("2100-01-01T00:00:00.000Z");
+    // IMPORTANT: must a date in the future.
+    // Should be same as index, if any (see Oracle tables VESSEL_FEATURES and VESSEL_REGISTRATION_PERIOD)
+    public final static Date DEFAULT_END_DATE_TIME = Dates.fromISODateTimeString("2100-01-01T00:00:00.000Z");
 
     private final static String JDBC_URL_PREFIX = "jdbc:";
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + DatabaseType.hsqldb.name() + ":";
@@ -1513,6 +1515,20 @@ public class Daos {
     }
 
     /**
+     * <p>getDatabaseCurrentTimestamp.</p>
+     *
+     * @param dataSource a {@link DataSource} object.
+     * @param dialect    a {@link Dialect} object.
+     * @return a {@link Timestamp} object.
+     * @throws SQLException if any.
+     */
+    public static Date getDatabaseCurrentDate(DataSource dataSource, Dialect dialect) throws SQLException {
+        final String sql = dialect.getCurrentTimestampSelectString();
+        Object result = Daos.sqlUniqueTimestamp(dataSource, sql);
+        return toDateFromJdbcResult(result);
+    }
+
+    /**
      * <p>getDatabaseVersion.</p>
      *
      * @param connection a {@link Connection} object.
@@ -1543,17 +1559,36 @@ public class Daos {
     }
 
     public static Timestamp toTimestampFromJdbcResult(Object source) throws SQLException {
-        Object result = source;
-        if (!(result instanceof Timestamp)) {
-            if (result instanceof Date) {
-                result = new Timestamp(((Date) result).getTime());
-            } else if (result instanceof OffsetDateTime) {
-                result = new Timestamp(((OffsetDateTime) result).atZoneSimilarLocal(ZoneOffset.UTC).toInstant().toEpochMilli());
-            } else {
-                throw new SQLException("Could not find database current timestamp. Invalid result (not a timestamp ?): " + result);
-            }
+        if (source instanceof Timestamp) return (Timestamp)source;
+
+        if (source instanceof Date) {
+            return new Timestamp(((Date) source).getTime());
+        } else if (source instanceof OffsetDateTime) {
+            return  new Timestamp(((OffsetDateTime) source)
+                .atZoneSimilarLocal(ZoneOffset.UTC)
+                .toInstant().toEpochMilli());
         }
-        return (Timestamp) result;
+        throw new SQLException("Could not find database current timestamp. Invalid result (not a timestamp ?): " + source);
+    }
+
+
+    public static Date toDateFromJdbcResult(Object source) throws SQLException {
+        if (source instanceof OffsetDateTime) {
+            return new Date(((OffsetDateTime) source)
+                .atZoneSimilarLocal(ZoneOffset.UTC)
+                .toInstant().toEpochMilli());
+        }
+        if (source instanceof Timestamp) {
+            return new Date(((Timestamp) source).getTime());
+        }
+        else if (source instanceof java.sql.Date) {
+            return new Date(((java.sql.Date) source).getTime());
+        }
+        else if (source instanceof Date) {
+            return new Date(((Date) source).getTime());
+        }
+
+        throw new SQLException("Could not find database current timestamp. Invalid result (not a date ?): " + source);
     }
 
     /* -- private methods  -- */
@@ -1780,6 +1815,13 @@ public class Daos {
         }
 
         return result;
+    }
+
+    public static <T, X> Root<X> getRoot(CriteriaQuery<T> query, Class<X> entityClass) {
+        return Beans.getStream(query.getRoots())
+            .filter(root -> root.getJavaType() == entityClass)
+            .findFirst().map(root -> (Root<X>)root)
+            .orElseGet(() -> query.from(entityClass));
     }
 
     /**

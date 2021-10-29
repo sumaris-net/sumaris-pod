@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.PacketCompositionVO;
@@ -32,6 +33,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
@@ -42,6 +44,8 @@ import static org.junit.Assert.*;
  */
 @Ignore("Use only SFA Oracle database")
 @ActiveProfiles("oracle")
+@TestPropertySource(locations = "classpath:application-oracle.properties")
+@Slf4j
 public class PacketServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule

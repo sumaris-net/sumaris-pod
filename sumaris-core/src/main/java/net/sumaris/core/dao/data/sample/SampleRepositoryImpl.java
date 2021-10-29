@@ -53,10 +53,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -385,7 +382,7 @@ public class SampleRepositoryImpl
 
         // Save each samples
         final boolean trace = log.isTraceEnabled();
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         long updatesCount = sources.stream().map(source -> {
             Sample target = null;
             if (source.getId() != null) {
@@ -438,7 +435,7 @@ public class SampleRepositoryImpl
     protected SampleVO optimizedSave(SampleVO source,
                                      Sample entity,
                                      boolean checkUpdateDate,
-                                     Timestamp newUpdateDate,
+                                     Date newUpdateDate,
                                      boolean enableHashOptimization) {
         Preconditions.checkNotNull(source);
 

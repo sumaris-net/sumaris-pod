@@ -77,7 +77,7 @@
 				<constraints nullable="false" foreignKeyName="survey_meas_pmfm_fk" referencedTableName="pmfm" referencedColumnNames="id"/>
 			</column>
 			<column name="qualitative_value_fk" type="INT">
-				<constraints foreignKeyName="survey_meas_qual_value_fk" referencedTableName="qualitative_value" referencedColumnNames="id"
+				<constraints foreignKeyName="survey_meas_qual_value_fk" referencedTableName="qualitative_value" referencedColumnNames="id"/>
 			</column>
 			<column name="quality_flag_fk" type="INT">
 				<constraints nullable="false" foreignKeyName="survey_meas_quality_flag_fk" referencedTableName="quality_flag" referencedColumnNames="id"/>
@@ -89,14 +89,13 @@
 	</changeSet>
 
 	<changeSet author="ludovic.pecquot@e-is.pro" id="1625816880597-4">
-		<preConditions>
+		<preConditions onFail="MARK_RAN">
 			<not>
 				<sequenceExists sequenceName="survey_measurement_seq"/>
 			</not>
 		</preConditions>
 		<createSequence sequenceName="survey_measurement_seq"/>
 	</changeSet>
-
 
 	<!-- update SYSTEM_VERSION -->
     <changeSet author="camille.cotonnec@e-is.pro" id="1625816880597-200" runOnChange="true">

@@ -362,9 +362,9 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
 
     /* -- Liquibase options-- */
 
-    LIQUIBASE_RUN_AUTO(
+    LIQUIBASE_ENABLED(
         "spring.liquibase.enabled",
-        n("sumaris.config.option.liquibase.should.run.description"),
+        n("sumaris.config.option.liquibase.liquibase.enabled.description"),
         Boolean.TRUE.toString(),
         boolean.class,
         false),
@@ -602,6 +602,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
         "SIH",
+        String.class,
+        false),
+
+    VESSEL_REGISTRATION_CODE_NATURAL_ORDER(
+        "sumaris.persistence.vessel.registrationCode.naturalOrder.enable",
+        n("sumaris.config.option.persistence.vessel.registrationCode.naturalOrder.enabled.description"),
+        Boolean.FALSE.toString(),
         Boolean.class,
         false),
 

@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.dao.technical.table;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
@@ -53,13 +54,13 @@ public interface ExtractionTableDao {
 
     List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
 
-    ExtractionResultVO getRows(String tableName, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction);
+    ExtractionResultVO getRows(String tableName, ExtractionFilterVO filter, Page page);
 
     ExtractionResultVO getAggRows(String tableName,
                                   ExtractionFilterVO filter,
                                   Set<String> groupByColumnNames,
                                   Map<String, SQLAggregatedFunction> otherColumnNames,
-                                  int offset, int size, String sort, SortDirection direction);
+                                  Page page);
 
     Map<String, Object> getAggByTechRows(String tableName,
                                          ExtractionFilterVO filter,

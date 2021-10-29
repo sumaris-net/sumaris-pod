@@ -22,6 +22,7 @@ package net.sumaris.core.extraction.dao;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.vo.*;
@@ -44,7 +45,7 @@ public interface AggregationDao<
                               F filter,
                               S strata);
 
-    AggregationResultVO getAggBySpace(String tableName, F filter, S strata, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    AggregationResultVO getAggBySpace(String tableName, F filter, S strata, Page page);
 
     AggregationTechResultVO getAggByTech(String tableName, F filter, S strata, String sortAttribute, SortDirection direction);
 

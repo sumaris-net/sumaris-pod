@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.PmfmStrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.StrategyRepository;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
@@ -88,8 +89,8 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
-	public List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions) {
-		return strategyRepository.findAll(filter, pageable, fetchOptions).getContent();
+	public List<StrategyVO> findByFilter(StrategyFilterVO filter, Page page, StrategyFetchOptions fetchOptions) {
+		return strategyRepository.findAll(filter, page, fetchOptions);
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -178,9 +179,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public AggregationResultVO getAggBySpace(String tableName, F filter, S strata,
-                                             int offset, int size,
-                                             String sortAttribute, SortDirection direction) {
+    public AggregationResultVO getAggBySpace(String tableName, F filter, S strata, Page page) {
         Preconditions.checkNotNull(tableName);
         Preconditions.checkNotNull(strata);
 
@@ -189,8 +188,7 @@ public class AggregationRdbTripDaoImpl<
         Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
 
         ExtractionResultVO rows = extractionTableDao.getAggRows(tableName, filter,
-                groupByColumnNames, aggColumns,
-                offset, size, sortAttribute, direction);
+                groupByColumnNames, aggColumns, page);
 
         AggregationResultVO result = new AggregationResultVO(rows);
 

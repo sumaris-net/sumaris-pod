@@ -22,10 +22,7 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.domain.Pageable;
 
 import java.io.Serializable;
@@ -37,6 +34,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Page implements Serializable {
 
     @Builder.Default

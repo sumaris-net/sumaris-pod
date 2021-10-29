@@ -34,6 +34,6 @@ import net.sumaris.core.vo.filter.VesselFilterVO;
 
 public interface VesselSnapshotRepository extends
     DataRepository<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions>,
-    VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions> {
+    VesselSnapshotSpecifications {
 
 }

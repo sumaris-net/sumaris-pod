@@ -253,8 +253,13 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
                 .collect(Collectors.toList());
     }
 
-    private static final ImmutableList<String> PMFM_STRATEGY_SEARCH_VALID_FIELDS = ImmutableList.of(PmfmStrategy.Fields.PMFM,
-            PmfmStrategy.Fields.PARAMETER, PmfmStrategy.Fields.MATRIX, PmfmStrategy.Fields.FRACTION, PmfmStrategy.Fields.METHOD);
+    private static final ImmutableList<String> PMFM_STRATEGY_SEARCH_VALID_FIELDS = ImmutableList.of(
+        PmfmStrategy.Fields.PMFM,
+        PmfmStrategy.Fields.PARAMETER,
+        PmfmStrategy.Fields.MATRIX,
+        PmfmStrategy.Fields.FRACTION,
+        PmfmStrategy.Fields.METHOD
+    );
 
     @Override
     public List<Integer> findStrategiesPmfms(int programId, Integer referenceTaxonId, String field) {

@@ -90,11 +90,19 @@ public class BatchServiceImpl implements BatchService {
 
 		// Save measurements
 		result.forEach(savedBatch -> {
+
+			if (savedBatch.getMeasurementValuesMultiples() != null){
+				Map<Integer, String[]> sortingMeasurementsMultiple = Maps.newLinkedHashMap();
+				savedBatch.getMeasurementValuesMultiples().forEach(sortingMeasurementsMultiple::put);
+				measurementDao.saveBatchSortingMeasurementsMultipleMap(savedBatch.getId(), sortingMeasurementsMultiple);
+			}
+
 			// If only one maps: distinguish each item
 			if (savedBatch.getMeasurementValues() != null) {
 
 				Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
 				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
+
 				savedBatch.getMeasurementValues().forEach((pmfmId, value) -> {
 					if (pmfmService.isWeightPmfm(pmfmId)) {
 						quantificationMeasurements.putIfAbsent(pmfmId, value);

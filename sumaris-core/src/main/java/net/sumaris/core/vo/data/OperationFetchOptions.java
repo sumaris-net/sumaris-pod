@@ -22,14 +22,26 @@
 
 package net.sumaris.core.vo.data;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import net.sumaris.core.util.Beans;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class OperationFetchOptions implements IDataFetchOptions {
 
     public static final OperationFetchOptions DEFAULT = OperationFetchOptions.builder().build();
+
+    public static OperationFetchOptions nullToEmpty(OperationFetchOptions options) {
+        return options != null ? options : OperationFetchOptions.builder().build();
+    }
+    public static OperationFetchOptions clone(OperationFetchOptions options) {
+        return options != null ? options.clone() : OperationFetchOptions.builder().build();
+    }
 
     @Builder.Default
     private boolean withRecorderDepartment = true;
@@ -47,9 +59,17 @@ public class OperationFetchOptions implements IDataFetchOptions {
     private boolean withMeasurementValues = false;
 
     @Builder.Default
-    private boolean withLinkedOperation = true;
+    private boolean withParentOperation = false;
+
+    @Builder.Default
+    private boolean withChildOperation = false;
 
     @Builder.Default
     private boolean withTrip = false;
 
+    public OperationFetchOptions clone() {
+        OperationFetchOptions target = new OperationFetchOptions();
+        Beans.copyProperties(this, target);
+        return target;
+    }
 }

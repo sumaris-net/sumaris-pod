@@ -24,14 +24,9 @@ package net.sumaris.core.dao.data.vessel;
 
 import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface VesselRepository extends
     RootDataRepository<Vessel, VesselVO, VesselFilterVO, VesselFetchOptions>,

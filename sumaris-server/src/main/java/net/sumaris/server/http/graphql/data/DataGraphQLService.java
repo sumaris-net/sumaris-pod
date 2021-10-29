@@ -386,11 +386,14 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
     public List<PhysicalGearVO> getGearsByTrip(@GraphQLContext TripVO trip) {
+        if (trip.getGears() != null) return trip.getGears();
+        if (trip.getId() == null) return null;
         return physicalGearService.getAllByTripId(trip.getId(), null);
     }
 
     @GraphQLQuery(name = "trip", description = "Get physical gear's trip")
     public TripVO getTripByPhysicalGearId(@GraphQLContext PhysicalGearVO physicalGear) {
+        if (physicalGear.getTrip() != null) return physicalGear.getTrip();
         if (physicalGear.getTripId() == null) return null;
         return tripService.get(physicalGear.getTripId());
     }
@@ -590,11 +593,15 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "sales", description = "Get trip's sales")
     public List<SaleVO> getSalesByTrip(@GraphQLContext TripVO trip) {
+        if (trip.getSales() != null) return trip.getSales();
+        if (trip.getId() == null) return null;
         return saleService.getAllByTripId(trip.getId(), null);
     }
 
     @GraphQLQuery(name = "sale", description = "Get trip's unique sale")
     public SaleVO getUniqueSaleByTrip(@GraphQLContext TripVO trip) {
+        if (trip.getSale() != null) return trip.getSale();
+        if (trip.getId() == null) return null;
         List<SaleVO> sales = saleService.getAllByTripId(trip.getId(), null);
         return CollectionUtils.isEmpty(sales) ? null : CollectionUtils.extractSingleton(sales);
     }
@@ -603,11 +610,15 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "expectedSales", description = "Get trip's expected sales")
     public List<ExpectedSaleVO> getExpectedSalesByTrip(@GraphQLContext TripVO trip) {
+        if (trip.getExpectedSales() != null) return trip.getExpectedSales();
+        if (trip.getId() == null) return null;
         return expectedSaleService.getAllByTripId(trip.getId());
     }
 
     @GraphQLQuery(name = "expectedSale", description = "Get trip's unique expected sale")
     public ExpectedSaleVO getUniqueExpectedSaleByTrip(@GraphQLContext TripVO trip) {
+        if (trip.getExpectedSale() != null) return trip.getExpectedSale();
+        if (trip.getId() == null) return null;
         List<ExpectedSaleVO> expectedSales = expectedSaleService.getAllByTripId(trip.getId());
         return CollectionUtils.isEmpty(expectedSales) ? null : CollectionUtils.extractSingleton(expectedSales);
     }
@@ -673,8 +684,10 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "operation", description = "Get an operation")
     @Transactional(readOnly = true)
     @IsUser
-    public OperationVO getOperation(@GraphQLArgument(name = "id") int id) {
-        return operationService.get(id);
+    public OperationVO getOperation(@GraphQLArgument(name = "id") int id,
+                                    @GraphQLEnvironment() ResolutionEnvironment env) {
+        Set<String> fields = GraphQLUtils.fields(env);
+        return operationService.get(id, getOperationFetchOptions(fields));
     }
 
     @GraphQLMutation(name = "saveOperations", description = "Create or update many operations")
@@ -716,8 +729,9 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<OperationGroupVO> getOperationGroupsByTrip(@GraphQLContext TripVO trip) {
-        return Optional.ofNullable(trip.getOperationGroups())
-                .orElse(operationGroupService.findAllByTripId(trip.getId(), null));
+        if (trip.getOperationGroups() != null) return trip.getOperationGroups();
+        if (trip.getId() == null) return null;
+        return operationGroupService.findAllByTripId(trip.getId(), null);
     }
 
     @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
@@ -745,35 +759,30 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "products", description = "Get operation group's products")
     public List<ProductVO> getProductsByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
 
-        if (CollectionUtils.isNotEmpty(operationGroup.getProducts())) {
-            return operationGroup.getProducts();
-        }
-
+        if (operationGroup.getProducts() != null) return operationGroup.getProducts();
+        if (operationGroup.getId() == null) return null;
         return productService.getByOperationId(operationGroup.getId());
     }
 
     @GraphQLQuery(name = "products", description = "Get sale's products")
     public List<ProductVO> getProductsBySale(@GraphQLContext SaleVO sale) {
 
-        if (CollectionUtils.isNotEmpty(sale.getProducts())) {
-            return sale.getProducts();
-        }
-
+        if (sale.getProducts() != null) return sale.getProducts();
+        if (sale.getId() == null) return null;
         return productService.getBySaleId(sale.getId());
     }
 
     @GraphQLQuery(name = "products", description = "Get expected sale's products")
     public List<ProductVO> getProductsByExpectedSale(@GraphQLContext ExpectedSaleVO expectedSale) {
 
-        if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
-            return expectedSale.getProducts();
-        }
-
+        if (expectedSale.getProducts() != null) return expectedSale.getProducts();
+        if (expectedSale.getId() == null) return null;
         return productService.getByExpectedSaleId(expectedSale.getId());
     }
 
     @GraphQLQuery(name = "products", description = "Get landing's products")
     public List<ProductVO> getProductsByLanding(@GraphQLContext LandingVO landing) {
+        if (landing.getId() == null) return null;
         return productService.getByLandingId(landing.getId());
     }
 
@@ -782,10 +791,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "packets", description = "Get operation group's packets")
     public List<PacketVO> getPacketsByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
 
-        if (CollectionUtils.isNotEmpty(operationGroup.getPackets())) {
-            return operationGroup.getPackets();
-        }
-
+        if (operationGroup.getPackets() != null) return operationGroup.getPackets();
+        if (operationGroup.getId() == null) return null;
         return packetService.getAllByOperationId(operationGroup.getId());
     }
 
@@ -795,9 +802,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "positions", description = "Get operation's position")
     public List<VesselPositionVO> getPositionsByOperation(@GraphQLContext OperationVO operation) {
         // Avoid a reloading (e.g. when saving)
-        if (CollectionUtils.isNotEmpty(operation.getPositions())) {
-            return operation.getPositions();
-        }
+        if (operation.getPositions() != null) return operation.getPositions();
+        if (operation.getId() == null) return null;
         return vesselPositionService.getAllByOperationId(operation.getId(), 0, 100, VesselPositionVO.Fields.DATE_TIME, SortDirection.ASC);
     }
 
@@ -807,9 +813,8 @@ public class DataGraphQLService {
     public List<SampleVO> getSamplesByOperation(@GraphQLContext OperationVO operation,
                                                 @GraphQLEnvironment ResolutionEnvironment env) {
         // Avoid a reloading (e.g. when saving)
-        if (CollectionUtils.isNotEmpty(operation.getSamples())) {
-            return operation.getSamples();
-        }
+        if (operation.getSamples() != null) return operation.getSamples();
+        if (operation.getId() == null) return null;
 
         Set<String> fields = GraphQLUtils.fields(env);
 
@@ -822,9 +827,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "samples", description = "Get operation group's samples")
     public List<SampleVO> getSamplesByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
         // Avoid a reloading (e.g. when saving)
-        if (CollectionUtils.isNotEmpty(operationGroup.getSamples())) {
-            return operationGroup.getSamples();
-        }
+        if (operationGroup.getSamples() != null) return operationGroup.getSamples();
+        if (operationGroup.getId() == null) return null;
 
         return sampleService.getAllByOperationId(operationGroup.getId());
     }
@@ -832,9 +836,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "samples", description = "Get landing's samples")
     public List<SampleVO> getSamplesByLanding(@GraphQLContext LandingVO landing) {
         // Avoid a reloading (e.g. when saving)
-        if (CollectionUtils.isNotEmpty(landing.getSamples())) {
-            return landing.getSamples();
-        }
+        if (landing.getSamples() != null) return landing.getSamples();
+        if (landing.getId() == null) return null;
 
         List<SampleVO> samples = sampleService.getAllByLandingId(landing.getId());
         landing.setSamples(samples);
@@ -844,9 +847,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "samplesCount", description = "Get number of samples")
     public long countSamplesByLanding(@GraphQLContext LandingVO landing) {
         // Avoid a reloading (e.g. when saving)
-        if (landing.getSamplesCount() != null) {
-            return landing.getSamplesCount();
-        }
+        if (landing.getSamplesCount() != null) return landing.getSamplesCount();
+        if (landing.getId() == null) return 0l;
 
         SampleFilterVO filter = SampleFilterVO.builder().landingId(landing.getId()).withTagId(true).build();
         return sampleService.countByFilter(filter);
@@ -865,9 +867,8 @@ public class DataGraphQLService {
     public List<BatchVO> getBatchesByOperation(@GraphQLContext OperationVO operation,
                                                @GraphQLEnvironment ResolutionEnvironment env) {
         // Avoid a reloading (e.g. when saving): reuse existing VO
-        if (operation.getBatches() != null) {
-            return operation.getBatches();
-        }
+        if (operation.getBatches() != null) return operation.getBatches();
+        if (operation.getId() == null) return null;
 
         Set<String> fields = GraphQLUtils.fields(env);
 
@@ -1024,68 +1025,73 @@ public class DataGraphQLService {
     // Trip
     @GraphQLQuery(name = "measurements", description = "Get trip's measurements")
     public List<MeasurementVO> getTripVesselUseMeasurements(@GraphQLContext TripVO trip) {
+        if (trip.getMeasurements() != null) return trip.getMeasurements();
+        if (trip.getId() == null) return null;
         return measurementService.getTripVesselUseMeasurements(trip.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get trip's measurements")
     public Map<Integer, String> getTripVesselUseMeasurementsMap(@GraphQLContext TripVO trip) {
-        if (trip.getMeasurementValues() != null) {
-            return trip.getMeasurementValues();
-        }
+        if (trip.getMeasurementValues() != null) return trip.getMeasurementValues();
+        if (trip.getId() == null) return null;
         return measurementService.getTripVesselUseMeasurementsMap(trip.getId());
     }
 
     // Operation
     @GraphQLQuery(name = "measurements", description = "Get operation's measurements")
     public List<MeasurementVO> getOperationVesselUseMeasurements(@GraphQLContext OperationVO operation) {
+        if (operation.getMeasurements() != null) return operation.getMeasurements();
+        if (operation.getId() == null) return null;
         return measurementService.getOperationVesselUseMeasurements(operation.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get operation's measurements")
     public Map<Integer, String> getOperationVesselUseMeasurementsMap(@GraphQLContext OperationVO operation) {
-        if (operation.getMeasurementValues() != null) {
-            return operation.getMeasurementValues();
-        }
+        if (operation.getMeasurementValues() != null) return operation.getMeasurementValues();
+        if (operation.getId() == null) return null;
         return measurementService.getOperationVesselUseMeasurementsMap(operation.getId());
     }
 
     @GraphQLQuery(name = "gearMeasurements", description = "Get operation's gear measurements")
     public List<MeasurementVO> getOperationGearUseMeasurements(@GraphQLContext OperationVO operation) {
+        if (operation.getGearMeasurements() != null) return operation.getGearMeasurements();
+        if (operation.getId() == null) return null;
         return measurementService.getOperationGearUseMeasurements(operation.getId());
     }
 
     @GraphQLQuery(name = "gearMeasurementValues", description = "Get operation's gear measurements")
     public Map<Integer, String> getOperationGearUseMeasurementsMap(@GraphQLContext OperationVO operation) {
-        if (operation.getGearMeasurementValues() != null) {
-            return operation.getGearMeasurementValues();
-        }
+        if (operation.getGearMeasurementValues() != null) return operation.getGearMeasurementValues();
+        if (operation.getId() == null) return null;
         return measurementService.getOperationGearUseMeasurementsMap(operation.getId());
     }
 
     // Operation Group
     @GraphQLQuery(name = "measurements", description = "Get operation group's measurements")
     public List<MeasurementVO> getOperationGroupVesselUseMeasurements(@GraphQLContext OperationGroupVO operationGroup) {
+        if (operationGroup.getMeasurements() != null) return operationGroup.getMeasurements();
+        if (operationGroup.getId() == null) return null;
         return measurementService.getOperationVesselUseMeasurements(operationGroup.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get operation group's measurements")
     public Map<Integer, String> getOperationGroupVesselUseMeasurementsMap(@GraphQLContext OperationGroupVO operationGroup) {
-        if (operationGroup.getMeasurementValues() != null) {
-            return operationGroup.getMeasurementValues();
-        }
+        if (operationGroup.getMeasurementValues() != null) return operationGroup.getMeasurementValues();
+        if (operationGroup.getId() == null) return null;
         return measurementService.getOperationVesselUseMeasurementsMap(operationGroup.getId());
     }
 
     @GraphQLQuery(name = "gearMeasurements", description = "Get operation group's gear measurements")
     public List<MeasurementVO> getOperationGroupGearUseMeasurements(@GraphQLContext OperationGroupVO operationGroup) {
+        if (operationGroup.getGearMeasurements() != null) return operationGroup.getGearMeasurements();
+        if (operationGroup.getId() == null) return null;
         return measurementService.getOperationGearUseMeasurements(operationGroup.getId());
     }
 
     @GraphQLQuery(name = "gearMeasurementValues", description = "Get operation group's gear measurements")
     public Map<Integer, String> getOperationGroupGearUseMeasurementsMap(@GraphQLContext OperationGroupVO operationGroup) {
-        if (operationGroup.getGearMeasurementValues() != null) {
-            return operationGroup.getGearMeasurementValues();
-        }
+        if (operationGroup.getGearMeasurementValues() != null) return operationGroup.getGearMeasurementValues();
+        if (operationGroup.getId() == null) return null;
         return measurementService.getOperationGearUseMeasurementsMap(operationGroup.getId());
     }
 
@@ -1094,98 +1100,106 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "fishingArea", description = "Get trip's fishing area")
     public FishingAreaVO getTripFishingArea(@GraphQLContext TripVO trip) {
+
+        // FIXME: after the first save (when id = null), the id is not set
+        //if (trip.getFishingArea() != null) return trip.getFishingArea();
+        if (trip.getId() == null) return null;
+
         return fishingAreaService.getByFishingTripId(trip.getId());
     }
 
     @GraphQLQuery(name = "fishingAreas", description = "Get trip's fishing areas")
     public List<FishingAreaVO> getTripFishingAreas(@GraphQLContext TripVO trip) {
+        // FIXME: after the first save (when id = null), the id is not set
+        //if (trip.getFishingAreas() != null) return trip.getFishingAreas();
+
+        if (trip.getId() == null) return null;
         return fishingAreaService.getAllByFishingTripId(trip.getId());
     }
 
     @GraphQLQuery(name = "fishingAreas", description = "Get operation's fishing areas")
     public List<FishingAreaVO> getOperationFishingAreas(@GraphQLContext OperationVO operation) {
-        if (operation.getFishingAreas() != null) {
-            return operation.getFishingAreas();
-        }
+        // FIXME: after the first save (when id = null), the id is not set
+        //if (operation.getFishingAreas() != null) return operation.getFishingAreas();
+
+        if (operation.getId() == null) return null;
         return fishingAreaService.getAllByOperationId(operation.getId());
     }
 
     @GraphQLQuery(name = "fishingAreas", description = "Get operation group's fishing areas")
     public List<FishingAreaVO> getOperationGroupFishingAreas(@GraphQLContext OperationGroupVO operationGroup) {
-        if (operationGroup.getFishingAreas() != null) {
-            return operationGroup.getFishingAreas();
-        }
+        // FIXME: after the first save (when id = null), the id is not set
+        //if (operationGroup.getFishingAreas() != null) return operationGroup.getFishingAreas();
+
+        if (operationGroup.getId() == null) return null;
         return fishingAreaService.getAllByOperationId(operationGroup.getId());
     }
-
 
     // Sale
     @GraphQLQuery(name = "measurements", description = "Get sale measurements")
     public List<MeasurementVO> getSaleMeasurements(@GraphQLContext SaleVO sale) {
+        if (sale.getMeasurements() != null) return sale.getMeasurements();
+        if (sale.getId() == null) return null;
         return measurementService.getSaleMeasurements(sale.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get sale measurement values")
     public Map<Integer, String> getSaleMeasurementsMap(@GraphQLContext SaleVO sale) {
-        if (sale.getMeasurementValues() != null) {
-            return sale.getMeasurementValues();
-        }
+        if (sale.getMeasurementValues() != null) return sale.getMeasurementValues();
+        if (sale.getId() == null) return null;
         return measurementService.getSaleMeasurementsMap(sale.getId());
     }
-
 
     // ExpectedSale
     @GraphQLQuery(name = "measurements", description = "Get expected sale measurements")
     public List<MeasurementVO> getExpectedSaleMeasurements(@GraphQLContext ExpectedSaleVO expectedSale) {
+        if (expectedSale.getMeasurements() != null) return expectedSale.getMeasurements();
+        if (expectedSale.getId() == null) return null;
         return measurementService.getExpectedSaleMeasurements(expectedSale.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get expected sale measurement values")
     public Map<Integer, String> getExpectedSaleMeasurementsMap(@GraphQLContext ExpectedSaleVO expectedSale) {
-        if (expectedSale.getMeasurementValues() != null) {
-            return expectedSale.getMeasurementValues();
-        }
+        if (expectedSale.getMeasurementValues() != null) return expectedSale.getMeasurementValues();
+        if (expectedSale.getId() == null) return null;
         return measurementService.getExpectedSaleMeasurementsMap(expectedSale.getId());
     }
-
 
     // Physical gear
     @GraphQLQuery(name = "measurements", description = "Get physical gear measurements")
     public List<MeasurementVO> getPhysicalGearMeasurements(@GraphQLContext PhysicalGearVO physicalGear) {
+        if (physicalGear.getMeasurements() == null) return physicalGear.getMeasurements();
+        if (physicalGear.getId() == null) return null;
         return measurementService.getPhysicalGearMeasurements(physicalGear.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get physical gear measurements")
     public Map<Integer, String> getPhysicalGearMeasurementsMap(@GraphQLContext PhysicalGearVO physicalGear) {
-        if (physicalGear.getMeasurementValues() != null) {
-            return physicalGear.getMeasurementValues();
-        }
+        if (physicalGear.getMeasurementValues() != null) return physicalGear.getMeasurementValues();
+        if (physicalGear.getId() == null) return null;
         return measurementService.getPhysicalGearMeasurementsMap(physicalGear.getId());
     }
 
     // Sample
     @GraphQLQuery(name = "measurements", description = "Get sample measurements")
     public List<MeasurementVO> getSampleMeasurements(@GraphQLContext SampleVO sample) {
-        if (sample.getMeasurements() != null) {
-            return sample.getMeasurements();
-        }
+        if (sample.getMeasurements() != null) return sample.getMeasurements();
+        if (sample.getId() == null) return null;
         return measurementService.getSampleMeasurements(sample.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getSampleMeasurementValues(@GraphQLContext SampleVO sample) {
-        if (sample.getMeasurementValues() != null) {
-            return sample.getMeasurementValues();
-        }
+        if (sample.getMeasurementValues() != null) return sample.getMeasurementValues();
+        if (sample.getId() == null) return null;
         return measurementService.getSampleMeasurementsMap(sample.getId());
     }
 
     // Batch
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getBatchMeasurementValues(@GraphQLContext BatchVO batch) {
-        if (batch.getMeasurementValues() != null) {
-            return batch.getMeasurementValues();
-        }
+        if (batch.getMeasurementValues() != null) return batch.getMeasurementValues();
+        if (batch.getId() == null) return null;
         Map<Integer, String> map = Maps.newHashMap();
         map.putAll(measurementService.getBatchSortingMeasurementsMap(batch.getId()));
         map.putAll(measurementService.getBatchQuantificationMeasurementsMap(batch.getId()));
@@ -1194,26 +1208,22 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "quantificationMeasurements", description = "Get batch quantification measurements")
     public List<QuantificationMeasurementVO> getBatchQuantificationMeasurements(@GraphQLContext BatchVO batch) {
-        if (batch.getQuantificationMeasurements() != null) {
-            return batch.getQuantificationMeasurements();
-        }
+        if (batch.getQuantificationMeasurements() != null) return batch.getQuantificationMeasurements();
+        if (batch.getId() == null) return null;
         return measurementService.getBatchQuantificationMeasurements(batch.getId());
     }
 
     @GraphQLQuery(name = "sortingMeasurements", description = "Get batch sorting measurements")
     public List<MeasurementVO> getBatchSortingMeasurements(@GraphQLContext BatchVO batch) {
-        if (batch.getSortingMeasurements() != null) {
-            return batch.getSortingMeasurements();
-        }
+        if (batch.getSortingMeasurements() != null) return batch.getSortingMeasurements();
+        if (batch.getId() == null) return null;
         return measurementService.getBatchSortingMeasurements(batch.getId());
     }
 
     // Product
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getProductMeasurementValues(@GraphQLContext ProductVO product) {
-        if (product.getMeasurementValues() != null) {
-            return product.getMeasurementValues();
-        }
+        if (product.getMeasurementValues() != null) return product.getMeasurementValues();
         productService.fillMeasurementsMap(product);
         return product.getMeasurementValues();
     }
@@ -1221,26 +1231,23 @@ public class DataGraphQLService {
     // Observed location
     @GraphQLQuery(name = "measurements", description = "Get measurement values")
     public List<MeasurementVO> getObservedLocationMeasurements(@GraphQLContext ObservedLocationVO observedLocation) {
-        if (observedLocation.getMeasurements() != null) {
-            return observedLocation.getMeasurements();
-        }
+        if (observedLocation.getMeasurements() != null) return observedLocation.getMeasurements();
+        if (observedLocation.getId() == null) return null;
         return measurementService.getObservedLocationMeasurements(observedLocation.getId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getObservedLocationMeasurementsMap(@GraphQLContext ObservedLocationVO observedLocation) {
-        if (observedLocation.getMeasurementValues() != null) {
-            return observedLocation.getMeasurementValues();
-        }
+        if (observedLocation.getMeasurementValues() != null) return observedLocation.getMeasurementValues();
+        if (observedLocation.getId() == null) return null;
         return measurementService.getObservedLocationMeasurementsMap(observedLocation.getId());
     }
 
     // Landing
     @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
     public Map<Integer, String> getLandingMeasurementsMap(@GraphQLContext LandingVO landing) {
-        if (landing.getMeasurementValues() != null) {
-            return landing.getMeasurementValues();
-        }
+        if (landing.getMeasurementValues() != null) return landing.getMeasurementValues();
+        if (landing.getId() == null) return null;
         Map<Integer, String> result = new HashMap<>();
         Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
         Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
@@ -1261,12 +1268,10 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "measurementValues", description = "Get vessel's physical measurements")
     public Map<Integer, String> getVesselFeaturesMeasurementsMap(@GraphQLContext VesselSnapshotVO vesselSnapshot) {
-        if (vesselSnapshot.getMeasurementValues() == null) {
-            return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getId());
-        }
-        return vesselSnapshot.getMeasurementValues();
+        if (vesselSnapshot.getMeasurementValues() != null) vesselSnapshot.getMeasurementValues();
+        if (vesselSnapshot.getId() == null) return null;
+        return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getId());
     }
-
 
     /* -- protected methods -- */
 
@@ -1375,6 +1380,8 @@ public class DataGraphQLService {
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
+                .withParentOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.PARENT_OPERATION, IEntity.Fields.ID)))
+                .withChildOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.CHILD_OPERATION, IEntity.Fields.ID)))
                 .build();
     }
 

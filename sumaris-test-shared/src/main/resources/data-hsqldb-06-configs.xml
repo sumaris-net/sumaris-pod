@@ -57,7 +57,7 @@
     <SOFTWARE_PROPERTY ID="56" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="57" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="58" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://www.milieumarinfrance.fr/var/storage/images/_aliases/fullsize/media/medias-simm/a-propos/illustration-a-propos/17785-2-fre-FR/Illustration-A-Propos.jpg,https://www.milieumarinfrance.fr/var/storage/images/_aliases/c_slideshow-carousel_default/media/medias-simm/a-propos/actualites/illustration-du-sar/30658-6-fre-FR/Illustration-du-SAR,https://www.milieumarinfrance.fr/var/storage/images/_aliases/c_slideshow-carousel_default/media/medias-simm/a-propos/actualites/limite-terre-mer-illustration-du-littoral/27725-1-fre-FR/Limite-terre-mer-illustration-du-littoral.png"/>
-    <SOFTWARE_PROPERTY ID="59" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="59" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="false"/>
     <SOFTWARE_PROPERTY ID="60" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="61" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="62" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
@@ -74,7 +74,7 @@
     <SOFTWARE_PROPERTY ID="78" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="79" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.vessel.status.default" NAME="2"/>
     <SOFTWARE_PROPERTY ID="80" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
-    <SOFTWARE_PROPERTY ID="82" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="82" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
     <SOFTWARE_PROPERTY ID="83" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="84" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="85" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
@@ -87,7 +87,7 @@
     <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASIONS"/>
     <SOFTWARE_PROPERTY ID="104" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg"/>
     <SOFTWARE_PROPERTY ID="105" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
-    <SOFTWARE_PROPERTY ID="106" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="106" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
     <SOFTWARE_PROPERTY ID="107" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="108" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="false"/>
     <SOFTWARE_PROPERTY ID="109" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.accessNotSelfExtraction.role" NAME="ROLE_USER"/>
@@ -111,7 +111,7 @@
     <SOFTWARE_PROPERTY ID="137" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
     <SOFTWARE_PROPERTY ID="138" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="139" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.testing.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="140" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="140" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
     <SOFTWARE_PROPERTY ID="141" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="142" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
 

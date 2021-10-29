@@ -53,7 +53,7 @@ public interface ProgramService {
 	ProgramVO getByLabel(String label);
 
 	@Transactional(readOnly = true)
-	Optional<ProgramVO> findIfNewerByLabel(String label, final Date updateDate, ProgramFetchOptions fetchOptions);
+	Optional<ProgramVO> findNewerById(int id, final Date updateDate, ProgramFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ProgramVO> getAll();

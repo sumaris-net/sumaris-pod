@@ -159,24 +159,22 @@ public class OperationRepositoryImpl
         // ParentOperation
         if (source.getParentOperation() != null) {
             target.setParentOperationId(source.getParentOperation().getId());
-            if (fetchOptions == null || fetchOptions.isWithLinkedOperation()) {
-                if (fetchOptions == null) {
-                    fetchOptions = OperationFetchOptions.builder().build();
-                }
-                fetchOptions.setWithLinkedOperation(false);
-                target.setParentOperation(this.findById(target.getParentOperationId(), fetchOptions).orElse(null));
+            if (fetchOptions != null && fetchOptions.isWithParentOperation()) {
+                fetchOptions = OperationFetchOptions.clone(fetchOptions);
+                fetchOptions.setWithParentOperation(false);
+                fetchOptions.setWithChildOperation(false);
+                target.setParentOperation(toVO(source.getParentOperation(), fetchOptions));
             }
         }
 
         // ChildOperation
-        if (target.getParentOperation() == null && source.getChildOperation() != null) {
+        else if (source.getChildOperation() != null) {
             target.setChildOperationId(source.getChildOperation().getId());
-            if (fetchOptions == null || fetchOptions.isWithLinkedOperation()) {
-                if (fetchOptions == null) {
-                    fetchOptions = OperationFetchOptions.builder().build();
-                }
-                fetchOptions.setWithLinkedOperation(false);
-                target.setChildOperation(this.findById(target.getChildOperationId(), fetchOptions).orElse(null));
+            if (fetchOptions != null && fetchOptions.isWithChildOperation()) {
+                fetchOptions = OperationFetchOptions.clone(fetchOptions);
+                fetchOptions.setWithParentOperation(false);
+                fetchOptions.setWithChildOperation(false);
+                target.setChildOperation(toVO(source.getChildOperation(), fetchOptions));
             }
         }
     }
@@ -313,7 +311,7 @@ public class OperationRepositoryImpl
                 .and(inGearIds(filter.getGearIds()))
                 .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
                 .and(hasQualityFlagId(filter.getQualityFlagId()))
-                .or(includedIds(filter.getIncludedIds()));
+                .and(includedIds(filter.getIncludedIds()));
     }
 
     @Override

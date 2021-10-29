@@ -507,12 +507,12 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>useLiquibaseAutoRun.</p>
+     * <p>isLiquibaseEnabled.</p>
      *
      * @return a boolean.
      */
-    public boolean useLiquibaseAutoRun() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_RUN_AUTO.getKey());
+    public boolean isLiquibaseEnabled() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_ENABLED.getKey());
     }
 
     /**
@@ -603,6 +603,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public String getJdbcSchema() {
         return applicationConfig.getOption(SumarisConfigurationOption.JDBC_SCHEMA.getKey());
+    }
+
+    public boolean isOracleDatabase() {
+        return Daos.isOracleDatabase(getJdbcURL());
     }
 
     /**
@@ -928,6 +932,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     @Deprecated
     public String getVesselDefaultProgramLabel() {
         return applicationConfig.getOption(SumarisConfigurationOption.VESSEL_DEFAULT_PROGRAM_LABEL.getKey());
+    }
+
+    public boolean enableVesselRegistrationCodeNaturalOrder() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.VESSEL_REGISTRATION_CODE_NATURAL_ORDER.getKey());
     }
 
     /**

@@ -49,7 +49,7 @@
             </and>
         </preConditions>
         <sql><![CDATA[
-            insert into PMFM (id, parameter_fk, label, unit_fk, creation_date, update_date)
+            insert into PMFM (id, parameter_fk, label, unit_fk, status_fk, creation_date, update_date)
             values (381, 121, 'HAS_INDIVIDUAL_MEASUREMENT', 0, 1, '2021-09-01', '2021-09-01');
             ]]>
         </sql>

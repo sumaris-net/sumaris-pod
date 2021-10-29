@@ -40,7 +40,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
-import java.sql.Timestamp;
+import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
@@ -123,7 +123,7 @@ public abstract class RootDataRepositoryImpl<
         if (isLockForUpdate()) lockForUpdate(entity);
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
         // TODO VALIDATION PROCESS HERE
@@ -161,7 +161,7 @@ public abstract class RootDataRepositoryImpl<
         entity.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFIED.getId()));
 
         // Update update_dt
-        Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
+        Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName

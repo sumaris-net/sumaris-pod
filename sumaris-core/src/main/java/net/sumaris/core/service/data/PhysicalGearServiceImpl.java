@@ -51,7 +51,7 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	}
 
 	@Override
-	public List<PhysicalGearVO> save(int tripId, List<PhysicalGearVO> sources) {
+	public List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources) {
 		return physicalGearRepository.saveAllByTripId(tripId, sources);
 	}
 

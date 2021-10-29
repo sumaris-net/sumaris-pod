@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -453,14 +454,13 @@ public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 		try {
 
 			// If species list table
-			if (table != null && (
-					table == DatabaseTableEnum.P01_RDB_SPECIES_LIST
-				|| table == DatabaseTableEnum.P01_RDB_SPECIES_LENGTH)
-			) {
+			if (table != null
+				&& (table == DatabaseTableEnum.P01_RDB_SPECIES_LIST || table == DatabaseTableEnum.P01_RDB_SPECIES_LENGTH)) {
 
 				// Get taxon name, to create a replacement map
 				Map<String, String> taxonNameReplacements = Maps.newHashMap();
-				for (TaxonNameVO t: taxonNameService.getAll(true)) {
+				for (TaxonNameVO t: taxonNameService.findAllSpeciesAndSubSpecies(true,
+					(Page)null, null)) {
 					if (StringUtils.isNotBlank(t.getLabel())) {
 						String regexp = t.getName() + "[^,;\t\"]*" + separator;
 						String replacement = t.getLabel() + separator;

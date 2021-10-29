@@ -23,10 +23,12 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
@@ -39,6 +41,7 @@ import net.sumaris.core.vo.referential.LocationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 
 @Slf4j
@@ -48,14 +51,23 @@ public class VesselFeaturesRepositoryImpl
 
     private final ReferentialDao referentialDao;
     private final LocationRepository locationRepository;
+    private final SumarisConfiguration configuration;
+    private boolean isOracleDatabase;
 
     @Autowired
     public VesselFeaturesRepositoryImpl(EntityManager entityManager,
                                         ReferentialDao referentialDao,
-                                        LocationRepository locationRepository) {
+                                        LocationRepository locationRepository,
+                                        SumarisConfiguration configuration) {
         super(VesselFeatures.class, VesselFeaturesVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.locationRepository = locationRepository;
+        this.configuration = configuration;
+    }
+
+    @PostConstruct
+    private void setup() {
+        isOracleDatabase = Daos.isOracleDatabase(configuration.getJdbcURL());
     }
 
     @Override
@@ -138,5 +150,10 @@ public class VesselFeaturesRepositoryImpl
     @Override
     protected void onAfterSaveEntity(VesselFeaturesVO vo, VesselFeatures savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+    }
+
+    @Override
+    public boolean isOracleDatabase() {
+        return isOracleDatabase;
     }
 }

@@ -66,4 +66,54 @@
 		</sql>
 	</changeSet>
 
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-303" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">select count(*) from parameter_group</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="parameter_group">
+			<column name="id" valueNumeric="0"/>
+			<column name="status_fk" valueNumeric="1"/>
+			<column name="creation_date" valueComputed="sysdate"/>
+			<column name="update_date" valueComputed="current_timestamp"/>
+			<column name="label">UNK</column>
+			<column name="name">Unknown</column>
+			<column name="description">Groupe par défaut (=sans classification)</column>
+		</insert>
+		<insert tableName="parameter_group">
+			<column name="id" valueNumeric="1"/>
+			<column name="status_fk" valueNumeric="1"/>
+			<column name="creation_date" valueComputed="sysdate"/>
+			<column name="update_date" valueComputed="current_timestamp"/>
+			<column name="label">SURVEY</column>
+			<column name="name"><![CDATA[Caratéristiques d'enquêtes]]></column>
+			<column name="description"><![CDATA[Permet de grouper les paramètres qui sont relatifs aux tableaux "Caratéristiques d'enquête"]]></column>
+		</insert>
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-304" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">select count(*) from parameter where parameter_group_fk is null</sqlCheck></not>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update parameter set parameter_group_fk = 0 where parameter_group_fk is null;
+			commit;
+		</sql>
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-305" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">select count(*) from parameter where parameter_group_fk is null</sqlCheck>
+			</and>
+		</preConditions>
+		<addNotNullConstraint tableName="parameter" columnName="parameter_group_fk"/>
+	</changeSet>
+
 </databaseChangeLog>

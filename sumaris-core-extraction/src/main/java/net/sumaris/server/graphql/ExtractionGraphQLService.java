@@ -28,22 +28,21 @@ import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.NonNull;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.extraction.service.ExtractionService;
-import net.sumaris.core.extraction.vo.AggregationTypeVO;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
 import net.sumaris.core.extraction.vo.ExtractionTypeVO;
 import net.sumaris.core.extraction.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
-import net.sumaris.server.http.ExtractionRestController;
 import net.sumaris.server.http.ExtractionRestPaths;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.security.IDownloadController;
@@ -53,14 +52,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -115,7 +113,7 @@ public class ExtractionGraphQLService {
     public ExtractionResultVO getExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                               @GraphQLArgument(name = "size", defaultValue = "100") Integer size,
                                                @GraphQLArgument(name = "sortBy") String sort,
                                                @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
     ) {
@@ -126,17 +124,23 @@ public class ExtractionGraphQLService {
 
         securityService.checkReadAccess(type);
 
-        return extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        return extractionService.executeAndRead(type, filter, Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build());
     }
 
     @GraphQLQuery(name = "extraction", description = "Preview some extraction")
     @Transactional
     public List<Map<String, String>> getExtraction(@GraphQLArgument(name = "type") ExtractionTypeVO type,
-                                                            @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                                            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                            @GraphQLArgument(name = "sortBy") String sort,
-                                                            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+                                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                   @GraphQLArgument(name = "sortBy") String sort,
+                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                   @GraphQLArgument(name = "cacheDuration") String cacheDuration
     ) {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
         Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
@@ -145,20 +149,23 @@ public class ExtractionGraphQLService {
 
         securityService.checkReadAccess(type);
 
-        List<Map<String, String>> results = new ArrayList<>();
+        Page page = Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build();
 
-        ExtractionResultVO resultVO = extractionService.executeAndRead(type, filter, offset, size, sort, direction != null ? SortDirection.valueOf(direction.toUpperCase()) : null);
+        ExtractionResultVO resultVO;
+        if (cacheDuration == null) {
+            resultVO = extractionService.executeAndRead(type, filter, page);
+        }
+        else {
+            resultVO = extractionService.executeAndReadWithCache(type, filter, page,
+                CacheTTL.fromString(cacheDuration));
+        }
 
-        resultVO.getRows().forEach(row -> {
-            Map<String, String> rowMap = new LinkedHashMap<>();
-            for (int i = 0; i < row.length; i++) {
-                String columnName = resultVO.getColumns().get(i).getLabel();
-                rowMap.put(columnName, row[i]);
-            }
-            results.add(rowMap);
-        });
-
-        return results;
+        return toJsonArray(resultVO);
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Execute extraction to a file")
@@ -212,5 +219,23 @@ public class ExtractionGraphQLService {
         }
 
         return extractionService.save(type, filter);
+    }
+
+    /* -- protected methods -- */
+
+    protected List<Map<String, String>> toJsonArray(ExtractionResultVO source) {
+        String[] columnNames = source.getColumns()
+            .stream().map(ExtractionTableColumnVO::getLabel)
+            .toArray(String[]::new);
+        List<Map<String, String>> target = new ArrayList<>();
+
+        return source.getRows()
+            .stream().map(row -> {
+                Map<String, String> rowMap = new LinkedHashMap<>();
+                for (int i = 0; i < row.length; i++) {
+                    rowMap.put(columnNames[i], row[i]);
+                }
+                return rowMap;
+            }).collect(Collectors.toList());
     }
 }

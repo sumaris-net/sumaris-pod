@@ -29,10 +29,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -41,6 +44,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.config.ExtractionCacheConfiguration;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.ExtractionDao;
 import net.sumaris.core.extraction.dao.administration.ExtractionStrategyDao;
@@ -77,6 +81,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,15 +95,18 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.cache.Cache;
+import javax.cache.CacheManager;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
- * @author peck7 on 17/12/2018.
+ * @author blavenie
  */
 @Service("extractionService")
 @ConditionalOnBean(ExtractionConfiguration.class)
@@ -147,8 +155,10 @@ public class ExtractionServiceImpl implements ExtractionService {
     @Autowired
     protected DatabaseSchemaDao databaseSchemaDao;
 
-    private boolean includeProductTypes = false;
+    @Autowired
+    protected CacheManager cacheManager;
 
+    private boolean includeProductTypes = false;
     private boolean enableTechnicalTablesUpdate = false;
 
     private Map<IExtractionFormat, ExtractionDao<? extends ExtractionContextVO, ? extends ExtractionFilterVO>>
@@ -187,7 +197,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ExtractionTypeVO getByFormat(@Nonnull IExtractionFormat format) {
+    public ExtractionTypeVO getByFormat(@NonNull IExtractionFormat format) {
         return ExtractionFormats.findOneMatch(this.getAllTypes(), format);
     }
 
@@ -243,7 +253,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ExtractionResultVO executeAndRead(ExtractionTypeVO type, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
+    public ExtractionResultVO executeAndRead(ExtractionTypeVO type, ExtractionFilterVO filter,
+                                             @NonNull Page page) {
         // Make sure type has category AND label filled
         type = getByFormat(type);
 
@@ -264,18 +275,46 @@ public class ExtractionServiceImpl implements ExtractionService {
                         .map(ExtractionTableColumnVO::getColumnName)
                         .collect(Collectors.toSet());
                 filter.setExcludeColumnNames(hiddenColumns);
-                return readProductRows(product, filter, offset, size, sort, direction);
+                return readProductRows(product, filter, page);
             case LIVE:
-                return extractLiveAndRead(type, filter, offset, size, sort, direction);
+                return extractLiveAndRead(type, filter, page);
             default:
                 throw new SumarisTechnicalException(String.format("Extraction of category %s not implemented yet !", type.getCategory()));
         }
     }
 
     @Override
+    public ExtractionResultVO executeAndReadWithCache(@NonNull ExtractionTypeVO type,
+                                                      @Nullable ExtractionFilterVO filter,
+                                                      @NonNull Page page,
+                                                      @Nullable CacheTTL ttl) {
+        filter = ExtractionFilterVO.nullToEmpty(filter);
+        ttl = CacheTTL.nullToDefault(ttl);
+
+        Cache<Integer, ExtractionResultVO> cache = cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+        Integer cacheKey = new HashCodeBuilder(17, 37)
+            .append(type)
+            .append(filter)
+            .append(page)
+            .append(ttl)
+            .build();
+
+        ExtractionResultVO result = cache.get(cacheKey);
+        if (result != null) return result;
+
+        // Get extraction rows
+        result = executeAndRead(type, filter, page);
+
+        // Add result to cache
+        cache.put(cacheKey, result);
+
+        return result;
+    }
+
+    @Override
     public ExtractionResultVO read(@NonNull ExtractionContextVO context,
                                    ExtractionFilterVO filter,
-                                   int offset, int size, String sort, SortDirection direction) {
+                                   Page page) {
 
         filter = filter != null ? filter : new ExtractionFilterVO();
 
@@ -304,12 +343,12 @@ public class ExtractionServiceImpl implements ExtractionService {
         rowsFilter.setDistinct(enableDistinct);
 
         // Get rows from exported tables
-        return extractionTableDao.getRows(tableName, rowsFilter, offset, size, sort, direction);
+        return extractionTableDao.getRows(tableName, rowsFilter, page);
 
     }
 
     @Override
-    public File executeAndDump(ExtractionTypeVO type, ExtractionFilterVO filter) throws IOException {
+    public File executeAndDump(ExtractionTypeVO type, ExtractionFilterVO filter) {
         // Make sure type has category AND label filled
         type = getByFormat(type);
 
@@ -569,7 +608,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     /**
      * @deprecated
-     * @param filter
      * @return
      */
     @Deprecated
@@ -586,19 +624,17 @@ public class ExtractionServiceImpl implements ExtractionService {
             .collect(Collectors.toList());
     }
 
-
-
     protected ExtractionResultVO extractLiveAndRead(ExtractionTypeVO type,
                                                     ExtractionFilterVO filter,
-                                                    int offset, int size, String sort, SortDirection direction) {
+                                                    Page page) {
         Preconditions.checkNotNull(type);
         Preconditions.checkNotNull(type.getLiveFormat());
 
         filter.setPreview(true);
 
         // Replace default sort attribute
-        if (IEntity.Fields.ID.equalsIgnoreCase(sort)) {
-            sort = null;
+        if (IEntity.Fields.ID.equalsIgnoreCase(page.getSortBy())) {
+            page.setSortBy(null);
         }
 
         // Execute extraction into temp tables
@@ -611,7 +647,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         try {
             // Read
-            return read(context, filter, offset, size, sort, direction);
+            return read(context, filter, page);
         } finally {
             // Clean created tables
             clean(context, true);
@@ -637,18 +673,18 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
-    protected ExtractionResultVO readProductRows(ExtractionProductVO product, ExtractionFilterVO filter, int offset, int size, String sort, SortDirection direction) {
-        Preconditions.checkNotNull(product);
-        Preconditions.checkNotNull(filter);
-        Preconditions.checkArgument(offset >= 0);
-        Preconditions.checkArgument(size <= 1000, "maximum value for 'size' is: 1000");
-        Preconditions.checkArgument(size >= 0, "'size' must be greater or equals to 0");
+    protected ExtractionResultVO readProductRows(@NonNull ExtractionProductVO product,
+                                                 @NonNull ExtractionFilterVO filter,
+                                                 @NonNull Page page) {
+        Preconditions.checkArgument(page.getOffset() >= 0);
+        Preconditions.checkArgument(page.getSize() >= 0, "'size' must be greater or equals to 0");
+        Preconditions.checkArgument(page.getSize() <= 1000, "maximum value for 'size' is: 1000");
 
         // Get table name
         String tableName = ExtractionFormats.getTableName(product, filter.getSheetName());
 
         // Get table rows
-        return extractionTableDao.getRows(tableName, filter, offset, size, sort, direction);
+        return extractionTableDao.getRows(tableName, filter, page);
     }
 
     protected File dumpProductToFile(ExtractionProductVO product, ExtractionFilterVO filter) {
@@ -664,7 +700,6 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected ExtractionContextVO executeLiveDao(LiveFormatEnum format, ExtractionFilterVO filter) {
-
         return getDao(format).execute(filter);
     }
 

@@ -25,42 +25,38 @@ package net.sumaris.core.dao.referential.taxon;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Pageables;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.*;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 31/07/2020.
  */
 @Slf4j
 public class TaxonNameRepositoryImpl
-        extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO, ReferentialFetchOptions>
+        extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO, TaxonNameFetchOptions>
         implements TaxonNameSpecifications {
 
     @Autowired
-    private ReferentialDao referentialDao;
+    private TaxonomicLevelRepository taxonomicLevelRepository;
 
     public TaxonNameRepositoryImpl(EntityManager entityManager) {
         super(TaxonName.class, TaxonNameVO.class, entityManager);
@@ -73,23 +69,7 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    public List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return findByFilter(filter, Pageables.create(offset, size, sortAttribute, sortDirection));
-    }
-
-    @Override
-    public List<TaxonNameVO> getAll(boolean withSynonyms) {
-
-        return findByFilter(
-                TaxonNameFilterVO.builder()
-                        .withSynonyms(withSynonyms)
-                        .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()})
-                        .build(),
-                Pageable.unpaged()
-        );
-    }
-
-    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, unless = "#result == null")
     public Optional<TaxonNameVO> findReferentByReferenceTaxonId(int referenceTaxonId) {
 
         List<TaxonNameVO> taxonNames = findAllReferentByReferenceTaxonId(referenceTaxonId);
@@ -103,34 +83,29 @@ public class TaxonNameRepositoryImpl
 
     @Override
     public List<TaxonNameVO> findAllReferentByReferenceTaxonId(int referenceTaxonId) {
-
-        List<TaxonNameVO> taxonNames = findByFilter(
+        List<TaxonNameVO> taxonNames = findAll(
                 TaxonNameFilterVO.builder()
                         .referenceTaxonId(referenceTaxonId)
                         .withSynonyms(false)
-                        .build(),
-                Pageable.unpaged()
+                        .build()
         );
         return taxonNames;
     }
 
-
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, unless = "#result == null")
     public List<TaxonNameVO> getAllByTaxonGroupId(int taxonGroupId) {
-
-        return findByFilter(
+        return findAll(
                 TaxonNameFilterVO.builder()
                         .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()})
                         .taxonGroupId(taxonGroupId)
                         .withSynonyms(false)
-                        .build(),
-                Pageable.unpaged()
+                        .build()
         );
     }
 
     @Override
-    protected Specification<TaxonName> toSpecification(TaxonNameFilterVO filter, ReferentialFetchOptions fetchOptions) {
-
+    protected Specification<TaxonName> toSpecification(TaxonNameFilterVO filter, TaxonNameFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
                 .and(withTaxonGroupId(filter.getTaxonGroupId()))
                 .and(withTaxonGroupIds(filter.getTaxonGroupIds()))
@@ -155,41 +130,7 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    public TaxonNameVO toVO(TaxonName source) {
-        TaxonNameVO target = super.toVO(source);
-
-        if (source.getReferenceTaxon() != null) {
-            target.setReferenceTaxonId(source.getReferenceTaxon().getId());
-        }
-
-        if (source.getParent() != null) {
-            target.setParentTaxonName(this.toVO(source.getParent()));
-        }
-
-        if (source.getTaxonomicLevel() != null) {
-            target.setTaxonomicLevel(referentialDao.toVO(source.getTaxonomicLevel()));
-        }
-
-        return target;
-    }
-
-    protected List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Pageable pageable) {
-
-        Preconditions.checkNotNull(filter);
-        Preconditions.checkNotNull(pageable);
-
-        TypedQuery<TaxonName> query = getQuery(toSpecification(filter), pageable);
-
-        if (pageable.isPaged()) {
-            query.setFirstResult((int) pageable.getOffset()).setMaxResults(pageable.getPageSize());
-        }
-
-        return query.getResultStream()
-                .map(this::toVO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID)
     public Integer getReferenceTaxonIdById(int id) {
         return getEntityManager()
                 .createNamedQuery("TaxonName.referenceTaxonIdById", Integer.class)
@@ -204,7 +145,9 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    protected void toVO(TaxonName source, TaxonNameVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void toVO(TaxonName source, TaxonNameVO target, TaxonNameFetchOptions fetchOptions, boolean copyIfNull) {
+        fetchOptions = TaxonNameFetchOptions.nullToEmpty(fetchOptions);
+
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Convert boolean -> Boolean
@@ -217,15 +160,25 @@ public class TaxonNameRepositoryImpl
             target.setReferenceTaxonId(source.getReferenceTaxon().getId());
         }
 
-        // Taxonomic level id
+        // Taxonomic level
         if (source.getTaxonomicLevel() != null) {
-            target.setTaxonomicLevel(referentialDao.toVO(source.getTaxonomicLevel()));
             target.setTaxonomicLevelId(source.getTaxonomicLevel().getId());
+            if (fetchOptions.isWithTaxonomicLevel()) {
+                // Get parent using get(), to be able to use cache
+                ReferentialVO taxonomicLevel = this.taxonomicLevelRepository.get(target.getTaxonomicLevelId());
+                target.setTaxonomicLevel(taxonomicLevel);
+            }
         }
 
+        // Parent taxon name
         if (source.getParent() != null) {
-            target.setParentTaxonName(this.toVO(source.getParent()));
             target.setParentId(source.getParent().getId());
+
+            // Get parent, only if need
+            if (fetchOptions.isWithParentTaxonName()) {
+                TaxonNameVO parent = this.get(target.getParentId());
+                target.setParentTaxonName(parent);
+            }
         }
     }
 
@@ -250,7 +203,6 @@ public class TaxonNameRepositoryImpl
             // Set default status to Temporary
             vo.setStatusId(StatusEnum.TEMPORARY.getId());
 
-        TaxonNameVO savedVo = super.save(vo);
-        return savedVo;
+        return super.save(vo);
     }
 }

@@ -28,6 +28,9 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author peck7 on 01/09/2020.
@@ -35,4 +38,7 @@ import net.sumaris.core.vo.filter.SampleFilterVO;
 public interface SampleRepository
     extends RootDataRepository<Sample, SampleVO, SampleFilterVO, SampleFetchOptions>, SampleSpecifications {
 
+    @Modifying
+    @Query("delete from Sample s where s.landing.id = :landingId")
+    void deleteByLandingId(@Param("landingId") int landingId);
 }

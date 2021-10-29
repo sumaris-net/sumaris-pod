@@ -86,14 +86,13 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    public Optional<ProgramVO> findIfNewerByLabel(String label, Date updateDate, ProgramFetchOptions fetchOptions) {
-        Program source = getQuery(BindableSpecification.where(hasLabel(label))
-            .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
-                .getSingleResult();
-        if (source == null) return Optional.empty();
-
-        ProgramVO target = toVO(source, fetchOptions);
-        return Optional.of(target);
+    public Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
+        return getQuery(BindableSpecification
+                .where(hasId(id))
+                .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
+            .getResultStream()
+            .findFirst()
+            .map(source -> toVO(source, fetchOptions));
     }
 
     @Override

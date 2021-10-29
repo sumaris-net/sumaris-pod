@@ -23,6 +23,7 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
@@ -65,7 +66,7 @@ public interface StrategyService {
 	Long countByFilter(StrategyFilterVO filter);
 
 	@Transactional(readOnly = true)
-	List<StrategyVO> findByFilter(StrategyFilterVO filter, Pageable pageable, StrategyFetchOptions fetchOptions);
+	List<StrategyVO> findByFilter(StrategyFilterVO filter, Page page, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);

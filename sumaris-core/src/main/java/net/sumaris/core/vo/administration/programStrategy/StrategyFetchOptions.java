@@ -33,12 +33,35 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @ToString
 public class StrategyFetchOptions implements IFetchOptions {
 
-    public static StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
+    public static final StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
 
     public static StrategyFetchOptions nullToDefault(StrategyFetchOptions options) {
-        if (options != null) return options;
-        return DEFAULT;
+        return options != null ? options : DEFAULT;
     }
+
+    /**
+     * Fetch taxon names
+     */
+    @Builder.Default
+    private boolean withTaxonNames = false;
+
+    /**
+     * Fetch taxon groups
+     */
+    @Builder.Default
+    private boolean withTaxonGroups = false;
+
+    /**
+     * Fetch departments
+     */
+    @Builder.Default
+    private boolean withDepartments = false;
+
+    /**
+     * Fetch gears
+     */
+    @Builder.Default
+    private boolean withGears = false;
 
     /**
      * Compute PmfmStrategy (normalized entities)

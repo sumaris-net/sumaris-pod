@@ -569,7 +569,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 .programLabels(programLabels.toArray(new String[0]))
                 // TODO: filtrer les strategies via la periode du filtre (si présente) ?
                 // .startDate(...).endDate(...)
-                .build(), Pageable.unpaged(), StrategyFetchOptions.DEFAULT)
+                .build(), null, StrategyFetchOptions.DEFAULT)
                 .stream()
                 // Then, load PmfmStretegy
                 .flatMap(strategy ->  strategyService.findDenormalizedPmfmsByFilter(

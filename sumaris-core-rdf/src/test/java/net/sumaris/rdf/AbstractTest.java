@@ -37,7 +37,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {TestConfiguration.class})
-@TestPropertySource(locations="classpath:sumaris-core-rdf-test.properties")
+@TestPropertySource(locations= "classpath:application.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AbstractTest {
 

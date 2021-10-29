@@ -51,11 +51,21 @@ public interface ReferentialRepository<
 
     List<V> findAll(F filter);
 
-    // TODO: find usage of Page ??
-    Page<V> findAll(F filter, Pageable pageable);
 
     List<V> findAll(F filter, @Nullable O fetchOptions);
 
+    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
+
+    /**
+     * @deprecated use Page instead
+     */
+    @Deprecated
+    Page<V> findAll(F filter, Pageable pageable);
+
+    /**
+     * @deprecated use Page instead
+     */
+    @Deprecated
     Page<V> findAll(F filter, Pageable pageable, @Nullable O fetchOptions);
 
     Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, @Nullable O fetchOptions);
