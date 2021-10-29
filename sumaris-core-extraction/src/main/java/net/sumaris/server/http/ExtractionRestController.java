@@ -27,9 +27,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.service.ExtractionDocumentationService;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
@@ -74,6 +76,7 @@ import java.util.*;
 
 
 @RestController
+@Slf4j
 @ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 public class ExtractionRestController implements ExtractionRestPaths {
 
@@ -84,26 +87,27 @@ public class ExtractionRestController implements ExtractionRestPaths {
             MediaType.APPLICATION_XHTML_XML
     );
 
-    private static final Logger log = LoggerFactory.getLogger(ExtractionRestController.class);
-
-    @Autowired
     private SumarisConfiguration configuration;
-
-    @Autowired
     private ExtractionService extractionService;
-
-    @Autowired
     private ExtractionDocumentationService documentationService;
-
-    @Autowired
     private ExtractionSecurityService securityService;
-
-    @Autowired
     private IDownloadController downloadController;
+
+    public ExtractionRestController(SumarisConfiguration configuration,
+                                    ExtractionService extractionService,
+                                    ExtractionDocumentationService documentationService,
+                                    ExtractionSecurityService securityService,
+                                    IDownloadController downloadController) {
+        this.configuration = configuration;
+        this.extractionService = extractionService;
+        this.documentationService = documentationService;
+        this.securityService = securityService;
+        this.downloadController = downloadController;
+    }
 
     @PostConstruct
     public void init() {
-        log.info("Starting extraction endpoint {{}}...", ExtractionRestPaths.BASE_PATH);
+        log.info("Starting Extraction endpoint {{}}...", ExtractionRestPaths.BASE_PATH);
     }
 
     @GetMapping(

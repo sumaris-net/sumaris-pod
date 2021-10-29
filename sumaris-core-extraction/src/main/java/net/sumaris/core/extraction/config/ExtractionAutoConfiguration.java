@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 public class ExtractionAutoConfiguration {
 
     public ExtractionAutoConfiguration() {
-        log.info("Starting extraction module...");
+        log.info("Starting Extraction module...");
     }
 
     @Bean

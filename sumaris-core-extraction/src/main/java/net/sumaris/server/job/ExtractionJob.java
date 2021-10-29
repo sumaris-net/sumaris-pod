@@ -53,24 +53,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExtractionJob {
 
-    private ExtractionConfiguration config;
+    private ExtractionConfiguration configuration;
     private ExtractionProductService productService;
     private AggregationService aggregationService;
     private boolean ready = false;
 
     @Autowired
-    public ExtractionJob(ExtractionConfiguration config,
+    public ExtractionJob(ExtractionConfiguration configuration,
                          ExtractionProductService productService,
                          AggregationService aggregationService) {
         super();
-        this.config = config;
+        this.configuration = configuration;
         this.productService = productService;
         this.aggregationService = aggregationService;
     }
 
     public ExtractionJob() {
         super();
-        this.config = ExtractionConfiguration.instance();
+        this.configuration = ExtractionConfiguration.instance();
         this.productService = ExtractionServiceLocator.extractionProductService();
         this.aggregationService = ExtractionServiceLocator.aggregationService();
         this.ready = true;
@@ -130,7 +130,7 @@ public class ExtractionJob {
     protected void onConfigurationReady(ConfigurationReadyEvent event) {
         if (!this.ready) {
             // Load started
-            log.info("Started extraction jobs, with frequency {{}}",
+            log.info("Started Extraction jobs, with frequency {{}}",
                 Arrays.stream(ProcessingFrequencyEnum.values())
                     .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
                     .map(Enum::name)

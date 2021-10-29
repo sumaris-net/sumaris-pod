@@ -109,45 +109,57 @@ import java.util.stream.Collectors;
  * @author blavenie
  */
 @Service("extractionService")
-@ConditionalOnBean(ExtractionConfiguration.class)
+@ConditionalOnBean({ExtractionConfiguration.class})
 @Slf4j
 public class ExtractionServiceImpl implements ExtractionService {
 
-    @Autowired
-    protected ExtractionConfiguration configuration;
-
-    @Autowired
+    private ExtractionConfiguration configuration;
     private ObjectMapper objectMapper;
+    private DataSource dataSource;
+    private TaskExecutor taskExecutor;
 
-    @Autowired
-    protected DataSource dataSource;
+    private ExtractionTripDao extractionRdbTripDao;
+    private ExtractionStrategyDao extractionStrategyDao;
+    private ExtractionTableDao extractionTableDao;
+    private ExtractionCsvDao extractionCsvDao;
 
-    @Resource(name = "extractionRdbTripDao")
-    protected ExtractionTripDao extractionRdbTripDao;
+    private ExtractionProductService productService;
+    private LocationService locationService;
+    private ReferentialService referentialService;
+    private SumarisDatabaseMetadata databaseMetadata;
 
-    @Autowired
-    protected ExtractionStrategyDao extractionStrategyDao;
+    public ExtractionServiceImpl(ExtractionConfiguration configuration,
+                                 ObjectMapper objectMapper,
+                                 DataSource dataSource,
+                                 SumarisDatabaseMetadata databaseMetadata,
+                                 ExtractionTripDao extractionRdbTripDao,
+                                 ExtractionStrategyDao extractionStrategyDao,
+                                 ExtractionTableDao extractionTableDao,
+                                 ExtractionCsvDao extractionCsvDao,
+                                 ExtractionProductService productService,
+                                 LocationService locationService,
+                                 ReferentialService referentialService,
+                                 @Nullable TaskExecutor taskExecutor
+                                 ) {
+        this.configuration = configuration;
+        this.objectMapper = objectMapper;
+        this.dataSource = dataSource;
+        this.databaseMetadata = databaseMetadata;
 
-    @Autowired
-    protected ExtractionProductService productService;
+        this.extractionRdbTripDao = extractionRdbTripDao;
+        this.extractionStrategyDao = extractionStrategyDao;
+        this.extractionTableDao = extractionTableDao;
+        this.extractionCsvDao = extractionCsvDao;
 
-    @Autowired
-    protected ExtractionTableDao extractionTableDao;
+        this.productService = productService;
+        this.locationService = locationService;
+        this.referentialService = referentialService;
 
-    @Autowired
-    protected ExtractionCsvDao extractionCsvDao;
+        this.taskExecutor = taskExecutor;
+    }
 
-    @Autowired
-    protected LocationService locationService;
 
-    @Autowired
-    protected ReferentialService referentialService;
 
-    @Autowired
-    protected SumarisDatabaseMetadata databaseMetadata;
-
-    @Autowired(required = false)
-    protected TaskExecutor taskExecutor = null;
 
     @Autowired
     protected ApplicationContext applicationContext;

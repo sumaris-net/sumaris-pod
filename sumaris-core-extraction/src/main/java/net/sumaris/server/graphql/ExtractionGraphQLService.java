@@ -34,7 +34,6 @@ import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.vo.ExtractionFilterVO;
 import net.sumaris.core.extraction.vo.ExtractionResultVO;
@@ -47,7 +46,6 @@ import net.sumaris.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.server.http.ExtractionRestPaths;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.security.IDownloadController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -66,16 +64,19 @@ import java.util.stream.Collectors;
 @ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 public class ExtractionGraphQLService {
 
+    private ExtractionService extractionService;
+    private IDownloadController downloadController;
+    private ExtractionSecurityService securityService;
     private String documentationUrl;
 
-    @Autowired
-    private ExtractionService extractionService;
-
-    @Autowired
-    private IDownloadController downloadController;
-
-    @Autowired
-    private ExtractionSecurityService securityService;
+    public ExtractionGraphQLService(
+        ExtractionService extractionService,
+        IDownloadController downloadController,
+        ExtractionSecurityService securityService) {
+        this.extractionService = extractionService;
+        this.downloadController = downloadController;
+        this.securityService = securityService;
+    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {

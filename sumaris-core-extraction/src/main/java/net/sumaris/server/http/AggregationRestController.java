@@ -22,10 +22,13 @@
 
 package net.sumaris.server.http;
 
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.service.ExtractionDocumentationService;
+import net.sumaris.core.extraction.service.ExtractionService;
 import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.vo.AggregationTypeVO;
@@ -36,6 +39,7 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.server.security.ExtractionSecurityService;
 import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
+import net.sumaris.server.security.IDownloadController;
 import net.sumaris.server.util.QueryParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geojson.FeatureCollection;
@@ -51,14 +55,17 @@ import java.text.ParseException;
 @ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 public class AggregationRestController implements ExtractionRestPaths {
 
-    @Autowired
     private AggregationService aggregationService;
-
-    @Autowired
     private ExtractionGeoJsonConverter geoJsonConverter;
-
-    @Autowired
     private ExtractionSecurityService securityService;
+
+    public AggregationRestController(AggregationService aggregationService,
+                                     ExtractionGeoJsonConverter geoJsonConverter,
+                                     ExtractionSecurityService securityService) {
+        this.aggregationService = aggregationService;
+        this.geoJsonConverter = geoJsonConverter;
+        this.securityService = securityService;
+    }
 
     @ResponseBody
     @RequestMapping(value = {
