@@ -62,7 +62,7 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 @Transactional
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class, ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class, AggregationService.class})
 public class AggregationGraphQLService {
 
     private AggregationService aggregationService;
