@@ -22,6 +22,7 @@
 
 package net.sumaris.server.config;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.extraction.config.ExtractionAutoConfiguration;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
@@ -30,6 +31,7 @@ import net.sumaris.server.http.ExtractionRestPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -48,22 +50,19 @@ import javax.servlet.Servlet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
 @ConditionalOnBean({WebMvcConfigurer.class})
 @AutoConfigureAfter({ExtractionAutoConfiguration.class})
+@AutoConfigureOrder(2)
 @ConditionalOnProperty(
-        prefix = "sumaris.extraction",
-        name = {"enabled"},
-        matchIfMissing = true
+    prefix = "sumaris.extraction",
+    name = {"enabled"},
+    matchIfMissing = true
 )
 @EnableScheduling
+@Slf4j
 public class ExtractionWebAutoConfiguration {
-    /**
-     * Logger.
-     */
-    protected static final Logger log =
-            LoggerFactory.getLogger(ExtractionWebAutoConfiguration.class);
 
     @Bean
     @ConditionalOnProperty(
@@ -112,8 +111,8 @@ public class ExtractionWebAutoConfiguration {
         name = {"enabled"},
         matchIfMissing = true
     )
-    public SchedulingConfigurer schedulingConfigurer() {
-        return taskRegistrar -> taskRegistrar.setScheduler(extractionTaskExecutor());
+    public SchedulingConfigurer schedulingConfigurer(Executor extractionTaskExecutor) {
+        return taskRegistrar -> taskRegistrar.setScheduler(extractionTaskExecutor);
     }
 
     @Bean

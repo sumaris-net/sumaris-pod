@@ -24,17 +24,19 @@ package net.sumaris.core.extraction.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Slf4j
+@Configuration(proxyBeanMethods = false)
+@AutoConfigureOrder(1)
 @ConditionalOnProperty(
     prefix = "sumaris.extraction",
     name = {"enabled"},
     matchIfMissing = true
 )
-@Slf4j
 public class ExtractionAutoConfiguration {
 
     public ExtractionAutoConfiguration() {
