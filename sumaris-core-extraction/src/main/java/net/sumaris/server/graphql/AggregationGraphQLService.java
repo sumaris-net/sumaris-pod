@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.service.AggregationService;
 import net.sumaris.core.extraction.service.ExtractionProductService;
 import net.sumaris.core.extraction.vo.*;
@@ -41,17 +42,15 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.server.config.ExtractionWebAutoConfiguration;
+import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.server.http.GraphQLUtils;
 import net.sumaris.server.security.ExtractionSecurityService;
-import net.sumaris.server.geojson.ExtractionGeoJsonConverter;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.graph.spi.GraphHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,20 +62,23 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 @Transactional
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class, ExtractionConfiguration.class})
 public class AggregationGraphQLService {
 
-    @Autowired
     private AggregationService aggregationService;
-
-    @Autowired
     private ExtractionProductService productService;
-
-    @Autowired
     private ExtractionSecurityService securityService;
-
-    @Autowired
     private ExtractionGeoJsonConverter geoJsonConverter;
+
+    public AggregationGraphQLService(AggregationService aggregationService,
+                                     ExtractionProductService productService,
+                                     ExtractionSecurityService securityService,
+                                     ExtractionGeoJsonConverter geoJsonConverter) {
+        this.aggregationService = aggregationService;
+        this.productService = productService;
+        this.securityService = securityService;
+        this.geoJsonConverter = geoJsonConverter;
+    }
 
     /* -- aggregation service -- */
 

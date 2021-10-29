@@ -80,7 +80,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Service("aggregationService")
-@ConditionalOnBean(ExtractionConfiguration.class)
+@ConditionalOnBean({ExtractionConfiguration.class})
 @Slf4j
 public class AggregationServiceImpl implements AggregationService {
 
@@ -104,7 +104,6 @@ public class AggregationServiceImpl implements AggregationService {
 
     @Autowired
     private ApplicationContext applicationContext;
-
 
     private Map<IExtractionFormat, AggregationDao<?,?,?>> daosByFormat = Maps.newHashMap();
 

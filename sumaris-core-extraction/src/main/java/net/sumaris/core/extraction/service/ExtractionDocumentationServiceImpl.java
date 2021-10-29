@@ -25,6 +25,7 @@ package net.sumaris.core.extraction.service;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
@@ -55,25 +56,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+@Slf4j
 @Component("extractionDocumentationService")
-@ConditionalOnBean(ExtractionConfiguration.class)
+@ConditionalOnBean({ExtractionConfiguration.class})
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
-
-    /** Logger. */
-    private static final Logger log =
-            LoggerFactory.getLogger(ExtractionDocumentationServiceImpl.class);
 
     protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";
 
-
-    @Autowired
+    private SumarisConfiguration configuration;
     private ExtractionService extractionService;
-
-    @Autowired
     private ExtractionProductService productService;
 
-    @Autowired
-    private SumarisConfiguration configuration;
+    public ExtractionDocumentationServiceImpl(SumarisConfiguration configuration,
+                                              ExtractionService extractionService,
+                                              ExtractionProductService productService) {
+        this.configuration = configuration;
+        this.extractionService = extractionService;
+        this.productService = productService;
+    }
 
     @Override
     public Optional<Resource> find(@NonNull IExtractionFormat format, @NonNull Locale locale) {

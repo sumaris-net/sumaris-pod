@@ -23,6 +23,7 @@ package net.sumaris.server.security;
  */
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -53,22 +54,24 @@ import java.util.Optional;
 /**
  * @author benoit.lavenier@e-is.pro
  */
+@Slf4j
 @Service("extractionSecurityService")
 @ConditionalOnBean({ExtractionConfiguration.class, IAuthService.class})
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 
-    private static final Logger log = LoggerFactory.getLogger(ExtractionSecurityServiceImpl.class);
-
-    @Autowired
-    protected SumarisConfiguration configuration;
-
-    @Autowired
+    private SumarisConfiguration configuration;
     private AggregationService aggregationService;
-
-    @Autowired
-    protected IAuthService<PersonVO> authService;
-
+    private IAuthService<PersonVO> authService;
     private String accessNotSelfExtractionMinRole;
+
+    public ExtractionSecurityServiceImpl(SumarisConfiguration configuration,
+            AggregationService aggregationService,
+            IAuthService<PersonVO> authService) {
+        this.configuration = configuration;
+        this.aggregationService = aggregationService;
+        this.authService = authService;
+        accessNotSelfExtractionMinRole = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE.getKey());
+    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
