@@ -78,18 +78,19 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 17/12/2018.
  */
+@Slf4j
 @Service("aggregationService")
 @ConditionalOnBean({ExtractionConfiguration.class})
-@Slf4j
 public class AggregationServiceImpl implements AggregationService {
 
     private DataSource dataSource;
     private ExtractionService extractionService;
     private ExtractionProductService productService;
     private ExtractionTableDao extractionTableDao;
-    private TaskExecutor taskExecutor;
     private ObjectMapper objectMapper;
     private ApplicationContext applicationContext;
+    private Optional<TaskExecutor> taskExecutor;
+
     private Map<IExtractionFormat, AggregationDao<?,?,?>> daosByFormat = Maps.newHashMap();
 
     public AggregationServiceImpl(ApplicationContext applicationContext,
@@ -98,7 +99,7 @@ public class AggregationServiceImpl implements AggregationService {
                                   ExtractionTableDao extractionTableDao,
                                   ExtractionService extractionService,
                                   ExtractionProductService productService,
-                                  @Nullable TaskExecutor taskExecutor) {
+                                  Optional<TaskExecutor> taskExecutor) {
         this.applicationContext = applicationContext;
         this.objectMapper = objectMapper;
         this.dataSource = dataSource;
@@ -714,8 +715,8 @@ public class AggregationServiceImpl implements AggregationService {
 
     protected void clean(AggregationContextVO context, boolean async) {
         if (context == null) return;
-        if (async && taskExecutor != null) {
-            taskExecutor.execute(() -> self().clean(context));
+        if (async && taskExecutor.isPresent()) {
+            taskExecutor.get().execute(() -> self().clean(context));
         }
         else {
             log.info("Cleaning aggregation #{}-{}", context.getLabel(), context.getId());

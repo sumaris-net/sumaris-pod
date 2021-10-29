@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @AutoConfigureAfter({CacheConfiguration.class})
-@ConditionalOnBean({ExtractionAutoConfiguration.class})
+@ConditionalOnBean({ExtractionConfiguration.class})
 @Slf4j
 public class ExtractionCacheConfiguration {
 

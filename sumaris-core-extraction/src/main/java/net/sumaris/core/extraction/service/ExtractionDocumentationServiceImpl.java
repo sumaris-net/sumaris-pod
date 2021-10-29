@@ -63,9 +63,9 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
 
     protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";
 
-    private SumarisConfiguration configuration;
-    private ExtractionService extractionService;
-    private ExtractionProductService productService;
+    private final SumarisConfiguration configuration;
+    private final ExtractionService extractionService;
+    private final ExtractionProductService productService;
 
     public ExtractionDocumentationServiceImpl(SumarisConfiguration configuration,
                                               ExtractionService extractionService,

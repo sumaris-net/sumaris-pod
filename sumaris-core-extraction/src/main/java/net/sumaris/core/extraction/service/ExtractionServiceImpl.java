@@ -29,12 +29,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.HashCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
@@ -91,16 +89,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -108,42 +103,50 @@ import java.util.stream.Collectors;
 /**
  * @author blavenie
  */
+@Slf4j
 @Service("extractionService")
 @ConditionalOnBean({ExtractionConfiguration.class})
-@Slf4j
 public class ExtractionServiceImpl implements ExtractionService {
 
-    private ExtractionConfiguration configuration;
-    private ObjectMapper objectMapper;
-    private DataSource dataSource;
-    private TaskExecutor taskExecutor;
+    private final ExtractionConfiguration configuration;
+    private final ObjectMapper objectMapper;
+    private final DataSource dataSource;
+    private final ApplicationContext applicationContext;
+    private final DatabaseSchemaDao databaseSchemaDao;
+    private final CacheManager cacheManager;
 
-    private ExtractionTripDao extractionRdbTripDao;
-    private ExtractionStrategyDao extractionStrategyDao;
-    private ExtractionTableDao extractionTableDao;
-    private ExtractionCsvDao extractionCsvDao;
+    private final ExtractionTripDao extractionRdbTripDao;
+    private final ExtractionStrategyDao extractionStrategyDao;
+    private final ExtractionTableDao extractionTableDao;
+    private final ExtractionCsvDao extractionCsvDao;
 
-    private ExtractionProductService productService;
-    private LocationService locationService;
-    private ReferentialService referentialService;
-    private SumarisDatabaseMetadata databaseMetadata;
+    private final ExtractionProductService extractionProductService;
+    private final LocationService locationService;
+    private final ReferentialService referentialService;
+    private final SumarisDatabaseMetadata databaseMetadata;
+
+    private final Optional<TaskExecutor> taskExecutor;
 
     public ExtractionServiceImpl(ExtractionConfiguration configuration,
                                  ObjectMapper objectMapper,
                                  DataSource dataSource,
-                                 SumarisDatabaseMetadata databaseMetadata,
+                                 ApplicationContext applicationContext, DatabaseSchemaDao databaseSchemaDao,
+                                 CacheManager cacheManager, SumarisDatabaseMetadata databaseMetadata,
                                  ExtractionTripDao extractionRdbTripDao,
                                  ExtractionStrategyDao extractionStrategyDao,
                                  ExtractionTableDao extractionTableDao,
                                  ExtractionCsvDao extractionCsvDao,
-                                 ExtractionProductService productService,
+                                 ExtractionProductService extractionProductService,
                                  LocationService locationService,
                                  ReferentialService referentialService,
-                                 @Nullable TaskExecutor taskExecutor
-                                 ) {
+                                 Optional<TaskExecutor> taskExecutor
+    ) {
         this.configuration = configuration;
         this.objectMapper = objectMapper;
         this.dataSource = dataSource;
+        this.applicationContext = applicationContext;
+        this.databaseSchemaDao = databaseSchemaDao;
+        this.cacheManager = cacheManager;
         this.databaseMetadata = databaseMetadata;
 
         this.extractionRdbTripDao = extractionRdbTripDao;
@@ -151,24 +154,13 @@ public class ExtractionServiceImpl implements ExtractionService {
         this.extractionTableDao = extractionTableDao;
         this.extractionCsvDao = extractionCsvDao;
 
-        this.productService = productService;
+        this.extractionProductService = extractionProductService;
         this.locationService = locationService;
         this.referentialService = referentialService;
 
         this.taskExecutor = taskExecutor;
     }
 
-
-
-
-    @Autowired
-    protected ApplicationContext applicationContext;
-
-    @Autowired
-    protected DatabaseSchemaDao databaseSchemaDao;
-
-    @Autowired
-    protected CacheManager cacheManager;
 
     private boolean includeProductTypes = false;
     private boolean enableTechnicalTablesUpdate = false;
@@ -277,7 +269,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (type.getCategory()) {
             case PRODUCT:
-                ExtractionProductVO product = productService.getByLabel(type.getLabel(),
+                ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                         ExtractionProductFetchOptions.TABLES_AND_COLUMNS);
                 Set<String> hiddenColumns = Beans.getStream(product.getTables())
                         .map(ExtractionTableVO::getColumns)
@@ -371,7 +363,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         switch (type.getCategory()) {
             case PRODUCT:
-                ExtractionProductVO product = productService.getByLabel(type.getLabel(),
+                ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                         ExtractionProductFetchOptions.builder()
                                 .withRecorderDepartment(false)
                                 .withRecorderPerson(false)
@@ -449,7 +441,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Load the product
         ExtractionProductVO target = null;
         if (source.getId() != null) {
-            target = productService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+            target = extractionProductService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
         }
 
         boolean isNew = target == null;
@@ -514,7 +506,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         // Save the product
-        target = productService.save(target);
+        target = extractionProductService.save(target);
 
         // Drop old tables
         dropTables(tablesToDrop);
@@ -627,7 +619,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkNotNull(filter);
 
         return ListUtils.emptyIfNull(
-            productService.findByFilter(filter, ExtractionProductFetchOptions.builder()
+            extractionProductService.findByFilter(filter, ExtractionProductFetchOptions.builder()
                 .withRecorderDepartment(true)
                 .withTables(true)
                 .build()))
@@ -850,8 +842,8 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected void clean(ExtractionContextVO context, boolean async) {
         if (context == null) return;
-        if (async && taskExecutor != null) {
-            taskExecutor.execute(() -> self().clean(context));
+        if (async && taskExecutor.isPresent()) {
+            taskExecutor.get().execute(() -> self().clean(context));
         }
         else  {
             log.info("Cleaning extraction #{}-{}", context.getRawFormatLabel(), context.getId());
