@@ -39,10 +39,7 @@ import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.LandingMeasurement;
-import net.sumaris.core.model.data.Sample;
-import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -293,7 +290,9 @@ public class StrategyRepositoryImpl
         ParameterExpression<Integer> strategyPmfmIdParam = builder.parameter(Integer.class);
         ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
 
-        Join<Sample, Landing> landingInnerJoin = root.join(Sample.Fields.LANDING, JoinType.INNER);
+        Join<Sample, Operation> operationInnerJoin = root.join(Sample.Fields.OPERATION, JoinType.INNER);
+        Join<Operation, Trip> tripInnerJoin = operationInnerJoin.join(Operation.Fields.TRIP, JoinType.INNER);
+        Join<Trip, Landing> landingInnerJoin = tripInnerJoin.joinList(Trip.Fields.LANDINGS, JoinType.INNER);
         Join<Landing, LandingMeasurement> strategyMeasurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
         Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 

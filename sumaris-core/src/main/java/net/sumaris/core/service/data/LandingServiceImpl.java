@@ -77,6 +77,9 @@ public class LandingServiceImpl implements LandingService {
     protected SampleService sampleService;
 
     @Autowired
+    protected OperationGroupService operationGroupService;
+
+    @Autowired
     private ApplicationEventPublisher publisher;
 
     private boolean enableTrash = false;
@@ -125,11 +128,21 @@ public class LandingServiceImpl implements LandingService {
         if (fetchOptions.isWithChildrenEntities()) {
 
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
-            target.setSamples(sampleService.getAllByLandingId(id));
 
+            OperationGroupVO mainUndefinedOperation = null;
             if (target.getTripId() != null) {
                 TripVO trip = tripService.get(target.getTripId(), fetchOptions);
                 target.setTrip(trip);
+
+                // Get the main undefined operation group
+                mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(target.getTripId());
+            }
+
+            // Get samples by operation if a main undefined operation group exists
+            if (mainUndefinedOperation != null) {
+                target.setSamples(sampleService.getAllByOperationId(mainUndefinedOperation.getId()));
+            } else {
+                target.setSamples(sampleService.getAllByLandingId(id));
             }
         }
 
@@ -260,27 +273,8 @@ public class LandingServiceImpl implements LandingService {
             source.setMeasurements(measurements);
         }
 
-        // Save samples
-        {
-            List<SampleVO> samples = getSamplesAsList(source);
-            samples.forEach(s -> fillDefaultProperties(source, s));
-            samples = sampleService.saveByLandingId(source.getId(), samples);
-
-            // Prepare saved samples (e.g. to be used as graphQL query response)
-            samples.forEach(sample -> {
-                // Set parentId (instead of parent object)
-                if (sample.getParentId() == null && sample.getParent() != null) {
-                    sample.setParentId(sample.getParent().getId());
-                }
-                // Remove link parent/children
-                sample.setParent(null);
-                sample.setChildren(null);
-            });
-
-            source.setSamples(samples);
-        }
-
         // Save trip
+        OperationGroupVO mainUndefinedOperation = null;
         TripVO trip = source.getTrip();
         if (trip != null) {
             // Prepare landing to save
@@ -297,7 +291,37 @@ public class LandingServiceImpl implements LandingService {
             // Update the source landing
             source.setTripId(savedTrip.getId());
             source.setTrip(savedTrip);
+
+            // Get the main undefined operation group
+            mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(savedTrip.getId());
         }
+
+        // Save samples
+        {
+            List<SampleVO> samples = getSamplesAsList(source);
+            samples.forEach(s -> fillDefaultProperties(source, s));
+
+            // Save samples by operation if a main undefined operation group exists
+            if (mainUndefinedOperation != null) {
+                samples = sampleService.saveByOperationId(mainUndefinedOperation.getId(), samples);
+            } else {
+                samples = sampleService.saveByLandingId(source.getId(), samples);
+            }
+
+            // Prepare saved samples (e.g. to be used as graphQL query response)
+            samples.forEach(sample -> {
+                // Set parentId (instead of parent object)
+                if (sample.getParentId() == null && sample.getParent() != null) {
+                    sample.setParentId(sample.getParent().getId());
+                }
+                // Remove link parent/children
+                sample.setParent(null);
+                sample.setChildren(null);
+            });
+
+            source.setSamples(samples);
+        }
+
     }
 
     protected void checkCanSave(final LandingVO source) {
