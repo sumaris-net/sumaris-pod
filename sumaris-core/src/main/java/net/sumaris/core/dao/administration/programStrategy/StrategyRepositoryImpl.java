@@ -313,8 +313,9 @@ public class StrategyRepositoryImpl
             .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
             .setParameter(strategyLabelParam, strategyLabel)
             .getResultStream()
-            .max(String::compareTo)
             .map(source -> StringUtils.removeStart(source, prefix))
+            .filter(source -> StringUtils.isNumeric(source))
+            .max(String::compareTo)
             .orElse("0");
 
         if (!StringUtils.isNumeric(result)) {
