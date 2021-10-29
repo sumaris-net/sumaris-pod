@@ -59,7 +59,6 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -84,28 +83,33 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AggregationServiceImpl implements AggregationService {
 
-    @Autowired
-    protected DataSource dataSource;
-
-    @Autowired
+    private DataSource dataSource;
     private ExtractionService extractionService;
-
-    @Autowired
     private ExtractionProductService productService;
-
-    @Autowired
     private ExtractionTableDao extractionTableDao;
-
-    @Autowired(required = false)
-    protected TaskExecutor taskExecutor = null;
-
-    @Autowired
+    private TaskExecutor taskExecutor;
     private ObjectMapper objectMapper;
-
-    @Autowired
     private ApplicationContext applicationContext;
-
     private Map<IExtractionFormat, AggregationDao<?,?,?>> daosByFormat = Maps.newHashMap();
+
+    public AggregationServiceImpl(ApplicationContext applicationContext,
+                                  ObjectMapper objectMapper,
+                                  DataSource dataSource,
+                                  ExtractionTableDao extractionTableDao,
+                                  ExtractionService extractionService,
+                                  ExtractionProductService productService,
+                                  @Nullable TaskExecutor taskExecutor) {
+        this.applicationContext = applicationContext;
+        this.objectMapper = objectMapper;
+        this.dataSource = dataSource;
+
+        this.extractionTableDao = extractionTableDao;
+
+        this.extractionService = extractionService;
+        this.productService = productService;
+
+        this.taskExecutor = taskExecutor;
+    }
 
     @PostConstruct
     protected void registerDaos() {

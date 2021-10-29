@@ -131,7 +131,6 @@ public class ExtractionServiceImpl implements ExtractionService {
     public ExtractionServiceImpl(ExtractionConfiguration configuration,
                                  ObjectMapper objectMapper,
                                  DataSource dataSource,
-                                 TaskExecutor taskExecutor,
                                  SumarisDatabaseMetadata databaseMetadata,
                                  ExtractionTripDao extractionRdbTripDao,
                                  ExtractionStrategyDao extractionStrategyDao,
@@ -139,11 +138,12 @@ public class ExtractionServiceImpl implements ExtractionService {
                                  ExtractionCsvDao extractionCsvDao,
                                  ExtractionProductService productService,
                                  LocationService locationService,
-                                 ReferentialService referentialService) {
+                                 ReferentialService referentialService,
+                                 @Nullable TaskExecutor taskExecutor
+                                 ) {
         this.configuration = configuration;
         this.objectMapper = objectMapper;
         this.dataSource = dataSource;
-        this.taskExecutor = taskExecutor;
         this.databaseMetadata = databaseMetadata;
 
         this.extractionRdbTripDao = extractionRdbTripDao;
@@ -154,6 +154,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         this.productService = productService;
         this.locationService = locationService;
         this.referentialService = referentialService;
+
+        this.taskExecutor = taskExecutor;
     }
 
 
