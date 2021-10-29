@@ -47,7 +47,7 @@ public class RdfCacheConfiguration {
     public JCacheManagerCustomizer rdfCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {RDF} caches...");
-            Caches.createHeapCache(cacheManager, Names.ONTOLOGY_BY_NAME, String.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);
+            Caches.createHeapCache(cacheManager, Names.ONTOLOGY_BY_NAME, Integer.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);
         };
     }
 

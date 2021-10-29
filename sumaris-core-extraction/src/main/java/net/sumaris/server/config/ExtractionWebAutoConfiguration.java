@@ -22,11 +22,14 @@
 
 package net.sumaris.server.config;
 
+import net.sumaris.core.extraction.config.ExtractionAutoConfiguration;
+import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.server.http.ExtractionRestController;
 import net.sumaris.server.http.ExtractionRestPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,7 +50,8 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
-@ConditionalOnBean({WebMvcConfigurer.class})
+@ConditionalOnBean({WebMvcConfigurer.class, ExtractionConfiguration.class})
+@AutoConfigureAfter({ExtractionAutoConfiguration.class})
 @ConditionalOnProperty(
         prefix = "sumaris.extraction",
         name = {"enabled"},

@@ -22,6 +22,7 @@
 
 package net.sumaris.core.extraction.config;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +34,12 @@ import org.springframework.context.annotation.Configuration;
     name = {"enabled"},
     matchIfMissing = true
 )
+@Slf4j
 public class ExtractionAutoConfiguration {
+
+    public ExtractionAutoConfiguration() {
+        log.info("Starting extraction module...");
+    }
 
     @Bean
     public ExtractionConfiguration extractionConfiguration(SumarisConfiguration configuration) {
