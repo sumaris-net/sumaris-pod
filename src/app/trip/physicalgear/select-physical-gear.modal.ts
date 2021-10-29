@@ -54,7 +54,7 @@ export class SelectPhysicalGearModal implements OnInit {
     this.table.filter = this.filter;
     this.table.dataSource.serviceOptions = {
       distinctByRankOrder: true,
-      searchOnTripLocally: true
+      searchOnTripLocally: false
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.table.programLabel = this.program;

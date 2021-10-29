@@ -336,12 +336,14 @@ export class VesselSnapshotService
   async executeImport(progression: BehaviorSubject<number>,
                       opts?: {
                         maxProgression?: number;
+                        dataFilter?: any;
                       }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
     const filter: Partial<VesselSnapshotFilter> = {
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      program: ReferentialRef.fromObject({label: ProgramLabel.SIH})
+      program: ReferentialRef.fromObject({label: ProgramLabel.SIH}),
+      ...opts.dataFilter
     };
 
     console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
@@ -379,7 +381,7 @@ export class VesselSnapshotService
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
       : baseAttributes;
 
-    return {
+    return <MatAutocompleteFieldAddOptions>{
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggest(value, filter),
       attributes: displayAttributes,

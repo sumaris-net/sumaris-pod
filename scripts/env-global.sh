@@ -16,7 +16,8 @@ if [[ ! -f "${PROJECT_DIR}/package.json" ]]; then
 fi;
 
 PROJECT_NAME=sumaris-app
-REPO="sumaris-net/sumaris-app"
+OWNER=sumaris-net
+REPO="${OWNER}/${PROJECT_NAME}"
 REPO_API_URL="https://api.github.com/repos/${REPO}"
 REPO_PUBLIC_URL="https://github.com/${REPO}"
 

@@ -66,14 +66,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
   forceMeasurementAsOptional = false;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
-
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
-
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
-
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
+
+  get dirty(): boolean {
+    // Ignore operation table, when computing dirty state
+    return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
+  }
 
   constructor(
     injector: Injector,
@@ -160,7 +161,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
-    this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_LINKED));
+    //this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION));
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -189,7 +190,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
       console.debug("[trip] New entity: set default values...");
 
-      // Fil defaults, using filter applied on trips table
+      // Fill defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
       if (searchFilter) {
 

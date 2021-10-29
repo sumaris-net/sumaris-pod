@@ -1,7 +1,8 @@
 
-<app-referential-page [title]="'PROGRAM.LIST.TITLE'|translate"
+<app-referential-page #table [title]="'PROGRAM.LIST.TITLE'|translate"
                       style="height: 100%"
                       entityName="Program"
                       [canSelectEntity]="false"
+                      [persistFilterInSettings]="true"
                       [showLevelColumn]="false">
 </app-referential-page>

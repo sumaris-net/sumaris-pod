@@ -11,7 +11,7 @@
     <!-- VESSEL -->
     <ion-row *ngIf="showVessel">
       <ion-col size="12">
-        <mat-autocomplete-field
+        <mat-autocomplete-field *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
           [placeholder]="'SALE.VESSEL'|translate"
           formControlName="vesselSnapshot"
           [config]="autocompleteFields.vesselSnapshot"
@@ -108,3 +108,11 @@
   </ion-grid>
 
 </form>
+
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

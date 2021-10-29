@@ -2,7 +2,7 @@ import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
 import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
+import {distinctUntilChanged, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {Program} from "../../referential/services/model/program.model";
 import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
 import {AppEditorOptions, AppEntityEditor}  from "@sumaris-net/ngx-components";
@@ -194,14 +194,16 @@ export abstract class AppRootDataEditor<
 
   protected async setProgram(program: Program) {
     // Can be override by subclasses
-    if (!program) return; // SKip
 
-    if (this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
-
+    // DEBUG
+    if (program && this.debug) console.debug(`[root-data-editor] Program ${program.label} loaded, with properties: `, program.properties);
   }
 
-  protected async setStrategy(value: Strategy) {
+  protected async setStrategy(strategy: Strategy) {
     // Can be override by subclasses
+
+    // DEBUG
+    if (strategy && this.debug) console.debug(`[root-data-editor] Strategy ${strategy.label} loaded`, strategy);
   }
 
   setError(error: any) {
@@ -249,6 +251,9 @@ export abstract class AppRootDataEditor<
   private startListenProgramChanges() {
     this.registerSubscription(
       this.programControl.valueChanges
+        .pipe(
+          startWith<Program>(this.programControl.value as Program)
+        )
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);

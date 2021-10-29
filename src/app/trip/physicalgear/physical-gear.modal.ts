@@ -116,7 +116,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
       this.form.unload();
       this.form.reset(data);
 
-      await this.form.ready();
+      await this.form.waitIdle();
       this.form.markAsDirty();
     }
     catch (err) {

@@ -1,6 +1,6 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql, StoreObject} from '@apollo/client/core';
-import {ReferentialFragments} from './referential.fragments';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql, StoreObject } from '@apollo/client/core';
+import { ReferentialFragments } from './referential.fragments';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -8,9 +8,14 @@ import {
   BaseEntityGraphqlSubscriptions,
   EntitiesStorage,
   EntityAsObjectOptions,
+  EntitySaveOptions,
   EntityUtils,
+  fromDateISOString,
   GraphqlService,
+  isEmptyArray,
+  isNil,
   isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   LoadResult,
   NetworkService,
@@ -20,19 +25,20 @@ import {
   ReferentialUtils,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {CacheService} from 'ionic-cache';
-import {ErrorCodes} from './errors';
+import { CacheService } from 'ionic-cache';
+import { ErrorCodes } from './errors';
 
-import {Strategy} from './model/strategy.model';
-import {SortDirection} from '@angular/material/sort';
-import {ReferentialRefService} from './referential-ref.service';
-import {StrategyFragments} from './strategy.fragments';
-import {BaseReferentialService} from './base-referential-service.class';
-import {Pmfm} from './model/pmfm.model';
-import {ProgramRefService} from './program-ref.service';
-import {StrategyRefService} from './strategy-ref.service';
-import {ReferentialRefFilter} from './filter/referential-ref.filter';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from './model/strategy.model';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialRefService } from './referential-ref.service';
+import { StrategyFragments } from './strategy.fragments';
+import { BaseReferentialService } from './base-referential-service.class';
+import { Pmfm } from './model/pmfm.model';
+import { ProgramRefService } from './program-ref.service';
+import { StrategyRefService } from './strategy-ref.service';
+import { ReferentialRefFilter } from './filter/referential-ref.filter';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 
 const FindStrategyNextLabel: any = gql`
@@ -371,15 +377,132 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }
   }
 
-  async save(entity: Strategy, options?: any): Promise<Strategy> {
-   await this.clearCache();
+  async saveAll(data: Strategy[], opts?: EntitySaveOptions & {
+    clearCache?: boolean;
+  }): Promise<Strategy[]> {
+    if (!data) return data;
+
+    // Clear cache (once)
+    if (!opts || opts.clearCache !== false) {
+      await this.clearCache();
+    }
+
+    return await Promise.all(data.map(entity => this.save(entity, {...opts, clearCache: true})));
+  }
+
+  async save(entity: Strategy, opts?: EntitySaveOptions & {
+    clearCache?: boolean;
+  }): Promise<Strategy> {
+
+    // Clear cache
+    if (!opts || opts.clearCache !== false) {
+      await this.clearCache();
+    }
 
     return super.save(entity, {
-      ...options,
+      ...opts,
       refetchQueries: this._mutableWatchQueries
         .filter(query => query.query === this.queries.loadAllWithTotal || query.query === this.queries.loadAllWithTotal),
       awaitRefetchQueries: true
     });
+  }
+
+  async duplicateAllToYear(sources: Strategy[], year: string): Promise<Strategy[]> {
+    if (isEmptyArray(sources)) return [];
+    if (isNil(year) || typeof year !== "string" || year.length !== 2) throw Error('Missing or invalid year argument (should be YY format)');
+
+    // CLear cache (only once)
+    await this.clearCache();
+
+    const savedEntities: Strategy[] = [];
+
+    // WARN: do not use a Promise.all, because parallel execution not working (label computation need series execution)
+    for (const source of sources) {
+      const duplicatedSource = await this.cloneToYear(source, year);
+
+      const savedEntity =  await this.save(duplicatedSource, {clearCache: false /*already done*/});
+
+      savedEntities.push(savedEntity);
+    }
+
+    return savedEntities;
+  }
+
+  async cloneToYear(source: Strategy, year: string): Promise<Strategy> {
+    if (!source || isNil(source.programId)) throw Error('Missing strategy or strategy.programId argument');
+    if (isNil(year) || typeof year !== "string" || year.length !== 2) throw Error('Missing or invalid year argument (should be YY format)');
+
+    const target = new Strategy();
+    const newLabel = await this.computeNextLabel(source.programId, year + source.label.substring(2, 9), 3);
+
+    target.label = newLabel;
+    target.name = newLabel;
+    target.description = newLabel;
+    target.analyticReference = source.analyticReference;
+    target.programId = source.programId;
+
+    target.appliedStrategies = (source.appliedStrategies || []).map(initialAppliedStrategy => {
+      const strategyToSaveAppliedStrategy = new AppliedStrategy();
+      strategyToSaveAppliedStrategy.id = undefined;
+      strategyToSaveAppliedStrategy.updateDate = undefined;
+      strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
+      if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
+        strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
+          const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
+          const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
+          const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+          const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
+          appliedPeriod.startDate = startDate;
+          appliedPeriod.endDate = endDate;
+          appliedPeriod.appliedStrategyId = undefined;
+          return appliedPeriod;
+        });
+      } else {
+        strategyToSaveAppliedStrategy.appliedPeriods = [];
+      }
+      return strategyToSaveAppliedStrategy;
+    })
+
+    target.pmfms = source.pmfms && source.pmfms.map(pmfmStrategy => {
+      const pmfmStrategyCloned = pmfmStrategy.clone();
+      pmfmStrategyCloned.id = undefined;
+      pmfmStrategyCloned.strategyId = undefined;
+      return PmfmStrategy.fromObject(pmfmStrategyCloned)
+    }) || [];
+    target.departments = source.departments && source.departments.map(department => {
+      const departmentCloned = department.clone();
+      departmentCloned.id = undefined;
+      departmentCloned.strategyId = undefined;
+      return StrategyDepartment.fromObject(departmentCloned)
+    }) || [];
+    target.taxonNames = source.taxonNames && source.taxonNames.map(taxonNameStrategy => {
+      const taxonNameStrategyCloned = taxonNameStrategy.clone();
+      taxonNameStrategyCloned.strategyId = undefined;
+      return TaxonNameStrategy.fromObject(taxonNameStrategyCloned)
+    }) || [];
+    target.id = undefined;
+    target.updateDate = undefined;
+    target.comments = source.comments;
+    target.creationDate = undefined;
+    target.statusId = source.statusId;
+    target.validityStatusId = source.validityStatusId;
+    target.levelId = source.levelId;
+    target.parentId = source.parentId;
+    target.entityName = source.entityName;
+    target.denormalizedPmfms = undefined;
+    target.gears = undefined;
+    target.taxonGroups = undefined;
+
+    return target;
+  }
+
+  async clearCache() {
+
+    // Make sure to clean all strategy references (.e.g Pmfm cache, etc)
+    await Promise.all([
+      this.programRefService.clearCache(),
+      this.strategyRefService.clearCache()
+    ]);
   }
 
   /* -- protected functions -- */
@@ -395,12 +518,5 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return target;
   }
 
-  protected async clearCache() {
 
-    // Make sure to clean all strategy references (.e.g Pmfm cache, etc)
-    await Promise.all([
-      this.programRefService.clearCache(),
-      this.strategyRefService.clearCache()
-    ]);
-  }
 }

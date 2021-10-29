@@ -17,7 +17,7 @@ release_description=$2
 
 ### Control that the script is run on `dev` branch
 branch=$(git rev-parse --abbrev-ref HEAD)
-if [[ ! "$branch" = "master" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
+if [[ ! "$branch" = "master" ]] && [[ ! "$branch" = "develop" ]] && [[ ! "$branch" =~ ^release/[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]];
 then
   echo ">> This script must be run under \`master\` or a \`release\` branch"
   exit 1
@@ -37,15 +37,15 @@ echo "Sending v$version extension to Github..."
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
     # Get it from user config dir
   GITHUB_TOKEN=$(cat ~/.config/${PROJECT_NAME}/.github)
-  if [[ "_$GITHUB_TOKEN" != "_" ]]; then
-      GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
-  else
-      echo "ERROR: Unable to find github authentication token file: "
-      echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
-        echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
-        echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
-      exit 1
-  fi
+fi
+if [[ "_${GITHUB_TOKEN}" != "_" ]]; then
+    GITHUT_AUTH="Authorization: token ${GITHUB_TOKEN}"
+else
+    echo "ERROR: Unable to find github authentication token file: "
+    echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
+      echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
+      echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
+    exit 1
 fi
 
 ### check arguments
@@ -90,7 +90,7 @@ case "$task" in
     echo "Creating new release..."
     echo " - tag: $version"
     echo " - description: $description"
-    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "master","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+    result=`curl -X POST -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "master","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
     if [[ "_$upload_url" = "_" ]]; then

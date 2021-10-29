@@ -243,7 +243,7 @@
           <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
             <mat-form-field>
               <mat-select [formControl]="control"
-                          [placeholder]="'TRIP.TABLE.QUALITY'|translate" required>
+                          [placeholder]="'TRIP.TABLE.QUALITY'|translate">
                 <mat-select-trigger>
                   <span *ngIf="statusById | mapGet: control.value; let item">
                     <ion-icon [name]="item.icon"></ion-icon>
@@ -256,6 +256,13 @@
                   {{ item.label |translate }}
                 </mat-option>
               </mat-select>
+
+              <button matSuffix mat-icon-button tabindex="-1"
+                      type="button"
+                      (click)="clearFilterValue('dataQualityStatus', $event)"
+                      [hidden]="disabled || !control.value">
+                <mat-icon>close</mat-icon>
+              </button>
             </mat-form-field>
           </ion-col>
         </ion-row>

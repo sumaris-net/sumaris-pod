@@ -40,8 +40,8 @@ import {debounceTime, filter} from 'rxjs/operators';
 import {VesselModal} from '@app/vessel/modal/vessel-modal';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Metier} from '@app/referential/services/model/taxon.model';
 import {MetierFilter} from '@app/referential/services/filter/metier.filter';
+import { Metier } from "@app/referential/services/model/metier.model";
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -191,15 +191,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     });
 
     // Combo: vessels
-    const vesselField = this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
-    });
-    // Add base port location
-    vesselField.attributes = vesselField.attributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
+      this.registerAutocompleteField('vesselSnapshot', opts)
+    );
 
     // Combo location
     this.registerAutocompleteField('location', {

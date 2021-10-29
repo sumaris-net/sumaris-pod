@@ -1,10 +1,15 @@
-import {Strategy} from "./strategy.model";
-import {Moment} from "moment";
-import { Entity, EntityClass, fromDateISOString } from '@sumaris-net/ngx-components';
-import {isNil, toNumber} from "@sumaris-net/ngx-components";
+import { AppliedPeriod, Strategy } from './strategy.model';
+import { Moment } from 'moment';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNil, isNotEmptyArray, isNotNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+
+export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOptions {
+  keepEffort: boolean; // fa  lse by default
+}
 
 @EntityClass({typename: 'SamplingStrategyVO'})
-export class SamplingStrategy extends Strategy<SamplingStrategy> {
+export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrategyAsObjectOptions> {
 
   static fromObject: (source: any, opts?: any) => SamplingStrategy;
 
@@ -23,6 +28,13 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
     3?: StrategyEffort;
     4?: StrategyEffort;
   };
+  year?: Moment;
+  sex?: boolean;
+  age?: boolean;
+  lengthPmfms: PmfmStrategy[];
+  weightPmfms: PmfmStrategy[];
+  maturityPmfms: PmfmStrategy[];
+  fractionPmfms: PmfmStrategy[];
 
   constructor() {
     super();
@@ -34,6 +46,89 @@ export class SamplingStrategy extends Strategy<SamplingStrategy> {
   clone(): SamplingStrategy {
     const target = new SamplingStrategy();
     target.fromObject(this);
+    return target;
+  }
+
+  fromObject(source: any) {
+    const target = super.fromObject(source);
+
+    // Copy efforts. /!\ leave undefined is not set, to be able to detect if has been filled. See hasEffortFilled()
+    this.efforts = source.efforts && source.efforts.map(StrategyEffort.fromObject) || undefined;
+
+    if (!this.efforts && this.appliedStrategies) {
+      this.efforts = this.appliedStrategies.reduce((res, as) => {
+        return res.concat(
+          (as.appliedPeriods || []).map(period => {
+            const quarter = period.startDate?.quarter();
+            if (isNil(quarter) || isNil(period.acquisitionNumber)) return null;
+            return StrategyEffort.fromObject(<StrategyEffort>{
+              quarter,
+              startDate: period.startDate,
+              endDate: period.endDate,
+              expectedEffort: period.acquisitionNumber
+            })
+          }).filter(isNotNil)
+        )
+      }, []);
+    }
+
+    this.effortByQuarter = source.effortByQuarter && Object.assign({}, source.effortByQuarter) || undefined;
+    if (!this.effortByQuarter && isNotEmptyArray(this.efforts)) {
+      this.effortByQuarter = {};
+      this.efforts.forEach(effort => {
+        this.effortByQuarter[effort.quarter] = this.effortByQuarter[effort.quarter] || StrategyEffort.fromObject({
+          quarter: effort.quarter,
+          expectedEffort: 0,
+
+        });
+        this.effortByQuarter[effort.quarter].expectedEffort += effort.expectedEffort;
+      });
+    }
+    this.parameterGroups = source.parameterGroups || undefined;
+
+    this.year = fromDateISOString(source.year);
+    this.age = source.age;
+    this.sex = source.sex;
+    this.lengthPmfms = source.lengthPmfms && source.lengthPmfms.map(PmfmStrategy.fromObject);
+    this.weightPmfms = source.weightPmfms && source.weightPmfms.map(PmfmStrategy.fromObject);
+    this.maturityPmfms = source.maturityPmfms && source.maturityPmfms.map(PmfmStrategy.fromObject);
+    this.fractionPmfms = source.fractionPmfms && source.fractionPmfms.map(PmfmStrategy.fromObject);
+    return target;
+  }
+
+  asObject(opts?: SamplingStrategyAsObjectOptions): any {
+    const target = super.asObject(opts);
+
+    // Remove effort
+    if (!opts || opts.keepEffort !== true) {
+      delete target.efforts;
+      delete target.effortByQuarter;
+      delete target.parameterGroups;
+      delete target.year;
+      delete target.age;
+      delete target.sex;
+      delete target.lengthPmfms;
+      delete target.weightPmfms;
+      delete target.maturityPmfms;
+      delete target.fractionPmfms;
+    }
+    else {
+      target.year = toDateISOString(this.year);
+
+      target.efforts = this.efforts && this.efforts.map(e => e.asObject()) || undefined;
+
+
+
+      target.effortByQuarter = {};
+      target.efforts.filter(e => e.quarter).forEach(e => target.effortByQuarter[e.quarter] = e);
+
+      target.parameterGroups = this.parameterGroups && this.parameterGroups.slice() || undefined;
+
+      target.lengthPmfms = this.lengthPmfms && this.lengthPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.weightPmfms = this.weightPmfms && this.weightPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.maturityPmfms = this.maturityPmfms && this.maturityPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+      target.fractionPmfms = this.fractionPmfms && this.fractionPmfms.map(ps => ps.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+    }
     return target;
   }
 
@@ -55,6 +150,13 @@ export class StrategyEffort {
 
   static fromObject(value: any): StrategyEffort {
     if (!value || value instanceof StrategyEffort) return value;
+    const target = new StrategyEffort();
+    target.fromObject(value);
+    return target;
+  }
+
+  static clone(value: any): StrategyEffort {
+    if (!value) return value;
     const target = new StrategyEffort();
     target.fromObject(value);
     return target;
@@ -91,6 +193,13 @@ export class StrategyEffort {
     const startQuarter = this.startDate && this.startDate.quarter();
     const endQuarter = this.endDate && this.endDate.quarter();
     this.quarter = startQuarter === endQuarter ? startQuarter : undefined;
+  }
+
+  asObject(opts?: EntityAsObjectOptions) {
+    const target: any = Object.assign({}, this);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    return target;
   }
 
   get realized(): boolean {

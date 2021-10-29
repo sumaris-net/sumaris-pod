@@ -54,6 +54,7 @@
 
     <!-- entity selector -->
     <ion-button *ngIf="$selectedEntity | async as entity" fill="solid" color="accent"
+                [class.cdk-visually-hidden]="!canSelectEntity"
                 [matMenuTriggerFor]="selectEntityMenu">
       <ion-label>{{entity.label}}</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
@@ -96,7 +97,8 @@
               <input matInput
                      formControlName="searchText"
                      autocomplete="off"
-                     [placeholder]="'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate">
+                     [placeholder]="'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate"
+                     (keyup.enter)="applyFilterAndClosePanel($event)">
               <button mat-icon-button matSuffix tabindex="-1"
                       type="button"
                       (click)="clearControlValue($event, filterForm.controls.searchText)"
@@ -114,7 +116,8 @@
                                     [placeholder]="(i18nLevelName || 'REFERENTIAL.LEVEL')|translate"
                                     [config]="autocompleteFields.level"
                                     [clearable]="true"
-                                    [mobile]="mobile">
+                                    [mobile]="mobile"
+                                    (keyup.enter)="applyFilterAndClosePanel($event)">
               <ion-icon matPrefix name="speedometer-outline"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>

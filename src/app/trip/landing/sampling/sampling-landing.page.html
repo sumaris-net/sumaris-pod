@@ -89,7 +89,6 @@
                               [showMetier]="true"
                               [showFishingArea]="true"
                               [allowManyMetiers]="false"
-                              [filteredFishingAreaLocations]="appliedStrategyLocations$|async"
                               (onSubmit)="save($event)"
                               [debug]="debug">
 
@@ -179,10 +178,8 @@
                             [showTaxonGroupColumn]="false"
                             [showTaxonNameColumn]="false"
                             [showPmfmDetails]="true"
-                            [pmfmGroups]="$pmfmGroups|async"
                             [canAddPmfm]="true"
                             [defaultSampleDate]="data?.dateTime"
-                            [defaultLocation]="data?.location"
                             [usageMode]="usageMode"
                             [useSticky]="true"
                             [compactFields]="false"

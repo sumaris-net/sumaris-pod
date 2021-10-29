@@ -1,12 +1,11 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
-import {ErrorCodes} from './errors';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { ErrorCodes } from './errors';
 import {
   AccountService,
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
   EntitiesStorage,
-  firstNotNilPromise,
   GraphqlService,
   isNil,
   LoadResult,
@@ -15,15 +14,11 @@ import {
   StatusIds,
   SuggestService
 } from '@sumaris-net/ngx-components';
-import {Metier} from './model/taxon.model';
-import {ReferentialFragments} from './referential.fragments';
-import {SortDirection} from '@angular/material/sort';
-import {environment} from '@environments/environment';
-import {MetierFilter} from './filter/metier.filter';
-import {DomEvent} from 'leaflet';
-import {Operation} from '@app/trip/services/model/trip.model';
-import {map} from 'rxjs/operators';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import { ReferentialFragments } from './referential.fragments';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '@environments/environment';
+import { MetierFilter } from './filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
 
 export const METIER_DEFAULT_FILTER: Readonly<MetierFilter> = Object.freeze(MetierFilter.fromObject({
   entityName: 'Metier',
@@ -87,55 +82,6 @@ export class MetierService extends BaseGraphqlService
       return metier;
     }
     return null;
-  }
-
-  async loadAlreadyPracticedMetierTaxonGroup(offset: number,
-                                             size: number,
-                                             sortBy?: string,
-                                             sortDirection?: SortDirection,
-                                             filter?: Partial<MetierFilter>,
-                                             opts?: {
-                                 [key: string]: any;
-                                 fetchPolicy?: FetchPolicy;
-                                 debug?: boolean;
-                                 toEntity?: boolean;
-                               }): Promise<LoadResult<Metier>> {
-
-    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
-
-    if (!offline) {
-      return this.loadAll(offset, size, sortBy, sortDirection, {...filter, searchJoin: 'TaxonGroup'}, opts);
-    }
-
-    const operationFilter = OperationFilter.fromObject({
-      vesselId: filter.vesselId,
-      startDate: filter.startDate,
-      endDate: filter.endDate,
-      gearIds: filter.gearIds,
-      programLabel: filter.programLabel
-    });
-
-    const variables = {
-      offset: offset || 0,
-      size: size >= 0 ? size : 1000,
-      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
-      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: opts && opts.trash || false,
-      filter: operationFilter.asFilterFn()
-    };
-
-    return firstNotNilPromise(this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
-      .pipe(map(({data, total}) => {
-        const entities = (data || []).map(source => source.metier).reduce((res, metier) => {
-          if (res.find(m => m.id === metier.id) === undefined){
-            return res.concat(Metier.fromObject(metier, {useChildAttributes: 'TaxonGroup'}));
-          }
-          else {
-            return res;
-          }
-        }, [] );
-        return {data: entities, total};
-      })));
   }
 
   async loadAll(offset: number,

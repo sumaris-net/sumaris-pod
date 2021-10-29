@@ -438,14 +438,14 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   async onOpenOperationGroup(event: {id?: number, row: TableElement<Trip>}) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
-      this.loading = true;
+      this.markAsLoading();
       try {
         await this.router.navigate(['trips', this.data.id, 'operation', event.id],
           {
             queryParams: {}
           });
       } finally {
-        this.loading = false;
+        this.markAsLoaded();
       }
     }
   }
@@ -460,13 +460,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
-      this.loading = true;
-      this.markForCheck();
+      this.markAsLoading();
       try {
         await this.router.navigateByUrl(`/trips/${this.data.id}/operation/new`);
       } finally {
-        this.loading = false;
-        this.markForCheck();
+        this.markAsLoaded();
       }
     }
   }

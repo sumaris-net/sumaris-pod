@@ -33,28 +33,31 @@
     </ion-row>
   </ion-grid>
 
-  <!-- QV pmfm -->
-  <app-pmfm-qv-field #inputField
-                     *ngIf="!($loadingControls | async) && qvPmfm"
-                     [pmfm]="qvPmfm"
-                     [style]="mobile? 'button' : 'autocomplete'"
-                     [required]="true"
-                     [floatLabel]="floatLabel"
-                     [formControl]="measurementValuesForm.controls[qvPmfm.id.toString()]"
-                     [compact]="compact"
-                     [tabindex]="tabindex+1"
-                     (keydown.tab)="focusNextInput($event)"
-                     (keydown.enter)="focusNextInput($event)">
-    <!-- checkbox to freeze -->
-    <mat-checkbox  matAfter
-                   *ngIf="!mobile"
-                   [formControl]="freezeQvPmfmControl"
-                   [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
-                   (click)="$event.stopPropagation()"
-                   tabindex="-1">
-      <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
-    </mat-checkbox>
-  </app-pmfm-qv-field>
+  <form [formGroup]="measurementValuesForm">
+    <!-- QV pmfm -->
+    <app-pmfm-qv-field #inputField
+                       *ngIf="!loading && qvPmfm as pmfm"
+                       [pmfm]="pmfm"
+                       [formControlName]="pmfm.id|toString"
+                       [style]="mobile && 'button'"
+                       [required]="true"
+                       [floatLabel]="floatLabel"
+                       [compact]="compact"
+                       [tabindex]="tabindex+1"
+                       (keydown.tab)="focusNextInput($event)"
+                       (keydown.enter)="focusNextInput($event)"
+                       [buttonsColCount]="pmfm.qualitativeValues.length">
+      <!-- checkbox to freeze -->
+      <mat-checkbox  matAfter
+                     *ngIf="!mobile"
+                     [formControl]="freezeQvPmfmControl"
+                     [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
+                     (click)="$event.stopPropagation()"
+                     tabindex="-1">
+        <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
+      </mat-checkbox>
+    </app-pmfm-qv-field>
+  </form>
 
   <!-- Taxon name -->
   <ng-container *ngIf="showTaxonName">
@@ -89,42 +92,39 @@
                [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                required>
 
-        <ion-grid class="ion-no-padding" *ngIf="taxonNames | isArrayLength: {greaterThan: 1}; else defaultTaxonName">
-          <ion-row class="ion-no-padding">
-            <ion-col *ngFor="let item of taxonNames; index as i;">
-              <ion-button mat-button
-                          style="width: 100%;"
-                          class="mat-form-field-button"
-                          [color]="selectedTaxonNameIndex === -1 ? 'danger' : (selectedTaxonNameIndex === i ? 'accent' : 'light')"
-                          (click)="onTaxonNameButtonClick($event, item, tabindex + 19)"
-                          (keyup.enter)="onTaxonNameButtonClick($event, item, tabindex + 19)"
-                          [tabindex]="tabindex + 3 + i">
-                {{item.name || item.label}}
-              </ion-button>
-            </ion-col>
-            <ion-col size="1" class="ion-no-padding">
-              <!-- Options menu -->
-              <button mat-icon-button matSuffix
-                      [title]="'COMMON.OPTIONS'|translate"
-                      [matMenuTriggerFor]="taxonNameMenu">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-
-              <!-- Freeze QV or taxon name menu -->
-              <mat-menu #taxonNameMenu="matMenu" xPosition="before">
-                <button mat-menu-item (click)="freezeTaxonName=!freezeTaxonName">
-                  <mat-icon *ngIf="freezeTaxonName">check_box</mat-icon>
-                  <mat-icon *ngIf="!freezeTaxonName">check_box_outline_blank</mat-icon>
-                  <ion-label translate>COMMON.BTN_FREEZE_VALUE</ion-label>
-                </button>
-              </mat-menu>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
+        <div class="mat-form-field-buttons"
+             style="--buttons-col-count: 3;"
+             *ngIf="taxonNames | isArrayLength: {greaterThan: 1}; else defaultTaxonName">
+            <ion-button class="mat-form-field-button"
+                        *ngFor="let item of taxonNames; index as i;"
+                        [color]="selectedTaxonNameIndex === -1 ? 'tertiary' : (selectedTaxonNameIndex === i ? 'accent' : 'light')"
+                        (click)="onTaxonNameButtonClick($event, item, tabindex + 19)"
+                        (keyup.enter)="onTaxonNameButtonClick($event, item, tabindex + 19)"
+                        [tabindex]="tabindex + 3 + i">
+              {{item.name || item.label}}
+            </ion-button>
+        </div>
 
         <ng-template #defaultTaxonName>
           <ion-label>{{taxonNames[0].name || taxonNames[0].label}}</ion-label>
         </ng-template>
+
+        <!-- Options menu -->
+        <button mat-icon-button matSuffix
+                [title]="'COMMON.OPTIONS'|translate"
+                [matMenuTriggerFor]="taxonNameMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+
+        <!-- Freeze QV or taxon name menu -->
+        <mat-menu #taxonNameMenu="matMenu" xPosition="before">
+          <button mat-menu-item (click)="freezeTaxonName=!freezeTaxonName">
+            <mat-icon *ngIf="freezeTaxonName">check_box</mat-icon>
+            <mat-icon *ngIf="!freezeTaxonName">check_box_outline_blank</mat-icon>
+            <ion-label translate>COMMON.BTN_FREEZE_VALUE</ion-label>
+          </button>
+        </mat-menu>
+
 
         <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
@@ -143,56 +143,16 @@
   <form *ngIf="$pmfms | async as pmfms; else loadingSpinner"
         [formGroup]="measurementValuesForm">
 
-    <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-      <ng-container [ngSwitch]="pmfm.type">
-
-        <!-- qualitative value PMFM -->
-        <ng-container *ngSwitchCase="'qualitative_value'">
-          <!-- If mobile, force 'button' style -->
-          <app-pmfm-qv-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
-                             [pmfm]="pmfm"
-                             [style]="'button'"
-                             [floatLabel]="floatLabel"
-                             [sortAttribute]="['name']"
-                             [formControlName]="pmfm.id.toString()"
-                             [compact]="compact"
-                             [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInputOrSubmit($event, last)"
-                             [maxVisibleButtons]="maxVisibleButtons">
-          </app-pmfm-qv-field>
-        </ng-container>
-
-        <!-- qualitative value PMFM -->
-        <ng-container *ngSwitchCase="'boolean'">
-          <!-- If mobile, force 'button' style -->
-          <mat-boolean-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
-                             [style]="'button'"
-                             [floatLabel]="floatLabel"
-                             [placeholder]="pmfm|pmfmName"
-                             [formControlName]="pmfm.id.toString()"
-                             [compact]="compact"
-                             [tabindex]="tabindex + 20 + i*2"
-                             (keyup.enter)="focusNextInputOrSubmit($event, last)">
-          </mat-boolean-field>
-        </ng-container>
-
-        <!-- other PMFM types -->
-        <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
-        </ng-container>
-      </ng-container>
-
-      <ng-template #defaultPmfmField>
-        <app-pmfm-field #inputField
-                        [pmfm]="pmfm"
-                        [floatLabel]="floatLabel"
-                        [hidden]="pmfm.hidden"
-                        [formControlName]="pmfm.id.toString()"
-                        [compact]="mobile"
-                        (keyup.enter)="focusNextInputOrSubmit($event, last)"
-                        [tabindex]="tabindex + 20 + i*2">
-        </app-pmfm-field>
-      </ng-template>
-    </ng-container>
+    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last"
+                    #inputField
+                    [formControlName]="pmfm.id|toString"
+                    [pmfm]="pmfm"
+                    [floatLabel]="floatLabel"
+                    (keyup.enter)="focusNextInputOrSubmit($event, last)"
+                    [tabindex]="tabindex + 20 + i*2"
+                    [style]="mobile && 'button'"
+                    [maxVisibleButtons]="maxVisibleButtons">
+    </app-pmfm-field>
   </form>
 
 

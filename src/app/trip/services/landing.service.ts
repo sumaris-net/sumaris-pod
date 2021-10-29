@@ -27,8 +27,7 @@ import {
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
 import { Landing } from './model/landing.model';
 import { gql } from '@apollo/client/core';
-import { DataFragments, Fragments } from './trip.queries';
-import { ErrorCodes } from './trip.errors';
+import { DataFragments, DataCommonFragments } from './trip.queries';
 import { filter, map, tap } from 'rxjs/operators';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
 import { Sample } from './model/sample.model';
@@ -45,6 +44,7 @@ import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIAL
 import { TripFragments, TripService } from '@app/trip/services/trip.service';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { environment } from '@environments/environment';
+import { ErrorCodes } from '@app/data/services/errors';
 
 const moment = momentImported;
 
@@ -100,9 +100,9 @@ export const LandingFragments = {
     measurementValues
     samplesCount
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${ReferentialFragments.referential}
   `,
@@ -155,9 +155,9 @@ const LandingQueries = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
@@ -184,9 +184,9 @@ const LandingQueries = {
     total: landingsCount(filter: $filter)
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`
@@ -199,9 +199,9 @@ const LandingMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
@@ -212,9 +212,9 @@ const LandingMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
@@ -231,9 +231,9 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
     }
   }
   ${LandingFragments.landing}
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`
@@ -281,8 +281,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     );
   }
 
-  loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
-    return this.watchAllByObservedLocation(filter, opts).toPromise();
+  async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
+    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
   }
 
   watchAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
@@ -291,10 +291,15 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
   watchAll(offset: number, size: number,
            sortBy?: string, sortDirection?: SortDirection,
-           dataFilter?: LandingFilter|any,
+           dataFilter?: Partial<LandingFilter>,
            opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
     dataFilter = this.asFilter(dataFilter);
+
+    if (!dataFilter || dataFilter.isEmpty()) {
+      console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
+      return EMPTY;
+    }
 
     // Load offline
     const offline = this.network.offline
@@ -305,7 +310,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
-    const groupByVessel = dataFilter && dataFilter.groupByVessel === true;
+    const groupByVessel = dataFilter?.groupByVessel === true;
     if (groupByVessel || size === -1) {
       // sortBy = 'dateTime';
       // sortDirection = 'desc';
@@ -317,7 +322,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       size: size || 20,
       sortBy: (sortBy !== 'id' && sortBy) || 'dateTime',
       sortDirection: sortDirection || 'asc',
-      filter: dataFilter?.asPodObject()
+      filter: dataFilter && dataFilter.asPodObject()
     };
 
     let now = this._debug && Date.now();
@@ -335,7 +340,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       totalFieldName: withTotal ? "total" : undefined,
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_LANDINGS_ERROR, message: "LANDING.ERROR.LOAD_ALL_ERROR"},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -367,7 +372,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
           // Compute rankOrder, by tripId or observedLocationId
           if (!opts || opts.computeRankOrder !== false) {
-            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter as LandingFilter);
           }
 
           return {data: entities, total};
@@ -406,7 +411,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           variables: {
             id: id
           },
-          error: {code: ErrorCodes.LOAD_LANDING_ERROR, message: "LANDING.ERROR.LOAD_ERROR"},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -449,7 +454,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       variables: {
         data: json
       },
-      error: {code: ErrorCodes.SAVE_LANDINGS_ERROR, message: "LANDING.ERROR.SAVE_ALL_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR"},
       update: (proxy, {data}) => {
 
         if (this._debug) console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`);
@@ -528,7 +533,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         data: json
       },
       offlineResponse,
-      error: {code: ErrorCodes.SAVE_OBSERVED_LOCATION_ERROR, message: "ERROR.SAVE_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR"},
       update: async (proxy, {data}) => {
         const savedEntity = data && data.data ;
 
@@ -697,8 +702,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         interval: 10
       },
       error: {
-        code: ErrorCodes.SUBSCRIBE_LANDING_ERROR,
-        message: 'LANDING.ERROR.SUBSCRIBE_ERROR'
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(

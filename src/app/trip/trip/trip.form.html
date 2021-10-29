@@ -17,7 +17,7 @@
         <mat-autocomplete-field formControlName="program"
                                 [placeholder]="'TRIP.PROGRAM'|translate"
                                 [config]="autocompleteFields.program"
-                                [required]="true">
+                                required>
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -29,11 +29,11 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field
-          [placeholder]="'TRIP.VESSEL'|translate"
-          formControlName="vesselSnapshot"
-          [config]="autocompleteFields.vesselSnapshot"
-          [required]="true">
+        <mat-autocomplete-field *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+                                formControlName="vesselSnapshot"
+                                [placeholder]="'TRIP.VESSEL'|translate"
+                                [config]="autocompleteFields.vesselSnapshot"
+                                required>
           <ion-icon matPrefix name="boat"></ion-icon>
 
           <button matAfter type="button" mat-icon-button tabindex="-1"
@@ -198,3 +198,11 @@
 
 
 </form>
+
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

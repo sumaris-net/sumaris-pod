@@ -29,9 +29,9 @@ import {
   ShowToastOptions,
   Toasts,
   toNumber,
-  UserEventService,
+  UserEventService
 } from '@sumaris-net/ngx-components';
-import { DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
+import { DataFragments, ExpectedSaleFragments, DataCommonFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -63,6 +63,7 @@ import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -101,11 +102,11 @@ export const TripFragments = {
       ...LightPersonFragment
     }
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}`,
+  ${DataCommonFragments.referential}`,
 
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -156,14 +157,14 @@ export const TripFragments = {
       ...FishingAreaFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
-  ${Fragments.metier},
+  ${DataCommonFragments.metier},
   ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
@@ -224,13 +225,13 @@ export const TripFragments = {
       ...FishingAreaFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.metier}
+  ${DataCommonFragments.metier}
   ${PhysicalGearFragments.physicalGear}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}
@@ -818,15 +819,36 @@ export class TripService
     const res = await this.operationService.loadAllByTrip({tripId: localId},
       {fullLoad: true, computeRankOrder: false});
 
-    const childOperations = res.data && res.data.filter(operation => operation.parentOperationId && operation.parentOperationId < 0);
-    const parentOperations = res.data && res.data.filter(operation => operation.childOperationId && operation.childOperationId < 0);
+    const childOperations = new Array<Operation>();
+    const parentOperations = new Array<Operation>();
+    const parentOperationsWithNoChild = new Array<Operation>();
+    const otherOperations = new Array<Operation>();
+    const operationToDeleteLocally = [];
+    const operationToSaveLocally = [];
+
+    //sort operations to saving in good order
+    if (res.data) {
+      res.data.forEach(operation => {
+        if (operation.parentOperationId && operation.parentOperationId < 0) {
+          childOperations.push(operation);
+        } else if (operation.childOperationId && operation.childOperationId < 0) {
+          parentOperations.push(operation);
+        } else if (!operation.childOperationId && !operation.parentOperationId && operation.qualityFlagId === QualityFlagIds.NOT_COMPLETED) {
+          parentOperationsWithNoChild.push(operation);
+        } else {
+          otherOperations.push(operation);
+          if (operation.parentOperation != null) {
+            operationToDeleteLocally.push(operation.parentOperationId);
+          }
+        }
+      });
+    }
 
     if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
       throw new Error('Could not synchronize child operation before its parent');
     }
 
-    entity.operations = res && res.data.filter(operation => (!operation.parentOperationId || operation.parentOperationId > 0)
-      && (!operation.childOperationId || operation.childOperationId > 0)) || [];
+    entity.operations = otherOperations;
 
     try {
 
@@ -859,11 +881,31 @@ export class TripService
     }
     await this.operationService.saveAll(childOperations, opts);
 
+    for (const operation of parentOperationsWithNoChild) {
+      operation.tripId = entity.id;
+      const savedOperation = await this.operationService.save(operation, opts);
+      operationToSaveLocally.push(savedOperation.id);
+
+    }
+
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
-      // Delete trip's operations + parent operation
-      await this.operationService.deleteLocally({includedIds: parentOperations.map(o => o.id), tripId: localId});
+      // Delete trip's operations
+      await this.operationService.deleteLocally({tripId: localId});
+
+      // Delete parent from other trip which have child operation now
+      await this.operationService.deleteLocally({includedIds: operationToDeleteLocally});
+
+      // Saved locally new parent operation which wait child operation
+      if (operationToSaveLocally.length > 0) {
+        const operations = await this.operationService.loadAll(0, 999, null, null,
+          {
+            includedIds: operationToSaveLocally,
+            programLabel: entity.program.label
+          });
+        await this.operationService.saveAllLocally(operations.data);
+      }
 
       // Delete trip
       await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
@@ -961,7 +1003,7 @@ export class TripService
   }
 
   /**
-   * Delete many local trips
+   * Delete many local entities
    *
    * @param entities
    * @param opts
@@ -972,15 +1014,22 @@ export class TripService
 
     // Get local entities
     const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
-    if (isEmptyArray(localEntities)) return; // Skip if empty
+
+    // Delete, one by one
+    await chainPromises((localEntities || [])
+      .map(entity => () => this.deleteLocally(entity, opts))
+    );
+  }
+
+  async deleteLocally(entity: Trip, opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
 
     const trash = !opts || opts !== false;
     const trashUpdateDate = trash && moment();
+    if (this._debug) console.debug(`[trip-service] Deleting trip #${entity.id}... {trash: ${trash}`);
 
-    if (this._debug) console.debug(`[trip-service] Deleting locally... {trash: ${trash}`);
-
-    await chainPromises(localEntities.map(entity => async () => {
-
+    try {
       // Load trip's operations
       const res = await this.operationService.loadAllByTrip({tripId: entity.id},
         {fullLoad: true, computeRankOrder: false});
@@ -1002,8 +1051,10 @@ export class TripService
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: Trip.TYPENAME});
       }
-
-    }));
+    } catch (err) {
+      console.error('Error during trip deletion: ', err);
+      throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: "ERROR.DELETE_ENTITY_ERROR"};
+    }
   }
 
   /**
@@ -1096,6 +1147,14 @@ export class TripService
       if (opts && opts.withLanding && source.sale.products) {
         target.sale.products = source.sale.products;
       }
+    }
+
+    // Update fishing areas
+    if (target.fishingAreas && source.fishingAreas) {
+      target.fishingAreas.forEach(entity => {
+        const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
+        EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
+      });
     }
 
     // Update gears
@@ -1234,23 +1293,21 @@ export class TripService
     const feature = this.settings.getOfflineFeature(this.featureName);
     const tripFilter = TripOfflineFilter.toTripFilter(feature && feature.filter);
     if (tripFilter) {
+      const filter = {
+        programLabel: tripFilter.program.label,
+        vesselId: tripFilter.vesselId,
+        startDate: tripFilter.startDate
+      };
+
       return [
-        ...super.getImportJobs(opts),
+        ...super.getImportJobs({...opts, dataFilter: filter}),
         JobUtils.defer((p, o) => this.operationService.executeImport(p, {
           ...o,
-          filter: {
-            programLabel: tripFilter.program.label,
-            vesselId: tripFilter.vesselId,
-            startDate: tripFilter.startDate
-          }
+         filter
         }), opts),
         JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
           ...o,
-          filter: {
-            program: tripFilter.program,
-            vesselId: tripFilter.vesselId,
-            startDate: tripFilter.startDate
-          }
+          filter
         }), opts)
       ];
     } else {

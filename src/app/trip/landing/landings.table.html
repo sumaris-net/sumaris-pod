@@ -5,7 +5,8 @@
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
 
     <!-- Add -->
-    <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+    <button mat-icon-button
+            *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -18,10 +19,12 @@
     </button>
   </ng-container>
 
+  <!-- if row selection -->
   <ng-template #hasSelection>
+
     <!-- Delete -->
-    <button mat-icon-button color="light"
-            *ngIf="enabled" [title]="'COMMON.BTN_DELETE'|translate"
+    <button mat-icon-button *ngIf="enabled"
+            [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
@@ -65,7 +68,9 @@
   <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
+<div class="table-container"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="showPaginator">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
@@ -106,7 +111,7 @@
         <ion-label translate>LANDING.TABLE.VESSEL</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData?.vesselSnapshot | referentialToString: autocompleteFields.vesselSnapshot.attributes }}</ion-label>
+        <ion-label>{{row.currentData?.vesselSnapshot | referentialToString: vesselSnapshotAttributes }}</ion-label>
       </td>
     </ng-container>
 
@@ -116,7 +121,7 @@
         <ion-label translate>LANDING.TABLE.VESSEL_TYPE</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData?.vesselSnapshot?.vesselType |referentialToString: ['name'] }}</ion-label>
+        <ion-label>{{row.currentData?.vesselSnapshot?.vesselType | referentialToString: ['name'] }}</ion-label>
       </td>
     </ng-container>
 
@@ -126,7 +131,7 @@
         <ion-label translate>LANDING.TABLE.VESSEL_BASE_PORT_LOCATION</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: autocompleteFields.location.attributes }}</ion-text>
+        <ion-text>{{row.currentData.vesselSnapshot?.basePortLocation | referentialToString: locationAttributes }}</ion-text>
       </td>
     </ng-container>
 
@@ -136,7 +141,7 @@
         <span translate>LANDING.TABLE.LOCATION</span>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData?.location | referentialToString: autocompleteFields.location.attributes }}</ion-label>
+        <ion-label>{{row.currentData?.location | referentialToString: locationAttributes }}</ion-label>
       </td>
     </ng-container>
 

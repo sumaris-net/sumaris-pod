@@ -23,11 +23,12 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService,
+  SuggestService
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
-import { Metier, TaxonGroupRef, TaxonNameRef } from './model/taxon.model';
+import { TaxonGroupRef } from './model/taxon-group.model';
+import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { Moment } from 'moment';
@@ -35,6 +36,7 @@ import { environment } from '@environments/environment';
 import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
+import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -61,23 +63,7 @@ const LoadAllWithTotalQuery: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const LoadAllTaxonNamesQuery: any = gql`
-  query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
-    data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...FullTaxonNameFragment
-    }
-  }
-  ${ReferentialFragments.fullTaxonName}
-`;
-const LoadAllWithTotalTaxonNamesQuery: any = gql`
-  query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
-    data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...FullTaxonNameFragment
-    }
-    total: taxonNameCount(filter: $filter)
-  }
-  ${ReferentialFragments.fullTaxonName}
-`;
+
 
 const LoadAllTaxonGroupsQuery: any = gql`
   query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -413,8 +399,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Online mode
     else {
+      const query = opts && opts.withTotal ? TaxonNameQueries.loadAllWithTotal : TaxonNameQueries.loadAll;
       res = await this.graphql.query<LoadResult<any>>({
-        query: opts && opts.withTotal ? LoadAllWithTotalTaxonNamesQuery : LoadAllTaxonNamesQuery,
+        query,
         variables: {
           ...variables,
           filter: filter.asPodObject()
@@ -425,8 +412,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     }
 
     const entities = (!opts || opts.toEntity !== false) ?
-      (res && res.data || []).map(TaxonNameRef.fromObject) :
-      (res && res.data || []) as TaxonNameRef[];
+      (res?.data || []).map(TaxonNameRef.fromObject) :
+      (res?.data || []) as TaxonNameRef[];
     if (debug) console.debug(`[referential-ref-service] TaxonName items loaded in ${Date.now() - now}ms`, entities);
 
     const total = res.total || entities.length;
@@ -442,8 +429,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       result.fetchMore = () => this.loadAllTaxonNames(offset, size, sortBy, sortDirection, filter, opts);
     }
     return result;
-
-
   }
 
   async suggestTaxonNames(value: any, filter?: Partial<TaxonNameRefFilter>): Promise<LoadResult<TaxonNameRef>> {

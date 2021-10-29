@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injection
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
 import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
-import {TaxonGroupRef, TaxonNameRef} from '@app/referential/services/model/taxon.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {Batch} from '../../services/model/batch.model';
 import {Landing} from '../../services/model/landing.model';
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
@@ -11,6 +11,7 @@ import {ReferentialRefService} from '@app/referential/services/referential-ref.s
 import {BatchModal} from '../modal/batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
+import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
@@ -114,6 +115,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
         suppressErrors: environment.production,
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
+        debug: !environment.production,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
@@ -180,14 +182,13 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
       await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
-    }
-    else {
+    } else {
       this.editedRow = null;
     }
     return true;
   }
 
-  async openDetailModal(batch?: T): Promise<T | undefined> {
+  protected async openDetailModal(batch?: T): Promise<T | undefined> {
     const isNew = !batch && true;
     if (isNew) {
       batch = new this.dataType();
@@ -219,7 +220,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[batches-table] Batch modal result: ", data);
+    if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data);
     this.markAsLoaded();
 
     if (data instanceof Batch) {
@@ -256,12 +257,13 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       });
   }
 
-  protected prepareEntityToSave(batch: T) {
+  protected prepareEntityToSave(data: T) {
     // Override by subclasses
   }
 
   /**
    * Allow to remove/Add some pmfms. Can be override by subclasses
+   *
    * @param pmfms
    */
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -289,12 +291,12 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   }
 
   protected async onNewEntity(data: T): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug('[sample-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
     // generate label
-    data.label = this.acquisitionLevel + "#" + data.rankOrder;
+    data.label = this.acquisitionLevel + '#' + data.rankOrder;
 
     // Default values
     if (isNotNil(this.defaultTaxonName)) {

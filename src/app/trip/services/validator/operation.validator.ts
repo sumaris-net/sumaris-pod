@@ -1,17 +1,20 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {PositionValidatorService} from './position.validator';
-import {LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
-import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {Program} from '@app/referential/services/model/program.model';
-import {MeasurementsValidatorService} from './measurement.validator';
-import {Operation} from '../model/trip.model';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { PositionValidatorService } from './position.validator';
+import { fromDateISOString, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { Program } from '@app/referential/services/model/program.model';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { Operation, Trip } from '../model/trip.model';
 
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
   withMeasurements?: boolean;
+  withParent?: boolean;
+  withChild?: boolean;
+  trip?: Trip;
 }
 
 @Injectable({providedIn: 'root'})
@@ -66,11 +69,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
         physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
-        operationTypeId: [data && data.operationTypeId || null],
         parentOperation: [data && data.parentOperation || null],
         childOperation: [data && data.childOperation || null],
-        qualityFlagId: [data && data.qualityFlagId || null],
-        parentOperationLabel: [null]
+        qualityFlagId: [data && data.qualityFlagId || null]
       });
 
     return formConfig;
@@ -83,6 +84,129 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', 100, 'days')
       ])
     };
+  }
+
+  updateFormGroup(formGroup: FormGroup, opts?: O) {
+
+    // DEBUG
+    //console.debug(`[operation-validator] Updating form group validators`);
+
+    let enabledEndDateTimeControl: AbstractControl;
+    let disabledEndDateTimeControl: AbstractControl;
+    const endDateTimeValidators: ValidatorFn[] = [];
+    const parentControl = formGroup.get('parentOperation');
+    const childControl = formGroup.get('childOperation');
+    const qualityFlagControl = formGroup.get('qualityFlagId');
+
+    // iS child
+    if (opts?.withParent) {
+      parentControl.setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
+      parentControl.enable();
+      childControl.disable();
+
+      formGroup.get('fishingEndDateTime').setValidators(Validators.required);
+      formGroup.get('fishingEndDateTime').setAsyncValidators(async (control) => {
+        if (!control.touched && !control.dirty) return null;
+
+        const fishingEndDateTime = fromDateISOString(control.value);
+        const fishingStartDateTime = fromDateISOString((control.parent as FormGroup).get('fishingStartDateTime').value);
+        // Error if fishingEndDateTime <= fishingStartDateTime
+        if (fishingStartDateTime && fishingEndDateTime?.isSameOrBefore(fishingStartDateTime)) {
+          console.warn(`[operation] Invalid operation fishingEndDateTime: before fishingStartDateTime! `, fishingEndDateTime, fishingStartDateTime);
+          return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION'};
+        }
+        // OK: clear existing errors
+        SharedValidators.clearError(control, 'msg');
+        return null;
+      });
+
+      qualityFlagControl.clearValidators();
+
+      enabledEndDateTimeControl = formGroup.get('endDateTime');
+      disabledEndDateTimeControl = formGroup.get('fishingStartDateTime');
+    }
+
+    // Is parent
+    if (opts?.withChild) {
+      parentControl.clearValidators();
+      parentControl.disable();
+
+      formGroup.get('fishingEndDateTime').clearValidators();
+      formGroup.get('fishingEndDateTime').clearAsyncValidators();
+
+      enabledEndDateTimeControl = formGroup.get('fishingStartDateTime');
+      disabledEndDateTimeControl = formGroup.get('endDateTime');
+
+      endDateTimeValidators.push((control) => {
+        const endDateTime = fromDateISOString(control.value);
+        const fishingEndDateTime = fromDateISOString(childControl.value?.fishingEndDateTime);
+        if (fishingEndDateTime && endDateTime && endDateTime.isBefore(fishingEndDateTime) === false) {
+          console.warn(`[operation] Invalid operation: after the child operation's start! `, endDateTime, fishingEndDateTime);
+          return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'};
+        }
+      });
+
+      qualityFlagControl.setValidators(Validators.required);
+      qualityFlagControl.setValue(QualityFlagIds.NOT_COMPLETED);
+    }
+
+    // Default case
+    if (!opts || opts.withParent !== true && opts.withChild !== true) {
+      parentControl.clearValidators();
+      parentControl.disable();
+
+      childControl.clearValidators();
+      childControl.disable();
+
+      formGroup.get('fishingEndDateTime').clearValidators();
+      formGroup.get('fishingEndDateTime').clearAsyncValidators();
+      enabledEndDateTimeControl = formGroup.get('endDateTime');
+      disabledEndDateTimeControl = formGroup.get('fishingStartDateTime');
+
+      qualityFlagControl.clearValidators();
+    }
+
+    // Add required
+    if (opts?.isOnFieldMode) endDateTimeValidators.push(Validators.required);
+
+
+    const trip = opts.trip;
+    if (trip) {
+      endDateTimeValidators.push((control) => {
+        const endDateTime = fromDateISOString(control.value);
+        const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
+        const tripReturnDateTime = fromDateISOString(trip.returnDateTime);
+
+        // Make sure trip.departureDateTime < operation.endDateTime
+        if (endDateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(endDateTime) === false) {
+          console.warn(`[operation] Invalid operation: before the trip`, endDateTime, tripDepartureDateTime);
+          return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP'};
+        }
+        // Make sure operation.endDateTime < trip.returnDateTime
+        else if (endDateTime && tripReturnDateTime && endDateTime.isBefore(tripReturnDateTime) === false) {
+          console.warn(`[operation] Invalid operation: after the trip`, endDateTime, tripReturnDateTime);
+          return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP'};
+        }
+      });
+    }
+
+    // Clean control to disable
+    disabledEndDateTimeControl.clearAsyncValidators();
+    SharedValidators.clearError(disabledEndDateTimeControl, 'required');
+
+    // Add validators to end date control
+    enabledEndDateTimeControl.setAsyncValidators(async (control) => {
+      if (!control.touched && !control.dirty) return null;
+
+      const errors: ValidationErrors = endDateTimeValidators
+        .map(validator => validator(control))
+        .find(isNotNil) || null;
+
+      // Clear unused errors
+      if (!errors || !errors.msg) SharedValidators.clearError(control, 'msg');
+      if (!errors || !errors.required) SharedValidators.clearError(control, 'required');
+      return errors;
+    });
   }
 
   /* -- protected methods -- */

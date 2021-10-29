@@ -7,9 +7,9 @@ import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {
-  Alerts,
+  Alerts, AppFormUtils,
   AppTable,
-  AppTableDataSourceOptions,
+  AppTableDataSourceOptions, AppTableUtils,
   EntitiesTableDataSource,
   Entity,
   filterNotNil,
@@ -19,7 +19,7 @@ import {
   isNotNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
 import {MeasurementsDataService} from './measurements.service';
@@ -137,6 +137,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   get dataService(): IEntitiesService<T, F> {
     return this.measurementsDataService.delegate;
+  }
+
+  get loading(): boolean {
+    return this.measurementsDataService.loadingPmfms && isNotNil(this.$pmfms.value);
   }
 
   protected constructor(
@@ -290,7 +294,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   protected getDisplayColumns(): string[] {
 
-    const pmfms = this.$pmfms.getValue();
+    const pmfms = this.$pmfms.value;
     if (!pmfms) return this.columns;
 
     const userColumns = this.getUserColumns();
@@ -311,7 +315,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       // Remove columns to hide
       .filter(column => !this.excludesColumns.includes(column));
 
-    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
+    // DEBUG
+    console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
     //if (!this.loading) this.markForCheck();
   }
 
@@ -324,11 +329,20 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     }
   }
 
-  async ready() {
+  async waitIdle(): Promise<any> {
+    if (isNotNil(this.$pmfms.value)) return AppTableUtils.waitIdle(this);
+
     // Wait pmfms load, and controls load
-    if (isNil(this.$pmfms.getValue())) {
-      await firstNotNilPromise(this.$pmfms);
-    }
+    await firstNotNilPromise(this.$pmfms);
+
+    return AppTableUtils.waitIdle(this);
+  }
+
+  async ready() {
+    if (isNotNil(this.$pmfms.value)) return;
+
+    // Wait pmfms load, and controls load
+    await firstNotNilPromise(this.$pmfms);
   }
 
   /**
@@ -343,7 +357,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   /* -- protected methods -- */
 
   protected updateColumns() {
-    if (!this.$pmfms.getValue()) return; // skip
+    if (!this.$pmfms.value) return; // skip
     super.updateColumns();
   }
 
@@ -497,7 +511,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       this.confirmEditCreate(null, row);
       this.editedRow = null;
     }
-    else {
+    else if (this.inlineEdition) {
       this.editedRow = row;
     }
 
@@ -519,7 +533,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Try to resolve PMFM column, using the cached pmfm list
     if (PMFM_ID_REGEXP.test(columnName)) {
       const pmfmId = parseInt(columnName);
-      const pmfm = (this.$pmfms.getValue() || []).find(p => p.id === pmfmId);
+      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
 
@@ -529,7 +543,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected getI18nFieldName(fieldName: string): string {
     if (fieldName.startsWith('measurementValues.')) {
       const pmfmId = parseInt(fieldName.split('.')[1]);
-      const pmfm = (this.$pmfms.getValue() || []).find(p => p.id === pmfmId);
+      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
     return super.getI18nFieldName(fieldName);

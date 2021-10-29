@@ -1,17 +1,16 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
+import {DateAdapter} from '@angular/material/core';
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/validator/batch.validator';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {Batch} from "../services/model/batch.model";
-import {DenormalizedPmfmStrategy, PmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {IPmfm, PmfmUtils} from "../../referential/services/model/pmfm.model";
+import { firstNotNilPromise, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import {Batch} from '../services/model/batch.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'form-catch-batch',
@@ -24,11 +23,12 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   $onDeckPmfms = new Subject<IPmfm[]>();
   $sortingPmfms = new Subject<IPmfm[]>();
   $weightAndOtherPmfms = new Subject<IPmfm[]>();
+  $multiplePmfms = new Subject<IPmfm[]>();
   hasPmfms: boolean;
 
   @Input() showError = true;
 
-  constructor(
+   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
@@ -45,20 +45,47 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     super.ngOnInit();
 
     // Dispatch pmfms by category, using label
-    firstNotNilPromise(this.$pmfms)
-      .then(pmfms => {
-        this.$onDeckPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('ON_DECK_') === 0));
-        this.$sortingPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('SORTING_') === 0));
-        this.$weightAndOtherPmfms.next(pmfms.filter(p =>
-          p.label && p.label.indexOf('_WEIGHT') > 0
-          || (p.label.indexOf('ON_DECK_') === -1 && p.label.indexOf('SORTING_') === -1)));
-
-        this.hasPmfms = pmfms.length > 0;
-      });
-
-    // Make sure to set the label
     this.registerSubscription(
-      this._onValueChanged.subscribe((_) => this.data.label = this._acquisitionLevel)
+      this.$pmfms
+        .pipe(filter(isNotNil))
+        .subscribe(pmfms => {
+          // DEBUG
+          //console.debug('[catch-form] Dispatch pmfms by form', pmfms);
+
+          this.$onDeckPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('ON_DECK_') === 0));
+          this.$sortingPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('SORTING_') === 0));
+          this.$weightAndOtherPmfms.next(pmfms.filter(p =>
+            (p.label && p.label.indexOf('_WEIGHT') > 0
+            || (p.label.indexOf('ON_DECK_') === -1 && p.label.indexOf('SORTING_') === -1))
+            && p.isMultiple !== true));
+
+          // Special case for multiple PMFMs
+          this.$multiplePmfms.next(pmfms
+            .filter(p => p.isMultiple)
+            .map(p => {
+              if (PmfmUtils.isDenormalizedPmfm(p)) {
+                const target = p.clone() as IDenormalizedPmfm;
+                target.acquisitionNumber = 1;
+                return target;
+              }
+              return p;
+            }));
+
+          this.hasPmfms = pmfms.length > 0;
+          this.markForCheck();
+        })
     );
   }
+
+  onEntityLoaded(data: Batch, opts?: any) {
+     super.onEntityLoaded(data, opts);
+
+    if (!data) return; // Skip
+
+    // Force the label
+     data.label = this._acquisitionLevel;
+  }
 }
+
+
+

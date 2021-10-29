@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {OperationValidatorService} from '../services/validator/operation.validator';
-import {AlertController, ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
-import {TranslateService} from '@ngx-translate/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { OperationValidatorService } from '../services/validator/operation.validator';
+import { AlertController, ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
@@ -17,17 +17,16 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {Operation, PhysicalGear, Trip} from '../services/model/trip.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {TripService} from '@app/trip/services/trip.service';
-import {debounceTime, distinctUntilChanged, filter} from 'rxjs/operators';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import { environment } from '@environments/environment';
+import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { TripService } from '@app/trip/services/trip.service';
+import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import moment from 'moment/moment';
-import {Metier} from '@app/referential/services/model/taxon.model';
-import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {BehaviorSubject} from 'rxjs';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-select-operation-by-trip-table',
@@ -62,6 +61,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   @Input() useSticky = true;
   @Input() enableGeolocation = false;
   @Input() physicalGears: PhysicalGear[];
+  @Input() parent: Operation;
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -89,6 +89,10 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
           return sortActive;
       }
     }
+  }
+
+  get sortByDistance(): boolean{
+    return this.enableGeolocation && (this.sortActive === 'startPosition' || this.sortActive === 'endPosition');
   }
 
   constructor(
@@ -131,7 +135,8 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
             readOnly: true,
             withBatchTree: false,
             withSamples: false,
-            withTotal: true
+            withTotal: true,
+            mapOperationsFn: (operations) => this.mapOperations(operations)
           },
           OperationServiceWatchOptions: {
             computeRankOrder: false
@@ -205,34 +210,6 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
       }));
 
     this.loadTaxonGroups();
-
-    this.registerSubscription(
-      this._dataSource.datasourceSubject.pipe(
-        distinctUntilChanged()
-      ).subscribe(async (data: any) => {
-        if (this.enableGeolocation && (this.sortActive === 'startPosition' || this.sortActive === 'endPosition')) {
-          data = await this.dataService.sortByDistance(data, this.sortDirection, this.sortActive);
-        }
-        if (!this.isGrouping) {
-          this.isGrouping = true;
-          const tripsIds = data.map(ope => ope.tripId).filter((v, i, a) => a.indexOf(v) === i);
-
-          if (!this.trips || this.trips.length === 0 || this.trips.length < tripsIds.length) {
-            if (this.network.offline) {
-              this.trips = data.map(operation => operation.trip);
-            } else {
-              const ids = tripsIds.filter((v) => this.trips && !this.trips.some(trip => trip.id === v));
-              const res =
-                await this.tripService.loadAll(0, 999, null, null,
-                  {includedIds: ids});
-              this.trips = this.trips.concat(res.data);
-            }
-          }
-          const operations = this.addGroups(data);
-          this._dataSource.updateDatasource(operations, {emitEvent: false});
-          this.isGrouping = false;
-        }
-      }));
   }
 
   clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
@@ -283,7 +260,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   isCurrentData(row: any) {
-    return this.filter.includedIds && this.filter.includedIds.length > 0 && row.currentData.id === this.filter.includedIds[0];
+    return this.parent && row.currentData.id === this.parent.id;
   }
 
   /* -- protected methods -- */
@@ -312,6 +289,39 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     }, [] )
 
     this._taxonGroupsSubject.next(metierTaxonGroups);
+  }
+
+  async mapOperations(operations: Operation[]): Promise<Operation[]> {
+
+    if (this.parent && operations.findIndex(o => o.id === this.parent.id) === -1){
+      operations.push(this.parent)
+    }
+
+    //Not done on watch all to apply filter on parent operation
+    if (this.sortByDistance){
+      operations = await this.dataService.sortByDistance(operations, this.sortDirection, this.sortActive);
+    }
+
+    if (!this.isGrouping) {
+      this.isGrouping = true;
+      const tripsIds = operations.map(ope => ope.tripId).filter((v, i, a) => a.indexOf(v) === i);
+
+      if (!this.trips || this.trips.length === 0 || this.trips.length < tripsIds.length) {
+        if (this.network.offline) {
+          this.trips = operations.map(operation => operation.trip);
+        } else {
+          const ids = tripsIds.filter((v) => this.trips && !this.trips.some(trip => trip.id === v));
+          const res =
+            await this.tripService.loadAll(0, 999, null, null,
+              {includedIds: ids});
+          this.trips = this.trips.concat(res.data);
+        }
+      }
+      operations = this.addGroups(operations);
+      this.isGrouping = false;
+    }
+
+    return operations;
   }
 }
 

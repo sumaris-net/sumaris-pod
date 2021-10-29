@@ -6,7 +6,7 @@
              (onValidateAndClose)="saveAndClose($event)"
              [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
-             [backHref]="defaultBackHref"
+             [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
 
   <ion-title [innerHTML]="$title|async"></ion-title>
@@ -18,7 +18,7 @@
     <ion-label translate>TRIP.OPERATION.BTN_HISTORY</ion-label>
   </ion-button>
 
-  <ion-spinner *ngIf="loading"></ion-spinner>
+  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
   <button slot="end" mat-icon-button
           [matMenuTriggerFor]="optionsMenu"
@@ -37,18 +37,16 @@
   </ion-row>
 
   <ion-list class="ion-no-padding">
-    <ng-container *ngIf="$lastOperations|async; let items; else noLastOperation">
+    <ng-container *ngIf="$lastOperations|async as items; else noLastOperation">
 
       <ion-item *ngFor="let item of items"
                 tappable class="text-1x"
                 [color]="isCurrentData(item) ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
-        <ion-icon *ngIf="!useLinkedOperation else linkedOperation" slot="start" name="navigate"></ion-icon>
-        <ng-template #linkedOperation>
-          <mat-icon *ngIf="item.operationTypeId === 0 else child" matPrefix svgIcon="down-arrow"></mat-icon>
-          <ng-template #child>
-            <mat-icon matPrefix svgIcon="rollback-arrow"></mat-icon>
-          </ng-template>
+        <mat-icon *ngIf="item.parentOperation?.id else parentIcon" matPrefix svgIcon="rollback-arrow"></mat-icon>
+        <ng-template #parentIcon>
+          <mat-icon matPrefix svgIcon="down-arrow"></mat-icon>
+          <!--<ion-icon *ngIf="!allowParentOperation else linkedOperation" slot="start" name="navigate"></ion-icon>-->
         </ng-template>
         <ion-grid>
           <ion-row>
@@ -141,18 +139,7 @@
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-buttons collapse="true" slot="end">
-        <ion-button>Click Me</ion-button>
-      </ion-buttons>
-      <ion-title size="large">Settings</ion-title>
-    </ion-toolbar>
-    <ion-toolbar>
-      <ion-searchbar></ion-searchbar>
-    </ion-toolbar>
-  </ion-header>
-
+  <ion-spinner class="ion-align-self-center" *ngIf="pending"></ion-spinner>
 
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
@@ -172,26 +159,27 @@
       </ng-template>
 
       <!-- error -->
-      <ion-item *ngIf="error || opeForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+      <ion-item *ngIf="(error || opeForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
         <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
       </ion-item>
 
       <ion-grid class="ion-no-padding">
 
-        <ion-row class="ion-no-padding">
+        <ion-row>
           <ion-col class="ion-padding">
             <!-- form -->
             <app-form-operation #opeForm
-                            (onSubmit)="save($event)" [showError]="false"
-                            [usageMode]="usageMode"
-                            [acquisitionLevel]="acquisitionLevel"
-                            [tabindex]="1"
-                            [debug]="debug"
-                            [programLabel]="$programLabel|async">
+                                (onSubmit)="save($event)"
+                                [showError]="false"
+                                [usageMode]="usageMode"
+                                [tabindex]="1"
+                                [debug]="debug"
+                                [programLabel]="$programLabel|async">
+
 
               <!-- Other features (Measurements) -->
-              <ion-grid class="ion-no-padding ion-padding-top" [class.cdk-visually-hidden]="(measurementsForm.$pmfms|async)?.length === 0">
+              <ion-grid class="ion-no-padding ion-padding-top" [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
                 <ion-row>
                   <ion-col size="12" size-md="3" size-lg="3">
                     <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
@@ -200,10 +188,12 @@
                     <app-form-measurements #measurementsForm
                                            entityName="VesselUseMeasurement"
                                            [forceOptional]="usageMode|isOnField"
-                                           [acquisitionLevel]="acquisitionLevel.getValue()"
+                                           [acquisitionLevel]="$acquisitionLevel|async"
                                            [debug]="debug"
                                            [programLabel]="$programLabel|async"
-                                           [tabindex]="30">
+                                           [tabindex]="30"
+                                           [mobile]="mobile"
+                                           [compact]="false">
                     </app-form-measurements>
                   </ion-col>
                 </ion-row>
@@ -218,7 +208,7 @@
     </mat-tab>
 
     <!-- TAB: Catch -->
-    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH'|translate}}">
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH'|translate}}" [disabled]="!enableCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
@@ -229,6 +219,7 @@
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
                       [programLabel]="$programLabel | async"
+                      [selectedTabIndex]="selectedBatchTabIndex"
                       [usageMode]="usageMode"
                       [debug]="debug">
       </app-batch-tree>
@@ -275,11 +266,11 @@
                       *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
           </ng-template>
 
-          <app-individual-monitoring-table #individualMonitoringTable [debug]="true"
+          <app-individual-monitoring-table #individualMonitoringTable [debug]="debug"
                                            [programLabel]="$programLabel | async"
                                            [usageMode]="usageMode"
-                                           [useSticky]="!mobile"
-          ></app-individual-monitoring-table>
+                                           [useSticky]="!mobile">
+          </app-individual-monitoring-table>
 
           <!-- final space-->
           <p visible-xs visible-sm visible-mobile>&nbsp;</p>
@@ -314,8 +305,8 @@
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+                        [disabled]="loading || !dirty"
+                        [disabledCancel]="loading || !dirty">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

@@ -8,7 +8,6 @@ import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {Landing} from './landing.model';
-import {Metier} from '@app/referential/services/model/taxon.model';
 import {Sample} from './sample.model';
 import {Batch} from './batch.model';
 import {IWithProductsEntity, Product} from './product.model';
@@ -16,6 +15,8 @@ import {IWithPacketsEntity, Packet} from './packet.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import { Metier } from "@app/referential/services/model/metier.model";
+import { IPosition } from '@app/trip/services/model/position.model';
 
 /* -- Helper function -- */
 
@@ -29,28 +30,13 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
   sampleAsTree?: boolean;
+  keepTrip?: boolean; //Allow to keep trip, needed to apply filter on local storage
 }
 
 export interface OperationFromObjectOptions {
   withSamples?: boolean;
   withBatchTree?: boolean;
 }
-
-export declare interface OperationType {
-  id: number;
-  label: string;
-}
-
-export const defaultOperationTypesList: OperationType[] = [
-  {
-    id: 0,
-    label: "TRIP.OPERATION.EDIT.TYPE.PARENT"
-  },
-  {
-    id: 1,
-    label: "TRIP.OPERATION.EDIT.TYPE.CHILD"
-  }
-];
 
 @EntityClass({typename: 'OperationVO'})
 export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
@@ -77,10 +63,9 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   samples: Sample[] = null;
   catchBatch: Batch = null;
   fishingAreas: FishingArea[] = [];
-  operationTypeId: number;
   parentOperationId: number = null;
   parentOperation: Operation = null;
-  qualityFlagId:  number = null;
+  qualityFlagId: number = null;
   childOperationId: number = null;
   childOperation: Operation = null;
 
@@ -170,18 +155,21 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     target.parentOperationId = this.parentOperationId || this.parentOperation && this.parentOperation.id;
     target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
 
-    if (opts.minify){
+    if (opts.minify) {
       delete target.operationTypeId;
       delete target.parentOperation;
       delete target.childOperation;
-      delete target.trip;
-    }
-    else {
+    } else {
       target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
-      target.operationTypeId = this.parentOperation ? 1 : 0;
     }
 
+    if (opts.keepTrip) {
+      target.trip = this.trip && this.trip || undefined;
+
+    } else {
+      delete target.trip;
+    }
     return target;
   }
 
@@ -257,8 +245,6 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     //Child Operation
     this.childOperationId = source.childOperationId;
     this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
-
-    this.operationTypeId = this.parentOperationId ? 1 : 0;
   }
 
   equals(other: Operation): boolean {
@@ -359,7 +345,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
       ...source.measurementValues // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {
-      console.warn("Source as no measurement. Should never occur! ", source);
+      console.warn('Source as no measurement. Should never occur! ', source);
     }
 
     // Products
@@ -398,7 +384,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 }
 
-@EntityClass({typename: "TripVO"})
+@EntityClass({typename: 'TripVO'})
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
   static fromObject: (source: any, opts?: any) => Trip;
@@ -416,12 +402,6 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   operations?: Operation[] = null;
   operationGroups?: OperationGroup[] = null;
   fishingAreas?: FishingArea[] = null;
-
-  /**
-   * @deprecated
-   */
-  fishingArea: FishingArea = null;
-
   landing?: Landing = null;
   observedLocationId?: number = null;
 
@@ -567,8 +547,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
     if (source.trip) {
       this.trip = source.trip && Trip.fromObject(source.trip);
       this.tripId = this.trip && this.trip.id;
-    }
-    else {
+    } else {
       this.trip = null;
       this.tripId = null;
     }
@@ -588,7 +567,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
 }
 
 @EntityClass({typename: 'VesselPositionVO'})
-export class VesselPosition extends DataEntity<VesselPosition> {
+export class VesselPosition extends DataEntity<VesselPosition> implements IPosition {
 
   static fromObject: (source: any, opts?: any) => VesselPosition;
 

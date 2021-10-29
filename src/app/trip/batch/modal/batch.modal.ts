@@ -1,55 +1,62 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {BehaviorSubject} from "rxjs";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BatchForm} from "../form/batch.form";
-import {ModalController} from "@ionic/angular";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { PmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
+import { BatchForm } from '../form/batch.form';
+import { ModalController } from '@ionic/angular';
+import { AppFormUtils, Entity, IReferentialRef, LocalSettingsService, PlatformService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+
+
+export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEntityModalOptions<B> {
+
+  // UI Fields show/hide
+  showTaxonGroup: boolean;
+  showTaxonName: boolean;
+  showIndividualCount: boolean;
+
+  // UI Options
+  maxVisibleButtons: number;
+
+  qvPmfm?: PmfmStrategy;
+  availableTaxonGroups?: IReferentialRef[] | Observable<IReferentialRef[]>;
+
+  // TODO: voir pour utiliser des IReferentialRef
+  taxonGroupsNoWeight?: string[];
+
+}
 
 @Component({
     selector: 'app-batch-modal',
     templateUrl: './batch.modal.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchModal implements OnInit {
+export class BatchModal implements OnInit, IBatchModalOptions {
 
-    debug = false;
-    loading = false;
-    mobile: boolean;
-    data: Batch;
-    $title = new BehaviorSubject<string>(undefined);
+  debug = false;
+  loading = false;
+  mobile: boolean;
+  $title = new BehaviorSubject<string>(undefined);
 
-    @Input() acquisitionLevel: string;
+  @Input() data: Batch;
+  @Input() disabled: boolean;
+  @Input() isNew = false;
+  @Input() acquisitionLevel: string;
+  @Input() programLabel: string;
+  @Input() showTaxonGroup = true;
+  @Input() showTaxonName = true;
+  @Input() showIndividualCount = false;
+  @Input() showTotalIndividualCount = false;
+  @Input() showSamplingBatch = false;
+  @Input() qvPmfm: PmfmStrategy;
+  @Input() maxVisibleButtons: number;
+  @Input() usageMode: UsageMode;
+  @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
 
-    @Input() programLabel: string;
-
-    @Input() canEdit: boolean;
-
-    @Input() disabled: boolean;
-
-    @Input() isNew = false;
-
-    @Input() showTaxonGroup = true;
-
-    @Input() showTaxonName = true;
-
-    @Input() showIndividualCount = false;
-
-    @Input() showTotalIndividualCount = false;
-
-    @Input() qvPmfm: PmfmStrategy;
-
-    @Input() showSampleBatch = false;
-
-    @Input()
-    set value(value: Batch) {
-        this.data = value;
-    }
+  @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 
     @ViewChild('form', {static: true}) form: BatchForm;
 
@@ -83,8 +90,7 @@ export class BatchModal implements OnInit {
 
 
     ngOnInit() {
-        this.canEdit = toBoolean(this.canEdit, !this.disabled);
-        this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+        this.disabled = toBoolean(this.disabled, false);
 
         if (this.disabled) {
             this.form.disable();
@@ -112,7 +118,7 @@ export class BatchModal implements OnInit {
         if (this.invalid) {
             if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[batch-modal] ");
             this.form.error = "COMMON.FORM.HAS_ERROR";
-            this.form.markAsTouched({emitEvent: true});
+            this.form.markAllAsTouched();
             return;
         }
 

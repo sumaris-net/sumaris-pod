@@ -6,7 +6,7 @@ import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
 import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
 import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
-import {TaxonGroupRef, TaxonGroupTypeIds, TaxonNameRef} from "./model/taxon.model";
+import {TaxonGroupRef, TaxonGroupTypeIds} from "./model/taxon-group.model";
 import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
 import {CacheService} from "ionic-cache";
 import {ReferentialRefService} from "./referential-ref.service";
@@ -32,6 +32,7 @@ import {BaseReferentialService} from "./base-referential-service.class";
 import {ProgramFilter} from "./filter/program.filter";
 import {ReferentialRefFilter} from "./filter/referential-ref.filter";
 import {environment} from '@environments/environment';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 
 export const ProgramRefQueries = {
@@ -101,8 +102,8 @@ export const ProgramRefQueries = {
 };
 
 const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription UpdateProgram($id: Int, $label: String, $interval: Int){
-    data: updateProgram(id: $id, label: $label, interval: $interval) {
+  listenChanges: gql`subscription UpdateProgram($id: Int!, $interval: Int){
+    data: updateProgram(id: $id, interval: $interval) {
       ...LightProgramFragment
     }
   }
@@ -672,40 +673,6 @@ export class ProgramRefService
             cache.subject.unsubscribe();
             cache.subscription.unsubscribe();
           }, 100);
-        })
-      );
-  }
-
-  listenChangesByLabel(label: string, opts?: {
-    interval?: number;
-    toEntity?: false;
-  }): Observable<Program> {
-    if (isNil(label)) throw Error("Missing argument 'label' ");
-    if (!this.subscriptions.listenChanges) throw Error("Not implemented!");
-
-    const variables = {
-      label,
-      interval: opts && opts.interval || 10 // seconds
-    };
-    if (this._debug) console.debug(`[base-entity-service] [WS] Listening for changes on Program {${label}}...`);
-
-    return this.graphql.subscribe<{data: any}>({
-      query: this.subscriptions.listenChanges,
-      variables,
-      error: {
-        code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
-        message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
-      }
-    })
-      .pipe(
-        map(({data}) => {
-          const entity = (!opts || opts.toEntity !== false) ? data && this.fromObject(data) : data;
-          if (entity && this._debug) console.debug(`[base-entity-service] [WS] Received changes on Program {${label}}`, entity);
-
-          // TODO: when missing = deleted ?
-          if (!entity) console.warn(`[base-entity-service] [WS] Received deletion on Program {${label}} - TODO check implementation`);
-
-          return entity;
         })
       );
   }

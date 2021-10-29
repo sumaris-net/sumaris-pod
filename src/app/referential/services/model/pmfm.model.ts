@@ -1,7 +1,8 @@
-import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, IEntity, isNotNil, ReferentialRef} from '@sumaris-net/ngx-components';
-import {MethodIds, PmfmIds} from './model.enum';
+import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { MethodIds, PmfmIds, UnitLabel } from './model.enum';
 import {Parameter, ParameterType} from './parameter.model';
 import {PmfmValue} from './pmfm-value.model';
+import { Moment } from 'moment';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -30,12 +31,15 @@ export interface IPmfm<
   qualitativeValues: ReferentialRef[];
 
   unitLabel: string;
-  isQualitative: boolean;
-  required?: boolean;
-  isComputed: boolean;
-  hidden?: boolean;
   rankOrder?: number;
 
+  isQualitative: boolean;
+  isComputed: boolean;
+  isMultiple: boolean;
+  required?: boolean;
+  hidden?: boolean;
+
+  displayConversion?: UnitConversion;
 }
 
 export interface IDenormalizedPmfm<
@@ -45,10 +49,12 @@ export interface IDenormalizedPmfm<
 
   completeName?: string;
   name?: string;
+  acquisitionNumber?: number;
 
   gearIds: number[];
   taxonGroupIds: number[];
   referenceTaxonIds: number[];
+
 }
 
 
@@ -62,6 +68,28 @@ export interface IFullPmfm<
   fraction: ReferentialRef;
   method: ReferentialRef;
   unit: ReferentialRef;
+}
+
+
+@EntityClass({typename: 'UnitConversionVO'})
+export class UnitConversion {
+
+  static fromObject: (source: Partial<UnitConversion>, opts?: any) => UnitConversion;
+
+  fromUnit: ReferentialRef;
+  toUnit: ReferentialRef;
+  conversionCoefficient: number;
+  updateDate: Moment;
+
+  constructor() {
+  }
+
+  fromObject(source: any) {
+    this.fromUnit = source.fromUnit && ReferentialRef.fromObject(source.fromUnit);
+    this.toUnit = source.toUnit && ReferentialRef.fromObject(source.toUnit);
+    this.conversionCoefficient = source.conversionCoefficient;
+    this.updateDate = fromDateISOString(source.updateDate);
+  }
 }
 
 @EntityClass({typename: 'PmfmVO'})
@@ -92,13 +120,13 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
     this.entityName = Pmfm.ENTITY_NAME;
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
+  asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject({
-      ...options,
+      ...opts,
       minify: false // Do NOT minify itself
     });
 
-    if (options && options.minify) {
+    if (opts && opts.minify) {
       target.parameterId = this.parameter && this.parameter.id;
       target.matrixId = this.matrix && this.matrix.id;
       target.fractionId = this.fraction && this.fraction.id;
@@ -111,14 +139,14 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
       delete target.unit;
     }
     else {
-      target.parameter = this.parameter && this.parameter.asObject(options);
-      target.matrix = this.matrix && this.matrix.asObject(options);
-      target.fraction = this.fraction && this.fraction.asObject(options);
-      target.method = this.method && this.method.asObject(options);
-      target.unit = this.unit && this.unit.asObject(options);
+      target.parameter = this.parameter && this.parameter.asObject(opts);
+      target.matrix = this.matrix && this.matrix.asObject(opts);
+      target.fraction = this.fraction && this.fraction.asObject(opts);
+      target.method = this.method && this.method.asObject(opts);
+      target.unit = this.unit && this.unit.asObject(opts);
     }
 
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(opts)) || undefined;
     return target;
   }
 
@@ -168,6 +196,10 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
   get isComputed(): boolean {
     return PmfmUtils.isComputed(this);
   }
+
+  get isMultiple(): boolean {
+    return false; // Default value
+  }
 }
 
 export abstract class PmfmUtils {
@@ -186,23 +218,23 @@ export abstract class PmfmUtils {
   }
 
   static isNumeric(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'integer' || pmfm.type === 'double');
+    return pmfm.type === 'integer' || pmfm.type === 'double';
   }
 
   static isAlphanumeric(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'string');
+    return pmfm.type === 'string';
   }
 
   static isDate(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.type) && (pmfm.type === 'date');
+    return pmfm.type === 'date';
   }
 
   static isWeight(pmfm: IPmfm): boolean {
-    return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
+    return pmfm.unitLabel === UnitLabel.KG || pmfm.label?.endsWith("WEIGHT");
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
-    return pmfm && isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
+    return pmfm && labels.includes(pmfm.parameter.label);
   }
 
   static isComputed(pmfm: IPmfm) {

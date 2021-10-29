@@ -226,14 +226,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
       event.preventDefault();
     }
 
-    this.loading = true;
-
-    this.error = null;
     console.debug(`[extraction-form] Downloading ${this.type.category} ${this.type.label}...`);
 
+    this.markAsLoading();
+    this.error = null;
     const filter = this.getFilterValue();
     delete filter.sheetName; // Force to download all sheets
-
     this.disable();
 
     try {
@@ -247,7 +245,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
       console.error(err);
       this.error = err && err.message || err;
     } finally {
-      this.loading = false;
+      this.markAsLoaded();
       this.enable();
     }
   }

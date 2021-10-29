@@ -12,7 +12,7 @@ export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
  */
 export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
   EXTRACTION_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.extraction.enable',
+    key: 'sumaris.extraction.enabled',
     label: 'EXTRACTION.OPTIONS.ENABLE',
     type: 'boolean',
     defaultValue: 'false'

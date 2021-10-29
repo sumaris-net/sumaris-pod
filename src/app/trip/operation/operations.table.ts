@@ -29,7 +29,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     [key: string]: string[]
   };
   highlightedRow: TableElement<Operation>;
-  $uselinkedOperations = new BehaviorSubject<boolean>(false);
 
   @Input() latLongPattern: LatLongPattern;
   @Input() tripId: number;
@@ -37,52 +36,15 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() program: string;
   @Input() showToolbar = true;
   @Input() showPaginator = true;
-
-  ngOnInit() {
-    super.ngOnInit();
-    console.debug('operation-table');
-    this.showMap = toBoolean(this.showMap, false);
-
-    this.displayAttributes = {
-      gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-    };
-
-    this.registerSubscription(
-      this.settings.onChange.subscribe((settings) => {
-        if (this.loading) return; // skip
-        this.latLongPattern = settings.latLongFormat;
-
-        this.displayAttributes = {
-          gear: this.settings.getFieldDisplayAttributes('gear'),
-          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-        };
-
-        this.markForCheck();
-      }));
-
-    // Apply trip id, if already set
-    if (isNotNil(this.tripId)) {
-      this.setTripId(this.tripId);
-    }
-
-    this.registerSubscription(
-      this.$uselinkedOperations
-        .subscribe((value) => {
-            if (value !== true) {
-              this.excludesColumns.push('operationType');
-            }
-            else {
-              this.excludesColumns = this.excludesColumns.filter(col => col !== 'operationType');
-            }
-            this.updateColumns();
-          }
-        )
-    );
-  }
-
   @Input() useSticky = true;
 
+  @Input() set showQualityColumn(value: boolean) {
+    this.setShowColumn('quality', value);
+  }
+
+  get showQualityColumn(): boolean {
+    return this.getShowColumn('quality');
+  }
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -126,12 +88,12 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       RESERVED_START_COLUMNS
         .concat(
           platform.is('mobile') ?
-            ['operationType',
+            ['quality',
               'physicalGear',
               'targetSpecies',
               'startDateTime',
               'endDateTime'] :
-            ['operationType',
+            ['quality',
               'physicalGear',
               'targetSpecies',
               'startDateTime',
@@ -177,6 +139,36 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
         this.latLongPattern = this.settings.latLongFormat;
       }
     });
+  }
+
+
+  ngOnInit() {
+    super.ngOnInit();
+    this.showMap = toBoolean(this.showMap, false);
+
+    this.displayAttributes = {
+      gear: this.settings.getFieldDisplayAttributes('gear'),
+      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+    };
+
+    this.registerSubscription(
+      this.settings.onChange.subscribe((settings) => {
+        if (this.loading) return; // skip
+        this.latLongPattern = settings.latLongFormat;
+
+        this.displayAttributes = {
+          gear: this.settings.getFieldDisplayAttributes('gear'),
+          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+        };
+
+        this.markForCheck();
+      }));
+
+    // Apply trip id, if already set
+    if (isNotNil(this.tripId)) {
+      this.setTripId(this.tripId);
+    }
+
   }
 
   setTripId(id: number, opts?: { emitEvent?: boolean; }) {

@@ -31,7 +31,7 @@ import {PmfmFilter, PmfmService} from '../services/pmfm.service';
 import {Pmfm} from '../services/model/pmfm.model';
 import { combineAll, debounceTime, distinctUntilChanged, filter, map, mergeAll, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
-import {PmfmValueUtils} from '../services/model/pmfm-value.model';
+import {PmfmValue, PmfmValueUtils} from '../services/model/pmfm-value.model';
 import {Parameter} from '../services/model/parameter.model';
 
 @EntityClass({typename: 'PmfmStrategyFilterVO'})
@@ -390,7 +390,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       if (isNotNil(target.defaultValue)) {
         console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
       }
-      target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm);
+      target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm) as PmfmValue;
 
       return target;
     });

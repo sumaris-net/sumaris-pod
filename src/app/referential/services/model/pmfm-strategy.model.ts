@@ -1,9 +1,15 @@
-import {Entity, EntityAsObjectOptions, EntityClass, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils} from './pmfm.model';
-import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
-import {MethodIds} from './model.enum';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {IReferentialRef} from "@sumaris-net/ngx-components";
+import {
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  IReferentialRef, isNil,
+  ReferentialRef,
+  toNumber
+} from "@sumaris-net/ngx-components";
+import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from "./pmfm.model";
+import { PmfmValue, PmfmValueUtils } from "./pmfm-value.model";
+import { MethodIds } from "./model.enum";
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.model";
 
 
 @EntityClass({typename: "PmfmStrategyVO"})
@@ -11,9 +17,12 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   static fromObject: (source: any, opts?: any) => PmfmStrategy;
   static asObject: (source: any, opts?: any) => any;
+  static isEmpty = (o) => (!o || (!o.pmfm && !o.parameter && !o.matrix && !o.fraction && !o.method));
+  static isNotEmpty = (o) => !PmfmStrategy.isEmpty(o);
+  static equals = (o1, o2) => (isNil(o1) && isNil(o2)) || o1?.equals(o2);
 
   pmfmId: number;
-  pmfm: Pmfm;
+  pmfm: IPmfm;
   parameter: ReferentialRef;
   matrix: ReferentialRef;
   fraction: ReferentialRef;
@@ -236,6 +245,10 @@ export class DenormalizedPmfmStrategy
 
   get isWeight(): boolean {
     return PmfmUtils.isWeight(this);
+  }
+
+  get isMultiple(): boolean {
+    return (this.acquisitionNumber || 1) > 1;
   }
 
   /**
