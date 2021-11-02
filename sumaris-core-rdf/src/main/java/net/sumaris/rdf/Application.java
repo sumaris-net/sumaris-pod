@@ -23,16 +23,13 @@
 package net.sumaris.rdf;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(
         exclude = {
@@ -47,13 +44,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
                 "net.sumaris.rdf"
         }
 )
-@EntityScan("net.sumaris.core.model")
-@EnableTransactionManagement
-@EnableJpaRepositories(basePackages = {
-        "net.sumaris.core.dao"
-})
-@EnableAsync
 @Component("rdf-application")
+@ConditionalOnNotWebApplication()
 public class Application extends net.sumaris.cli.Application {
 
     public static void main(String[] args) {

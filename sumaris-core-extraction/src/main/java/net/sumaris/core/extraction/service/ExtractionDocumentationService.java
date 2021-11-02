@@ -22,10 +22,8 @@
 
 package net.sumaris.core.extraction.service;
 
-import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.annotation.Transactional;
 

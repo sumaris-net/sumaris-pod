@@ -23,7 +23,6 @@
 package net.sumaris.rdf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;

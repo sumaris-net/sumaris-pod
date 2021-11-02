@@ -56,8 +56,6 @@ import java.util.Optional;
     name = {"enabled"},
     matchIfMissing = true
 )
-@ComponentScan("net.sumaris.core.extraction")
-@EnableCaching
 public class ExtractionAutoConfiguration {
 
     public ExtractionAutoConfiguration() {
@@ -71,40 +69,4 @@ public class ExtractionAutoConfiguration {
         return instance;
     }
 
-    @Bean
-    public ExtractionProductService extractionProductService(ExtractionProductRepository productRepository,
-                                                             ExtractionTableDao tableDao){
-        return new ExtractionProductServiceImpl(productRepository, tableDao);
-    }
-
-    @Bean
-    public AggregationService aggregationService(ApplicationContext applicationContext,
-                                                 ObjectMapper objectMapper,
-                                                 DataSource dataSource,
-                                                 ExtractionTableDao extractionTableDao,
-                                                 ExtractionService extractionService,
-                                                 ExtractionProductService extractionProductService,
-                                                 Optional<TaskExecutor> taskExecutor) {
-        return new AggregationServiceImpl(applicationContext, objectMapper, dataSource, extractionTableDao,
-            extractionService, extractionProductService, taskExecutor);
-    }
-
-    @Bean
-    public ExtractionService extractionService(ExtractionConfiguration configuration,
-                                               ObjectMapper objectMapper,
-                                               DataSource dataSource,
-                                               ApplicationContext applicationContext, DatabaseSchemaDao databaseSchemaDao,
-                                               CacheManager cacheManager, SumarisDatabaseMetadata databaseMetadata,
-                                               ExtractionTripDao extractionRdbTripDao,
-                                               ExtractionStrategyDao extractionStrategyDao,
-                                               ExtractionTableDao extractionTableDao,
-                                               ExtractionCsvDao extractionCsvDao,
-                                               ExtractionProductService extractionProductService,
-                                               LocationService locationService,
-                                               ReferentialService referentialService,
-                                               Optional<TaskExecutor> taskExecutor) {
-        return new ExtractionServiceImpl(configuration, objectMapper, dataSource, applicationContext, databaseSchemaDao,
-            cacheManager, databaseMetadata, extractionRdbTripDao, extractionStrategyDao, extractionTableDao, extractionCsvDao,
-            extractionProductService, locationService, referentialService, taskExecutor);
-    }
 }

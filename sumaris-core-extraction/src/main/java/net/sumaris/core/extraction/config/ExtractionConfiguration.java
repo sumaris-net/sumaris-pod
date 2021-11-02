@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import org.nuiton.config.ApplicationConfig;
@@ -84,9 +85,14 @@ public class ExtractionConfiguration {
         return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
     }
 
+    public CacheTTL getExtractionCacheDefaultTtl() {
+        return getApplicationConfig().getOption(CacheTTL.class, ExtractionConfigurationOption.EXTRACTION_CACHE_DEFAULT_TTL.getKey());
+    }
+
     public boolean enableTechnicalTablesUpdate() {
         return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.ENABLE_TECHNICAL_TABLES_UPDATE.getKey());
     }
+
 
     public File getTempDirectory() {
         return getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());

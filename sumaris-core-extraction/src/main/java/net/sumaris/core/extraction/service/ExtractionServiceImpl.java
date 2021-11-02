@@ -81,10 +81,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
@@ -106,6 +107,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("extractionService")
 @ConditionalOnBean({ExtractionConfiguration.class})
+@Lazy
 public class ExtractionServiceImpl implements ExtractionService {
 
     private final ExtractionConfiguration configuration;
@@ -126,12 +128,19 @@ public class ExtractionServiceImpl implements ExtractionService {
     private final SumarisDatabaseMetadata databaseMetadata;
 
     private final Optional<TaskExecutor> taskExecutor;
+    private boolean enableProduct = false;
+    private boolean enableTechnicalTablesUpdate = false;
+    private CacheTTL cacheDefaultTtl;
+
+    private Map<IExtractionFormat, ExtractionDao<? extends ExtractionContextVO, ? extends ExtractionFilterVO>>
+        daosByFormat = Maps.newHashMap();
 
     public ExtractionServiceImpl(ExtractionConfiguration configuration,
                                  ObjectMapper objectMapper,
                                  DataSource dataSource,
                                  ApplicationContext applicationContext, DatabaseSchemaDao databaseSchemaDao,
-                                 CacheManager cacheManager, SumarisDatabaseMetadata databaseMetadata,
+                                 Optional<CacheManager> cacheManager,
+                                 SumarisDatabaseMetadata databaseMetadata,
                                  ExtractionTripDao extractionRdbTripDao,
                                  ExtractionStrategyDao extractionStrategyDao,
                                  ExtractionTableDao extractionTableDao,
@@ -146,7 +155,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         this.dataSource = dataSource;
         this.applicationContext = applicationContext;
         this.databaseSchemaDao = databaseSchemaDao;
-        this.cacheManager = cacheManager;
+        this.cacheManager = cacheManager.orElse(null);
+        Preconditions.checkNotNull(this.cacheManager, "Unable to find 'cacheManager' bean. Cannot init the 'extractionService' bean.");
         this.databaseMetadata = databaseMetadata;
 
         this.extractionRdbTripDao = extractionRdbTripDao;
@@ -160,14 +170,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         this.taskExecutor = taskExecutor;
     }
-
-
-    private boolean includeProductTypes = false;
-    private boolean enableTechnicalTablesUpdate = false;
-
-    private Map<IExtractionFormat, ExtractionDao<? extends ExtractionContextVO, ? extends ExtractionFilterVO>>
-            daosByFormat = Maps.newHashMap();
-
 
     @PostConstruct
     protected void registerDaos() {
@@ -189,7 +191,13 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        includeProductTypes = configuration.enableExtractionProduct();
+        this.enableProduct = configuration.enableExtractionProduct();
+        this.cacheDefaultTtl = configuration.getExtractionCacheDefaultTtl();
+
+        log.info("Extraction configured with {cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
+            this.cacheDefaultTtl.name(),
+            DurationFormatUtils.formatDuration(this.cacheDefaultTtl.asDuration().toMillis(), "H:mm:ss", true),
+            this.enableProduct);
 
         // Update technical tables (if option changed)
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
@@ -198,6 +206,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                 initRectangleLocations();
             }
         }
+
     }
 
     @Override
@@ -249,7 +258,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
 
         // Add product types
-        if (includeProductTypes && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
+        if (enableProduct && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
             builder.addAll(getProductExtractionTypes(filter));
         }
 
@@ -293,15 +302,18 @@ public class ExtractionServiceImpl implements ExtractionService {
                                                       @NonNull Page page,
                                                       @Nullable CacheTTL ttl) {
         filter = ExtractionFilterVO.nullToEmpty(filter);
-        ttl = CacheTTL.nullToDefault(ttl);
+        ttl = CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl);
+        if (ttl == null) throw new IllegalArgumentException("Missing required 'ttl' argument");
 
-        Cache<Integer, ExtractionResultVO> cache = cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
         Integer cacheKey = new HashCodeBuilder(17, 37)
             .append(type)
             .append(filter)
             .append(page)
             .append(ttl)
             .build();
+
+        // Get cache (if exists)
+        Cache<Integer, ExtractionResultVO> cache = cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
 
         ExtractionResultVO result = cache.get(cacheKey);
         if (result != null) return result;

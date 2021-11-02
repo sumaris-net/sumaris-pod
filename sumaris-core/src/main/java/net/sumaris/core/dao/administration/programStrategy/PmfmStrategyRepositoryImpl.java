@@ -60,7 +60,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Repository("pmfmStrategyRepository")
 public class PmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
         implements PmfmStrategyRepository {

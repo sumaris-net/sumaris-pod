@@ -74,7 +74,7 @@ public class DataGraphQLService {
     private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private TripService tripService;
@@ -1419,12 +1419,12 @@ public class DataGraphQLService {
     }
 
     protected boolean canUserAccessNotSelfData() {
-        String minRole = config.getAccessNotSelfDataMinRole();
+        String minRole = configuration.getAccessNotSelfDataMinRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 

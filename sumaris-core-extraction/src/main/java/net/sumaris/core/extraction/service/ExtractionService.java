@@ -76,7 +76,7 @@ public interface ExtractionService {
     ExtractionResultVO executeAndReadWithCache(@NonNull ExtractionTypeVO type,
                                                @Nullable ExtractionFilterVO filter,
                                                @NonNull Page page,
-                                               CacheTTL ttl);
+                                               @Nullable CacheTTL ttl);
 
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(ExtractionTypeVO type,

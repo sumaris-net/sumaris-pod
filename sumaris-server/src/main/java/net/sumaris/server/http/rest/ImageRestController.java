@@ -64,13 +64,10 @@ public class ImageRestController implements ResourceLoaderAware {
     private ImageService imageService;
 
     @Autowired
-    private SoftwareService softwareService;
-
-    @Autowired
     private ConfigurationService configurationService;
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     private ResourceLoader resourceLoader;
 
@@ -168,7 +165,7 @@ public class ImageRestController implements ResourceLoaderAware {
         }
 
         // Redirect as a relative URL
-        return new RedirectView(config.getServerUrl() + (favicon.startsWith("/") ? "" : "/") + favicon);
+        return new RedirectView(configuration.getServerUrl() + (favicon.startsWith("/") ? "" : "/") + favicon);
 
     }
 }
