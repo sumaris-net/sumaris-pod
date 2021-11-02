@@ -151,21 +151,21 @@
         <mat-icon>more_vert</mat-icon>
       </button>
     </th>
-    <td mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+    <td mat-cell *matCellDef="let row">
       <!-- undo or delete  -->
       <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)">
+              (click)="cancelOrDelete($event, row)" [hidden]="!inlineEdition">
         <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
         <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
       </button>
       <!-- validate -->
       <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)">
+              (click)="confirmEditCreate($event, row)" [hidden]="!inlineEdition">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
       <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAdd($event, row)">
+              (click)="confirmAndAdd($event, row)" [hidden]="!inlineEdition">
         <mat-icon>add</mat-icon>
       </button>
 

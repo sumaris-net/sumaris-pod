@@ -671,6 +671,12 @@
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
         "AVG_PACKAGING_PRICE": "Prix moyen / conditionnement",
         "TOTAL_PRICE": "Prix total"
+      },
+      "NEW": {
+        "TITLE": "Nouveau lot"
+      },
+      "EDIT": {
+        "TITLE": "Lot #{{rankOrder}}"
       }
     },
     "BATCH": {
@@ -997,7 +1003,10 @@
       "TITLE": "Composition du Lot #{{rankOrder}}",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
       "RATIO": "#{{rankOrder}} %",
-      "WEIGHT": "Poids (kg)"
+      "WEIGHT": "Poids (kg)",
+      "NEW": {
+        "TITLE": "Nouveau Lot"
+      }
     },
     "SALE": {
       "TITLE": "Ventes du Lot #{{rankOrder}}",

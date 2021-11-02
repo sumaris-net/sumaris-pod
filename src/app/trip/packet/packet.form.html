@@ -8,9 +8,23 @@
 
   <ion-grid class="ion-margin-bottom">
 
+    <ion-row *ngIf="mobile">
+      <ion-col>
+        <!-- Parent -->
+          <mat-autocomplete-field formControlName='parent'
+                                  [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
+                                  [required]="true"
+                                  [tabindex]="tabindex"
+                                  [config]="autocompleteFields.parent">
+          </mat-autocomplete-field>
+      </ion-col>
+      <ion-col size="1" class="ion-align-self-center">
+        <ng-content select="[packetSaleButtons]"></ng-content>
+      </ion-col>
+    </ion-row>
     <ion-row>
       <!--  empty col for alignment  -->
-      <ion-col>
+      <ion-col size="4">
       </ion-col>
 
       <!--  NB packets  -->
@@ -38,7 +52,9 @@
           >
         </mat-form-field>
       </ion-col>
-
+      <!--  empty col for alignment  -->
+      <ion-col size="1">
+      </ion-col>
     </ion-row>
 
   </ion-grid>

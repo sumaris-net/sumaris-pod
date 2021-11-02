@@ -40,8 +40,6 @@ import {AppCoreModule} from '@app/core/core.module';
 import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
 import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
 import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
-import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
-import {OperationGroupForm} from '@app/trip/operationgroup/operation-group.form';
 
 @NgModule({
   imports: [
@@ -72,8 +70,6 @@ import {OperationGroupForm} from '@app/trip/operationgroup/operation-group.form'
     OperationsMap,
     SelectOperationModal,
     SelectOperationByTripTable,
-    OperationGroupModal,
-    OperationGroupForm,
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,

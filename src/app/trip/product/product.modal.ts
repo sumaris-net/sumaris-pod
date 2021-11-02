@@ -1,47 +1,40 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Alerts, isNil, LocalSettingsService, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
+import {Alerts, isNil, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from '@ionic/angular';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {environment} from '@environments/environment';
-import {OperationGroup} from '@app/trip/services/model/trip.model';
-import {OperationGroupForm} from '@app/trip/operationgroup/operation-group.form';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {IWithProductsEntity, Product} from '@app/trip/services/model/product.model';
+import {ProductForm} from '@app/trip/product/product.form';
 
 @Component({
-  selector: 'app-operation-group-modal',
-  templateUrl: 'operation-group.modal.html',
+  selector: 'app-product-modal',
+  templateUrl: 'product.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationGroupModal implements OnInit, OnDestroy {
+export class ProductModal implements OnInit, OnDestroy {
 
   private _subscription = new Subscription();
 
   debug = false;
   loading = false;
-  mobile: boolean;
-  data: OperationGroup;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
-
   @Input() programLabel: string;
-
+  @Input() mobile: boolean;
   @Input() disabled: boolean;
-
   @Input() isNew: boolean;
-
-  @Input()
-  set value(value: OperationGroup) {
-    this.data = value;
-  }
-
+  @Input() parents: IWithProductsEntity<any>[];
+  @Input() parentAttributes: string[];
+  @Input() data: Product;
   @Input() pmfms: IPmfm[];
 
-  @Input() onDelete: (event: UIEvent, data: OperationGroup) => Promise<boolean>;
+  @Input() onDelete: (event: UIEvent, data: Product) => Promise<boolean>;
 
-  @ViewChild('form', { static: true }) form: OperationGroupForm;
+  @ViewChild('form', { static: true }) form: ProductForm;
 
   get dirty(): boolean {
     return this.form.dirty;
@@ -81,14 +74,12 @@ export class OperationGroupModal implements OnInit, OnDestroy {
     protected injector: Injector,
     protected alertCtrl: AlertController,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
   ) {
     // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
-    this.mobile = platform.mobile;
+    this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
 
     // TODO: for DEV only
     this.debug = !environment.production;
@@ -97,7 +88,7 @@ export class OperationGroupModal implements OnInit, OnDestroy {
   ngOnInit() {
 
     this.isNew = toBoolean(this.isNew, !this.data);
-    this.data = this.data || new OperationGroup();
+    this.data = this.data || new Product();
 
     this.form.setValue(this.data);
 
@@ -115,9 +106,8 @@ export class OperationGroupModal implements OnInit, OnDestroy {
 
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges.subscribe(operationGroup => this.computeTitle(operationGroup));
+      this.form.valueChanges.subscribe(product => this.computeTitle(product));
     }
-
   }
 
   ngOnDestroy(): void {
@@ -129,31 +119,26 @@ export class OperationGroupModal implements OnInit, OnDestroy {
 
     // Continue (if event not cancelled)
     if (!event.defaultPrevented) {
-      await this.modalCtrl.dismiss();
+      await this.modalCtrl.dismiss(undefined, undefined);
     }
   }
 
-  async save(event?: UIEvent): Promise<boolean> {
+  async save(event?: UIEvent, role?: string): Promise<boolean> {
     if (!this.form.valid || this.loading) return false;
     this.loading = true;
 
     // Nothing to save: just leave
     if (!this.isNew && !this.form.dirty) {
-      await this.modalCtrl.dismiss();
+      await this.modalCtrl.dismiss(undefined, role);
       return false;
     }
 
     try {
       this.form.error = null;
 
-      const operationGroup = this.form.value;
-      if (operationGroup.metier && !operationGroup.metier.taxonGroup){
-        operationGroup.metier.taxonGroup = this.form.metier.taxonGroup;
-      }
-      if (operationGroup.metier && ! operationGroup.metier.gear){
-        operationGroup.metier.gear = this.form.metier.gear;
-      }
-      return await this.modalCtrl.dismiss(operationGroup);
+      const product = this.form.value;
+
+      return await this.modalCtrl.dismiss(product, role);
     }
     catch (err) {
       this.loading = false;
@@ -194,13 +179,13 @@ export class OperationGroupModal implements OnInit, OnDestroy {
     if (!saved) event.preventDefault();
   }
 
-  protected async computeTitle(data?: OperationGroup) {
+  protected async computeTitle(data?: Product) {
     data = data || this.data;
     if (this.isNew) {
-      this.$title.next(await this.translate.get('TRIP.OPERATION_GROUP.NEW.TITLE').toPromise());
+      this.$title.next(await this.translate.get('TRIP.PRODUCT.NEW.TITLE').toPromise());
     }
     else {
-      this.$title.next(await this.translate.get('TRIP.OPERATION_GROUP.EDIT.TITLE', this.data).toPromise());
+      this.$title.next(await this.translate.get('TRIP.PRODUCT.EDIT.TITLE', {rankOrder: data.rankOrder}).toPromise());
     }
   }
 

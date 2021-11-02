@@ -14,6 +14,7 @@ import {SaleProductUtils} from '../services/model/sale-product.model';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {Product} from '@app/trip/services/model/product.model';
 
 @Component({
   selector: 'app-packets-table',
@@ -22,7 +23,9 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
   providers: [
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService(Packet, PacketFilter)
+      useFactory: () => new InMemoryEntitiesService(Packet, PacketFilter, {
+        equals: Packet.equals
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -31,6 +34,10 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   @Input() $parents: BehaviorSubject<IWithPacketsEntity<any, any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input() showToolbar = true;
+  @Input() useSticky = false;
+  @Input() mobile: boolean;
 
   @Input() set parentFilter(packetFilter: PacketFilter) {
     this.setFilter(packetFilter);
@@ -99,7 +106,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     this.i18nColumnPrefix = 'PACKET.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
-    this.inlineEdition = true;
+    this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
 
@@ -152,21 +159,87 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     this.cd.markForCheck();
   }
 
+  protected async openRow(id: number, row: TableElement<Packet>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
 
-  async openComposition(event: MouseEvent, row: TableElement<Packet>) {
-    if (event) event.stopPropagation();
+    await this.openComposition(null, row);
+    return true;
+  }
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    const res = await this.openDetailModal();
+
+    if (res && res.data) {
+      const row = await this.addRowToTable();
+
+      row.validator.patchValue(res.data, {onlySelf: false, emitEvent: false});
+      row.validator.markAsDirty();
+
+      await this.onRowCreated(row);
+
+      if (res.role === 'sale') {
+        await this.openPacketSale(null, row);
+      }
+    } else {
+      this.editedRow = null;
+    }
+    return true;
+  }
+
+  async openDetailModal(packet?: Packet): Promise<{ data: Packet, role: string }> {
+    const isNew = !packet && true;
+    if (isNew) {
+      packet = new Packet();
+      packet.parent = this.filter && this.filter.parent || undefined;
+    }
 
     const modal = await this.modalCtrl.create({
       component: PacketModal,
       componentProps: {
-        packet: row.currentData
+        mobile: this.mobile,
+        parents: this.$parents.getValue(),
+        parentAttributes: this.parentAttributes,
+        data: packet,
+        isNew,
+        onDelete: (event, packet) => this.deletePacket(event, packet)
       },
       backdropDismiss: false,
       cssClass: 'modal-large'
     });
 
+    // Open the modal
     await modal.present();
-    const res = await modal.onDidDismiss();
+
+    // Wait until closed
+    const {data, role} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug('[packet-table] packet modal result: ', data, role);
+    this.markAsLoaded();
+
+    if (data) {
+      return {data: data as Packet, role};
+    }
+  }
+
+  async deletePacket(event: UIEvent, data): Promise<boolean> {
+    const row = await this.findRowByPacket(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
+  }
+
+
+  async openComposition(event: MouseEvent, row: TableElement<Packet>) {
+    if (event) event.stopPropagation();
+
+    const res = await this.openDetailModal(row.currentData);
 
     if (res && res.data) {
       row.validator.patchValue(res.data, {onlySelf: false, emitEvent: true});
@@ -175,8 +248,11 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       this.updateSaleProducts(row);
 
       this.markAsDirty();
-    }
 
+      if (res.role === 'sale') {
+        await this.openPacketSale(null, row);
+      }
+    }
   }
 
   getComposition(row: TableElement<Packet>): string {
@@ -214,7 +290,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
       this.markAsDirty();
     }
+  }
 
+  /* -- protected methods -- */
+
+  protected async findRowByPacket(packet: Packet): Promise<TableElement<Packet>> {
+    return Packet && (await this.dataSource.getRows()).find(r => Packet.equals(packet, r.currentData));
   }
 
   private onStartEditPacket(row: TableElement<Packet>) {

@@ -7,8 +7,8 @@
 </app-modal-toolbar>
 
 <ion-content>
-<!--                     [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"-->
-<!--                     [defaultSampleDate]="data?.dateTime"-->
+  <!--                     [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"-->
+  <!--                     [defaultSampleDate]="data?.dateTime"-->
   <app-samples-table #table
                      [programLabel]="programLabel"
                      [acquisitionLevel]="acquisitionLevel"
@@ -23,14 +23,14 @@
   </app-samples-table>
 
   <!--  <app-sample-form #form-->
-<!--                   [debug]="debug"-->
-<!--                   [acquisitionLevel]="acquisitionLevel"-->
-<!--                   [program]="program"-->
-<!--                   [showLabel]="showLabel"-->
-<!--                   [showTaxonGroup]="showTaxonGroup"-->
-<!--                   [showTaxonName]="showTaxonName"-->
-<!--                   (onSubmit)="close($event)">-->
-<!--  </app-sample-form>-->
+  <!--                   [debug]="debug"-->
+  <!--                   [acquisitionLevel]="acquisitionLevel"-->
+  <!--                   [program]="program"-->
+  <!--                   [showLabel]="showLabel"-->
+  <!--                   [showTaxonGroup]="showTaxonGroup"-->
+  <!--                   [showTaxonName]="showTaxonName"-->
+  <!--                   (onSubmit)="close($event)">-->
+  <!--  </app-sample-form>-->
 
 </ion-content>
 
@@ -58,3 +58,14 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         visible-xs visible-sm visible-mobile>
+
+  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+</ion-fab>
+

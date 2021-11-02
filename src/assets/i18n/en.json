@@ -975,7 +975,10 @@
       "TITLE": "Packet composition of Batch #{{rankOrder}}",
       "TAXON_GROUP": "Commercial species (FAO)",
       "RATIO": "#{{rankOrder}} %",
-      "WEIGHT": "Weight (kg)"
+      "WEIGHT": "Weight (kg)",
+      "NEW": {
+        "TITLE": "New Batch"
+      }
     },
     "SALE": {
       "TITLE": "Sales of Batch #{{rankOrder}}",

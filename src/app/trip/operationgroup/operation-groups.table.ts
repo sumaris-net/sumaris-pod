@@ -230,7 +230,6 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   }
 
   protected async findRowByOperationGroup(operationGroup: OperationGroup): Promise<TableElement<OperationGroup>> {
-    console.debug(this.dataSource.getRows());
     return OperationGroup && (await this.dataSource.getRows()).find(r => operationGroup.equals(r.currentData));
   }
 
