@@ -746,7 +746,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter,
         excludedIds,
         entityName: Pmfm.ENTITY_NAME
-      });
+      },
+      'name');
     }
   }
 
