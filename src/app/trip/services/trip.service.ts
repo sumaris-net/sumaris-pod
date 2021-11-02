@@ -31,7 +31,7 @@ import {
   toNumber,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import { DataFragments, ExpectedSaleFragments, Fragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
+import { DataFragments, ExpectedSaleFragments, DataCommonFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -102,11 +102,11 @@ export const TripFragments = {
       ...LightPersonFragment
     }
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}`,
+  ${DataCommonFragments.referential}`,
 
   trip: gql`fragment TripFragment on TripVO {
     id
@@ -157,14 +157,14 @@ export const TripFragments = {
       ...FishingAreaFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
-  ${Fragments.metier},
+  ${DataCommonFragments.metier},
   ${DataFragments.fishingArea},
   ${SaleFragments.lightSale}`,
 
@@ -225,13 +225,13 @@ export const TripFragments = {
       ...FishingAreaFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
-  ${Fragments.measurement}
-  ${Fragments.referential}
-  ${Fragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.referential}
+  ${DataCommonFragments.location}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.metier}
+  ${DataCommonFragments.metier}
   ${PhysicalGearFragments.physicalGear}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}
@@ -1003,7 +1003,7 @@ export class TripService
   }
 
   /**
-   * Delete many local trips
+   * Delete many local entities
    *
    * @param entities
    * @param opts
@@ -1014,15 +1014,22 @@ export class TripService
 
     // Get local entities
     const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
-    if (isEmptyArray(localEntities)) return; // Skip if empty
+
+    // Delete, one by one
+    await chainPromises((localEntities || [])
+      .map(entity => () => this.deleteLocally(entity, opts))
+    );
+  }
+
+  async deleteLocally(entity: Trip, opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
 
     const trash = !opts || opts !== false;
     const trashUpdateDate = trash && moment();
+    if (this._debug) console.debug(`[trip-service] Deleting trip #${entity.id}... {trash: ${trash}`);
 
-    if (this._debug) console.debug(`[trip-service] Deleting locally... {trash: ${trash}`);
-
-    await chainPromises(localEntities.map(entity => async () => {
-
+    try {
       // Load trip's operations
       const res = await this.operationService.loadAllByTrip({tripId: entity.id},
         {fullLoad: true, computeRankOrder: false});
@@ -1044,8 +1051,10 @@ export class TripService
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: Trip.TYPENAME});
       }
-
-    }));
+    } catch (err) {
+      console.error('Error during trip deletion: ', err);
+      throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: "ERROR.DELETE_ENTITY_ERROR"};
+    }
   }
 
   /**

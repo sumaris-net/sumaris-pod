@@ -208,14 +208,13 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
   }
 
   async validate(event?: UIEvent) {
-    this.form.markAllAsTouched();
+    this.markAllAsTouched();
 
-    if (!this.form.valid) {
-      await AppFormUtils.waitWhilePending(this.form);
-      if (this.form.invalid) {
-        AppFormUtils.logFormErrors(this.form, '[offline-import-config] ');
-        return; // stop
-      }
+    await AppFormUtils.waitWhilePending(this.form);
+
+    if (this.form.invalid) {
+      AppFormUtils.logFormErrors(this.form, '[offline-import-config] ');
+      return; // stop
     }
 
     return this.viewCtrl.dismiss(this.getValue(), 'OK');

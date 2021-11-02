@@ -141,7 +141,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   }
 
   async reload(): Promise<void> {
-    this.loading = true;
+    this.markAsLoading();
     await this.load(this.data && this.data.id);
   }
 

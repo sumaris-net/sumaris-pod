@@ -74,7 +74,7 @@
     </ion-row>
 
     <!-- LOCATION + date/time-->
-    <ion-row *ngIf="!loadingPmfms && (showLocation || showDateTime)">
+    <ion-row *ngIf="!loading && (showLocation || showDateTime)">
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end">{{i18nPrefix+'LANDING'|translate}}</ion-label>
       </ion-col>
@@ -98,7 +98,7 @@
       </ion-col>
     </ion-row>
 
-    <ng-container *ngIf="!loadingPmfms">
+    <ng-container *ngIf="!loading">
       <!-- metier -->
       <ion-row *ngFor="let metierForm of metiersForm?.controls; let i=index; first as first">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">

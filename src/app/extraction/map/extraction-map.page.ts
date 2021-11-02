@@ -32,14 +32,13 @@ import {Feature} from 'geojson';
 import {debounceTime, filter, map, switchMap, tap, throttleTime} from 'rxjs/operators';
 import {AlertController, ModalController, ToastController} from '@ionic/angular';
 import {SelectProductModal} from '../product/modal/select-product.modal';
-import {ExtractionAbstractPage} from '../form/extraction-abstract.page';
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../form/extraction-abstract.page';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {AggregationTypeValidatorService} from '../services/validator/aggregation-type.validator';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import {Label, SingleOrMultiDataSet} from 'ng2-charts';
 import {ChartLegendOptions, ChartOptions, ChartType} from 'chart.js';
-import {DEFAULT_CRITERION_OPERATOR} from '../table/extraction-table.page';
 import {AggregationStrata, ExtractionProduct, IAggregationStrata} from '../services/model/extraction-product.model';
 import {ExtractionUtils} from '../services/extraction.utils';
 import {ExtractionProductService} from '../services/extraction-product.service';
@@ -271,6 +270,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     super.markAsTouched(opts);
     AppFormUtils.markAsTouched(this.form);
   }
+
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAllAsTouched(opts);
+    AppFormUtils.markAllAsTouched(this.form, opts);
+  }
+
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -471,7 +476,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       this.$spatialColumns.next(null);
       this.$aggColumns.next(null);
       this.$techColumns.next(null);
-      this.loading = true;
+      this.markAsLoading();
     }
 
     super.setSheetName(sheetName, {
@@ -613,7 +618,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     let year = startYear;
     let hasData = false;
     do {
-      this.loading = true;
+      this.markAsLoading();
 
       // Set default filter
       this.form.patchValue({
@@ -633,11 +638,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   async loadGeoData() {
     if (!this.ready) return;
     if (!this.type || !this.type.category || !this.type.label) {
-      this.loading = false;
+      this.markAsLoaded();
       return;
     }
 
-    this.loading = true;
+    this.markAsLoading();
     this.error = null;
 
     const isAnimated = !!this.animation;
@@ -743,7 +748,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       this.showLegend = isNotNilOrBlank(strata.aggColumnName);
       this.$noData.next(!this.hasData);
       if (!isAnimated) {
-        this.loading = false;
+        this.markAsLoaded();
         this.enable();
       }
     }
@@ -1180,7 +1185,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
       if (this.disabled) {
         this.enable();
-        this.loading = false;
+        this.markAsLoaded();
       }
     }
   }

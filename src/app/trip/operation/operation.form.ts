@@ -4,7 +4,7 @@ import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
   AccountService,
-  AppForm,
+  AppForm, AppFormUtils,
   DateFormatPipe,
   EntityUtils,
   fromDateISOString,
@@ -12,6 +12,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   LocalSettingsService,
   PlatformService,
   ReferentialRef,
@@ -20,7 +21,7 @@ import {
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
 import { BehaviorSubject, merge } from 'rxjs';
@@ -31,9 +32,10 @@ import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ModalController } from '@ionic/angular';
 import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
-import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { IPosition } from '@app/trip/services/model/position.model';
 
 const moment = momentImported;
 
@@ -74,9 +76,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   distanceWarning: boolean;
   enableMetierFilter = false;
 
-  isChildOperationItems = IS_CHILD_OPERATION_ITEMS;
-  $isChildOperation = new BehaviorSubject<boolean>(undefined);
+  isParentOperationControl: FormControl;
   $parentOperationLabel = new BehaviorSubject<string>('');
+
 
   @Input() showComment = true;
   @Input() showError = true;
@@ -118,21 +120,27 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.setTrip(value);
   }
 
+  get parentControl(): FormControl {
+    return this.form.get('parentOperation') as FormControl;
+  }
+
+  get isParentOperation(): boolean {
+    return this.isParentOperationControl.value === true;
+  }
+
+  @Input()
+  set isParentOperation(value: boolean) {
+    this.setIsParentOperation(value);
+  }
+
+
   get isChildOperation(): boolean {
-    return this.$isChildOperation.value === true;
+    return this.isParentOperationControl.value !== true;
   }
 
   @Input()
   set isChildOperation(value: boolean) {
-    this.setIsChildOperation(value);
-  }
-
-  get isParentOperation(): boolean {
-    return this.$isChildOperation.value !== true;
-  }
-
-  get parentControl(): FormControl {
-    return this.form.get('parentOperation') as FormControl;
+    this.setIsParentOperation(!value);
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -158,6 +166,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   ) {
     super(dateFormat, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
+
+    // A boolean control, to store if parent is a parent or child opteration
+    this.isParentOperationControl = new FormControl(true, Validators.required);
   }
 
   ngOnInit() {
@@ -166,6 +177,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     this.enableGeolocation = (this.usageMode === 'FIELD') && this.settings.mobile;
     this.allowParentOperation = toBoolean(this.allowParentOperation, false);
+
+    super.ngOnInit();
 
     // Combo: physicalGears
     const physicalGearAttributes = ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key));
@@ -202,8 +215,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         this.form.get('endPosition').valueChanges
       )
         .pipe(debounceTime(200))
-        .subscribe(() => this.computeDistance())
+        .subscribe(_ => this.updateDistance())
     );
+
+    this.registerSubscription(
+      this.isParentOperationControl.valueChanges
+        .pipe(distinctUntilChanged())
+        .subscribe(value => this.setIsParentOperation(value))
+    );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this._physicalGearsSubject.complete();
+    this._metiersSubject.complete();
+    this.$parentOperationLabel.complete();
   }
 
   setValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
@@ -216,11 +242,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
 
-    const hasParent = isNotNil(data.parentOperation?.id);
-    this.setIsChildOperation(hasParent, {emitEvent: false});
-    if (hasParent && !this.allowParentOperation) {
-      // Force to allow parent, to show existing parent data
+    const isChildOperation = isNotNil(data.parentOperation?.id);
+    if (isChildOperation || this.allowParentOperation) {
       this.allowParentOperation = true;
+      this.setIsParentOperation(!isChildOperation, {emitEvent: false});
     }
 
     super.setValue(data, opts);
@@ -258,7 +283,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
     const positionGroup = this.form.controls[fieldName];
     if (positionGroup && positionGroup instanceof FormGroup) {
-      const coords = await this.operationService.getGeoCoordinates();
+      const coords = await this.operationService.getCurrentPosition();
       positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
     }
     // Set also the end date time
@@ -267,11 +292,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.form.get(endDateTimeControlName).setValue(moment(), {emitEvent: false, onlySelf: true});
     }
 
-
     this.form.markAsDirty({onlySelf: true});
     this.form.updateValueAndValidity();
 
-    this.computeDistance({emitEvent: false /* done after */ });
+    this.updateDistance({emitEvent: false /* done after */ });
 
     this.markForCheck();
   }
@@ -308,9 +332,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
           hasNoChildOperation: true,
           endDate,
           startDate,
-          gearIds: this._physicalGearsSubject.getValue().map(physicalGear => physicalGear.gear.id)
+          gearIds: (this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id)
         },
-        physicalGears: this._physicalGearsSubject.getValue(),
+        physicalGears: this._physicalGearsSubject.value,
         programLabel: this.programLabel,
         enableGeolocation: this.enableGeolocation,
         parent
@@ -402,16 +426,28 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return operation;
   }
 
-  updateDistanceValidity() {
-    if (this.maxDistanceError && this.maxDistanceError > 0 && this.distance > this.maxDistanceError) {
-      console.error('Too long distance (> ' + this.maxDistanceError + ') between start and end positions');
-      this.setPositionError(true, false);
-    } else if (this.maxDistanceWarning && this.maxDistanceWarning > 0 && this.distance > this.maxDistanceWarning) {
-      console.warn('Too long distance (> ' + this.maxDistanceWarning + ') between start and end positions');
-      this.setPositionError(false, true);
-    } else {
-      this.setPositionError(false, false);
+  updateDistanceValidity(distance?: number, opts?: {emitEvent?: boolean}) {
+    distance = distance || this.distance;
+    if (isNotNilOrNaN(distance)) {
+      // Distance > max error distance
+      if (this.maxDistanceError > 0 && distance > this.maxDistanceError) {
+        console.error('Too long distance (> ' + this.maxDistanceError + ') between start and end positions');
+        this.setPositionError(true, false);
+        return;
+      }
+
+      // Distance > max warn distance
+      if (this.maxDistanceWarning > 0 && distance > this.maxDistanceWarning) {
+        console.warn('Too long distance (> ' + this.maxDistanceWarning + ') between start and end positions');
+        this.setPositionError(false, true);
+        return;
+      }
     }
+
+    // No error
+    this.setPositionError(false, false);
+
+    if (!opts || !opts.emitEvent !== false) this.markForCheck();
   }
 
   toggleMetierFilter($event) {
@@ -419,14 +455,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.enableMetierFilter = !this.enableMetierFilter;
     const physicalGear = this.form.get('physicalGear').value;
 
-    if (physicalGear) {
-      // Refresh metiers
-      this.loadMetiers(physicalGear);
-    }
+    // Refresh metiers
+    if (physicalGear) this.loadMetiers(physicalGear);
   }
 
   async updateParentOperation() {
-    //console.debug(this.form.get('parentOperation'));
     const parent = this.parentControl.value;
 
     if (parent) {
@@ -528,14 +561,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  setIsChildOperation(isChildOperation: boolean, opts?: { emitEvent?: boolean; }) {
-    if (this.$isChildOperation.value === isChildOperation) return; // Skip if same
+  setIsParentOperation(value: boolean, opts?: { emitEvent?: boolean; }) {
 
-    this.$isChildOperation.next(isChildOperation);
-    console.debug('[operation-form] Is child operation ? ', isChildOperation);
+    if (this.debug) console.debug('[operation-form] Is parent operation ? ', value);
 
-    // Virage
-    if (isChildOperation) {
+    if (this.isParentOperationControl.value !== value) {
+      this.isParentOperationControl.setValue(value);
+    }
+
+    // Parent operation (or parent not used)
+    if (value) {
+      this.form.patchValue({
+        parentOperation: null
+      });
+      if (!opts || opts.emitEvent !== false) {
+        this.updateFormGroup();
+      }
+    }
+
+    // Child operation (=Filage)
+    else {
       if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
         // Keep filled values
         this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
@@ -550,14 +595,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
 
     // Filage or other case
-    else {
-      this.form.patchValue({
-        parentOperation: null
-      });
-      if (!opts || opts.emitEvent !== false) {
-        this.updateFormGroup();
-      }
-    }
+
   }
 
   protected setPosition(positionControl: AbstractControl, position?: VesselPosition) {
@@ -572,37 +610,43 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     longitudeControl.patchValue(position && position.longitude || null);
   }
 
-  protected computeDistance(opts?: {emitEvent?: boolean}) {
+  protected updateDistance(opts?: {emitEvent?: boolean}) {
     const startPosition = this.form.get('startPosition').value;
     const endPosition = this.form.get('endPosition').value;
 
-    this.distance = this.operationService.getDistanceBetweenPositions(startPosition, endPosition);
-    this.updateDistanceValidity();
+    const distance = PositionUtils.computeDistanceInMiles(startPosition, endPosition);
+    if (this.debug) console.debug('[operation-form] Distance between position: ' + distance);
 
-    if (!opts || opts.emitEvent !== false) {
-      this.markForCheck();
-    }
+    this.distance = distance;
+    this.updateDistanceValidity(distance, {emitEvent: false});
+    if (!opts || opts.emitEvent !== false) this.markForCheck();
   }
 
   protected setPositionError(hasError: boolean, hasWarning: boolean) {
-    if (hasError) {
-      this.form.get('endPosition.longitude').setErrors({tooLong: true});
-      this.form.get('endPosition.latitude').setErrors({tooLong: true});
-      this.form.get('startPosition.longitude').setErrors({tooLong: true});
-      this.form.get('startPosition.latitude').setErrors({tooLong: true});
-    } else {
-      SharedValidators.clearError(this.form.get('endPosition.longitude'), 'tooLong');
-      SharedValidators.clearError(this.form.get('endPosition.latitude'), 'tooLong');
-      SharedValidators.clearError(this.form.get('startPosition.longitude'), 'tooLong');
-      SharedValidators.clearError(this.form.get('startPosition.latitude'), 'tooLong');
+
+    // If some changes detected
+    if (this.distanceError !== hasError || this.distanceWarning !== hasWarning) {
+      if (hasError) {
+        this.form.get('endPosition.longitude').setErrors({tooLong: true});
+        this.form.get('endPosition.latitude').setErrors({tooLong: true});
+        this.form.get('startPosition.longitude').setErrors({tooLong: true});
+        this.form.get('startPosition.latitude').setErrors({tooLong: true});
+      } else {
+        SharedValidators.clearError(this.form.get('endPosition.longitude'), 'tooLong');
+        SharedValidators.clearError(this.form.get('endPosition.latitude'), 'tooLong');
+        SharedValidators.clearError(this.form.get('startPosition.longitude'), 'tooLong');
+        SharedValidators.clearError(this.form.get('startPosition.latitude'), 'tooLong');
+      }
+
+      this.distanceError = hasError;
+      this.distanceWarning = hasWarning;
+
+      // To force error display: mark as touched
+      if (this.distanceError) {
+        AppFormUtils.markAllAsTouched(this.form.get('endPosition'));
+      }
     }
 
-    this.distanceError = hasError;
-    this.distanceWarning = hasWarning;
-
-    if (this.form.get('endPosition').touched || this.form.get('startPosition').touched) {
-      this.form.get('endPosition').markAllAsTouched();
-    }
   }
 
   protected updateFormGroup() {

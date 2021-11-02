@@ -503,8 +503,10 @@ export class BatchUtils {
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
           message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
         }
-        if (isNotNil(batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT])) {
-          message += ' weight:' + batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT] + 'kg';
+        const weight = batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
+          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
+        if (isNotNil(weight)) {
+          message += ' weight:' + weight + 'kg';
         }
       }
     }

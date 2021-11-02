@@ -126,8 +126,9 @@ import {OperationGroupForm} from '@app/trip/operationgroup/operation-group.form'
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    SubSamplesTable
-  ]
+    SubSamplesTable,
+    BatchGroupForm,
+  ],
 })
 export class TripModule {
 

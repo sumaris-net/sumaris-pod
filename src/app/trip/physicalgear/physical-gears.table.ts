@@ -159,7 +159,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
           // Subscribe to click on copy button, then redirect the event
           inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
         },
-        onDelete: (event, PhysicalGear) => this.deletePhysicalGear(event, PhysicalGear)
+        onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear)
       },
       keyboardClose: true,
       backdropDismiss: false
@@ -175,8 +175,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     return (data instanceof PhysicalGear) ? data : undefined;
   }
 
-  async deletePhysicalGear(event: UIEvent, data: PhysicalGear): Promise<boolean> {
-    const row = await this.findRowByPhysicalGear(data);
+  async deleteEntity(event: UIEvent, data: PhysicalGear): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
     if (!row) return true;
@@ -194,7 +194,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     this.cd.markForCheck();
   }
 
-  protected async findRowByPhysicalGear(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
+  protected async findRowByEntity(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
     return PhysicalGear && (await this.dataSource.getRows()).find(r => r.currentData.equals(physicalGear));
   }
 

@@ -1,18 +1,32 @@
-import {ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
-import {SubBatchForm} from '../form/sub-batch.form';
-import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
-import {SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable} from '../table/sub-batches.table';
-import {AppMeasurementsTableOptions} from '../../measurement/measurements.table.class';
-import {Animation, IonContent, ModalController} from '@ionic/angular';
-import {isObservable, Observable, of, Subject} from 'rxjs';
-import {createAnimation} from '@ionic/core';
-import {SubBatch} from '../../services/model/subbatch.model';
-import {BatchGroup} from '../../services/model/batch-group.model';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { SubBatchForm } from '../form/sub-batch.form';
+import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
+import { SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from '../table/sub-batches.table';
+import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
+import { Animation, IonContent, ModalController } from '@ionic/angular';
+import { isObservable, Observable, of, Subject } from 'rxjs';
+import { createAnimation } from '@ionic/core';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 
+export interface ISubBatchesModalOptions {
+
+  disabled: boolean;
+  showParentGroup: boolean;
+  showTaxonNameColumn: boolean;
+  showIndividualCount: boolean;
+  maxVisibleButtons: number;
+
+  parentGroup: BatchGroup;
+
+  availableParents: BatchGroup[] | Observable<BatchGroup[]>;
+  availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  onNewParentClick: () => Promise<BatchGroup | undefined>;
+}
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // do NOT use individual count
@@ -37,27 +51,31 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchesModal extends SubBatchesTable implements OnInit {
+export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatchesModalOptions {
 
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
-  private _rowAnimation: Animation;
   private isOnFieldMode: boolean;
 
   $title = new Subject<string>();
 
+  get dirty(): boolean {
+    return super.dirty || (this.form && this.form.dirty);
+  }
+
+  get valid(): boolean {
+    return this.form && this.form.valid;
+  }
+
+  get invalid(): boolean {
+    return this.form && this.form.invalid;
+  }
+
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
-
-  @Input()
-  availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
-
-  @Input()
-  showParentGroup: boolean;
-
-  @Input()
-  parentGroup: BatchGroup;
-
+  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  @Input() showParentGroup: boolean;
+  @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
 
   @Input() set disabled(value: boolean) {
@@ -73,19 +91,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
   @ViewChild(IonContent) content: IonContent;
-
-  get dirty(): boolean {
-    return super.dirty || (this.form && this.form.dirty);
-  }
-
-  get valid(): boolean {
-    return this.form && this.form.valid;
-  }
-
-  get invalid(): boolean {
-    return this.form && this.form.invalid;
-  }
-
 
   constructor(
     protected injector: Injector,
@@ -119,7 +124,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     this.showForm = this.showForm && (this.form && !this.disabled);
 
-    if (this.form) await this.form.ready();
+    if (this.form) await this.form.waitIdle();
 
     if (this.form) {
       // Reset the form, using default value
@@ -138,20 +143,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
           .subscribe(parent => this.onParentChange(parent))
       );
     }
-
-    this._rowAnimation = createAnimation()
-
-      .duration(300)
-      .direction('normal')
-      .iterations(1)
-      .keyframes([
-        { offset: 0, transform: 'scale(1.5)', opacity: '0.5'},
-        { offset: 1, transform: 'scale(1)', opacity: '1' }
-      ])
-      .beforeStyles({
-        color: 'var(--ion-color-accent-contrast)',
-        background: 'var(--ion-color-accent)'
-      });
 
     const data$: Observable<SubBatch[]> = isObservable<SubBatch[]>(this.availableSubBatches) ? this.availableSubBatches :
       of(this.availableSubBatches);
@@ -387,15 +378,41 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit {
 
     // Selection the row (this will apply CSS class mat-row-selected)
     this.selection.select(row);
-    this.markForCheck();
+    this.cd.detectChanges();
 
-    setTimeout(() => {
-      // If row is still selected: unselect it
-      if (this.selection.isSelected(row)) {
-        this.selection.deselect(row);
-        this.markForCheck();
-      }
-    }, 1500);
+    const rowAnimation = createAnimation()
+      .addElement(document.querySelectorAll('.mat-row-selected'))
+      .beforeStyles({ 'transition-timing-function': 'ease-out' })
+      .keyframes([
+        { offset: 0, opacity: '0.5', transform: 'scale(1.5)', background: 'var(--ion-color-accent)'},
+        { offset: 0.5, opacity: '1', transform: 'scale(0.9)'},
+        { offset: 0.7, transform: 'scale(1.1)'},
+        { offset: 0.9, transform: 'scale(1)'},
+        { offset: 1, background: 'var(--ion-color-base)'}
+      ]);
+
+    const cellAnimation =  createAnimation()
+      .addElement(document.querySelectorAll('.mat-row-selected .mat-cell'))
+      .beforeStyles({
+        color: 'var(--ion-color-accent-contrast)'
+      })
+      .keyframes([
+        { offset: 0, 'font-weight': 'bold', color: 'var(--ion-color-accent-contrast)'},
+        { offset: 0.8},
+        { offset: 1, 'font-weight': 'normal', color: 'var(--ion-color-base)'}
+      ]);
+
+    Promise.all([
+      rowAnimation.duration(500).play(),
+      cellAnimation.duration(500).play()
+    ])
+      .then(() => {
+        // If row is still selected: unselect it
+        if (this.selection.isSelected(row)) {
+          this.selection.deselect(row);
+          this.markForCheck();
+        }
+      });
   }
 
 

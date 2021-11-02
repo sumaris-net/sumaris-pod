@@ -11,7 +11,6 @@ import {
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  firstNotNilPromise,
   firstTruePromise,
   HistoryPageReference,
   isNil,
@@ -136,9 +135,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.tabGroup.realignInkBar();
     }
   }
-
-
-
 
   async onOpenLanding({id, row}) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();

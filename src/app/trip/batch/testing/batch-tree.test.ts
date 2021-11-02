@@ -195,7 +195,7 @@ export class BatchTreeTestPage implements OnInit {
 
 
     this.form.patchValue({
-      program: {id: 10, label: 'ADAP-MER' },
+      program: {id: 1, label: 'SUMARiS' },
       gear: {id: 6, label: 'OTB'},
       example: {id: 1, label: 'default'}
     });
@@ -214,8 +214,8 @@ export class BatchTreeTestPage implements OnInit {
     this.desktopBatchTree.enable();
 
     setTimeout(() => {
-      this.mobileBatchTree.ready().then( () => this.mobileBatchTree.autoFill());
-      this.desktopBatchTree.ready().then( () => this.desktopBatchTree.autoFill())
+      this.mobileBatchTree.waitIdle().then( () => this.mobileBatchTree.autoFill());
+      this.desktopBatchTree.waitIdle().then( () => this.desktopBatchTree.autoFill())
     });
   }
 
