@@ -247,6 +247,10 @@ export class DenormalizedPmfmStrategy
     return PmfmUtils.isWeight(this);
   }
 
+  get isMultiple(): boolean {
+    return (this.acquisitionNumber || 1) > 1;
+  }
+
   /**
    * @deprecated Use id instead
    */

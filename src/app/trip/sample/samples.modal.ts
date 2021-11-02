@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import { AppFormUtils, LocalSettingsService, waitWhilePending } from '@sumaris-net/ngx-components';
 import {environment} from "../../../environments/environment";
 import {ModalController} from "@ionic/angular";
 import {BehaviorSubject, Observable} from "rxjs";
@@ -121,10 +121,12 @@ export class SamplesModal implements OnInit {
   async onSubmit(event?: UIEvent) {
     if (this.loading) return; // avoid many call
 
+    await AppFormUtils.waitWhilePending(this.table);
+
     if (this.invalid) {
       // if (this.debug) AppFormUtils.logFormErrors(this.table.table., "[sample-modal] ");
       this.table.error = "COMMON.FORM.HAS_ERROR";
-      this.table.markAsTouched({emitEvent: true});
+      this.table.markAllAsTouched();
       return;
     }
 

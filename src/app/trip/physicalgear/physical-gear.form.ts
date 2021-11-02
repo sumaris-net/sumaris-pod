@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
 import {Moment} from 'moment';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap} from 'rxjs/operators';
+import { BehaviorSubject, merge } from 'rxjs';
+import { distinctUntilChanged, filter, map, mergeMap, tap } from 'rxjs/operators';
 import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
 import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
 import {FormBuilder} from "@angular/forms";
@@ -30,9 +30,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   mobile: boolean;
 
   @Input() showComment = true;
-
   @Input() tabindex: number;
-
   @Input() canEditRankOrder = false;
 
   @Input()
@@ -53,7 +51,9 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
+    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
+      allowSetValueBeforePmfms: false
+    });
     this._enable = true;
     this.mobile = platform.mobile;
     this.requiredGear = true;
@@ -86,21 +86,19 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       mobile: this.mobile
     });
 
-    this.form.get('gear').valueChanges
-      .pipe(
-        filter(value => ReferentialUtils.isNotEmpty(value) && !this.loading)
-      )
-      .subscribe(value => {
-        this.data.gear = value;
-        this.gearId = value.id;
-      });
-  }
-
-  setValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
-    if (data && ReferentialUtils.isNotEmpty(data.gear)) {
-      this.gearId = data.gear.id;
-    }
-    super.setValue(data, opts);
+    // Propage data.gear into gearId
+    this.registerSubscription(
+      this.form.get('gear').valueChanges
+        .pipe(
+          filter(ReferentialUtils.isNotEmpty)
+        )
+        .subscribe(gear => {
+          if (this.data) {
+            this.data.gear = gear;
+            this.onEntityLoaded(this.data);
+          }
+        })
+    );
   }
 
   focusFirstInput() {
@@ -109,13 +107,16 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   /* -- protected methods -- */
 
-  protected async safeSetValue(data: PhysicalGear, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }): Promise<void> {
+  protected onEntityLoaded(data: PhysicalGear, opts?: {[key: string]: any;}) {
 
-    if (data && ReferentialUtils.isNotEmpty(data.gear)) {
+    if (!data) return; // Skip
+
+    super.onEntityLoaded(data, opts);
+
+    if (ReferentialUtils.isNotEmpty(data.gear)) {
+      // Propage gear
       this.gearId = data.gear.id;
     }
-
-    await super.safeSetValue(data, opts);
   }
 
   referentialToString = referentialToString;

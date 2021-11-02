@@ -1,6 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
 import { AggregatedLanding, AggregatedLandingUtils } from './model/aggregated-landing.model';
-import { ErrorCodes } from './trip.errors';
 import {
   BaseEntityGraphqlMutations,
   BaseGraphqlService,
@@ -27,6 +26,7 @@ import { environment } from '@environments/environment';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
+import { ErrorCodes } from '@app/data/services/errors';
 
 const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
   __typename
@@ -140,7 +140,7 @@ export class AggregatedLandingService
           ...variables,
           filter: dataFilter && dataFilter.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_AGGREGATED_LANDINGS_ERROR, message: 'AGGREGATED_LANDING.ERROR.LOAD_ALL_ERROR'},
+        error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
       })
       .pipe(
@@ -229,7 +229,7 @@ export class AggregatedLandingService
         aggregatedLandings: json,
         filter: this._lastFilter && this._lastFilter.asPodObject()
       },
-      error: {code: ErrorCodes.SAVE_AGGREGATED_LANDINGS_ERROR, message: 'AGGREGATED_LANDING.ERROR.SAVE_ALL_ERROR'},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: (proxy, {data}) => {
 
         if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, entities);

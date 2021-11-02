@@ -9,7 +9,7 @@ import {AlertController, ModalController, ToastController} from "@ionic/angular"
 import {Location} from "@angular/common";
 import {filter, map} from "rxjs/operators";
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {ExtractionAbstractPage} from "../form/extraction-abstract.page";
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../form/extraction-abstract.page';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
 import {ExtractionService} from "../services/extraction.service";
@@ -25,7 +25,6 @@ import {MatExpansionPanel} from "@angular/material/expansion";
 import {ExtractionProduct} from "../services/model/extraction-product.model";
 import {ExtractionProductService} from "../services/extraction-product.service";
 
-export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
   selector: 'app-extraction-table-page',
@@ -149,10 +148,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     // Wait end of datasource loading
     await firstNotNilPromise(this.dataSource.connect(null));
 
-    this.loading = false;
-    this.enable();
-    this.markAsUntouched();
-    this.markAsPristine();
+    this.markAsLoaded({emitEvent: false});
+    this.enable({emitEvent: false});
+    this.markAsUntouched({emitEvent: false});
+    this.markAsPristine({emitEvent: false});
     this.markForCheck();
   }
 
@@ -255,10 +254,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   async aggregateAndSave(event?: UIEvent) {
     if (!this.type || !this.canCreateProduct) return; // Skip
 
-    this.loading = true;
+    this.markAsLoading();
     this.error = null;
-    this.markForCheck();
-
     const filter = this.getFilterValue();
     this.disable();
 
@@ -291,11 +288,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
-      this.loading = false;
       this.markAsDirty();
     } finally {
-      this.loading = false;
-      this.markForCheck();
+      this.markAsLoaded()
       this.enable();
     }
 
@@ -304,10 +299,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   async save(event?: UIEvent) {
     if (!this.type) return; // Skip
 
-    this.loading = true;
+    this.markAsLoading();
     this.error = null;
-    this.markForCheck();
-
     const filter = this.getFilterValue();
     this.disable();
 
@@ -333,11 +326,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
-      this.loading = false;
       this.markAsDirty();
     } finally {
-      this.loading = false;
-      this.markForCheck();
+      this.markAsLoaded();
       this.enable();
     }
   }
@@ -354,10 +345,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     if (!confirm) return; // user cancelled
 
     // Mark as loading, and disable
-    this.loading = true;
+    this.markAsLoading();
     this.error = null;
-    this.markForCheck();
-
     this.disable();
 
     try {
@@ -372,17 +361,16 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       if (types && types.length) {
         await this.setType(types[0], {emitEvent: false, skipLocationChange: false, sheetName: undefined});
       }
-
-      this.loading = false;
-      this.markForCheck();
-      this.enable();
     }
     catch (err) {
       console.error(err);
       this.error = err && err.message || err;
-      this.loading = true;
       this.markAsDirty();
+    }
+    finally {
+      this.markAsLoaded({emitEvent: false});
       this.enable();
+      this.markForCheck();
     }
 
   }
@@ -459,10 +447,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.error = null;
     console.debug(`[extraction-table] Loading ${this.type.category} ${this.type.label}`);
 
-    this.loading = true;
-
+    this.markAsLoading();
     const filter = this.getFilterValue();
-
     this.disable();
     this.markForCheck();
 
@@ -481,9 +467,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
-      this.loading = false;
+      this.markAsDirty();
+    }
+    finally {
+      this.markAsLoaded();
       this.enable();
-      this.form.markAsDirty();
     }
   }
 

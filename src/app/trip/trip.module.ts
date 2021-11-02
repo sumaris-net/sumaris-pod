@@ -122,8 +122,9 @@ import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    SubSamplesTable
-  ]
+    SubSamplesTable,
+    BatchGroupForm,
+  ],
 })
 export class TripModule {
 

@@ -31,7 +31,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   private _options: AggregatedLandingFormOption;
   private _activeDate: Moment;
-  private _loading = true;
   private _activityDirty = false;
 
   @Input() showError = true;
@@ -154,7 +153,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
     console.debug(`[aggregated-landing-form] Show vessel activity at ${date}`);
 
-    this._loading = true;
+    this.markAsLoading();
     this.disable();
 
     if (this._activeDate && !date.isSame(this._activeDate)) {
@@ -175,7 +174,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     }
 
     this.enable();
-    setTimeout(() => this._loading = false, 500);
+    setTimeout(() => this.markAsLoaded(), 500);
   }
 
   addActivity() {

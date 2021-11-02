@@ -20,11 +20,11 @@
 }
 
 .table-container {
-  height: calc(100% - var(--table-container-offset));
+  --table-offline-nav: 0px;
+  height: calc(100% - var(--table-offline-nav, 0px));
 
-  --table-container-offset: 0;
   &.has-offline-nav {
-    --table-container-offset: var(--mat-tab-link-height);
+    --table-offline-nav: var(--mat-tab-link-height, 48px);
   }
 }
 

@@ -68,7 +68,9 @@
   <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
+<div class="table-container"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="showPaginator">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>

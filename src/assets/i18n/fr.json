@@ -504,12 +504,6 @@
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {
-      "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
-      "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
-      "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
-      "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
-      "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
-      "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
@@ -578,7 +572,7 @@
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
-        "DISTANCE_DOTS" : "Dist. :",
+        "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
         "START_PARENT_OPERATION" : "Début pose :",
         "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
@@ -631,7 +625,7 @@
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
-        "TOO_LONG_DISTANCE" : "Distance trop grande"
+        "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)"
       }
     },
     "OPERATION_GROUP": {
@@ -964,15 +958,12 @@
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
     },
-    "ERROR": {
-      "LOAD_ALL_ERROR": "Erreur de chargement des navires observés.",
-      "LOAD_ERROR": "Erreur de chargement du navire observé.",
-      "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
-      "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé.",
-      "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0",
+    "WARNING": {
       "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"
+    },
+    "ERROR": {
+      "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -1628,9 +1619,6 @@
         }
       }
     },
-    "PRODUCT": {
-      "NEW_NAME": "Produit {{name}}"
-    },
     "FILTER": {
       "TITLE": "Filtrer les données :",
       "CRITERION_NAME": "Critère de filtre",
@@ -1771,6 +1759,7 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
+      "NEW_NAME": "Produit {{name}}",
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
@@ -1944,6 +1933,7 @@
     "LOAD_ENTITIES_ERROR": "Erreur lors de chargement de la liste",
     "SAVE_ENTITY_ERROR": "Erreur lors de la sauvegarde",
     "SAVE_ENTITIES_ERROR": "Erreur lors de la sauvegarde de la liste",
+    "DELETE_ENTITY_ERROR": "Erreur lors de la suppression. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SUBSCRIBE_ENTITY_ERROR": "Erreur lors de l'abonnement aux modifications distantes",
     "CONTROL_ENTITY_ERROR": "Erreur lors du contrôle de la validité des données",
     "TERMINATE_ENTITY_ERROR": "Terminaision de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",

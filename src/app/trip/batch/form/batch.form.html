@@ -34,36 +34,55 @@
       </ion-col>
     </ion-row>
 
-    <ion-spinner class="ion-align-self-center" *ngIf="loading"></ion-spinner>
-
     <!-- Measurements -->
-    <ion-row class="ion-no-padding">
+    <ion-row class="ion-no-padding" [formGroup]="measurementValuesForm">
       <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
                size="12" class="ion-no-padding">
+        <ng-container [ngSwitch]="pmfm.type">
 
-        <!-- If mobile + qualitative value: force 'button' style -->
-        <ng-container *ngIf="mobile && pmfm.isQualitative; else otherField">
-          <app-pmfm-qv-field #matInput
-                             [pmfm]="pmfm"
-                             [hidden]="pmfm.hidden"
-                             [style]="'button'"
-                             [formControl]="form.get('measurementValues.'+ pmfm.id)"
-                             [compact]="compact"
-                             [maxVisibleButtons]="maxVisibleButtons"
-                             [tabindex]="tabindex+2 + i*2">
-          </app-pmfm-qv-field>
+          <!-- Qualitative value -->
+          <ng-container *ngSwitchCase="'qualitative_value'">
+            <!-- If mobile + qualitative value: force 'button' style -->
+            <ng-container *ngIf="mobile && !pmfm.hidden; else defaultPmfmField">
+              <app-pmfm-qv-field #matInput
+                                 [pmfm]="pmfm"
+                                 [hidden]="pmfm.hidden"
+                                 [style]="'button'"
+                                 [formControlName]="pmfm.id|toString"
+                                 [compact]="compact"
+                                 [maxVisibleButtons]="maxVisibleButtons"
+                                 [tabindex]="tabindex+2 + i*2">
+              </app-pmfm-qv-field>
+            </ng-container>
+          </ng-container>
+
+          <!-- Boolean -->
+          <ng-container *ngSwitchCase="'boolean'">
+            <!-- If mobile, force 'button' style -->
+            <mat-boolean-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
+                               [style]="'button'"
+                               [placeholder]="pmfm|pmfmName"
+                               [formControlName]="pmfm.id|toString"
+                               [compact]="compact"
+                               [tabindex]="tabindex+2 + i*2">
+            </mat-boolean-field>
+          </ng-container>
+
+          <!-- other PMFM types -->
+          <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
+          </ng-container>
+
         </ng-container>
 
         <!-- NOT qualitative value -->
-        <ng-template #otherField>
+        <ng-template #defaultPmfmField>
           <app-pmfm-field #matInput [pmfm]="pmfm"
                           [hidden]="pmfm.hidden"
-                          [formControl]="form.get('measurementValues.'+ pmfm.id)"
+                          [formControlName]="pmfm.id|toString"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>
         </ng-template>
-
       </ion-col>
     </ion-row>
 
@@ -105,7 +124,7 @@
     </ion-row>
 
     <!-- Total NB individual  -->
-    <ion-row class="ion-no-padding" *ngIf="showTotalIndividualCount">
+    <ion-row class="ion-no-padding" *ngIf="showIndividualCount">
       <ion-col class="ion-no-padding">
         <mat-form-field>
           <input matInput
@@ -128,8 +147,8 @@
       </ion-col>
     </ion-row>
 
-    <!-- Sample batch -->
-    <div [hidden]="!showSampleBatch" formArrayName="children">
+    <!-- Sampling batch -->
+    <div formArrayName="children" [class.cdk-visually-hidden]="!showSamplingBatch">
       <ion-row class="ion-no-padding">
         <ion-col class="ion-no-padding">
           <!-- checkbox, when compact -->
@@ -171,7 +190,7 @@
         </ion-col>
 
         <!-- Sampling weight -->
-        <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm">
+        <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm && showSampleWeight">
 
           <app-pmfm-field #matInput
                           [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
@@ -186,7 +205,7 @@
         </ion-col>
 
         <!-- Sampling individual count -->
-        <ion-col size="4" class="ion-no-padding" *ngIf="showIndividualCount">
+        <ion-col size="4" class="ion-no-padding" *ngIf="showSampleIndividualCount">
           <mat-form-field>
             <input matInput
                    formControlName="individualCount"
@@ -207,3 +226,8 @@
 
 
 </form>
+
+
+<ng-template #loadingSpinner>
+  <ion-spinner class="ion-align-self-center"></ion-spinner>
+</ng-template>

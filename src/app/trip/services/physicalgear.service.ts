@@ -18,7 +18,7 @@ import {environment} from '@environments/environment';
 import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
 import {filter, map, throttleTime} from 'rxjs/operators';
 
-import {ErrorCodes} from './trip.errors';
+import {TripErrorCodes} from './trip.errors';
 import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {PhysicalGearFragments} from './trip.queries';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
@@ -26,6 +26,7 @@ import {SortDirection} from '@angular/material/sort';
 import {PhysicalGearFilter} from './filter/physical-gear.filter';
 import moment from 'moment';
 import {TripFilter} from '@app/trip/services/filter/trip.filter';
+import { ErrorCodes } from '@app/data/services/errors';
 
 
 const LoadAllQuery: any = gql`
@@ -115,7 +116,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return this.graphql.watchQuery<LoadResult<any>>({
       query: LoadAllQuery,
       variables,
-      error: {code: ErrorCodes.LOAD_PHYSICAL_GEARS_ERROR, message: 'TRIP.PHYSICAL_GEAR.ERROR.LOAD_PHYSICAL_GEARS_ERROR'},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
     })
       .pipe(

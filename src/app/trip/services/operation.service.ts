@@ -1,9 +1,8 @@
-import {Injectable, Optional} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
-import {filter, first, map, tap} from 'rxjs/operators';
-import {ErrorCodes} from './trip.errors';
-import {DataFragments, Fragments} from './trip.queries';
+import { Injectable, Optional } from '@angular/core';
+import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { filter, first, map, tap } from 'rxjs/operators';
+import { DataCommonFragments, DataFragments } from './trip.queries';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -29,67 +28,34 @@ import {
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
-  QueryVariables
+  QueryVariables,
 } from '@sumaris-net/ngx-components';
-import {Measurement} from './model/measurement.model';
-import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import {Operation, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
-import {Batch, BatchUtils} from './model/batch.model';
-import {Sample} from './model/sample.model';
-import {SortDirection} from '@angular/material/sort';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {GeolocationOptions} from '@ionic-native/geolocation';
+import { Measurement } from './model/measurement.model';
+import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { Operation, OperationFromObjectOptions, Trip, VesselPosition } from './model/trip.model';
+import { Batch, BatchUtils } from './model/batch.model';
+import { Sample } from './model/sample.model';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { GeolocationOptions } from '@ionic-native/geolocation';
 import moment from 'moment';
-import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
-import {MetierFilter} from '@app/referential/services/filter/metier.filter';
-import {Metier} from '@app/referential/services/model/metier.model';
-import {MetierService} from '@app/referential/services/metier.service';
-import {mergeMap} from 'rxjs/internal/operators';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { MetierService } from '@app/referential/services/metier.service';
+import { mergeMap } from 'rxjs/internal/operators';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { IPosition } from '@app/trip/services/model/position.model';
+import { ErrorCodes } from '@app/data/services/errors';
 
 
-export const recursiveFragments = {
-  lightOperationFields: gql`fragment LightOperationFragmentFields on OperationVO {
-    id
-    startDateTime
-    endDateTime
-    fishingStartDateTime
-    fishingEndDateTime
-    rankOrderOnPeriod
-    tripId
-    comments
-    hasCatch
-    updateDate
-    qualityFlagId
-    physicalGearId
-    physicalGear {
-      id
-      rankOrder
-      gear {
-          ...ReferentialFragment
-      }
-    }
-    metier {
-      ...MetierFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    positions {
-      ...PositionFragment
-    }
-  }
-  ${ReferentialFragments.lightDepartment}
-  ${ReferentialFragments.metier}
-  ${ReferentialFragments.referential}
-  ${Fragments.position}
-  `,
-
+export const OperationFields = {
   operationFields: gql`fragment OperationFragmentFields on OperationVO {
     id
     startDateTime
@@ -138,28 +104,50 @@ export const recursiveFragments = {
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
   ${ReferentialFragments.referential}
-  ${Fragments.position}
-  ${Fragments.measurement}
+  ${DataCommonFragments.position}
+  ${DataCommonFragments.measurement}
   ${DataFragments.sample}
   ${DataFragments.batch}
-  ${DataFragments.fishingArea}
-  `
+  ${DataFragments.fishingArea}`
 };
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
-    ...LightOperationFragmentFields
+    id
+    startDateTime
+    endDateTime
+    fishingStartDateTime
+    fishingEndDateTime
+    rankOrderOnPeriod
+    tripId
+    comments
+    hasCatch
+    updateDate
+    qualityFlagId
+    physicalGearId
+    physicalGear {
+      id
+      rankOrder
+      gear {
+        ...ReferentialFragment
+      }
+    }
+    metier {
+      ...MetierFragment
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    positions {
+      ...PositionFragment
+    }
     parentOperationId
-    parentOperation {
-      ...LightOperationFragmentFields
-    }
     childOperationId
-    childOperation {
-      ...LightOperationFragmentFields
-    }
   }
-  ${recursiveFragments.lightOperationFields}
-  `,
+  ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.metier}
+  ${ReferentialFragments.referential}
+  ${DataCommonFragments.position}`,
 
   operation: gql`fragment OperationFragment on OperationVO {
     ...OperationFragmentFields
@@ -173,7 +161,7 @@ export const OperationFragments = {
     }
   }
 
-  ${recursiveFragments.operationFields}
+  ${OperationFields.operationFields}
   `
 };
 
@@ -229,11 +217,11 @@ const OperationQueries = {
     total: operationsCount(filter: $filter)
   }
   ${OperationFragments.lightOperation}
-   ${Fragments.location}
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}`,
+  ${DataCommonFragments.referential}`,
 
 
   // Load many operations
@@ -301,6 +289,7 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   tripId?: number;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
+  withChildOperation?: boolean;
 }
 
 export declare interface OperationMetierFilter {
@@ -414,7 +403,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATIONS_ERROR'},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -461,7 +450,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Load locally
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME);
-        if (!json) throw {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'};
+        if (!json) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
         if (isNotNil(json.parentOperationId) && isNil(json.parentOperation)) {
           json.parentOperation = await this.entities.load<Operation>(json.parentOperationId, Operation.TYPENAME);
         } else if (isNotNil(json.childOperationId) && isNil(json.childOperation)) {
@@ -474,7 +463,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         const res = await this.graphql.query<{ data: Operation }>({
           query: OperationQueries.load,
           variables: {id},
-          error: {code: ErrorCodes.LOAD_OPERATION_ERROR, message: 'TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR'},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         json = res && res.data;
@@ -505,8 +494,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         interval: 10
       },
       error: {
-        code: ErrorCodes.SUBSCRIBE_OPERATION_ERROR,
-        message: 'TRIP.OPERATION.ERROR.SUBSCRIBE_OPERATION_ERROR'
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
@@ -542,6 +531,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 
+    // Save child
+    if (opts?.withChildOperation && entity.childOperation) {
+      entity.childOperation = await this.save(entity.childOperation, {...opts, withChildOperation: false});
+      entity.childOperationId = entity.childOperation.id;
+    }
+
     // If parent is a local entity: force to save locally
     if (entity.tripId < 0) {
       return await this.saveLocally(entity, opts);
@@ -564,7 +559,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       variables: {
         data: [json]
       },
-      error: {code: ErrorCodes.SAVE_OPERATIONS_ERROR, message: 'TRIP.OPERATION.ERROR.SAVE_OPERATION_ERROR'},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       offlineResponse: async (context) => {
         // Make sure to fill id, with local ids
         await this.fillOfflineDefaultProperties(entity);
@@ -861,63 +856,18 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   /**
    * Get the position by geo loc sensor
    */
-  async getGeoCoordinates(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number }> {
-    options = {
+  async getCurrentPosition(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number }> {
+    return PositionUtils.getCurrentPosition(this.geolocation, {
       maximumAge: 30000/*30s*/,
       timeout: 10000/*10s*/,
       enableHighAccuracy: true,
       ...options
-    };
-
-    // Use ionic-native plugin
-    if (this.geolocation != null) {
-      try {
-        const res = await this.geolocation.getCurrentPosition(options);
-        return {
-          latitude: res.coords.latitude,
-          longitude: res.coords.longitude
-        };
-      } catch (err) {
-        console.error(err);
-        throw err;
-      }
-    }
-
-    // Or fallback to navigator
-    return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition((res) => {
-          resolve({
-            latitude: res.coords.latitude,
-            longitude: res.coords.longitude
-          });
-        },
-        (err) => {
-          console.error(err);
-          reject(err);
-        },
-        options
-      );
     });
   }
 
-  getDistanceBetweenPositions(position1: { latitude: number; longitude: number }, position2: { latitude: number; longitude: number }): number {
-    const latitude1Rad = position1.latitude * Math.PI / 180;
-    const longitude1Rad = position1.longitude * Math.PI / 180;
-    const latitude2Rad = position2.latitude * Math.PI / 180;
-    const longitude2Rad = position2.longitude * Math.PI / 180;
-
-    let distance = 2 * 6371 * Math.asin(
-      Math.sqrt(
-        Math.pow(Math.sin((latitude1Rad - latitude2Rad) / 2), 2)
-        + Math.cos(latitude1Rad) * Math.cos(latitude2Rad) * Math.pow(Math.sin((longitude2Rad - longitude1Rad) / 2), 2)
-      ));
-    distance = Math.round((((distance / 1.852) + Number.EPSILON) * 100)) / 100;
-    return distance;
-  }
-
-  async getDistance(latitude: number, longitude: number): Promise<number> {
-    const actualCoords = await this.getGeoCoordinates();
-    return this.getDistanceBetweenPositions(actualCoords, {latitude, longitude});
+  async computeDistanceInMilesToCurrentPosition(position: IPosition): Promise<number|undefined> {
+    const currentPosition = await this.getCurrentPosition();
+    return currentPosition && PositionUtils.computeDistanceInMiles(currentPosition, position);
   }
 
   async executeImport(progression: BehaviorSubject<number>,
@@ -1013,7 +963,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     let distance: number;
 
     for (const o of operations) {
-      distance = await this.getDistanceOperation(o, position);
+      distance = await this.computeOperationDistance(o, position);
       sortedOperation.set(distance, o);
     }
 
@@ -1028,20 +978,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return Array.from(sortedOperation.values());
   }
 
-  async getDistanceOperation(operation: Operation, position: string): Promise<number> {
+  async computeOperationDistance(operation: Operation, position: string): Promise<number> {
     let distance: number;
 
     if (position === 'startPosition') {
       if (operation.startPosition) {
-        distance = await this.getDistance(operation.startPosition.latitude, operation.startPosition.longitude);
+        distance = await this.computeDistanceInMilesToCurrentPosition(operation.startPosition);
       } else if (operation.positions.length === 2) {
-        distance = await this.getDistance(operation.positions[0].latitude, operation.positions[0].longitude);
+        distance = await this.computeDistanceInMilesToCurrentPosition(operation.positions[0]);
       }
     } else {
       if (operation.endPosition) {
-        distance = await this.getDistance(operation.endPosition.latitude, operation.endPosition.longitude);
+        distance = await this.computeDistanceInMilesToCurrentPosition(operation.endPosition);
       } else if (operation.positions.length === 2) {
-        distance = await this.getDistance(operation.positions[1].latitude, operation.positions[1].longitude);
+        distance = await this.computeDistanceInMilesToCurrentPosition(operation.positions[1]);
       }
     }
     return distance;
@@ -1074,8 +1024,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     (entity.measurements || []).forEach(m => this.fillRecorderDepartment(m, department));
 
     // Fill position dates
-    entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
-    entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime || entity.startPosition.dateTime;
+    if (entity.startPosition) entity.startPosition.dateTime = entity.fishingStartDateTime || entity.startDateTime;
+    if (entity.endPosition) entity.endPosition.dateTime = entity.fishingEndDateTime || entity.endDateTime || entity.startPosition?.dateTime;
 
     // Fill trip ID
     if (isNil(entity.tripId) && options) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 import { AppFormUtils, filterNumberInput, focusInput, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean } from '@sumaris-net/ngx-components';
@@ -6,9 +6,12 @@ import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import { PmfmValidators } from '../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
+import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
 
 const noop = () => {
 };
+
+export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' | 'button' ;
 
 @Component({
   selector: 'app-pmfm-field',
@@ -43,6 +46,8 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() weightDisplayedUnit: string;
+  @Input() style: PmfmFormFieldStyle;
+  @Input() maxVisibleButtons: number;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
@@ -76,6 +81,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
     if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
+    if (this.pmfm.isMultiple) throw new Error("Invalid 'pmfm' in <app-pmfm-field>. For 'isMutliple' should be false. Please use a FormArrayHelper instead");
 
     this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
@@ -86,14 +92,16 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
     }
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-    this.placeholder = this.placeholder.replace('kg', this.weightDisplayedUnit);
+    if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
+      this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
+    }
     this.required = toBoolean(this.required, this.pmfm.required);
 
     this.updateTabIndex();
 
     // Compute the field type (use special case for Latitude/Longitude)
     let type = this.pmfm.type;
-    if (this.hidden) {
+    if (this.hidden || this.pmfm.hidden) {
       type = "hidden";
     }
     else if (type === "double") {

@@ -1,16 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {IonContent, ModalController} from "@ionic/angular";
-import {BehaviorSubject} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {SubBatchForm} from "../form/sub-batch.form";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SubBatch} from "../../services/model/subbatch.model";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { AppFormUtils, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
+import { PmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
+import { SubBatchForm } from '../form/sub-batch.form';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
+
+
+export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
+
+  showParent: boolean;
+  availableParents: Batch[];
+}
 
 @Component({
   selector: 'app-sub-batch-modal',
@@ -22,25 +27,19 @@ export class SubBatchModal implements OnInit {
   debug = false;
   loading = false;
   mobile: boolean;
-  data: SubBatch;
   $title = new BehaviorSubject<string>(undefined);
 
-  @Input() acquisitionLevel: string;
-  @Input() programLabel: string;
-  @Input() canEdit: boolean;
   @Input() disabled: boolean;
   @Input() isNew: boolean;
+  @Input() data: SubBatch;
+  @Input() acquisitionLevel: string;
+  @Input() programLabel: string;
+
   @Input() showParent = true;
   @Input() showTaxonName = true;
   @Input() showIndividualCount = false;
   @Input() qvPmfm: PmfmStrategy;
-  @Input() showSampleBatch = false;
   @Input() availableParents: Batch[];
-
-  @Input()
-  set value(value: SubBatch) {
-    this.data = value;
-  }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
   @ViewChild(IonContent) content: IonContent;
@@ -75,8 +74,7 @@ export class SubBatchModal implements OnInit {
 
 
   async ngOnInit() {
-    this.canEdit = toBoolean(this.canEdit, !this.disabled);
-    this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+    this.disabled = toBoolean(this.disabled, false);
     this.isNew = toBoolean(this.isNew, false);
 
     this.data = this.data || new SubBatch();
@@ -84,7 +82,7 @@ export class SubBatchModal implements OnInit {
     // Compute the title
     this.computeTitle();
 
-    await this.form.ready();
+    await this.form.waitIdle();
     this.form.value = this.data;
 
     if (!this.isNew) {
@@ -93,9 +91,7 @@ export class SubBatchModal implements OnInit {
     }
 
     if (!this.disabled) {
-      //setTimeout(() => {
-        this.form.enable({emitEvent: false});
-      //}, 500);
+      this.form.enable({emitEvent: false});
     }
 
   }
@@ -110,7 +106,7 @@ export class SubBatchModal implements OnInit {
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.markAsTouched({emitEvent: true});
+      this.form.markAllAsTouched();
       return;
     }
 

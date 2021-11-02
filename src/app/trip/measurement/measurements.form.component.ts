@@ -40,17 +40,12 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   @Input() showError = false;
-
   @Input() compact = false;
-
   @Input() floatLabel: FloatLabelType = "auto";
-
   @Input() requiredGear = false;
-
   @Input() entityName: MeasurementType;
-
   @Input() animated = false;
-
+  @Input() mobile = false;
   @Output() valueChanges = new EventEmitter<any>();
 
   @Input()

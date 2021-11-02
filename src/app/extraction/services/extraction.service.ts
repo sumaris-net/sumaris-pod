@@ -1,23 +1,28 @@
-import {Injectable} from "@angular/core";
-import {ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import { Injectable } from '@angular/core';
+import { ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import {ErrorCodes} from "../../trip/services/trip.errors";
-import {AccountService, LoadResult} from "@sumaris-net/ngx-components";
-import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
-import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Fragments} from "../../trip/services/trip.queries";
-import {SortDirection} from "@angular/material/sort";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-
-import {Person}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {
+  AccountService,
+  BaseGraphqlService,
+  EntityUtils,
+  firstNotNilPromise,
+  GraphqlService,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LoadResult,
+  Person,
+  trimEmptyToNull,
+} from '@sumaris-net/ngx-components';
+import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType } from './model/extraction-type.model';
+import { DataCommonFragments } from '../../trip/services/trip.queries';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '../../../environments/environment';
+import { DataEntityAsObjectOptions } from '../../data/services/model/data-entity.model';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { ExtractionErrorCodes } from '@app/extraction/services/extraction.errors';
 
 
 export const ExtractionFragments = {
@@ -37,7 +42,7 @@ export const ExtractionFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.lightDepartment}`,
+  ${DataCommonFragments.lightDepartment}`,
   column: gql`fragment ExtractionColumnFragment on ExtractionTableColumnVO {
     label
     name
@@ -115,7 +120,7 @@ export class ExtractionService extends BaseGraphqlService {
       queryName: 'LoadExtractionTypes',
       query: LoadTypesQuery,
       arrayFieldName: 'data',
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
       ...opts
     })
       .pipe(
@@ -181,7 +186,7 @@ export class ExtractionService extends BaseGraphqlService {
     const res = await this.graphql.query<{ extractionRows: ExtractionResult }>({
       query: LoadRowsQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'no-cache'
     });
     if (!res || !res.extractionRows) return null;
@@ -221,7 +226,7 @@ export class ExtractionService extends BaseGraphqlService {
     const res = await this.graphql.query<{ extractionFile: string }>({
       query: GetFileQuery,
       variables: variables,
-      error: {code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
+      error: {code: ExtractionErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     const fileUrl = res && res.extractionFile;
@@ -299,8 +304,7 @@ export class ExtractionService extends BaseGraphqlService {
     await this.graphql.mutate<{ data: any }>({
       mutation: SaveExtractionMutation,
       variables: { type: json, filter },
-      // TODO : change error code
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
