@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
 public class ProgramGraphQLService {
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private ProgramService programService;
@@ -518,7 +518,7 @@ public class ProgramGraphQLService {
     }
 
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 }

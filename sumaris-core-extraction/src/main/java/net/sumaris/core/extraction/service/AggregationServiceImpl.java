@@ -64,6 +64,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -81,6 +82,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("aggregationService")
 @ConditionalOnBean({ExtractionConfiguration.class})
+@Lazy
 public class AggregationServiceImpl implements AggregationService {
 
     private final DataSource dataSource;

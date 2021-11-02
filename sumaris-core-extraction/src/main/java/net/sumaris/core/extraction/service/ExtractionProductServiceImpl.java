@@ -24,15 +24,14 @@ package net.sumaris.core.extraction.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
-import net.sumaris.core.extraction.config.ExtractionAutoConfiguration;
 import net.sumaris.core.extraction.config.ExtractionConfiguration;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
@@ -45,15 +44,16 @@ import java.util.Optional;
 @Slf4j
 @Service("extractionProductService")
 @ConditionalOnBean({ExtractionConfiguration.class})
+@Lazy
 public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     private final ExtractionProductRepository productRepository;
-    private final ExtractionTableDao tableDao;
+    private final ExtractionTableDao extractionTableDao;
 
     public ExtractionProductServiceImpl(ExtractionProductRepository productRepository,
-                                        ExtractionTableDao tableDao) {
+                                        ExtractionTableDao extractionTableDao) {
         this.productRepository = productRepository;
-        this.tableDao = tableDao;
+        this.extractionTableDao = extractionTableDao;
     }
 
     @Override
@@ -110,7 +110,7 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
                     .orElseThrow(() -> new DataRetrievalFailureException(String.format("Product id=%s has no sheetName '%s'", id, sheetName)));
 
             // Get columns
-            columns = tableDao.getColumns(tableName,
+            columns = extractionTableDao.getColumns(tableName,
                     ExtractionTableColumnFetchOptions.builder()
                         .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
                         .build());

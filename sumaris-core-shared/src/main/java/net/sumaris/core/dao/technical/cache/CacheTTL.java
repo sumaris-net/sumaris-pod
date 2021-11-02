@@ -57,8 +57,8 @@ public enum CacheTTL {
         return CacheTTL.valueOf(name.toUpperCase());
     }
 
-    public static CacheTTL nullToDefault(@Nullable CacheTTL ttl) {
-        return ttl == null ? CacheTTL.DEFAULT : ttl;
+    public static CacheTTL nullToDefault(@Nullable CacheTTL ttl, CacheTTL defaultTtl) {
+        return ttl != null ? ttl : defaultTtl;
     }
 
 }

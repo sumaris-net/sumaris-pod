@@ -53,7 +53,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Repository("denormalizedPmfmStrategyRepository")
 public class DenormalizedPmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, DenormalizedPmfmStrategyVO>
         implements DenormalizedPmfmStrategyRepository {

@@ -97,7 +97,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
         }
 
         // VO -> Entity
-        softwareVOToEntity(source, entity, false);
+        toEntity(source, entity, false);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -126,7 +126,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
 
     /* -- protected methods -- */
 
-    protected void softwareVOToEntity(SoftwareVO source, Software target, boolean copyIfNull) {
+    protected void toEntity(SoftwareVO source, Software target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
@@ -239,7 +239,7 @@ public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
             target = new Software();
         }
 
-        softwareVOToEntity(source, target, true);
+        toEntity(source, target, true);
 
         return target;
     }

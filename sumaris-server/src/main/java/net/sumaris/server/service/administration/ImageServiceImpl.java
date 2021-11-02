@@ -50,7 +50,7 @@ public class ImageServiceImpl implements ImageService {
     private String imageUrl;
 
     @Resource
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Resource
     private ImageAttachmentService imageAttachmentService;
@@ -60,14 +60,14 @@ public class ImageServiceImpl implements ImageService {
     protected void onConfigurationReady(ConfigurationEvent event) {
 
         // Prepare URL for String formatter
-        personAvatarUrl = config.getServerUrl() + RestPaths.PERSON_AVATAR_PATH;
-        departmentLogoUrl = config.getServerUrl() + RestPaths.DEPARTMENT_LOGO_PATH;
+        personAvatarUrl = configuration.getServerUrl() + RestPaths.PERSON_AVATAR_PATH;
+        departmentLogoUrl = configuration.getServerUrl() + RestPaths.DEPARTMENT_LOGO_PATH;
 
         // Get and check the gravatar URL
-        gravatarUrl = getAndCheckGravatarUrl(config);
+        gravatarUrl = getAndCheckGravatarUrl(configuration);
 
         // Prepare URL for String formatter
-        imageUrl = config.getServerUrl() + RestPaths.IMAGE_PATH;
+        imageUrl = configuration.getServerUrl() + RestPaths.IMAGE_PATH;
     }
 
     @Override

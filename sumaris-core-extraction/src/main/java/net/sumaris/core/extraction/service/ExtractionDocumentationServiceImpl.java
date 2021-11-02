@@ -41,10 +41,8 @@ import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
@@ -59,6 +57,7 @@ import java.util.Optional;
 @Slf4j
 @Component("extractionDocumentationService")
 @ConditionalOnBean({ExtractionConfiguration.class})
+@Lazy
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
 
     protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";

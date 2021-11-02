@@ -24,6 +24,7 @@ package net.sumaris.core.extraction.config;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.extraction.format.LiveFormatEnum;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import org.nuiton.config.ConfigOptionDef;
@@ -72,6 +73,13 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.extraction.product.enable.description"),
             Boolean.FALSE.toString(),
             Boolean.class,
+        false),
+
+    EXTRACTION_CACHE_DEFAULT_TTL(
+        "sumaris.extraction.cache.ttl.default",
+        n("sumaris.config.option.extraction.ttl.default.description"),
+        CacheTTL.SHORT.name(),
+        CacheTTL.class,
         false),
 
     EXTRACTION_MAP_ENABLE(

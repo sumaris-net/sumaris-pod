@@ -64,7 +64,7 @@ public class VesselGraphQLService {
     private static final Logger log = LoggerFactory.getLogger(VesselGraphQLService.class);
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private VesselService vesselService;
@@ -365,12 +365,12 @@ public class VesselGraphQLService {
     }
 
     protected boolean canUserAccessNotSelfData() {
-        String minRole = config.getAccessNotSelfDataMinRole();
+        String minRole = configuration.getAccessNotSelfDataMinRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 

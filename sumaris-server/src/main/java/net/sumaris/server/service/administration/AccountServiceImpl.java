@@ -97,7 +97,7 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private AccountService self; // loop back to force transactional handling
 
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     private InternetAddress mailFromAddress;
 
@@ -109,7 +109,7 @@ public class AccountServiceImpl implements AccountService {
             required = false
     )
     public AccountServiceImpl(@NonNull SumarisServerConfiguration serverConfiguration, EmailService emailService) {
-        this.config = serverConfiguration;
+        this.configuration = serverConfiguration;
         this.emailService = emailService;
     }
 
@@ -123,12 +123,12 @@ public class AccountServiceImpl implements AccountService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
 
-        boolean emailEnable = (emailService != null && config.enableMailService());
+        boolean emailEnable = (emailService != null && configuration.enableMailService());
 
         // Get mail 'from'
-        String mailFrom = config.getMailFrom();
+        String mailFrom = configuration.getMailFrom();
         if (StringUtils.isEmpty(mailFrom)) {
-            mailFrom = config.getAdminMail();
+            mailFrom = configuration.getAdminMail();
         }
         if (StringUtils.isEmpty(mailFrom)) {
             log.warn(I18n.t("sumaris.error.account.register.mail.disable", SumarisServerConfigurationOption.MAIL_FROM.name()));
@@ -137,7 +137,7 @@ public class AccountServiceImpl implements AccountService {
         }
         else {
             try {
-                this.mailFromAddress = new InternetAddress(mailFrom, config.getAppName());
+                this.mailFromAddress = new InternetAddress(mailFrom, configuration.getAppName());
             } catch (UnsupportedEncodingException e) {
                 log.error(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()));
                 emailEnable = false;
@@ -145,7 +145,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // Get server URL
-        this.serverUrl = config.getServerUrl();
+        this.serverUrl = configuration.getServerUrl();
 
         // Update enable state, if changed
         if (this.emailEnable != emailEnable) {
@@ -153,7 +153,7 @@ public class AccountServiceImpl implements AccountService {
             if (!emailEnable) {
                 log.warn("/!\\ Email service disabled! (see previous errors)");
             } else {
-                log.info(I18n.t("sumaris.server.email.started", config.getMailHost(), config.getMailPort()));
+                log.info(I18n.t("sumaris.server.email.started", configuration.getMailHost(), configuration.getMailPort()));
             }
         }
     }
@@ -437,7 +437,7 @@ public class AccountServiceImpl implements AccountService {
 
             String signatureHash = serverCryptoService.hash(serverCryptoService.sign(toAddress));
 
-            String confirmationLinkURL = config.getRegistrationConfirmUrlPattern()
+            String confirmationLinkURL = configuration.getRegistrationConfirmUrlPattern()
                     .replace("{email}", toAddress)
                     .replace("{code}", signatureHash);
 
@@ -445,12 +445,12 @@ public class AccountServiceImpl implements AccountService {
                     .from(this.mailFromAddress)
                     .replyTo(this.mailFromAddress)
                     .to(Lists.newArrayList(new InternetAddress(toAddress)))
-                    .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", config.getAppName())
+                    .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", configuration.getAppName())
                             + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
                     .body(I18n.l(locale, "sumaris.server.account.register.mail.body",
                             this.serverUrl,
                             confirmationLinkURL,
-                            config.getAppName()))
+                            configuration.getAppName()))
                     .encoding(Charsets.UTF_8.name())
                     .build();
 
@@ -490,7 +490,7 @@ public class AccountServiceImpl implements AccountService {
                     .from(this.mailFromAddress)
                     .replyTo(this.mailFromAddress)
                     .to(toInternetAddress(adminEmails))
-                    .subject(I18n.t("sumaris.server.mail.subject.prefix", config.getAppName())
+                    .subject(I18n.t("sumaris.server.mail.subject.prefix", configuration.getAppName())
                             + " " + I18n.t("sumaris.server.account.register.admin.mail.subject"))
                     .body(I18n.t("sumaris.server.account.register.admin.mail.body",
                             confirmedAccount.getFirstName(),
@@ -498,7 +498,7 @@ public class AccountServiceImpl implements AccountService {
                             confirmedAccount.getEmail(),
                             this.serverUrl,
                             this.serverUrl + "/admin/users",
-                            config.getAppName()
+                            configuration.getAppName()
                             ))
                     .encoding(Charsets.UTF_8.name())
                     .build();

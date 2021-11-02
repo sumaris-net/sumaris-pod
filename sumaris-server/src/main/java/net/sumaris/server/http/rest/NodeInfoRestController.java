@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
 public class NodeInfoRestController {
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -53,7 +53,7 @@ public class NodeInfoRestController {
 
         // Set software info
         result.setSoftwareName("sumaris-pod");
-        result.setSoftwareVersion(config.getVersionAsString());
+        result.setSoftwareVersion(configuration.getVersionAsString());
 
         // Set node info
         SoftwareVO software = configurationService.getCurrentSoftware();

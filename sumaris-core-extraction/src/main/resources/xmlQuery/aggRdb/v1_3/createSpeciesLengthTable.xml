@@ -63,17 +63,17 @@
 
     <from alias="SL" >&amp;speciesListTableName</from>
 
-    <from group="hsqldb-hasId,pgsql-hasId"><![CDATA[
+    <from dbms="hsqldb,pgsql" group="hasId"><![CDATA[
       UNNEST(SL.IDS) WITH ORDINALITY COORDS(SL_ID, POS)
         INNER JOIN &speciesLengthMapTableName SL2HL on SL2HL.SL_ID = SL_ID
         INNER JOIN &rawSpeciesLengthTableName HL on HL.ID = SL2HL.HL_ID
     ]]></from>
 
-    <from group="hsqldb-hasSampleIds,pgsql-hasSampleIds"><![CDATA[
+    <from dbms="hsqldb,pgsql" group="hasSampleIds"><![CDATA[
       UNNEST(SL.SAMPLE_IDS) WITH ORDINALITY COORDS(SAMPLE_ID, POS)
         INNER JOIN &rawSpeciesLengthTableName HL on HL.SAMPLE_ID = SAMPLE_ID
     ]]></from>
-    <from group="oracle-hasSampleIds"><![CDATA[
+    <from dbms="oracle" group="hasSampleIds"><![CDATA[
       TABLE(SPLIT(SL.SAMPLE_IDS, ',')) SAMPLE_ID
         INNER JOIN &rawSpeciesLengthTableName HL on HL.SAMPLE_ID = SAMPLE_ID.COLUMN_VALUE
     ]]></from>
