@@ -48,8 +48,8 @@
     <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
 
     <!-- need to link other tables -->
-    <select alias="SAMPLE_IDS" group="hsqldb,pgsql" type="hidden">ARRAY_AGG(SL.SAMPLE_ID)</select>
-    <select alias="SAMPLE_IDS" group="oracle" type="hidden">LISTAGG(SL.SAMPLE_ID, ',')</select>
+    <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(SL.SAMPLE_ID)</select>
+    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden">LISTAGG(SL.SAMPLE_ID, ',')</select>
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>
 

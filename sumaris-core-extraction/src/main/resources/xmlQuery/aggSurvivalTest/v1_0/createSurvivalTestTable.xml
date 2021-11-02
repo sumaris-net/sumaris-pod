@@ -48,8 +48,8 @@
         <select alias="GEAR_TYPE" group="gearType" type="text">S.GEAR_TYPE</select>
 
         <!-- Unique identifier for station -->
-        <select alias="STATION_NUMBER" group="hsqldb,pgsql" type="number">ABS(F_HASH_CODE(ST.TRIP_CODE || '-' || ST.STATION_NUMBER))</select>
-        <select alias="STATION_NUMBER" group="oracle" type="number">ORA_HASH(ST.TRIP_CODE || '-' || ST.STATION_NUMBER)</select>
+        <select alias="STATION_NUMBER" dbms="hsqldb,pgsql" type="number">ABS(F_HASH_CODE(ST.TRIP_CODE || '-' || ST.STATION_NUMBER))</select>
+        <select alias="STATION_NUMBER" dbms="oracle" type="number">ORA_HASH(ST.TRIP_CODE || '-' || ST.STATION_NUMBER)</select>
 
         <!-- hidden column -->
         <select alias="INDIVIDUAL_ID" type="hidden">ST.INDIVIDUAL_ID</select>
@@ -89,7 +89,7 @@
         <select alias="NUMBER_AT_LENGTH" type="number">1</select>
 
         <from alias="S">&amp;stationTableName</from>
-        <from group="hsqldb"><![CDATA[
+        <from dbms="hsqldb"><![CDATA[
           UNNEST(S.TRIP_CODES, S.STATION_NUMBERS) WITH ORDINALITY COORDS(TRIP_CODE, STATION_NUMBER, POS)
             INNER JOIN &rawSurvivalTestTableName ST on ST.TRIP_CODE = TRIP_CODE and ST.STATION_NUMBER = STATION_NUMBER
         ]]></from>
@@ -97,7 +97,7 @@
           UNNEST(S.TRIP_CODES, S.STATION_NUMBERS) WITH ORDINALITY COORDS(T_CODE, S_NUMBER, POS)
             INNER JOIN &rawSurvivalTestTableName ST on ST.TRIP_CODE = T_CODE and ST.STATION_NUMBER = S_NUMBER
         ]]></from>
-        <from group="oracle"><![CDATA[
+        <from dbms="oracle"><![CDATA[
           TABLE(SPLIT(S.STATION_NUMBERS, ',')) STATION_NUMBER
             INNER JOIN &rawSurvivalTestTableName ST on ST.STATION_NUMBER = STATION_NUMBER.COLUMN_VALUE
         ]]></from>

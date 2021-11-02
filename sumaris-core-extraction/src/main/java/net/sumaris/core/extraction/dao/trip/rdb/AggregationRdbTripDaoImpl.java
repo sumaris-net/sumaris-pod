@@ -28,15 +28,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.extraction.dao.technical.Daos;
 import net.sumaris.core.extraction.dao.technical.ExtractionBaseDaoImpl;
-import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
+import net.sumaris.core.extraction.dao.technical.xml.XMLQuery;
 import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
 import net.sumaris.core.extraction.format.ProductFormatEnum;
 import net.sumaris.core.extraction.specification.data.trip.AggRdbSpecification;
@@ -60,7 +59,10 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -688,7 +690,10 @@ public class AggregationRdbTripDaoImpl<
           throw new SumarisTechnicalException(String.format("Missing column '%s' or '%s' on table '%s'",
                   COLUMN_SAMPLE_IDS, COLUMN_ID, rawSpeciesListTableName));
         }
+        xmlQuery.setGroup("hasId", hasId);
+        xmlQuery.setGroup("hasSampleIds", hasSampleIds);
 
+        // Enable/disable columns depending on station existing columns
         SumarisTableMetadata stationTable = databaseMetadata.getTable(stationTableName);
         xmlQuery.setGroup("month", stationTable.hasColumn(AggRdbSpecification.COLUMN_MONTH));
         xmlQuery.setGroup("quarter", stationTable.hasColumn(AggRdbSpecification.COLUMN_QUARTER));
@@ -700,15 +705,6 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        // Enable/Disable group, on DBMS
-        xmlQuery.setGroup("hasId", hasId);
-        xmlQuery.setGroup("hsqldb-hasId", hasId && this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql-hasId", hasId && this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle-hasId", hasId && this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("hasSampleIds", hasSampleIds);
-        xmlQuery.setGroup("hsqldb-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.postgresql);
-        xmlQuery.setGroup("oracle-hasSampleIds", hasSampleIds && this.databaseType == DatabaseType.oracle);
 
         return xmlQuery;
     }

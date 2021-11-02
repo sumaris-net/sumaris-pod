@@ -92,10 +92,10 @@
 
 
     <!-- Hidden field (use min trip/station as identifier) -->
-    <select alias="TRIP_CODES" group="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
-    <select alias="TRIP_CODES" group="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
-    <select alias="STATION_NUMBERS" group="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
-    <select alias="STATION_NUMBERS" group="oracle" type="hidden">LISTAGG(S.STATION_NUMBER, ',')</select>
+    <select alias="TRIP_CODES" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
+    <select alias="TRIP_CODES" dbms="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
+    <select alias="STATION_NUMBERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
+    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden">LISTAGG(S.STATION_NUMBER, ',')</select>
 
     <from alias="S">&amp;rawStationTableName</from>
     <from join="true">INNER JOIN TRIP_SUMMARY T on T.TRIP_CODE = S.TRIP_CODE</from>
