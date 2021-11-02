@@ -22,60 +22,29 @@
 
 package net.sumaris.core.extraction.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
-import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.service.*;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-
-import javax.sql.DataSource;
-import java.util.Optional;
+import org.springframework.core.annotation.Order;
 
 @Slf4j
-@Configuration
-@AutoConfigureOrder(1)
-@ConditionalOnProperty(
-    prefix = "sumaris.extraction",
-    name = {"enabled"},
-    matchIfMissing = true
-)
-@ComponentScan("net.sumaris.core.extraction")
+@Configuration(proxyBeanMethods = false)
+@Order(0)
 public class ExtractionAutoConfiguration {
 
-    public ExtractionAutoConfiguration() {
-        log.info("Starting Extraction module...");
-    }
-
     @Bean
+    @ConditionalOnProperty(
+        prefix = "sumaris.extraction",
+        name = {"enabled"},
+        matchIfMissing = true
+    )
     public ExtractionConfiguration extractionConfiguration(SumarisConfiguration configuration) {
+
+        log.info("Starting Extraction module...");
         ExtractionConfiguration instance = new ExtractionConfiguration(configuration);
         ExtractionConfiguration.setInstance(instance);
         return instance;
-    }
-
-    @Bean
-    public ExtractionProductService extractionProductService(ExtractionProductRepository productRepository,
-                                                             ExtractionTableDao tableDao){
-        return new ExtractionProductServiceImpl(productRepository, tableDao);
-    }
-
-    @Bean
-    public AggregationService aggregationService(ApplicationContext applicationContext,
-                                                 ObjectMapper objectMapper,
-                                                 DataSource dataSource,
-                                                 ExtractionTableDao extractionTableDao,
-                                                 ExtractionService extractionService,
-                                                 ExtractionProductService extractionProductService,
-                                                 Optional<TaskExecutor> taskExecutor) {
-        return new AggregationServiceImpl(applicationContext, objectMapper, dataSource, extractionTableDao,
-            extractionService, extractionProductService, taskExecutor);
     }
 }
