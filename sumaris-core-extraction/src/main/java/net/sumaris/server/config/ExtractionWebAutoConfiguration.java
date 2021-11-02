@@ -23,17 +23,15 @@
 package net.sumaris.server.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.extraction.config.ExtractionAutoConfiguration;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.server.http.ExtractionRestController;
 import net.sumaris.server.http.ExtractionRestPaths;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -49,8 +47,7 @@ import java.util.concurrent.Executors;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({Servlet.class, DispatcherServlet.class})
 @ConditionalOnBean({WebMvcConfigurer.class})
-@AutoConfigureAfter({ExtractionAutoConfiguration.class})
-@AutoConfigureOrder(2)
+@Order(2)
 @ConditionalOnProperty(
     prefix = "sumaris.extraction",
     name = {"enabled"},
