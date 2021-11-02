@@ -22,31 +22,12 @@
 
 package net.sumaris.core.extraction.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.schema.DatabaseSchemaDao;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
-import net.sumaris.core.extraction.dao.administration.ExtractionStrategyDao;
-import net.sumaris.core.extraction.dao.technical.csv.ExtractionCsvDao;
-import net.sumaris.core.extraction.dao.technical.table.ExtractionTableDao;
-import net.sumaris.core.extraction.dao.trip.ExtractionTripDao;
-import net.sumaris.core.extraction.service.*;
-import net.sumaris.core.service.referential.LocationService;
-import net.sumaris.core.service.referential.ReferentialService;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
-
-import javax.cache.CacheManager;
-import javax.sql.DataSource;
-import java.util.Optional;
 
 @Slf4j
 @Configuration
