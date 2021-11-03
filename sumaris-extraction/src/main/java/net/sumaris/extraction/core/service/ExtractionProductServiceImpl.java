@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
@@ -45,7 +46,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Service("extractionProductService")
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     @Autowired

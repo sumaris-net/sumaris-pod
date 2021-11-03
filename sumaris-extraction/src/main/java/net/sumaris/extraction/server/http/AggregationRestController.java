@@ -25,6 +25,7 @@ package net.sumaris.extraction.server.http;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
@@ -51,7 +52,7 @@ import java.text.ParseException;
 
 
 @RestController
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class AggregationRestController implements ExtractionRestPaths {
 

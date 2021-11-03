@@ -58,7 +58,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Service("extractionSecurityService")
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 

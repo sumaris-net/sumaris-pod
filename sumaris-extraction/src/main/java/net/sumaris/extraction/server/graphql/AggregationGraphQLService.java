@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
@@ -65,7 +66,7 @@ import java.util.concurrent.ExecutionException;
 @GraphQLApi
 @Service
 @Transactional
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class AggregationGraphQLService {
 

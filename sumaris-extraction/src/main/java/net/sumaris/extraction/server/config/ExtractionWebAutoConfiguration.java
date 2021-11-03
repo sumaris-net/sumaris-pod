@@ -48,13 +48,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @Configuration
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @AutoConfigureAfter({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 @ComponentScan(basePackages = "net.sumaris.extraction.server")
 @EnableScheduling
 @Slf4j
-public class ExtractionWebAutoConfiguration extends SpringBootServletInitializer {
+public class ExtractionWebAutoConfiguration {
 
     @Bean
     public WebMvcConfigurer configureExtractionWebMvc() {

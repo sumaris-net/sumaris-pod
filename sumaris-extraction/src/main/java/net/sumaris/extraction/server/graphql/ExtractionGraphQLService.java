@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -65,7 +66,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @GraphQLApi
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionGraphQLService {
 

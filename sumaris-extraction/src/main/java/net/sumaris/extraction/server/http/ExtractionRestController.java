@@ -37,6 +37,7 @@ import net.sumaris.core.util.Files;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
@@ -80,7 +81,7 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionRestController implements ExtractionRestPaths {
 

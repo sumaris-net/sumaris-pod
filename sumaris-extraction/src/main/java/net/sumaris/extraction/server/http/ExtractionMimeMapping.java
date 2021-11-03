@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.server.http;
 
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -32,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 
 @Configuration
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionMimeMapping implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
 

@@ -59,7 +59,7 @@ import java.util.Optional;
 @Slf4j
 @Service("extractionDocumentationService")
 @Transactional(readOnly = true)
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
 
     protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";

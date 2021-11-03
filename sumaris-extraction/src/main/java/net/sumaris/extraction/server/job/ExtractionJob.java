@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
@@ -53,9 +54,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@ConditionalOnBean({ExtractionConfiguration.class, SchedulingConfigurer.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
+@ConditionalOnWebApplication
 @Slf4j
-@Data
 public class ExtractionJob {
 
     @Autowired
