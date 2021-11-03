@@ -107,7 +107,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       dataService,
       {
         pathIdAttribute: 'tripId',
-        tabCount: 4
+        tabCount: 5
       });
 
     this.mobile = platform.mobile;
@@ -167,7 +167,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       }
 
       // Update expenses tab group index
-      if (this.expenseForm && tabIndex === 3) {
+      if (this.expenseForm && tabIndex === 4) {
         this.expenseForm.selectedTabIndex = subTabIndex;
         this.expenseForm.realignInkBar();
       }
@@ -187,7 +187,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Force sub-tabgroup realign
     if (changed) {
       if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
-      if (this.expenseForm && this.selectedTabIndex === 3) this.expenseForm.realignInkBar();
+      if (this.expenseForm && this.selectedTabIndex === 4) this.expenseForm.realignInkBar();
       this.markForCheck();
     }
     return changed;
@@ -373,8 +373,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       const gear = (data.gears || []).find(gear => gear.id === operationGroup.physicalGearId)
       if (gear) {
         operationGroup.measurementValues = {
-          ...operationGroup.measurementValues,
-          ...gear.measurementValues
+          ...gear.measurementValues,
+          ...operationGroup.measurementValues
         };
       }
 

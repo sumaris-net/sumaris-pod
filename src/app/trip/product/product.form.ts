@@ -50,7 +50,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
         withMeasurements: false
       }),
       {
-        onUpdateControls: (form) => this.onUpdateControls(form)
+        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       }
     );
 
@@ -88,7 +88,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
     this.$initialized.next(true);
   }
 
-  protected async onUpdateControls(form?: FormGroup): Promise<void> {
+  protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
     form = form || this.form;
 
     // Wait end of ngInit()

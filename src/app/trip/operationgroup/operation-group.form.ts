@@ -57,7 +57,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
         withMeasurements: false
       }),
       {
-        onUpdateControls: (form) => this.onUpdateControls(form)
+        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       }
     );
 
@@ -122,7 +122,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     }
   }
 
-  protected async onUpdateControls(form?: FormGroup): Promise<void> {
+  protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
     form = form || this.form;
 
     // Wait end of ngInit()

@@ -35,14 +35,14 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
-    if (opts.withMeasurements) {
-      const pmfms = (opts.program?.strategies?.[0]?.denormalizedPmfms || [])
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
-      form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
-        isOnFieldMode: opts.isOnFieldMode,
-        pmfms
-      }));
-    }
+    // if (opts.withMeasurements) {
+    //   const pmfms = (opts.program?.strategies?.[0]?.denormalizedPmfms || [])
+    //     .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+    //   form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
+    //     isOnFieldMode: opts.isOnFieldMode,
+    //     pmfms
+    //   }));
+    // }
 
     return form;
   }
@@ -56,6 +56,7 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
         rankOrderOnPeriod: [data?.rankOrderOnPeriod || null],
         metier: [data?.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
         physicalGearId: [data?.physicalGearId || null],
+        measurementValues: this.formBuilder.group({}),
         comments: [data?.comments || null, Validators.maxLength(2000)]
       });
   }
