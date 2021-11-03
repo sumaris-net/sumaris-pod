@@ -46,8 +46,9 @@ import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
-import net.sumaris.extraction.server.security.IDownloadController;
+import net.sumaris.server.security.IDownloadController;
 import net.sumaris.extraction.server.util.QueryParamUtils;
+import net.sumaris.server.http.MediaTypes;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -79,7 +80,7 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionRestController implements ExtractionRestPaths {
 

@@ -20,18 +20,12 @@
  * #L%
  */
 
-package net.sumaris.extraction.server.http;
+package net.sumaris.server.security;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.stereotype.Service;
+import java.io.File;
+import java.io.IOException;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public interface IDownloadController {
 
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface GraphQLApi {
-    Class<?>[] value() default {};
+    String registerFile(File sourceFile, boolean moveSourceFile) throws IOException;
 }

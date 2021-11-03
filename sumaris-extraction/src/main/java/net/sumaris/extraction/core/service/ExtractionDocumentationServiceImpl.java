@@ -28,9 +28,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.Beans;
@@ -38,6 +35,10 @@ import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
@@ -45,9 +46,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
@@ -56,7 +57,8 @@ import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
-@Component("extractionDocumentationService")
+@Service("extractionDocumentationService")
+@Transactional(readOnly = true)
 @ConditionalOnBean({ExtractionConfiguration.class})
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
 
@@ -226,11 +228,6 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             result = I18n.l(locale, table.getName());
         }
         return result;
-    }
-    protected String getI18nSheetName(Locale locale, String format, String sheetName) {
-        String i18key = String.format("sumaris.extraction.%s.%s", format.toUpperCase(), sheetName.toUpperCase());
-
-        return locale != null ? I18n.l(locale, i18key) : I18n.t(i18key);
     }
 
     protected Resource getResourceOrNull(String location) {

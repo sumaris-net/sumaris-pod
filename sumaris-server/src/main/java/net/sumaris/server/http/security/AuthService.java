@@ -25,7 +25,7 @@ package net.sumaris.server.http.security;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.extraction.server.security.IAuthService;
+import net.sumaris.server.security.IAuthService;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;

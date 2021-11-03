@@ -45,12 +45,11 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
-import net.sumaris.extraction.server.security.IDownloadController;
+import net.sumaris.server.security.IDownloadController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +65,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @GraphQLApi
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionGraphQLService {
 

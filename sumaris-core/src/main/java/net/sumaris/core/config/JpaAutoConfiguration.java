@@ -22,7 +22,6 @@ package net.sumaris.core.config;
  * #L%
  */
 
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -35,7 +34,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = {
 	"net.sumaris.core.dao"
 })
-public class JPAConfiguration {
+@Order(0)
+public class JpaAutoConfiguration {
 
 
 }

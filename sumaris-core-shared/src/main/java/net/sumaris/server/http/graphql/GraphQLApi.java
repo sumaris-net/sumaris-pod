@@ -20,10 +20,18 @@
  * #L%
  */
 
-package net.sumaris.extraction.server.http;
+package net.sumaris.server.http.graphql;
 
-import io.leangen.graphql.GraphQLSchemaGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.stereotype.Service;
 
-public interface GraphQLConfigurer {
-    void configure(GraphQLSchemaGenerator schemaGenerator);
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface GraphQLApi {
+    Class<?>[] value() default {};
 }

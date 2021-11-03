@@ -29,7 +29,7 @@ import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.referential.location.LocationClassificationEnum;
 import net.sumaris.core.service.administration.programStrategy.StrategyPredocService;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

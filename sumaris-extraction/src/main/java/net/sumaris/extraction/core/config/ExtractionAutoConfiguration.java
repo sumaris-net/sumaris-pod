@@ -23,19 +23,25 @@
 package net.sumaris.extraction.core.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.JPAConfiguration;
+import net.sumaris.core.config.JpaAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 @ConditionalOnProperty(
     name = "sumaris.extraction.enabled",
     matchIfMissing = true
 )
-@AutoConfigureAfter({JPAConfiguration.class}) // Need Repository to be started
+@ComponentScan(basePackages = {
+    "net.sumaris.extraction.core"
+})
+@AutoConfigureAfter({JpaAutoConfiguration.class}) // Need Repository to be started
+@Order(1)
 @Slf4j
 public class ExtractionAutoConfiguration {
 
