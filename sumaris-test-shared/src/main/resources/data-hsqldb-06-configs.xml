@@ -60,9 +60,9 @@
     <SOFTWARE_PROPERTY ID="58" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://www.milieumarinfrance.fr/var/storage/images/_aliases/fullsize/media/medias-simm/a-propos/illustration-a-propos/17785-2-fre-FR/Illustration-A-Propos.jpg,https://www.milieumarinfrance.fr/var/storage/images/_aliases/c_slideshow-carousel_default/media/medias-simm/a-propos/actualites/illustration-du-sar/30658-6-fre-FR/Illustration-du-SAR,https://www.milieumarinfrance.fr/var/storage/images/_aliases/c_slideshow-carousel_default/media/medias-simm/a-propos/actualites/limite-terre-mer-illustration-du-littoral/27725-1-fre-FR/Limite-terre-mer-illustration-du-littoral.png"/>
     <SOFTWARE_PROPERTY ID="59" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="false"/>
     <SOFTWARE_PROPERTY ID="60" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="60" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="61" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="62" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="61" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="62" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="63" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
 
 
     <!-- ****** OBSDEB properties ****** -->
@@ -79,8 +79,8 @@
     <SOFTWARE_PROPERTY ID="82" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
     <SOFTWARE_PROPERTY ID="83" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="84" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="84" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="85" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="85" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="86" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
 
 
     <!-- ****** IMAGINE properties ****** -->

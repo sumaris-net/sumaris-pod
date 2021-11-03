@@ -253,7 +253,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         if (page == null) {
             return this.findAll(filter, 0, 1000, null, null);
         }
-        return this.findAll(filter, page.getSize(), page.getSize(), page.getSortBy(), page.getSortDirection());
+        return this.findAll(filter, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection());
     }
 
     @Override
@@ -858,10 +858,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         return applicationContext.getBean("extractionService", ExtractionService.class);
     }
 
-    protected ExtractionDao getDao(IExtractionFormat format) {
-        ExtractionDao dao = daosByFormat.get(format);
+    protected <C extends ExtractionContextVO, F extends ExtractionFilterVO> ExtractionDao<C, F> getDao(IExtractionFormat format) {
+        ExtractionDao<?, ?> dao = daosByFormat.get(format);
         if (dao == null) throw new SumarisTechnicalException("Unknown extraction format (no targeted dao): " + format);
-        return dao;
+        return (ExtractionDao<C, F>)dao;
     }
 
     protected ExtractionFilterVO readFilter(String json) {
