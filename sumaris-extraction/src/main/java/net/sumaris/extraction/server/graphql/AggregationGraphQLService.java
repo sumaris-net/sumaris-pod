@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
@@ -48,8 +49,8 @@ import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOption
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
-import net.sumaris.extraction.server.http.GraphQLApi;
-import net.sumaris.extraction.server.http.GraphQLUtils;
+import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -65,7 +66,7 @@ import java.util.concurrent.ExecutionException;
 @GraphQLApi
 @Service
 @Transactional
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class AggregationGraphQLService {
 

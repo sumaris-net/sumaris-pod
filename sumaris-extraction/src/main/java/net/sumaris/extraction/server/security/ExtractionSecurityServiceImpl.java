@@ -36,11 +36,14 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.vo.AggregationTypeVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
+import net.sumaris.server.security.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -55,8 +58,8 @@ import java.util.Optional;
  */
 @Slf4j
 @Service("extractionSecurityService")
-@ConditionalOnWebApplication
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
+@ConditionalOnWebApplication
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 
     @Autowired

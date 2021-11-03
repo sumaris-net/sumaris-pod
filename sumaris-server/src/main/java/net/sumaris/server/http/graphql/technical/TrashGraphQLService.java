@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.technical.TrashService;
 import org.springframework.beans.factory.annotation.Autowired;

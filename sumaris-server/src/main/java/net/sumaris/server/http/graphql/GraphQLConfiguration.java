@@ -34,8 +34,6 @@ import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFact
 import io.leangen.graphql.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.extraction.server.http.GraphQLApi;
-import net.sumaris.extraction.server.http.GraphQLConfigurer;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -104,7 +102,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 .withPrototype(objectMapper)
                 .build());
 
-        findGraphQLConfigurers().forEach(configurer -> configurer.configure(generator));
+        findGraphQLConfigurers().forEach(configurer -> configurer.configureSchema(generator));
 
         return generator.generate();
     }
@@ -139,9 +137,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         List<GraphQLConfigurer> result = Lists.newArrayList();
 
-        context.getBeansOfType(GraphQLConfigurer.class)
-            .values()
-            .forEach(result::add);
+        // Add configurer beans
+        result.addAll(context.getBeansOfType(GraphQLConfigurer.class)
+            .values());
 
         final String[] apiBeanNames = context.getBeanNamesForAnnotation(GraphQLApi.class);
         final ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();

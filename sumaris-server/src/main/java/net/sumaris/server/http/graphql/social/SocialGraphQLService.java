@@ -35,7 +35,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;

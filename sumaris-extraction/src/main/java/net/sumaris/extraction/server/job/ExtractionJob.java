@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
@@ -41,9 +42,11 @@ import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -51,9 +54,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
+@ConditionalOnWebApplication
 @Slf4j
-@Data
 public class ExtractionJob {
 
     @Autowired

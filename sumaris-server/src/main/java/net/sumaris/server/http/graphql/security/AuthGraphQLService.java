@@ -25,7 +25,7 @@ package net.sumaris.server.http.graphql.security;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.springframework.beans.factory.annotation.Autowired;

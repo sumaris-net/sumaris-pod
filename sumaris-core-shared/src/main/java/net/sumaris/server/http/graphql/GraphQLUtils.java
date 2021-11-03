@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.extraction.server.http;
+package net.sumaris.server.http.graphql;
 
 import graphql.schema.SelectedField;
 import io.leangen.graphql.execution.ResolutionEnvironment;

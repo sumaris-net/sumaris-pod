@@ -39,7 +39,7 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

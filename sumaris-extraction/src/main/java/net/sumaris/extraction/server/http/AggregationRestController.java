@@ -25,6 +25,7 @@ package net.sumaris.extraction.server.http;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
@@ -41,6 +42,7 @@ import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.extraction.server.util.QueryParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geojson.FeatureCollection;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.MediaType;
@@ -50,21 +52,18 @@ import java.text.ParseException;
 
 
 @RestController
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class AggregationRestController implements ExtractionRestPaths {
 
+    @Autowired
     private AggregationService aggregationService;
-    private ExtractionGeoJsonConverter geoJsonConverter;
-    private ExtractionSecurityService securityService;
 
-    public AggregationRestController(AggregationService aggregationService,
-                                     ExtractionGeoJsonConverter geoJsonConverter,
-                                     ExtractionSecurityService securityService) {
-        this.aggregationService = aggregationService;
-        this.geoJsonConverter = geoJsonConverter;
-        this.securityService = securityService;
-    }
+    @Autowired
+    private ExtractionGeoJsonConverter geoJsonConverter;
+
+    @Autowired
+    private ExtractionSecurityService securityService;
 
     @ResponseBody
     @RequestMapping(value = {

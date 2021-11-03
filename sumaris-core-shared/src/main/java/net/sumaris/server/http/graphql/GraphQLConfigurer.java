@@ -20,12 +20,11 @@
  * #L%
  */
 
-package net.sumaris.extraction.server.security;
+package net.sumaris.server.http.graphql;
 
-import java.io.File;
-import java.io.IOException;
+import io.leangen.graphql.GraphQLSchemaGenerator;
 
-public interface IDownloadController {
-
-    String registerFile(File sourceFile, boolean moveSourceFile) throws IOException;
+@FunctionalInterface
+public interface GraphQLConfigurer {
+    void configureSchema(GraphQLSchemaGenerator schemaGenerator);
 }

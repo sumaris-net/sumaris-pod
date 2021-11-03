@@ -37,7 +37,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;

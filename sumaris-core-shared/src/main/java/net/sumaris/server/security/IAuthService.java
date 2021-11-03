@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.extraction.server.security;
+package net.sumaris.server.security;
 
 import net.sumaris.core.dao.technical.model.IValueObject;
 

@@ -22,16 +22,19 @@
 
 package net.sumaris.extraction.server.http;
 
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.server.MimeMappings;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@ConditionalOnBean({WebMvcConfigurer.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
+@ConditionalOnWebApplication
 public class ExtractionMimeMapping implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
 
     @Override

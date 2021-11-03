@@ -35,6 +35,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.AggregationDao;
@@ -82,7 +83,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service("aggregationService")
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class AggregationServiceImpl implements AggregationService {
 
     private final ConfigurableApplicationContext context;

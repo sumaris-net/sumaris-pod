@@ -35,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
@@ -47,12 +48,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 @Configuration
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @AutoConfigureAfter({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
+@ComponentScan(basePackages = "net.sumaris.extraction.server")
 @EnableScheduling
 @Slf4j
-public class ExtractionWebAutoConfiguration extends SpringBootServletInitializer {
+public class ExtractionWebAutoConfiguration {
 
     @Bean
     public WebMvcConfigurer configureExtractionWebMvc() {

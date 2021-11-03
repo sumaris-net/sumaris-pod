@@ -31,7 +31,7 @@ import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.extraction.server.http.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
