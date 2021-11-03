@@ -35,34 +35,35 @@ import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.io.File;
 import java.io.IOException;
 
 @SpringBootApplication(
-        scanBasePackages = {
-                "net.sumaris.core",
-                "net.sumaris.rdf",
-                "net.sumaris.server"
-        },
-        exclude = {
-            LiquibaseAutoConfiguration.class,
-            FreeMarkerAutoConfiguration.class,
-            JsonbAutoConfiguration.class
-        }
+    scanBasePackages = {
+        "net.sumaris.core",
+        "net.sumaris.extraction",
+        "net.sumaris.rdf",
+        "net.sumaris.server"
+    },
+    exclude = {
+        LiquibaseAutoConfiguration.class,
+        FreeMarkerAutoConfiguration.class,
+        JsonbAutoConfiguration.class
+    }
 )
-@Order(0)
 @EnableEmailTools
+@EnableWebSocket
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 
@@ -76,6 +77,7 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
+    @Primary
     public static SumarisServerConfiguration configuration(ConfigurableEnvironment env) {
         SumarisServerConfiguration.initDefault(env);
         SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();

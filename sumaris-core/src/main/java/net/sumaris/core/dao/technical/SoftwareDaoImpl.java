@@ -50,7 +50,7 @@ import java.util.Optional;
 
 @Repository("softwareDao")
 @Slf4j
-public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao{
+public class SoftwareDaoImpl extends HibernateDaoSupport implements SoftwareDao {
 
     @Autowired
     private SoftwareRepository softwareRepository;

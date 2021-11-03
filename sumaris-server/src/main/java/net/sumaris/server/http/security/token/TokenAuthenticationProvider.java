@@ -22,21 +22,14 @@
 
 package net.sumaris.server.http.security.token;
 
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.server.config.ExtractionWebConfigurationOption;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author <benoit.lavenier@e-is.pro>

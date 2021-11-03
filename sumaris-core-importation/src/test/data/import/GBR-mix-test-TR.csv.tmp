@@ -1,4 +1,0 @@
-record_type,sampling_type,vessel_flag_country,landing_country,year,project,trip_code,vessel_length,vessel_power,vessel_size,vessel_type,harbour,number_hauls,days_at_sea,vessel_identifier,sampling_country,sampling_method
-TR,M,GBR,GBR,2012,GBE-DCF,62533,6,4,1,4,GBWMS,,,,GBR,
-TR,M,GBR,GBR,2012,GBE-DCF,62620,9,52,10,4,GBHTG,,,,GBR,
-TR,M,GBR,GBR,2012,GBE-DCF,62627,9,164,5,4,GBLOW,,,,GBR,
