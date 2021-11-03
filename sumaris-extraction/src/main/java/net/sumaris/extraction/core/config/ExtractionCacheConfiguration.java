@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.cache.Caches;
 import net.sumaris.extraction.core.vo.AggregationTypeVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -47,6 +48,8 @@ public class ExtractionCacheConfiguration {
 
         String EXTRACTION_ROWS_PREFIX = "net.sumaris.core.dao.technical.extraction.extractionRows.";
 
+        String EXTRACTION_TYPES = "net.sumaris.extraction.core.service.extractionTypes";
+
         String AGGREGATION_TYPE_BY_ID_AND_OPTIONS = "net.sumaris.extraction.core.service.aggregationTypeById";
         String AGGREGATION_TYPE_BY_FORMAT = "net.sumaris.extraction.core.service.aggregationTypeByFormat";
     }
@@ -55,6 +58,7 @@ public class ExtractionCacheConfiguration {
     public JCacheManagerCustomizer extractionCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {Extraction} caches...");
+            Caches.createCollectionHeapCache(cacheManager, Names.EXTRACTION_TYPES, ExtractionTypeVO.class, CacheTTL.MEDIUM.asDuration(), 100);
             Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, AggregationTypeVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_FORMAT, String.class, AggregationTypeVO.class, CacheTTL.DEFAULT.asDuration(), 100);
 

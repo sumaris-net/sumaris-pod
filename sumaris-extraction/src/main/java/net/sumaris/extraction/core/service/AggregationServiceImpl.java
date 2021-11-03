@@ -334,8 +334,9 @@ public class AggregationServiceImpl implements AggregationService {
     @Override
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
+                @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
+                @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+                @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
             }
     )
     public CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
@@ -390,10 +391,11 @@ public class AggregationServiceImpl implements AggregationService {
 
     @Override
     @Caching(
-            evict = {
-                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-                    @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true)
-            }
+        evict = {
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
+        }
     )
     public AggregationTypeVO save(AggregationTypeVO source, @Nullable ExtractionFilterVO filter) {
         Preconditions.checkNotNull(source);

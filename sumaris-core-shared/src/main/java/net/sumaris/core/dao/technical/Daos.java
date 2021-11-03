@@ -1665,6 +1665,26 @@ public class Daos {
             .replaceAll("[*]", "%"); // replace asterisk mark
     }
 
+    public static Pattern searchTextIgnoreCasePattern(String searchText, boolean searchAny) {
+        if (StringUtils.isBlank(searchText)) return null;
+
+        // add leading wildcard (if searchAny specified) and trailing wildcard
+        searchText = (searchAny ? "*" : "") + searchText + "*";
+
+        // translate searchText in regexp
+        StringBuilder sb = new StringBuilder();
+        String[] searchArray = searchText.split("\\*", -1);
+        for (int i = 0; i < searchArray.length; i++) {
+            if (!StringUtils.isEmpty(searchArray[i])) {
+                sb.append(Pattern.quote(searchArray[i]));
+            }
+            if (i < searchArray.length - 1) {
+                sb.append(".*");
+            }
+        }
+
+        return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    }
 
     public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
                                                       final Function<T, Boolean> hasNextFn,

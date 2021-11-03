@@ -35,7 +35,6 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
@@ -44,7 +43,6 @@ import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
@@ -100,20 +98,33 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types", deprecationReason = "Use liveExtractionTypes and aggregationTypes")
     @Transactional(readOnly = true)
-    public List<ExtractionTypeVO> getAllExtractionTypes(@GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter) {
+    public List<ExtractionTypeVO> getAllExtractionTypes(
+        @GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter,
+        @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+        @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+        @GraphQLArgument(name = "sortBy") String sort,
+        @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction) {
 
         filter = extractionSecurityService.sanitizeFilter(filter);
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
-        return extractionService.findByFilter(filter);
+        return extractionService.findAll(filter,
+            Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build());
     }
 
     @GraphQLQuery(name = "liveExtractionTypes", description = "Get all live extraction types")
     @Transactional(readOnly = true)
-    public List<ExtractionTypeVO> getLiveExtractionTypes(@GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter) {
+    public List<ExtractionTypeVO> getLiveExtractionTypes(@GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter,
+                                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                         @GraphQLArgument(name = "sortBy") String sort,
+                                                         @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction) {
 
         filter = extractionSecurityService.sanitizeFilter(filter);
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
-        return extractionService.findByFilter(filter);
+        return extractionService.findAll(filter,
+            Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build());
     }
 
     @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")
@@ -136,7 +147,7 @@ public class ExtractionGraphQLService {
             .offset(offset)
             .size(size)
             .sortBy(sort)
-            .sortDirection(SortDirection.fromString(direction))
+            .sortDirection(SortDirection.fromString(direction, SortDirection.ASC))
             .build());
     }
 

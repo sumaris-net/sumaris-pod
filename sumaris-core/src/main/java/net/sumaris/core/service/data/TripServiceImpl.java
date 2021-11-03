@@ -61,6 +61,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -117,7 +118,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> findAll(TripFilterVO filter, Page page, DataFetchOptions fieldOptions) {
+    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, DataFetchOptions fieldOptions) {
         return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
     }
 

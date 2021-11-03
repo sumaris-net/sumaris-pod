@@ -37,8 +37,6 @@ public class ExtractionTypeFilterVO extends ExtractionProductFilterVO {
         return filter != null ? filter : new ExtractionTypeFilterVO();
     }
 
-    private String category;
-
-    private Integer recorderPersonId;
+    private boolean isSpatial;
 
 }

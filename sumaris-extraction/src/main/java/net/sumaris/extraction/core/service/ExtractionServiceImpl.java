@@ -33,6 +33,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
@@ -84,17 +85,15 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.sql.DataSource;
@@ -102,6 +101,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -214,7 +215,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public ExtractionTypeVO getByFormat(@NonNull IExtractionFormat format) {
-        return ExtractionFormats.findOneMatch(this.getAllTypes(), format);
+        return ExtractionFormats.findOneMatch(this.findAll(), format);
     }
 
     @Override
@@ -241,31 +242,18 @@ public class ExtractionServiceImpl implements ExtractionService {
             .collect(Collectors.toList());
     }
 
+    public List<ExtractionTypeVO> findAll() {
+        return findAll(null, null);
+    }
+
     @Override
-    public List<ExtractionTypeVO> findByFilter(ExtractionTypeFilterVO filter) {
-        ImmutableList.Builder<ExtractionTypeVO> builder = ImmutableList.builder();
-        filter = ExtractionTypeFilterVO.nullToEmpty(filter);
-
-        // Exclude types with a DISABLE status, by default
-        if (ArrayUtils.isEmpty(filter.getStatusIds())) {
-            filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES)
+    public List<ExtractionTypeVO> findAll(@Nullable ExtractionTypeFilterVO filter,
+                                          @Nullable Page page) {
+        if (page == null) {
+            return this.findAll(filter, 0, 1000, null, null);
         }
-
-        boolean includeLiveTypes = ArrayUtils.contains(filter.getStatusIds(), StatusEnum.TEMPORARY.getId()) &&
-                filter.getRecorderPersonId() == null;
-        ExtractionCategoryEnum filterCategory = ExtractionCategoryEnum.fromString(filter.getCategory()).orElse(null);
-
-        // Add live extraction types (= private by default)
-        if (includeLiveTypes && (filterCategory == null || filterCategory == ExtractionCategoryEnum.LIVE)) {
-            builder.addAll(getLiveExtractionTypes());
-        }
-
-        // Add product types
-        if (enableProduct && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
-            builder.addAll(getProductExtractionTypes(filter));
-        }
-
-        return builder.build();
+        return this.findAll(filter, page.getSize(), page.getSize(), page.getSortBy(), page.getSortDirection());
     }
 
     @Override
@@ -621,10 +609,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     /* -- protected -- */
 
-    protected List<ExtractionTypeVO> getAllTypes() {
-        return findByFilter(null);
-    }
-
     /**
      * @deprecated
      * @return
@@ -902,5 +886,55 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected void dropTables(Collection<String> tableNames) {
         Beans.getStream(tableNames).forEach(extractionTableDao::dropTable);
+    }
+
+
+    private List<ExtractionTypeVO> findAll(@Nullable ExtractionTypeFilterVO filter,
+                                             int offset,
+                                             int size,
+                                             String sortAttribute,
+                                             SortDirection sortDirection) {
+        List<ExtractionTypeVO> types = Lists.newArrayList();
+        filter = ExtractionTypeFilterVO.nullToEmpty(filter);
+
+        // Exclude types with a DISABLE status, by default
+        if (ArrayUtils.isEmpty(filter.getStatusIds())) {
+            filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
+        }
+
+        boolean includeLiveTypes = ArrayUtils.contains(filter.getStatusIds(), StatusEnum.TEMPORARY.getId()) &&
+            filter.getRecorderPersonId() == null;
+        ExtractionCategoryEnum filterCategory = ExtractionCategoryEnum.fromString(filter.getCategory()).orElse(null);
+
+        // Add live extraction types (= private by default)
+        if (includeLiveTypes && (filterCategory == null || filterCategory == ExtractionCategoryEnum.LIVE)) {
+            types.addAll(getLiveExtractionTypes());
+        }
+
+        // Add product types
+        if (enableProduct && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
+            types.addAll(getProductExtractionTypes(filter));
+        }
+
+        return types.stream()
+            .filter(getTypePredicate(filter))
+            .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
+            .skip(offset)
+            .limit((size < 0) ? types.size() : size)
+            .collect(Collectors.toList()
+            );
+    }
+
+    private Predicate<ExtractionTypeVO> getTypePredicate(@NonNull ExtractionTypeFilterVO filter) {
+
+        Pattern searchPattern = net.sumaris.core.dao.technical.Daos.searchTextIgnoreCasePattern(filter.getSearchText(), false);
+        Pattern searchAnyPattern = net.sumaris.core.dao.technical.Daos.searchTextIgnoreCasePattern(filter.getSearchText(), true);
+
+        return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
+            && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
+            && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
+            && (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(s.getCategory().name()))
+            && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
+            && (searchPattern == null || searchPattern.matcher(s.getLabel()).matches() || searchAnyPattern.matcher(s.getName()).matches());
     }
 }
