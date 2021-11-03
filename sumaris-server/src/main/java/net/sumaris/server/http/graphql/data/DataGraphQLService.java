@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -21,6 +19,8 @@ package net.sumaris.server.http.graphql.data;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -48,8 +48,9 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.extraction.server.http.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.GraphQLUtils;
+import net.sumaris.extraction.server.http.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -68,6 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 @Service
+@GraphQLApi
 @Transactional
 public class DataGraphQLService {
     /* Logger */

@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.12.7</version>
+    <version>1.12.8</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -57,12 +57,12 @@
     </dependency>
     <dependency>
       <groupId>net.sumaris</groupId>
-      <artifactId>sumaris-core-extraction</artifactId>
+      <artifactId>sumaris-extraction</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sumaris</groupId>
-      <artifactId>sumaris-core-rdf</artifactId>
+      <artifactId>sumaris-rdf</artifactId>
       <version>${project.version}</version>
     </dependency>
 

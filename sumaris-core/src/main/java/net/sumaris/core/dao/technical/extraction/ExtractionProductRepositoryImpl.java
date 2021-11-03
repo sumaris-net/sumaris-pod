@@ -43,7 +43,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -60,14 +63,13 @@ public class ExtractionProductRepositoryImpl
     extends ReferentialRepositoryImpl<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ExtractionProductFetchOptions>
     implements ExtractionProductSpecifications {
 
-    @Autowired
-    private DepartmentRepository departmentRepository;
+    private final DepartmentRepository departmentRepository;
+    private final PersonRepository personRepository;
 
-    @Autowired
-    private PersonRepository personRepository;
-
-    protected ExtractionProductRepositoryImpl(EntityManager entityManager) {
+    protected ExtractionProductRepositoryImpl(EntityManager entityManager, DepartmentRepository departmentRepository, PersonRepository personRepository) {
         super(ExtractionProduct.class, ExtractionProductVO.class, entityManager);
+        this.departmentRepository = departmentRepository;
+        this.personRepository = personRepository;
         setLockForUpdate(true);
     }
 

@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.12.7</version>
+  <version>1.12.8</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -52,9 +52,9 @@
     <module>sumaris-core-shared</module>
     <module>sumaris-test-shared</module>
     <module>sumaris-core</module>
-    <module>sumaris-core-importation</module>
-    <module>sumaris-core-extraction</module>
-    <module>sumaris-core-rdf</module>
+    <module>sumaris-importation</module>
+    <module>sumaris-extraction</module>
+    <module>sumaris-rdf</module>
     <module>sumaris-server</module>
   </modules>
 
