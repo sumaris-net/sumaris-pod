@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {ExtractionColumn} from "../../services/model/extraction-type.model";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
@@ -10,7 +10,7 @@ import {Moment} from "moment";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyItems} from "../../services/model/extraction-product.model";
+import { AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyIds, ProcessingFrequencyItems } from '../../services/model/extraction-product.model';
 import {ExtractionUtils} from "../../services/extraction.utils";
 import {ExtractionProductService} from "../../services/extraction-product.service";
 import {FormArrayHelper}  from "@sumaris-net/ngx-components";
@@ -38,6 +38,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
   data: ExtractionProduct;
   frequenciesById = FrequenciesById;
+  frequencyItems = ProcessingFrequencyItems;
 
   $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
@@ -84,7 +85,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   }
 
   get isSpatial(): boolean {
-    return this.form.controls['isSpatial'].value;
+    return this.form.controls.isSpatial.value;
+  }
+
+  get processingFrequencyId(): number {
+    return this.form.controls.processingFrequencyId.value;
+  }
+
+  get isManualProcessing(): boolean {
+    return this.processingFrequencyId === ProcessingFrequencyIds.MANUALLY;
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -244,8 +253,6 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     super.setValue(data, opts);
 
   }
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();

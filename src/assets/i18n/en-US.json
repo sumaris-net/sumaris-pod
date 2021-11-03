@@ -1888,6 +1888,7 @@
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Some changes have not been saved.<br/><br/>Do you want <b>save your changes</b>?",
     "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
+    "SAVE_BEFORE_CONTINUE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before continuing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE": "<b>Are you sure</b> you want to delete?",
     "ACTION": "<b>Are you sure</b> you want to continue?",

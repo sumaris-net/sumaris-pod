@@ -31,9 +31,9 @@
                       [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY'|translate" required>
             <mat-select-trigger>
               <span *ngIf="form.controls.statusId.value &gt;= 0">
-              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate}}</span>
+              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate }}</span>
             </mat-select-trigger>
-            <mat-option *ngFor="let item of (frequenciesById | mapValues)" [value]="item.id">
+            <mat-option *ngFor="let item of frequencyItems" [value]="item.id">
               {{ item.label |translate }}
             </mat-option>
           </mat-select>

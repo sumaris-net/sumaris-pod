@@ -31,7 +31,7 @@
 
 
     <ion-item tappable ripple
-              *ngFor="let item of $types | async"
+              *ngFor="let item of types$ | async"
               (click)="selectType(item)"
               detail>
 

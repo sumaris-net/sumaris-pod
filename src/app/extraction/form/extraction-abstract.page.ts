@@ -8,13 +8,13 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, LoadResult,
   LocalSettingsService,
-  PlatformService
+  PlatformService, propertyComparator,
 } from '@sumaris-net/ngx-components';
-import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from '../services/model/extraction-type.model';
+import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../services/model/extraction-type.model';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {first, mergeMap} from 'rxjs/operators';
+import { first, map, mergeMap } from 'rxjs/operators';
 import {ExtractionCriteriaForm} from './extraction-criteria.form';
 import {TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -91,8 +91,17 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
     // Load types
     this.registerSubscription(
-      this.watchTypes()
-        .subscribe(types => this.$types.next(types))
+      this.watchAllTypes()
+        .pipe(
+          map(({data, total}) => {
+            // Compute i18n name
+            data = data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+              // Then sort by name
+              .sort(propertyComparator('name'));
+
+            return { data, total };
+          }))
+        .subscribe(({data}) => this.$types.next(data))
     );
 
     // Listen route parameters
@@ -250,11 +259,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     }
   }
 
-  getI18nTypeName(type?: T, self?: ExtractionAbstractPage<T>): string {
-    self = self || this;
+  getI18nTypeName(type?: T): string {
     if (isNil(type)) return undefined;
     const key = `EXTRACTION.${type.category}.${type.format}.TITLE`.toUpperCase();
-    let message = self.translate.instant(key, type);
+    let message = this.translate.instant(key, type);
 
     if (message !== key) return message;
     // No I18n translation: continue
@@ -314,7 +322,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
   /* -- protected method -- */
 
-  protected abstract watchTypes(): Observable<T[]>;
+  protected abstract watchAllTypes(): Observable<LoadResult<T>>;
 
   protected abstract fromObject(type?: any): T;
 

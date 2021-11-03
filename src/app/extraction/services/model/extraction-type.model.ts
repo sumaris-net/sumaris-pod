@@ -1,8 +1,10 @@
 /* -- Extraction -- */
 
-import {BaseReferential, Department, Entity, EntityAsObjectOptions, EntityClass, isNotEmptyArray, isNotNilOrBlank, Person} from '@sumaris-net/ngx-components';
+import { BaseReferential, capitalizeFirstLetter, Department, Entity, EntityAsObjectOptions, EntityClass, isNil, isNotEmptyArray, isNotNilOrBlank, Person } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { ExtractionProduct } from '@app/extraction/services/model/extraction-product.model';
+import { TranslateService } from '@ngx-translate/core';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -174,5 +176,36 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
 
   asObject(options?: EntityAsObjectOptions): any {
     return super.asObject(options);
+  }
+}
+
+export class ExtractionTypeUtils {
+  static computeI18nName<T extends ExtractionType = ExtractionType>(
+    translate: TranslateService,
+    type: T | undefined): T | undefined {
+    if (isNil(type)) return undefined;
+    if (type.name) return type; // Skip if already has a name
+
+    // Get format, from label
+    const format = type.label && type.label.split('-')[0].toUpperCase();
+
+    let key = `EXTRACTION.${type.category || 'LIVE'}.${format}.TITLE`.toUpperCase();
+    let name = translate.instant(key, type);
+
+    // No I18n translation
+    if (name === key) {
+      // Use name, or label (but replace underscore with space)
+      key = type.name || (format && format.replace(/[_-]+/g, " ").toUpperCase());
+      // First letter as upper case
+      name = capitalizeFirstLetter(key.toLowerCase());
+    }
+
+    if (typeof type.clone === 'function') {
+      type = type.clone() as T;
+    }
+
+    type.name = name;
+
+    return type;
   }
 }

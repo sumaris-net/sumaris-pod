@@ -30,7 +30,7 @@
     <ion-row class="ion-no-padding ion-padding-top">
       <ion-col>
         <!-- form -->
-        <app-product-form #typeForm
+        <app-product-form #productForm
                           [showError]="false">
         </app-product-form>
 
@@ -41,7 +41,7 @@
 
           <!-- open map button -->
           <ion-button color="secondary" size="full"
-                      *ngIf="form.controls.isSpatial.value"
+                      *ngIf="productForm.isSpatial"
                       [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
                       (click)="openMap($event)"
                       [disabled]="loading">
@@ -50,6 +50,20 @@
             </mat-icon>
             <ion-label>
             {{'EXTRACTION.AGGREGATION.EDIT.BTN_OPEN_MAP'|translate}}
+            </ion-label>
+          </ion-button>
+
+          <!-- Run extraction -->
+          <ion-button color="secondary" size="full"
+                      *ngIf="productForm.isManualProcessing"
+                      [matTooltip]="'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE_HELP'|translate"
+                      (click)="updateProduct($event)"
+                      [disabled]="loading">
+            <mat-icon slot="start">
+              <ion-icon name="earth"></ion-icon>
+            </mat-icon>
+            <ion-label>
+              {{'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE'|translate}}
             </ion-label>
           </ion-button>
         </app-entity-metadata>

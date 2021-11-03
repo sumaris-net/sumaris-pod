@@ -1568,6 +1568,8 @@
         "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
+        "BTN_UPDATE": "Executer",
+        "BTN_UPDATE_HELP": "Executer",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
         "STRATUM_DOTS": "Couches géographiques :",
         "FORMAT_DOTS": "Documentation du format :",
@@ -1793,7 +1795,8 @@
       "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
       "LOAD_GEO_JSON_ERROR": "Erreur de chargement des données spatiales",
       "LOAD_TECH_ERROR": "Erreur de chargement des données du graphiques",
-      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes"
+      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes",
+      "UPDATE_PRODUCT_ERROR": "Erreur lors de l'execution de l'extraction"
     }
   },
   "NETWORK": {
@@ -1933,6 +1936,7 @@
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "SAVE_BEFORE_CLOSE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
+    "SAVE_BEFORE_CONTINUE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",

@@ -15,11 +15,11 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNumber,
-  isNumberRange,
+  isNumberRange, LoadResult,
   LocalSettingsService,
-  PlatformService,
+  PlatformService, propertyComparator,
   sleep,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import {ExtractionService} from '../services/extraction.service';
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from 'rxjs';
@@ -390,18 +390,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     });
   }
 
-  protected watchTypes(): Observable<ExtractionProduct[]> {
-    return this.aggregationService.watchAll(this.productFilter)
-      .pipe(
-        map(types => {
-          // Compute name, if need
-          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
-          // Sort by name
-          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
-
-          return types;
-        })
-      );
+  protected watchAllTypes(): Observable<LoadResult<ExtractionProduct>> {
+    return this.aggregationService.watchAll(this.productFilter);
   }
 
   protected fromObject(json: any): ExtractionProduct {

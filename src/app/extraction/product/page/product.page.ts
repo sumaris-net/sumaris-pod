@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
 import {ExtractionCategories, ExtractionColumn} from "../../services/model/extraction-type.model";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ExtractionService} from "../../services/extraction.service";
 import {Router} from "@angular/router";
@@ -29,11 +29,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
 
   columns: ExtractionColumn[];
 
-  @ViewChild('typeForm', {static: true}) typeForm: ProductForm;
+  @ViewChild('productForm', {static: true}) productForm: ProductForm;
 
   get form(): FormGroup {
-    return this.typeForm.form;
+    return this.productForm.form;
   }
+
 
   constructor(protected injector: Injector,
               protected router: Router,
@@ -70,10 +71,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
   async openMap(event?: UIEvent) {
     if (this.dirty) {
       // Ask user confirmation
-      const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate);
-      if (confirmation) {
-        await this.save(event);
-      }
+      const { confirmed, save } = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate);
+      if (!confirmed) return;
+      if (save) await this.save(event);
     }
 
     if (!this.data || isEmptyArray(this.data.stratum)) return; // Unable to load the map
@@ -92,11 +92,30 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
+  async updateProduct(event?: UIEvent) {
+    if (this.dirty) {
+      // Ask user confirmation
+      const {confirmed, save} = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate, {valid: this.valid});
+      if (!confirmed) return;
+      if (save) await this.save(event);
+    }
+
+    this.markAsLoading();
+
+    try {
+      await this.productService.updateProduct(this.data.id);
+    }
+    catch (err) {
+      this.setError(err);
+      this.markAsLoaded();
+    }
+  }
+
   /* -- protected -- */
 
   protected setValue(data: ExtractionProduct) {
     // Apply data to form
-    this.typeForm.value = data.asObject();
+    this.productForm.value = data.asObject();
   }
 
   protected async getValue(): Promise<ExtractionProduct> {
@@ -126,7 +145,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
   }
 
   protected registerForms() {
-    this.addChildForm(this.typeForm);
+    this.addChildForm(this.productForm);
   }
 
   protected canUserWrite(data: ExtractionProduct): boolean {
@@ -139,7 +158,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
   }
 
   protected async onEntityLoaded(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {
-    await this.typeForm.updateLists(data);
+    await this.productForm.updateLists(data);
 
     // Define default back link
     this.defaultBackHref = `̀/extraction/data?category=${ExtractionCategories.PRODUCT}&label=${data.label}`;
