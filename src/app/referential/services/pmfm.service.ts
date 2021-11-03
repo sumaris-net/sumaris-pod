@@ -16,6 +16,7 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   ObjectMap,
+  Referential,
   ReferentialUtils,
   StatusIds,
   SuggestService
@@ -406,10 +407,12 @@ export class PmfmService
     throw new Error("Not implemented yet");
   }
 
-  async suggest(value: any, filter?: PmfmFilter|any): Promise<LoadResult<Pmfm>> {
+  async suggest(value: any, filter?: PmfmFilter|any,
+    sortBy?: keyof Referential, sortDirection?: SortDirection,
+    ): Promise<LoadResult<Pmfm>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    return this.loadAll(0, !value ? 30 : 10, filter && filter.searchAttribute || null, null,
+    return this.loadAll(0, !value ? 30 : 10, sortBy || filter && filter.searchAttribute || null, sortDirection,
       { ...filter, searchText: value},
       {
         query: LoadAllWithPartsQueryWithTotal,
