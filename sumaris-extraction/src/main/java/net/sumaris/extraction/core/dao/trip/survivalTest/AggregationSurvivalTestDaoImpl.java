@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
+    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
         // Execute inherited aggregation
         R context = super.aggregate(source, filter, strata);
 

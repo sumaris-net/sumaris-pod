@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.server.http;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
 
 import java.lang.annotation.ElementType;

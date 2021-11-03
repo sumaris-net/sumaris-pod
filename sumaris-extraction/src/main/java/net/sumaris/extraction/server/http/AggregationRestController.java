@@ -25,6 +25,7 @@ package net.sumaris.extraction.server.http;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
@@ -41,6 +42,7 @@ import net.sumaris.extraction.server.util.QueryParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geojson.FeatureCollection;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,7 +50,8 @@ import java.text.ParseException;
 
 
 @RestController
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnWebApplication
 public class AggregationRestController implements ExtractionRestPaths {
 
     private AggregationService aggregationService;

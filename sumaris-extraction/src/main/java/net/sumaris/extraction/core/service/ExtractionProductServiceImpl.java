@@ -46,7 +46,6 @@ import java.util.Optional;
 @Slf4j
 @Service("extractionProductService")
 @ConditionalOnBean({ExtractionConfiguration.class})
-@Lazy
 public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     @Autowired

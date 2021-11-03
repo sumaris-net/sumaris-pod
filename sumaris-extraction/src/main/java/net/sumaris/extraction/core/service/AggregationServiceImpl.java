@@ -64,7 +64,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -84,24 +84,23 @@ import java.util.stream.Collectors;
 @ConditionalOnBean({ExtractionConfiguration.class})
 public class AggregationServiceImpl implements AggregationService {
 
+    private final ConfigurableApplicationContext context;
     private final DataSource dataSource;
     private final ExtractionService extractionService;
     private final ExtractionProductService extractionProductService;
     private final ExtractionTableDao extractionTableDao;
     private final ObjectMapper objectMapper;
-    private final ApplicationContext applicationContext;
-    private final Optional<TaskExecutor> taskExecutor;
 
+    private Optional<TaskExecutor> taskExecutor;
     private Map<IExtractionFormat, AggregationDao<?,?,?>> daosByFormat = Maps.newHashMap();
 
-    public AggregationServiceImpl(ApplicationContext applicationContext,
+    public AggregationServiceImpl(ConfigurableApplicationContext context,
                                   ObjectMapper objectMapper,
                                   DataSource dataSource,
                                   ExtractionTableDao extractionTableDao,
                                   ExtractionService extractionService,
-                                  ExtractionProductService extractionProductService,
-                                  Optional<TaskExecutor> taskExecutor) {
-        this.applicationContext = applicationContext;
+                                  ExtractionProductService extractionProductService) {
+        this.context = context;
         this.objectMapper = objectMapper;
         this.dataSource = dataSource;
 
@@ -109,14 +108,14 @@ public class AggregationServiceImpl implements AggregationService {
 
         this.extractionService = extractionService;
         this.extractionProductService = extractionProductService;
-
-        this.taskExecutor = taskExecutor;
     }
 
     @PostConstruct
-    protected void registerDaos() {
-        // Register all extraction daos
-        applicationContext.getBeansOfType(AggregationDao.class).values()
+    protected void init() {
+        this.taskExecutor = Optional.ofNullable(context.getBean(TaskExecutor.class));
+
+            // Register all extraction daos
+        context.getBeansOfType(AggregationDao.class).values()
             .forEach(dao -> {
                 IExtractionFormat format = dao.getFormat();
                 // Check if unique, by format
@@ -158,7 +157,9 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public AggregationContextVO aggregate(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata) {
+    public AggregationContextVO aggregate(AggregationTypeVO type,
+                                          @Nullable ExtractionFilterVO filter,
+                                          AggregationStrataVO strata) {
         type = getTypeByFormat(type);
         ExtractionProductVO source;
 
@@ -199,11 +200,12 @@ public class AggregationServiceImpl implements AggregationService {
                                              Page page) {
         Preconditions.checkNotNull(type);
 
+        filter = ExtractionFilterVO.nullToEmpty(filter);
         ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
-        String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
+        String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
         AggregationContextVO context = toContextVO(product, sheetName);
 
         return getAggBySpace(context, filter, strata, page);
@@ -234,13 +236,13 @@ public class AggregationServiceImpl implements AggregationService {
 
     @Override
     public AggregationTechResultVO getAggByTech(AggregationTypeVO type,
-                                                ExtractionFilterVO filter,
-                                                AggregationStrataVO strata,
+                                                @Nullable ExtractionFilterVO filter,
+                                                @Nullable AggregationStrataVO strata,
                                                 String sort,
                                                 SortDirection direction) {
         Preconditions.checkNotNull(type);
-        filter = ExtractionFilterVO.nullToEmpty(filter);
 
+        filter = ExtractionFilterVO.nullToEmpty(filter);
         ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.TABLES);
 
@@ -264,10 +266,9 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public MinMaxVO getAggMinMaxByTech(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata) {
-        Preconditions.checkNotNull(type);
-        filter = filter != null ? filter : new ExtractionFilterVO();
+    public MinMaxVO getAggMinMaxByTech(@NonNull AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
 
+        filter = ExtractionFilterVO.nullToEmpty(filter);
         ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
                 ExtractionProductFetchOptions.TABLES);
 
@@ -288,7 +289,9 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
-    public AggregationResultVO executeAndRead(AggregationTypeVO type, ExtractionFilterVO filter, AggregationStrataVO strata,
+    public AggregationResultVO executeAndRead(AggregationTypeVO type,
+                                              @Nullable ExtractionFilterVO filter,
+                                              @Nullable AggregationStrataVO strata,
                                               Page page) {
         // Execute the aggregation
         AggregationContextVO context = aggregate(type, filter, strata);
@@ -484,10 +487,9 @@ public class AggregationServiceImpl implements AggregationService {
         return toAggregationType(target);
     }
 
-    public AggregationContextVO aggregateDao(ExtractionProductVO source,
-                                             ExtractionFilterVO filter,
+    public AggregationContextVO aggregateDao(@NonNull ExtractionProductVO source,
+                                             @Nullable ExtractionFilterVO filter,
                                              AggregationStrataVO strata) {
-        Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
 
         ProductFormatEnum format = ProductFormatEnum.valueOf(AggSpecification.FORMAT_PREFIX + source.getLabel(), null);
@@ -657,7 +659,8 @@ public class AggregationServiceImpl implements AggregationService {
         return columns;
     }
 
-    protected AggregationContextVO toContextVO(ExtractionProductVO source, String sheetName) {
+    protected AggregationContextVO toContextVO(@NonNull ExtractionProductVO source,
+                                               @NonNull String sheetName) {
 
         AggregationContextVO target = new AggregationContextVO();
 
@@ -730,10 +733,12 @@ public class AggregationServiceImpl implements AggregationService {
      * @return
      */
     protected AggregationService self() {
-        return applicationContext.getBean("aggregationService", AggregationService.class);
+        return context.getBean("aggregationService", AggregationService.class);
     }
 
-    protected AggregationDao getDao(IExtractionFormat format) {
+    protected <C extends AggregationContextVO, F extends ExtractionFilterVO, S extends AggregationStrataVO>
+        AggregationDao<C, F, S> getDao(IExtractionFormat format) {
+
         AggregationDao dao = daosByFormat.get(format);
         if (dao == null) throw new SumarisTechnicalException("Unknown aggregation format (no targeted dao): " + format);
         return dao;

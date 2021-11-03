@@ -210,7 +210,8 @@ public class SumarisTableMetadatas {
 
     /* -- protected functions -- */
 
-    protected static String getSqlWhereClauseContent(SumarisTableMetadata table, ExtractionFilterVO filter,
+    protected static String getSqlWhereClauseContent(SumarisTableMetadata table,
+                                                     @Nullable ExtractionFilterVO filter,
                                                      String appliedSheetName,
                                                      String tableAlias,
                                                      boolean skipInvalidCriteria,

@@ -52,6 +52,7 @@ import net.sumaris.extraction.server.http.GraphQLUtils;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,10 +61,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+@GraphQLApi
 @Service
 @Transactional
-@GraphQLApi
 @ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnWebApplication
 public class AggregationGraphQLService {
 
     private AggregationService aggregationService;

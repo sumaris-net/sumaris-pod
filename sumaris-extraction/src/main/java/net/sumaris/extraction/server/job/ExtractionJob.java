@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.server.job;
 
+import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -48,27 +49,29 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
 @ConditionalOnBean({ExtractionConfiguration.class})
+@Component
 @Slf4j
+@Data
 public class ExtractionJob {
 
-    private final ExtractionProductService extractionProductService;
-    private final AggregationService aggregationService;
-    private boolean ready = false;
+    @Autowired
+    private ExtractionProductService extractionProductService;
 
     @Autowired
+    private AggregationService aggregationService;
+
+    private boolean ready = false;
+
+    public ExtractionJob() {
+        super();
+    }
+
     public ExtractionJob(ExtractionProductService extractionProductService,
                          AggregationService aggregationService) {
         super();
         this.extractionProductService = extractionProductService;
         this.aggregationService = aggregationService;
-    }
-
-    public ExtractionJob() {
-        super();
-        this.extractionProductService = ExtractionServiceLocator.extractionProductService();
-        this.aggregationService = ExtractionServiceLocator.aggregationService();
         this.ready = true;
     }
 

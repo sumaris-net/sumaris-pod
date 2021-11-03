@@ -41,12 +41,13 @@ import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
@@ -57,22 +58,18 @@ import java.util.Optional;
 @Slf4j
 @Component("extractionDocumentationService")
 @ConditionalOnBean({ExtractionConfiguration.class})
-@Lazy
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
 
     protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";
 
-    private final SumarisConfiguration configuration;
-    private final ExtractionService extractionService;
-    private final ExtractionProductService productService;
+    @Autowired
+    private SumarisConfiguration configuration;
 
-    public ExtractionDocumentationServiceImpl(SumarisConfiguration configuration,
-                                              ExtractionService extractionService,
-                                              ExtractionProductService productService) {
-        this.configuration = configuration;
-        this.extractionService = extractionService;
-        this.productService = productService;
-    }
+    @Autowired
+    private ExtractionService extractionService;
+
+    @Autowired
+    private ExtractionProductService extractionProductService;
 
     @Override
     public Optional<Resource> find(@NonNull IExtractionFormat format, @NonNull Locale locale) {
@@ -112,7 +109,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             File productFile = new File(configuration.getTempDirectory(), productFileName);
             boolean fileExists = productFile.exists();
 
-            ExtractionProductVO product = productService.get(type.getId(), ExtractionProductFetchOptions.DOCUMENTATION);
+            ExtractionProductVO product = extractionProductService.get(type.getId(), ExtractionProductFetchOptions.DOCUMENTATION);
 
             // Remove old file if update need
             long lastUpdateDate = product.getUpdateDate() != null ? product.getUpdateDate().getTime() : 0l;
@@ -141,7 +138,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
 
     @Override
     public String generate(int productId, @NonNull Locale locale) {
-        ExtractionProductVO source = productService.get(productId, ExtractionProductFetchOptions.builder()
+        ExtractionProductVO source = extractionProductService.get(productId, ExtractionProductFetchOptions.builder()
             .withTables(true)
             .withColumns(true)
             .withColumnValues(true)
@@ -187,7 +184,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             // If not loaded of not exists
             List<ExtractionTableColumnVO> columns = table.getColumns();
             if (columns == null) {
-                columns = productService.getColumnsBySheetName(source.getId(), table.getLabel(),
+                columns = extractionProductService.getColumnsBySheetName(source.getId(), table.getLabel(),
                         ExtractionTableColumnFetchOptions.builder()
                                 .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
                                 .build());

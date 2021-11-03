@@ -56,6 +56,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
@@ -111,7 +112,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
+    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
         long rowCount;
 
         // Init context
@@ -181,9 +182,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public AggregationResultVO getAggBySpace(String tableName, F filter, S strata, Page page) {
-        Preconditions.checkNotNull(tableName);
-        Preconditions.checkNotNull(strata);
+    public AggregationResultVO getAggBySpace(@NonNull String tableName, F filter, @NonNull S strata, Page page) {
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Set<String> groupByColumnNames = getExistingGroupByColumnNames(strata, table);
@@ -210,7 +209,9 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public AggregationTechResultVO getAggByTech(@NonNull String tableName, @NonNull F filter, @NonNull S strata,
+    public AggregationTechResultVO getAggByTech(@NonNull String tableName,
+                                                @Nullable F filter,
+                                                @NonNull S strata,
                                                 String sortAttribute, SortDirection direction) {
 
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));

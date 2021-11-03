@@ -30,6 +30,7 @@ import net.sumaris.extraction.core.vo.MinMaxVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,19 +58,20 @@ public interface ExtractionTableDao {
     ExtractionResultVO getRows(String tableName, ExtractionFilterVO filter, Page page);
 
     ExtractionResultVO getAggRows(String tableName,
-                                  ExtractionFilterVO filter,
+                                  @Nullable ExtractionFilterVO filter,
                                   Set<String> groupByColumnNames,
                                   Map<String, SQLAggregatedFunction> otherColumnNames,
                                   Page page);
 
     Map<String, Object> getAggByTechRows(String tableName,
-                                         ExtractionFilterVO filter,
+                                         @Nullable ExtractionFilterVO filter,
                                          String aggColumnName,
                                          SQLAggregatedFunction aggFunction,
                                          String techColumnName,
                                          String sort, SortDirection direction);
 
-    MinMaxVO getAggMinMaxByTech(String tableName, ExtractionFilterVO filter,
+    MinMaxVO getAggMinMaxByTech(String tableName,
+                                @Nullable ExtractionFilterVO filter,
                                 Set<String> groupByColumns,
                                 String aggColumnName,
                                 SQLAggregatedFunction aggFunction,

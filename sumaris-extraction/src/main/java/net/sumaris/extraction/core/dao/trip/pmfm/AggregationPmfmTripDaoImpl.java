@@ -36,6 +36,8 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -55,7 +57,7 @@ public class AggregationPmfmTripDaoImpl<
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, F filter, S strata) {
+    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
         context.setFormat(ProductFormatEnum.AGG_PMFM_TRIP);

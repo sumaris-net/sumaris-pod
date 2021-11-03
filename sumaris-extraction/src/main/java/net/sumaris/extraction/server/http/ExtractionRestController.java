@@ -31,25 +31,26 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.ExtractionDocumentationService;
-import net.sumaris.extraction.core.service.ExtractionService;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.service.ExtractionDocumentationService;
+import net.sumaris.extraction.core.service.ExtractionService;
+import net.sumaris.extraction.core.vo.ExtractionFilterVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
+import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.extraction.server.security.IDownloadController;
 import net.sumaris.extraction.server.util.QueryParamUtils;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -69,12 +70,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 
 @RestController
 @Slf4j
-@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
+@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnWebApplication
 public class ExtractionRestController implements ExtractionRestPaths {
 
     protected static final String HTML_PREVIEW_PATH = "classpath:static/doc/preview.html";
@@ -84,23 +89,20 @@ public class ExtractionRestController implements ExtractionRestPaths {
             MediaType.APPLICATION_XHTML_XML
     );
 
+    @Autowired
     private SumarisConfiguration configuration;
-    private ExtractionService extractionService;
-    private ExtractionDocumentationService documentationService;
-    private ExtractionSecurityService securityService;
-    private IDownloadController downloadController;
 
-    public ExtractionRestController(SumarisConfiguration configuration,
-                                    ExtractionService extractionService,
-                                    ExtractionDocumentationService documentationService,
-                                    ExtractionSecurityService securityService,
-                                    IDownloadController downloadController) {
-        this.configuration = configuration;
-        this.extractionService = extractionService;
-        this.documentationService = documentationService;
-        this.securityService = securityService;
-        this.downloadController = downloadController;
-    }
+    @Autowired
+    private ExtractionService extractionService;
+
+    @Autowired
+    private ExtractionDocumentationService extractionDocumentationService;
+
+    @Autowired
+    private ExtractionSecurityService extractionSecurityService;
+
+    @Autowired
+    private IDownloadController downloadController;
 
     @PostConstruct
     public void init() {
@@ -118,7 +120,7 @@ public class ExtractionRestController implements ExtractionRestPaths {
     public List<ExtractionTypeVO> getExtractionTypes() {
 
         // User can read all: return all types
-        if (securityService.canReadAll()) {
+        if (extractionSecurityService.canReadAll()) {
             return extractionService.findByFilter(null);
         }
 
@@ -164,7 +166,7 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         try {
 
-            Resource resource = documentationService.find(type, locale)
+            Resource resource = extractionDocumentationService.find(type, locale)
                     .orElseThrow(() -> new SumarisTechnicalException(ErrorCodes.NOT_FOUND,
                             String.format("No documentation for extraction {category: '%s', label: '%s'}", category, label)));
 
@@ -213,7 +215,7 @@ public class ExtractionRestController implements ExtractionRestPaths {
             return ResponseEntity.badRequest().build();
         }
 
-        securityService.checkReadAccess(type);
+        extractionSecurityService.checkReadAccess(type);
 
         File tempFile = extractionService.executeAndDump(type, filter);
 

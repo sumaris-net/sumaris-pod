@@ -35,6 +35,7 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Calendar;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public interface ExtractionTripDao<
         F extends ExtractionFilterVO>
     extends ExtractionDao<C, F> {
 
-    default ExtractionTripFilterVO toTripFilterVO(ExtractionFilterVO source){
+    default ExtractionTripFilterVO toTripFilterVO(@Nullable ExtractionFilterVO source){
         ExtractionTripFilterVO target = new ExtractionTripFilterVO();
         if (source == null) return target;
 

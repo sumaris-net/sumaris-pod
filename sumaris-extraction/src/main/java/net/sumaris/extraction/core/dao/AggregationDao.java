@@ -29,6 +29,8 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.format.ProductFormatEnum;
 import net.sumaris.extraction.core.vo.*;
 
+import javax.annotation.Nullable;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -42,14 +44,14 @@ public interface AggregationDao<
     ProductFormatEnum getFormat();
 
     <R extends C> R aggregate(ExtractionProductVO source,
-                              F filter,
+                              @Nullable F filter,
                               S strata);
 
-    AggregationResultVO getAggBySpace(String tableName, F filter, S strata, Page page);
+    AggregationResultVO getAggBySpace(String tableName, @Nullable F filter, S strata, Page page);
 
-    AggregationTechResultVO getAggByTech(String tableName, F filter, S strata, String sortAttribute, SortDirection direction);
+    AggregationTechResultVO getAggByTech(String tableName, @Nullable F filter, S strata, String sortAttribute, SortDirection direction);
 
-    MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata);
+    MinMaxVO getAggMinMaxByTech(String tableName, @Nullable F filter, S strata);
 
     void clean(C context);
 }

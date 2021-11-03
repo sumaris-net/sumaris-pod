@@ -42,6 +42,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,8 @@ import java.util.Optional;
  */
 @Slf4j
 @Service("extractionSecurityService")
-@ConditionalOnBean({ExtractionConfiguration.class, IAuthService.class})
-@Lazy
+@ConditionalOnWebApplication
+@ConditionalOnBean({ExtractionConfiguration.class})
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 
     private SumarisConfiguration configuration;

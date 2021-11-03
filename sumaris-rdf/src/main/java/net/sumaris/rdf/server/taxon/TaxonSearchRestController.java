@@ -31,6 +31,7 @@ import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.util.RdfMediaType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,8 @@ import java.util.Objects;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnWebApplication
 @Slf4j
 public class TaxonSearchRestController {
 

@@ -37,6 +37,7 @@ import net.sumaris.rdf.server.RdfRestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,8 @@ import java.util.Optional;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnWebApplication
 @Slf4j
 public class WebvowlRdfRestController implements RdfRestPaths {
 

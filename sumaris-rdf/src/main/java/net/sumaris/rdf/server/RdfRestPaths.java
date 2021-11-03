@@ -24,9 +24,6 @@ package net.sumaris.rdf.server;
 
 public interface RdfRestPaths {
     String SPARQL_ENDPOINT = "/sparql";
-
     String ONTOLOGY_BASE_PATH = "/ontology";
-
     String WEBVOWL_BASE_PATH = "/webvowl";
-
 }

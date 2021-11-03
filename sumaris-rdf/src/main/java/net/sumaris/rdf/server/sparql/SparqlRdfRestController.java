@@ -44,6 +44,7 @@ import org.apache.jena.sparql.core.Transactional;
 import org.apache.jena.sparql.resultset.ResultsFormat;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -62,7 +63,8 @@ import java.util.Optional;
 
 
 @RestController
-@ConditionalOnBean({WebMvcConfigurer.class, RdfConfiguration.class})
+@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnWebApplication
 @Slf4j
 public class SparqlRdfRestController implements RdfRestPaths {
 

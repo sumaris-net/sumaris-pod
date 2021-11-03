@@ -49,6 +49,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -156,7 +157,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @Override
     public ExtractionResultVO getAggRows(@NonNull String tableName,
-                                         ExtractionFilterVO filter,
+                                         @Nullable ExtractionFilterVO filter,
                                          Set<String> groupByColumnNames,
                                          final Map<String, SQLAggregatedFunction> otherColumnNames,
                                          Page page) {
@@ -246,7 +247,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public Map<String, Object> getAggByTechRows(String tableName, ExtractionFilterVO filter,
+    public Map<String, Object> getAggByTechRows(String tableName,
+                                                @Nullable ExtractionFilterVO filter,
                                                 String aggColumnName,
                                                 SQLAggregatedFunction aggFunction,
                                                 String techColumnName,
@@ -285,7 +287,8 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1]));
     }
 
-    public MinMaxVO getAggMinMaxByTech(String tableName, ExtractionFilterVO filter,
+    public MinMaxVO getAggMinMaxByTech(String tableName,
+                                       @Nullable ExtractionFilterVO filter,
                                        Set<String> groupByColumns,
                                        String aggColumnName,
                                        SQLAggregatedFunction aggFunction,

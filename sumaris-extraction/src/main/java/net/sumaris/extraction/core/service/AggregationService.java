@@ -91,15 +91,15 @@ public interface AggregationService {
 
     @Transactional(readOnly = true)
     AggregationTechResultVO getAggByTech(AggregationTypeVO format,
-                                         ExtractionFilterVO filter,
-                                         AggregationStrataVO strata,
+                                         @Nullable ExtractionFilterVO filter,
+                                         @Nullable AggregationStrataVO strata,
                                          String sort,
                                          SortDirection direction);
 
     @Transactional(readOnly = true)
     MinMaxVO getAggMinMaxByTech(AggregationTypeVO format,
-                                ExtractionFilterVO filter,
-                                AggregationStrataVO strata);
+                                @Nullable ExtractionFilterVO filter,
+                                @Nullable AggregationStrataVO strata);
 
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(AggregationTypeVO type,
