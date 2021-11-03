@@ -23,32 +23,26 @@
 package net.sumaris.rdf.server.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.config.RdfAutoConfiguration;
 import net.sumaris.rdf.core.model.ModelURIs;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.server.RdfRestPaths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.servlet.Servlet;
 import java.util.Arrays;
 import java.util.Objects;
 
 @Configuration
+@ConditionalOnBean({RdfAutoConfiguration.class})
 @ConditionalOnWebApplication
-@ConditionalOnBean({RdfConfiguration.class})
 @Slf4j
 public class RdfWebAutoConfiguration {
 

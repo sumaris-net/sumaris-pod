@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnBean({CacheConfiguration.class})
 @ConditionalOnProperty(
     name = "sumaris.extraction.enabled",
     matchIfMissing = true

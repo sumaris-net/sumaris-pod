@@ -262,7 +262,7 @@ public class LocationServiceImpl implements LocationService{
                 Integer objectId = location.getId();
                 String rectangleLabel = location.getLabel();
                 if (!rectangleLabelPattern.matcher(rectangleLabel).matches()) {
-                    log.warn(String.format("Invalid rectangle label {%s.} No geometry will be created for this rectangle.", rectangleLabel));
+                    log.warn(String.format("Invalid rectangle label {%s} No geometry will be created for this rectangle.", rectangleLabel));
                     continue;
                 }
                 if (log.isDebugEnabled()) {
