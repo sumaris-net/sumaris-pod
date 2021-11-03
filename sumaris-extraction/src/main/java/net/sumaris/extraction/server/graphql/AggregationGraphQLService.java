@@ -46,6 +46,7 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.extraction.server.http.GraphQLApi;
 import net.sumaris.extraction.server.http.GraphQLUtils;
@@ -64,7 +65,7 @@ import java.util.concurrent.ExecutionException;
 @GraphQLApi
 @Service
 @Transactional
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class AggregationGraphQLService {
 
@@ -259,6 +260,16 @@ public class AggregationGraphQLService {
 
         // Do deletion
         Arrays.stream(ids).forEach(productService::delete);
+    }
+
+    @GraphQLMutation(name = "updateProduct", description = "Update an extraction product")
+    public AggregationTypeVO updateProduct(@GraphQLArgument(name = "id") int id) {
+
+        // Make sure can update
+        securityService.checkWriteAccess(id);
+
+        // Do update
+        return aggregationService.updateProduct(id);
     }
 
     /* -- protected methods --*/

@@ -43,6 +43,7 @@ import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.extraction.server.security.IDownloadController;
@@ -78,7 +79,7 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionRestController implements ExtractionRestPaths {
 

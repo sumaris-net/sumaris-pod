@@ -43,6 +43,7 @@ import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
 import net.sumaris.extraction.server.http.GraphQLApi;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
@@ -65,7 +66,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @GraphQLApi
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionGraphQLService {
 

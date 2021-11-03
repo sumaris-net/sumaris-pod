@@ -29,21 +29,21 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.AggregationService;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.extraction.core.service.AggregationService;
+import net.sumaris.extraction.core.vo.AggregationTypeVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
+import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -56,22 +56,19 @@ import java.util.Optional;
 @Slf4j
 @Service("extractionSecurityService")
 @ConditionalOnWebApplication
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 
+    @Autowired
     private SumarisConfiguration configuration;
-    private AggregationService aggregationService;
-    private IAuthService<PersonVO> authService;
-    private String accessNotSelfExtractionMinRole;
 
-    public ExtractionSecurityServiceImpl(SumarisConfiguration configuration,
-            AggregationService aggregationService,
-            IAuthService<PersonVO> authService) {
-        this.configuration = configuration;
-        this.aggregationService = aggregationService;
-        this.authService = authService;
-        accessNotSelfExtractionMinRole = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE.getKey());
-    }
+    @Autowired
+    private AggregationService aggregationService;
+
+    @Autowired
+    private IAuthService<PersonVO> authService;
+
+    private String accessNotSelfExtractionMinRole;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {

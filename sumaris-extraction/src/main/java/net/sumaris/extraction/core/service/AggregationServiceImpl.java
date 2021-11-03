@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.AggregationDao;
@@ -345,17 +346,20 @@ public class AggregationServiceImpl implements AggregationService {
 
         ExtractionProductVO target = extractionProductService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE)
             .orElseThrow(() -> new DataNotFoundException(String.format("Unknown product {id: %s}", productId)));
-        Collection<String> tablesToDrop = Lists.newArrayList(target.getTableNames());
+        Collection<String> previousTableNames = Lists.newArrayList(target.getTableNames());
 
         // Read filter
         ExtractionFilterVO filter = readFilter(target.getFilter());
+
+        long startTime = System.currentTimeMillis();
+        log.debug("Updating extraction {id: {}, label: '{}'}...", productId, target.getLabel());
 
         String rawFormat = target.getRawFormatLabel();
         if (rawFormat.startsWith(AggSpecification.FORMAT_PREFIX)) {
             rawFormat = rawFormat.substring(AggSpecification.FORMAT_PREFIX.length());
         }
 
-        // Prepare a executable type (with label=format)
+        // Prepare an executable type (with label=format)
         AggregationTypeVO executableType = new AggregationTypeVO();
         executableType.setLabel(rawFormat);
         executableType.setCategory(ExtractionCategoryEnum.LIVE);
@@ -369,8 +373,15 @@ public class AggregationServiceImpl implements AggregationService {
         // Save the product
         extractionProductService.save(target);
 
-        // Drop old tables
-        dropTables(tablesToDrop);
+        // Drop each orphan tables
+        List<String> newTableNames = Beans.getList(target.getTableNames());
+        previousTableNames.stream()
+            .filter(tableName -> !newTableNames.contains(tableName))
+            .forEach(extractionTableDao::dropTable);
+
+        log.debug("Updating extraction {id: {}, label: '{}'} [OK] in {}", productId,
+            target.getLabel(),
+            TimeUtils.printDurationFrom(startTime));
 
         // Transform to type
         return toAggregationType(target);

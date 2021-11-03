@@ -37,6 +37,7 @@ import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -49,8 +50,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ConditionalOnBean({ExtractionConfiguration.class})
 @Component
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 @Slf4j
 @Data
 public class ExtractionJob {
@@ -105,7 +106,6 @@ public class ExtractionJob {
 
         for (ExtractionProductVO product: products) {
             try {
-                log.debug("Updating extraction {id: {}, label: '{}'}...", product.getId(), product.getLabel());
                 aggregationService.updateProduct(product.getId());
                 successCount++;
             }

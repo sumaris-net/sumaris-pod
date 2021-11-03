@@ -50,7 +50,7 @@ import java.text.ParseException;
 
 
 @RestController
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionWebAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class AggregationRestController implements ExtractionRestPaths {
 
