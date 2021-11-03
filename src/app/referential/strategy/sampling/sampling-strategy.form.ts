@@ -560,21 +560,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }),
 
       // Length pmfms
-      /*this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize)
+      /*this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize, 'name')
         .then(lengthPmfms => {
           this.$filteredLengthPmfms.next(lengthPmfms);
           this.autocompleteFilters.lengthPmfm = isNotEmptyArray(lengthPmfms) && autoEnableFilter; // Enable filtering, if need by program
         }),
 
       // Weight pmfms
-      this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize)
+      this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize, 'name')
         .then(weightPmfms => {
           this.$filteredWeightPmfms.next(weightPmfms);
           this.autocompleteFilters.weightPmfm = isNotEmptyArray(weightPmfms) && autoEnableFilter; // Enable filtering, if need by program
         }),
 
       // Maturity pmfms
-      this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize)
+      this.strategyService.loadStrategiesReferentials(program.id, 'Pmfm', undefined, 0, fetchSize, 'name')
         .then(maturityPmfms => {
           this.$filteredMaturityPmfms.next(maturityPmfms);
           this.autocompleteFilters.maturityPmfm = isNotEmptyArray(maturityPmfms) && autoEnableFilter; // Enable filtering, if need by program
@@ -777,7 +777,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter,
         excludedIds,
         entityName: Pmfm.ENTITY_NAME
-      });
+      },
+      'name');
     }
   }
 
@@ -804,7 +805,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter,
         excludedIds,
         entityName: Pmfm.ENTITY_NAME
-      });
+      },
+      'name');
     }
   }
 
