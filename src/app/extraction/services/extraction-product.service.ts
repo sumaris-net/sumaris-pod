@@ -452,7 +452,7 @@ export class ExtractionProductService extends BaseGraphqlService {
       }
     });
 
-    return savedEntity;
+    return ExtractionProduct.fromObject(savedEntity);
   }
 
   /* -- protected methods  -- */

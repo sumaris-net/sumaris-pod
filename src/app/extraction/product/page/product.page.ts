@@ -103,10 +103,14 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     this.markAsLoading();
 
     try {
-      await this.productService.updateProduct(this.data.id);
+      const updatedEntity = await this.productService.updateProduct(this.data.id);
+      await this.onEntityLoaded(updatedEntity);
+      await this.updateView(updatedEntity);
     }
     catch (err) {
       this.setError(err);
+    }
+    finally {
       this.markAsLoaded();
     }
   }

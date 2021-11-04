@@ -54,14 +54,11 @@
           </ion-button>
 
           <!-- Run extraction -->
-          <ion-button color="secondary" size="full"
+          <ion-button color="danger" size="full"
                       *ngIf="productForm.isManualProcessing"
                       [matTooltip]="'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE_HELP'|translate"
                       (click)="updateProduct($event)"
                       [disabled]="loading">
-            <mat-icon slot="start">
-              <ion-icon name="earth"></ion-icon>
-            </mat-icon>
             <ion-label>
               {{'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE'|translate}}
             </ion-label>

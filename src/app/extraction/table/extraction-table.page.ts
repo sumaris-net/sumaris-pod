@@ -409,9 +409,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     console.debug(`[extraction-table] Opening product {${type.label}`);
 
-    setTimeout(() => {
+    return setTimeout(() => {
       // open the aggregation type
-      this.router.navigateByUrl(`/extraction/product/${type.id}`);
+      return this.router.navigate(['extraction', 'product', type.id]);
     }, 100);
   }
 
