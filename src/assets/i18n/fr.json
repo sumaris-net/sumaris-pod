@@ -628,6 +628,14 @@
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)"
       }
     },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "Nouvel effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
+      }
+    },
     "CATCH": {
       "FORM": {
         "ON_DECK": "Arrivée sur pont :",
@@ -657,6 +665,14 @@
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
         "AVG_PACKAGING_PRICE": "Prix moyen / conditionnement",
         "TOTAL_PRICE": "Prix total"
+      },
+      "NEW": {
+        "TITLE": "Nouveau lot"
+      },
+      "EDIT": {
+        "TITLE": "Lot #{{rankOrder}}",
+        "BTN_SALE": "Saisir les ventes",
+        "BTN_INDIVIDUAL_SAMPLING": "Saisir l'échantillonage"
       }
     },
     "BATCH": {
@@ -980,7 +996,11 @@
       "TITLE": "Composition du Lot #{{rankOrder}}",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
       "RATIO": "#{{rankOrder}} %",
-      "WEIGHT": "Poids (kg)"
+      "WEIGHT": "Poids (kg)",
+      "BTN_SALE": "Saisir les ventes",
+      "NEW": {
+        "TITLE": "Nouveau Lot"
+      }
     },
     "SALE": {
       "TITLE": "Ventes du Lot #{{rankOrder}}",

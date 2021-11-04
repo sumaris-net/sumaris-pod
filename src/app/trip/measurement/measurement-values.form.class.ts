@@ -178,7 +178,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.applyingValue && isNotEmptyArray(this.valueChanges.observers))
+          filter(() => !this.loading && !this.applyingValue && isNotEmptyArray(this.valueChanges.observers))
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
@@ -365,7 +365,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const measurementValuesForm = this.measurementValuesForm;
     if (measurementValuesForm) {
       // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id].dirty);
+      const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id] && measurementValuesForm.controls[pmfm.id].dirty);
       if (dirtyPmfms.length) {
         json.measurementValues = Object.assign({}, this.data && this.data.measurementValues || {}, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
       }

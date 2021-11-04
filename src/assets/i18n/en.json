@@ -631,6 +631,14 @@
         "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)"
       }
     },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "New effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
+      }
+    },
     "CATCH": {
       "FORM": {
         "ON_DECK": "On deck:",
@@ -660,6 +668,14 @@
         "AVG_WEIGHT_PRICE": "Average weight price",
         "AVG_PACKAGING_PRICE": "Average packaging price",
         "TOTAL_PRICE": "Total price"
+      },
+      "NEW": {
+        "TITLE": "New batch"
+      },
+      "EDIT": {
+        "TITLE": "Batch #{{rankOrder}}",
+        "BTN_SALE": "Fill sales",
+        "BTN_INDIVIDUAL_SAMPLING": "Fill sampling"
       }
     },
     "BATCH": {
@@ -963,7 +979,11 @@
       "TITLE": "Packet composition of Batch #{{rankOrder}}",
       "TAXON_GROUP": "Commercial species (FAO)",
       "RATIO": "#{{rankOrder}} %",
-      "WEIGHT": "Weight (kg)"
+      "WEIGHT": "Weight (kg)",
+      "BTN_SALE": "Fill sales",
+      "NEW": {
+        "TITLE": "New Batch"
+      }
     },
     "SALE": {
       "TITLE": "Sales of Batch #{{rankOrder}}",

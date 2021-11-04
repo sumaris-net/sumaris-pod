@@ -25,6 +25,7 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
 
   @Input() programLabel: string;
   @Input() showError = false;
+  @Input() mobile: boolean;
 
   @ViewChild('saleMeasurementsForm', {static: true}) saleMeasurementsForm: MeasurementsForm;
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
