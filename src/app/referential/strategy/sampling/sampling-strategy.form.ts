@@ -46,7 +46,7 @@ import {
   TaxonomicLevelIds
 } from '../../services/model/model.enum';
 import { ProgramProperties } from '../../services/config/program.config';
-import { BehaviorSubject, merge } from 'rxjs';
+import {BehaviorSubject, merge, Subscription} from 'rxjs';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
@@ -95,6 +95,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   maturityPmfmsHelper: FormArrayHelper<PmfmStrategy>;
   fractionPmfmsHelper: FormArrayHelper<PmfmStrategy>;
   locationLevelIds: number[];
+
+  disableEditionListeners: boolean;
 
   autocompleteFilters = {
     analyticReference: false,
@@ -456,6 +458,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       columnNames: ['REFERENTIAL.NAME'],
       mobile: this.settings.mobile
     });
+  }
+
+  public setDisableEditionListeners (disable : boolean)
+  {
+    this.disableEditionListeners = disable;
   }
 
   async start(): Promise<void> {
@@ -1038,6 +1045,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onEditLabel(value: string) {
+    if (this.disableEditionListeners) return;
     const taxonNameControl = this.taxonNamesHelper.at(0);
     if (!value) return
     const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
@@ -1092,6 +1100,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onDateChange(date?: Moment) {
+    if (this.disableEditionListeners) return;
     let dateAsMoment: Moment;
     if (typeof date === 'string') {
       dateAsMoment = moment(date, 'YYYY-MM-DD');
@@ -1100,20 +1109,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
     if (!dateAsMoment || dateAsMoment.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
 
-    await this.generateLabel(dateAsMoment);
+      await this.generateLabel(dateAsMoment);
   }
 
   protected async onTaxonChange() {
+    if (this.disableEditionListeners) return;
     if (!this.program) return; // Skip if program is missing
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
-    const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
-    if (currentViewTaxonName === storedDataTaxonName) {
-      // Don't call label generation when taxon hasn't changed
-    }
-    else {
-      await this.generateLabel();
-    }
+    await this.generateLabel();
     // TODO try to limit pmfms, by loading previous sampling strategies ?
   }
 
