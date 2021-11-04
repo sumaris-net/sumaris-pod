@@ -1591,10 +1591,11 @@
         "BTN_UPDATE": "Executer",
         "BTN_UPDATE_HELP": "Executer",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
+        "FILTER_DOTS": "Filtrage des données sources :",
         "STRATUM_DOTS": "Couches géographiques :",
         "FORMAT_DOTS": "Documentation du format :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
-        "FORMAT_PLACEHOLDER": "Describe the output format...",
+        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
         "FORMAT_PREVIEW_DOTS": "Prévisualisation :",
         "PROCESSING_FREQUENCY": "Fréquence de mise à jour",
         "STRATA": {

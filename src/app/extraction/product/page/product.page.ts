@@ -5,7 +5,7 @@ import {AggregationTypeValidatorService} from "../../services/validator/aggregat
 import {ExtractionService} from "../../services/extraction.service";
 import {Router} from "@angular/router";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
+import { EntityServiceLoadOptions, isNotEmptyArray } from '@sumaris-net/ngx-components';
 import {ProductForm} from "../form/product.form";
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
@@ -130,6 +130,15 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
 
     // Re add columns
     data.columns = this.columns;
+
+    // Set default strata
+    if (data.isSpatial) {
+      (data.stratum || []).forEach((strata, index) => strata.isDefault = index === 0);
+    }
+    else {
+      // No strata is not a spatial product
+      data.stratum = null;
+    }
 
     return data;
   }

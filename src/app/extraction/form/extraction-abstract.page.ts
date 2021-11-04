@@ -176,8 +176,9 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
       // Check if user can edit (admin or supervisor in the rec department)
       this.canEdit = this.canUserWrite(type);
 
-      // Select the given sheet, or the first one
-      const sheetName = opts.sheetName || (type.sheetNames && type.sheetNames[0]);
+      // Select the given sheet (if exists), or select the first one
+      const sheetName = opts.sheetName && (type.sheetNames || []).find(s => s === opts.sheetName)
+        || (type.sheetNames && type.sheetNames[0]);
       this.setSheetName(sheetName || null,
         {
           emitEvent: false,

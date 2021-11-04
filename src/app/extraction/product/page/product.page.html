@@ -42,7 +42,6 @@
           <!-- open map button -->
           <ion-button color="secondary" size="full"
                       *ngIf="productForm.isSpatial"
-                      [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
                       (click)="openMap($event)"
                       [disabled]="loading">
             <mat-icon slot="start">
@@ -56,7 +55,6 @@
           <!-- Run extraction -->
           <ion-button color="danger" size="full"
                       *ngIf="productForm.isManualProcessing"
-                      [matTooltip]="'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE_HELP'|translate"
                       (click)="updateProduct($event)"
                       [disabled]="loading">
             <ion-label>

@@ -1545,9 +1545,10 @@
         "BTN_OPEN_MAP": "Show the map",
         "BTN_PREVIEW_DOC": "Preview doc",
         "STRATUM_DOTS": "Spatial layers:",
+        "FILTER_DOTS": "Filter source data:",
         "FORMAT_DOTS": "Documentation:",
         "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
-        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
+        "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW_DOTS": "Preview:",
         "PROCESSING_FREQUENCY": "Processing frequency",
         "STRATA": {
