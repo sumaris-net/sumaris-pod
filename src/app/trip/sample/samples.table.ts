@@ -81,6 +81,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
   protected currentSample: Sample; // require to preset presentation on new row
+  private latestCorrectTagId: string;
 
   // Top group header
   groupHeaderStartColSpan: number;
@@ -457,15 +458,22 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       // skip first
       if (data.rankOrder === 1) {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
+        this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
       } else if (data.rankOrder > 1 && !this.currentSample) {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
+        this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
       } else if (this.currentSample) {
         const previousSample = await this.findRowBySample(this.currentSample);
         if (previousSample) { // row exist
           if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
             data.measurementValues[PmfmIds.TAG_ID] = '';
           } else {
-            data.measurementValues[PmfmIds.TAG_ID] = parseInt(previousSample.currentData?.measurementValues[PmfmIds.TAG_ID]) + 1;
+            // increment latest tag_id or use latest if current is not only digit
+            if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID].match(/^\d{4}$/)) {
+              data.measurementValues[PmfmIds.TAG_ID] = parseInt(previousSample.currentData?.measurementValues[PmfmIds.TAG_ID]) + 1;
+            } else {
+              data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.latestCorrectTagId);
+            }
           }
         } else if (this.currentSample.measurementValues[PmfmIds.TAG_ID] !== null) { // row remove by user
           data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.currentSample.measurementValues[PmfmIds.TAG_ID]);
@@ -475,10 +483,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         if (data.measurementValues[PmfmIds.TAG_ID] !== '') {
           if (data.measurementValues[PmfmIds.TAG_ID] < 10) {
             data.measurementValues[PmfmIds.TAG_ID] = '000' + data.measurementValues[PmfmIds.TAG_ID];
+            this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
           } else if (data.measurementValues[PmfmIds.TAG_ID] < 100) {
             data.measurementValues[PmfmIds.TAG_ID] = '00' + data.measurementValues[PmfmIds.TAG_ID];
+            this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
           } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
             data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
+            this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
           } else {
             data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID];
           }
