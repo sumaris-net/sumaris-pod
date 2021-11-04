@@ -77,8 +77,8 @@ public class MetierRepositoryImpl
         Preconditions.checkNotNull(filter);
 
         // Prepare query parameters
-        String searchJoinClass = filter.getSearchJoin();
-        String searchJoinProperty = searchJoinClass != null ? StringUtils.uncapitalize(searchJoinClass) : null;
+        String searchJoinClass = StringUtils.capitalize(filter.getSearchJoin());
+        String searchJoinProperty = StringUtils.uncapitalize(filter.getSearchJoin());
         final boolean enableSearchOnJoin = (searchJoinProperty != null);
 
         // Create page (do NOT sort if searchJoin : will be done later)
@@ -92,7 +92,6 @@ public class MetierRepositoryImpl
             .setFirstResult(offset)
             .setMaxResults(size)
             .getResultStream()
-            //.distinct()
             .map(source -> {
                 MetierVO target = this.toVO(source);
 

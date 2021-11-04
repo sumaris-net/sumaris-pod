@@ -43,8 +43,6 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         extends ExtractionRdbTripDaoImpl<C, F>
         implements CostSpecification {
 
-    private static final String XML_QUERY_COST_PATH = "cost/v%s/%s";
-
     @Override
     public LiveFormatEnum getFormat() {
         return LiveFormatEnum.COST;
@@ -92,10 +90,9 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getVersion());
 
-        String versionStr = VERSION_1_4.replaceAll("[.]", "_");
         switch (queryName) {
             case "injectionSpeciesLengthTable":
-                return String.format(XML_QUERY_COST_PATH, versionStr, queryName);
+                return getQueryFullName(CostSpecification.FORMAT, CostSpecification.VERSION_1_4, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }

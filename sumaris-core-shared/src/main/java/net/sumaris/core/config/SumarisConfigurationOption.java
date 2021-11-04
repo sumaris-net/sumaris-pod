@@ -360,11 +360,20 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         String.class,
         false),
 
+    /* -- Cache options-- */
+
+    CACHE_ENABLED(
+        "spring.cache.enabled",
+        n("sumaris.config.option.spring.cache.enabled.description"),
+        Boolean.TRUE.toString(),
+        boolean.class,
+        false),
+
     /* -- Liquibase options-- */
 
     LIQUIBASE_ENABLED(
         "spring.liquibase.enabled",
-        n("sumaris.config.option.liquibase.liquibase.enabled.description"),
+        n("sumaris.config.option.spring.liquibase.enabled.description"),
         Boolean.TRUE.toString(),
         boolean.class,
         false),

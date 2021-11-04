@@ -42,7 +42,8 @@ import java.util.Map;
 @Component
 @GraphQLApi
 @ConditionalOnProperty(
-    name = "spring.cache.enabled",
+    prefix = "spring",
+    name = {"cache.enabled"},
     havingValue = "true",
     matchIfMissing = true
 )

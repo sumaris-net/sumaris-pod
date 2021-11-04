@@ -31,6 +31,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -85,6 +86,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -129,8 +131,12 @@ public class ExtractionServiceImpl implements ExtractionService {
     private final ReferentialService referentialService;
     private final SumarisDatabaseMetadata databaseMetadata;
 
+    @Autowired(required = false)
     private CacheManager cacheManager;
-    private Optional<TaskExecutor> taskExecutor;
+
+    @Autowired(required = false)
+    private TaskExecutor taskExecutor;
+
     private boolean enableProduct = false;
     private boolean enableTechnicalTablesUpdate = false;
     private CacheTTL cacheDefaultTtl;
@@ -170,11 +176,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @PostConstruct
     protected void init() {
-        // Get the cache manager
-        this.cacheManager = applicationContext.getBean(CacheManager.class);
-        Preconditions.checkNotNull(this.cacheManager, "Unable to find 'cacheManager' bean. Cannot init the 'extractionService' bean.");
-
-        this.taskExecutor = Optional.ofNullable(applicationContext.getBean(TaskExecutor.class));
+        enableProduct = configuration.enableExtractionProduct();
 
         // Register all extraction daos
         applicationContext.getBeansOfType(ExtractionDao.class).values()
@@ -292,6 +294,8 @@ public class ExtractionServiceImpl implements ExtractionService {
                                                       @Nullable ExtractionFilterVO filter,
                                                       @NonNull Page page,
                                                       @Nullable CacheTTL ttl) {
+        Preconditions.checkNotNull(this.cacheManager, "Cache has been disabled by configuration. Please enable cache before retry");
+
         filter = ExtractionFilterVO.nullToEmpty(filter);
         ttl = CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl);
         if (ttl == null) throw new IllegalArgumentException("Missing required 'ttl' argument");
@@ -841,8 +845,8 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected void clean(ExtractionContextVO context, boolean async) {
         if (context == null) return;
-        if (async && taskExecutor.isPresent()) {
-            taskExecutor.get().execute(() -> self().clean(context));
+        if (async && taskExecutor != null) {
+            taskExecutor.execute(() -> self().clean(context));
         }
         else  {
             log.info("Cleaning extraction #{}-{}", context.getRawFormatLabel(), context.getId());

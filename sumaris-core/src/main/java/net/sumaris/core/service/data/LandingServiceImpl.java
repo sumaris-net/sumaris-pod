@@ -102,7 +102,8 @@ public class LandingServiceImpl implements LandingService {
         if (page != null) {
 
             // Use specific query to get landings by observed location (consider only observedLocationId is the only filter attribute)
-            if (Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
+            if (filter.getObservedLocationId() != null
+                && Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
                 return landingRepository.findAllByObservedLocationId(filter.getObservedLocationId(), page, fetchOptions);
             }
 

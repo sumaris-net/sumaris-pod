@@ -197,8 +197,6 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        setDbms(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -261,8 +259,6 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         xmlQuery.setGroup("euMetierLevel5", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL5));
         xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
-
-        setDbms(xmlQuery);
 
         return xmlQuery;
     }

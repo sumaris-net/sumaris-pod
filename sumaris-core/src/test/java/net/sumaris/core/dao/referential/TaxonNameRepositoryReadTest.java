@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,16 +65,18 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
 
     @Test
     public void findAll() {
+        // Test without synonym (default)
         List<TaxonNameVO> taxonNames = taxonNameRepository.findAll(TaxonNameFilterVO.builder().build(),
             Page.builder().size(100).build(), null);
         Assert.assertNotNull(taxonNames);
-        Assert.assertEquals(25, taxonNames.size());
+        Assert.assertEquals(40, taxonNames.size());
 
+        // Test with synonym
         taxonNames = taxonNameRepository.findAll(TaxonNameFilterVO.builder()
-                .withSynonyms(false)
+                .withSynonyms(true)
             .build(), (Page)null, null);
         Assert.assertNotNull(taxonNames);
-        Assert.assertEquals(26, taxonNames.size());
+        Assert.assertEquals(41, taxonNames.size());
     }
 
     @Test
@@ -141,7 +144,7 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
         // with parent taxon group 1014 and status 1 with synonyms
         assertFilterResult(TaxonNameFilterVO.builder().taxonGroupId(1014).statusIds(new Integer[]{1}).withSynonyms(true).build(), 3);
         // with parent taxon group 1160 1161
-        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 2);
+        assertFilterResult(TaxonNameFilterVO.builder().taxonGroupIds(new Integer[]{1160, 1161}).build(), 3);
         // with taxonomic level (species and subspecies)
         assertFilterResult(TaxonNameFilterVO.builder()
                 .levelIds(new Integer[]{TaxonomicLevelEnum.SPECIES.getId(), TaxonomicLevelEnum.SUBSPECIES.getId()}).build(), 26);
@@ -162,37 +165,42 @@ public class TaxonNameRepositoryReadTest extends AbstractDaoTest {
 
     @Test
     public void getById() {
-        TaxonNameVO tn = taxonNameRepository.get(1001);
+        TaxonNameVO tn = taxonNameRepository.get(1001, TaxonNameFetchOptions.DEFAULT);
         Assert.assertNotNull(tn);
         Assert.assertEquals(1001, tn.getId().intValue());
         Assert.assertEquals("SRX", tn.getLabel());
         Assert.assertEquals(1001, tn.getReferenceTaxonId().intValue());
         Assert.assertEquals(13, tn.getTaxonomicLevelId().intValue());
-        Assert.assertEquals(13, tn.getTaxonomicLevel().getId().intValue());
+        Assert.assertNull(tn.getTaxonomicLevel()); // not fetch by default
         Assert.assertNull(tn.getParentTaxonName());
 
-        tn = taxonNameRepository.get(1002);
+        tn = taxonNameRepository.get(1002, TaxonNameFetchOptions.FULL);
         Assert.assertNotNull(tn);
         Assert.assertNotNull(tn.getParentTaxonName());
         Assert.assertEquals(1001, tn.getParentTaxonName().getId().intValue());
         Assert.assertEquals(1001, tn.getParentId().intValue());
+        Assert.assertNotNull(tn.getTaxonomicLevel()); // fetch in full fetch
+        Assert.assertEquals(tn.getTaxonomicLevelId(), tn.getTaxonomicLevel().getId());
+        Assert.assertNotNull(tn.getParentTaxonName()); // fetch in full fetch
     }
 
     @Test
     public void getByLabel() {
-        TaxonNameVO tn = taxonNameRepository.getByLabel("SRX");
+        TaxonNameVO tn = taxonNameRepository.getByLabel("SRX", TaxonNameFetchOptions.DEFAULT);
         Assert.assertNotNull(tn);
         Assert.assertEquals(1001, tn.getId().intValue());
         Assert.assertEquals("SRX", tn.getLabel());
         Assert.assertEquals(1001, tn.getReferenceTaxonId().intValue());
         Assert.assertEquals(13, tn.getTaxonomicLevelId().intValue());
-        Assert.assertEquals(13, tn.getTaxonomicLevel().getId().intValue());
+        Assert.assertNull(tn.getTaxonomicLevel());
         Assert.assertNull(tn.getParentTaxonName());
 
-        tn = taxonNameRepository.getByLabel("STT");
+        tn = taxonNameRepository.getByLabel("STT", TaxonNameFetchOptions.FULL);
         Assert.assertNotNull(tn);
         Assert.assertNotNull(tn.getParentTaxonName());
         Assert.assertEquals(1001, tn.getParentTaxonName().getId().intValue());
         Assert.assertEquals(1001, tn.getParentId().intValue());
+        Assert.assertNotNull(tn.getTaxonomicLevel());
+        Assert.assertNotNull(tn.getParentTaxonName());
     }
 }

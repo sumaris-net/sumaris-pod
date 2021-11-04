@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -155,7 +156,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
                 // Species Raw table
                 if (rowCount != 0) {
-                    rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
+                    rowCount = createRawSpeciesListTable(context, tripFilter.isExcludeInvalidStation());
                     if (sheetName != null && context.hasSheet(sheetName)) return context;
                 }
 
@@ -301,9 +302,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("tripFilter", context.getTripId() != null);
         if (context.getTripId() != null) xmlQuery.bind("tripId", context.getTripId().toString());
 
-        // Database type
-        setDbms(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -349,8 +347,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
         xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
 
-        // Database type
-        setDbms(xmlQuery);
+        xmlQuery.setGroup("gearType", true);
+        xmlQuery.setGroup("date", true);
+        xmlQuery.setGroup("time", true);
+        xmlQuery.setGroup("fishingTime", true);
 
         return xmlQuery;
     }
@@ -392,6 +392,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
+        xmlQuery.setGroup("weight", true);
+        xmlQuery.setGroup("lengthCode", true);
 
         return xmlQuery;
     }
@@ -431,7 +433,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
 
-        setDbms(xmlQuery);
+        xmlQuery.setGroup("weight", true);
+        xmlQuery.setGroup("lengthCode", true);
 
         return xmlQuery;
     }
@@ -477,6 +480,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("centimeterUnitId", String.valueOf(UnitEnum.CM.getId()));
         xmlQuery.bind("millimeterUnitId", String.valueOf(UnitEnum.MM.getId()));
 
+        xmlQuery.setGroup("sex", true);
+        xmlQuery.setGroup("lengthClass", true);
+        xmlQuery.setGroup("numberAtLength", true);
+
         return xmlQuery;
     }
 
@@ -486,7 +493,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     protected int execute(XMLQuery xmlQuery) {
-        return queryUpdate(xmlQuery.getSQLQueryAsString());
+        String sql = xmlQuery.getSQLQueryAsString();
+        return queryUpdate(sql);
     }
 
     protected long countFrom(String tableName) {
@@ -495,16 +503,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return queryCount(xmlQuery.getSQLQueryAsString());
     }
 
-    protected String getQueryFullName(C context, String queryName) {
-        Preconditions.checkNotNull(context);
-
+    protected String getQueryFullName(@NonNull C context, String queryName) {
         return getQueryFullName(context.getLabel(), context.getVersion(), queryName);
     }
 
-    protected String getQueryFullName(String formatLabel, String formatVersion, String queryName) {
-        Preconditions.checkNotNull(formatLabel);
-        Preconditions.checkNotNull(formatVersion);
-        Preconditions.checkNotNull(queryName);
+    protected String getQueryFullName(@NonNull String formatLabel,
+                                      @NonNull String formatVersion,
+                                      @NonNull String queryName) {
         return String.format("%s/v%s/%s",
             StringUtils.underscoreToChangeCase(formatLabel),
             formatVersion.replaceAll("[.]", "_"),

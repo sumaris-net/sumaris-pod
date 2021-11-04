@@ -41,13 +41,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     scanBasePackages = {
             "net.sumaris.core.dao",
             "net.sumaris.core.service",
-            "net.sumaris.core.extraction",
+            "net.sumaris.extraction.core",
             "net.sumaris.server"
     }
 )
-@EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
-@EnableJpaRepositories("net.sumaris.core.dao")
 public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-server";

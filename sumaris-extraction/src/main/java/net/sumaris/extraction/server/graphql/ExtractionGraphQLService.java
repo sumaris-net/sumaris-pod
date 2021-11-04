@@ -28,12 +28,15 @@ import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -66,12 +69,14 @@ import java.util.stream.Collectors;
 @GraphQLApi
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
+@Slf4j
 public class ExtractionGraphQLService {
 
     private final ExtractionService extractionService;
     private final IDownloadController downloadController;
     private final ExtractionSecurityService extractionSecurityService;
     private String documentationUrl;
+    private boolean enableCache = false;
 
     public ExtractionGraphQLService(
         ExtractionService extractionService,
@@ -94,6 +99,8 @@ public class ExtractionGraphQLService {
         else {
             documentationUrl = null;
         }
+
+        enableCache = event.getConfiguration().enableCache();
     }
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types", deprecationReason = "Use liveExtractionTypes and aggregationTypes")
@@ -174,6 +181,13 @@ public class ExtractionGraphQLService {
             .sortBy(sort)
             .sortDirection(SortDirection.fromString(direction))
             .build();
+
+        if (!enableCache && cacheDuration != null) {
+            log.warn( "User try to use extraction with {cacheDuration: {}) but cache has been disabled (option '{}'). Will execute without cache",
+                cacheDuration,
+                SumarisConfigurationOption.CACHE_ENABLED.getKey());
+            cacheDuration = null;
+        }
 
         ExtractionResultVO resultVO;
         if (cacheDuration == null) {

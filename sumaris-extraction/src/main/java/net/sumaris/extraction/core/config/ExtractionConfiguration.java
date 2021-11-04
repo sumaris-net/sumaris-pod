@@ -110,8 +110,7 @@ public class ExtractionConfiguration {
         return getApplicationConfig().getOptionAsInt(ExtractionConfigurationOption.EXTRACTION_QUERY_TIMEOUT.getKey());
     }
 
-    public String getCsvSeparator() {
+    public char getCsvSeparator() {
         return delegate.getCsvSeparator();
     }
-
 }

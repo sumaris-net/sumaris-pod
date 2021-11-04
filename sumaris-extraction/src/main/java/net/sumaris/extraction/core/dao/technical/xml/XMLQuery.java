@@ -74,7 +74,6 @@ public class XMLQuery {
             default:
                 throw new IllegalArgumentException("Not XMLQuery instance found for database type: " + dbms.name());
         }
-        delegate.setDbms(dbms.name());
     }
 
     /**

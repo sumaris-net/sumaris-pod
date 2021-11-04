@@ -54,8 +54,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         extends ExtractionRdbTripDaoImpl<C, F>
         implements Free2Specification {
 
-    private static final String XML_QUERY_FREE_PATH = "free2/v%s/%s";
-
     @Autowired
     protected StrategyService strategyService;
 
@@ -195,8 +193,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
         xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
 
-        setDbms(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -223,8 +219,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
         xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
         xmlQuery.bind("acousticDeterrentDevicePmfmId", String.valueOf(PmfmEnum.ACOUSTIC_DETERRENT_DEVICE.getId()));
-
-        setDbms(xmlQuery);
 
         return xmlQuery;
     }
@@ -386,10 +380,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
     }
 
     protected String getQueryFullName(C context, String queryName) {
-        Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getVersion());
-
-        String versionStr = VERSION_1_9.replaceAll("[.]", "_");
-        return String.format(XML_QUERY_FREE_PATH, versionStr, queryName);
+        return super.getQueryFullName(Free2Specification.FORMAT, Free2Specification.VERSION_1_9, queryName);
     }
 }

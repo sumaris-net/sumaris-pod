@@ -154,15 +154,15 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         String label = service.computeNextLabelByProgramId(40, "BIO", 0);
         Assert.assertEquals("BIO1", label);
 
-        label = service.computeNextLabelByProgramId(40, "20-LEUCCIR-", 3);
-        Assert.assertEquals("20-LEUCCIR-003", label);
+        label = service.computeNextLabelByProgramId(40, "20LEUCCIR", 3);
+        Assert.assertEquals("20LEUCCIR003", label);
 
         // By strategyLabel
         label = service.computeNextSampleLabelByStrategy("BIO1", null, 0);
         Assert.assertEquals("BIO11", label);
 
-        label = service.computeNextSampleLabelByStrategy("20-LEUCCIR-001", "-", 4);
-        Assert.assertEquals("20-LEUCCIR-001-0005", label);
+        label = service.computeNextSampleLabelByStrategy("20LEUCCIR001", null, 4);
+        Assert.assertEquals("20LEUCCIR0010005", label);
     }
 
 

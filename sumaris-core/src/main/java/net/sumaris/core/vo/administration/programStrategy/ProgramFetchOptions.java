@@ -30,6 +30,14 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @Builder
 public class ProgramFetchOptions implements IFetchOptions {
 
+    public static ProgramFetchOptions DEFAULT = ProgramFetchOptions.builder().build();
+    public static ProgramFetchOptions FULL = ProgramFetchOptions.builder()
+        .withProperties(true)
+        .withLocations(true)
+        .withLocationClassifications(true)
+        .withStrategies(true)
+        .build();
+
     @Builder.Default
     private boolean withProperties = false;
 

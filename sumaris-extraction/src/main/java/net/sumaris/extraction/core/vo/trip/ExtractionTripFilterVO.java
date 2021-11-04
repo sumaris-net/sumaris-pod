@@ -40,6 +40,8 @@ public class ExtractionTripFilterVO extends TripFilterVO {
 
     private Page page;
 
+    private boolean excludeInvalidStation = true;
+
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
@@ -50,6 +52,7 @@ public class ExtractionTripFilterVO extends TripFilterVO {
         if (this.getVesselId() != null) sb.append(separator).append("Vessel (id): ").append(this.getVesselId());
         if (this.getTripId() != null) sb.append(separator).append("Trip (id): ").append(this.getTripId());
         if (this.getRecorderDepartmentId() != null) sb.append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId());
+        sb.append(separator).append("Exclude invalid operation: ").append(this.isExcludeInvalidStation());
         return sb.toString();
     }
 }

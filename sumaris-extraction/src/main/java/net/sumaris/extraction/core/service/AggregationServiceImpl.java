@@ -37,7 +37,6 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.AggregationDao;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
@@ -65,7 +64,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
@@ -344,6 +342,13 @@ public class AggregationServiceImpl implements AggregationService {
     }
 
     @Override
+    @Caching(
+        evict = {
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
+        }
+    )
     public AggregationTypeVO updateProduct(int productId) {
 
         ExtractionProductVO target = extractionProductService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE)
@@ -356,21 +361,36 @@ public class AggregationServiceImpl implements AggregationService {
         long startTime = System.currentTimeMillis();
         log.debug("Updating extraction {id: {}, label: '{}'}...", productId, target.getLabel());
 
+        boolean needAggregation = false;
         String rawFormat = target.getRawFormatLabel();
         if (rawFormat.startsWith(AggSpecification.FORMAT_PREFIX)) {
             rawFormat = rawFormat.substring(AggSpecification.FORMAT_PREFIX.length());
+            needAggregation = true;
         }
 
-        // Prepare an executable type (with label=format)
-        AggregationTypeVO executableType = new AggregationTypeVO();
-        executableType.setLabel(rawFormat);
-        executableType.setCategory(ExtractionCategoryEnum.LIVE);
 
         // Execute the aggregation
-        AggregationContextVO context = aggregate(executableType, filter, null);
+        if (!needAggregation) {
+            // Prepare an executable type (with label=format)
+            ExtractionTypeVO executableType = new ExtractionTypeVO();
+            executableType.setLabel(rawFormat);
+            executableType.setCategory(ExtractionCategoryEnum.LIVE);
+            ExtractionContextVO extractionContextVO = extractionService.execute(executableType, filter);
 
-        // Update product tables, using the aggregation result
-        toProductVO(context, target);
+            ExtractionProductVO source = target;
+            target = extractionService.toProductVO(extractionContextVO);
+
+            copyIdAndUpdateDate(source, target);
+        }
+        else {
+            AggregationTypeVO executableType = new AggregationTypeVO();
+            executableType.setLabel(rawFormat);
+            executableType.setCategory(ExtractionCategoryEnum.LIVE);
+            AggregationContextVO context = aggregate(executableType, filter, null);
+            // Update product tables, using the aggregation result
+            toProductVO(context, target);
+        }
+
 
         // Save the product
         extractionProductService.save(target);
@@ -477,7 +497,6 @@ public class AggregationServiceImpl implements AggregationService {
             target.setDocumentation(source.getDocumentation());
             target.setComments(source.getComments());
             target.setStatusId(source.getStatusId());
-            target.setUpdateDate(source.getUpdateDate());
             target.setIsSpatial(source.getIsSpatial());
 
             if (target.getRecorderDepartment() == null) {
@@ -756,6 +775,26 @@ public class AggregationServiceImpl implements AggregationService {
         AggregationDao dao = daosByFormat.get(format);
         if (dao == null) throw new SumarisTechnicalException("Unknown aggregation format (no targeted dao): " + format);
         return dao;
+    }
+
+    protected void copyIdAndUpdateDate(ExtractionProductVO source, ExtractionProductVO target) {
+        target.setName(source.getName());
+        target.setUpdateDate(source.getUpdateDate());
+        target.setDescription(source.getDescription());
+        target.setDocumentation(source.getDocumentation());
+        target.setComments(source.getComments());
+        target.setStatusId(source.getStatusId());
+        target.setIsSpatial(source.getIsSpatial());
+
+        if (target.getRecorderDepartment() == null) {
+            target.setRecorderDepartment(source.getRecorderDepartment());
+        }
+        if (target.getRecorderPerson() == null) {
+            target.setRecorderPerson(source.getRecorderPerson());
+        }
+
+        target.setStratum(source.getStratum());
+        target.setProcessingFrequencyId(source.getProcessingFrequencyId());
     }
 
 }

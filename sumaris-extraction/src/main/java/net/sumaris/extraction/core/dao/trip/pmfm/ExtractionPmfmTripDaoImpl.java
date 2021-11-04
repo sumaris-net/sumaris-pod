@@ -55,10 +55,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         extends ExtractionRdbTripDaoImpl<C, F>
         implements PmfmTripSpecification {
 
-    private static final String XML_QUERY_PMFM_PATH = "pmfmTrip/v%s/%s";
-    private static final String XML_QUERY_PMFM_V1_0_PATH = String.format(XML_QUERY_PMFM_PATH,
-            VERSION_1_0.replaceAll("[.]", "_"), "%s");
-
     @Override
     public LiveFormatEnum getFormat() {
         return LiveFormatEnum.PMFM_TRIP;
@@ -140,7 +136,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
             case "injectionTripPmfm":
             case "injectionOperationPmfm":
             case "injectionSpeciesLengthTable":
-                return String.format(XML_QUERY_PMFM_V1_0_PATH, queryName);
+                return getQueryFullName(PmfmTripSpecification.FORMAT, PmfmTripSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }
@@ -196,9 +192,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
 
         // Disable groups of unused pmfm type
         for (PmfmValueType enumType: PmfmValueType.values()) {
-            if (enumType != pmfm.getType()) {
-                xmlQuery.setGroup(enumType.name().toLowerCase() + pmfm.getAlias(), false);
-            }
+            boolean active = enumType == pmfm.getType();
+            xmlQuery.setGroup(enumType.name().toLowerCase() + pmfm.getAlias(), active);
         }
     }
 }
