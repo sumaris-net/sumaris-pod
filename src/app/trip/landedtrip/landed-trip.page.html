@@ -79,7 +79,8 @@
             <form-trip #tripForm
                        (onSubmit)="save($event)"
                        [showError]="false"
-                       [showAddVessel]="false">
+                       [showAddVessel]="false"
+                       [returnFieldsRequired]="true">
 
               <!-- Main fishing area  -->
               <app-fishing-area-form #fishingAreaForm
