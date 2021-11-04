@@ -13,6 +13,11 @@
   padding: 0 0px;
   z-index: 999;
 
+  .mat-column-metier {
+    min-width: 175px;
+  }
+
+
   .mat-column-endPosition,
   .mat-column-startPosition {
     padding-left: 0px;
@@ -20,5 +25,9 @@
     ion-col {
       padding: 0;
     }
+  }
+
+  .mat-cell app-pmfm-field{
+    padding-left: 7px;
   }
 }

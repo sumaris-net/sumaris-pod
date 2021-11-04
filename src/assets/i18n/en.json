@@ -668,6 +668,14 @@
         "AVG_WEIGHT_PRICE": "Average weight price",
         "AVG_PACKAGING_PRICE": "Average packaging price",
         "TOTAL_PRICE": "Total price"
+      },
+      "NEW": {
+        "TITLE": "New batch"
+      },
+      "EDIT": {
+        "TITLE": "Batch #{{rankOrder}}",
+        "BTN_SALE": "Fill sales",
+        "BTN_INDIVIDUAL_SAMPLING": "Fill sampling"
       }
     },
     "BATCH": {
@@ -972,6 +980,7 @@
       "TAXON_GROUP": "Commercial species (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Weight (kg)",
+      "BTN_SALE": "Fill sales",
       "NEW": {
         "TITLE": "New Batch"
       }

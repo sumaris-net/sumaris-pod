@@ -4,6 +4,15 @@
   padding: 0 0px;
   z-index: 999;
 
+  .mat-column-parent ion-label{
+    max-width: 175px;
+    min-width: 50px;
+  }
+
+  .mat-column-parent {
+    min-width: 175px;
+  }
+
   .mat-column-taxonGroup {
     min-width: 250px;
   }
@@ -20,6 +29,11 @@
   .mat-column-actions {
     max-width: 80px;
   }
+
+  .mat-column-id{
+      min-width: 40px !important;
+      max-width: 50px !important;
+    }
 }
 
 .mat-table {

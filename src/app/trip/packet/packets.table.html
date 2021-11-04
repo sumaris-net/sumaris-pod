@@ -20,10 +20,6 @@
   </ion-item>
 
   <span class="toolbar-spacer"></span>
-
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-    <mat-icon>more_vert</mat-icon>
-  </button>
 </mat-toolbar>
 
 <!-- error -->
@@ -39,7 +35,7 @@
        matSortDisableClear
        [trackBy]="trackByFn">
 
-  <ng-container matColumnDef="select">
+  <ng-container matColumnDef="select" [sticky]="useSticky">
     <th mat-header-cell *matHeaderCellDef>
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                     [indeterminate]="selection.hasValue() && !isAllSelected()">
@@ -53,7 +49,7 @@
   </ng-container>
 
   <!-- id -->
-  <ng-container matColumnDef="id">
+  <ng-container matColumnDef="id" [sticky]="useSticky">
     <th mat-header-cell *matHeaderCellDef mat-sort-header>
       <app-loading-spinner [loading]="loadingSubject|async">
         <ion-label>#</ion-label>
@@ -71,7 +67,8 @@
     </th>
     <td mat-cell *matCellDef="let row">
 
-      <mat-autocomplete-field floatLabel="never" class="min-width-large ion-text-wrap"
+      <mat-autocomplete-field *ngIf="inlineEdition else readOnly"
+                              floatLabel="never" class="min-width-large ion-text-wrap"
                               [autofocus]="row.id == -1 && row.editing"
                               [formControl]="row.validator.controls.parent"
                               [placeholder]="'PACKET.LIST.PARENT'|translate"
@@ -79,7 +76,9 @@
                               [readonly]="!inlineEdition || !row.editing"
                               [config]="autocompleteFields.parent">
       </mat-autocomplete-field>
-
+      <ng-template #readOnly>
+        <ion-label>{{row.currentData.parent.metier.label}} - {{row.currentData.parent.metier.name}}</ion-label>
+      </ng-template>
     </td>
   </ng-container>
 

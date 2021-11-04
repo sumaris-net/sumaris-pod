@@ -670,7 +670,9 @@
         "TITLE": "Nouveau lot"
       },
       "EDIT": {
-        "TITLE": "Lot #{{rankOrder}}"
+        "TITLE": "Lot #{{rankOrder}}",
+        "BTN_SALE": "Saisir les ventes",
+        "BTN_INDIVIDUAL_SAMPLING": "Saisir l'échantillonage"
       }
     },
     "BATCH": {
@@ -995,6 +997,7 @@
       "TAXON_GROUP": "Espèce commerciale (FAO)",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Poids (kg)",
+      "BTN_SALE": "Saisir les ventes",
       "NEW": {
         "TITLE": "Nouveau Lot"
       }

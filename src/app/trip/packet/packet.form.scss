@@ -2,3 +2,7 @@
 //  change this property if more than 6 sampled packets
   --ion-grid-columns: 12;
 }
+
+ion-row.odd {
+  background-color: var(--ion-color-light, whitesmoke) !important;
+}

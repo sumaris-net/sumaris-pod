@@ -30,19 +30,20 @@
   <app-packet-form #packetForm
                    [mobile]="mobile"
                    [parents]="parents"
-                   [parentAttributes]="parentAttributes"
-  >
+                   [parentAttributes]="parentAttributes">
     <!-- open packet sale modal -->
-    <button packetSaleButtons mat-icon-button color="light"
-                [title]="'PACKET.LIST.PACKET_SALE'|translate"
+    <ion-button packetSaleButtons mat-button
+                fill="clear" color="tertiary" expand="full"
+                [title]="'PACKET.COMPOSITION.BTN_SALE'|translate"
                 (click)="onSave($event, 'sale')">
-      <mat-icon [matBadge]=" packetForm.value.saleProducts && packetForm.value.composition && (packetForm.value.saleProducts.length / packetForm.value.composition.length).toString()"
-                [matBadgeHidden]="!packetForm.value.saleProducts || !packetForm.value.saleProducts.length || !packetForm.value.composition || !packetForm.value.composition.length"
-                matBadgeColor="accent"
-                matBadgeSize="small"
-                matBadgePosition="above after">local_offer
-      </mat-icon>
-    </button>
+      <mat-icon slot="start">local_offer</mat-icon>
+      <ion-label>
+        <span translate>PACKET.COMPOSITION.BTN_SALE</span>
+        <span *ngIf="packetForm.value.saleProducts && packetForm.value.saleProducts.length && packetForm.value.composition && packetForm.value.composition.length">&nbsp;
+          ({{(packetForm.value.saleProducts.length / packetForm.value.composition.length).toString()}})
+        </span>
+      </ion-label>
+    </ion-button>
 
   </app-packet-form>
 </ion-content>
