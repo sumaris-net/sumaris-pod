@@ -80,7 +80,7 @@
                                 [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [filter]="locationFilter"
-                                [required]="usageMode|isNotOnField"
+                                [required]="returnFieldsRequired"
                                 [panelWidth]="!mobile && '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
@@ -89,8 +89,8 @@
         <mat-date-time-field [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"
                              formControlName="returnDateTime"
                              [startDate]="form.controls.departureDateTime.value"
-                             [required]="usageMode|isNotOnField"
-                             [clearable]=" !returnFieldsRequired && usageMode|isOnField">
+                             [required]="returnFieldsRequired"
+                             [clearable]="!returnFieldsRequired">
           <mat-hint align="end" *ngIf="form.controls.returnDateTime.value">
             <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
             startValue: form.get('departureDateTime').value,
