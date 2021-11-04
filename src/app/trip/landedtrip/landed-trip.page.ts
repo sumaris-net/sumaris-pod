@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
 import * as momentImported from 'moment';
-import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
-import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import {AcquisitionLevelCodes, SaleTypeIds} from '@app/referential/services/model/model.enum';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -16,35 +16,36 @@ import {
   isNotNil,
   isNotNilOrBlank,
   NetworkService,
+  PlatformService,
   ReferentialRef,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { TripForm } from '../trip/trip.form';
-import { BehaviorSubject } from 'rxjs';
-import { TripSaveOptions, TripService } from '../services/trip.service';
-import { ObservedLocationService } from '../services/observed-location.service';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { OperationGroupTable } from '../operationgroup/operation-groups.table';
-import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
-import { ProductsTable } from '../product/products.table';
-import { Product, ProductFilter, ProductUtils } from '../services/model/product.model';
-import { PacketsTable } from '../packet/packets.table';
-import { Packet, PacketFilter } from '../services/model/packet.model';
-import { OperationGroup, Trip } from '../services/model/trip.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { fillRankOrder, isRankOrderValid } from '@app/data/services/model/model.utils';
-import { SaleProductUtils } from '../services/model/sale-product.model';
-import { debounceTime, filter, first } from 'rxjs/operators';
-import { ExpenseForm } from '../expense/expense.form';
-import { FishingAreaForm } from '../fishing-area/fishing-area.form';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Landing } from '../services/model/landing.model';
-import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
-import { Sample } from '../services/model/sample.model';
-import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
-import { TableElement } from '@e-is/ngx-material-table';
+import {TripForm} from '../trip/trip.form';
+import {BehaviorSubject} from 'rxjs';
+import {TripSaveOptions, TripService} from '../services/trip.service';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {OperationGroupTable} from '../operationgroup/operation-groups.table';
+import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
+import {ProductsTable} from '../product/products.table';
+import {Product, ProductFilter, ProductUtils} from '../services/model/product.model';
+import {PacketsTable} from '../packet/packets.table';
+import {Packet, PacketFilter} from '../services/model/packet.model';
+import {OperationGroup, Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {fillRankOrder, isRankOrderValid} from '@app/data/services/model/model.utils';
+import {SaleProductUtils} from '../services/model/sale-product.model';
+import {debounceTime, filter, first} from 'rxjs/operators';
+import {ExpenseForm} from '../expense/expense.form';
+import {FishingAreaForm} from '../fishing-area/fishing-area.form';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {Landing} from '../services/model/landing.model';
+import {Program} from '@app/referential/services/model/program.model';
+import {environment} from '@environments/environment';
+import {Sample} from '../services/model/sample.model';
+import {ExpectedSaleForm} from '@app/trip/sale/expected-sale.form';
+import {TableElement} from '@e-is/ngx-material-table';
 
 const moment = momentImported;
 
@@ -65,6 +66,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   showCatchTab = false;
   showSaleTab = false;
   showExpenseTab = false;
+  mobile = false;
 
   // List of trip's metier, used to populate operation group's metier combobox
   $metiers = new BehaviorSubject<ReferentialRef[]>(null);
@@ -93,6 +95,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
+    protected platform: PlatformService,
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
@@ -104,9 +107,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       dataService,
       {
         pathIdAttribute: 'tripId',
-        tabCount: 4
+        tabCount: 5
       });
 
+    this.mobile = platform.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -163,7 +167,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       }
 
       // Update expenses tab group index
-      if (this.expenseForm && tabIndex === 3) {
+      if (this.expenseForm && tabIndex === 4) {
         this.expenseForm.selectedTabIndex = subTabIndex;
         this.expenseForm.realignInkBar();
       }
@@ -183,7 +187,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Force sub-tabgroup realign
     if (changed) {
       if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
-      if (this.expenseForm && this.selectedTabIndex === 3) this.expenseForm.realignInkBar();
+      if (this.expenseForm && this.selectedTabIndex === 4) this.expenseForm.realignInkBar();
       this.markForCheck();
     }
     return changed;
@@ -369,8 +373,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       const gear = (data.gears || []).find(gear => gear.id === operationGroup.physicalGearId)
       if (gear) {
         operationGroup.measurementValues = {
-          ...operationGroup.measurementValues,
-          ...gear.measurementValues
+          ...gear.measurementValues,
+          ...operationGroup.measurementValues
         };
       }
 

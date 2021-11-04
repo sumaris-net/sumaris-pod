@@ -1,10 +1,12 @@
 import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Packet} from '../services/model/packet.model';
+import {IWithPacketsEntity, Packet} from '../services/model/packet.model';
 import {ModalController} from '@ionic/angular';
-import {Subject, Subscription} from 'rxjs';
+import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {PacketForm} from './packet.form';
-import {AppFormUtils} from '@sumaris-net/ngx-components';
+import {AppFormUtils, isNil} from '@sumaris-net/ngx-components';
 import {TranslateService} from '@ngx-translate/core';
+import {OperationGroup} from '@app/trip/services/model/trip.model';
+import {Product} from '@app/trip/services/model/product.model';
 
 @Component({
   selector: 'app-packet-modal',
@@ -18,7 +20,14 @@ export class PacketModal implements OnInit, OnDestroy {
 
   @ViewChild('packetForm', {static: true}) packetForm: PacketForm;
 
-  @Input() packet: Packet;
+  @Input() data: Packet;
+  @Input() mobile: boolean;
+  @Input() isNew: boolean;
+  @Input() parents: IWithPacketsEntity<any, any>[];
+  @Input() parentAttributes: string[];
+
+
+  @Input() onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
 
   get disabled() {
     return this.packetForm.disabled;
@@ -42,16 +51,20 @@ export class PacketModal implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.enable();
-    this.updateTitle();
-    setTimeout(() => this.packetForm.setValue(this.packet))
+    this.computeTitle(this.data);
+    setTimeout(() => this.packetForm.setValue(this.data))
   }
 
-  protected async updateTitle() {
-    const title = await this.translate.get('PACKET.COMPOSITION.TITLE', {rankOrder: this.packet.rankOrder}).toPromise();
-    this.$title.next(title);
+  protected async computeTitle(data?: Packet) {
+    data = data || this.data;
+    if (this.isNew) {
+      this.$title.next(await this.translate.get('PACKET.COMPOSITION.NEW.TITLE').toPromise());
+    } else {
+      this.$title.next(await this.translate.get('PACKET.COMPOSITION.TITLE', {rankOrder: data.rankOrder}).toPromise());
+    }
   }
 
-  async onSave(event: any): Promise<any> {
+  async onSave(event: any, role?: string): Promise<any> {
 
     // Avoid multiple call
     if (this.disabled) return;
@@ -68,12 +81,22 @@ export class PacketModal implements OnInit, OnDestroy {
     try {
       const value = this.packetForm.value;
       this.disable();
-      await this.viewCtrl.dismiss(value);
+      await this.viewCtrl.dismiss(value, role);
       this.packetForm.error = null;
     } catch (err) {
       this.packetForm.error = err && err.message || err;
       this.enable();
       this.loading = false;
+    }
+  }
+
+  async delete(event?: UIEvent) {
+    if (!this.onDelete) return; // Skip
+    const result = await this.onDelete(event, this.data as Packet);
+    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
+
+    if (result) {
+      await this.viewCtrl.dismiss();
     }
   }
 

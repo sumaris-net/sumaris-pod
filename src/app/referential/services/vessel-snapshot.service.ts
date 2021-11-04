@@ -80,7 +80,7 @@ const LoadQueries = {
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.location}`,
+  ${ReferentialFragments.referential}`,
 
   // Load all with total
   loadAllWithTotal: gql`query VesselSnapshotsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){

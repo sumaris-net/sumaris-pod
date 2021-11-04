@@ -40,7 +40,7 @@ export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
 
   buildFilter(): FilterFn<Product>[] {
     return [
-      (p) => p.parent && this.parent.equals(p.parent)
+      (p) => (!this.parent) || (p.parent && this.parent && this.parent.equals(p.parent))
     ];
   }
 
@@ -175,7 +175,7 @@ export class ProductUtils {
 
   static isSampleOfProduct(product: Product, sample: Sample): boolean {
     return product && sample
-      && product.operationId === sample.operationId
+      && ((product.operationId === sample.operationId) || (product.parent && product.parent.id === sample.operationId))
       && product.taxonGroup && sample.taxonGroup
       && ReferentialUtils.equals(product.taxonGroup, sample.taxonGroup);
   }

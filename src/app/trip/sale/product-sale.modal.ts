@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import {AlertController, ModalController} from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
-import { AppFormUtils, referentialToString } from '@sumaris-net/ngx-components';
+import {Alerts, AppFormUtils, isNil, referentialToString} from '@sumaris-net/ngx-components';
 import { ProductSaleForm } from './product-sale.form';
 import { Product } from '../services/model/product.model';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -37,6 +37,7 @@ export class ProductSaleModal implements OnInit, OnDestroy {
 
   constructor(
     protected viewCtrl: ModalController,
+    protected alertCtrl: AlertController,
     protected translate: TranslateService
   ) {
 

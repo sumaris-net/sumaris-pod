@@ -145,4 +145,8 @@ export class SamplesModal implements OnInit {
     this.cd.markForCheck();
   }
 
+  onNewFabButtonClick(event: UIEvent){
+    this.table.addRow(event);
+  }
+
 }

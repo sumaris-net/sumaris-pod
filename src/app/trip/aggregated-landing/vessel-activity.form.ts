@@ -1,19 +1,19 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit } from '@angular/core';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
-import { FormArray, FormBuilder } from '@angular/forms';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { ModalController } from '@ionic/angular';
-import { FormArrayHelper, LocalSettingsService, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
-import { AggregatedLandingService } from '../services/aggregated-landing.service';
-import { VesselActivity } from '../services/model/aggregated-landing.model';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { VesselActivityValidatorService } from '../services/validator/vessel-activity.validator';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit} from '@angular/core';
+import {DateAdapter} from '@angular/material/core';
+import {Moment} from 'moment';
+import {FormArray, FormBuilder} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {ModalController} from '@ionic/angular';
+import {FormArrayHelper, LocalSettingsService, NetworkService, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {AggregatedLandingService} from '../services/aggregated-landing.service';
+import {VesselActivity} from '../services/model/aggregated-landing.model';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {VesselActivityValidatorService} from '../services/validator/vessel-activity.validator';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {MetierFilter} from '@app/referential/services/filter/metier.filter';
 
 @Component({
   selector: 'app-vessel-activity-form',
@@ -72,8 +72,6 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
       columnSizes: metierAttributes.map(a => a === 'label' ? 3 : undefined/*auto*/),
       mobile: this.mobile
     });
-    this.initMetiersHelper();
-
   }
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
@@ -81,6 +79,11 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
 
     // Make sure to have (at least) one metier
     data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
+
+    if (!this.metiersHelper) {
+      this.initMetiersHelper();
+    }
+
     // Resize metiers array
     this.metiersHelper.resize(Math.max(1, data.metiers.length));
 

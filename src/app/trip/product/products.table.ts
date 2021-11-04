@@ -1,18 +1,21 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
-import { ProductValidatorService } from '../services/validator/product.validator';
-import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
-import { Platform } from '@ionic/angular';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BehaviorSubject } from 'rxjs';
-import { TableElement } from '@e-is/ngx-material-table';
-import { ProductSaleModal } from '../sale/product-sale.modal';
-import { SaleProductUtils } from '../services/model/sale-product.model';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { environment } from '@environments/environment';
-import { SamplesModal } from '../sample/samples.modal';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString} from '@sumaris-net/ngx-components';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {ProductValidatorService} from '../services/validator/product.validator';
+import {IWithProductsEntity, Product, ProductFilter} from '../services/model/product.model';
+import {Platform} from '@ionic/angular';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {BehaviorSubject} from 'rxjs';
+import {TableElement} from '@e-is/ngx-material-table';
+import {ProductSaleModal} from '../sale/product-sale.modal';
+import {SaleProductUtils} from '../services/model/sale-product.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {environment} from '@environments/environment';
+import {SamplesModal} from '../sample/samples.modal';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {OperationGroup} from '@app/trip/services/model/trip.model';
+import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
+import {ProductModal} from '@app/trip/product/product.modal';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -35,6 +38,9 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input() showToolbar = true;
+  @Input() useSticky = false;
 
   @Input()
   set showParent(value: boolean) {
@@ -88,12 +94,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS
       });
     this.i18nColumnPrefix = 'TRIP.PRODUCT.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
-    this.inlineEdition = true;
+    this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
 
@@ -106,8 +111,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.allowRowDetail = false;
 
     if (this.showParent && this.parentAttributes) {
       this.registerAutocompleteField('parent', {
@@ -171,7 +174,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
       this.markAsDirty();
     }
-
   }
 
   async openSampling(event: MouseEvent, row: TableElement<Product>) {
@@ -207,17 +209,109 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     if (data) {
       if (this.debug)
-        console.debug("[products-table] Modal result: ", data);
+        console.debug('[products-table] Modal result: ', data);
 
       // patch samples only
       row.validator.patchValue({samples: data}, {emitEvent: true});
       this.markAsDirty();
     }
-
   }
 
-  protected openRow(id: number, row: TableElement<Product>): Promise<boolean> {
-    return super.openRow(id, row);
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail || this.readOnly) return false;
+
+    const res = await this.openDetailModal();
+    if (res && res.data) {
+      const row = await this.addEntityToTable(res.data);
+      if (res.role === 'sampling') {
+        await this.openSampling(null, row);
+      } else if (res.role === 'sale') {
+        await this.openProductSale(null, row);
+      }
+    }
+    return true;
+  }
+
+
+  protected async openRow(id: number, row: TableElement<Product>): Promise<boolean> {
+    if (!this.allowRowDetail || this.readOnly) return false;
+
+    const data = this.toEntity(row, true);
+
+    const res = await this.openDetailModal(data);
+    if (res && res.data) {
+      await this.updateEntityToTable(res.data, row, {confirmCreate: false});
+    } else {
+      this.editedRow = null;
+    }
+
+    if (res && res.role) {
+      if (res.role === 'sampling') {
+        await this.openSampling(null, row);
+      } else if (res.role === 'sale') {
+        await this.openProductSale(null, row);
+      }
+    }
+    return true;
+  }
+
+  async openDetailModal(product?: Product): Promise<{ data: Product, role: string } | undefined> {
+    const isNew = !product && true;
+    if (isNew) {
+      product = new this.dataType();
+      await this.onNewEntity(product);
+
+      product.parent = this.filter && this.filter.parent || undefined;
+    }
+
+    this.markAsLoading();
+
+    const modal = await this.modalCtrl.create({
+      component: ProductModal,
+      componentProps: {
+        programLabel: this.programLabel,
+        acquisitionLevel: this.acquisitionLevel,
+        data: product,
+        parents: this.$parents && this.$parents.getValue() || null,
+        parentAttributes: this.parentAttributes,
+        disabled: this.disabled,
+        mobile: this.mobile,
+        isNew,
+        onDelete: (event, Product) => this.deleteProduct(event, Product)
+      },
+      cssClass: 'modal-large',
+      keyboardClose: true
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data, role} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug('[product-table] product modal result: ', data, role);
+    this.markAsLoaded();
+
+    if (data) {
+      return {data: data as Product, role};
+    } else if (role) {
+      return {data: undefined, role};
+    }
+
+    // Exit if empty
+    return undefined;
+  }
+
+  async deleteProduct(event: UIEvent, data: Product): Promise<boolean> {
+    const row = await this.findRowByProduct(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
   }
 
   /* -- protected methods -- */
@@ -234,22 +328,16 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     this.cd.markForCheck();
   }
 
-  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    if (this.platform.is('mobile')) {
-      // hide pmfms on mobile
-      return [];
-    }
-
-    return pmfms;
+  protected async findRowByProduct(product: Product): Promise<TableElement<Product>> {
+    return Product && (await this.dataSource.getRows()).find(r => product.equals(r.currentData));
   }
 
   private onStartEditProduct(row: TableElement<Product>) {
     if (row.currentData && !row.currentData.parent) {
       if (this.filter?.parent) {
-        row.validator.patchValue({ parent: this.filter.parent });
+        row.validator.patchValue({parent: this.filter.parent});
       } else if (this.$parents.value?.length === 1) {
-        row.validator.patchValue({ parent: this.$parents.value[0] });
+        row.validator.patchValue({parent: this.$parents.value[0]});
       }
     }
   }
