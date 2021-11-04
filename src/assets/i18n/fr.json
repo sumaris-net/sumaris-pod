@@ -1099,7 +1099,7 @@
     "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Détails",
     "TAB_HISTORY": "Historique",
-    "FEATURES": {
+    "VESSEL_FEATURES": {
       "START_DATE": "Début validité",
       "END_DATE": "Fin validité",
       "NAME": "Nom",
@@ -1111,7 +1111,7 @@
       "LENGTH_OVER_ALL": "Longueur hors tout (m)",
       "COMMENTS": "Commentaires"
     },
-    "REGISTRATION": {
+    "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Début immatriculation",
       "END_DATE": "Fin immatriculation",
       "REGISTRATION_CODE": "Immatriculation",

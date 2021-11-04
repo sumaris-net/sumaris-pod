@@ -228,7 +228,7 @@
     <!-- Start date column -->
     <ng-container matColumnDef="vesselFeatures.startDate">
       <th mat-header-cell class="mat-cell-date-time" *matHeaderCellDef mat-sort-header>
-        <ion-label translate>VESSEL.FEATURES.START_DATE</ion-label>
+        <ion-label translate>VESSEL.VESSEL_FEATURES.START_DATE</ion-label>
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
         <ion-text>{{ row.currentData.vesselFeatures?.startDate|dateFormat }}</ion-text>
@@ -254,7 +254,7 @@
     <!-- End date column -->
     <ng-container matColumnDef="vesselFeatures.endDate">
       <th mat-header-cell class="mat-cell-date-time" *matHeaderCellDef mat-sort-header>
-        <ion-label translate>VESSEL.FEATURES.END_DATE</ion-label>
+        <ion-label translate>VESSEL.VESSEL_FEATURES.END_DATE</ion-label>
       </th>
       <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
         <ion-text>{{ row.currentData.vesselFeatures?.endDate|dateFormat }}</ion-text>
@@ -264,7 +264,7 @@
     <!-- Exterior marking column -->
     <ng-container matColumnDef="vesselFeatures.exteriorMarking">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>VESSEL.FEATURES.EXTERIOR_MARKING</ion-label>
+        <ion-label translate>VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.vesselFeatures?.exteriorMarking}}</ion-text>
@@ -274,7 +274,7 @@
     <!-- Registration Code column -->
     <ng-container matColumnDef="vesselRegistrationPeriod.registrationCode">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>VESSEL.REGISTRATION.REGISTRATION_CODE</ion-label>
+        <ion-label translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.vesselRegistrationPeriod?.registrationCode}}</ion-text>
@@ -284,7 +284,7 @@
     <!-- Name column -->
     <ng-container matColumnDef="vesselFeatures.name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>VESSEL.FEATURES.NAME</ion-label>
+        <ion-label translate>VESSEL.VESSEL_FEATURES.NAME</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.vesselFeatures?.name}}</ion-text>
@@ -304,7 +304,7 @@
     <!-- base port location -->
     <ng-container matColumnDef="vesselFeatures.basePortLocation">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>VESSEL.FEATURES.BASE_PORT_LOCATION</ion-label>
+        <ion-label translate>VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <ion-text>{{row.currentData.vesselFeatures?.basePortLocation | referentialToString: autocompleteFields.basePortLocation.attributes }}</ion-text>

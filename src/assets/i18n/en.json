@@ -1082,7 +1082,7 @@
     "COMMENTS": "Comments",
     "TAB_GENERAL": "General information",
     "TAB_HISTORY": "History",
-    "FEATURES": {
+    "VESSEL_FEATURES": {
       "START_DATE": "Validity start date",
       "END_DATE": "Validity end date",
       "NAME": "Name",
@@ -1094,7 +1094,7 @@
       "LENGTH_OVER_ALL": "Length over all (m)",
       "COMMENTS": "Comments"
     },
-    "REGISTRATION": {
+    "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Registration start date",
       "END_DATE": "Registration end date",
       "REGISTRATION_CODE": "Registration Code",
