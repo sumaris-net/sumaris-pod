@@ -274,9 +274,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     });
     const strategy = firstArrayValue(data);
     if (strategy && strategy.effortByQuarter) {
-      const effortByQuarter = strategy.effortByQuarter[date.quarter()];
+      const effortByQuarter = strategy.effortByQuarter[date?.quarter()];
       // Check same year
-      if (effortByQuarter && effortByQuarter.startDate.year() === date.year()) {
+      if (effortByQuarter && effortByQuarter.startDate.year() === date?.year()) {
         return effortByQuarter;
       }
     }
