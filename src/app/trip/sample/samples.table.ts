@@ -36,7 +36,7 @@ import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel } from '@app
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils, UnitConversion } from '@app/referential/services/model/pmfm.model';
+import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmUtils, UnitConversion} from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
 import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
@@ -659,10 +659,24 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             if (PmfmUtils.isWeight(pmfm)) {
               const originalUnitLabel = pmfm.unitLabel || UnitLabel.KG;
               if (originalUnitLabel !== this.weightDisplayedUnit) {
-                pmfm.unitLabel = this.weightDisplayedUnit;
-                pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
-                pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-                pmfm.alreadyConverted = false;
+                if (pmfm instanceof DenormalizedPmfmStrategy)
+                {
+                  pmfm.unitLabel = this.weightDisplayedUnit;
+                  pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
+                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+                  pmfm.alreadyConverted = false;
+                }
+                else if (pmfm instanceof Pmfm)
+                {
+                  if (pmfm.unit)
+                  {
+                    pmfm.unit.label = this.weightDisplayedUnit;
+                    pmfm.unit.name = this.weightDisplayedUnit; // To upgrade with weightDisplayed (not computed yet)
+                  }
+                  pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
+                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+                  pmfm.alreadyConverted = false;
+                }
               }
             }
           }
