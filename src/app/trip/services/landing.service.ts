@@ -926,8 +926,11 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
-        // Set the landing id (required by equals function)
-        target.landingId = savedLanding.id;
+        // Set the landing id (required by equals function) => Obsolete : there is no more direct link between sample and landing
+        //target.landingId = savedLanding.id;
+        // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing / #IMAGINE-569
+        // Set the operation id (required by equals function)
+        target.operationId = savedLanding.samples[0]?.operationId;
 
         const source = sources.find(json => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
