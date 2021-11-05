@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
+  EntitiesServiceWatchOptions,
   EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
@@ -208,12 +209,14 @@ export class VesselService
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param opts
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: VesselFilter): Observable<LoadResult<Vessel>> {
+           filter?: VesselFilter,
+           opts?: EntitiesServiceWatchOptions & { query?: any }): Observable<LoadResult<Vessel>> {
 
     // Load offline
     const offline = this.network.offline || filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC';
@@ -221,7 +224,7 @@ export class VesselService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
     }
 
-    return super.watchAll(offset, size,  sortBy || 'vesselFeatures.exteriorMarking', sortDirection, filter);
+    return super.watchAll(offset, size,  sortBy || 'vesselFeatures.exteriorMarking', sortDirection, filter, opts);
   }
 
   watchAllLocally(offset: number,
@@ -230,22 +233,13 @@ export class VesselService
                  sortDirection?: SortDirection,
                  filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
 
-    const vesselSnapshotFilter: Partial<VesselSnapshotFilter> = {
-      date: filter && filter.date  || undefined,
-      vesselId: filter && filter.vesselId || undefined,
-      statusId: filter && filter.statusId || undefined,
-      statusIds: filter && filter.statusIds || undefined,
-      registrationLocation: filter && filter.registrationLocation || undefined,
-      basePortLocation: filter && filter.basePortLocation || undefined,
-      vesselType: filter && filter.vesselType || undefined
-    }
-
-    if (this._debug) console.debug("[vessel-service] Loading local vessels :");
+    // Adapt filter
+    const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
     return  this.vesselSnapshotService.watchAllLocally(offset, size, sortBy.substr(sortBy.lastIndexOf('.') + 1), sortDirection, vesselSnapshotFilter)
       .pipe(
       map(({data, total}) => {
-        const entities = (data || []).map(Vessel.fromVesselSnapshot);
+        const entities = (data || []).map(VesselSnapshot.toVessel);
         return {data: entities, total};
       }));
   }

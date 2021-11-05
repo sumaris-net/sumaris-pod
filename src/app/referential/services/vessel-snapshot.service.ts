@@ -1,6 +1,6 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
-import {ErrorCodes} from './errors';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { ErrorCodes } from './errors';
 import {
   BaseGraphqlService,
   ConfigService,
@@ -17,17 +17,17 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
-import {ReferentialFragments} from './referential.fragments';
-import {BehaviorSubject, merge, Observable} from 'rxjs';
-import {VesselSnapshot} from './model/vessel-snapshot.model';
-import {SortDirection} from '@angular/material/sort';
-import {environment} from '@environments/environment';
-import {VesselSnapshotFilter} from './filter/vessel.filter';
-import {ProgramLabel} from '@app/referential/services/model/model.enum';
-import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {filter, map} from 'rxjs/operators';
+import { ReferentialFragments } from './referential.fragments';
+import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { VesselSnapshot } from './model/vessel-snapshot.model';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '@environments/environment';
+import { VesselSnapshotFilter } from './filter/vessel.filter';
+import { ProgramLabel } from '@app/referential/services/model/model.enum';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { filter, map } from 'rxjs/operators';
 
 
 export const VesselSnapshotFragments = {
