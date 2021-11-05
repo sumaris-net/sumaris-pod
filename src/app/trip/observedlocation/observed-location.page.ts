@@ -17,7 +17,7 @@ import {
   isNotNil,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, StatusIds,
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -36,6 +36,7 @@ import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
+import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 
 const moment = momentImported;
 
@@ -243,7 +244,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowMultiple: false,
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
-        landingFilter
+        landingFilter,
+        vesselFilter: <VesselFilter>{
+          statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+          onlyWithRegistration: true
+        }
       },
       keyboardClose: true,
       cssClass: 'modal-large'

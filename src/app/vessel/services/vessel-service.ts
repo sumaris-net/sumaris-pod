@@ -220,7 +220,7 @@ export class VesselService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
     }
 
-    return super.watchAll(offset, size,  sortBy || 'features.exteriorMarking', sortDirection, filter);
+    return super.watchAll(offset, size,  sortBy || 'vesselFeatures.exteriorMarking', sortDirection, filter);
   }
 
   watchAllLocally(offset: number,
@@ -234,7 +234,7 @@ export class VesselService
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || 'features.exteriorMarking',
+      sortBy: sortBy || 'vesselFeatures.exteriorMarking',
       sortDirection: sortDirection || 'asc',
       filter: filter?.asFilterFn()
     };

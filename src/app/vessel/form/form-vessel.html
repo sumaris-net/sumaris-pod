@@ -13,6 +13,7 @@
         <mat-form-field>
           <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
                       formControlName="statusId"
+                      (selectionChange)="markAsDirty()"
                       required>
             <mat-select-trigger>
               <span *ngIf="form.controls.statusId.value &gt;= 0">{{ statusById[form.controls.statusId.value]?.label | translate}}</span>
