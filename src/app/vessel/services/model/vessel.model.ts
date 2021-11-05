@@ -16,11 +16,37 @@ import {
 } from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {
 
   static fromObject: (source: any, opts?: any) => Vessel;
+
+  static fromVesselSnapshot(source: Partial<VesselSnapshot >): Vessel {
+    if (!source) return undefined;
+    const target = new Vessel();
+    target.fromObject({
+      id: source.id,
+      vesselType: source.vesselType,
+      statusId : source.vesselStatusId,
+      vesselFeatures : {
+        name: source.name,
+        startDate: source.startDate,
+        endDate: source.endDate,
+        exteriorMarking: source.exteriorMarking,
+        basePortLocation: source.basePortLocation,
+      },
+      vesselRegistrationPeriod: {
+        registrationId: source.id,
+        registrationCode: source.registrationCode,
+        registrationStartDate: source.startDate,
+        registrationEndDate: source.endDate,
+        registrationLocation: source.registrationLocation
+      }
+    });
+    return target;
+  }
 
   vesselType: ReferentialRef = null;
   statusId: number = null;

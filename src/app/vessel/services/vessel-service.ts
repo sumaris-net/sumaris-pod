@@ -15,7 +15,7 @@ import {
   isNotNil,
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
-  Person,
+  Person, ReferentialRef,
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { map } from 'rxjs/operators';
@@ -32,6 +32,11 @@ import { VESSEL_FEATURE_NAME } from './config/vessel.config';
 import { VesselFilter } from './filter/vessel.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { environment } from '@environments/environment';
+import {DomEvent} from 'leaflet';
+import off = DomEvent.off;
+import {Moment} from 'moment';
+import {SynchronizationStatus} from '@app/data/services/model/model.utils';
+import {VesselSnapshotFilter} from '@app/referential/services/filter/vessel.filter';
 
 
 export const VesselFragments = {
@@ -229,24 +234,24 @@ export class VesselService
                  sortDirection?: SortDirection,
                  filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
 
-    filter = this.asFilter(filter);
+    const vesselSnapshotFilter: Partial<VesselSnapshotFilter> = {
+      date: filter && filter.date  || undefined,
+      vesselId: filter && filter.vesselId || undefined,
+      statusId: filter && filter.statusId || undefined,
+      statusIds: filter && filter.statusIds || undefined,
+      registrationLocation: filter && filter.registrationLocation || undefined,
+      basePortLocation: filter && filter.basePortLocation || undefined,
+      vesselType: filter && filter.vesselType || undefined
+    }
 
-    const variables: any = {
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'features.exteriorMarking',
-      sortDirection: sortDirection || 'asc',
-      filter: filter?.asFilterFn()
-    };
+    if (this._debug) console.debug("[vessel-service] Loading local vessels :");
 
-    if (this._debug) console.debug("[vessel-service] Loading local vessels using options:", variables);
-
-    return this.entities.watchAll<Vessel>(Vessel.TYPENAME, variables)
+    return  this.vesselSnapshotService.watchAllLocally(offset, size, sortBy.substr(sortBy.lastIndexOf('.') + 1), sortDirection, vesselSnapshotFilter)
       .pipe(
-        map(({data, total}) => {
-          const entities = (data || []).map(Vessel.fromObject);
-          return {data: entities, total};
-        }));
+      map(({data, total}) => {
+        const entities = (data || []).map(Vessel.fromVesselSnapshot);
+        return {data: entities, total};
+      }));
   }
 
   /**
