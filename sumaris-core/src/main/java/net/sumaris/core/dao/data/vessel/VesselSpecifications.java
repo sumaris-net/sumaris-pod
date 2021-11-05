@@ -99,45 +99,43 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
         };
     }
 
-    default Specification<Vessel> betweenRegistrationDate(Date startDate, Date endDate) {
+    default Specification<Vessel> betweenRegistrationDate(Date startDate, Date endDate, final boolean onlyWithRegistration) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
-            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
+            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS,
+                onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
 
             // Start + end date
+            Predicate vrpDatesPredicate;
             if (startDate != null && endDate != null) {
-                return cb.or(
-                    // without VRP
-                    cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // or NOT outside the start/end period
-                    cb.not(
-                        cb.or(
-                            cb.lessThan(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate),
-                            cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
-                        )
+                // NOT outside the start/end period
+                vrpDatesPredicate = cb.not(
+                    cb.or(
+                        cb.lessThan(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate),
+                        cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
             }
 
             // Start date only
             else if (startDate != null) {
-                return cb.or(
-                    // without VRP
-                    cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // VRP.end_date >= filter.startDate
-                    cb.greaterThanOrEqualTo(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate)
-                );
+                // VRP.end_date >= filter.startDate
+                vrpDatesPredicate = cb.greaterThanOrEqualTo(cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate);
             }
 
             // End date only
             else {
-                return cb.or(
-                    // without VRP
-                    cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // VRP.start_date <=> filter.endDate
-                    cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
-                );
+                // VRP.start_date <=> filter.endDate
+                vrpDatesPredicate = cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate);
             }
+
+            if (onlyWithRegistration || vrp.getJoinType() == JoinType.INNER) return vrpDatesPredicate;
+
+            // Allow without VRP (left outer join)
+            return cb.or(
+                cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+                vrpDatesPredicate
+            );
         };
     }
 
@@ -157,10 +155,12 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, REGISTRATION_LOCATION_ID_PARAM);
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
 
+            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.INNER);
+
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK
                 cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION),
-                    Daos.composePath(root, StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION))),
+                    Daos.composePath(vrp, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)),
 
                 // AND LH.PARENT_LOCATION_FK = :registrationLocationId
                 cb.equal(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)), param)
