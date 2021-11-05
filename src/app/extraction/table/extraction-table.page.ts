@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import {arrayGroupBy, isNil, isNotNil, propertyComparator, sleep} from "@sumaris-net/ngx-components";
+import { arrayGroupBy, isNil, isNotNil, LoadResult, propertyComparator, sleep } from '@sumaris-net/ngx-components';
 import {TableDataSource} from "@e-is/ngx-material-table";
 import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction-type.model";
 import {TableSelectColumnsComponent}  from "@sumaris-net/ngx-components";
@@ -315,7 +315,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       }
 
       // Save extraction
-      const savedEntity = await this.service.save(entity, filter);
+      const savedEntity = await this.service.save(entity, {filter});
 
       // Wait for types cache updates
       await sleep(1000);
@@ -409,9 +409,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     console.debug(`[extraction-table] Opening product {${type.label}`);
 
-    setTimeout(() => {
+    return setTimeout(() => {
       // open the aggregation type
-      this.router.navigateByUrl(`/extraction/product/${type.id}`);
+      return this.router.navigate(['extraction', 'product', type.id]);
     }, 100);
   }
 
@@ -427,16 +427,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   /* -- protected method -- */
 
-  protected watchTypes(): Observable<ExtractionType[]> {
-    return this.service.watchAll()
-      .pipe(
-        map(types => {
-          // Compute name, if need
-          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
-          // Sort by name
-          return types.sort(propertyComparator('name'));
-        })
-      );
+  protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
+    return this.service.watchAll(0, 1000);
   }
 
   async loadGeoData() {

@@ -17,7 +17,7 @@ import {
   isNotNil,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, StatusIds,
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -36,6 +36,7 @@ import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
+import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 
 const moment = momentImported;
 
@@ -74,10 +75,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showRecorder = true;
   landingEditor: LandingEditor = undefined;
 
-  get table(): AppTable<any> {
+  get table(): AppTable<any> & { setParent(value: ObservedLocation | undefined) } {
     return this.landingsTable || this.aggregatedLandingsTable;
   }
-
 
   constructor(
     injector: Injector,
@@ -127,10 +127,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   updateTabsState(data: ObservedLocation) {
     // Enable landings tab
-    this.showLandingTab = this.showLandingTab || (isNotNil(data.id) || this.isOnFieldMode);
+    this.showLandingTab = this.showLandingTab || (!this.isNewData || this.isOnFieldMode);
 
     // Move to second tab
-    if (!this.isNewData && !this.isOnFieldMode) {
+    if (this.showLandingTab && !this.isNewData && !this.isOnFieldMode && this.selectedTabIndex === 0) {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
     }
@@ -174,7 +174,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       }
     }
   }
-
 
   async onNewAggregatedLanding(event?: any) {
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
@@ -245,7 +244,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowMultiple: false,
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
-        landingFilter
+        landingFilter,
+        vesselFilter: <VesselFilter>{
+          statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+          onlyWithRegistration: true
+        }
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -328,12 +331,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-
-      this.landingsTable.parent = this.data;
     } else if (this.aggregatedLandingsTable) {
       this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       this.aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
-      this.aggregatedLandingsTable.parent = this.data;
     }
 
     this.$ready.next(true);
@@ -403,12 +403,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Set data to form
     this.observedLocationForm.value = data;
 
-    console.info('[observed-location] Setting landing', data);
+    console.info('[observed-location] Setting data', data);
 
     const isNew = isNil(data.id);
     if (!isNew) {
       // Propagate program to form
       this.$programLabel.next(data.program.label);
+    }
+    else {
+      // Propage to table parent
+      this.table?.setParent(data)
     }
   }
 

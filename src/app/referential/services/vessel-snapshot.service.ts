@@ -1,6 +1,6 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
-import {ErrorCodes} from './errors';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { ErrorCodes } from './errors';
 import {
   BaseGraphqlService,
   ConfigService,
@@ -17,17 +17,17 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
-import {ReferentialFragments} from './referential.fragments';
-import {BehaviorSubject, merge, Observable} from 'rxjs';
-import {VesselSnapshot} from './model/vessel-snapshot.model';
-import {SortDirection} from '@angular/material/sort';
-import {environment} from '@environments/environment';
-import {VesselSnapshotFilter} from './filter/vessel.filter';
-import {ProgramLabel} from '@app/referential/services/model/model.enum';
-import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {filter} from 'rxjs/operators';
+import { ReferentialFragments } from './referential.fragments';
+import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { VesselSnapshot } from './model/vessel-snapshot.model';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '@environments/environment';
+import { VesselSnapshotFilter } from './filter/vessel.filter';
+import { ProgramLabel } from '@app/referential/services/model/model.enum';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { filter, map } from 'rxjs/operators';
 
 
 export const VesselSnapshotFragments = {
@@ -48,6 +48,8 @@ export const VesselSnapshotFragments = {
     exteriorMarking
     registrationCode
     intRegistrationCode
+    startDate
+    endDate
     basePortLocation {
       ...LocationFragment
     }
@@ -333,6 +335,32 @@ export class VesselSnapshotService
     return res && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(res) : res as VesselSnapshot) || null;
   }
 
+  watchAllLocally(offset: number,
+                  size: number,
+                  sortBy?: string,
+                  sortDirection?: SortDirection,
+                  filter?: Partial<VesselSnapshotFilter>): Observable<LoadResult<VesselSnapshot>> {
+
+    filter = this.asFilter(filter);
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'exteriorMarking',
+      sortDirection: sortDirection || 'asc',
+      filter: filter?.asFilterFn()
+    };
+
+    if (this._debug) console.debug("[vessel-snapshot-service] Loading local vessel snapshots using options:", variables);
+
+    return this.entities.watchAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables)
+      .pipe(
+        map(({data, total}) => {
+          const entities = (data || []).map(VesselSnapshot.fromObject);
+          return {data: entities, total};
+        }));
+  }
+
   async executeImport(progression: BehaviorSubject<number>,
                       opts?: {
                         maxProgression?: number;
@@ -352,6 +380,7 @@ export class VesselSnapshotService
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
           fetchPolicy: 'network-only',
+          withBasePortLocation: true,
           withTotal: (offset === 0), // Compute total only once
           toEntity: false
         }),

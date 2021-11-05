@@ -15,11 +15,11 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNumber,
-  isNumberRange,
+  isNumberRange, LoadResult,
   LocalSettingsService,
-  PlatformService,
+  PlatformService, propertyComparator,
   sleep,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import {ExtractionService} from '../services/extraction.service';
 import {BehaviorSubject, Observable, Subject, Subscription, timer} from 'rxjs';
@@ -194,7 +194,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   columnNames = {}; // cache for i18n column name
   productFilter: Partial<ExtractionProductFilter>;
   $title = new BehaviorSubject<string>(undefined);
-  $sheetNames = new BehaviorSubject<String[]>(undefined);
+  $sheetNames = new BehaviorSubject<string[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $spatialColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -274,6 +274,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAllAsTouched(opts);
     AppFormUtils.markAllAsTouched(this.form, opts);
+  }
+
+  get sheetNames(): string[] {
+    if (!this.$sheetNames.value) this.updateSheetNames();
+    return this.$sheetNames.value;
   }
 
   constructor(
@@ -390,18 +395,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     });
   }
 
-  protected watchTypes(): Observable<ExtractionProduct[]> {
-    return this.aggregationService.watchAll(this.productFilter)
-      .pipe(
-        map(types => {
-          // Compute name, if need
-          types.forEach(t => t.name = t.name || this.getI18nTypeName(t));
-          // Sort by name
-          types.sort((t1, t2) => t1.name > t2.name ? 1 : (t1.name < t2.name ? -1 : 0) );
-
-          return types;
-        })
-      );
+  protected watchAllTypes(): Observable<LoadResult<ExtractionProduct>> {
+    return this.aggregationService.watchAll(this.productFilter);
   }
 
   protected fromObject(json: any): ExtractionProduct {
@@ -458,6 +453,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     skipLocationChange?: boolean;
     stopAnimation?: boolean;
   }) {
+    // Make sure sheetName exists in strata. If not, select the default strata sheetname
+    const sheetNames = this.sheetNames || [sheetName];
+    sheetName = sheetNames.find(s => s === sheetName) || sheetNames[0];
+
     const changed = this.sheetName !== sheetName;
 
     // Reset min/max of the custom legend (if exists)
@@ -580,7 +579,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     // Filter sheet name on existing stratum
     let sheetNames = this.type && this.type.sheetNames || null;
     if (sheetNames && this.type.stratum) {
-      sheetNames = this.type.stratum.map(s => s.sheetName)
+      sheetNames = this.type.stratum
+        .slice() // Copy before sorting
+        .sort(strata => strata.isDefault ? -1 : 1)
+        .map(s => s.sheetName)
         .filter(sheetName => isNotNil(sheetName) && sheetNames.includes(sheetName));
     }
     this.$sheetNames.next(sheetNames);
@@ -957,7 +959,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     if (matches) {
       title = matches[1];
       let unit = matches[2];
-      unit = unit || (strata.aggColumnName.endsWith('_weight') ? 'kg' : undefined);
+      unit = unit || (strata.aggColumnName.endsWith('_weight') ? UnitLabel.KG : undefined);
       if (unit) {
         // Append unit to value
         if (value) value += ` ${unit}`;
@@ -967,8 +969,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         if (UnitLabelPatterns.DECIMAL_HOURS.test(unit)) {
           otherValue = this.durationPipe.transform(parseFloat(aggValue), 'hours');
         }
+        // Convert KG to ton
         else if (unit === UnitLabel.KG) {
-          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' t';
+          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TOM;
         }
       }
     }

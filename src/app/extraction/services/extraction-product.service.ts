@@ -140,6 +140,17 @@ const SaveAggregation: any = gql`
   ${AggregationFragments.aggregationType}
 `;
 
+
+const UpdateProduct: any = gql`
+  mutation UpdateProduct($id: Int!){
+    data: updateProduct(id: $id){
+      ...AggregationTypeFragment
+      documentation
+    }
+  }
+  ${AggregationFragments.aggregationType}
+`;
+
 const DeleteAggregations: any = gql`
   mutation DeleteAggregations($ids:[Int]){
     deleteAggregations(ids: $ids)
@@ -147,6 +158,7 @@ const DeleteAggregations: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
+// TODO: use BaseEntityService
 export class ExtractionProductService extends BaseGraphqlService {
 
   constructor(
@@ -157,19 +169,13 @@ export class ExtractionProductService extends BaseGraphqlService {
     super(graphql, environment);
   }
 
-  /**
-   * Load aggregated types
-   */
-  async loadAll(): Promise<ExtractionProduct[]> {
-    return await firstNotNilPromise(this.watchAll());
-  }
 
   /**
    * Watch products
    */
   watchAll(dataFilter?: Partial<ExtractionProductFilter>,
            options?: { fetchPolicy?: WatchQueryFetchPolicy }
-  ): Observable<ExtractionProduct[]> {
+  ): Observable<LoadResult<ExtractionProduct>> {
     if (this._debug) console.debug("[product-service] Loading products...");
 
     dataFilter = this.asFilter(dataFilter);
@@ -188,7 +194,13 @@ export class ExtractionProductService extends BaseGraphqlService {
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
-        map((data) => (data && data.data || []).map(ExtractionProduct.fromObject))
+        map((data) => {
+          const entities = (data && data.data || []).map(ExtractionProduct.fromObject);
+          return {
+            data: entities,
+            total: data.total || entities.length
+          }
+        })
       );
   }
 
@@ -410,6 +422,37 @@ export class ExtractionProductService extends BaseGraphqlService {
   async deleteAll(entities: ExtractionProduct[]): Promise<any> {
     await Promise.all((entities || [])
       .filter(t => t && isNotNil(t.id)).map(type => this.delete(type)));
+  }
+
+  /**
+   * Update data product (re-execute the extraction or the aggregation)
+   * @param entity
+   * @param filter
+   */
+  async updateProduct(id: number): Promise<ExtractionProduct> {
+    const now = Date.now();
+    if (this._debug) console.debug(`[product-service] Updating extraction product #{id}...`);
+
+    let savedEntity: ExtractionProduct;
+    await this.graphql.mutate<{ data: any }>({
+      mutation: UpdateProduct,
+      variables: { id },
+      error: {code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: "EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR"},
+      update: (cache, {data}) => {
+        savedEntity = data && data.data;
+        console.debug(`[product-service] Product updated in ${Date.now() - now}ms`, savedEntity);
+
+        // Convert into the extraction type
+        const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: false});
+        savedExtractionType.category = 'PRODUCT';
+        savedExtractionType.__typename = ExtractionType.TYPENAME;
+
+        // Update from cached queries
+        this.extractionService.updateCache(cache, savedExtractionType);
+      }
+    });
+
+    return ExtractionProduct.fromObject(savedEntity);
   }
 
   /* -- protected methods  -- */

@@ -3,7 +3,7 @@ import {Platform} from '@ionic/angular';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {InMemoryEntitiesService, isNil, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
 import {MetierService} from '@app/referential/services/metier.service';
@@ -32,7 +32,7 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
 })
 export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationFilter> implements OnInit, OnDestroy {
 
-  @Input() $metiers: BehaviorSubject<ReferentialRef[]>;
+  @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   referentialToString = referentialToString;
   displayAttributes: {
@@ -99,12 +99,10 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
-      items: this.$metiers,
+      items: this.metiers,
       attributes: metierAttributes,
-      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
-      suggestFn: (value: any, options?: any) => this.metierService.suggest(value, options)
+      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
-
   }
 
   async openDetailModal(operationGroup?: OperationGroup): Promise<OperationGroup | undefined> {
@@ -121,6 +119,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       componentProps: {
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
+        metiers: this.metiers,
         disabled: this.disabled,
         value: operationGroup,
         isNew,

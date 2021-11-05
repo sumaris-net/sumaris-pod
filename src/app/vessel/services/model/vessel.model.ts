@@ -1,4 +1,4 @@
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import {
   Department,
   Entity,
@@ -12,10 +12,10 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
-import {RootDataEntity} from '../../../data/services/model/root-data-entity.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { RootDataEntity } from '../../../data/services/model/root-data-entity.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {

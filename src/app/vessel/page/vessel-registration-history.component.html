@@ -22,7 +22,7 @@
     <!-- Start date column -->
     <ng-container matColumnDef="startDate">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION.START_DATE</span>
+        <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.startDate|dateFormat:{time:false} }}</ion-text>
@@ -32,7 +32,7 @@
     <!-- End date column -->
     <ng-container matColumnDef="endDate">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION.END_DATE</span>
+        <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.END_DATE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.endDate|dateFormat:{time:false} }}</ion-text>
@@ -42,7 +42,7 @@
     <!-- Registration code column -->
     <ng-container matColumnDef="registrationCode">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>VESSEL.REGISTRATION.REGISTRATION_CODE</span>
+        <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.registrationCode}}</ion-text>
@@ -52,7 +52,7 @@
     <!-- Registration location -->
     <ng-container matColumnDef="registrationLocation">
       <mat-header-cell *matHeaderCellDef>
-        <span translate>VESSEL.REGISTRATION.REGISTRATION_LOCATION</span>
+        <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         {{referentialToString(row.currentData.registrationLocation)}}

@@ -1099,7 +1099,7 @@
     "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Détails",
     "TAB_HISTORY": "Historique",
-    "FEATURES": {
+    "VESSEL_FEATURES": {
       "START_DATE": "Début validité",
       "END_DATE": "Fin validité",
       "NAME": "Nom",
@@ -1111,7 +1111,7 @@
       "LENGTH_OVER_ALL": "Longueur hors tout (m)",
       "COMMENTS": "Commentaires"
     },
-    "REGISTRATION": {
+    "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Début immatriculation",
       "END_DATE": "Fin immatriculation",
       "REGISTRATION_CODE": "Immatriculation",
@@ -1588,11 +1588,14 @@
         "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
+        "BTN_UPDATE": "Executer",
+        "BTN_UPDATE_HELP": "Executer",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
+        "FILTER_DOTS": "Filtrage des données sources :",
         "STRATUM_DOTS": "Couches géographiques :",
         "FORMAT_DOTS": "Documentation du format :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
-        "FORMAT_PLACEHOLDER": "Describe the output format...",
+        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
         "FORMAT_PREVIEW_DOTS": "Prévisualisation :",
         "PROCESSING_FREQUENCY": "Fréquence de mise à jour",
         "STRATA": {
@@ -1813,7 +1816,8 @@
       "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
       "LOAD_GEO_JSON_ERROR": "Erreur de chargement des données spatiales",
       "LOAD_TECH_ERROR": "Erreur de chargement des données du graphiques",
-      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes"
+      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes",
+      "UPDATE_PRODUCT_ERROR": "Erreur lors de l'execution de l'extraction"
     }
   },
   "NETWORK": {
@@ -1953,6 +1957,7 @@
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "SAVE_BEFORE_CLOSE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
+    "SAVE_BEFORE_CONTINUE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",

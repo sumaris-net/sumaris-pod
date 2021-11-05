@@ -13,6 +13,7 @@
         <mat-form-field>
           <mat-select [placeholder]="'REFERENTIAL.STATUS'|translate"
                       formControlName="statusId"
+                      (selectionChange)="markAsDirty()"
                       required>
             <mat-select-trigger>
               <span *ngIf="form.controls.statusId.value &gt;= 0">{{ statusById[form.controls.statusId.value]?.label | translate}}</span>
@@ -31,7 +32,7 @@
     <ion-row *ngIf="registrationForm; let registrationForm" [formGroup]="registrationForm">
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.REGISTRATION.REGISTRATION_CODE'|translate"
+          <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE'|translate"
                  formControlName="registrationCode"
                  autocomplete="off"
                  required>
@@ -40,7 +41,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'VESSEL.REGISTRATION.REGISTRATION_LOCATION'|translate"
+          [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION'|translate"
           formControlName="registrationLocation"
           [config]="autocompleteFields.registrationLocation"
           [required]="true">
@@ -48,7 +49,7 @@
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-field [placeholder]="'VESSEL.REGISTRATION.START_DATE'|translate"
+        <mat-date-field [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE'|translate"
                         formControlName="startDate"
                         [required]="true">
           <mat-error *ngIf="form.get('vesselRegistrationPeriod.startDate').hasError('dateIsAfter')">
@@ -62,14 +63,14 @@
     <ion-row *ngIf="featuresForm; let featuresForm" [formGroup]="featuresForm">
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'VESSEL.FEATURES.EXTERIOR_MARKING'|translate"
+          <input matInput [placeholder]="'VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING'|translate"
                  formControlName="exteriorMarking"
                  autocomplete="off" required>
           <mat-error *ngIf="featuresForm.controls.exteriorMarking.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
       <ion-col size="auto">
-        <mat-date-field [placeholder]="'VESSEL.FEATURES.START_DATE'|translate"
+        <mat-date-field [placeholder]="'VESSEL.VESSEL_FEATURES.START_DATE'|translate"
                         formControlName="startDate"
                         [required]="true">
           <mat-error *ngIf="featuresForm.controls.startDate.hasError('dateIsAfter')">
@@ -85,7 +86,7 @@
         <mat-form-field>
           <input matInput autocomplete="off"
                  formControlName="name"
-                 [placeholder]="'VESSEL.FEATURES.NAME'|translate"
+                 [placeholder]="'VESSEL.VESSEL_FEATURES.NAME'|translate"
                  required>
           <mat-error *ngIf="featuresForm.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
@@ -109,7 +110,7 @@
     <ion-row [formGroup]="form.controls.vesselFeatures">
       <ion-col>
         <mat-autocomplete-field
-          [placeholder]="'VESSEL.FEATURES.BASE_PORT_LOCATION'|translate"
+          [placeholder]="'VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION'|translate"
           formControlName="basePortLocation"
           [config]="autocompleteFields.basePortLocation"
           [required]="true">
@@ -123,7 +124,7 @@
       <!-- length over all -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input matInput type="number" step="0.1" min="0" autocomplete="off"  [placeholder]="'VESSEL.FEATURES.LENGTH_OVER_ALL'|translate"
+          <input matInput type="number" step="0.1" min="0" autocomplete="off"  [placeholder]="'VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL'|translate"
                  formControlName="lengthOverAll" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('pattern')">
@@ -136,7 +137,7 @@
       <!-- Administrative power -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'VESSEL.FEATURES.ADMINISTRATIVE_POWER'|translate"
+          <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER'|translate"
                  formControlName="administrativePower" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('pattern')">
@@ -149,7 +150,7 @@
       <!-- Gross tonnage (GT) -->
       <ion-col size="12" size-md="4">
         <mat-form-field>
-          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.FEATURES.GROSS_TONNAGE_GT'|translate"
+          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT'|translate"
                  formControlName="grossTonnageGt" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('pattern')">
@@ -162,7 +163,7 @@
       <!-- Gross tonnage (GRT)
       <ion-col size="12" size-md="4" hidden>
         <mat-form-field>
-          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.FEATURES.GROSS_TONNAGE_GRT'|translate"
+          <input type="number" step="0.1" min="0" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GRT'|translate"
                  formControlName="grossTonnageGrt" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGrt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGrt').hasError('pattern')">
@@ -178,7 +179,7 @@
     <ion-row [formGroup]="form.controls.vesselFeatures">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.FEATURES.COMMENTS'|translate"
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" [placeholder]="'VESSEL.VESSEL_FEATURES.COMMENTS'|translate"
             formControlName="comments">
           </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>

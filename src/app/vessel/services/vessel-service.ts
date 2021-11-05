@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
+  EntitiesServiceWatchOptions,
   EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
@@ -32,6 +33,7 @@ import { VESSEL_FEATURE_NAME } from './config/vessel.config';
 import { VesselFilter } from './filter/vessel.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { environment } from '@environments/environment';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 
 export const VesselFragments = {
@@ -207,12 +209,14 @@ export class VesselService
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param opts
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: VesselFilter): Observable<LoadResult<Vessel>> {
+           filter?: VesselFilter,
+           opts?: EntitiesServiceWatchOptions & { query?: any }): Observable<LoadResult<Vessel>> {
 
     // Load offline
     const offline = this.network.offline || filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC';
@@ -220,7 +224,7 @@ export class VesselService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
     }
 
-    return super.watchAll(offset, size,  sortBy || 'features.exteriorMarking', sortDirection, filter);
+    return super.watchAll(offset, size,  sortBy || 'vesselFeatures.exteriorMarking', sortDirection, filter, opts);
   }
 
   watchAllLocally(offset: number,
@@ -229,24 +233,15 @@ export class VesselService
                  sortDirection?: SortDirection,
                  filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
 
-    filter = this.asFilter(filter);
+    // Adapt filter
+    const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
-    const variables: any = {
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'features.exteriorMarking',
-      sortDirection: sortDirection || 'asc',
-      filter: filter?.asFilterFn()
-    };
-
-    if (this._debug) console.debug("[vessel-service] Loading local vessels using options:", variables);
-
-    return this.entities.watchAll<Vessel>(Vessel.TYPENAME, variables)
+    return  this.vesselSnapshotService.watchAllLocally(offset, size, sortBy.substr(sortBy.lastIndexOf('.') + 1), sortDirection, vesselSnapshotFilter)
       .pipe(
-        map(({data, total}) => {
-          const entities = (data || []).map(Vessel.fromObject);
-          return {data: entities, total};
-        }));
+      map(({data, total}) => {
+        const entities = (data || []).map(VesselSnapshot.toVessel);
+        return {data: entities, total};
+      }));
   }
 
   /**

@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Alerts, isNil, LocalSettingsService, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
+import {Alerts, isNil, LocalSettingsService, PlatformService, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subscription} from 'rxjs';
+import {BehaviorSubject, Observable, Subscription} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {environment} from '@environments/environment';
@@ -40,6 +40,8 @@ export class OperationGroupModal implements OnInit, OnDestroy {
   @Input() pmfms: IPmfm[];
 
   @Input() onDelete: (event: UIEvent, data: OperationGroup) => Promise<boolean>;
+
+  @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   @ViewChild('form', { static: true }) form: OperationGroupForm;
 

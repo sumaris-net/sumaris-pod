@@ -64,7 +64,9 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     private vesselRegistrationService: VesselRegistrationService,
     private dateAdapter: DateFormatPipe
   ) {
-    super(injector, Vessel, vesselService);
+    super(injector, Vessel, vesselService, {
+      tabCount: 2
+    });
     this.defaultBackHref = '/vessels';
     this.mobile = platform.mobile;
   }
