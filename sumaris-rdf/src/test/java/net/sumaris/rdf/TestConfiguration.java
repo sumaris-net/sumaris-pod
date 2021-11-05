@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @org.springframework.boot.test.context.TestConfiguration
 public abstract class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
-    public static final String MODULE_NAME = "sumaris-core-rdf";
+    public static final String MODULE_NAME = "sumaris-rdf";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
     public static final String CONFIG_FILE_PREFIX = "application";
     public static final String CONFIG_FILE_NAME = CONFIG_FILE_PREFIX + ".properties";

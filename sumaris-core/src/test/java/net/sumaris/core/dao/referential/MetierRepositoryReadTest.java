@@ -26,9 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -71,6 +73,7 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
         // With vessel and date
         {
             MetierFilterVO filter = new MetierFilterVO();
+            filter.setSearchJoin(TaxonGroup.class.getSimpleName());
             filter.setVesselId(1);
             filter.setStartDate(Dates.parseDate("2010-01-01", "yyyy-MM-dd"));
             filter.setEndDate(Dates.parseDate("2021-02-20", "yyyy-MM-dd"));

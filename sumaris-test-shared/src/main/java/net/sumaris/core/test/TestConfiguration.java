@@ -32,6 +32,7 @@ import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -40,8 +41,8 @@ import java.io.File;
  * @author peck7 on 17/12/2018.
  *
  */
-@org.springframework.boot.test.context.TestConfiguration()
 @Slf4j
+@org.springframework.boot.test.context.TestConfiguration()
 public abstract class TestConfiguration {
 
     public static SumarisConfiguration createConfiguration(@NonNull String configFileName,

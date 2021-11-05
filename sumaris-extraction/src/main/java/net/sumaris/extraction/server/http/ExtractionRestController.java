@@ -38,13 +38,11 @@ import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.server.security.IDownloadController;
@@ -124,14 +122,13 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         // User can read all: return all types
         if (extractionSecurityService.canReadAll()) {
-            return extractionService.findByFilter(null);
+            return extractionService.findAll();
         }
-
 
         ExtractionTypeFilterVO filter = new ExtractionTypeFilterVO();
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
-        return extractionService.findByFilter(filter);
+        return extractionService.findAll(filter, null);
     }
 
     @GetMapping(

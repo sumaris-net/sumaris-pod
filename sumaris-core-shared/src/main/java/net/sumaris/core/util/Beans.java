@@ -385,7 +385,7 @@ public class Beans {
 
     public static <T> Comparator<T> naturalComparator(final String sortAttribute, final SortDirection sortDirection) {
         if (sortAttribute == null) {
-            return naturalComparator("id", sortDirection);
+            return Comparator.comparingInt((value) -> getProperty(value, "id"));
         }
 
         final Comparator<String> propertyComparator = ComparatorUtils.naturalComparator();

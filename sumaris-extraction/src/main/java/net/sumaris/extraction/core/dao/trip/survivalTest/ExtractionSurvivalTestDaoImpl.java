@@ -22,8 +22,8 @@ package net.sumaris.extraction.core.dao.trip.survivalTest;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
@@ -31,7 +31,6 @@ import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecifica
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.extraction.core.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -46,9 +45,6 @@ import javax.persistence.PersistenceException;
 public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestContextVO, F extends ExtractionFilterVO>
         extends ExtractionRdbTripDaoImpl<C, F>
         implements SurvivalTestSpecification {
-
-    private static final String XML_QUERY_ST_PATH = "survivalTest/v%s/%s";
-
 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
@@ -133,8 +129,6 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("sortingDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_START_DATE_TIME.getId()));
         xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
 
-        setDbms(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -159,17 +153,14 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     }
 
     protected String getQueryFullName(C context, String queryName) {
-        Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getVersion());
 
-        String versionStr = VERSION_1_0.replaceAll("[.]", "_");
         switch (queryName) {
             case "injectionTripTable":
             case "injectionStationTable":
             case "injectionSpeciesLengthTable":
             case "createSurvivalTestTable":
             case "createReleaseTable":
-                return String.format(XML_QUERY_ST_PATH, versionStr, queryName);
+                return getQueryFullName(SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }
@@ -181,8 +172,6 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         XMLQuery xmlQuery = createXMLQuery(context, "createSurvivalTestTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
-
-        setDbms(xmlQuery);
 
         // aggregate insertion
         execute(xmlQuery);
@@ -213,8 +202,6 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         XMLQuery xmlQuery = createXMLQuery(context, "createReleaseTable");
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
-
-        setDbms(xmlQuery);
 
         // aggregate insertion
         execute(xmlQuery);

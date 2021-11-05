@@ -64,7 +64,6 @@ public interface VesselFeaturesSpecifications<
     String REGISTRATION_LOCATION_ID_PARAM = "registrationLocationId";
     String BASE_PORT_LOCATION_ID = "basePortLocationId";
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
-    String SEARCH_TEXT_ANY_PARAM = "searchTextAny";
 
     String VRP_PATH = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
 
@@ -147,41 +146,25 @@ public interface VesselFeaturesSpecifications<
 
             // Start + end date
             if (startDate != null && endDate != null) {
-                return cb.and(
-                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
-                    // without VRP
-                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-
-                    // or NOT outside the start/end period
-                    cb.not(
-                        cb.or(
-                            cb.lessThan(nvlRegistrationEndDate(vrp, cb), startDate),
-                            cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
-                        )
+                // NOT outside the start/end period
+                return cb.not(
+                    cb.or(
+                        cb.lessThan(nvlRegistrationEndDate(vrp, cb), startDate),
+                        cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
             }
 
             // Start date only
             else if (startDate != null) {
-                return cb.and(
-                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
-                    // without VRP
-                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // VRP.end_date >= filter.startDate
-                    cb.greaterThanOrEqualTo(nvlRegistrationEndDate(vrp, cb), startDate)
-                );
+                // VRP.end_date >= filter.startDate
+                return cb.greaterThanOrEqualTo(nvlRegistrationEndDate(vrp, cb), startDate);
             }
 
             // End date only
             else {
-                return cb.and(
-                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
-                    // without VRP
-                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // VRP.start_date <=> filter.endDate
-                    cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
-                );
+                // VRP.start_date <=> filter.endDate
+                return cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate);
             }
         };
     }

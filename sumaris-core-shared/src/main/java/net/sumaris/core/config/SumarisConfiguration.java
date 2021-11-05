@@ -765,6 +765,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * Is spring cache enabled ?
+     * @return
+     */
+    public boolean enableCache() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.CACHE_ENABLED.getKey());
+    }
+
+    /**
      * <p>getLiquibaseDiffTypes.</p>
      *
      * @return a {@link String} object.
@@ -772,7 +780,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public String getLiquibaseDiffTypes() {
         return applicationConfig.getOption(SumarisConfigurationOption.LIQUIBASE_DIFF_TYPES.getKey());
     }
-
 
     /**
      * Should enable configuration load from DB ?
@@ -906,8 +913,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return LockModeType.valueOf(applicationConfig.getOption(SumarisConfigurationOption.LOCK_MODE_TYPE.getKey()));
     }
 
-    public String getCsvSeparator() {
-        return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
+    public char getCsvSeparator() {
+        return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey()).charAt(0);
     }
 
     public boolean enableTechnicalTablesUpdate() {

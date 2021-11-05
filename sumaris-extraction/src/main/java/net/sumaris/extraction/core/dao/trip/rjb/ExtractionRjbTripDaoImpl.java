@@ -46,8 +46,6 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         extends ExtractionRdbTripDaoImpl<C, F>
         implements RjbTripSpecification {
 
-    private static final String XML_QUERY_RJB_PATH = "rjb/v%s/%s";
-
     @Override
     public LiveFormatEnum getFormat() {
         return LiveFormatEnum.RJB_TRIP;

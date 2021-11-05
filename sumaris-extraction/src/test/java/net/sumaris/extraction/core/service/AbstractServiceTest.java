@@ -22,13 +22,13 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import liquibase.util.csv.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVReader;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.ZipUtils;
 import net.sumaris.extraction.core.DatabaseFixtures;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.core.util.Files;
-import net.sumaris.core.util.ZipUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
@@ -40,6 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -48,7 +49,6 @@ import java.util.List;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
-//@TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-pgsql.properties"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class AbstractServiceTest {
 
@@ -86,19 +86,37 @@ public abstract class AbstractServiceTest {
     }
 
     protected int countLineInCsvFile(File file) throws IOException {
+        List<String[]> lines = readCsvFile(file);
+        return lines.size();
+    }
+
+    protected List<String[]> readCsvFile(File file) throws IOException {
         Files.checkExists(file);
 
         FileReader fr = new FileReader(file);
         try {
-            CSVReader read = new CSVReader(fr);
+            CSVReader read = new CSVReader(fr, config.getCsvSeparator());
             List<String[]> lines = read.readAll();
 
             read.close();
 
-            return lines.size();
+            return lines;
         }
         finally {
             fr.close();
         }
     }
+
+    protected String[] readHeaderInCsvFile(File file) throws IOException {
+        List<String[]> lines = readCsvFile(file);
+        Assert.assertTrue("No header row, in the CSV file",lines.size() > 0);
+        return lines.get(0);
+    }
+
+    protected boolean hasHeaderInCsvFile(File file, String header) throws IOException {
+        String[] headers = readHeaderInCsvFile(file);
+
+        return Arrays.asList(headers).contains(header);
+    }
+
 }

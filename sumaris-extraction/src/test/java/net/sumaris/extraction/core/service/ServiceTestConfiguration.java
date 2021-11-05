@@ -28,7 +28,9 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.function.client.WebClientAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -42,12 +44,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
             JmsAutoConfiguration.class
         },
         scanBasePackages = {
-                "net.sumaris.core"
+            "net.sumaris.core",
+            "net.sumaris.extraction.core"
         }
 )
-@EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
-@EnableJpaRepositories("net.sumaris.core.dao")
 public class ServiceTestConfiguration extends TestConfiguration {
 
 }

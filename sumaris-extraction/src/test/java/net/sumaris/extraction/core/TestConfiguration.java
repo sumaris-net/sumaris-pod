@@ -23,10 +23,11 @@
 package net.sumaris.extraction.core;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ActiveProfiles;
 
-public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
+public abstract class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
-    public static final String MODULE_NAME = "sumaris-core-extraction";
+    public static final String MODULE_NAME = "sumaris-extraction";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
 //    public static final String CONFIG_FILE_PREFIX = MODULE_NAME + "-test";
     public static final String CONFIG_FILE_PREFIX = "application";

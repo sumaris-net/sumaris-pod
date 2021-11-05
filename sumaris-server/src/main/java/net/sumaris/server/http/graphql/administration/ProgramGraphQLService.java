@@ -196,7 +196,7 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "locationClassifications", description = "Get program's location classifications")
     public List<ReferentialVO> getProgramLocationClassifications(@GraphQLContext ProgramVO program) {
-        if (program.getLocationClassificationIds() != null && program.getLocationClassifications() == null) {
+        if (CollectionUtils.isNotEmpty(program.getLocationClassificationIds()) && CollectionUtils.isEmpty(program.getLocationClassifications())) {
             return program.getLocationClassificationIds().stream()
                     .map(id -> referentialService.get(LocationClassification.class, id))
                     .collect(Collectors.toList());
@@ -396,6 +396,7 @@ public class ProgramGraphQLService {
         return ProgramFetchOptions.builder()
                 .withLocations(
                         fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATIONS, ReferentialVO.Fields.ID))
+                            || fields.contains(ProgramVO.Fields.LOCATION_IDS)
                 )
                 .withLocationClassifications(
                     fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))

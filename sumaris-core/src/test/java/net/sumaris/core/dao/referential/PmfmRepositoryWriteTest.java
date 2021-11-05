@@ -102,7 +102,7 @@ public class PmfmRepositoryWriteTest extends AbstractDaoTest {
         Assert.assertNotNull(pmfm.getUnitId());
         Assert.assertEquals(3, pmfm.getUnitId().intValue());
         Assert.assertNotNull(pmfm.getUnitLabel());
-        Assert.assertEquals("Kg", pmfm.getUnitLabel());
+        Assert.assertEquals("kg", pmfm.getUnitLabel());
         Assert.assertNotNull(pmfm.getType());
         Assert.assertEquals(PmfmValueType.DOUBLE.name(), pmfm.getType().toUpperCase());
         Assert.assertNull(pmfm.getQualitativeValues());

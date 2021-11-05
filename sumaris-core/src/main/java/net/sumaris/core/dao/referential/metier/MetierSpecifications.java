@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential.metier;
  */
 
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -30,6 +31,7 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
@@ -63,8 +65,10 @@ public interface MetierSpecifications
 
         return BindableSpecification.<Metier>where((root, query, builder) -> {
 
+            query.distinct(true); // Avoid duplicate metiers
+
             Root<Trip> trips = query.from(Trip.class);
-            Join<Trip, Operation> operations = trips.join(Trip.Fields.OPERATIONS, JoinType.INNER);
+            Join<Trip, Operation> operations = Daos.composeJoin(trips, Trip.Fields.OPERATIONS, JoinType.INNER);
 
             ParameterExpression<Integer> vesselIdParameter = builder.parameter(Integer.class, VESSEL_ID_PARAMETER);
             ParameterExpression<String> programLabelParameter = builder.parameter(String.class, PROGRAM_LABEL_PARAMETER);
@@ -74,9 +78,11 @@ public interface MetierSpecifications
 
             return builder.and(
                     // Link metier to operation
-                    builder.equal(operations.get(Operation.Fields.METIER), root.get(Metier.Fields.ID)),
+                    builder.equal(root.get(Metier.Fields.ID), operations.get(Operation.Fields.METIER)),
                     // Vessel
-                    builder.equal(trips.get(Trip.Fields.VESSEL).get(Vessel.Fields.ID), vesselIdParameter),
+                    builder.equal(
+                        Daos.composePath(trips, StringUtils.doting(Trip.Fields.VESSEL, Vessel.Fields.ID)),
+                        vesselIdParameter),
                     // Date
                     builder.not(
                             builder.or(
@@ -88,7 +94,9 @@ public interface MetierSpecifications
                     // Program
                     builder.or(
                             builder.isNull(programLabelParameter),
-                            builder.equal(trips.get(Trip.Fields.PROGRAM).get(Program.Fields.LABEL), programLabelParameter)
+                            builder.equal(
+                                Daos.composePath(trips, StringUtils.doting(Trip.Fields.PROGRAM, Program.Fields.LABEL)),
+                                programLabelParameter)
                     ),
                     // Excluded trip
                     builder.or(

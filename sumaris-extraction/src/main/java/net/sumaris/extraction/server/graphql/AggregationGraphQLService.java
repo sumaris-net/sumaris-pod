@@ -264,6 +264,7 @@ public class AggregationGraphQLService {
     }
 
     @GraphQLMutation(name = "updateProduct", description = "Update an extraction product")
+    @Transactional(timeout = 10000000)
     public AggregationTypeVO updateProduct(@GraphQLArgument(name = "id") int id) {
 
         // Make sure can update

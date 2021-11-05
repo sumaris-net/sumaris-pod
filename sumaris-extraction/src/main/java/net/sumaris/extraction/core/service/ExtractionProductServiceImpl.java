@@ -24,20 +24,20 @@ package net.sumaris.extraction.core.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,12 +81,22 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
+    })
     public ExtractionProductVO save(ExtractionProductVO source) {
         // Save the product
         return extractionProductRepository.save(source);
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
+    })
     public void delete(int id) {
         extractionProductRepository.deleteById(id);
     }

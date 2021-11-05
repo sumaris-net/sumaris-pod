@@ -32,15 +32,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import java.util.Map;
 
 @Slf4j
+@Component
 @GraphQLApi
 @ConditionalOnProperty(
-    name = "spring.cache.enabled",
+    prefix = "spring",
+    name = {"cache.enabled"},
     havingValue = "true",
     matchIfMissing = true
 )

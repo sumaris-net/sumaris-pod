@@ -374,8 +374,6 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("euMetierLevel6", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        setDbms(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -528,9 +526,6 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.bind("speciesListTableName", context.getSpeciesListTableName());
 
         xmlQuery.bind("speciesTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.FAO.getId()));
-
-        // Enable/Disable group, on DBMS
-        setDbms(xmlQuery);
 
         // Enable/Disable group, on optional columns
         SumarisTableMetadata stationTable = databaseMetadata.getTable(stationTableName);

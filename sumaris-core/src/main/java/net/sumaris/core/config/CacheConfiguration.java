@@ -50,7 +50,8 @@ import java.util.Date;
 @Configuration
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
 @ConditionalOnProperty(
-    name = "spring.cache.enabled",
+    prefix = "spring",
+    name = {"cache.enabled"},
     havingValue = "true",
     matchIfMissing = true
 )

@@ -43,8 +43,6 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         extends ExtractionRdbTripDaoImpl<C, F>
         implements Free1Specification {
 
-    private static final String XML_QUERY_FREE_PATH = "free/v%s/%s";
-
     @Override
     public LiveFormatEnum getFormat() {
         return LiveFormatEnum.FREE1;
@@ -99,8 +97,6 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         //        WIDTH_GEAR Largeur cumulée (drague),              missing in SUMARIS
         //        SEINE_LENGTH Longueur de la bolinche ou senne     missing in SUMARIS
 
-        setDbms(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -133,13 +129,12 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getVersion());
 
-        String versionStr = VERSION_1.replaceAll("[.]", "_");
         switch (queryName) {
             case "injectionTripTable":
             case "injectionStationTable":
             case "injectionSpeciesListTable":
             case "injectionSpeciesLengthTable":
-                return String.format(XML_QUERY_FREE_PATH, versionStr, queryName);
+                return getQueryFullName(Free1Specification.FORMAT, Free1Specification.VERSION_1, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }

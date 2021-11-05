@@ -55,7 +55,10 @@ public interface ExtractionService {
     ExtractionTypeVO getByFormat(IExtractionFormat type);
 
     @Transactional(readOnly = true)
-    List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter);
+    List<ExtractionTypeVO> findAll();
+
+    @Transactional(readOnly = true)
+    List<ExtractionTypeVO> findAll(@Nullable ExtractionTypeFilterVO filter, Page page);
 
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> getLiveExtractionTypes();

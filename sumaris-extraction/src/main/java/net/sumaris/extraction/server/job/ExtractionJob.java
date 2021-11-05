@@ -132,7 +132,7 @@ public class ExtractionJob {
     protected void onConfigurationReady(ConfigurationReadyEvent event) {
         if (!this.ready) {
             // Load started
-            log.info("Started Extraction jobs, with frequency {{}}",
+            log.info("Started Extraction jobs, for frequencies {{}}",
                 Arrays.stream(ProcessingFrequencyEnum.values())
                     .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
                     .map(Enum::name)

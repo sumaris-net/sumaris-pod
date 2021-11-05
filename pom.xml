@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.12.10</version>
+  <version>1.13.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -124,7 +124,7 @@
     <ehcache.version>3.8.1</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.20</lombok.version>
-    <xmlquery.version>1.4</xmlquery.version>
+    <xmlquery.version>1.6</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
     <spring-boot.version>2.4.10</spring-boot.version>

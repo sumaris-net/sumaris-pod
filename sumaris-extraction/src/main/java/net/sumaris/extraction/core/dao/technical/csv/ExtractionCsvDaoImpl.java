@@ -69,7 +69,7 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         fileWriter.write(UTF8_BOM);
 
         // create csv writer
-        CSVWriter csvWriter = new CSVWriter(fileWriter, configuration.getCsvSeparator().charAt(0));
+        CSVWriter csvWriter = new CSVWriter(fileWriter, configuration.getCsvSeparator());
 
         // fill result set
         queryAllowEmptyResultSet(

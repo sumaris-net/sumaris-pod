@@ -22,9 +22,12 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
 import net.sumaris.extraction.core.vo.AggregationTypeVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
@@ -50,20 +53,59 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     @Autowired
     private ExtractionService service;
 
-
     @Test
-    public void exportStratFormat() {
+    public void exportStratFormat() throws IOException {
 
         // Test the Strategy format
         File outputFile = service.executeAndDumpStrategies(LiveFormatEnum.STRAT, null);
-        unpack(outputFile, LiveFormatEnum.STRAT.getLabel());
+        File root = unpack(outputFile, LiveFormatEnum.STRAT.getLabel());
+
+        // ST.csv (strategy)
+        {
+            File strategyFile = new File(root, StratSpecification.ST_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(strategyFile) > 1);
+
+        }
+        // SM.csv (strategy monitoring)
+        {
+            File monitoringFile = new File(root, StratSpecification.SM_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        }
     }
 
     @Test
-    public void exportRdbFormat() {
+    public void exportRdbFormat() throws IOException {
 
         // Test the RDB format
-        service.executeAndDumpTrips(LiveFormatEnum.RDB, null);
+        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.RDB, null);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveFormatEnum.RDB.getLabel());
+
+        // TR.csv
+        {
+            File tripFile = new File(root, RdbSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, RdbSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, RdbSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, RdbSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, RdbSpecification.COLUMN_WEIGHT);
+        }
     }
 
     @Test
@@ -189,7 +231,10 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
     /* -- protected methods -- */
 
-
-
+    protected void assertHasColumn(File file, String columnName) throws IOException {
+        String headerName = StringUtils.underscoreToChangeCase(columnName);
+        Assert.assertTrue(String.format("Missing header '%s' in file: %s", headerName, file.getPath()),
+            hasHeaderInCsvFile(file, headerName));
+    }
 
 }

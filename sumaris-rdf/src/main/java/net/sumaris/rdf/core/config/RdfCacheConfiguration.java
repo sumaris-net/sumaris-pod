@@ -30,12 +30,13 @@ import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@AutoConfigureAfter({CacheConfiguration.class})
-@ConditionalOnBean({RdfAutoConfiguration.class})
+@ConditionalOnBean({CacheConfiguration.class})
+@ConditionalOnProperty(name = "rdf.enabled")
 @Slf4j
 public class RdfCacheConfiguration {
 

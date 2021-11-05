@@ -50,11 +50,11 @@ public interface DataRepository<
     // From a filter
     List<V> findAll(F filter);
 
-    List<V> findAll(F filter, @Nullable O fetchOptions);
+    List<V> findAll(@Nullable F filter, @Nullable O fetchOptions);
 
-    List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
+    List<V> findAll(@Nullable F filter, @Nullable net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);
 
-    List<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
+    List<V> findAll(@Nullable F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions);
 
     List<V> findAllVO(@Nullable Specification<E> spec);
 
