@@ -136,7 +136,7 @@
       <app-operation-group-table #operationGroupTable
                                  [programLabel]="$programLabel | async"
                                  acquisitionLevel="OPERATION"
-                                 [$metiers]="$metiers"
+                                 [metiers]="$metiers.asObservable()"
                                  [showToolbar]="!mobile"
                                  (onOpenRow)="onOpenOperationGroup($event)"
                                  (onNewRow)="onNewOperationGroup($event)">

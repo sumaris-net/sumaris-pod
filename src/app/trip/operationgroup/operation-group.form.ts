@@ -4,7 +4,7 @@ import {DateAdapter} from '@angular/material/core';
 import {AccountService, IReferentialRef, isNotNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {OperationGroup} from '../services/model/trip.model';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {MetierService} from '@app/referential/services/metier.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {MeasurementValuesForm} from '@app/trip/measurement/measurement-values.form.class';
@@ -25,7 +25,6 @@ import {Metier} from '@app/referential/services/model/metier.model';
 })
 export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> implements OnInit {
 
-  private _metiersSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   protected $initialized = new BehaviorSubject<boolean>(false);
   displayAttributes: {
     [key: string]: string[]
@@ -38,6 +37,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
   @Input() tabindex: number;
   @Input() showComment = false;
   @Input() showError = true;
+  @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -87,10 +87,9 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
 
     this.registerAutocompleteField('metier', {
       mobile: this.mobile,
-      items: this._metiersSubject,
+      items: this.metiers,
       attributes: metierAttributes,
       columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
-      suggestFn: (value: any, options?: any) => this.metierService.suggest(value, options)
     });
 
     this.registerSubscription(
