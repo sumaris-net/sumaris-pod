@@ -5,7 +5,9 @@ import {FormGroup, Validators} from "@angular/forms";
 import {AcquisitionLevelCodes, PmfmIds} from "../../../referential/services/model/model.enum";
 import {filter, tap} from "rxjs/operators";
 import {SubSamplesTable} from "../sub-samples.table";
-import {isNotNil} from "@sumaris-net/ngx-components";
+import { isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import { Sample } from '@app/trip/services/model/sample.model';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 
 
 @Component({
@@ -19,8 +21,11 @@ import {isNotNil} from "@sumaris-net/ngx-components";
 })
 export class IndividualMonitoringSubSamplesTable extends SubSamplesTable implements OnInit {
 
+  protected currentSample: Sample; // require to preset presentation on new row
+
   constructor(
-    injector: Injector
+    injector: Injector,
+    protected samplingStrategyService: SamplingStrategyService
   ) {
     super(injector);
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
@@ -76,7 +81,5 @@ export class IndividualMonitoringSubSamplesTable extends SubSamplesTable impleme
           }
         }));
   }
-
-
 }
 

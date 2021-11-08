@@ -19,7 +19,7 @@ import {
   ReferentialRef,
   ReferentialUtils, StatusIds,
   toBoolean,
-  UsageMode,
+  UsageMode, waitIdle,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal } from './vessels/select-vessel.modal';
@@ -37,6 +37,7 @@ import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
+import { waitForAsync } from '@angular/core/testing';
 
 const moment = momentImported;
 
@@ -293,8 +294,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     await super.setProgram(program);
     if (!program) return; // Skip
 
-    console.debug('[observed-location] Settings editor options, using program:', program);
-
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -407,20 +406,23 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const isNew = isNil(data.id);
     if (!isNew) {
-      // Propagate program to form
-      this.$programLabel.next(data.program.label);
-    }
-    else {
       // Propage to table parent
       this.table?.setParent(data)
     }
   }
 
-  protected async ready(): Promise<void> {
+  protected async ready(): Promise<any> {
     // Wait child loaded
-    if (this.$ready.getValue() !== true) {
-      if (this.debug) console.debug('[observed-location] waiting child to be ready...');
+    if (this.$ready.value !== true) {
+      if (this.debug) console.debug('[observed-location] waiting program to be loaded...');
       await firstTruePromise(this.$ready);
+    }
+
+    if (!this.table) {
+      if (this.debug) console.debug('[observed-location] waiting page (table) to be set...');
+      return setTimeout(() => {
+        return !!this.table;
+      }, 200);
     }
   }
 
@@ -452,7 +454,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
     }
 
-    // Make sure i18nContext is loaded
+    // Make sure page is ready (e.g. i18nContext has been loaded, in setProgram())
     await this.ready();
 
     // Existing data

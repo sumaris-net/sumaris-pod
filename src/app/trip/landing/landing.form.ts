@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, tap } from 'rxjs/operators';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from '../services/validator/landing.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
@@ -122,6 +122,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl.markAsTouched(opts);
   }
 
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsPristine(opts);
+    this.strategyControl.markAsPristine(opts);
+  }
+
   get observersForm(): FormArray {
     return this.form.controls.observers as FormArray;
   }
@@ -216,7 +221,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
-      mapPmfms: pmfms => this.mapPmfms(pmfms)
+      mapPmfms: pmfms => this.mapPmfms(pmfms),
+      //allowSetValueBeforePmfms: true
     });
 
     this._enable = false;
@@ -265,7 +271,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       },
       attributes: ['label'],
       columnSizes: [12],
-      showAllOnFocus: false
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
 
     // Combo: vessels
@@ -399,8 +406,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
 
-  protected onEntityLoaded(data: Landing, opts?: any) {
-    super.onEntityLoaded(data, opts);
+  protected onApplyingEntity(data: Landing, opts?: any) {
+    super.onApplyingEntity(data, opts);
 
     if (!data) return; // Skip
 
@@ -518,8 +525,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     super.enable(opts);
 
     // Leave program disable once data has been saved
-    const isNew = !this.data || isNil(this.data.id);
-    if (!isNew && !this.form.controls['program'].disabled) {
+    if (!this.isNewData && !this.form.get('program').enabled) {
       this.form.controls['program'].disable({emitEvent: false});
       this.markForCheck();
     }
@@ -527,6 +533,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     // TODO BLA: same for strategy
     if (this._canEditStrategy && this.strategyControl.disabled) {
       this.strategyControl.enable(opts);
+    }
+    else if (!this._canEditStrategy && this.strategyControl.enabled) {
+      this.strategyControl.disable({emitEvent: false});
     }
   }
 

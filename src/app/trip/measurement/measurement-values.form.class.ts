@@ -3,23 +3,11 @@ import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, merge, Observable, timer } from 'rxjs';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementFormValue, MeasurementValuesUtils } from '../services/model/measurement.model';
-import {
-  AppForm,
-  firstNotNilPromise,
-  FormArrayHelper,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
-  ReferentialRef,
-  ReferentialUtils,
-  toNumber,
-  WaitOptions,
-} from '@sumaris-net/ngx-components';
+import { AppForm, firstNotNilPromise, FormArrayHelper, isNil, isNotNil, LocalSettingsService, ReferentialRef, ReferentialUtils, toNumber, WaitOptions } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -76,6 +64,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.$loadingStep.value === MeasurementFormLoadingSteps.STARTING;
   }
 
+  get isNewData(): boolean {
+    return isNil(this.data?.id);
+  }
+
   @Input() compact = false;
   @Input() floatLabel: FloatLabelType = 'auto';
   @Input() requiredStrategy = false;
@@ -122,7 +114,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set value(value: T) {
-    this.setValue(value);
+    this.applyValue(value);
   }
 
   get value(): T {
@@ -145,6 +137,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Output() get strategyLabelChanges(): Observable<string> {
     return this.$strategyLabel.asObservable();
+  }
+
+  get programControl(): AbstractControl {
+    return this.form.get('program');
   }
 
   protected constructor(protected dateAdapter: DateAdapter<Moment>,
@@ -178,7 +174,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.loading && !this.applyingValue && isNotEmptyArray(this.valueChanges.observers))
+          filter(() => !this.loading && !this.applyingValue)
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
@@ -234,6 +230,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    console.debug('TODO markAsPristine');
+    super.markAsPristine(opts);
+  }
+
   waitIdle(opts?: WaitOptions): Promise<boolean> {
     let idle$ = this.$loadingStep
       .pipe(
@@ -259,11 +260,60 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return firstNotNilPromise(idle$);
   }
 
+
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+    this.applyValue(data, opts);
+  }
+
+  reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+    this.applyValue(data, opts);
+  }
+
+  /* -- protected methods -- */
+
+  /**
+   * /!\ should NOT be overwritten by subclasses. Use setFormValue() instead
+   * @param data
+   * @param opts
+   */
+  private async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+    this.applyingValue = true;
+
+    try {
+      this.data = data;
+      this.onApplyingEntity(data, opts);
+
+      // Wait form is ready, before applying the data
+      const waitIdle = (!opts || opts.waitIdle !== false) && this.options?.allowSetValueBeforePmfms !== true;
+      if (waitIdle) await this.waitIdle();
+
+      // Applying value to form (that should be ready).
+      await this.updateView(this.data, opts);
+    }
+    catch(err) {
+      console.error(err);
+      this.error = err && err.message || err;
+    }
+    finally {
+      this.markAsLoaded();
+      this.applyingValue = false;
+    }
+  }
+
+  protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
+    if (data.program?.label) {
+      // Propage program
+      this.setProgramLabel(data.program?.label);
+    }
+  }
+
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     // Warn is form is NOT ready
     if (this.loading && (this.options?.allowSetValueBeforePmfms !== true)) {
       console.warn(`${this.logPrefix} Trying to set value, but form not ready!`);
     }
+
+    if (this.debug) console.debug(`${this.logPrefix} updateView() with:`, data);
 
     // Adapt measurement values to form (if not skip)
     if (!opts || opts.normalizeEntityToForm !== false) {
@@ -271,7 +321,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // If a program has been filled, always keep it
-    const program = this.form.get('program')?.value;
+    const program = this.programControl?.value;
     if (program) {
       data.program = program;
     }
@@ -280,55 +330,20 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       formArrayHelper.resize(Math.max(1, ((data.measurementValues[id] || [])as []).length));
     });
 
+    this.data = data;
+
     super.setValue(data, opts);
 
     if (!opts || opts.emitEvent !== false) {
       this.form.markAsPristine();
       this.form.markAsUntouched();
-
-      //this.onUpdateView.emit(data);
+      this.markForCheck();
     }
 
     // Restore form status
     this.updateViewState({onlySelf: true, ...opts});
 
   }
-
-  /**
-   * /!\ should NOT be overwritten by subclasses. Use setFormValue() instead
-   * @param data
-   * @param opts
-   */
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
-
-    // Prepare entity, or configure some inputs from data (e.g. program, gear, etc.)
-    if (!this.applyingValue) this.onEntityLoaded(data);
-
-    // Wait form is ready, before applying the data
-    const waitIdle = (!opts || opts.waitIdle !== false) && this.options?.allowSetValueBeforePmfms !== true;
-    if (waitIdle) {
-      this.waitIdle().then(_ => this.setValue(data, {...opts, waitIdle: false})); // Loop, without waitIdle
-      return;
-    }
-
-    this.applyingValue = true;
-
-    // Applying value to form (that should be ready).
-    this.updateView(data, opts)
-      .catch((err) => {
-        console.error(err);
-      })
-      .then(() => {
-        this.markAsLoaded();
-        this.applyingValue = false;
-      });
-  }
-
-  reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
-    this.setValue(data, opts);
-  }
-
-  /* -- protected methods -- */
 
   protected setProgramLabel(value: string, opts?: {emitEvent?: boolean}) {
     if (isNotNil(value) && this.$programLabel.value !== value) {
@@ -365,7 +380,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const measurementValuesForm = this.measurementValuesForm;
     if (measurementValuesForm) {
       // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id] && measurementValuesForm.controls[pmfm.id].dirty);
+      const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id]?.dirty);
       if (dirtyPmfms.length) {
         json.measurementValues = Object.assign({}, this.data && this.data.measurementValues || {}, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
       }
@@ -554,15 +569,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (this.debug) console.debug(`${this.logPrefix} Form controls updated`);
     this.setLoadingProgression(MeasurementFormLoadingSteps.FORM_GROUP_READY);
 
-    // Keep loading status if data not apply fully
     if (!this.applyingValue) {
-      if (this.data && pmfms.length && form) {
-        await this.updateView(this.data);
+      // Update data in view
+      if (this.data) {
+        await this.updateView(this.data, {emitEvent: false});
       }
       // No data defined yet
       else {
         // Restore enable state (because form.setValue() can change it !)
-        this.updateViewState({onlySelf: true, emitEvent: false});
+        this.updateViewState({ onlySelf: true, emitEvent: false });
       }
     }
 
@@ -583,16 +598,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return `[meas-values-form-${acquisitionLevel}]`;
   }
 
-  protected onEntityLoaded(data: T, opts?: {[key: string]: any;}) {
-    if (!data || this.data === data) return; // Skip
-
-    this.data = data;
-
-    if (data.program?.label) {
-      // Propage program
-      this.setProgramLabel(data.program?.label);
-    }
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

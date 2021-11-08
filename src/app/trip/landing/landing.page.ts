@@ -495,9 +495,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     const data = await super.getValue();
 
-    // Re add program, because program control can be disabled
-    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
-
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues?.value || {};
     if (isNotNilOrBlank(this.$strategyLabel.getValue())) {

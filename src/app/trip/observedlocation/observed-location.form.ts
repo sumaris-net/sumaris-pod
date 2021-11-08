@@ -279,8 +279,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.enable(opts);
 
     // Leave program disable once data has been saved
-    if (isNotNil(this.data.id) && !this.form.controls['program'].disabled) {
-      this.form.controls['program'].disable({emitEvent: false});
+    if (!this.isNewData && !this.programControl.disabled) {
+      this.programControl.disable({emitEvent: false});
       this.markForCheck();
     }
   }
