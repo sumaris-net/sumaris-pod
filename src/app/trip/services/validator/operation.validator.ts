@@ -187,9 +187,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       fishingEndDateTimeControl.enable();
 
       // endDateTime = END
+      const endDateTimeValidators = [tripDatesValidators, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])];
       endDateTimeControl.setValidators(opts?.isOnFieldMode
-        ? tripDatesValidators
-        : Validators.compose([Validators.required, tripDatesValidators]));
+        ? endDateTimeValidators
+        : Validators.compose([Validators.required, ...endDateTimeValidators]));
       endDateTimeControl.enable();
 
       // Disable unused controls
