@@ -666,6 +666,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   protected updateFormGroup() {
 
     this.validatorService.updateFormGroup(this.form, {
+      isOnFieldMode: this.usageMode === 'FIELD',
       trip: this.trip,
       withChild: this.allowParentOperation && this.isParentOperation,
       withParent: this.isChildOperation

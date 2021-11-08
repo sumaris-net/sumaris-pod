@@ -184,7 +184,8 @@
             <ion-col size="12" size-lg="4" *ngIf="form.controls.fishingStartDateTime as fishingStartDateTime">
               <mat-date-time-field [placeholder]="'COMMON.DATE'|translate"
                                    [formControl]="fishingStartDateTime"
-                                   [required]="true"
+                                   [required]="usageMode|isNotOnField"
+                                   [clearable]="usageMode|isOnField"
                                    [tabindex]="tabindex+9"
                                    [startDate]="form.controls.startDateTime.value"
                                    [readonly]="isChildOperation">
@@ -245,8 +246,8 @@
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
                                    [startDate]="form.controls.fishingStartDateTime.valueChanges|async"
-                                   [required]="usageMode|isNotOnField"
-                                   [clearable]="usageMode|isOnField">
+                                   [required]="true"
+                                   [clearable]="false">
               </mat-date-time-field>
             </ion-col>
             <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition">
