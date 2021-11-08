@@ -561,29 +561,46 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  setIsParentOperation(value: boolean, opts?: { emitEvent?: boolean; }) {
+  setIsParentOperation(isParent: boolean, opts?: { emitEvent?: boolean; }) {
 
-    if (this.debug) console.debug('[operation-form] Is parent operation ? ', value);
+    if (this.debug) console.debug('[operation-form] Is parent operation ? ', isParent);
 
-    if (this.isParentOperationControl.value !== value) {
-      this.isParentOperationControl.setValue(value);
+    if (this.isParentOperationControl.value !== isParent) {
+      this.isParentOperationControl.setValue(isParent);
     }
 
-    // Parent operation (or parent not used)
-    if (value) {
-      this.form.patchValue({
-        parentOperation: null
-      });
+    // Parent operation (= Filage) (or parent not used)
+    if (isParent) {
       if (!opts || opts.emitEvent !== false) {
+        // Clean child fields
+        this.form.patchValue({
+          fishingEndDateTime: null,
+          endDateTime: null,
+          physicalGear: null,
+          metier: null,
+          parentOperation: null
+        });
+
         this.updateFormGroup();
       }
     }
 
-    // Child operation (=Filage)
+    // Child operation (=Virage)
     else {
       if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
-        // Keep filled values
+        // Copy parent fields, to child fields
         this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
+        this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
+
+        // Clean parent fields (should be filled after parent selection)
+        this.form.patchValue({
+            startDateTime: null,
+            fishingStartDateTime: null,
+            physicalGear: null,
+            metier: null,
+            childOperation: null
+          });
+
         this.updateFormGroup();
 
         // Propage to page, that there is an operation
@@ -593,9 +610,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         this.addParentOperation();
       }
     }
-
-    // Filage or other case
-
   }
 
   protected setPosition(positionControl: AbstractControl, position?: VesselPosition) {
