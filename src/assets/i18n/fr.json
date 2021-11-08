@@ -155,6 +155,8 @@
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
       "CHECK_SAMPLE_UNIQUE_TAG": "Saisie > Vérifier l'unicité du code de prélèvement",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
+      "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
+      "FORUM_URL": "App > Adresse du forum (URL)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -274,6 +276,9 @@
     "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
     "BTN_REPORT_ISSUE": "Remonter un problème",
+    "HELP": "Aide en ligne :",
+    "FORUM": "Forum",
+    "USER_MANUAL": "Manuel",
     "SOURCE_CODE": "Code source :",
     "DEVELOPED_BY": "Développé par :",
     "PARTNERS": "Partenaires et sponsors :"
@@ -341,7 +346,7 @@
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
     "ERROR": {
-      "SUBSCRIBE_ACCOUNT_ERROR": "Echec de l'abonnement distant au compte utilisateur."
+      "SUBSCRIBE_ACCOUNT_ERROR": "Échec de l'abonnement distant au compte utilisateur."
     }
   },
   "SETTINGS": {
@@ -351,7 +356,7 @@
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
-    "PEER_URL": "Addresse du nœud réseau",
+    "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",

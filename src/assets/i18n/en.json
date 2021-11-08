@@ -156,6 +156,8 @@
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
+      "HELP_URL": "App > User manuel URL",
+      "FORUM_URL": "App > Forum address URL",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -276,6 +278,9 @@
     "LICENSE": "<b>Free/libre software</b> (License GNU AGPL v3).",
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
+    "HELP": "Online help:",
+    "FORUM": "Forum",
+    "USER_MANUAL": "User manual",
     "SOURCE_CODE": "Source core:",
     "DEVELOPED_BY": "Developed by:",
     "PARTNERS": "Partners and sponsors:"
