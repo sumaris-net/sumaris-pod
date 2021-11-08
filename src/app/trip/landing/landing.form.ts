@@ -221,8 +221,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
-      mapPmfms: pmfms => this.mapPmfms(pmfms),
-      //allowSetValueBeforePmfms: true
+      mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
     this._enable = false;
