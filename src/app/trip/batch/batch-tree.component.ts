@@ -65,6 +65,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() set allowSubBatches(value: boolean) {
     if (this._allowSubBatches !== value) {
       this._allowSubBatches = value;
+      this.showSubBatchesTable = value;
       // If disabled
       if (!value) {
         // Reset existing sub batches

@@ -19,7 +19,7 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialUtils,
-  SharedValidators,
+  SharedValidators, toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
@@ -455,6 +455,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.saveOptions.withChildOperation = this.opeForm.allowParentOperation;
 
     this.batchTree.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+
+    const hasMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT);
+
+    this.batchTree.allowSamplingBatches = toBoolean(hasMeasure, true);
+    this.batchTree.defaultHasSubBatches = toBoolean(hasMeasure, false);
+    this.batchTree.allowSubBatches = toBoolean(hasMeasure, true);
+
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);

@@ -317,9 +317,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   async openSelectOperationModal(): Promise<Operation> {
 
     const value = this.form.value as Partial<Operation>;
-    const endDate = value.fishingEndDateTime || this.trip.returnDateTime;
+    const endDate = value.fishingEndDateTime || this.trip && this.trip.returnDateTime || moment();
     const parent = value.parentOperation;
-    const startDate = fromDateISOString(this._trip.departureDateTime).clone().add(-15, 'day');
+    const startDate = this.trip && fromDateISOString(this.trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
