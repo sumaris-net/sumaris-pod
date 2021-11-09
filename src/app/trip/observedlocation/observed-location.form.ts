@@ -28,6 +28,7 @@ import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/servic
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import {environment} from '@environments/environment';
 
 @Component({
   selector: 'app-form-observed-location',
@@ -129,7 +130,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -204,12 +205,12 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
               // copy start date time + 1ms
               this.form.patchValue({
                 endDateTime: startDateTime.clone().add(1, 'millisecond'),
-              }, { emitEvent: true });
+              }, { emitEvent: false });
             } else if (this.forceDurationDays > 0) {
               // add duration days
               this.form.patchValue({
                 endDateTime: startDateTime.clone().add(this.forceDurationDays - 1, 'day'),
-              }, { emitEvent: true });
+              }, { emitEvent: false });
             }
           })
         )

@@ -4,7 +4,7 @@ import {
   BaseEntityGraphqlSubscriptions,
   chainPromises,
   EntitiesServiceWatchOptions,
-  EntitiesStorage,
+  EntitiesStorage, Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -22,7 +22,7 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person
+  Person, StatusIds
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { Landing } from './model/landing.model';
@@ -723,9 +723,63 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     return await this.synchronize(entity);
   }
 
-  async synchronize(data: Landing): Promise<Landing> {
-    console.warn('Not implemented', new Error());
-    return data;
+  async synchronize(entity: Landing, opts?: LandingSaveOptions): Promise<Landing> {
+    opts = {
+      enableOptimisticResponse: false, // Optimistic response not need
+      ...opts
+    };
+
+    const localId = entity?.id;
+    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (this.network.offline) throw new Error('Could not synchronize if network if offline');
+
+    // Clone (to keep original entity unchanged)
+    entity = entity instanceof Entity ? entity.clone() : entity;
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
+
+    // Fill Trip
+    const trip = await this.tripService.load(entity.tripId,
+      {fullLoad: true, rankOrderOnPeriod: false});
+    trip.observedLocationId = entity.observedLocationId;
+    trip.id = undefined;
+
+    //Could be different if Vessel has been synchronize previously then update on landing but not on trip.
+    trip.vesselSnapshot = entity.vesselSnapshot;
+    entity.trip = trip;
+    entity.tripId = undefined;
+
+    try {
+
+      entity = await this.save(entity, opts);
+
+      // Check return entity has a valid id
+      if (isNil(entity.id) || entity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+    } catch (err) {
+      throw {
+        ...err,
+        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
+        message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
+      };
+    }
+
+    try {
+      if (this._debug) console.debug(`[observed-location-service] Deleting landing {${entity.id}} from local storage`);
+
+      // Delete landings
+      // await this.landingService.deleteLocally({observedLocationId: localId});
+      //
+      // // Delete observedLocation
+      // await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
+    } catch (err) {
+      console.error(`[observed-location-service] Failed to locally delete landing {${entity.id}}`, err);
+      // Continue
+    }
+    return entity;
   }
 
   async control(data: Landing): Promise<FormErrors> {

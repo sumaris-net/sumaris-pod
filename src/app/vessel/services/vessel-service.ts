@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
-  EntitiesServiceWatchOptions,
+  EntitiesServiceWatchOptions, Entity,
   EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
@@ -16,7 +16,7 @@ import {
   isNotNil,
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
-  Person,
+  Person, sort,
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { map } from 'rxjs/operators';
@@ -34,6 +34,10 @@ import { VesselFilter } from './filter/vessel.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import {ErrorCodes} from '@app/data/services/errors';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
+import {LandingService} from '@app/trip/services/landing.service';
+import {TripService} from '@app/trip/services/trip.service';
 
 
 export const VesselFragments = {
@@ -182,6 +186,8 @@ export class VesselService
     injector: Injector,
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
+    private landingService: LandingService,
+    private tripService: TripService
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
@@ -236,7 +242,9 @@ export class VesselService
     // Adapt filter
     const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
-    return  this.vesselSnapshotService.watchAllLocally(offset, size, sortBy.substr(sortBy.lastIndexOf('.') + 1), sortDirection, vesselSnapshotFilter)
+    sortBy = sortBy &&  sortBy.substr(sortBy.lastIndexOf('.') + 1) || undefined;
+
+    return  this.vesselSnapshotService.watchAllLocally(offset, size, sortBy , sortDirection, vesselSnapshotFilter)
       .pipe(
       map(({data, total}) => {
         const entities = (data || []).map(VesselSnapshot.toVessel);
@@ -407,9 +415,62 @@ export class VesselService
     await this.entities.deleteMany(snapshots, {entityName: VesselSnapshot.TYPENAME});
   }
 
-  async synchronize(data: Vessel, opts?: any): Promise<Vessel> {
-    console.info(`[vessel-service] Synchronizing vessel {${data.id}}...`);
-    return data;
+  async synchronize(entity: Vessel, opts?: VesselSaveOptions): Promise<Vessel> {
+    console.info(`[vessel-service] Synchronizing vessel {${entity.id}}...`);
+    opts = {
+      isNewFeatures: true, // Optimistic response not need
+      isNewRegistration: true,
+      ...opts
+    };
+
+    const localId = entity?.id;
+    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (this.network.offline) throw new Error('Could not synchronize if network if offline');
+
+    // Clone (to keep original entity unchanged)
+    entity = entity instanceof Entity ? entity.clone() : entity;
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
+
+    entity.vesselFeatures.vesselId = undefined;
+    entity.vesselRegistrationPeriod.vesselId = undefined;
+
+    // Fill Trip
+    try {
+
+      entity = await this.save(entity, opts);
+
+      // Check return entity has a valid id
+      if (isNil(entity.id) || entity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+    } catch (err) {
+      throw {
+        ...err,
+        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
+        message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
+      };
+    }
+
+      if (this._debug) console.debug(`[vessel-service] to do : Update landings with vessel {${entity.id}} from local storage`);
+
+      if (this._debug) console.debug(`[vessel-service] to do : Update trips with vessel {${entity.id}} from local storage`);
+
+    try {
+      if (this._debug) console.debug(`[vessel-service] to do : Update VesselSnapshot with {${entity.id}} from local storage`);
+
+      if (this._debug) console.debug(`[vessel-service] Deleting vessel {${entity.id}} from local storage`);
+
+      // Delete Vessel
+      await this.entities.deleteById(localId, {entityName: Vessel.TYPENAME});
+    } catch (err) {
+      console.error(`[vessel-service] Failed to locally delete vessel {${entity.id}}`, err);
+      // Continue
+    }
+    return entity;
+
   }
 
   listenChanges(id: number, options?: any): Observable<Vessel> {
