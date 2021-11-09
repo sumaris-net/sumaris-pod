@@ -12,11 +12,11 @@
                           [config]="autocompleteFields.gear"
                           [tabindex]="tabindex"
                           [required]="true"
-                          (focusout)="focusNextInput()">
+                          (focusout)="focusNextInput($event)">
   </mat-autocomplete-field>
 
   <!-- rankOrder -->
-  <mat-form-field *ngIf="!canEditRankOrder">
+  <mat-form-field *ngIf="canEditRankOrder">
     <input matInput #inputField
            formControlName="rankOrder"
            autocomplete="off"
