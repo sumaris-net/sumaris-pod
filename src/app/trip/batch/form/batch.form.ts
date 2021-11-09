@@ -424,7 +424,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Wait ngAfterViewInit()
     await this.waitViewInit();
 
-    const childrenFormHelper = this.getChildrenFormHelper(form);
 
     // Add pmfms to form
     const measFormGroup = form.get('measurementValues') as FormGroup;
@@ -432,6 +431,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
     }
 
+    const childrenFormHelper = this.getChildrenFormHelper(form);
     const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
 
     // If the sample batch exists

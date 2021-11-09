@@ -24,7 +24,7 @@ import {
   NetworkService,
   Person
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { Landing } from './model/landing.model';
 import { gql } from '@apollo/client/core';
 import { DataFragments, DataCommonFragments } from './trip.queries';
@@ -298,7 +298,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     if (!dataFilter || dataFilter.isEmpty()) {
       console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
-      return EMPTY;
+      return of({total:0, data: []});
     }
 
     // Load offline

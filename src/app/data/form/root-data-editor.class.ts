@@ -185,9 +185,7 @@ export abstract class AppRootDataEditor<
     super.enable(opts);
 
     // Leave program disable once saved
-    if (!this.isNewData) {
-      this.form.controls['program'].disable(opts);
-    }
+    if (!this.isNewData) this.programControl.disable(opts);
 
     this.markForCheck();
   }
@@ -354,7 +352,7 @@ export abstract class AppRootDataEditor<
     const data = await super.getValue();
 
     // Re add program, because program control can be disabled
-    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
+    data.program = ReferentialRef.fromObject(this.programControl.value);
 
     return data;
   }

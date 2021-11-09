@@ -77,8 +77,8 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     );
   }
 
-  onEntityLoaded(data: Batch, opts?: any) {
-     super.onEntityLoaded(data, opts);
+  onApplyingEntity(data: Batch, opts?: any) {
+     super.onApplyingEntity(data, opts);
 
     if (!data) return; // Skip
 
