@@ -7,7 +7,7 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from 
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementFormValue, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, firstNotNilPromise, FormArrayHelper, isNil, isNotNil, LocalSettingsService, ReferentialRef, ReferentialUtils, toNumber, WaitOptions } from '@sumaris-net/ngx-components';
+import { AppForm, firstNotNilPromise, FormArrayHelper, isNil, isNotNil, LocalSettingsService, ReferentialRef, ReferentialUtils, toNumber, WaitForOptions } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -235,7 +235,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     super.markAsPristine(opts);
   }
 
-  waitIdle(opts?: WaitOptions): Promise<boolean> {
+  waitIdle(opts?: WaitForOptions): Promise<boolean> {
     let idle$ = this.$loadingStep
       .pipe(
         // DEBUG
@@ -404,8 +404,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    */
   protected canLoadPmfms(): boolean{
     // Check if can load (must have: program, acquisition - and gear if required)
-    if (isNil(this.programLabel) || (this.requiredStrategy && isNil(this.strategyLabel))
-      || isNil(this._acquisitionLevel) || (this.requiredGear && isNil(this._gearId))) {
+    if (isNil(this.programLabel)
+      || isNil(this._acquisitionLevel)
+      || (this.requiredStrategy && isNil(this.strategyLabel))
+      || (this.requiredGear && isNil(this._gearId))) {
 
       // DEBUG
       //if (this.debug) console.debug(`${this.logPrefix} cannot load pmfms (missing some inputs)`);

@@ -7,7 +7,7 @@ import {Location} from '@angular/common';
 import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
 import {TranslateService} from '@ngx-translate/core';
 import {AccountService, AppTable, EntitiesTableDataSource, isNotNil, LatLongPattern, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, toBoolean} from '@sumaris-net/ngx-components';
-import {OperationsMap} from './map/operations.map';
+import { OperationsMapModalOptions, OperationsMap } from './map/operations.map';
 import {environment} from '@environments/environment';
 import {Operation} from '../services/model/trip.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
@@ -33,7 +33,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() latLongPattern: LatLongPattern;
   @Input() tripId: number;
   @Input() showMap: boolean;
-  @Input() program: string;
+  @Input() programLabel: string;
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() useSticky = true;
@@ -192,10 +192,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
-      componentProps: {
-        operations: res.data,
+      componentProps: <OperationsMapModalOptions>{
+        data: res.data,
         latLongPattern: this.latLongPattern,
-        program: this.program
+        programLabel: this.programLabel
       },
       keyboardClose: true,
       cssClass: 'modal-large'

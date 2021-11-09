@@ -172,7 +172,7 @@
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
-                            [program]="$programLabel|async"
+                            [programLabel]="$programLabel|async"
                             [showToolbar]="!mobile"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
                             [defaultSortDirection]="mobile ?'desc': 'asc'">

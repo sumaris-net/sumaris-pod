@@ -34,7 +34,7 @@
     </button>
   </ng-template>
 
-  <ion-item *ngIf="!mobile && error; let error" lines="none">
+  <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
@@ -67,7 +67,7 @@
 </mat-menu>
 
 <!-- error -->
-<ion-item *ngIf="showError && error" lines="none">
+<ion-item *ngIf="showError && mobile && error" lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
