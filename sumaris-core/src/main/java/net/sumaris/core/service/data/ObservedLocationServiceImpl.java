@@ -37,7 +37,6 @@ import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -145,6 +144,10 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public void delete(int id) {
+
+		// Delete linked landings
+		landingService.deleteAllByObservedLocationId(id);
+
 		observedLocationRepository.deleteById(id);
 	}
 

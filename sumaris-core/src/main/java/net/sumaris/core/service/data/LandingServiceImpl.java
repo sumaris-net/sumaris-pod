@@ -203,6 +203,12 @@ public class LandingServiceImpl implements LandingService {
     }
 
     @Override
+    public void deleteAllByObservedLocationId(int observedLocationId) {
+        landingRepository.findAllByObservedLocationId(observedLocationId)
+                .forEach(l -> this.delete(l.getId()));
+    }
+
+    @Override
     public void delete(int id) {
         log.info("Delete Landing#{} {trash: {}}", id, enableTrash);
 

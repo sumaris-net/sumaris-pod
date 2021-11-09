@@ -76,6 +76,11 @@ public class LandingRepositoryImpl
     }
 
     @Override
+    public List<LandingVO> findAllByObservedLocationId(int observedLocationId) {
+        return findAllVO(hasObservedLocationId(observedLocationId));
+    }
+
+    @Override
     public List<LandingVO> findAllByTripIds(List<Integer> tripIds) {
         return findAllVO(hasTripIds(tripIds));
     }

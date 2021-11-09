@@ -134,6 +134,8 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
 
     List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, DataFetchOptions fetchOptions);
 
+    List<LandingVO> findAllByObservedLocationId(int observedLocationId);
+
     List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources);
 
     List<LandingVO> findAllByTripIds(List<Integer> tripIds);
