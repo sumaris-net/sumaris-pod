@@ -128,9 +128,12 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   equals(other: PmfmStrategy): boolean {
     return other && (this.id === other.id
-      // Same acquisitionLevel, pmfm, parameter
+      // Same acquisitionLevel, pmfm, parameter and fraction (when available)
       || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel
         && ((!this.pmfm && !other.pmfm) || (this.pmfm && other.pmfm && this.pmfm.id === other.pmfm.id))
+          // INFO CLT: fix on pmfms compare / IMAGINE-601
+          // When data is retrieved from pod in strategy-service.save, differents fraction pmfms where merged since pmfm isn't filled and other parameters are identical. Without fraction compare, they were returned as as single pmfm and data was lost.
+        && ((!this.fraction && !other.fraction) || (this.fraction && other.fraction && this.fraction.id === other.fraction.id))
         && ((!this.parameter && !other.parameter) || (this.parameter && other.parameter && this.parameter.id === other.parameter.id))
       )
     );
