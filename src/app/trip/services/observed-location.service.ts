@@ -1,4 +1,4 @@
-import { Injectable, Injector } from '@angular/core';
+import {Injectable, Injector} from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
@@ -22,31 +22,33 @@ import {
   StatusIds,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { Observable } from 'rxjs';
+import {Observable} from 'rxjs';
 import * as momentImported from 'moment';
-import { gql } from '@apollo/client/core';
-import { DataCommonFragments, DataFragments } from './trip.queries';
-import { filter, map } from 'rxjs/operators';
-import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
-import { ObservedLocation } from './model/observed-location.model';
-import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
-import { SortDirection } from '@angular/material/sort';
-import { IDataEntityQualityService } from '../../data/services/data-quality-service.class';
-import { LandingFragments, LandingService } from './landing.service';
-import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
-import { Landing } from './model/landing.model';
-import { ObservedLocationValidatorService } from './validator/observed-location.validator';
-import { environment } from '../../../environments/environment';
-import { VesselSnapshotFragments } from '../../referential/services/vessel-snapshot.service';
-import { OBSERVED_LOCATION_FEATURE_NAME } from './config/trip.config';
-import { ProgramProperties } from '../../referential/services/config/program.config';
-import { VESSEL_FEATURE_NAME } from '../../vessel/services/config/vessel.config';
-import { LandingFilter } from './filter/landing.filter';
-import { ObservedLocationFilter, ObservedLocationOfflineFilter } from './filter/observed-location.filter';
-import { SampleFilter } from '@app/trip/services/filter/sample.filter';
-import { TripFragments } from '@app/trip/services/trip.service';
-import { ErrorCodes } from '@app/data/services/errors';
-import { TripErrorCodes } from '@app/trip/services/trip.errors';
+import {gql} from '@apollo/client/core';
+import {DataCommonFragments, DataFragments} from './trip.queries';
+import {filter, map} from 'rxjs/operators';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
+import {ObservedLocation} from './model/observed-location.model';
+import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
+import {SortDirection} from '@angular/material/sort';
+import {IDataEntityQualityService} from '../../data/services/data-quality-service.class';
+import {LandingFragments, LandingService} from './landing.service';
+import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
+import {Landing} from './model/landing.model';
+import {ObservedLocationValidatorService} from './validator/observed-location.validator';
+import {environment} from '../../../environments/environment';
+import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
+import {OBSERVED_LOCATION_FEATURE_NAME} from './config/trip.config';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {VESSEL_FEATURE_NAME} from '../../vessel/services/config/vessel.config';
+import {LandingFilter} from './filter/landing.filter';
+import {ObservedLocationFilter, ObservedLocationOfflineFilter} from './filter/observed-location.filter';
+import {SampleFilter} from '@app/trip/services/filter/sample.filter';
+import {TripFragments, TripService} from '@app/trip/services/trip.service';
+import {ErrorCodes} from '@app/data/services/errors';
+import {TripErrorCodes} from '@app/trip/services/trip.errors';
+import {VesselService} from '@app/vessel/services/vessel-service';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -191,7 +193,7 @@ const ObservedLocationMutations = {
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.location}`,
 
-  validate:  gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
+  validate: gql`mutation ValidateObservedLocation($data: ObservedLocationVOInput!){
     data: validateObservedLocation(observedLocation: $data){
       ...ObservedLocationFragment
     }
@@ -238,15 +240,13 @@ const CountSamples: any = gql`
   }
 `;
 
-@Injectable({providedIn: "root"})
+@Injectable({providedIn: 'root'})
 export class ObservedLocationService
   extends RootDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions>
-  implements
-    IEntitiesService<ObservedLocation, ObservedLocationFilter>,
+  implements IEntitiesService<ObservedLocation, ObservedLocationFilter>,
     IEntityService<ObservedLocation, number, ObservedLocationLoadOptions>,
     IDataEntityQualityService<ObservedLocation, number>,
-    IDataSynchroService<ObservedLocation, number, ObservedLocationLoadOptions>
-{
+    IDataSynchroService<ObservedLocation, number, ObservedLocationLoadOptions> {
 
   protected loading = false;
 
@@ -257,7 +257,9 @@ export class ObservedLocationService
     protected network: NetworkService,
     protected entities: EntitiesStorage,
     protected validatorService: ObservedLocationValidatorService,
-    protected landingService: LandingService
+    protected vesselService: VesselService,
+    protected landingService: LandingService,
+    protected tripService: TripService
   ) {
     super(injector, ObservedLocation, ObservedLocationFilter, {
       queries: ObservedLocationQueries,
@@ -294,7 +296,7 @@ export class ObservedLocationService
     };
 
     let now = Date.now();
-    console.debug("[observed-location-service] Watching observed locations... using options:", variables);
+    console.debug('[observed-location-service] Watching observed locations... using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
@@ -305,24 +307,24 @@ export class ObservedLocationService
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR"},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
-    .pipe(
-      filter(() => !this.loading),
-      map(({data, total}) => {
-        const entities = (data || []).map(ObservedLocation.fromObject);
-        if (now) {
-          console.debug(`[observed-location-service] Loaded {${entities.length || 0}} observed locations in ${Date.now() - now}ms`, entities);
-          now = undefined;
-        }
-        return {data: entities, total};
-      }));
+      .pipe(
+        filter(() => !this.loading),
+        map(({data, total}) => {
+          const entities = (data || []).map(ObservedLocation.fromObject);
+          if (now) {
+            console.debug(`[observed-location-service] Loaded {${entities.length || 0}} observed locations in ${Date.now() - now}ms`, entities);
+            now = undefined;
+          }
+          return {data: entities, total};
+        }));
   }
 
   watchAllLocally(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-           dataFilter?: Partial<ObservedLocationFilter>,
-           opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
+                  dataFilter?: Partial<ObservedLocationFilter>,
+                  opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
     dataFilter = this.asFilter(dataFilter);
 
@@ -334,7 +336,7 @@ export class ObservedLocationService
       filter: dataFilter && dataFilter.asFilterFn()
     };
 
-    console.debug("[observed-location-service] Watching local observed locations... using options:", variables);
+    console.debug('[observed-location-service] Watching local observed locations... using options:', variables);
 
     return this.entities.watchAll<ObservedLocation>(ObservedLocation.TYPENAME, variables)
       .pipe(
@@ -346,7 +348,7 @@ export class ObservedLocationService
   }
 
   async load(id: number, opts?: ObservedLocationLoadOptions): Promise<ObservedLocation> {
-    if (isNil(id)) throw new Error("Missing argument 'id'");
+    if (isNil(id)) throw new Error('Missing argument \'id\'');
 
     const now = Date.now();
     if (this._debug) console.debug(`[observed-location-service] Loading observed location {${id}}...`);
@@ -358,7 +360,7 @@ export class ObservedLocationService
       // If local entity
       if (id < 0) {
         data = await this.entities.load<ObservedLocation>(id, ObservedLocation.TYPENAME);
-        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
 
         if (opts && opts.withLanding) {
           data.landings = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
@@ -367,13 +369,11 @@ export class ObservedLocationService
             fullLoad: true
           });
         }
-      }
-
-      else {
+      } else {
         const res = await this.graphql.query<{ data: ObservedLocation }>({
           query: this.queries.load,
-          variables: { id },
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
+          variables: {id},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -385,20 +385,19 @@ export class ObservedLocationService
       if (entities && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, entities);
 
       return entities;
-    }
-    finally {
+    } finally {
       this.loading = false;
     }
   }
 
   public listenChanges(id: number, opts?: { interval?: number }): Observable<ObservedLocation> {
-    if (!id && id !== 0) throw new Error("Missing argument 'id' ");
+    if (!id && id !== 0) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
     return this.graphql.subscribe<{ data: ObservedLocation }, { id: number, interval: number }>({
       query: this.subscriptions.listenChanges,
-      variables: { id, interval: toNumber(opts && opts.interval, 10) },
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
         message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
@@ -428,7 +427,7 @@ export class ObservedLocationService
     };
 
     const now = Date.now();
-    if (this._debug) console.debug("[observed-location-service] Saving an observed location...");
+    if (this._debug) console.debug('[observed-location-service] Saving an observed location...');
 
     // Prepare to save
     this.fillDefaultProperties(entity);
@@ -439,7 +438,7 @@ export class ObservedLocationService
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
     if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
-    if (this._debug) console.debug("[observed-location-service] Using minify object, to send:", json);
+    if (this._debug) console.debug('[observed-location-service] Using minify object, to send:', json);
 
     const variables = {
       data: json,
@@ -452,7 +451,7 @@ export class ObservedLocationService
     await this.graphql.mutate<{ data: ObservedLocation }>({
       mutation,
       variables,
-      error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
       update: (proxy, {data}) => {
         const savedEntity = data && data.data;
         if (savedEntity !== entity) {
@@ -522,8 +521,8 @@ export class ObservedLocationService
 
         // Copy date to landing and samples (IMAGINE-276)
         if (!landingHasDateTime) {
-         l.dateTime = entity.startDateTime;
-          (l.samples || []).forEach(s => {
+          l.dateTime = entity.startDateTime;
+          (l.samples || []).forEach(s => {
             s.sampleDate = l.dateTime;
           });
         }
@@ -565,7 +564,7 @@ export class ObservedLocationService
 
     await this.graphql.mutate<any>({
       mutation: this.mutations.deleteAll,
-      variables: { ids },
+      variables: {ids},
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
@@ -608,14 +607,14 @@ export class ObservedLocationService
 
     try {
       // Load children
-      const res = await this.landingService.loadAllByObservedLocation({ observedLocationId: entity.id },
-        { fullLoad: true, computeRankOrder: false });
+      const res = await this.landingService.loadAllByObservedLocation({observedLocationId: entity.id},
+        {fullLoad: true, computeRankOrder: false});
       const landings = res && res.data;
 
-      await this.entities.delete(entity, { entityName: ObservedLocation.TYPENAME });
+      await this.entities.delete(entity, {entityName: ObservedLocation.TYPENAME});
 
       if (isNotNil(landings)) {
-        await this.landingService.deleteAll(landings, { trash: false });
+        await this.landingService.deleteAll(landings, {trash: false});
       }
 
       if (trash) {
@@ -623,15 +622,14 @@ export class ObservedLocationService
         entity.landings = landings;
         entity.updateDate = trashUpdateDate;
 
-        const json = entity.asObject({ ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false });
+        const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
 
         // Add to trash
-        await this.entities.saveToTrash(json, { entityName: ObservedLocation.TYPENAME });
+        await this.entities.saveToTrash(json, {entityName: ObservedLocation.TYPENAME});
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error('Error during observation location deletion: ', err);
-      throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: "ERROR.DELETE_ENTITY_ERROR"};
+      throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
     }
   }
 
@@ -641,7 +639,7 @@ export class ObservedLocationService
     if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}}...`, entity);
 
     const programLabel = entity.program && entity.program.label || null;
-    if (!programLabel) throw new Error("Missing entity's program. Unable to control the entity");
+    if (!programLabel) throw new Error('Missing entity\'s program. Unable to control the entity');
     const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
@@ -676,8 +674,8 @@ export class ObservedLocationService
     };
 
     const localId = entity?.id;
-    if (isNil(localId) || localId >= 0) throw new Error("Entity must be a local entity");
-    if (this.network.offline) throw new Error("Could not synchronize if network if offline");
+    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (this.network.offline) throw new Error('Could not synchronize if network if offline');
 
     // Clone (to keep original entity unchanged)
     entity = entity instanceof Entity ? entity.clone() : entity;
@@ -685,13 +683,32 @@ export class ObservedLocationService
     entity.id = undefined;
 
     // Fill landings
-    const res = await this.landingService.loadAllByObservedLocation( {observedLocationId: localId},
+    const res = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
       {fullLoad: true, rankOrderOnPeriod: false});
-    entity.landings = res && res.data || [];
+    const landings = res && res.data || [];
+    entity.landings = undefined;
 
     // Get temporary vessel (not saved)
-    const tempVessels = entity.landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.vesselStatusId === StatusIds.TEMPORARY);
+    const tempVessels = landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.vesselStatusId === StatusIds.TEMPORARY).map(landing => landing.vesselSnapshot);
     if (isNotEmptyArray(tempVessels)) {
+
+      const vesselToSave = tempVessels.map(VesselSnapshot.toVessel);
+      const savedVessels: Map<number, VesselSnapshot> = new Map<number, VesselSnapshot>();
+      // vesselToSave.forEach(v => {
+      //  savedVessels.set(v.id, undefined);
+      // });
+      for (const vessel of vesselToSave){
+        const vesselLocalId= vessel.id;
+        const savedVessel = await this.vesselService.synchronize(vessel);
+        savedVessels.set(vesselLocalId, VesselSnapshot.fromVessel(savedVessel));
+      }
+
+      landings.forEach(landing => {
+        if (savedVessels.has(landing.vesselSnapshot.id)){
+          landing.vesselSnapshot = savedVessels.get(landing.vesselSnapshot.id);
+        }
+      });
+
       console.warn('TODO: saving local vessels: ', tempVessels);
     }
 
@@ -703,11 +720,19 @@ export class ObservedLocationService
       if (isNil(entity.id) || entity.id < 0) {
         throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
       }
+
+      entity.landings = [];
+      for (const landing of landings) {
+        landing.observedLocationId = entity.id;
+        landing.location = entity.location;
+        const savedLanding = await this.landingService.synchronize(landing);
+        entity.landings.push(savedLanding);
+      }
     } catch (err) {
       throw {
         ...err,
         code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
-        message: "ERROR.SYNCHRONIZE_ENTITY_ERROR",
+        message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
         context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
       };
     }
@@ -720,8 +745,7 @@ export class ObservedLocationService
 
       // Delete observedLocation
       await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
-    }
-    catch (err) {
+    } catch (err) {
       console.error(`[observed-location-service] Failed to locally delete observedLocation {${entity.id}} and its landings`, err);
       // Continue
     }
@@ -741,7 +765,7 @@ export class ObservedLocationService
       variables: {
         filter
       },
-      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "OBSERVED_LOCATION.ERROR.COUNT_SAMPLES_ERROR"},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'OBSERVED_LOCATION.ERROR.COUNT_SAMPLES_ERROR'},
       fetchPolicy: 'network-only'
     });
 
@@ -770,8 +794,7 @@ export class ObservedLocationService
           filter: landingFilter
         }), opts)
       ];
-    }
-    else {
+    } else {
       return super.getImportJobs(opts);
     }
   }
@@ -791,7 +814,7 @@ export class ObservedLocationService
     if (landingHasDateTime) return; // Not need to update children dates
 
     const now = Date.now();
-    console.info("[observed-location-service] Applying date to children entities (Landing, Sample)...");
+    console.info('[observed-location-service] Applying date to children entities (Landing, Sample)...');
 
     try {
       let res: LoadResult<Landing>;
@@ -803,7 +826,7 @@ export class ObservedLocationService
         const updatedLandings = (res.data || []).map(l => {
           if (!l.dateTime || !l.dateTime.isSame(entity.startDateTime)) {
             l.dateTime = entity.startDateTime;
-            (l.samples || []).forEach(sample => {
+            (l.samples || []).forEach(sample => {
               sample.sampleDate = l.dateTime;
             });
             return l;
@@ -820,12 +843,11 @@ export class ObservedLocationService
       } while (offset < res.total);
 
       console.info(`[observed-location-service] Applying date to children entities (Landing, Sample) [OK] in ${Date.now() - now}ms`);
-    }
-    catch (err) {
+    } catch (err) {
       throw {
         ...err,
         code: TripErrorCodes.UPDATE_OBSERVED_LOCATION_CHILDREN_DATE_ERROR,
-        message: "OBSERVED_LOCATION.ERROR.UPDATE_CHILDREN_DATE_ERROR"
+        message: 'OBSERVED_LOCATION.ERROR.UPDATE_CHILDREN_DATE_ERROR'
       };
     }
   }

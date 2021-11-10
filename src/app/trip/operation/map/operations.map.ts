@@ -7,14 +7,14 @@ import {
   DateDiffDurationPipe,
   DateFormatPipe,
   EntityUtils,
-  fadeInOutAnimation,
+  fadeInOutAnimation, firstNotNilPromise,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LatLongPattern,
   LocalSettingsService,
   PlatformService,
-  sleep,
+  sleep, waitFor,
 } from '@sumaris-net/ngx-components';
 import { Feature, LineString } from 'geojson';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -27,7 +27,6 @@ import { ProgramRefService } from '../../../referential/services/program-ref.ser
 import { Program } from '../../../referential/services/model/program.model';
 import { Operation } from '../../services/model/trip.model';
 import { environment } from '@environments/environment';
-import { firstNotNilPromise, waitFor } from '../../../../../ngx-sumaris-components/src/app/shared/observables';
 
 export interface OperationsMapModalOptions {
   data: Operation[];

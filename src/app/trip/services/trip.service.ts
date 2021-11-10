@@ -1,6 +1,6 @@
-import { Injectable, Injector, Optional } from '@angular/core';
-import { gql } from '@apollo/client/core';
-import { filter, map } from 'rxjs/operators';
+import {Injectable, Injector, Optional} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {filter, map} from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
   AccountService,
@@ -31,7 +31,7 @@ import {
   toNumber,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import { DataFragments, ExpectedSaleFragments, DataCommonFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
+import {DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -39,30 +39,30 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
 } from '@app/data/services/model/data-entity.model';
-import { Observable } from 'rxjs';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { OperationService } from './operation.service';
-import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { TripValidatorService } from './validator/trip.validator';
-import { Operation, PhysicalGear, Trip } from './model/trip.model';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
-import { SortDirection } from '@angular/material/sort';
-import { OverlayEventDetail } from '@ionic/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ToastController } from '@ionic/angular';
-import { TRIP_FEATURE_NAME } from './config/trip.config';
-import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { Sample } from './model/sample.model';
-import { ErrorCodes } from '@app/data/services/errors';
-import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
-import { TrashRemoteService } from '@app/core/services/trash-remote.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import {Observable} from 'rxjs';
+import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
+import {OperationService} from './operation.service';
+import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {TripValidatorService} from './validator/trip.validator';
+import {Operation, PhysicalGear, Trip} from './model/trip.model';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import {SortDirection} from '@angular/material/sort';
+import {OverlayEventDetail} from '@ionic/core';
+import {TranslateService} from '@ngx-translate/core';
+import {ToastController} from '@ionic/angular';
+import {TRIP_FEATURE_NAME} from './config/trip.config';
+import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {Sample} from './model/sample.model';
+import {ErrorCodes} from '@app/data/services/errors';
+import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
+import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
@@ -769,6 +769,10 @@ export class TripService
     const operations = entity.operations;
     delete entity.operations;
 
+    // Extract landing (saved just after)
+    const landing = entity.landing;
+    delete entity.landing;
+
     const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false});
     if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', jsonLocal);
 
@@ -788,6 +792,17 @@ export class TripService
       });
 
       entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id});
+    }
+
+    if (opts.withLanding && landing) {
+      entity.landing = landing;
+      entity.landing.tripId = entity.id;
+      entity.landing.observedLocationId = entity.observedLocationId;
+      entity.landing.program = entity.program;
+      entity.landing.vesselSnapshot = entity.vesselSnapshot;
+      entity.landing.dateTime = entity.returnDateTime;
+      entity.landing.observers = entity.observers;
+      entity.landing.observedLocationId = entity.observedLocationId;
     }
 
     return entity;
@@ -815,10 +830,6 @@ export class TripService
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    // Fill operations
-    const res = await this.operationService.loadAllByTrip({tripId: localId},
-      {fullLoad: true, computeRankOrder: false});
-
     const childOperations = new Array<Operation>();
     const parentOperations = new Array<Operation>();
     const parentOperationsWithNoChild = new Array<Operation>();
@@ -826,29 +837,36 @@ export class TripService
     const operationToDeleteLocally = [];
     const operationToSaveLocally = [];
 
-    //sort operations to saving in good order
-    if (res.data) {
-      res.data.forEach(operation => {
-        if (operation.parentOperationId && operation.parentOperationId < 0) {
-          childOperations.push(operation);
-        } else if (operation.childOperationId && operation.childOperationId < 0) {
-          parentOperations.push(operation);
-        } else if (!operation.childOperationId && !operation.parentOperationId && operation.qualityFlagId === QualityFlagIds.NOT_COMPLETED) {
-          parentOperationsWithNoChild.push(operation);
-        } else {
-          otherOperations.push(operation);
-          if (operation.parentOperation != null) {
-            operationToDeleteLocally.push(operation.parentOperationId);
+    if (opts.withOperation) {
+
+      // Fill operations
+      const res = await this.operationService.loadAllByTrip({tripId: localId},
+        {fullLoad: true, computeRankOrder: false});
+
+      //sort operations to saving in good order
+      if (res.data) {
+        res.data.forEach(operation => {
+          if (operation.parentOperationId && operation.parentOperationId < 0) {
+            childOperations.push(operation);
+          } else if (operation.childOperationId && operation.childOperationId < 0) {
+            parentOperations.push(operation);
+          } else if (!operation.childOperationId && !operation.parentOperationId && operation.qualityFlagId === QualityFlagIds.NOT_COMPLETED) {
+            parentOperationsWithNoChild.push(operation);
+          } else {
+            otherOperations.push(operation);
+            if (operation.parentOperation != null) {
+              operationToDeleteLocally.push(operation.parentOperationId);
+            }
           }
-        }
-      });
-    }
+        });
+      }
 
-    if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
-      throw new Error('Could not synchronize child operation before its parent');
-    }
+      if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
+        throw new Error('Could not synchronize child operation before its parent');
+      }
 
-    entity.operations = otherOperations;
+      entity.operations = otherOperations;
+    }
 
     try {
 
@@ -867,48 +885,52 @@ export class TripService
       };
     }
 
-    for (const operation of parentOperations) {
-      const operationLocalId = operation.id;
-      operation.tripId = entity.id;
-      const savedOperation = await this.operationService.save(operation, opts);
-      childOperations.forEach(o => {
-        if (o.parentOperationId === operationLocalId) {
-          o.tripId = entity.id;
-          o.parentOperationId = savedOperation.id;
-          o.parentOperation = savedOperation;
-        }
-      });
-    }
-    await this.operationService.saveAll(childOperations, opts);
+    if (opts.withOperation) {
 
-    for (const operation of parentOperationsWithNoChild) {
-      operation.tripId = entity.id;
-      const savedOperation = await this.operationService.save(operation, opts);
-      operationToSaveLocally.push(savedOperation.id);
+      for (const operation of parentOperations) {
+        const operationLocalId = operation.id;
+        operation.tripId = entity.id;
+        const savedOperation = await this.operationService.save(operation, opts);
+        childOperations.forEach(o => {
+          if (o.parentOperationId === operationLocalId) {
+            o.tripId = entity.id;
+            o.parentOperationId = savedOperation.id;
+            o.parentOperation = savedOperation;
+          }
+        });
+      }
+      await this.operationService.saveAll(childOperations, opts);
 
+      for (const operation of parentOperationsWithNoChild) {
+        operation.tripId = entity.id;
+        const savedOperation = await this.operationService.save(operation, opts);
+        operationToSaveLocally.push(savedOperation.id);
+      }
     }
 
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
-      // Delete trip's operations
-      await this.operationService.deleteLocally({tripId: localId});
+      if (opts.withOperation) {
+        // Delete trip's operations
+        await this.operationService.deleteLocally({tripId: localId});
 
-      // Delete parent from other trip which have child operation now
-      await this.operationService.deleteLocally({includedIds: operationToDeleteLocally});
+        // Delete parent from other trip which have child operation now
+        await this.operationService.deleteLocally({includedIds: operationToDeleteLocally});
 
-      // Saved locally new parent operation which wait child operation
-      if (operationToSaveLocally.length > 0) {
-        const operations = await this.operationService.loadAll(0, 999, null, null,
-          {
-            includedIds: operationToSaveLocally,
-            programLabel: entity.program.label
-          });
-        await this.operationService.saveAllLocally(operations.data);
+        // Saved locally new parent operation which wait child operation
+        if (operationToSaveLocally.length > 0) {
+          const operations = await this.operationService.loadAll(0, 999, null, null,
+            {
+              includedIds: operationToSaveLocally,
+              programLabel: entity.program.label
+            });
+          await this.operationService.saveAllLocally(operations.data);
+        }
       }
 
       // Delete trip
-      await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
+      // await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
     } catch (err) {
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
       // Continue
@@ -1053,7 +1075,7 @@ export class TripService
       }
     } catch (err) {
       console.error('Error during trip deletion: ', err);
-      throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: "ERROR.DELETE_ENTITY_ERROR"};
+      throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
     }
   }
 
@@ -1303,7 +1325,7 @@ export class TripService
         ...super.getImportJobs({...opts, dataFilter: filter}),
         JobUtils.defer((p, o) => this.operationService.executeImport(p, {
           ...o,
-         filter
+          filter
         }), opts),
         JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
           ...o,
