@@ -7,7 +7,7 @@ import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
 import {FormGroup} from '@angular/forms';
-import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import { StatusById } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 @Component({

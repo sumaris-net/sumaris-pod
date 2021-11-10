@@ -10,7 +10,7 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-
 import {environment} from "../../../environments/environment";
 import {Entity}  from "@sumaris-net/ngx-components";
 import {ReferentialFilter} from "../services/filter/referential.filter";
-import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import { StatusById } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 @Component({

@@ -10,7 +10,7 @@ import {Location} from '@angular/common';
 import {Program} from '../services/model/program.model';
 import {environment} from '@environments/environment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import { StatusById } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 @Component({

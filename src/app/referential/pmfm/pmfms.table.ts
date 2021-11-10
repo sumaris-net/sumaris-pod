@@ -10,7 +10,7 @@ import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {debounceTime, filter} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {Pmfm} from "../services/model/pmfm.model";
-import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import { StatusById } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 @Component({

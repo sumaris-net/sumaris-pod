@@ -34,7 +34,7 @@ import { environment } from '../../../environments/environment';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
+import { StatusById } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 @Component({
