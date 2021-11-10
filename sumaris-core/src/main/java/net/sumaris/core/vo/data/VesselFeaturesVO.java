@@ -23,6 +23,7 @@
 package net.sumaris.core.vo.data;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -65,5 +66,8 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
 
     private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
+
+    @ToString.Exclude
+    private VesselVO vessel;
 
 }

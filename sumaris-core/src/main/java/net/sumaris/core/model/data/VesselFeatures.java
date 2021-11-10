@@ -42,7 +42,8 @@ import java.util.List;
 @Table(name = "vessel_features")
 public class VesselFeatures implements IDataEntity<Integer>,
         IWithRecorderPersonEntity<Integer, Person>,
-        IWithRecorderDepartmentEntity<Integer, Department> {
+        IWithRecorderDepartmentEntity<Integer, Department>,
+        IWithVesselEntity<Integer, Vessel>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_FEATURES_SEQ")

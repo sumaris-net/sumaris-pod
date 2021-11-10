@@ -27,6 +27,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -201,7 +202,7 @@ public class VesselRepositoryImpl
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
+            String defaultProgramLabel = ProgramEnum.SIH.getLabel();
             ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(getReference(Program.class, defaultProgram.getId()));
