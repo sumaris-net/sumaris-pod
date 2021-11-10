@@ -23,10 +23,9 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.base.Splitter;
+import com.google.common.collect.*;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
@@ -37,6 +36,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.util.Beans;
@@ -54,6 +54,7 @@ import org.apache.commons.lang3.mutable.MutableShort;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
@@ -62,9 +63,9 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Repository("measurementDao")
 @Slf4j
@@ -78,6 +79,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         I18n.n("sumaris.persistence.table.batchSortingMeasurement");
         I18n.n("sumaris.persistence.table.batchQuantificationMeasurement");
         I18n.n("sumaris.persistence.table.observedLocationMeasurement");
+        I18n.n("sumaris.persistence.table.landingMeasurement");
+        I18n.n("sumaris.persistence.table.surveyMeasurement");
+        I18n.n("sumaris.persistence.table.saleMeasurement");
     }
 
     protected static Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> initParentPropertiesMap() {
@@ -126,6 +130,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Autowired
     private PmfmRepository pmfmRepository;
 
+    // TODO: enable this, when APP can manage it !
+    private boolean enableMeasurementMapFullSerialization = false;
 
     @Override
     public List<MeasurementVO> getTripVesselUseMeasurements(int tripId) {
@@ -574,16 +580,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     public Map<Integer, String> saveBatchSortingMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = getById(Batch.class, batchId);
         Preconditions.checkNotNull(parent, "Could not found batch with id=" + batchId);
-        List<BatchSortingMeasurement> sotingMeasurements = parent.getSortingMeasurements().stream().filter(measurement -> !measurement.getPmfm().getLabel().contains("MULTIPLE")).collect(Collectors.toList());
-        return saveMeasurementsMap(BatchSortingMeasurement.class, sources, sotingMeasurements, parent);
-    }
-
-    @Override
-    public Map<Integer, String[]> saveBatchSortingMeasurementsMultipleMap(int batchId, Map<Integer, String[]> sources) {
-        Batch parent = getById(Batch.class, batchId);
-        Preconditions.checkNotNull(parent, "Could not found batch with id=" + batchId);
-        List<BatchSortingMeasurement> sotingMeasurements = parent.getSortingMeasurements().stream().filter(measurement -> measurement.getPmfm().getLabel().contains("MULTIPLE")).collect(Collectors.toList());
-        return saveMeasurementsMultipleMap(BatchSortingMeasurement.class, sources, sotingMeasurements, parent);
+        List<BatchSortingMeasurement> sortingMeasurements = parent.getSortingMeasurements().stream().filter(measurement -> !measurement.getPmfm().getLabel().contains("MULTIPLE")).collect(Collectors.toList());
+        return saveMeasurementsMap(BatchSortingMeasurement.class, sources, sortingMeasurements, parent);
     }
 
     @Override
@@ -853,64 +851,31 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         final ListMultimap<Integer, T> existingSources = Beans.splitByNotUniqueProperty(Beans.getList(target),
             StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
         List<T> sourcesToRemove = Beans.getList(existingSources.values());
-        short rankOrder = 1;
-        Date newUpdateDate = null;
+        MutableShort rankOrder = new MutableShort(1);
+        Date previousUpdateDate = null;
 
         for (Integer pmfmId: sources.keySet()) {
             String value = sources.get(pmfmId);
 
-            if (StringUtils.isNotBlank(value)) {
-                // Get existing meas and remove it from list to remove
-                IMeasurementEntity entity = existingSources.containsKey(pmfmId) ? existingSources.get(pmfmId).get(0) : null;
+            if (StringUtils.isBlank(value)) continue; // Skip if blank value
 
-                // Exists ?
-                boolean isNew = (entity == null);
-                if (isNew) {
-                    try {
-                        entity = entityClass.newInstance();
-                    } catch (IllegalAccessException | InstantiationException e) {
-                        throw new SumarisTechnicalException(e);
-                    }
+            final PmfmVO pmfm = getPmfm(pmfmId);
+
+            // Compute update date (once)
+            previousUpdateDate = previousUpdateDate != null ? previousUpdateDate : getDatabaseCurrentTimestamp();
+
+            // Split when many values (e.g. '<value1>|<value2>')
+            if (value.indexOf(MEASUREMENTS_MAP_VALUE_SEPARATOR) != -1) {
+                Iterable<String> values = Splitter.on(MEASUREMENTS_MAP_VALUE_SEPARATOR)
+                    .trimResults().omitEmptyStrings().split(value);
+                for (String aValue: values) {
+                    saveMeasurementValue(em, pmfm, entityClass, parent, previousUpdateDate,
+                        aValue, rankOrder, existingSources, sourcesToRemove);
                 }
-                else {
-                    sourcesToRemove.remove(entity);
-                }
-
-                // Make sure to set pmfm
-                if (entity.getPmfm() == null) {
-                    entity.setPmfm(getReference(Pmfm.class, pmfmId));
-                }
-
-                // Rank order
-                if (entity instanceof ISortedMeasurementEntity) {
-                    ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder++);
-                }
-
-                // Is reference ?
-                if (entity instanceof IQuantifiedMeasurementEntity) {
-                    ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder == 1);
-                    ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder++);
-                }
-
-                // Fill default properties
-                fillDefaultProperties(parent, entity);
-
-                // Set value to entity
-                valueToEntity(value, pmfmId, entity);
-
-                // Link to parent
-                setParent(entity, getEntityClass(parent), parent.getId(), false);
-
-                // Update update_dt
-                newUpdateDate = newUpdateDate != null ? newUpdateDate : getDatabaseCurrentTimestamp();
-                entity.setUpdateDate(newUpdateDate);
-
-                // Save entity
-                if (isNew) {
-                    em.persist(entity);
-                } else {
-                    em.merge(entity);
-                }
+            }
+            else {
+                saveMeasurementValue(em, pmfm, entityClass, parent, previousUpdateDate,
+                    value, rankOrder, existingSources, sourcesToRemove);
             }
         }
 
@@ -922,85 +887,73 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         return sources;
     }
 
-    protected <T extends IMeasurementEntity> Map<Integer, String[]> saveMeasurementsMultipleMap(
-            final Class<? extends T> entityClass,
-            Map<Integer, String[]> sources,
-            List<T> target,
-            final IEntity<?> parent) {
+    protected <T extends IMeasurementEntity> void saveMeasurementValue(EntityManager em,
+                                                                       PmfmVO pmfm,
+                                                                       final Class<? extends T> entityClass,
+                                                                       final IEntity<?> parent,
+                                                                       final Date updateDate,
+                                                                       String value,
+                                                                       final MutableShort rankOrder,
+                                                                       ListMultimap<Integer, T> existingSources,
+                                                                       List<T> sourcesToRemove) {
+        // Get existing meas and remove it from list to remove
+        IMeasurementEntity entity = Optional.ofNullable(existingSources.get(pmfm.getId()))
+            .map(List::stream).flatMap(Stream::findFirst)
+            .orElse(null);
 
-        final EntityManager session = getEntityManager();
+        // Exists ?
+        boolean isNew = (entity == null);
+        if (isNew) {
+            try {
+                entity = entityClass.newInstance();
+            } catch (IllegalAccessException | InstantiationException e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }
+        else {
+            sourcesToRemove.remove(entity);
+        }
 
+        // Make sure to set pmfm
+        if (entity.getPmfm() == null) {
+            entity.setPmfm(getReference(Pmfm.class, pmfm.getId()));
+        }
 
-        // Remember existing measurements, to be able to remove unused measurements
-        // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final ListMultimap<Integer, T> existingSources = Beans.splitByNotUniqueProperty(Beans.getList(target),
-                StringUtils.doting(IMeasurementEntity.Fields.PMFM, IMeasurementEntity.Fields.ID));
-        List<T> sourcesToRemove = Beans.getList(existingSources.values());
-        short rankOrder = 1;
-        for (Integer pmfmId: sources.keySet()) {
-            for (int i = 0; i < sources.get(pmfmId).length; i++) {
-                String value = sources.get(pmfmId)[i];
-                if (StringUtils.isNotBlank(value)) {
-                    // Get existing meas and remove it from list to remove
-                    IMeasurementEntity entity = existingSources.containsKey(pmfmId) && existingSources.get(pmfmId).size() > i ? existingSources.get(pmfmId).get(i) : null;
+        // Rank order
+        if (entity instanceof ISortedMeasurementEntity) {
+            ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder.getValue());
+            rankOrder.increment();
+        }
 
-                    // Exists ?
-                    boolean isNew = (entity == null);
-                    if (isNew) {
-                        try {
-                            entity = entityClass.newInstance();
-                        } catch (IllegalAccessException | InstantiationException e) {
-                            throw new SumarisTechnicalException(e);
-                        }
-                    } else {
-                        sourcesToRemove.remove(entity);
-                    }
-
-                    // Make sure to set pmfm
-                    if (entity.getPmfm() == null) {
-                        entity.setPmfm(getReference(Pmfm.class, pmfmId));
-                    }
-
-                    // Rank order
-                    if (entity instanceof ISortedMeasurementEntity) {
-                        ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder++);
-                    }
-
-                    // Is reference ?
-                    if (entity instanceof IQuantifiedMeasurementEntity) {
-                        ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder == 1);
-                        ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder++);
-                    }
-
-                    // Fill default properties
-                    fillDefaultProperties(parent, entity);
-
-                    // Set value to entity
-                    valueToEntity(value, pmfmId, entity);
-
-                    // Link to parent
-                    setParent(entity, getEntityClass(parent), parent.getId(), false);
-
-                    // Update update_dt
-                    Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
-                    entity.setUpdateDate(newUpdateDate);
-
-                    // Save entity
-                    if (isNew) {
-                        session.persist(entity);
-                    } else {
-                        session.merge(entity);
-                    }
-                }
+        // Is reference ?
+        if (entity instanceof IQuantifiedMeasurementEntity) {
+            boolean isReference = rankOrder.shortValue() == 1;
+            ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(isReference);
+            if (!isReference) {
+                // Use rankOrder as subgroup
+                ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder.getValue());
+                rankOrder.increment();
             }
         }
 
-        // Remove unused measurements
-        if (CollectionUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.forEach(entity -> getEntityManager().remove(entity));
-        }
+        // Fill default properties
+        fillDefaultProperties(parent, entity);
 
-        return sources;
+        // Set value to entity
+        measurementMapValueToEntity(value, pmfm, entity);
+
+        // Link to parent
+        setParent(entity, getEntityClass(parent), parent.getId(), false);
+
+        // Update update_dt
+        entity.setUpdateDate(updateDate);
+
+        // Save entity
+        if (isNew) {
+            em.persist(entity);
+        } else {
+            em.merge(entity);
+        }
     }
 
     protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> getMeasurementsByParentId(Class<T> entityClass,
@@ -1074,34 +1027,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Override
     public <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources) {
         if (sources == null) return null;
-        return sources.stream()
-                .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null && !pmfmRepository.hasLabelPrefix(m.getPmfm().getId(), "MULTIPLE"))
-                .collect(Collectors.<T, Integer, String>toMap(
-                        m -> m.getPmfm().getId(),
-                        this::entityToValueAsStringOrNull,
-                        (s1, s2) -> s1
-                ));
+        return toMeasurementsMap(sources.stream());
     }
-
-    @Override
-    public <T extends IMeasurementEntity> Map<Integer, String[]> toMeasurementsMultiplesMap(Collection<T> sources) {
-        if (sources == null) return null;
-        Map<Integer, String[]> measurementsMap = new HashMap<Integer, String[]>();
-        sources.stream()
-                .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null && pmfmRepository.hasLabelPrefix(m.getPmfm().getId(), "MULTIPLE"))
-                .forEach(m -> {
-                    if (measurementsMap.containsKey(m.getPmfm().getId())){
-                        measurementsMap.put(m.getPmfm().getId(), this.entityToValueAsArrayStringOrNull(m, measurementsMap.get(m.getPmfm().getId())));
-
-                    }
-                    else {
-                        measurementsMap.put(m.getPmfm().getId(), this.entityToValueAsArrayStringOrNull(m, null));
-                    }
-                });
-
-        return measurementsMap;
-    }
-
 
     protected void measurementVOToEntity(MeasurementVO source,
                                          IMeasurementEntity target,
@@ -1144,21 +1071,10 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     }
 
-    protected void valueToEntity(String value, int pmfmId, IMeasurementEntity target) {
+    protected void measurementMapValueToEntity(String value, PmfmVO pmfm, IMeasurementEntity target) {
 
-        if (value == null) {
-            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to set value NULL value on a measurement");
-        }
 
-        PmfmVO pmfm = pmfmRepository.get(pmfmId);
-        if (pmfm == null) {
-            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find pmfm with id=" + pmfmId);
-        }
-
-        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
-        if (type == null) {
-            throw new SumarisTechnicalException(ErrorCodes.BAD_REQUEST, "Unable to find the type of the pmfm with id=" + pmfmId);
-        }
+        PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
 
         switch (type) {
             case BOOLEAN:
@@ -1171,7 +1087,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 }
                 catch(NumberFormatException e) {
                     throw new SumarisTechnicalException(String.format("Invalid value for pmfm with id=%s. Expected an integer (to link with a QualitativeValue.id), but got: '%s'. Please fix value, or change the Pmfm type to alphanumerical",
-                        pmfmId, value));
+                        pmfm.getId(), value));
                 }
                 break;
             case STRING:
@@ -1191,42 +1107,72 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     protected String entityToValueAsStringOrNull(IMeasurementEntity source) {
-        Object value = entityToValue(source);
+        Object value = getEntityValue(source);
         return value != null ? value.toString() : null;
     }
 
-    protected String[] entityToValueAsArrayStringOrNull(IMeasurementEntity source, @Nullable String[] currentValues) {
-        Object value = entityToValue(source);
-
-        if (value == null){
-            return currentValues;
-        }
-        else if (currentValues != null) {
-            List<String> newValues = new ArrayList<String>(
-                    Arrays.asList(currentValues));
-            newValues.add(value.toString());
-            return newValues.toArray(currentValues);
-
-        }
-        return new String[]{value.toString()};
+    protected <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Stream<T> sources) {
+        return sources
+            .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
+            .collect(Collectors.<T, Integer, String>toMap(
+                m -> m.getPmfm().getId(),
+                this::entityToValueAsStringOrNull,
+                this::mergeMeasurementMapValues
+            ));
     }
 
-    protected Object entityToValue(IMeasurementEntity source) {
+    protected String mergeMeasurementMapValues(@Nullable String v1, @Nullable String v2) {
+        if (v2 == null) return v1; // Not need to concat
+        if (v1 == null) return v2; // Not need to concat
 
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getPmfm());
-        Preconditions.checkNotNull(source.getPmfm().getId());
+        // Concat value
+        return v1 + MEASUREMENTS_MAP_VALUE_SEPARATOR + v2;
+    }
+
+    protected String entityToMeasurementMapValue(IMeasurementEntity source) {
+        Object value = getEntityValue(source);
+        if (value == null) return null;
+
+        // Simple case: serialize only the value
+        if (!enableMeasurementMapFullSerialization) {
+            return value.toString();
+        }
+
+        // Full properties serialization
+        StringBuilder result = new StringBuilder().append(value);
+
+        // Add trailing zero (if need)
+        if (source.getDigitCount() != null) {
+            int missingDigitCount = source.getDigitCount() - (result.length() - (result.indexOf(".") != -1 ? 1 : 0));
+            if (missingDigitCount > 0) {
+                result.append(StringUtils.repeat('0', missingDigitCount));
+            }
+        }
+
+        // Precision
+        if (source.getPrecisionValue() != null && source.getPrecisionValue() != 0) {
+            result.append(MEASUREMENTS_MAP_PRECISION_PREFIX)
+                .append(source.getPrecisionValue());
+        }
+
+        // Quality flag
+        if (source.getQualityFlag() != null && source.getQualityFlag().getId() != QualityFlagEnum.NOT_QUALIFIED.getId()) {
+            result.append(MEASUREMENTS_MAP_QUALITY_FLAG_PREFIX)
+                .append(source.getQualityFlag().getId());
+        }
+
+        return result.toString();
+    }
+
+    protected Object getEntityValue(IMeasurementEntity source) {
 
         // Get PMFM
-        // /!\ IMPORTANT: should use a cached method !
-        PmfmVO pmfm = pmfmRepository.get(source.getPmfm().getId());
+        PmfmVO pmfm = getPmfm(source.getPmfm().getId());
+        PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
 
-        Preconditions.checkNotNull(pmfm, "Unable to find Pmfm with id=" + source.getPmfm().getId());
-
-        PmfmValueType type = PmfmValueType.fromPmfm(pmfm);
         switch (type) {
             case BOOLEAN:
-                return (source.getNumericalValue() != null && source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE);
+                return (source.getNumericalValue() != null) ? (source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE) : null;
             case QUALITATIVE_VALUE:
                 // If find a object structure (e.g. ReferentialVO), try to find the id
                 return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
@@ -1234,7 +1180,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             case DATE:
                 return source.getAlphanumericalValue();
             case INTEGER:
-                return ((source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null);
+                return (source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null;
             case DOUBLE:
                 return source.getNumericalValue();
             default:
@@ -1391,4 +1337,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         return !isEmpty(source);
     }
 
+    protected PmfmVO getPmfm(int pmfmId) {
+        // /!\ IMPORTANT: should use a cached method !
+        return pmfmRepository.findById(pmfmId)
+            .orElseThrow(() -> new DataRetrievalFailureException("Cannot find PMFM with id=" + pmfmId));
+    }
 }
