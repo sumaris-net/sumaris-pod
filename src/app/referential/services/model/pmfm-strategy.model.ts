@@ -2,10 +2,10 @@ import {
   Entity,
   EntityAsObjectOptions,
   EntityClass,
-  IReferentialRef, isNil,
-  ReferentialRef,
-  toNumber
-} from "@sumaris-net/ngx-components";
+  IReferentialRef, isNil, isNotNil,
+  ReferentialRef, ReferentialUtils,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from "./pmfm.model";
 import { PmfmValue, PmfmValueUtils } from "./pmfm-value.model";
 import { MethodIds } from "./model.enum";
@@ -19,14 +19,8 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   static asObject: (source: any, opts?: any) => any;
   static isEmpty = (o) => (!o || (!o.pmfm && !o.parameter && !o.matrix && !o.fraction && !o.method));
   static isNotEmpty = (o) => !PmfmStrategy.isEmpty(o);
-  static getAcquisitionLevelLabel(source: Partial<PmfmStrategy>) {
-    if (!source) return undefined;
-    return (typeof source.acquisitionLevel === 'string') ? source.acquisitionLevel : source.acquisitionLevel?.label;
-  }
-  static getPmfmId(source: Partial<PmfmStrategy>) {
-    if (!source) return undefined;
-    return source.pmfm ? source.pmfm.id : source.pmfmId;
-  }
+  static getAcquisitionLevelLabel = (source: PmfmStrategy) => source && ((typeof source.acquisitionLevel === 'object') && source.acquisitionLevel.label || source.acquisitionLevel);
+  static getPmfmId = (source: PmfmStrategy) => source && toNumber(source.pmfmId, source.pmfm?.id);
   static equals = (o1: PmfmStrategy, o2: PmfmStrategy) => (isNil(o1) && isNil(o2))
     // Same ID
     || (o1 && o2 && (o1.id === o2.id
@@ -37,10 +31,10 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
         // or same Pmfm
         && (PmfmStrategy.getPmfmId(o1) === PmfmStrategy.getPmfmId(o2)
           // or same Pmfm parts (parameter/matrix/fraction/method)
-          || (((!o1.parameter && !o2.parameter) || (o1.parameter && o2.parameter && o1.parameter.id === o2.parameter.id))
-            && ((!o1.matrix && !o2.matrix) || (o1.matrix && o2.matrix && o1.matrix.id === o2.matrix.id))
-            && ((!o1.fraction && !o2.fraction) || (o1.fraction && o2.fraction && o1.fraction.id === o2.fraction.id))
-            && ((!o1.method && !o2.method) || (o1.method && o2.method && o1.method.id === o2.method.id))
+          || (ReferentialUtils.equals(o1.parameter, o2.parameter)
+            && ReferentialUtils.equals(o1.matrix, o2.matrix)
+            && ReferentialUtils.equals(o1.fraction, o2.fraction)
+            && ReferentialUtils.equals(o1.method, o2.method)
         ))
       )));
 
@@ -72,23 +66,24 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
-    target.acquisitionLevel = (target.acquisitionLevel && typeof target.acquisitionLevel === "object" && target.acquisitionLevel.label)
-      || target.acquisitionLevel;
+    target.acquisitionLevel = PmfmStrategy.getAcquisitionLevelLabel(target);
 
-    target.pmfmId = toNumber(this.pmfmId, this.pmfm && this.pmfm.id);
+    target.pmfmId = PmfmStrategy.getPmfmId(this);
     target.pmfm = this.pmfm && this.pmfm.asObject({...NOT_MINIFY_OPTIONS, ...options});
     target.parameter = this.parameter && this.parameter.asObject({...NOT_MINIFY_OPTIONS, ...options});
     target.matrix = this.matrix && this.matrix.asObject({...NOT_MINIFY_OPTIONS, ...options});
     target.fraction = this.fraction && this.fraction.asObject({...NOT_MINIFY_OPTIONS, ...options});
     target.method = this.method && this.method.asObject({...NOT_MINIFY_OPTIONS, ...options});
 
-    // Serialize default value
-    // only if NOT an alphanumerical value (DB column is a double) or a computed PMFM
-    if (this.defaultValue && (!this.isAlphanumeric && !this.isComputed)) {
-      target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this.pmfm));
+    // Serialize default value (into a number - because of the DB column's type)
+    target.defaultValue = PmfmValueUtils.toModelValueAsNumber(this.defaultValue, this.pmfm);
+    if (isNil(target.defaultValue) || this.isComputed) {
+      delete target.defaultValue; // Delete if computed PMFM, or nil
     }
-    else {
-      delete target.defaultValue;
+    // Delete min/value if NOT numeric
+    if (!this.isNumeric) {
+      delete target.minValue;
+      delete target.maxValue;
     }
 
     return target;
@@ -147,6 +142,10 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   get isQualitative(): boolean {
     return this.type === 'qualitative_value';
+  }
+
+  get isBoolean(): boolean {
+    return this.type === 'boolean';
   }
 
   equals(other: PmfmStrategy): boolean {

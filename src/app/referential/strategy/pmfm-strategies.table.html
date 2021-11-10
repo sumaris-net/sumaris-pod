@@ -96,7 +96,7 @@
                         [compact]="true">
         </app-form-field>
         <ng-template #simplePmfmType>
-          <app-pmfm-field floatLabel="never" *ngIf="pmfm.isQualitative"
+          <app-pmfm-field floatLabel="never" *ngIf="pmfm?.id"
                           [formControl]="row.validator.controls.defaultValue"
                           [pmfm]="pmfm"
                           [autofocus]="row.editing && focusColumn === 'defaultValue'"
