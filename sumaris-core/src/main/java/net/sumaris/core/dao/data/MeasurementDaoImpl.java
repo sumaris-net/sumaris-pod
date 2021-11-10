@@ -580,8 +580,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     public Map<Integer, String> saveBatchSortingMeasurementsMap(int batchId, Map<Integer, String> sources) {
         Batch parent = getById(Batch.class, batchId);
         Preconditions.checkNotNull(parent, "Could not found batch with id=" + batchId);
-        List<BatchSortingMeasurement> sortingMeasurements = parent.getSortingMeasurements().stream().filter(measurement -> !measurement.getPmfm().getLabel().contains("MULTIPLE")).collect(Collectors.toList());
-        return saveMeasurementsMap(BatchSortingMeasurement.class, sources, sortingMeasurements, parent);
+        return saveMeasurementsMap(BatchSortingMeasurement.class, sources, parent.getSortingMeasurements(), parent);
     }
 
     @Override
