@@ -19,7 +19,30 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   static asObject: (source: any, opts?: any) => any;
   static isEmpty = (o) => (!o || (!o.pmfm && !o.parameter && !o.matrix && !o.fraction && !o.method));
   static isNotEmpty = (o) => !PmfmStrategy.isEmpty(o);
-  static equals = (o1, o2) => (isNil(o1) && isNil(o2)) || (o1 && o2 && PmfmStrategy.fromObject(o1).equals(o2));
+  static getAcquisitionLevelLabel(source: Partial<PmfmStrategy>) {
+    if (!source) return undefined;
+    return (typeof source.acquisitionLevel === 'string') ? source.acquisitionLevel : source.acquisitionLevel?.label;
+  }
+  static getPmfmId(source: Partial<PmfmStrategy>) {
+    if (!source) return undefined;
+    return source.pmfm ? source.pmfm.id : source.pmfmId;
+  }
+  static equals = (o1: PmfmStrategy, o2: PmfmStrategy) => (isNil(o1) && isNil(o2))
+    // Same ID
+    || (o1 && o2 && (o1.id === o2.id
+      // Or same strategy, rankOrder and acquisitionLevel
+      || (o1.strategyId === o2.strategyId
+        && o1.rankOrder === o2.rankOrder
+        && (PmfmStrategy.getAcquisitionLevelLabel(o1) === PmfmStrategy.getAcquisitionLevelLabel(o2))
+        // or same Pmfm
+        && (PmfmStrategy.getPmfmId(o1) === PmfmStrategy.getPmfmId(o2)
+          // or same Pmfm parts (parameter/matrix/fraction/method)
+          || (((!o1.parameter && !o2.parameter) || (o1.parameter && o2.parameter && o1.parameter.id === o2.parameter.id))
+            && ((!o1.matrix && !o2.matrix) || (o1.matrix && o2.matrix && o1.matrix.id === o2.matrix.id))
+            && ((!o1.fraction && !o2.fraction) || (o1.fraction && o2.fraction && o1.fraction.id === o2.fraction.id))
+            && ((!o1.method && !o2.method) || (o1.method && o2.method && o1.method.id === o2.method.id))
+        ))
+      )));
 
   pmfmId: number;
   pmfm: IPmfm;
@@ -127,19 +150,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   }
 
   equals(other: PmfmStrategy): boolean {
-    return other && (this.id === other.id
-      // Same acquisitionLevel, pmfm, parameter
-      || (this.strategyId === other.strategyId
-        && (PmfmStrategy.getAcquisitionLevelString(this) === PmfmStrategy.getAcquisitionLevelString(other))
-        && ((!this.pmfm && !other.pmfm) || (this.pmfm && other.pmfm && this.pmfm.id === other.pmfm.id))
-        && ((!this.parameter && !other.parameter) || (this.parameter && other.parameter && this.parameter.id === other.parameter.id))
-      )
-    );
-  }
-
-  static getAcquisitionLevelString(source: PmfmStrategy) {
-    if (!source) return undefined;
-    return (typeof source.acquisitionLevel === 'string') ? source.acquisitionLevel : source.acquisitionLevel?.label;
+    return PmfmStrategy.equals(this, other);
   }
 }
 
