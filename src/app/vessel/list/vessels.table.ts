@@ -16,23 +16,23 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
+  StatusById,
   StatusIds,
-  StatusList,
+  StatusList
 } from '@sumaris-net/ngx-components';
 import {ModalController} from '@ionic/angular';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {Observable} from 'rxjs';
 import {FormBuilder} from '@angular/forms';
-import {statusToColor, SynchronizationStatusEnum} from '../../data/services/model/model.utils';
-import {LocationLevelIds} from '../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {environment} from '../../../environments/environment';
-import {AppRootTable} from '../../data/table/root-table.class';
+import {statusToColor, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {AppRootTable} from '@app/data/table/root-table.class';
 import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
 import {VesselFilter} from '../services/filter/vessel.filter';
 import {MatExpansionPanel} from '@angular/material/expansion';
-import {StatusById} from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 export const VesselsTableSettingsEnum = {

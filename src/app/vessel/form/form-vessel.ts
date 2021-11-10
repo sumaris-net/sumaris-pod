@@ -1,13 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {VesselValidatorService} from '../services/validator/vessel.validator';
 import {Vessel} from '../services/model/vessel.model';
-import {LocationLevelIds} from '../../referential/services/model/model.enum';
-import {AccountService, AppForm, AppFormUtils, LocalSettingsService, StatusIds, StatusList, toBoolean} from '@sumaris-net/ngx-components';
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {AccountService, AppForm, AppFormUtils, LocalSettingsService, StatusById, StatusIds, StatusList, toBoolean} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {FormGroup} from '@angular/forms';
-import { StatusById } from '@sumaris-net/ngx-components/src/app/core/services/model/referential.model';
 
 
 @Component({
