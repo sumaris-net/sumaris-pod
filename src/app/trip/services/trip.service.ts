@@ -930,7 +930,7 @@ export class TripService
       }
 
       // Delete trip
-      // await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
+      await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
     } catch (err) {
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
       // Continue
