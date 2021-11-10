@@ -172,7 +172,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
     // Workaround to avoid to many PMFM_STRATEGY deletion
     const deletedPmfmCount = (this.initialPmfmCount || 0) - (data.pmfms?.length || 0);
-    if (deletedPmfmCount > 0) {
+    if (deletedPmfmCount > 1) {
       const confirm = await Alerts.askConfirmation('PROGRAM.STRATEGY.CONFIRM.MANY_PMFM_DELETED',
         this.alertCtrl, this.translate, null, {count: deletedPmfmCount});
       if (!confirm) throw 'CANCELLED'; // Stop

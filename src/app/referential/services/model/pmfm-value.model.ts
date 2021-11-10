@@ -48,6 +48,20 @@ export abstract class PmfmValueUtils {
     }
   }
 
+  static toModelValueAsNumber(value: any, pmfm: IPmfm): number {
+    if (!pmfm || isNil(value)) return value;
+    switch (pmfm.type) {
+      case 'double':
+      case 'integer':
+      case 'qualitative_value':
+        return +(PmfmValueUtils.toModelValue(value, pmfm));
+      case 'boolean':
+        const trueFalse = PmfmValueUtils.toModelValue(value, pmfm);
+        return trueFalse === 'true' ? 1 : 0;
+      default:
+        return undefined; // Cannot convert to a number (alphanumerical,date,etc.)
+    }
+  }
 
   static fromModelValue(value: any, pmfm: IPmfm): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;

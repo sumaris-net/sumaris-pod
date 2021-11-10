@@ -1569,7 +1569,7 @@
         "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
       },
       "CONFIRM": {
-        "MANY_PMFM_DELETED": "ATTENTION ! <b>{{count}}</b> paramètres collectés <b>vont être retirés</b> de la stratégie.<br/><br/><b>>Êtes-vous sûr</b> de vouloir continuer ?",
+        "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
         "RELOAD_PAGE": "Voulez vous recharger la page (recommandé)?<br/><br/><b>Vos dernière modifications seront perdues</b>."
       }
     },
