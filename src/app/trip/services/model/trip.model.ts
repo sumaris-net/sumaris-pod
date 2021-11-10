@@ -506,7 +506,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
   rankOrder: number = null;
   gear: ReferentialRef = null;
   measurements: Measurement[] = null;
-  measurementValues: { [key: string]: string } = {};
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
   // Parent (used when lookup gears)
   trip: Trip = null;

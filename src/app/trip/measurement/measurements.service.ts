@@ -186,7 +186,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       // Adapt measurementValues to entity, but :
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
-      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
+      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues as any, pmfms));
       return entity;
     });
 

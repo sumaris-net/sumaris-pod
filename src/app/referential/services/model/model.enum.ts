@@ -1,10 +1,8 @@
-// TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
-// LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
-
+// LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
   // Lands
   COUNTRY: 1,

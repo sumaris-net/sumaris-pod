@@ -185,9 +185,7 @@ export class VesselService
   constructor(
     injector: Injector,
     private vesselFeatureService: VesselFeaturesService,
-    private vesselRegistrationService: VesselRegistrationService,
-    private landingService: LandingService,
-    private tripService: TripService
+    private vesselRegistrationService: VesselRegistrationService
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,

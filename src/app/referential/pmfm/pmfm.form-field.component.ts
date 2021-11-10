@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, FormArray, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
-import { AppFormUtils, filterNumberInput, focusInput, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import { PmfmValidators } from '../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
+import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 const noop = () => {
 };
@@ -33,11 +34,15 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   type: string;
   numberInputStep: string;
 
+  // Form array stuff (for multiple PMFM)
+  formArray: FormArray;
+  formArrayHelper: FormArrayHelper<PmfmValue>;
+
   @Input() pmfm: IPmfm;
   @Input() required: boolean;
   @Input() readonly = false;
   @Input() hidden = false;
-  @Input() formControl: FormControl;
+  @Input() formControl: FormControl|FormArray;
   @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() compact = false;
@@ -47,6 +52,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() weightDisplayedUnit: string;
   @Input() style: PmfmFormFieldStyle;
   @Input() maxVisibleButtons: number;
+  @Input() acquisitionNumber: number;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges: boolean;
@@ -71,6 +77,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   constructor(
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
+    protected formBuilder: FormBuilder,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
   }
@@ -81,57 +88,89 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
     //if (this.pmfm.isMultiple) throw new Error("Invalid 'pmfm' in <app-pmfm-field>. For 'isMutliple' should be false. Please use a FormArrayHelper instead");
 
-    this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
+    const control = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName));
+    if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
 
-    this.formControl.setValidators(PmfmValidators.create(this.pmfm));
 
-    if (this.listenStatusChanges) {
-      this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
-    }
-    this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-    if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
-      this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
-    }
-    this.required = toBoolean(this.required, this.pmfm.required);
+    if (control instanceof FormArray) {
+      this.formArray = control;
+      this.acquisitionNumber = toNumber(this.acquisitionNumber, PmfmUtils.isDenormalizedPmfm(this.pmfm) ? this.pmfm.acquisitionNumber : -1);
+      this.formArrayHelper = new FormArrayHelper<PmfmValue>(
+        this.formArray,
+        (value) => this.formBuilder.control(value || null),
+        PmfmValueUtils.equals,
+        PmfmValueUtils.isEmpty,
+        {
+          allowEmptyArray: false
+        });
 
-    this.updateTabIndex();
+      this.type = 'array';
+    }
+    else if (control instanceof FormControl) {
+      this.formControl = control;
+      this.acquisitionNumber = 1; // Force to 1
+      this.formControl.setValidators(PmfmValidators.create(this.pmfm));
 
-    // Compute the field type (use special case for Latitude/Longitude)
-    let type = this.pmfm.type;
-    if (this.hidden || this.pmfm.hidden) {
-      type = "hidden";
+      if (this.listenStatusChanges) {
+        this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
+      }
+      this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
+      if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
+        this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
+      }
+      this.required = toBoolean(this.required, this.pmfm.required);
+
+      this.updateTabIndex();
+
+      // Compute the field type (use special case for Latitude/Longitude)
+      let type = this.pmfm.type;
+      if (this.hidden || this.pmfm.hidden) {
+        type = "hidden";
+      }
+      else if (type === "double") {
+        if (PmfmLabelPatterns.LATITUDE.test(this.pmfm.label) ) {
+          type = "latitude";
+        } else if (PmfmLabelPatterns.LONGITUDE.test(this.pmfm.label)) {
+          type = "longitude";
+        }
+        else if (this.pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(this.pmfm.unitLabel)) {
+          type = "duration";
+        }
+        else {
+          this.numberInputStep = this.computeNumberInputStep(this.pmfm);
+        }
+      }
+      else if (type === "date") {
+        if (this.pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(this.pmfm.unitLabel)) {
+           type = 'dateTime';
+        }
+      }
+      this.type = type;
     }
-    else if (type === "double") {
-      if (PmfmLabelPatterns.LATITUDE.test(this.pmfm.label) ) {
-        type = "latitude";
-      } else if (PmfmLabelPatterns.LONGITUDE.test(this.pmfm.label)) {
-        type = "longitude";
-      }
-      else if (this.pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(this.pmfm.unitLabel)) {
-        type = "duration";
-      }
-      else {
-        this.numberInputStep = this.computeNumberInputStep(this.pmfm);
-      }
+    else {
+      throw new Error('Unknown control type: ' + control.constructor.name);
     }
-    else if (type === "date") {
-      if (this.pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(this.pmfm.unitLabel)) {
-         type = 'dateTime';
-      }
-    }
-    this.type = type;
   }
 
   writeValue(value: any): void {
-    // FIXME This is a hack, because some time invalid value are passed
-    // Example: in the batch group table (inline edition)
-    if (PmfmUtils.isNumeric(this.pmfm) && Number.isNaN(value)) {
-      //console.warn("Trying to set NaN value, in a measurement field ! " + this.constructor.name);
-      value = null;
-      if (value !== this.formControl.value) {
+    if (this.formArray) {
+      if (Array.isArray(value))
+      if (value !== this.formArray.value) {
         this.formControl.patchValue(value, {emitEvent: false});
         this._onChangeCallback(value);
+      }
+      console.warn('TODO calling writeValue() on a formArray : something to DO ??')
+    }
+    else {
+      // FIXME This is a hack, because some time invalid value are passed
+      // Example: in the batch group table (inline edition)
+      if (PmfmUtils.isNumeric(this.pmfm) && Number.isNaN(value)) {
+        //console.warn("Trying to set NaN value, in a measurement field ! " + this.constructor.name);
+        value = null;
+        if (value !== this.formControl.value) {
+          this.formControl.patchValue(value, {emitEvent: false});
+          this._onChangeCallback(value);
+        }
       }
     }
   }
@@ -149,7 +188,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   markAsTouched() {
-    if (this.formControl.touched) {
+    if (this.formArray) {
+      this.formArray.markAllAsTouched();
+      this.cd.markForCheck();
+      this._onTouchedCallback();
+    }
+    else if (this.formControl?.touched) {
       this.cd.markForCheck();
       this._onTouchedCallback();
     }

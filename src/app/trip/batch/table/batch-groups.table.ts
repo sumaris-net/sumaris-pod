@@ -650,7 +650,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return qvColumns;
   }
 
-  protected getWeight(measurementValues: { [key: string]: any }): BatchWeight | undefined {
+  protected getWeight(measurementValues: { [key: number]: any }): BatchWeight | undefined {
     // Use try default method
     let value = measurementValues[this.defaultWeightPmfm.id];
     if (isNotNil(value)) {

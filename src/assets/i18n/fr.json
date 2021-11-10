@@ -645,7 +645,7 @@
       "FORM": {
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
-        "TOTAL_CATCH": "Capture totale :"
+        "TOTAL_CATCH": "Capture (toutes espèces) :"
       }
     },
     "LANDED_CATCH": {
@@ -1570,7 +1570,7 @@
       },
       "CONFIRM": {
         "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
-        "RELOAD_PAGE": "Voulez vous recharger la page (recommandé)?<br/><br/><b>Vos dernière modifications seront perdues</b>."
+        "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
       }
     },
     "ERROR": {
@@ -1599,9 +1599,9 @@
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
         "BTN_UPDATE": "Executer",
-        "BTN_UPDATE_HELP": "Executer",
+        "BTN_UPDATE_HELP": "Executer maintenant",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
-        "FILTER_DOTS": "Filtrage des données sources :",
+        "FILTER_DOTS": "Filtrage sur la source des données :",
         "STRATUM_DOTS": "Couches géographiques :",
         "FORMAT_DOTS": "Documentation du format :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",

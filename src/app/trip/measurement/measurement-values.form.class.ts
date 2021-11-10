@@ -3,16 +3,13 @@ import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, merge, Observable, timer } from 'rxjs';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map } from 'rxjs/operators';
-import { IEntityWithMeasurement, MeasurementFormValue, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, firstNotNilPromise, FormArrayHelper, isNil, isNotNil, LocalSettingsService, ReferentialRef, ReferentialUtils, toNumber, WaitForOptions } from '@sumaris-net/ngx-components';
+import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
+import { AppForm, firstNotNilPromise, isNil, isNotNil, LocalSettingsService, toNumber, WaitForOptions } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -38,8 +35,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $programLabel = new BehaviorSubject<string>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
-
-  measurementFormArrayHelpers = new Map<string, FormArrayHelper<ReferentialRef>>();
 
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _gearId: number = null;
@@ -315,10 +310,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       data.program = program;
     }
 
-    this.measurementFormArrayHelpers.forEach((formArrayHelper, id) => {
-      formArrayHelper.resize(Math.max(1, ((data.measurementValues[id] || [])as []).length));
-    });
-
     this.data = data;
 
     super.setValue(data, opts);
@@ -547,9 +538,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       else {
         this.measurementValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms});
       }
-
-      // Create form array helper, for multiple pmfms (acquisitionNumber > 1)
-      this.initMeasurementFormArrayHelpers();
     }
 
     // Call options function
@@ -595,37 +583,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  protected initMeasurementFormArrayHelpers() {
-    const measurementValuesForm = this.measurementValuesForm;
-    if (!measurementValuesForm) throw new Error('measurementValuesForm not exists!');
-
-    // Get pmfms ids, with multiple values allow (=FormArray as control)
-    const multiplePmfmIds = Object.keys(measurementValuesForm.controls)
-      .filter(pmfmId => {
-        const pmfmControl = this.measurementValuesForm.get(pmfmId);
-        return (pmfmControl instanceof FormArray);
-    })
-
-    multiplePmfmIds.forEach(pmfmId => {
-      let helper = this.measurementFormArrayHelpers.get(pmfmId);
-      if (!helper) {
-        helper = new FormArrayHelper<PmfmValue>(
-          FormArrayHelper.getOrCreateArray(this.formBuilder, measurementValuesForm, pmfmId),
-          (value) => this.formBuilder.control(value || null),
-          PmfmValueUtils.equals,
-          PmfmValueUtils.isEmpty,
-          {
-            allowEmptyArray: false
-          });
-        this.measurementFormArrayHelpers.set(pmfmId, helper);
-      }
-      else {
-        // Always update options
-        helper.allowEmptyArray = false;
-      }
-    });
   }
 
 }

@@ -4,7 +4,7 @@ import { DateAdapter } from '@angular/material/core';
 import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { BatchValidatorService } from '../services/validator/batch.validator';
 import { isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Batch } from '../services/model/batch.model';
@@ -20,9 +20,10 @@ import { filter } from 'rxjs/operators';
 })
 export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnInit {
 
-  $onDeckPmfms = new Subject<IPmfm[]>();
-  $sortingPmfms = new Subject<IPmfm[]>();
-  $weightAndOtherPmfms = new Subject<IPmfm[]>();
+  $onDeckPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  $sortingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  $weightPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  $otherPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasPmfms: boolean;
 
   @Input() showError = true;
@@ -51,15 +52,29 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
           // DEBUG
           //console.debug('[catch-form] Dispatch pmfms by form', pmfms);
 
-          this.$onDeckPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('ON_DECK_') === 0));
-          this.$sortingPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('SORTING_') === 0));
-          this.$weightAndOtherPmfms.next(pmfms.filter(p => (p.label && p.label.indexOf('_WEIGHT') > 0
-            || (p.label.indexOf('ON_DECK_') === -1 && p.label.indexOf('SORTING_') === -1))));
+          this.$onDeckPmfms.next(pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0));
+          this.$sortingPmfms.next(pmfms.filter(p => p.label?.indexOf('SORTING_') === 0));
+          this.$weightPmfms.next(pmfms.filter(p => PmfmUtils.isWeight(p)
+            && !this.$onDeckPmfms.value.includes(p)
+            && !this.$sortingPmfms.value.includes(p)));
+
+          this.$otherPmfms.next(pmfms.filter(p => !this.$onDeckPmfms.value.includes(p)
+            && !this.$sortingPmfms.value.includes(p)
+            && !this.$weightPmfms.value.includes(p)));
 
           this.hasPmfms = pmfms.length > 0;
           this.markForCheck();
         })
     );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$onDeckPmfms.complete();
+    this.$sortingPmfms.complete();
+    this.$weightPmfms.complete();
+    this.$otherPmfms.complete();
   }
 
   onApplyingEntity(data: Batch, opts?: any) {
