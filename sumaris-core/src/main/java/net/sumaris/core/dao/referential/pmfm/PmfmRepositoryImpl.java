@@ -64,7 +64,7 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", unless = "#result == null", value = "#result.get()")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", unless = "#result == null")
     public PmfmVO get(int id) {
         return super.get(id);
     }
