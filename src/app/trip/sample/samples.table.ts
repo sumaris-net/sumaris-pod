@@ -478,21 +478,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         } else if (this.currentSample.measurementValues[PmfmIds.TAG_ID] !== null) { // row remove by user
           data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.currentSample.measurementValues[PmfmIds.TAG_ID]);
         } else { // no tag id
-          data.measurementValues[PmfmIds.TAG_ID] = '';
+          data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.latestCorrectTagId + 1);
         }
+
         if (data.measurementValues[PmfmIds.TAG_ID] !== '') {
-          if (data.measurementValues[PmfmIds.TAG_ID] < 10) {
-            data.measurementValues[PmfmIds.TAG_ID] = '000' + data.measurementValues[PmfmIds.TAG_ID];
-            this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
-          } else if (data.measurementValues[PmfmIds.TAG_ID] < 100) {
-            data.measurementValues[PmfmIds.TAG_ID] = '00' + data.measurementValues[PmfmIds.TAG_ID];
-            this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
-          } else if (data.measurementValues[PmfmIds.TAG_ID] < 1000) {
-            data.measurementValues[PmfmIds.TAG_ID] = '0' + data.measurementValues[PmfmIds.TAG_ID];
-            this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
-          } else {
-            data.measurementValues[PmfmIds.TAG_ID] = data.measurementValues[PmfmIds.TAG_ID];
-          }
+          data.measurementValues[PmfmIds.TAG_ID] = data?.measurementValues[PmfmIds.TAG_ID].toString().padStart(4, "0");
+          this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
         }
       }
     }

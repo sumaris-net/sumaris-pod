@@ -748,6 +748,7 @@
         }
       },
       "ERROR" : {
+        "PARAMETERS.EXACT_TAG_ID_LENGTH": "La longueur du code prélévement doit être 4",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire",
         "PARAMETERS.DRESSING": "Presentation obligatoire"
       },
@@ -1497,6 +1498,7 @@
         "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Erreur lors de chargement du label de l'échantillon de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
+        "PARAMETERS.EXACT_TAG_ID_LENGTH": "La longueur du code prélévement doit être 4",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
         "PARAMETERS.DRESSING": "La présentation est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
