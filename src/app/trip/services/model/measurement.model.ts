@@ -1,5 +1,5 @@
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {FormGroup} from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
 import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import {isMoment} from 'moment';
@@ -15,13 +15,13 @@ const moment = momentImported;
 
 
 export declare interface MeasurementModelValues {
-  [pmfmId: string]: string;
+  [key: number]: string;
 }
 
 export declare type MeasurementFormValue = PmfmValue | PmfmValue[];
 
 export declare interface MeasurementFormValues {
-  [id: string]: PmfmValue | PmfmValue[];
+  [key: string]: PmfmValue | PmfmValue[];
 }
 
 export declare interface IEntityWithMeasurement<T extends IEntity<T, ID>,
@@ -283,19 +283,19 @@ export class MeasurementValuesUtils {
       }, []);
     }
 
-    const target: MeasurementFormValues =
-      // Keep existing object (useful to keep extra pmfms)
-      opts.keepSourceObject ? {...source as MeasurementFormValues}
-        : {};
+    // Create target, or copy existing (e.g. useful to keep extra pmfms)
+    const target: MeasurementFormValues = opts.keepSourceObject
+      ? {...source as MeasurementFormValues}
+      : {};
 
     // Normalize all pmfms from the list
     (pmfms || []).forEach(pmfm => {
-      if (isNil(pmfm.id)) {
+      const pmfmId = pmfm?.id;
+      if (isNil(pmfmId)) {
         console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
         return;
       }
-      const pmfmId = pmfm.id.toString();
-      target[pmfmId] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
+      target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
     });
     return target;
   }
@@ -309,17 +309,18 @@ export class MeasurementValuesUtils {
                                }) {
     if (!data) return; // skip
 
-    // If a form exists, remove extra PMFMS values (before adapt to form)
+    // If a form exists
     if (form) {
       const measFormGroup = form.get('measurementValues');
 
       if (measFormGroup instanceof FormGroup) {
-        // This will remove extra PMFM, according to the form group
+       // Remove extra PMFMS values (before adapt to form)
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
-        // This will adapt to form (e.g. transform a QV_ID into a an object)
+
+        // Adapt to form (e.g. transform a QV_ID into a an object)
         data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(measurementValues, pmfms, {
           keepSourceObject: opts && opts.keepOtherExistingPmfms || false,
-          onlyExistingPmfms: opts && opts.onlyExistingPmfms
+          onlyExistingPmfms: opts && opts.onlyExistingPmfms || false
         });
       } else {
         throw Error('No measurementValues found in form ! Make sure you use the right validator');
@@ -335,7 +336,7 @@ export class MeasurementValuesUtils {
     }
   }
 
-  static asObject(source: { [key: string]: any }, opts?: DataEntityAsObjectOptions): { [key: string]: any } {
+  static asObject(source: MeasurementModelValues | MeasurementFormValues, opts?: DataEntityAsObjectOptions): MeasurementModelValues | MeasurementFormValues {
     if (!opts || opts.minify !== true || !source) return source;
     return source && Object.getOwnPropertyNames(source)
       .reduce((map, pmfmId) => {
@@ -360,7 +361,7 @@ export class MeasurementValuesUtils {
       }, {}) || undefined;
   }
 
-  static getValue(measurements: MeasurementFormValues, pmfms: IPmfm[], pmfmId: number, remove?: boolean): MeasurementFormValue {
+  static getValue(measurements: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, remove?: boolean): MeasurementFormValue {
     if (!measurements || !pmfms || !pmfmId)
       return undefined;
 
@@ -374,7 +375,7 @@ export class MeasurementValuesUtils {
     return undefined;
   }
 
-  static setValue(measurements: MeasurementFormValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
+  static setValue(measurements: MeasurementFormValues|MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
     if (!measurements || !pmfms || !pmfmId)
       return undefined;
 

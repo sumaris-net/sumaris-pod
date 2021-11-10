@@ -5,7 +5,7 @@ import {
   ReferentialUtils
 } from '@sumaris-net/ngx-components';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from './measurement.model';
 import {equalsOrNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {IEntity}  from "@sumaris-net/ngx-components";
 import {Sample} from "./sample.model";
@@ -72,7 +72,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   weightCalculated: boolean;
   saleType: ReferentialRef;
 
-  measurementValues: MeasurementFormValues;
+  measurementValues: MeasurementModelValues|MeasurementFormValues;
 
   operationId: number;
   saleId: number;

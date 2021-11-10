@@ -67,9 +67,16 @@ export abstract class PmfmValueUtils {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
+
+    // If many values
     if (typeof value === 'string' && value.indexOf(PMFM_VALUE_SEPARATOR) !== -1) {
-      return value.split(PMFM_VALUE_SEPARATOR).map(v => this.fromModelValue(v, pmfm) as PmfmValue);
+      value = value.split(PMFM_VALUE_SEPARATOR);
     }
+    if (Array.isArray(value)) {
+      return value.map(v => this.fromModelValue(v, pmfm) as PmfmValue);
+    }
+
+    // Simple value
     switch (pmfm.type) {
       case 'qualitative_value':
         if (isNotNil(value)) {

@@ -41,31 +41,33 @@
       </ion-row>
     </ng-container>
 
-    <!-- Landing weight -->
-    <ng-container *ngIf="$weightAndOtherPmfms | async as pmfms; else loadingSpinner">
+    <!-- Catch -->
+    <ng-container *ngIf="$weightPmfms | async as pmfms">
       <ion-row *ngIf="pmfms.length" class="ion-no-padding">
         <ion-col size="12" size-md="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>
         <ng-container *ngFor="let pmfm of pmfms; index as i;">
-          <!-- multiple values pmfm -->
-          <ion-col size="12" size-md="9" *ngIf="pmfm | isMultiplePmfm; else pmfmField">
-            <app-pmfm-form-array
-                                 [pmfm]="pmfm"
-                                 [formArrayName]="pmfm.id.toString()"
-                                 [tabindex]="tabindex+30+i">
-            </app-pmfm-form-array>
+          <ion-col size="12" size-md="3">
+            <app-pmfm-field [pmfm]="pmfm"
+                            [formControlName]="pmfm.id.toString()"
+                            [tabindex]="tabindex+30+i">
+            </app-pmfm-field>
           </ion-col>
+        </ng-container>
+      </ion-row>
+    </ng-container>
 
-          <!-- one value pmfm -->
-          <ng-template #pmfmField>
-            <ion-col size="12" size-md="3">
-              <app-pmfm-field [pmfm]="pmfm"
-                              [formControlName]="pmfm.id.toString()"
-                              [tabindex]="tabindex+30+i">
-              </app-pmfm-field>
-            </ion-col>
-          </ng-template>
+    <!-- Other features -->
+    <ng-container *ngIf="$otherPmfms | async as pmfms; else loadingSpinner">
+      <ion-row *ngIf="pmfms.length" class="ion-no-padding">
+        <ng-container *ngFor="let pmfm of pmfms; index as i;">
+          <ion-col size="12" [sizeMd]="(pmfm|isMultiplePmfm) ? 9 : 3" [offsetMd]="(pmfm|isMultiplePmfm) || (i % 3 === 0) ? 3 : 0">
+            <app-pmfm-field [pmfm]="pmfm"
+                            [formControlName]="pmfm.id.toString()"
+                            [tabindex]="tabindex+40+i*3">
+            </app-pmfm-field>
+          </ion-col>
         </ng-container>
       </ion-row>
     </ng-container>

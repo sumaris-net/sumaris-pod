@@ -26,7 +26,7 @@ import {
   SuggestService
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
-import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
+import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
 import { TaxonGroupRef } from './model/taxon-group.model';
 import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
@@ -733,6 +733,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       return;
     }
     console.info('[referential-ref] Updating model enumerations...');
+
+    // Program
+    ProgramLabel.SIH = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_SIH_LABEL);
 
     // Location Levels
     LocationLevelIds.COUNTRY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_COUNTRY_ID);

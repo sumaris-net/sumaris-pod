@@ -1,6 +1,6 @@
-import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from '../../../referential/services/model/model.enum';
-import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
-import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds } from '../../../referential/services/model/model.enum';
+import { DataEntity, DataEntityAsObjectOptions } from '../../../data/services/model/data-entity.model';
+import { IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import {
   EntityClass,
   EntityUtils,
@@ -10,17 +10,16 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ITreeItemEntity,
-  notNilOrDefault,
   ReferentialAsObjectOptions,
   referentialToString,
   ReferentialUtils,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
-import {PmfmValueUtils} from '../../../referential/services/model/pmfm-value.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import { TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
+import { PmfmValue, PmfmValueUtils } from '../../../referential/services/model/pmfm-value.model';
+import { IPmfm } from '../../../referential/services/model/pmfm.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -123,7 +122,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
   taxonGroup: TaxonGroupRef = null;
   taxonName: TaxonNameRef = null;
   comments: string = null;
-  measurementValues: { [key: number]: any } = {};
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   weight: BatchWeight = null;
 
   operationId: number = null;
@@ -149,14 +148,6 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
-    target.measurementValuesMultiples = Object.getOwnPropertyNames(this.measurementValues)
-      .reduce((map, pmfmId) => {
-        const value = notNilOrDefault(this.measurementValues[pmfmId] && this.measurementValues[pmfmId].id, this.measurementValues[pmfmId]);
-        if (value instanceof Array) {
-          map[pmfmId] = value.map(val => val && val.id);
-        }
-        return map;
-      }, {});
 
     if (opts && opts.minify) {
       // Parent Id not need, as the tree batch will be used by pod
@@ -193,10 +184,6 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     else if (source.sortingMeasurements || source.quantificationMeasurements) {
       const measurements = (source.sortingMeasurements || []).concat(source.quantificationMeasurements);
       this.measurementValues = MeasurementUtils.toMeasurementValues(measurements);
-    }
-
-    if (source.measurementValuesMultiples) {
-      this.measurementValues = {...source.measurementValuesMultiples, ...this.measurementValues};
     }
 
     if (source.children && (!opts || opts.withChildren !== false)) {
