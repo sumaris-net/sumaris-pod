@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   fromDateISOString,
   isNil,
@@ -11,18 +11,21 @@ import {
   ReferentialUtils,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
-import { IPmfm, Pmfm, PmfmUtils } from './pmfm.model';
-import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
-import { isNilOrNaN } from '@app/shared/functions';
+import {IPmfm, Pmfm, PmfmUtils} from './pmfm.model';
+import {DenormalizedPmfmStrategy} from './pmfm-strategy.model';
+import {isNilOrNaN} from '@app/shared/functions';
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
-
+export const PMFM_VALUE_SEPARATOR = '|';
 
 export abstract class PmfmValueUtils {
 
-  static toModelValue(value: PmfmValue | any, pmfm: IPmfm): string {
+  static toModelValue(value: PmfmValue | PmfmValue[] | any, pmfm: IPmfm): string {
     if (isNil(value) || !pmfm) return undefined;
+    if (Array.isArray(value)) {
+      return value.map(v => this.toModelValue(v, pmfm)).join(PMFM_VALUE_SEPARATOR);
+    }
     switch (pmfm.type) {
       case 'qualitative_value':
         return value && isNotNil(value.id) && value.id.toString() || undefined;
@@ -45,23 +48,21 @@ export abstract class PmfmValueUtils {
     }
   }
 
+
   static fromModelValue(value: any, pmfm: IPmfm): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
     if (isNil(value) && isNotNil(pmfm.defaultValue)) value = pmfm.defaultValue;
+    if (typeof value === 'string' && value.indexOf(PMFM_VALUE_SEPARATOR) !== -1) {
+      return value.split(PMFM_VALUE_SEPARATOR).map(v => this.fromModelValue(v, pmfm) as PmfmValue);
+    }
     switch (pmfm.type) {
       case 'qualitative_value':
         if (isNotNil(value)) {
-          if (Array.isArray(value)){
-              const qvIds = value.map(v => v && (typeof v === 'object') ? v.id : parseInt(v));
-            return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
-              .filter(qv => qvIds.indexOf(qv.id) !== -1) || null;
-          }
-          else {
-            const qvId = (typeof value === 'object') ? value.id : parseInt(value);
-            return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
-              .find(qv => qv.id === qvId) || null;
-          }
+          const qvId = (typeof value === 'object') ? value.id : parseInt(value);
+          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+            .find(qv => qv.id === qvId) || null;
+
         }
         return null;
       case 'integer':
@@ -91,7 +92,7 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] } ): string | undefined {
+  static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): string | undefined {
     if (isNil(value) || !opts || !opts.pmfm) return null;
     switch (opts.pmfm.type) {
       case 'qualitative_value':

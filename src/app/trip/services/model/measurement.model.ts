@@ -243,7 +243,7 @@ export class MeasurementValuesUtils {
     return PmfmValueUtils.valueToString(value, opts);
   }
 
-  static normalizeValueToModel(value: PmfmValue, pmfm: IPmfm): string  {
+  static normalizeValueToModel(value: PmfmValue | PmfmValue[], pmfm: IPmfm): string  {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
@@ -252,12 +252,7 @@ export class MeasurementValuesUtils {
   }): MeasurementModelValues {
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
     (pmfms || []).forEach(pmfm => {
-      if (Array.isArray(source)){
-        target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[0][pmfm.id], pmfm);
-      }
-      else {
         target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
-      }
     });
     return target;
   }
