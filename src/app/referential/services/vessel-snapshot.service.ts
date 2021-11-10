@@ -7,7 +7,7 @@ import {
   EntitiesStorage,
   EntityServiceLoadOptions,
   firstNotNilPromise,
-  GraphqlService,
+  GraphqlService, isEmptyArray, isNil,
   isNotNil,
   JobUtils,
   LoadResult,
@@ -28,6 +28,12 @@ import { VesselSnapshotFilter } from './filter/vessel.filter';
 import { ProgramLabel } from '@app/referential/services/model/model.enum';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { filter, map } from 'rxjs/operators';
+import {Landing} from '@app/trip/services/model/landing.model';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
+import {LandingSaveOptions} from '@app/trip/services/landing.service';
+import {VesselService} from '@app/vessel/services/vessel-service';
+import {LandingFilter} from '@app/trip/services/filter/landing.filter';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
 
 
 export const VesselSnapshotFragments = {
@@ -359,6 +365,45 @@ export class VesselSnapshotService
           const entities = (data || []).map(VesselSnapshot.fromObject);
           return {data: entities, total};
         }));
+  }
+
+  /**
+   * Save into the local storage
+   * @param data
+   */
+  async saveLocally(entity: VesselSnapshot): Promise<VesselSnapshot> {
+
+    if (this._debug) console.debug('[vessel-snapshot-service] [offline] Saving vesselSnapshot locally...', entity);
+
+    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+
+    // Save locally
+    return await this.entities.save(json, {entityName: VesselSnapshot.TYPENAME});
+  }
+
+  /**
+   * Delete vesselSnapshot locally (from the entity storage)
+   */
+  async deleteLocally(filter: Partial<VesselSnapshotFilter>): Promise<VesselSnapshot[]> {
+    if (!filter) throw new Error('Missing arguments \'filter\'');
+
+    const dataFilter = this.asFilter(filter);
+    const variables = {
+      filter: dataFilter && dataFilter.asFilterFn()
+    };
+
+    try {
+      // Find vessel snapshot to delete
+      const res = await this.entities.loadAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables, {fullLoad: false});
+      const ids = (res && res.data || []).map(o => o.id);
+      if (isEmptyArray(ids)) return undefined; // Skip
+
+      // Apply deletion
+      return await this.entities.deleteMany(ids, {entityName: VesselSnapshot.TYPENAME});
+    } catch (err) {
+      console.error(`[vessel-snapshot-service] Failed to delete vessel snapshot ${JSON.stringify(filter)}`, err);
+      throw err;
+    }
   }
 
   async executeImport(progression: BehaviorSubject<number>,

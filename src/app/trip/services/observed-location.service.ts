@@ -689,27 +689,24 @@ export class ObservedLocationService
     entity.landings = undefined;
 
     // Get temporary vessel (not saved)
-    const tempVessels = landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.vesselStatusId === StatusIds.TEMPORARY).map(landing => landing.vesselSnapshot);
+    const tempVessels = landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.id < 0).map(landing => landing.vesselSnapshot);
     if (isNotEmptyArray(tempVessels)) {
 
       const vesselToSave = tempVessels.map(VesselSnapshot.toVessel);
       const savedVessels: Map<number, VesselSnapshot> = new Map<number, VesselSnapshot>();
-      // vesselToSave.forEach(v => {
-      //  savedVessels.set(v.id, undefined);
-      // });
+
       for (const vessel of vesselToSave){
         const vesselLocalId= vessel.id;
         const savedVessel = await this.vesselService.synchronize(vessel);
         savedVessels.set(vesselLocalId, VesselSnapshot.fromVessel(savedVessel));
       }
 
+      //replace landing local vessel's by saved one
       landings.forEach(landing => {
         if (savedVessels.has(landing.vesselSnapshot.id)){
           landing.vesselSnapshot = savedVessels.get(landing.vesselSnapshot.id);
         }
       });
-
-      console.warn('TODO: saving local vessels: ', tempVessels);
     }
 
     try {
@@ -721,6 +718,7 @@ export class ObservedLocationService
         throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
       }
 
+      // synchronize landings
       entity.landings = [];
       for (const landing of landings) {
         landing.observedLocationId = entity.id;
