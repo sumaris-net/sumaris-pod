@@ -1,0 +1,32 @@
+<ion-grid class="ion-no-padding">
+  <ion-row>
+    <ion-col *ngFor="let control of formArray.controls ; index as j; last as last"
+             size="auto">
+
+      <ion-row>
+        <ion-col size="auto" class="ion-align-self-center">
+          <app-pmfm-field [pmfm]="pmfm" #pmfmField
+                          [formControl]="control"
+                          [tabindex]="tabindex+40+i+j"
+                          [required]="required">
+          </app-pmfm-field>
+        </ion-col>
+
+        <ion-col size="auto" class="ion-align-self-center">
+          <button type="button" mat-icon-button
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  *ngIf="last && formArrayHelper.size() < acquisitionNumber || acquisitionNumber === -1"
+                  (click)="formArrayHelper.add()">
+            <mat-icon>add</mat-icon>
+          </button>
+          <button type="button" mat-icon-button
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="formArrayHelper.removeAt(j)"
+                  tabindex="-1">
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-grid>

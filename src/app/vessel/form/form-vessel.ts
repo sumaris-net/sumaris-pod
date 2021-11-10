@@ -7,6 +7,7 @@ import {Moment} from 'moment';
 import {DateAdapter} from '@angular/material/core';
 import {ReferentialRefService} from '../../referential/services/referential-ref.service';
 import {FormGroup} from '@angular/forms';
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 @Component({
@@ -20,8 +21,9 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   private _defaultStatus: number;
 
   data: Vessel;
-  statusList = StatusList;
-  statusById: any;
+
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() canEditStatus: boolean;
   @Input() showError: boolean;
@@ -63,10 +65,6 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       settings);
 
     this.canEditStatus = this.accountService.isAdmin();
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
   }
 
   ngOnInit() {

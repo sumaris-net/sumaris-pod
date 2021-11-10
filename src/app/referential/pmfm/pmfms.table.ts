@@ -10,6 +10,7 @@ import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {debounceTime, filter} from "rxjs/operators";
 import {environment} from "../../../environments/environment";
 import {Pmfm} from "../services/model/pmfm.model";
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 @Component({
@@ -19,9 +20,11 @@ import {Pmfm} from "../services/model/pmfm.model";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
-  statusList = StatusList;
-  statusById: any;
+
   filterForm: FormGroup;
+
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() showToolbar = false;
   @Input() showFilter = true;
@@ -52,13 +55,8 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
       injector);
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting dataSource to be set
     this.inlineEdition = false;
-
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
       'searchText': [null]

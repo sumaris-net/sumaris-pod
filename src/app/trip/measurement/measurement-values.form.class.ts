@@ -9,8 +9,10 @@ import { filter, map } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementFormValue, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { AppForm, firstNotNilPromise, FormArrayHelper, isNil, isNotNil, LocalSettingsService, ReferentialRef, ReferentialUtils, toNumber, WaitForOptions } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -37,8 +39,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
-  formArraysControls: FormArray[];
-  formArrayHelpers = new Map<string, FormArrayHelper<ReferentialRef>>();
+  measurementFormArrayHelpers = new Map<string, FormArrayHelper<ReferentialRef>>();
 
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _gearId: number = null;
@@ -204,13 +205,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (this.$pmfms.value) this.$pmfms.next(undefined);
   }
 
-  addFormControlToFormArray(pmfm: DenormalizedPmfmStrategy) {
-    const formArrayHelper = this.formArrayHelpers.get(pmfm.id.toString());
-
-    if (formArrayHelper.size() < pmfm.acquisitionNumber){
-      this.formArrayHelpers.get(pmfm.id.toString()).add();
-    }
-  }
 
   markAsLoading(opts?: {step?: number; emitEvent?: boolean;}) {
 
@@ -228,11 +222,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (this.$loadingStep.value < MeasurementFormLoadingSteps.FORM_GROUP_READY) {
       this.$loadingStep.next(MeasurementFormLoadingSteps.FORM_GROUP_READY);
     }
-  }
-
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    console.debug('TODO markAsPristine');
-    super.markAsPristine(opts);
   }
 
   waitIdle(opts?: WaitForOptions): Promise<boolean> {
@@ -326,7 +315,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       data.program = program;
     }
 
-    this.formArrayHelpers.forEach((formArrayHelper, id) => {
+    this.measurementFormArrayHelpers.forEach((formArrayHelper, id) => {
       formArrayHelper.resize(Math.max(1, ((data.measurementValues[id] || [])as []).length));
     });
 
@@ -375,9 +364,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   protected getValue(): T {
+    const measurementValuesForm = this.measurementValuesForm;
+
     const json = this.form.value;
 
-    const measurementValuesForm = this.measurementValuesForm;
     if (measurementValuesForm) {
       // Find dirty pmfms, to avoid full update
       const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id]?.dirty);
@@ -556,8 +546,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Or update if already exist
       else {
         this.measurementValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms});
-        this.initFormArraysHelpers();
       }
+
+      // Create form array helper, for multiple pmfms (acquisitionNumber > 1)
+      this.initMeasurementFormArrayHelpers();
     }
 
     // Call options function
@@ -605,36 +597,35 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.cd.markForCheck();
   }
 
-  protected initFormArraysHelpers() {
-    // Create helper, if needed
-    const formArraysControlsNames = new Array<string>();
-    this.formArraysControls = new Array<FormArray>();
-    for (const control in this.measurementValuesForm.controls) {
-      if (this.measurementValuesForm.get(control) instanceof FormArray) {
-        formArraysControlsNames.push(control);
-        this.formArraysControls.push(this.measurementValuesForm.get(control) as FormArray);
-      }
-    }
-    formArraysControlsNames.forEach(formArrayName => {
-      if (!this.formArrayHelpers || !this.formArrayHelpers[formArrayName]) {
-        this.formArrayHelpers.set(formArrayName, new FormArrayHelper<MeasurementFormValue>(
-          FormArrayHelper.getOrCreateArray(this.formBuilder, this.measurementValuesForm, formArrayName),
-          (measurementFormValue) => this.getArrayControl(measurementFormValue),
-          ReferentialUtils.equals,
-          ReferentialUtils.isEmpty,
+  protected initMeasurementFormArrayHelpers() {
+    const measurementValuesForm = this.measurementValuesForm;
+    if (!measurementValuesForm) throw new Error('measurementValuesForm not exists!');
+
+    // Get pmfms ids, with multiple values allow (=FormArray as control)
+    const multiplePmfmIds = Object.keys(measurementValuesForm.controls)
+      .filter(pmfmId => {
+        const pmfmControl = this.measurementValuesForm.get(pmfmId);
+        return (pmfmControl instanceof FormArray);
+    })
+
+    multiplePmfmIds.forEach(pmfmId => {
+      let helper = this.measurementFormArrayHelpers.get(pmfmId);
+      if (!helper) {
+        helper = new FormArrayHelper<PmfmValue>(
+          FormArrayHelper.getOrCreateArray(this.formBuilder, measurementValuesForm, pmfmId),
+          (value) => this.formBuilder.control(value || null),
+          PmfmValueUtils.equals,
+          PmfmValueUtils.isEmpty,
           {
             allowEmptyArray: false
-          }
-        ));
+          });
+        this.measurementFormArrayHelpers.set(pmfmId, helper);
       }
-      // Helper exists: update options
       else {
-        this.formArrayHelpers[formArrayName].allowEmptyArray = false;
+        // Always update options
+        helper.allowEmptyArray = false;
       }
     });
   }
 
-  protected getArrayControl(measurementFormValue?: MeasurementFormValue): FormControl {
-    return this.formBuilder.control(measurementFormValue || null);
-  }
 }

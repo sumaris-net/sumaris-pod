@@ -10,6 +10,7 @@ import {Location} from '@angular/common';
 import {Program} from '../services/model/program.model';
 import {environment} from '@environments/environment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 @Component({
@@ -25,8 +26,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
   private _program: Program;
 
-  statusList = StatusList;
-  statusById: any;
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -88,12 +89,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     this.inlineEdition = false
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting parent to load
     this.confirmBeforeDelete = true;
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.autoLoad = false; // waiting parent to load
 
     this.debug = !environment.production;
   }

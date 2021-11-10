@@ -21,8 +21,9 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   slideUpDownAnimation,
+  sort,
   StatusList,
-  sort, toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { ModalController, Platform } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -33,6 +34,7 @@ import { environment } from '../../../environments/environment';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 @Component({
@@ -56,10 +58,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   i18nLevelName: string;
-  statusList = StatusList;
-  statusById: any;
   filterCriteriaCount = 0;
-
   detailsPath = {
     'Program': '/referential/programs/:id',
     'Software': '/referential/software/:id?label=:label',
@@ -68,6 +67,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     'ExtractionProduct': '/extraction/product/:id?label=:label',
     'TaxonName': '/referential/taxonName/:id?label=:label'
   };
+
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() set showLevelColumn(value: boolean) {
     this.setShowColumn('level', value);
@@ -137,6 +139,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.allowRowDetail = false;
     this.confirmBeforeDelete = true;
+    this.autoLoad = false; // waiting dataSource to be set
 
     // Allow inline edition only if admin
     this.inlineEdition = accountService.isAdmin();
@@ -151,10 +154,6 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       statusId: [null]
     });
 
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
-    this.autoLoad = false;
 
     // FOR DEV ONLY
     this.debug = true;

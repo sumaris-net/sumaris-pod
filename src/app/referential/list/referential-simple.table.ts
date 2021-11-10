@@ -16,6 +16,7 @@ import {Location} from '@angular/common';
 import {ReferentialValidatorService} from '../services/validator/referential.validator';
 import {ReferentialFilter} from '../services/filter/referential.filter';
 import {environment} from '@environments/environment';
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 @Component({
@@ -35,8 +36,8 @@ import {environment} from '@environments/environment';
 })
 export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> {
 
-  statusList = StatusList;
-  statusById: any;
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() set entityName(entityName: string) {
     this.setFilter({
@@ -95,14 +96,10 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
       });
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting parent to load
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
+    this.autoLoad = false; // waiting parent to load
     this.showUpdateDateColumn = false;
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.debug = !environment.production;
   }

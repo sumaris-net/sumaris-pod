@@ -10,6 +10,7 @@ import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-
 import {environment} from "../../../environments/environment";
 import {Entity}  from "@sumaris-net/ngx-components";
 import {ReferentialFilter} from "../services/filter/referential.filter";
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 @Component({
@@ -20,12 +21,12 @@ import {ReferentialFilter} from "../services/filter/referential.filter";
 })
 export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
 
-  statusList = StatusList;
-  statusById: any;
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
+
   filterForm: FormGroup;
 
   @Input() showToolbar = false;
-
   @Input() showFilter = true;
 
   @Input() set entityName(entityName: string) {
@@ -64,13 +65,8 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
       injector);
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting dataSource to be set
     this.inlineEdition = false;
-
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
       'searchText': [null]

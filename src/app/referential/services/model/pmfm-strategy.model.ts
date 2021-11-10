@@ -19,7 +19,7 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   static asObject: (source: any, opts?: any) => any;
   static isEmpty = (o) => (!o || (!o.pmfm && !o.parameter && !o.matrix && !o.fraction && !o.method));
   static isNotEmpty = (o) => !PmfmStrategy.isEmpty(o);
-  static equals = (o1, o2) => (isNil(o1) && isNil(o2)) || o1?.equals(o2);
+  static equals = (o1, o2) => (isNil(o1) && isNil(o2)) || (o1 && o2 && PmfmStrategy.fromObject(o1).equals(o2));
 
   pmfmId: number;
   pmfm: IPmfm;
@@ -129,11 +129,17 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   equals(other: PmfmStrategy): boolean {
     return other && (this.id === other.id
       // Same acquisitionLevel, pmfm, parameter
-      || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel
+      || (this.strategyId === other.strategyId
+        && (PmfmStrategy.getAcquisitionLevelString(this) === PmfmStrategy.getAcquisitionLevelString(other))
         && ((!this.pmfm && !other.pmfm) || (this.pmfm && other.pmfm && this.pmfm.id === other.pmfm.id))
         && ((!this.parameter && !other.parameter) || (this.parameter && other.parameter && this.parameter.id === other.parameter.id))
       )
     );
+  }
+
+  static getAcquisitionLevelString(source: PmfmStrategy) {
+    if (!source) return undefined;
+    return (typeof source.acquisitionLevel === 'string') ? source.acquisitionLevel : source.acquisitionLevel?.label;
   }
 }
 

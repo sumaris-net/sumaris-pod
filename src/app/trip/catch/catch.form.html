@@ -42,52 +42,30 @@
     </ng-container>
 
     <!-- Landing weight -->
-    <ng-container *ngIf="$weightAndOtherPmfms | async as pmfms">
+    <ng-container *ngIf="$weightAndOtherPmfms | async as pmfms; else loadingSpinner">
       <ion-row *ngIf="pmfms.length" class="ion-no-padding">
         <ion-col size="12" size-md="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>
-        <ion-col size="12" size-md="3" *ngFor="let pmfm of pmfms; index as i;">
-          <app-pmfm-field [pmfm]="pmfm"
-                          [formControlName]="pmfm.id.toString()"
-                          [tabindex]="tabindex+30+i">
-          </app-pmfm-field>
-        </ion-col>
-      </ion-row>
-    </ng-container>
-
-    <ng-container *ngIf="$multiplePmfms | async as pmfms; else loadingSpinner">
-      <ion-row *ngIf="pmfms.length" class="ion-no-padding">
-        <ion-col size="12" size-md="3" class="ion-align-self-end">
-        </ion-col>
-
         <ng-container *ngFor="let pmfm of pmfms; index as i;">
-          <ion-col size="12" size-md="9">
-            <ion-grid class="ion-no-padding">
-                <ion-row>
-                  <ng-container *ngFor="let formArrayControl of formArraysControls[i].controls ; index as j; first as first">
-                  <ion-col size="12" size-md="4">
-                    <app-pmfm-field [pmfm]="pmfm"
-                                    [formControl]="formArrayHelpers.get(pmfm.id.toString()).at(j)"
-                                    [tabindex]="tabindex+40+i+j">
-                    </app-pmfm-field>
-                  </ion-col>
-                  <ion-col size="auto" class="ion-align-self-center">
-                    <button type="button" mat-icon-button
-                            [title]="'COMMON.BTN_ADD'|translate"
-                            (click)="addFormControlToFormArray(pmfm)">
-                      <mat-icon>add</mat-icon>
-                    </button>
-                    <button type="button" mat-icon-button
-                            [title]="'COMMON.BTN_DELETE'|translate"
-                            (click)="formArrayHelpers.get(pmfm.id.toString()).removeAt(j)">
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </ion-col>
-                  </ng-container>
-                </ion-row>
-            </ion-grid>
+          <!-- multiple values pmfm -->
+          <ion-col size="12" size-md="9" *ngIf="pmfm | isMultiplePmfm; else pmfmField">
+            <app-pmfm-form-array
+                                 [pmfm]="pmfm"
+                                 [formArrayName]="pmfm.id.toString()"
+                                 [tabindex]="tabindex+30+i">
+            </app-pmfm-form-array>
           </ion-col>
+
+          <!-- one value pmfm -->
+          <ng-template #pmfmField>
+            <ion-col size="12" size-md="3">
+              <app-pmfm-field [pmfm]="pmfm"
+                              [formControlName]="pmfm.id.toString()"
+                              [tabindex]="tabindex+30+i">
+              </app-pmfm-field>
+            </ion-col>
+          </ng-template>
         </ng-container>
       </ion-row>
     </ng-container>

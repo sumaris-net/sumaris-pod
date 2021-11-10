@@ -26,6 +26,7 @@ import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
 import {StatusIds}  from "@sumaris-net/ngx-components";
 import {VesselFilter} from "../services/filter/vessel.filter";
 import {MatExpansionPanel} from "@angular/material/expansion";
+import { StatusById } from '../../../../ngx-sumaris-components/src/app/core/services/model/referential.model';
 
 
 export const VesselsTableSettingsEnum = {
@@ -47,8 +48,9 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
 
   locations: Observable<ReferentialRef[]>;
   vesselTypes: Observable<ReferentialRef[]>;
-  statusList = StatusList;
-  statusById: any;
+
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() canEdit: boolean;
   @Input() canDelete: boolean;
@@ -135,18 +137,14 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       statusId: [null],
       synchronizationStatus: [null]
     });
-    this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.autoLoad = false;
     this.showIdColumn = accountService.isAdmin();
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
-
-    this.debug = !environment.production;
     this.settingsId = VesselsTableSettingsEnum.TABLE_ID; // Fixed value, to be able to reuse it in vessel modal
     this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
+
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

@@ -127,4 +127,8 @@ export abstract class PmfmValueUtils {
   static isEmpty(value: PmfmValue | any) {
     return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
   }
+
+  static equals(v1: PmfmValue, v2: PmfmValue) {
+    return (isNil(v1) && isNil(v2)) || (v1 === v2) || (ReferentialUtils.equals(v1, v2));
+  }
 }

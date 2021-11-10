@@ -81,3 +81,15 @@ export class IsComputedPmfmPipe implements PipeTransform {
     return pmfm.type && (pmfm.methodId === MethodIds.CALCULATED);
   }
 }
+
+
+@Pipe({
+  name: 'isMultiplePmfm'
+})
+@Injectable({providedIn: 'root'})
+export class IsMultiplePmfmPipe implements PipeTransform {
+
+  transform(pmfm: IPmfm): any {
+    return pmfm && pmfm.isMultiple;
+  }
+}

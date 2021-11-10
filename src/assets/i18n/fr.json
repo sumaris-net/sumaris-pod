@@ -1567,6 +1567,10 @@
         "STRATEGIES_HAS_DATA": "Les lignes de plan {{ label }} sont liées à une ou plusieurs observations individuelles",
         "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
         "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
+      },
+      "CONFIRM": {
+        "MANY_PMFM_DELETED": "ATTENTION ! <b>{{count}}</b> paramètres collectés <b>vont être retirés</b> de la stratégie.<br/><br/><b>>Êtes-vous sûr</b> de vouloir continuer ?",
+        "RELOAD_PAGE": "Voulez vous recharger la page (recommandé)?<br/><br/><b>Vos dernière modifications seront perdues</b>."
       }
     },
     "ERROR": {

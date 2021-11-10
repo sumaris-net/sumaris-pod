@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 import { AppFormUtils, filterNumberInput, focusInput, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import { PmfmValidators } from '../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
 
 const noop = () => {
@@ -72,7 +71,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   constructor(
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected pmfmService: PmfmService,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
   }
@@ -81,7 +79,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
     if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
-    if (this.pmfm.isMultiple) throw new Error("Invalid 'pmfm' in <app-pmfm-field>. For 'isMutliple' should be false. Please use a FormArrayHelper instead");
+    //if (this.pmfm.isMultiple) throw new Error("Invalid 'pmfm' in <app-pmfm-field>. For 'isMutliple' should be false. Please use a FormArrayHelper instead");
 
     this.formControl = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl);
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");

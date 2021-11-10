@@ -350,7 +350,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     target.programId = source.programId;
 
     // Applied strategies
-    if (source.appliedStrategies && source.appliedStrategies.length > 0) {
+    if (source.appliedStrategies && target.appliedStrategies) {
       target.appliedStrategies.forEach(targetAppliedStrategy => {
         // Make sure to copy strategyId (need by equals)
         targetAppliedStrategy.strategyId = source.id;
@@ -362,7 +362,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     }
 
     // Pmfm strategies
-    if (source.pmfms && source.pmfms.length > 0) {
+    if (source.pmfms && target.pmfms) {
       target.pmfms.forEach(targetPmfmStrategy => {
         // Make sure to copy strategyId (need by equals)
         targetPmfmStrategy.strategyId = source.id;
@@ -372,7 +372,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
         EntityUtils.copyIdAndUpdateDate(savedPmfmStrategy, targetPmfmStrategy);
 
         // Copy pmfm
-        targetPmfmStrategy.pmfm = savedPmfmStrategy && savedPmfmStrategy.pmfm && Pmfm.fromObject(savedPmfmStrategy.pmfm) || targetPmfmStrategy.pmfm;
+        targetPmfmStrategy.pmfm = Pmfm.fromObject(savedPmfmStrategy?.pmfm) || targetPmfmStrategy.pmfm;
       });
     }
   }

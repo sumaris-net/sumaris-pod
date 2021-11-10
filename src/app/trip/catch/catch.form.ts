@@ -1,14 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {FormBuilder} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {Subject} from 'rxjs';
-import {BatchValidatorService} from '../services/validator/batch.validator';
-import { firstNotNilPromise, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
-import {Batch} from '../services/model/batch.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { FormBuilder } from '@angular/forms';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { Subject } from 'rxjs';
+import { BatchValidatorService } from '../services/validator/batch.validator';
+import { isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { Batch } from '../services/model/batch.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 
@@ -23,7 +23,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   $onDeckPmfms = new Subject<IPmfm[]>();
   $sortingPmfms = new Subject<IPmfm[]>();
   $weightAndOtherPmfms = new Subject<IPmfm[]>();
-  $multiplePmfms = new Subject<IPmfm[]>();
   hasPmfms: boolean;
 
   @Input() showError = true;
@@ -54,22 +53,8 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
           this.$onDeckPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('ON_DECK_') === 0));
           this.$sortingPmfms.next(pmfms.filter(p => p.label && p.label.indexOf('SORTING_') === 0));
-          this.$weightAndOtherPmfms.next(pmfms.filter(p =>
-            (p.label && p.label.indexOf('_WEIGHT') > 0
-            || (p.label.indexOf('ON_DECK_') === -1 && p.label.indexOf('SORTING_') === -1))
-            && p.isMultiple !== true));
-
-          // Special case for multiple PMFMs
-          this.$multiplePmfms.next(pmfms
-            .filter(p => p.isMultiple)
-            .map(p => {
-              if (PmfmUtils.isDenormalizedPmfm(p)) {
-                const target = p.clone() as IDenormalizedPmfm;
-                target.acquisitionNumber = 1;
-                return target;
-              }
-              return p;
-            }));
+          this.$weightAndOtherPmfms.next(pmfms.filter(p => (p.label && p.label.indexOf('_WEIGHT') > 0
+            || (p.label.indexOf('ON_DECK_') === -1 && p.label.indexOf('SORTING_') === -1))));
 
           this.hasPmfms = pmfms.length > 0;
           this.markForCheck();
