@@ -22,7 +22,10 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
+
+import javax.annotation.Nullable;
 
 /**
  * Same as ParameterValueType, but with INTEGER (when the PMFM has no decimal number)
@@ -51,26 +54,18 @@ public enum PmfmValueType {
     }
 
 
-    public static PmfmValueType fromPmfm(PmfmVO pmfm) {
-        return pmfm != null ? fromString(pmfm.getType()) : null;
+    public static PmfmValueType fromPmfm(@Nullable PmfmVO pmfm) {
+        if (pmfm == null) return null;
+        return fromString(pmfm.getType());
     }
 
-    public static PmfmValueType fromString(String name) {
-        switch (name.toUpperCase()) {
-            case "BOOLEAN":
-                return PmfmValueType.BOOLEAN;
-            case "QUALITATIVE_VALUE":
-                return PmfmValueType.QUALITATIVE_VALUE;
-            case "STRING":
-                return PmfmValueType.STRING;
-            case "DATE":
-                return PmfmValueType.DATE;
-            case "INTEGER":
-                return PmfmValueType.INTEGER;
-            case "DOUBLE":
-                return PmfmValueType.DOUBLE;
-            default:
-                return null;
-        }
+    /**
+     *
+     * @param name
+     * @return
+     * @throws IllegalArgumentException
+     */
+    public static PmfmValueType fromString(@NonNull String name) {
+        return PmfmValueType.valueOf(name.toUpperCase());
     }
 }

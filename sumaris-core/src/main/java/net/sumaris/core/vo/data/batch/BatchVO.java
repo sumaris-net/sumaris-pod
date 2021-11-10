@@ -95,7 +95,6 @@ public class BatchVO implements IDataVO<Integer>,
     private List<BatchVO> children;
 
     private Map<Integer, String> measurementValues; // = sorting_measurement_b or quantification_measurement_b
-    private Map<Integer, String[]> measurementValuesMultiples; // = sorting_measurement_b or quantification_measurement_b
     private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
     private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 

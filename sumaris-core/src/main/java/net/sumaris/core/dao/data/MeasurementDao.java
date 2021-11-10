@@ -34,6 +34,9 @@ import java.util.Map;
 
 public interface MeasurementDao {
 
+    char MEASUREMENTS_MAP_VALUE_SEPARATOR = '|';
+    char MEASUREMENTS_MAP_PRECISION_PREFIX = '~';
+    char MEASUREMENTS_MAP_QUALITY_FLAG_PREFIX = 'Q';
 
     <T extends IMeasurementEntity, V extends MeasurementVO> V toMeasurementVO(T measurement, Class<? extends V> voClass);
 
@@ -134,7 +137,6 @@ public interface MeasurementDao {
     List<MeasurementVO> saveBatchSortingMeasurements(int batchId, List<MeasurementVO> sources);
     List<QuantificationMeasurementVO> saveBatchQuantificationMeasurements(int batchId, List<QuantificationMeasurementVO> sources);
     Map<Integer, String> saveBatchSortingMeasurementsMap(final int batchId, Map<Integer, String> sources);
-    Map<Integer, String[]> saveBatchSortingMeasurementsMultipleMap(final int batchId, Map<Integer, String[]> sources);
     Map<Integer, String> saveBatchQuantificationMeasurementsMap(final int batchId, Map<Integer, String> sources);
 
     // Product
@@ -153,6 +155,5 @@ public interface MeasurementDao {
 
     // Utils
     <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);
-    <T extends IMeasurementEntity> Map<Integer, String[]> toMeasurementsMultiplesMap(Collection<T> sources);
 
 }

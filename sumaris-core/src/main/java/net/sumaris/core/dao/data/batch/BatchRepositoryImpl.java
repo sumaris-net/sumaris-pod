@@ -460,7 +460,6 @@ public class BatchRepositoryImpl
                     measurementDao.toMeasurementsMap(source.getSortingMeasurements()),
                     measurementDao.toMeasurementsMap(source.getQuantificationMeasurements())
             ));
-            target.setMeasurementValuesMultiples(measurementDao.toMeasurementsMultiplesMap(source.getSortingMeasurements()));
         }
     }
 

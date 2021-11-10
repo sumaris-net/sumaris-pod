@@ -70,26 +70,45 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#id", unless = "#result == null")
+    public Optional<PmfmVO> findById(int id) {
+        // Make sure to use cached function
+        return Optional.ofNullable(this.get(id));
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#id")
     public String computeCompleteName(int id) {
         Pmfm pmfm = getById(id);
         String parameterName = pmfm.getParameter().getName();
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
-            parameterName += String.format(" (%s)", pmfm.getUnit().getLabel());
-        }
 
-        String fractionName = pmfm.getFraction() != null &&
-            (pmfm.getFraction().getId() != FractionEnum.UNKNOWN.getId() || pmfm.getFraction().getId() != FractionEnum.ALL.getId()) /* Skip All and unknown fraction */
+        String parameterSuffix = (pmfm.getUnit() != null
+            // Skip NONE unit
+            && !Objects.equals(pmfm.getUnit().getId(), UnitEnum.NONE.getId()))
+            ? String.format(" (%s)", pmfm.getUnit().getLabel())
+            : "";
+
+        String matrixName = pmfm.getMatrix() != null
+            ? pmfm.getMatrix().getName()
+            : null;
+
+        String fractionName = pmfm.getFraction() != null
+            // Skip UNKNOWN and All fractions
+            && !Objects.equals(pmfm.getFraction().getId(), FractionEnum.UNKNOWN.getId())
+            && !Objects.equals(pmfm.getFraction().getId(), FractionEnum.ALL.getId())
                 ? pmfm.getFraction().getName()
                 : null;
-        String methodName = pmfm.getMethod() != null && pmfm.getMethod().getId() != MethodEnum.UNKNOWN.getId() /* Skip unknown method */ ?
-                pmfm.getMethod().getName() : null;
+
+        String methodName = pmfm.getMethod() != null
+            // Skip UNKNOWN method
+            && !Objects.equals(pmfm.getMethod().getId(), MethodEnum.UNKNOWN.getId())
+            ? pmfm.getMethod().getName()
+            : null;
 
         return Joiner.on(" - ").skipNulls().join(new String[]{
-                parameterName,
-                pmfm.getMatrix() != null ? pmfm.getMatrix().getName() : null,
-                fractionName,
-                methodName
+            parameterName + parameterSuffix,
+            matrixName,
+            fractionName,
+            methodName
         });
     }
 
