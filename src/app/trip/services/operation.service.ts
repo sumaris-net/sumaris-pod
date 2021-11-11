@@ -1,7 +1,7 @@
 import { Injectable, Optional } from '@angular/core';
 import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
-import { filter, first, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, EMPTY, from, Observable } from 'rxjs';
+import { concatAll, filter, first, map, tap } from 'rxjs/operators';
 import { DataCommonFragments, DataFragments } from './trip.queries';
 import {
   AccountService,
@@ -28,11 +28,11 @@ import {
   LoadResult,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
-  QueryVariables,
+  QueryVariables, toNumber,
 } from '@sumaris-net/ngx-components';
 import { Measurement } from './model/measurement.model';
 import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
-import { Operation, OperationFromObjectOptions, Trip, VesselPosition } from './model/trip.model';
+import { MINIFY_OPERATION_FOR_LOCAL_STORAGE, Operation, OperationAsObjectOptions, OperationFromObjectOptions, Trip, VesselPosition } from './model/trip.model';
 import { Batch, BatchUtils } from './model/batch.model';
 import { Sample } from './model/sample.model';
 import { SortDirection } from '@angular/material/sort';
@@ -53,6 +53,8 @@ import { mergeMap } from 'rxjs/internal/operators';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { IPosition } from '@app/trip/services/model/position.model';
 import { ErrorCodes } from '@app/data/services/errors';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { mergeLoadResult } from '@app/shared/functions';
 
 
 export const OperationFields = {
@@ -287,6 +289,7 @@ const sortByDescRankOrderOnPeriod = (n1: Operation, n2: Operation) => {
 
 export declare interface OperationSaveOptions extends EntitySaveOptions {
   tripId?: number;
+  trip?: Trip;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
   withChildOperation?: boolean;
@@ -301,8 +304,10 @@ export declare interface OperationServiceWatchOptions extends OperationFromObjec
   computeRankOrder?: boolean;
   fullLoad?: boolean;
   fetchPolicy?: WatchQueryFetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
-  mapOperationsFn?: (operations: Operation[]) => Operation[];
-  sortByDistance?: () => boolean;
+  mapFn?: (operations: Operation[]) => Operation[] | Promise<Operation[]>;
+  sortByDistance?: boolean;
+  mutable?: boolean; // should be a mutable query ? true by default
+  withOffline?: boolean;
 }
 
 
@@ -366,75 +371,22 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
            opts?: OperationServiceWatchOptions
   ): Observable<LoadResult<Operation>> {
 
-    // Load offline
-    const offline = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
-    if (offline) {
-      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
-    }
+    const forceOffline = this.network.offline || (dataFilter && dataFilter.tripId < 0);
+    const offline = forceOffline || opts?.withOffline || false;
+    const online = !forceOffline;
 
-    if (!dataFilter || (isNil(dataFilter.tripId) && isNil(dataFilter.programLabel))) {
-      console.warn('[operation-service] Trying to load operations without \'filter.tripId\' or \'filter.program\'. Skipping.');
-      return EMPTY;
-    }
-    if (opts && opts.fullLoad) {
-      throw new Error('Loading full operation (opts.fullLoad) is only available for local trips');
-    }
+    const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
+    const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, dataFilter, opts);
 
-    dataFilter = this.asFilter(dataFilter);
-
-    const variables: QueryVariables<OperationFilter> = {
-      offset: offset || 0,
-      size: size >= 0 ? size : 1000,
-      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
-      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-      trash: opts && opts.trash || false,
-      filter: dataFilter.asPodObject()
-    };
-
-    let now = this._debug && Date.now();
-    if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
-
-    const withTotal = opts && opts.withTotal === true;
-    const query = (opts && opts.query) || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
-    return this.mutableWatchQuery<LoadResult<any>>({
-      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
-      query,
-      arrayFieldName: 'data',
-      totalFieldName: withTotal ? 'total' : undefined,
-      insertFilterFn: dataFilter.asFilterFn(),
-      variables,
-      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
-      fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
-    })
+    // Merge local and remote
+    if (offline && online) {
+      return combineLatest([offline$, online$])
       .pipe(
-        // Skip update during load()
-        tap(() => this.loading && console.debug('SKIP loading OP')),
-        filter(() => !this.loading),
+        map(([res1, res2]) => mergeLoadResult(res1, res2))
+      );
+    }
 
-        mergeMap( async({data, total}) => {
-          let entities = (!opts || opts.toEntity !== false) ?
-            (data || []).map(source => Operation.fromObject(source, opts))
-            : (data || []) as Operation[];
-          if (now) {
-            console.debug(`[operation-service] Loaded ${entities.length} operations in ${Date.now() - now}ms`);
-            now = undefined;
-          }
-
-          if (opts && opts.mapOperationsFn){
-            entities = await opts.mapOperationsFn(entities);
-          }
-
-          if (opts && opts.sortByDistance){
-            entities = await this.sortByDistance(entities, sortDirection, sortBy)
-          }
-
-          // Compute rankOrder and re-sort (if enable AND all data fetched)
-          if (!opts || opts.computeRankOrder !== false) {
-            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
-          }
-
-          return {data: entities, total};
-        }));
+    return offline$ || online$;
   }
 
   async load(id: number, options?: EntityServiceLoadOptions): Promise<Operation | null> {
@@ -538,7 +490,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     // If parent is a local entity: force to save locally
-    if (entity.tripId < 0) {
+    const tripId = toNumber(entity.tripId, opts && (opts.tripId || opts.trip?.id))
+    if (tripId < 0) {
       return await this.saveLocally(entity, opts);
     }
 
@@ -727,7 +680,101 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   /**
-   * Load many local operations
+   * Load many remote operations
+   *
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param dataFilter
+   * @param opts
+   */
+  watchAllRemotely(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: SortDirection,
+           dataFilter?: OperationFilter | any,
+           opts?: OperationServiceWatchOptions
+  ): Observable<LoadResult<Operation>> {
+
+    if (!dataFilter || (isNil(dataFilter.tripId) && isNil(dataFilter.programLabel))) {
+      console.warn('[operation-service] Trying to load operations without \'filter.tripId\' or \'filter.programLabel\'. Skipping.');
+      return EMPTY;
+    }
+    if (opts && opts.fullLoad) {
+      throw new Error('Loading full operation (opts.fullLoad) is only available for local trips');
+    }
+
+    dataFilter = this.asFilter(dataFilter);
+
+    const variables: QueryVariables<OperationFilter> = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
+      trash: opts && opts.trash || false,
+      filter: dataFilter.asPodObject()
+    };
+
+    let now = this._debug && Date.now();
+    if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
+
+    const withTotal = opts && opts.withTotal === true;
+    const query = (opts && opts.query) || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
+    const mutable = !opts || opts.mutable !== false;
+
+    const result$ = mutable
+      ? this.mutableWatchQuery<LoadResult<any>>({
+        queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
+        query,
+        arrayFieldName: 'data',
+        totalFieldName: withTotal ? 'total' : undefined,
+        insertFilterFn: dataFilter.asFilterFn(),
+        variables,
+        error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+      })
+      : from(this.graphql.query<LoadResult<any>>({
+        query,
+        variables,
+        error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
+        fetchPolicy: (opts && opts.fetchPolicy as FetchPolicy) || 'no-cache'
+      }));
+
+    return result$
+      .pipe(
+        // Skip update during load()
+        //tap(() => this.loading && console.debug('SKIP loading OP')),
+        filter(() => !this.loading),
+
+        mergeMap( async({data, total}) => {
+          let entities = (!opts || opts.toEntity !== false) ?
+            (data || []).map(source => Operation.fromObject(source, opts))
+            : (data || []) as Operation[];
+          if (now) {
+            console.debug(`[operation-service] Loaded ${entities.length} operations in ${Date.now() - now}ms`);
+            now = undefined;
+          }
+
+          if (opts?.mapFn){
+            entities = await opts.mapFn(entities);
+          }
+
+          if (opts?.sortByDistance){
+            entities = await this.sortByDistance(entities, sortDirection, sortBy)
+          }
+
+          // Compute rankOrder and re-sort (if enable AND all data fetched)
+          if (!opts || opts.computeRankOrder !== false) {
+            this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
+          }
+
+          return {data: entities, total};
+        }));
+  }
+
+  /**
+   * Watch many local operations
    */
   watchAllLocally(offset: number,
                   size: number,
@@ -761,11 +808,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           (data || []).map(source => Operation.fromObject(source, opts))
           : (data || []) as Operation[];
 
-        if (opts && opts.mapOperationsFn){
-          entities = await opts.mapOperationsFn(entities);
+        if (opts?.mapFn) {
+          entities = await opts.mapFn(entities);
         }
 
-        if (opts && opts.sortByDistance){
+        if (opts?.sortByDistance) {
           entities = await this.sortByDistance(entities, sortDirection, sortBy)
         }
 
@@ -839,7 +886,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    */
   watchRankOrder(source: Operation, opts?: OperationServiceWatchOptions): Observable<number> {
     console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
-    const tripId = isNotNil(source.tripId) ? source.tripId : source.trip && source.trip.id;
+    const tripId = source.tripId;
     return this.watchAllByTrip({tripId}, {fetchPolicy: 'cache-first', ...opts})
       .pipe(
         map(res => {
@@ -940,9 +987,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     this.fillDefaultProperties(entity, opts);
 
     // Make sure to fill id, with local ids
-    await this.fillOfflineDefaultProperties(entity);
+    await this.fillOfflineDefaultProperties(entity, opts);
 
-    const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false, keepTrip: true}); // Trip is needed to apply filter on it
+    const jsonLocal = this.asObject(entity, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
     if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
 
     // Save response locally
@@ -950,7 +997,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     if (isNotNil(entity.parentOperation)) {
       entity.parentOperation.childOperationId = entity.id;
-      const jsonLocalParent = this.asObject(entity.parentOperation, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, batchAsTree: false, sampleAsTree: false, keepTrip: true});
+      const jsonLocalParent = this.asObject(entity.parentOperation, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
 
       await this.entities.save(jsonLocalParent);
     }
@@ -999,7 +1046,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   /* -- protected methods -- */
 
-  protected asObject(entity: Operation, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean; sampleAsTree?: boolean; keepTrip?: boolean }): any {
+  protected asObject(entity: Operation, opts?: OperationAsObjectOptions): any {
     opts = {...MINIFY_OPTIONS, ...opts};
     const copy: any = entity.asObject(opts);
 
@@ -1056,7 +1103,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected async fillOfflineDefaultProperties(entity: Operation) {
+  protected async fillOfflineDefaultProperties(entity: Operation, opts?: OperationSaveOptions) {
     const isNew = isNil(entity.id);
 
     // If new, generate a local id
@@ -1078,8 +1125,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       }
     }
 
-    if (isNotNil(entity.tripId) && isNil(entity.trip)) {
-      entity.trip = await this.entities.load<Trip>(entity.tripId, Trip.TYPENAME);
+    // Load trip, if need
+    const trip = opts?.trip || (isNotNil(entity.tripId) && await this.entities.load<Trip>(entity.tripId, Trip.TYPENAME, {fullLoad: false}));
+
+    // Copy some properties from trip - see OperationFilter
+    if (trip) {
+      entity.tripId = trip.id;
+      entity.programLabel = trip.program?.label;
+      entity.vesselId = trip.vesselSnapshot?.id;
     }
   }
 

@@ -6,12 +6,24 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
 import {TranslateService} from '@ngx-translate/core';
-import {AccountService, AppTable, EntitiesTableDataSource, isNotNil, LatLongPattern, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, toBoolean} from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  AppTable,
+  EntitiesTableDataSource,
+  isNotNil,
+  LatLongPattern,
+  LocalSettings,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
 import { OperationsMapModalOptions, OperationsMap } from './map/operations.map';
 import {environment} from '@environments/environment';
 import {Operation} from '../services/model/trip.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {BehaviorSubject} from 'rxjs';
+import { BehaviorSubject, from, merge } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 
 @Component({
@@ -131,44 +143,26 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
 
-    settings.ready().then(() => {
-      if (this.settings.settings.accountInheritance) {
-        const account = this.accountService.account;
-        this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-      } else {
-        this.latLongPattern = this.settings.latLongFormat;
-      }
-    });
+    // Listen settings changed
+    this.registerSubscription(
+      merge(
+        from(this.settings.ready()),
+        this.settings.onChange
+      )
+      .subscribe(_ => this.configureFromSettings())
+    );
   }
-
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Default values
     this.showMap = toBoolean(this.showMap, false);
-
-    this.displayAttributes = {
-      gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-    };
-
-    this.registerSubscription(
-      this.settings.onChange.subscribe((settings) => {
-        if (this.loading) return; // skip
-        this.latLongPattern = settings.latLongFormat;
-
-        this.displayAttributes = {
-          gear: this.settings.getFieldDisplayAttributes('gear'),
-          taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-        };
-
-        this.markForCheck();
-      }));
 
     // Apply trip id, if already set
     if (isNotNil(this.tripId)) {
       this.setTripId(this.tripId);
     }
-
   }
 
   setTripId(id: number, opts?: { emitEvent?: boolean; }) {
@@ -231,6 +225,26 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   /* -- protected methods -- */
+
+  protected configureFromSettings(settings?: LocalSettings) {
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    settings = settings || this.settings.settings;
+
+    if (settings.accountInheritance) {
+      const account = this.accountService.account;
+      this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
+    }
+    else {
+      this.latLongPattern = this.settings.latLongFormat;
+    }
+
+    this.displayAttributes = {
+      gear: this.settings.getFieldDisplayAttributes('gear'),
+      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+    };
+
+    this.markForCheck();
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

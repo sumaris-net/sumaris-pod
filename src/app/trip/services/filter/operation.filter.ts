@@ -3,6 +3,7 @@ import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {Operation} from '@app/trip/services/model/trip.model';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from 'moment';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 
 @EntityClass({typename: 'OperationFilterVO'})
 export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
@@ -19,7 +20,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   endDate?: Date | Moment;
   gearIds?: number[];
   taxonGroupLabels?: string[];
-  qualityFlagId?: number
+  qualityFlagId?: number;
+  synchronizationStatus?: SynchronizationStatus[];
 
   static fromObject: (source: any, opts?: any) => OperationFilter;
 
@@ -45,6 +47,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     const target = super.asObject(opts);
     if (opts && opts.minify) {
       delete target.excludeId; // Not include in Pod
+      delete target.synchronizationStatus;
     }
     return target;
   }
@@ -52,10 +55,13 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   buildFilter(): FilterFn<Operation>[] {
     const filterFns = super.buildFilter();
 
+    // DEBUG
+    //console.debug('TODO filter operations', this);
+
     // Included ids
     if (isNotNil(this.includedIds)){
       const includedIds = this.includedIds;
-      filterFns.push(o => includedIds.indexOf(o.id) !== -1);
+      filterFns.push(o => includedIds.includes(o.id));
     }
 
     // Exclude id
@@ -64,29 +70,10 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
       filterFns.push(o => o.id !== excludeId);
     }
 
-    // Trip
-    if (isNotNil(this.tripId)) {
-      const tripId = this.tripId;
-      filterFns.push((o => ((isNotNil(o.tripId) && o.tripId === tripId)
-        || (o.trip && o.trip.id === tripId))));
-    }
-
-    // Vessel
-    if (isNotNil(this.vesselId)) {
-      const vesselId = this.vesselId;
-      filterFns.push((o => ((isNotNil(o.trip) && isNotNil(o.trip.vesselSnapshot) && o.trip.vesselSnapshot.id === vesselId))));
-    }
-
     // ExcludedIds
     if (isNotNil(this.excludedIds) && this.excludedIds.length > 0) {
       const excludedIds = this.excludedIds;
-      filterFns.push((o => (excludedIds.indexOf(o.id) === -1)));
-    }
-
-    // Program label
-    if (isNotNil(this.programLabel)) {
-      const programLabel = this.programLabel;
-      filterFns.push(o => (isNotNil(o.trip) && (isNotNil(o.trip.program) && (o.trip.program.label === programLabel))));
+      filterFns.push(o => !excludedIds.includes(o.id));
     }
 
     // Only operation with no parents
@@ -116,19 +103,41 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     // GearIds;
     if (isNotNil(this.gearIds) && this.gearIds.length > 0) {
       const gearIds = this.gearIds;
-      filterFns.push((o => (isNotNil(o.physicalGear) && isNotNil(o.physicalGear.gear) && gearIds.indexOf(o.physicalGear.gear.id) !== -1)));
+      filterFns.push((o => isNotNil(o.physicalGear?.gear) && gearIds.includes(o.physicalGear.gear.id)));
     }
 
     // taxonGroupIds
     if (isNotNil(this.taxonGroupLabels) && this.taxonGroupLabels.length > 0) {
       const targetSpecieLabels = this.taxonGroupLabels;
-      filterFns.push((o => (isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1)));
+      filterFns.push((o => isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1));
     }
 
     if (isNotNil(this.qualityFlagId)){
       const qualityFlagId = this.qualityFlagId;
-      filterFns.push((o => (isNotNil(o.qualityFlagId) && o.qualityFlagId === qualityFlagId)));
+      filterFns.push((o => isNotNil(o.qualityFlagId) && o.qualityFlagId === qualityFlagId));
     }
+
+    // Filter on parent trip
+    {
+      // Trip
+      if (isNotNil(this.tripId)) {
+        const tripId = this.tripId;
+        filterFns.push(o => o.tripId === tripId);
+      }
+
+      // Vessel
+      if (isNotNil(this.vesselId)) {
+        const vesselId = this.vesselId;
+        filterFns.push(o => isNil(o.vesselId) || o.vesselId === vesselId);
+      }
+
+      // Program label
+      if (isNotNil(this.programLabel)) {
+        const programLabel = this.programLabel;
+        filterFns.push(o => isNil(o.programLabel) || o.programLabel === programLabel);
+      }
+    }
+
     return filterFns;
   }
 }

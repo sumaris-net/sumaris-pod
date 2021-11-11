@@ -608,6 +608,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
+        "TRIP_ID": "Marée",
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",

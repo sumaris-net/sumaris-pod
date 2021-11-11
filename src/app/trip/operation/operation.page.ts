@@ -480,12 +480,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Load parent trip
     const trip = await this.tripService.load(tripId);
-    data.trip = trip;
+    this.trip = trip;
+    this.saveOptions.trip = trip;
 
     // Use the default gear, if only one
     if (trip && trip.gears && trip.gears.length === 1) {
       data.physicalGear = trip.gears[0];
     }
+
+    // Copy some trip's properties (need by filter)
+    data.programLabel = trip.program?.label;
+    data.vesselId = trip.vesselSnapshot?.id;
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
@@ -518,11 +523,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.$tripId.next(+tripId);
 
     const trip = await this.tripService.load(tripId);
-    data.trip = trip;
+    this.trip = trip;
+    this.saveOptions.trip = trip;
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
-
+    data.programLabel = trip.program?.label;
+    data.vesselId = trip.vesselSnapshot?.id;
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -641,24 +648,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async setValue(data: Operation) {
 
-    // set parent trip
-    const trip = data.trip as Trip;
-    delete data.trip;
-    this.trip = trip || this.trip;
-
     this.opeForm.value = data;
-    if (trip) {
-      this.opeForm.trip = trip;
+
+    // set parent trip
+    if (this.trip) {
+      this.saveOptions.trip = this.trip;
+      this.opeForm.trip = this.trip;
     }
 
-    const program = trip && trip.program && trip.program.label;
+    const programLabel = data.programLabel || this.trip?.program && this.trip.program?.label;
 
     // Get gear, from the physical gear
     const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
-    this.measurementsForm.programLabel = program;
+    this.measurementsForm.programLabel = programLabel;
     if (isNotNil(data.parentOperationId)) {
       await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
       this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
@@ -685,7 +690,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + '#'));
 
     // Applying program to tables (async)
-    if (program) this.$programLabel.next(program);
+    if (programLabel) this.$programLabel.next(programLabel);
   }
 
   isCurrentData(other: IEntity<any>): boolean {

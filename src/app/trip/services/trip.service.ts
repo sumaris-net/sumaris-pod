@@ -64,6 +64,7 @@ import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
 const moment = momentImported;
 
@@ -244,12 +245,13 @@ export interface TripLoadOptions extends EntityServiceLoadOptions {
   withOperation?: boolean;
   withOperationGroup?: boolean;
   toEntity?: boolean;
+  fullLoad?: boolean;
 }
 
 export interface TripSaveOptions extends EntitySaveOptions {
-  withLanding?: boolean;
-  withOperation?: boolean;
-  withOperationGroup?: boolean;
+  withLanding?: boolean; // False by default
+  withOperation?: boolean; // False by default
+  withOperationGroup?: boolean; // False by default
   enableOptimisticResponse?: boolean; // True by default
 }
 
@@ -548,12 +550,13 @@ export class TripService
 
       // If local entity
       if (id < 0) {
-        data = await this.entities.load<Trip>(id, Trip.TYPENAME);
+        data = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
         if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
 
         if (opts && opts.withOperation) {
-          data.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-            filter: this.asFilter({tripId: id}).asFilterFn()
+          data.operations = await this.operationService.loadAllByTrip({tripId: id}, {
+            fetchPolicy: 'network-only',
+            fullLoad: true
           });
         }
       } else {
@@ -785,13 +788,14 @@ export class TripService
       // Link to physical gear id, using the rankOrder
       operations.forEach(o => {
         o.id = null; // Clean ID, to force new ids
+        o.updateDate = undefined;
         o.physicalGear = o.physicalGear && (entity.gears || []).find(g => g.rankOrder === o.physicalGear.rankOrder);
         o.tripId = entity.id;
-        o.trip = undefined;
-        o.updateDate = undefined;
+        o.vesselId = entity.vesselSnapshot?.id;
+        o.programLabel = entity.program?.label;
       });
 
-      entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id});
+      entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id, trip: entity});
     }
 
     if (opts.withLanding && landing) {
@@ -817,12 +821,12 @@ export class TripService
       ...opts
     };
 
-    const localId = entity && entity.id;
+    const localId = entity.id;
     if (isNil(localId) || localId >= 0) {
       throw new Error('Entity must be a local entity');
     }
     if (this.network.offline) {
-      throw new Error('Could not synchronize if network if offline');
+      throw new Error('Cannot synchronize: app is offline');
     }
 
     // Clone (to keep original entity unchanged)
@@ -840,7 +844,7 @@ export class TripService
     if (opts.withOperation) {
 
       // Fill operations
-      const res = await this.operationService.loadAllByTrip({tripId: localId},
+      const res = await this.operationService.loadAllByTrip({tripId: +localId},
         {fullLoad: true, computeRankOrder: false});
 
       //sort operations to saving in good order
@@ -913,7 +917,7 @@ export class TripService
 
       if (opts.withOperation) {
         // Delete trip's operations
-        await this.operationService.deleteLocally({tripId: localId});
+        await this.operationService.deleteLocally({tripId: +localId});
 
         // Delete parent from other trip which have child operation now
         await this.operationService.deleteLocally({includedIds: operationToDeleteLocally});
@@ -1121,6 +1125,7 @@ export class TripService
       keepRemoteId: false,
       deletedFromTrash: false,
       withOperation: true, // Change default value to 'true'
+      withOperationGroup: true, // Change default value to 'true'
       ...opts
     };
     const isLocal = DataRootEntityUtils.isLocal(source);

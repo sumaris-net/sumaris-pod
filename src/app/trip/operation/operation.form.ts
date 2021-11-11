@@ -16,7 +16,7 @@ import {
   LocalSettingsService,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   SharedValidators,
   toBoolean,
   UsageMode,
@@ -31,7 +31,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ModalController } from '@ionic/angular';
-import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
+import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
@@ -319,25 +319,27 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     const value = this.form.value as Partial<Operation>;
     const endDate = value.fishingEndDateTime || this.trip && this.trip.returnDateTime || moment();
     const parent = value.parentOperation;
-    const startDate = this.trip && fromDateISOString(this.trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
+    const trip = this.trip;
+    const startDate = trip && fromDateISOString(trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
+
+    const gearIds = removeDuplicatesFromArray((this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id));
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
-      componentProps: {
+      componentProps: <SelectOperationModalOptions>{
         filter: {
           programLabel: this.programLabel,
-          vesselId: this._trip.vesselSnapshot.id,
+          vesselId: trip.vesselSnapshot?.id,
           excludedIds: isNotNil(value.id) ? [value.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,
-          endDate,
+          //endDate,
           startDate,
-          gearIds: (this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id)
+          gearIds
         },
-        physicalGears: this._physicalGearsSubject.value,
-        programLabel: this.programLabel,
-        enableGeolocation: this.enableGeolocation,
-        parent
+        gearIds,
+        parent,
+        enableGeolocation: this.enableGeolocation
       },
       keyboardClose: true,
       cssClass: 'modal-large'

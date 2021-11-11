@@ -10,9 +10,8 @@
   <!-- main table -->
   <app-select-operation-by-trip-table #table
                                       [showToolbar]="false"
-                                      [program]="programLabel"
                                       [enableGeolocation]="enableGeolocation"
-                                      [physicalGears]="physicalGears"
+                                      [gearIds]="gearIds"
                                       [parent]="parent"
                                       (onOpenRow)="selectRow($event)">
   </app-select-operation-by-trip-table>

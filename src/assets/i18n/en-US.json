@@ -608,6 +608,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
+        "TRIP_ID": "Trip",
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
@@ -618,7 +619,6 @@
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
         "COMMENTS": "Comments",
-        "OPERATION_TYPE" : "Type",
         "QUALITY": "Status"
       },
       "ERROR": {

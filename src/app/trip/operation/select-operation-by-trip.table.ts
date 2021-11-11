@@ -9,13 +9,13 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
-  EntitiesTableDataSource,
-  LatLongPattern,
+  EntitiesTableDataSource, isEmptyArray, isNil, isNotEmptyArray,
+  LatLongPattern, LocalSettings,
   LocalSettingsService,
   NetworkService,
-  ReferentialRef,
+  ReferentialRef, removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS, StatusIds,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
@@ -26,7 +26,13 @@ import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import moment from 'moment/moment';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, from, merge, of } from 'rxjs';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { mergeLoadResult } from '@app/shared/functions';
+
+class OperationDivider extends Operation {
+  trip: Trip;
+}
 
 @Component({
   selector: 'app-select-operation-by-trip-table',
@@ -39,28 +45,24 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class SelectOperationByTripTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
-  private GROUP_BY_COLUMN = 'tripId';
-
   limitDateForLostOperation = moment().add(-4, 'day');
   trips = new Array<Trip>();
-  isGrouping = false;
-  _taxonGroupsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
   filterForm: FormGroup;
-
   displayAttributes: {
     [key: string]: string[]
   };
   highlightedRow: TableElement<Operation>;
+  $taxonGroups = new BehaviorSubject<ReferentialRef[]>(undefined);
+  $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
 
   @Input() latLongPattern: LatLongPattern;
   @Input() tripId: number;
-  @Input() program: string;
   @Input() showToolbar = true;
   @Input() showPaginator = false;
   @Input() showFilter = true;
   @Input() useSticky = true;
   @Input() enableGeolocation = false;
-  @Input() physicalGears: PhysicalGear[];
+  @Input() gearIds: number[];
   @Input() parent: Operation;
 
   get sortActive(): string {
@@ -131,15 +133,15 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
         {
           prependNewElements: false,
           suppressErrors: environment.production,
-          dataServiceOptions: {
+          dataServiceOptions: <OperationServiceWatchOptions>{
             readOnly: true,
             withBatchTree: false,
             withSamples: false,
             withTotal: true,
-            mapOperationsFn: (operations) => this.mapOperations(operations)
-          },
-          OperationServiceWatchOptions: {
-            computeRankOrder: false
+            mapFn: (operations) => this.mapOperations(operations),
+            computeRankOrder: false,
+            mutable: false, // use simple load query
+            withOffline: true
           }
         })
     );
@@ -157,14 +159,6 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
     this.excludesColumns = ['select'];
-    settings.ready().then(() => {
-      if (this.settings.settings.accountInheritance) {
-        const account = this.accountService.account;
-        this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-      } else {
-        this.latLongPattern = this.settings.latLongFormat;
-      }
-    });
 
     this.filterForm = formBuilder.group({
       'startDate': null,
@@ -184,73 +178,48 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
             ...this.filter, // Keep previous filter
             ...json
           },
-          {emitEvent: this.mobile}))
+          {emitEvent: true /*always apply*/}))
+    );
+
+    // Listen settings changed
+    this.registerSubscription(
+      merge(
+        from(this.settings.ready()),
+        this.settings.onChange
+      )
+      .subscribe(value => this.configureFromSettings(value))
     );
   }
 
   ngOnInit() {
     super.ngOnInit();
-    if (this.filter && this.filter.startDate) {
-      this.filterForm.get('startDate').setValue(this.filter.startDate, {emitEvent: false});
+
+    // Apply filter value
+    const filter = this.filter;
+    if (filter?.startDate) {
+      this.filterForm.get('startDate').setValue(filter.startDate, {emitEvent: false});
     }
-    if (this.filter && this.filter.gearIds.length === 1) {
-      this.filterForm.get('gearIds').setValue(this.filter.gearIds[0], {emitEvent: false});
+    if (filter?.gearIds.length === 1) {
+      this.filterForm.get('gearIds').setValue(filter.gearIds[0], {emitEvent: false});
     }
 
-    this.displayAttributes = {
-      gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
-    };
-
-    this.registerSubscription(
-      this.settings.onChange.subscribe((settings) => {
-        if (this.loading) return; // skip
-        this.latLongPattern = settings.latLongFormat;
-        this.markForCheck();
-      }));
-
+    // Load taxon groups, and gears
     this.loadTaxonGroups();
+    this.loadGears();
   }
 
   clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
     this.highlightedRow = row;
-
     return super.clickRow(event, row);
   }
 
-  addGroups(data: any[]): any[] {
-    const groups = this.uniqueBy(
-      data.map(
-        row => {
-          const result = new Operation();
-          result.id = null;
-          result.trip = this.trips.find(trip => trip.id === row.tripId) || new Trip();
-          result.trip.id = row.tripId;
-          result[this.GROUP_BY_COLUMN] = row[this.GROUP_BY_COLUMN];
-          return result;
-        }
-      ),
-      JSON.stringify);
 
-    let subGroups = [];
-    groups.forEach(group => {
-      const rowsInGroup = data.filter(row => group[this.GROUP_BY_COLUMN] === row[this.GROUP_BY_COLUMN]);
-      rowsInGroup.unshift(group);
-      subGroups = subGroups.concat(rowsInGroup);
-    });
-    return subGroups;
+  isDivider(index, item: TableElement<Operation>): boolean {
+    return item.currentData instanceof OperationDivider;
   }
 
-  uniqueBy(a, key) {
-    const seen = {};
-    return a.filter((item) => {
-      const k = key(item);
-      return seen.hasOwnProperty(k) ? false : (seen[k] = true);
-    });
-  }
-
-  isTrip(index, item): boolean {
-    return item.currentData && !item.currentData.id && item.currentData.trip;
+  isOperation(index, item: TableElement<Operation>): boolean {
+    return !(item.currentData instanceof OperationDivider);
   }
 
   clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
@@ -264,64 +233,109 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   /* -- protected methods -- */
-  protected markForCheck() {
-    this.cd.markForCheck();
+
+  protected configureFromSettings(settings: LocalSettings) {
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    settings = settings || this.settings.settings;
+
+    if (settings.accountInheritance) {
+      const account = this.accountService.account;
+      this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
+    }
+    else {
+      this.latLongPattern = this.settings.latLongFormat;
+    }
+
+    this.displayAttributes = {
+      gear: this.settings.getFieldDisplayAttributes('gear'),
+      taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+    };
+
+    this.markForCheck();
   }
 
   protected async loadTaxonGroups() {
-    const res = await this.referentialRefService.loadAll(0, 100, null, null,
+    const { data } = await this.referentialRefService.loadAll(0, 100, null, null,
       {
         entityName: 'Metier',
         ...METIER_DEFAULT_FILTER,
         searchJoin: 'TaxonGroup',
-        levelIds: this.physicalGears.map(physicalGear => physicalGear.gear.id),
+        levelIds: this.gearIds,
       },
       {
         withTotal: false
       });
-    const metierTaxonGroups = (res.data || []).reduce((res, metier) => {
-      if (res.find(m => m.label === metier.label) === undefined){
-        return res.concat(metier);
-      }
-      else {
-        return res;
-      }
-    }, [] )
 
-    this._taxonGroupsSubject.next(metierTaxonGroups);
+    const items = removeDuplicatesFromArray(data || [], 'label');
+
+    this.$taxonGroups.next(items);
   }
 
-  async mapOperations(operations: Operation[]): Promise<Operation[]> {
+  protected async loadGears() {
+    const { data } = await this.referentialRefService.loadAll(0, 100, null, null,
+      {
+        entityName: 'Gear',
+        includedIds: this.gearIds,
+      },
+      {
+        withTotal: false
+      });
 
-    if (this.parent && operations.findIndex(o => o.id === this.parent.id) === -1){
-      operations.push(this.parent)
+    this.$gears.next(data || []);
+  }
+
+  protected async mapOperations(data: Operation[]): Promise<Operation[]> {
+
+    // Add existing parent operation
+    if (this.parent && data.findIndex(o => o.id === this.parent.id) === -1){
+      data.push(this.parent)
     }
 
-    //Not done on watch all to apply filter on parent operation
+    if (isEmptyArray((data))) return data;
+
+    // Not done on watch all to apply filter on parent operation
     if (this.sortByDistance){
-      operations = await this.dataService.sortByDistance(operations, this.sortDirection, this.sortActive);
+      data = await this.dataService.sortByDistance(data, this.sortDirection, this.sortActive);
     }
 
-    if (!this.isGrouping) {
-      this.isGrouping = true;
-      const tripsIds = operations.map(ope => ope.tripId).filter((v, i, a) => a.indexOf(v) === i);
+    // Load trips (remote and local)
+    const tripIds = removeDuplicatesFromArray(data.map(ope => ope.tripId));
+    const localTripIds = tripIds.filter(id => id < 0);
+    const remoteTripIds = tripIds.filter(id => id >= 0);
 
-      if (!this.trips || this.trips.length === 0 || this.trips.length < tripsIds.length) {
-        if (this.network.offline) {
-          this.trips = operations.map(operation => operation.trip);
-        } else {
-          const ids = tripsIds.filter((v) => this.trips && !this.trips.some(trip => trip.id === v));
-          const res =
-            await this.tripService.loadAll(0, 999, null, null,
-              {includedIds: ids});
-          this.trips = this.trips.concat(res.data);
-        }
-      }
-      operations = this.addGroups(operations);
-      this.isGrouping = false;
+    let trips: Trip[];
+    if (isNotEmptyArray(localTripIds) && isNotEmptyArray(remoteTripIds)) {
+      trips = await Promise.all([
+        this.tripService.loadAll(0, remoteTripIds.length, null, null, {includedIds: remoteTripIds}, {mutable: false}),
+        this.tripService.loadAll(0, localTripIds.length, null, null, {includedIds: localTripIds, synchronizationStatus: 'DIRTY'}),
+      ]).then(([res1, res2]) => mergeLoadResult(res1, res2)?.data);
+    }
+    else if (isNotEmptyArray(localTripIds)) {
+      trips = (await this.tripService.loadAll(0, localTripIds.length, null, null, {includedIds: localTripIds, synchronizationStatus: 'DIRTY'}))?.data;
+    }
+    else {
+      trips = (await this.tripService.loadAll(0, remoteTripIds.length, null, null, {includedIds: remoteTripIds}, {mutable: false}))?.data;
     }
 
-    return operations;
+    // Remove duplicated trips
+    //trips = removeDuplicatesFromArray(trips, 'id');
+
+    // Insert a divider (between operations) for each trip
+    data = tripIds.reduce((res, tripId) => {
+      const divider = new OperationDivider();
+      divider.id = tripId;
+      divider.tripId = tripId;
+      divider.trip = trips.find(t => t.id === tripId) || Trip.fromObject({id: tripId});
+      const childrenOperations = data.filter(o => o.tripId === tripId);
+      return res.concat(divider).concat(...childrenOperations);
+    }, []);
+
+    return data;
   }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }
 
