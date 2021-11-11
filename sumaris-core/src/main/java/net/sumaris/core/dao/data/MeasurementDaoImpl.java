@@ -25,13 +25,11 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.*;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
@@ -897,7 +895,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                                                                        List<T> sourcesToRemove) {
         // Get existing meas and remove it from list to remove
         IMeasurementEntity entity = Optional.ofNullable(existingSources.get(pmfm.getId()))
-            .map(List::stream).flatMap(Stream::findFirst)
+            // Find the first entity that still EXISTS in as sources to remove list
+            // This is need for mutliple values on same PMFM
+            .flatMap(sources -> sources.stream().filter(sourcesToRemove::remove).findFirst())
             .orElse(null);
 
         // Exists ?
@@ -908,9 +908,6 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             } catch (IllegalAccessException | InstantiationException e) {
                 throw new SumarisTechnicalException(e);
             }
-        }
-        else {
-            sourcesToRemove.remove(entity);
         }
 
         // Make sure to set pmfm
@@ -1116,15 +1113,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             .collect(Collectors.<T, Integer, String>toMap(
                 m -> m.getPmfm().getId(),
                 this::entityToValueAsStringOrNull,
-                this::mergeMeasurementMapValues
+                this::concatMeasurementMapValues
             ));
     }
 
-    protected String mergeMeasurementMapValues(@Nullable String v1, @Nullable String v2) {
-        if (v2 == null) return v1; // Not need to concat
+    protected String concatMeasurementMapValues(@Nullable String v1, @Nullable String v2) {
         if (v1 == null) return v2; // Not need to concat
+        if (v2 == null) return v1; // Not need to concat
 
-        // Concat value
+        // Concat values
         return v1 + MEASUREMENTS_MAP_VALUE_SEPARATOR + v2;
     }
 

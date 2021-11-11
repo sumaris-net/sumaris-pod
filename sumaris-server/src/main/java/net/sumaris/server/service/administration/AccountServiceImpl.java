@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
@@ -43,6 +42,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.util.I18nUtil;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -59,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.mail.internet.AddressException;
@@ -68,49 +67,45 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("accountService")
 @Slf4j
 public class AccountServiceImpl implements AccountService {
 
-    @Autowired
-    private PersonService personService;
-
-    @Autowired
-    private PersonRepository personRepository;
-
-    @Autowired
-    private UserSettingsRepository userSettingsRepository;
-
-    @Autowired
-    private UserTokenRepository userTokenRepository;
-
-    private EmailService emailService;
-
-    @Autowired
-    private ServerCryptoService serverCryptoService;
-
-    @Autowired
-    private GenericConversionService conversionService;
+    private final SumarisServerConfiguration configuration;
+    private final PersonRepository personRepository;
+    private final UserSettingsRepository userSettingsRepository;
+    private final UserTokenRepository userTokenRepository;
+    private final PersonService personService;
+    private final EmailService emailService;
+    private final ServerCryptoService serverCryptoService;
+    private final GenericConversionService conversionService;
 
     @Autowired
     private AccountService self; // loop back to force transactional handling
 
-    private SumarisServerConfiguration configuration;
-
     private InternetAddress mailFromAddress;
-
     private String serverUrl;
-
     private boolean emailEnable = false; // Will be update after config ready
 
-    @Autowired(
-            required = false
-    )
-    public AccountServiceImpl(@NonNull SumarisServerConfiguration serverConfiguration, EmailService emailService) {
+    public AccountServiceImpl(SumarisServerConfiguration serverConfiguration,
+                              PersonService personService,
+                              PersonRepository personRepository,
+                              UserSettingsRepository userSettingsRepository,
+                              UserTokenRepository userTokenRepository,
+                              ServerCryptoService serverCryptoService,
+                              GenericConversionService conversionService,
+                              Optional<EmailService> emailService) {
+        this.personService = personService;
+        this.personRepository = personRepository;
+        this.userSettingsRepository = userSettingsRepository;
+        this.userTokenRepository = userTokenRepository;
         this.configuration = serverConfiguration;
-        this.emailService = emailService;
+        this.serverCryptoService = serverCryptoService;
+        this.conversionService = conversionService;
+        this.emailService = emailService.orElse(null);
     }
 
     @PostConstruct
@@ -126,11 +121,11 @@ public class AccountServiceImpl implements AccountService {
         boolean emailEnable = (emailService != null && configuration.enableMailService());
 
         // Get mail 'from'
-        String mailFrom = configuration.getMailFrom();
-        if (StringUtils.isEmpty(mailFrom)) {
-            mailFrom = configuration.getAdminMail();
+        String mailFrom = StringUtils.trimToNull(configuration.getMailFrom());
+        if (StringUtils.isBlank(mailFrom)) {
+            mailFrom = StringUtils.trimToNull(configuration.getAdminMail());
         }
-        if (StringUtils.isEmpty(mailFrom)) {
+        if (StringUtils.isBlank(mailFrom)) {
             log.warn(I18n.t("sumaris.error.account.register.mail.disable", SumarisServerConfigurationOption.MAIL_FROM.name()));
             this.mailFromAddress = null;
             emailEnable = false;
@@ -226,7 +221,7 @@ public class AccountServiceImpl implements AccountService {
         account.setProfiles(Lists.newArrayList(UserProfileEnum.GUEST.label));
 
         // Normalize email
-        account.setEmail(org.apache.commons.lang3.StringUtils.trimToNull(account.getEmail()));
+        account.setEmail(StringUtils.trimToNull(account.getEmail()));
 
         // Save account
         AccountVO savedAccount = (AccountVO) personRepository.save(account);
@@ -256,12 +251,12 @@ public class AccountServiceImpl implements AccountService {
         // Get existing account
         PersonVO existingPerson = personService.getById(account.getId());
 
-        // Check same protected properties are unchanged
-        Preconditions.checkArgument(Objects.equals(existingPerson.getEmail(), account.getEmail()), "Email could not be changed by the user, but only by an administrator.");
-        Preconditions.checkArgument(Objects.equals(existingPerson.getUsername(), account.getUsername()), "Email could not be changed by the user, but only by an administrator.");
-        Preconditions.checkArgument(Objects.equals(existingPerson.getUsernameExtranet(), account.getUsernameExtranet()), "Email could not be changed by the user, but only by an administrator.");
-
-        // Force to keep existing profiles (avoid any changes by user)
+        // Force keeping existing profiles (avoid any changes by user)
+        // (This properties must be changed by the PersonService directly)
+        account.setEmail(existingPerson.getEmail());
+        account.setUsername(existingPerson.getUsername());
+        account.setUsernameExtranet(existingPerson.getUsernameExtranet());
+        account.setPubkey(existingPerson.getPubkey());
         account.setProfiles(existingPerson.getProfiles());
 
         // Do the save
