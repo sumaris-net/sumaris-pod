@@ -1,4 +1,4 @@
-import { Injectable, Injector } from '@angular/core';
+import {Injectable, Injector} from '@angular/core';
 import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
@@ -24,27 +24,29 @@ import {
   NetworkService,
   Person, StatusIds
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
-import { Landing } from './model/landing.model';
-import { gql } from '@apollo/client/core';
-import { DataFragments, DataCommonFragments } from './trip.queries';
-import { filter, map, tap } from 'rxjs/operators';
-import { BaseRootDataService } from '@app/data/services/root-data-service.class';
-import { Sample } from './model/sample.model';
-import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import {BehaviorSubject, EMPTY, Observable, of} from 'rxjs';
+import {Landing} from './model/landing.model';
+import {gql} from '@apollo/client/core';
+import {DataFragments, DataCommonFragments} from './trip.queries';
+import {filter, map, tap} from 'rxjs/operators';
+import {BaseRootDataService} from '@app/data/services/root-data-service.class';
+import {Sample} from './model/sample.model';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
 import * as momentImported from 'moment';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
 
-import { SortDirection } from '@angular/material/sort';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { LandingFilter } from './filter/landing.filter';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
-import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
-import { TripFragments, TripService } from '@app/trip/services/trip.service';
-import { Trip } from '@app/trip/services/model/trip.model';
-import { environment } from '@environments/environment';
-import { ErrorCodes } from '@app/data/services/errors';
+import {SortDirection} from '@angular/material/sort';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {LandingFilter} from './filter/landing.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
+import {TripFragments, TripService} from '@app/trip/services/trip.service';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {environment} from '@environments/environment';
+import {ErrorCodes} from '@app/data/services/errors';
+import {TripFilter} from '@app/trip/services/filter/trip.filter';
+import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
 
 const moment = momentImported;
 
@@ -258,8 +260,7 @@ const sortByDescRankOrder = (n1: Landing, n2: Landing) => {
 
 @Injectable({providedIn: 'root'})
 export class LandingService extends BaseRootDataService<Landing, LandingFilter>
-  implements
-    IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
+  implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>,
     IEntityService<Landing> {
 
   protected loading = false;
@@ -298,7 +299,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     if (!dataFilter || dataFilter.isEmpty()) {
       console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
-      return of({total:0, data: []});
+      return of({total: 0, data: []});
     }
 
     // Load offline
@@ -326,7 +327,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug("[landing-service] Watching landings... using variables:", variables);
+    if (this._debug) console.debug('[landing-service] Watching landings... using variables:', variables);
 
     const fullLoad = (opts && opts.fullLoad === true); // false by default
     const withTotal = (!opts || opts.withTotal !== false);
@@ -337,10 +338,10 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query,
       arrayFieldName: 'data',
-      totalFieldName: withTotal ? "total" : undefined,
+      totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: dataFilter?.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR"},
+      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -384,13 +385,46 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                 size: number,
                 sortBy?: string,
                 sortDirection?: SortDirection,
-                dataFilter?: LandingFilter|any,
+                filter?: Partial<LandingFilter>,
                 opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
-    return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts));
+    const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+      return await this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, filter, opts));
+  }
+
+  async loadAllLocally(offset: number,
+                       size: number,
+                       sortBy?: string,
+                       sortDirection?: SortDirection,
+                       filter?: Partial<LandingFilter>,
+                       opts?: LandingServiceWatchOptions & {
+                         fullLoad?: boolean;
+                       }
+  ): Promise<LoadResult<Landing>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
+      sortDirection: sortDirection || 'asc',
+      filter: filter.asFilterFn()
+    };
+
+    const res = await  this.entities.loadAll('LandingVO', variables, {fullLoad: opts && opts.fullLoad});
+    const entities = (!opts || opts.toEntity !== false) ?
+      (res.data || []).map(json => this.fromObject(json)) :
+      (res.data || []) as Landing[];
+
+    return {data: entities, total: res.total};
   }
 
   async load(id: number, options?: EntityServiceLoadOptions): Promise<Landing> {
-    if (isNil(id)) throw new Error("Missing argument 'id'");
+    if (isNil(id)) throw new Error('Missing argument \'id\'');
 
     const now = Date.now();
     if (this._debug) console.debug(`[landing-service] Loading landing {${id}}...`);
@@ -402,16 +436,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       // If local entity
       if (id < 0) {
         data = await this.entities.load<Landing>(id, Landing.TYPENAME);
-      }
-
-      else {
+      } else {
         // Load remotely
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: {
             id: id
           },
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
         data = res && res.data;
@@ -421,8 +453,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       const entity = data && Landing.fromObject(data);
       if (entity && this._debug) console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, entity);
       return entity;
-    }
-    finally {
+    } finally {
       this.loading = false;
     }
   }
@@ -447,14 +478,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       });
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Saving landings...", json);
+    if (this._debug) console.debug('[landing-service] Saving landings...', json);
 
     await this.graphql.mutate<LoadResult<any>>({
       mutation: this.mutations.saveAll,
       variables: {
         data: json
       },
-      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: (proxy, {data}) => {
 
         if (this._debug) console.debug(`[landing-service] Landings saved remotely in ${Date.now() - now}ms`);
@@ -501,7 +532,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     }
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Saving a landing...", entity);
+    if (this._debug) console.debug('[landing-service] Saving a landing...', entity);
 
     // Prepare to save
     this.fillDefaultProperties(entity, opts);
@@ -519,13 +550,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
         if (isNotNil(entity.id)) context.serializationKey = `${Landing.TYPENAME}:${entity.id}`;
 
-        return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
+        return {data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)]};
       } : undefined;
 
     // Transform into json
     const json = this.asObject(entity, MINIFY_ENTITY_FOR_POD);
     //if (this._debug)
-      console.debug("[landing-service] Saving landing (minified):", json);
+    console.debug('[landing-service] Saving landing (minified):', json);
 
     await this.graphql.mutate<{ data: any }>({
       mutation: this.mutations.save,
@@ -533,9 +564,9 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         data: json
       },
       offlineResponse,
-      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: async (proxy, {data}) => {
-        const savedEntity = data && data.data ;
+        const savedEntity = data && data.data;
 
         // Local entity: save it
         if (savedEntity.id < 0) {
@@ -578,7 +609,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
    * @param filter (required observedLocationId)
    */
   async deleteLocally(filter: Partial<LandingFilter> & { observedLocationId: number; }): Promise<Landing[]> {
-    if (!filter || isNil(filter.observedLocationId)) throw new Error("Missing arguments 'filter.observedLocationId'");
+    if (!filter || isNil(filter.observedLocationId)) throw new Error('Missing arguments \'filter.observedLocationId\'');
 
     const dataFilter = this.asFilter(filter);
     const variables = {
@@ -593,8 +624,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
       // Apply deletion
       return await this.entities.deleteMany(ids, {entityName: Landing.TYPENAME});
-    }
-    catch (err) {
+    } catch (err) {
       console.error(`[landing-service] Failed to delete landings ${JSON.stringify(filter)}`, err);
       throw err;
     }
@@ -608,17 +638,17 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                   size: number,
                   sortBy?: string,
                   sortDirection?: SortDirection,
-                  dataFilter?: LandingFilter|any,
+                  dataFilter?: LandingFilter | any,
                   opts?: LandingServiceWatchOptions): Observable<LoadResult<Landing>> {
 
     dataFilter = LandingFilter.fromObject(dataFilter);
 
     if (!dataFilter || dataFilter.isEmpty()) {
-      console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
+      console.warn('[landing-service] Trying to watch landings without \'filter\': skipping.');
       return EMPTY;
     }
-    if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
-    if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
+    if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error('Invalid \'filter.observedLocationId\': must be a local ID (id<0)!');
+    if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error('Invalid \'filter.tripId\': must be a local ID (id<0)!');
 
     const variables = {
       offset: offset || 0,
@@ -662,7 +692,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       .map(t => t.id)
       .filter(id => id < 0);
     if (isNotEmptyArray(localIds)) {
-      if (this._debug) console.debug("[landing-service] Deleting landings locally... ids:", localIds);
+      if (this._debug) console.debug('[landing-service] Deleting landings locally... ids:', localIds);
       await this.entities.deleteMany<Landing>(localIds, {entityName: Landing.TYPENAME});
     }
 
@@ -672,7 +702,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     if (isEmptyArray(ids)) return; // stop, if nothing else to do
 
     const now = Date.now();
-    if (this._debug) console.debug("[landing-service] Deleting landings... ids:", ids);
+    if (this._debug) console.debug('[landing-service] Deleting landings... ids:', ids);
 
     await this.graphql.mutate<any>({
       mutation: this.mutations.deleteAll,
@@ -691,7 +721,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
 
   listenChanges(id: number): Observable<Landing> {
-    if (!id && id !== 0) throw new Error("Missing argument 'id'");
+    if (!id && id !== 0) throw new Error('Missing argument \'id\'');
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
@@ -739,6 +769,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     entity.id = undefined;
 
     // Fill Trip
+    const localTripId = entity.tripId;
     const trip = await this.tripService.load(entity.tripId,
       {fullLoad: true, rankOrderOnPeriod: false});
     trip.observedLocationId = entity.observedLocationId;
@@ -768,13 +799,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     }
 
     try {
-      if (this._debug) console.debug(`[observed-location-service] Deleting landing {${entity.id}} from local storage`);
+      if (this._debug) console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
+      await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
 
-      // Delete landings
-      // await this.landingService.deleteLocally({observedLocationId: localId});
-      //
-      // // Delete observedLocation
-      // await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
+      if (this._debug) console.debug(`[landing-service] Deleting Trip {${trip.id}} from local storage`);
+      await this.tripService.deleteLocallyById(localTripId);
+
     } catch (err) {
       console.error(`[observed-location-service] Failed to locally delete landing {${entity.id}}`, err);
       // Continue
@@ -804,7 +834,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: "no-cache", // Skip cache
+          fetchPolicy: 'no-cache', // Skip cache
           fullLoad: false,
           toEntity: false
         }),
@@ -978,7 +1008,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     }
   }
 
-  copyIdAndUpdateDateOnTrip(savedLanding: Landing, source: Trip | undefined, target: Trip, ) {
+  copyIdAndUpdateDateOnTrip(savedLanding: Landing, source: Trip | undefined, target: Trip,) {
     this.tripService.copyIdAndUpdateDate(source, target);
     savedLanding.tripId = target.id;
   }

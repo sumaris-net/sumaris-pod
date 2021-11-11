@@ -64,6 +64,8 @@ import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {Landing} from '@app/trip/services/model/landing.model';
+import {LandingSaveOptions} from '@app/trip/services/landing.service';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
 const moment = momentImported;
@@ -424,21 +426,41 @@ export class TripService
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
 
-      filter = this.asFilter(filter);
-
-      const variables = {
-        offset: offset || 0,
-        size: size >= 0 ? size : 1000,
-        sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
-        sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
-        trash: opts && opts.trash || false,
-        filter: filter.asFilterFn()
-      };
-
-      return this.entities.loadAll('TripVO', variables, {fullLoad: opts && opts.fullLoad});
+      return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
     }
 
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+  async loadAllLocally(offset: number,
+                       size: number,
+                       sortBy?: string,
+                       sortDirection?: SortDirection,
+                       filter?: Partial<TripFilter>,
+                       opts?: EntityServiceLoadOptions & {
+                         query?: any;
+                         debug?: boolean;
+                         withTotal?: boolean;
+                       }
+  ): Promise<LoadResult<Trip>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
+      trash: opts && opts.trash || false,
+      filter: filter.asFilterFn()
+    };
+
+    const res = await this.entities.loadAll<Trip>('TripVO', variables, {fullLoad: opts && opts.fullLoad});
+    const entities = (!opts || opts.toEntity !== false) ?
+      (res.data || []).map(json => this.fromObject(json)) :
+      (res.data || []) as Trip[];
+
+    return {data: entities, total: res.total};
   }
 
   /**
@@ -554,9 +576,8 @@ export class TripService
         if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
 
         if (opts && opts.withOperation) {
-          data.operations = await this.operationService.loadAllByTrip({tripId: id}, {
-            fetchPolicy: 'network-only',
-            fullLoad: true
+          data.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+            filter: this.asFilter({tripId: id}).asFilterFn()
           });
         }
       } else {
@@ -626,6 +647,20 @@ export class TripService
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
+    return chainPromises<Trip>(jobsFactories);
+  }
+
+  /**
+   * Save many trips locally
+   *
+   * @param entities
+   * @param opts
+   */
+  async saveAllLocally(entities: Trip[], opts?: TripSaveOptions): Promise<Trip[]> {
+    if (!entities) return entities;
+
+    if (this._debug) console.debug(`[landing-service] Saving ${entities.length} trips locally...`);
+    const jobsFactories = (entities || []).map(entity => () => this.saveLocally(entity, {...opts}));
     return chainPromises<Trip>(jobsFactories);
   }
 
@@ -795,6 +830,7 @@ export class TripService
         o.programLabel = entity.program?.label;
       });
 
+      // TODO: need to pass opts.trip ??
       entity.operations = await this.operationService.saveAll(operations, {tripId: entity.id, trip: entity});
     }
 
@@ -1045,6 +1081,14 @@ export class TripService
     await chainPromises((localEntities || [])
       .map(entity => () => this.deleteLocally(entity, opts))
     );
+  }
+
+  async deleteLocallyById(id: number, opts?: {
+    trash?: boolean; // True by default
+  }): Promise<any> {
+
+    const trip = await this.load(id);
+    return this.deleteLocally(trip, opts);
   }
 
   async deleteLocally(entity: Trip, opts?: {
