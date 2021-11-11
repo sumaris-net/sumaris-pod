@@ -12,7 +12,7 @@ import {
   IEntitiesService,
   IEntityService,
   isEmptyArray,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
@@ -38,6 +38,7 @@ import {ErrorCodes} from '@app/data/services/errors';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
 import {LandingService} from '@app/trip/services/landing.service';
 import {TripService} from '@app/trip/services/trip.service';
+import { OperationService } from '@app/trip/services/operation.service';
 
 
 export const VesselFragments = {
@@ -184,7 +185,10 @@ export class VesselService
   constructor(
     injector: Injector,
     private vesselFeatureService: VesselFeaturesService,
-    private vesselRegistrationService: VesselRegistrationService
+    private vesselRegistrationService: VesselRegistrationService,
+    private landingService: LandingService,
+    private tripService: TripService,
+    private operationService: OperationService,
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
@@ -251,7 +255,7 @@ export class VesselService
 
   /**
    * Save many vessels
-   * @param vessels
+   * @param entities
    */
   async saveAll(entities: Vessel[], opts?: VesselSaveOptions): Promise<Vessel[]> {
 
@@ -449,32 +453,14 @@ export class VesselService
       };
     }
 
-    if (this._debug) console.debug(`[vessel-service] to do : Update VesselSnapshot with {${entity.id}} from local storage`);
+    if (this._debug) console.debug(`[vessel-service] Adding new VesselSnapshot {${entity.id}} into the local storage`);
     const vesselSnapshot = VesselSnapshot.fromVessel(entity);
     await this.vesselSnapshotService.saveLocally(vesselSnapshot);
 
-    if (this._debug) console.debug(`[vessel-service] to do : Update landings with vessel {${entity.id}} from local storage`);
+    // Replace local vessel, in data
+    await this.replaceLocalVessel(localId, vesselSnapshot);
 
-    const resLandings = await this.landingService.loadAllLocally(0, 999, null, null, {vesselId: localId}, {toEntity: true, withTotal: false});
-
-    if (resLandings && resLandings.data.length > 0) {
-      for (const landing of resLandings.data) {
-        landing.vesselSnapshot = vesselSnapshot;
-      }
-      await this.landingService.saveAllLocally(resLandings.data);
-
-    }
-    if (this._debug) console.debug(`[vessel-service] to do : Update trips with vessel {${entity.id}} from local storage`);
-
-    const resTrips = await this.tripService.loadAllLocally(0, 999, null, null, {vesselId: localId}, {toEntity: true, withTotal: false});
-
-    if (resTrips && resTrips.data.length > 0) {
-      for (const trip of resTrips.data) {
-        trip.vesselSnapshot = vesselSnapshot;
-      }
-      await this.tripService.saveAllLocally(resTrips.data);
-    }
-
+    // Delete local vessel (wan failed)
     try {
       if (this._debug) console.debug(`[vessel-service] Deleting vessel snapshot {${localId}} from local storage`);
       await this.vesselSnapshotService.deleteLocally({vesselId: localId});
@@ -572,5 +558,32 @@ export class VesselService
       EntityUtils.copyIdAndUpdateDate(source.vesselRegistrationPeriod, target.vesselRegistrationPeriod);
     }
 
+  }
+
+  protected async replaceLocalVessel(localVesselId: number, remoteVesselSnapshot: VesselSnapshot) {
+
+    // Replace in landings
+    if (this._debug) console.debug(`[vessel-service] Update local landings: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    const landings = (await this.landingService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
+    if (isNotEmptyArray(landings)) {
+      landings.forEach(l => l.vesselSnapshot = remoteVesselSnapshot);
+      await this.landingService.saveAllLocally(landings);
+    }
+
+    // Replace in trips
+    if (this._debug) console.debug(`[vessel-service] Update local trips: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    const trips = (await this.tripService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
+    if (isNotEmptyArray(trips)) {
+      trips.forEach(l => l.vesselSnapshot = remoteVesselSnapshot);
+      await this.tripService.saveAllLocally(trips);
+    }
+
+    // Replace in operations
+    if (this._debug) console.debug(`[vessel-service] Update local trips: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    const operations = (await this.operationService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
+    if (isNotEmptyArray(operations)) {
+      operations.forEach(l => l.vesselId = remoteVesselSnapshot.id);
+      await this.operationService.saveAllLocally(operations);
+    }
   }
 }

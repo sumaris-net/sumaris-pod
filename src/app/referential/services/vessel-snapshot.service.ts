@@ -369,7 +369,7 @@ export class VesselSnapshotService
 
   /**
    * Save into the local storage
-   * @param data
+   * @param entity
    */
   async saveLocally(entity: VesselSnapshot): Promise<VesselSnapshot> {
 

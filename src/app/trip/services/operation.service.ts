@@ -345,6 +345,16 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts));
   }
 
+  loadAllLocally(offset: number,
+             size: number,
+             sortBy?: string,
+             sortDirection?: SortDirection,
+             dataFilter?: OperationFilter | any,
+             opts?: OperationServiceWatchOptions
+    ): Promise<LoadResult<Operation>> {
+    return firstNotNilPromise(this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts));
+  }
+
   async loadAllByTrip(filter?: (OperationFilter | any) & { tripId: number; }, opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
     return firstNotNilPromise(this.watchAllByTrip(filter, opts));
   }
@@ -479,7 +489,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   /**
    * Save an operation
    *
-   * @param data
+   * @param entity
+   * @param opts
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 

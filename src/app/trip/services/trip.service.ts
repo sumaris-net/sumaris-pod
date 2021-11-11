@@ -1,6 +1,6 @@
-import {Injectable, Injector, Optional} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {filter, map} from 'rxjs/operators';
+import { Injectable, Injector, Optional } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
   AccountService,
@@ -29,9 +29,9 @@ import {
   ShowToastOptions,
   Toasts,
   toNumber,
-  UserEventService
+  UserEventService,
 } from '@sumaris-net/ngx-components';
-import {DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
+import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -39,34 +39,31 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
 } from '@app/data/services/model/data-entity.model';
-import {Observable} from 'rxjs';
-import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {OperationService} from './operation.service';
-import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {TripValidatorService} from './validator/trip.validator';
-import {Operation, PhysicalGear, Trip} from './model/trip.model';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {SortDirection} from '@angular/material/sort';
-import {OverlayEventDetail} from '@ionic/core';
-import {TranslateService} from '@ngx-translate/core';
-import {ToastController} from '@ionic/angular';
-import {TRIP_FEATURE_NAME} from './config/trip.config';
-import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Sample} from './model/sample.model';
-import {ErrorCodes} from '@app/data/services/errors';
-import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
-import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {Landing} from '@app/trip/services/model/landing.model';
-import {LandingSaveOptions} from '@app/trip/services/landing.service';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { Observable } from 'rxjs';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { OperationService } from './operation.service';
+import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { TripValidatorService } from './validator/trip.validator';
+import { Operation, PhysicalGear, Trip } from './model/trip.model';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { SortDirection } from '@angular/material/sort';
+import { OverlayEventDetail } from '@ionic/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ToastController } from '@ionic/angular';
+import { TRIP_FEATURE_NAME } from './config/trip.config';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Sample } from './model/sample.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
+import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 

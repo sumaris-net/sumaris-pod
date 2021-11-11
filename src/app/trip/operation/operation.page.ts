@@ -19,8 +19,8 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialUtils,
-  SharedValidators, toBoolean,
-  UsageMode
+  SharedValidators, toBoolean, toNumber,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
 import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap} from 'rxjs/operators';
@@ -530,6 +530,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
+
+    // Load child operation
+    const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
+    if (isNotNil(childOperationId)) {
+      data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
+    }
+    // Load parent operation
+    else {
+      const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
+      if (isNotNil(parentOperationId)) {
+        data.parentOperation = await this.dataService.load(parentOperationId, {fetchPolicy: 'cache-first'});
+      }
+    }
   }
 
   onNewFabButtonClick(event: UIEvent) {
