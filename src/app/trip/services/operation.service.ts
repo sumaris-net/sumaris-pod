@@ -1000,31 +1000,35 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Make sure to fill id, with local ids
     await this.fillOfflineDefaultProperties(entity, opts);
 
-    const jsonLocal = this.asObject(entity, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
-    if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', jsonLocal);
+    const json = this.asObject(entity, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
+    if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', json);
 
     // Save response locally
-    await this.entities.save(jsonLocal);
-
-    /* TODO: do not reload parent if exists in entity
-     if (isNotNil(entity.parentOperation)) {
-      entity.parentOperation.childOperationId = entity.id;
-      const jsonLocalParent = this.asObject(entity.parentOperation, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
-
-      await this.entities.save(jsonLocalParent);
-    }
-     */
-    // Update the parent operation
-    const parentOperationId = toNumber(entity.parentOperationId, entity.parentOperation?.id);
-    if (isNotNil(parentOperationId) && parentOperationId < 0) {
-      const parent = await this.load(parentOperationId, {fullLoad: true, toEntity: false});
-      parent.childOperationId = entity.id;
-      await this.entities.save(parent);
-    }
+    await this.entities.save(json);
 
     // Update the child operation
-    // TODO
-
+    if (isNotNil(entity.childOperationId) && entity.childOperationId < 0) {
+      const child = await this.load(entity.childOperationId);
+      const needUpdateChild = !entity.startDateTime.isSame(child.startDateTime)
+        || !entity.fishingStartDateTime.isSame(child.fishingStartDateTime);
+      console.warn('TODO: update child operation');
+      if (needUpdateChild) {
+        child.startDateTime = entity.startDateTime;
+        child.fishingStartDateTime = entity.fishingStartDateTime;
+        await this.entities.save(this.asObject(child, MINIFY_OPERATION_FOR_LOCAL_STORAGE));
+      }
+    }
+    else {
+      // Update the parent operation
+      const parentOperationId = toNumber(entity.parentOperationId, entity.parentOperation?.id);
+      if (isNotNil(parentOperationId) && parentOperationId < 0) {
+        const parent = entity.parentOperation || await this.load(parentOperationId);
+        if (parent.childOperationId !== entity.id) {
+          parent.childOperationId = entity.id;
+          await this.entities.save(this.asObject(parent, MINIFY_OPERATION_FOR_LOCAL_STORAGE));
+        }
+      }
+    }
     return entity;
   }
 
