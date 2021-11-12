@@ -469,6 +469,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.$ready.next(true);
   }
 
+  load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
+    return super.load(id, {...opts, withLinkedOperation: true});
+  }
+
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
     const tripId = options && isNotNil(options.tripId) ? +(options.tripId) :
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
@@ -532,16 +536,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     data.vesselId = trip.vesselSnapshot?.id;
 
     // Load child operation
-    const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
-    if (isNotNil(childOperationId)) {
-      data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
-    }
-    // Load parent operation
-    else {
-      const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
-      if (isNotNil(parentOperationId)) {
-        data.parentOperation = await this.dataService.load(parentOperationId, {fetchPolicy: 'cache-first'});
+    try {
+      const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
+      if (isNotNil(childOperationId)) {
+        data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
       }
+      // Load parent operation
+      else {
+        const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
+        if (isNotNil(parentOperationId)) {
+          data.parentOperation = await this.dataService.load(parentOperationId, {fetchPolicy: 'cache-first'});
+        }
+      }
+    } catch (err) {
+      console.error("Cannot load child/parent operation", err);
+      data.childOperation = undefined;
+      data.parentOperation = undefined;
     }
   }
 

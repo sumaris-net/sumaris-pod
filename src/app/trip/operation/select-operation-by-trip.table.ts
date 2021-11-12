@@ -325,7 +325,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
       const divider = new OperationDivider();
       divider.id = tripId;
       divider.tripId = tripId;
-      divider.trip = trips.find(t => t.id === tripId) || Trip.fromObject({id: tripId});
+      divider.trip = trips.find(t => t.id === tripId) || Trip.fromObject({id: tripId, tripId});
       const childrenOperations = data.filter(o => o.tripId === tripId);
       return res.concat(divider).concat(...childrenOperations);
     }, []);

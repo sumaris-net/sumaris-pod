@@ -389,7 +389,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, dataFilter, opts);
 
     // Merge local and remote
-    if (offline && online) {
+    if (offline$ && online$) {
       return combineLatest([offline$, online$])
       .pipe(
         map(([res1, res2]) => mergeLoadResult(res1, res2))
@@ -1006,12 +1006,24 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Save response locally
     await this.entities.save(jsonLocal);
 
-    if (isNotNil(entity.parentOperation)) {
+    /* TODO: do not reload parent if exists in entity
+     if (isNotNil(entity.parentOperation)) {
       entity.parentOperation.childOperationId = entity.id;
       const jsonLocalParent = this.asObject(entity.parentOperation, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
 
       await this.entities.save(jsonLocalParent);
     }
+     */
+    // Update the parent operation
+    const parentOperationId = toNumber(entity.parentOperationId, entity.parentOperation?.id);
+    if (isNotNil(parentOperationId) && parentOperationId < 0) {
+      const parent = await this.load(parentOperationId, {fullLoad: true, toEntity: false});
+      parent.childOperationId = entity.id;
+      await this.entities.save(parent);
+    }
+
+    // Update the child operation
+    // TODO
 
     return entity;
   }

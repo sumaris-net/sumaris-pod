@@ -579,7 +579,7 @@ export class VesselService
     }
 
     // Replace in operations
-    if (this._debug) console.debug(`[vessel-service] Update local trips: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    if (this._debug) console.debug(`[vessel-service] Update local operations: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
     const operations = (await this.operationService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
     if (isNotEmptyArray(operations)) {
       operations.forEach(l => l.vesselId = remoteVesselSnapshot.id);
