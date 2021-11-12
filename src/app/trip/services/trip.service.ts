@@ -899,10 +899,24 @@ export class TripService
       }
 
       if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
-        throw new Error('Could not synchronize child operation before its parent');
+        throw new Error('ERROR.SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR');
       }
 
       entity.operations = otherOperations;
+    }
+
+    let packets;
+    let  expectedSaleProducts;
+    if (opts.withOperationGroup && entity.expectedSale){
+     packets = entity.operationGroups.reduce((res, operationGroup) => {
+        res = res.concat(operationGroup.packets);
+        operationGroup.packets.forEach(packet => {
+          packet.id = undefined;
+        });
+        return res;
+      }, []);
+      expectedSaleProducts = entity.expectedSale.products;
+      entity.expectedSale.products = undefined;
     }
 
     try {
@@ -1346,6 +1360,14 @@ export class TripService
     // Fill gear id
     const gears = entity.gears || [];
     await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
+
+    // Fill packets ids
+    const packets = entity.operationGroups.reduce((res, operationGroup) => {
+      return res.concat(operationGroup.packets.filter(packet => !packet.id));
+    }, []);
+
+    await EntityUtils.fillLocalIds(packets,(_, count) => this.entities.nextValues(Packet.TYPENAME, count));
+
   }
 
   /**

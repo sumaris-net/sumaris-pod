@@ -795,8 +795,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
                   opts?: OperationServiceWatchOptions): Observable<LoadResult<Operation>> {
 
 
-    if (!filter || (isNil(filter.tripId) && isNil(filter.programLabel))) {
-      console.warn('[operation-service] Trying to load operations without \'filter.tripId\' and \'filter.programLabel\'. Skipping.');
+    if (!filter || (isNil(filter.tripId) && isNil(filter.programLabel) && isNil(filter.vesselId))) {
+      console.warn('[operation-service] Trying to load operations without \'filter.tripId\' and \'filter.programLabel\' and \'filter.vesselId\'. Skipping.');
       return EMPTY;
     }
     if (filter.tripId >= 0) throw new Error('Invalid \'filter.tripId\': must be a local ID (id<0)!');

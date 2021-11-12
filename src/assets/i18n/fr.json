@@ -1959,6 +1959,7 @@
     "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",
     "QUALIFY_ENTITY_ERROR": "Erreur lors de la qualification",
     "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Erreur lors de la synchronisation, le filage doit être synchronisé avant le virage. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",

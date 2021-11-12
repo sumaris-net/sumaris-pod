@@ -773,12 +773,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const trip = await this.tripService.load(entity.tripId,
       {fullLoad: true, rankOrderOnPeriod: false});
     trip.observedLocationId = entity.observedLocationId;
-    trip.id = undefined;
-
     //Could be different if Vessel has been synchronize previously then update on landing but not on trip.
     trip.vesselSnapshot = entity.vesselSnapshot;
-    entity.trip = trip;
-    entity.tripId = undefined;
+
+    const savedTrip = await this.tripService.synchronize(trip, {withOperation: false, withOperationGroup:true});
+
+    entity.tripId = savedTrip.id;
+    entity.trip = undefined;
+
 
     try {
 
@@ -801,9 +803,6 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     try {
       if (this._debug) console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
       await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
-
-      if (this._debug) console.debug(`[landing-service] Deleting Trip {${trip.id}} from local storage`);
-      await this.tripService.deleteLocallyById(localTripId);
 
     } catch (err) {
       console.error(`[observed-location-service] Failed to locally delete landing {${entity.id}}`, err);

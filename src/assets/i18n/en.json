@@ -1911,6 +1911,7 @@
     "UNVALIDATE_ENTITY_ERROR": "Error while un-validating data",
     "QUALIFY_ENTITY_ERROR": "Error when qualifying data",
     "SYNCHRONIZE_ENTITY_ERROR": "Cannot synchronize. <small><br/>If the problem persists, please contact your administrator.</small>",
+    "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Error when synchronize, setting has to be synchronize before hauling. <small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
     "SUBSCRIBE_ERROR": "Error while subscribe to changes",
