@@ -2,8 +2,8 @@
                    (cancel)="close($event)"
                    [title]="$title | async"
                    (validate)="onSubmit($event)"
-                   [showSpinner]="loading"
-                   [canValidate]="!enableBurstMode">
+                   [canValidate]="!disabled"
+                   [showSpinner]="loading">
 
   <ion-buttons slot="end" [class.cdk-visually-hidden]="loading">
 
@@ -14,20 +14,14 @@
       <mat-icon>more_vert</mat-icon>
     </button>
 
-    <!-- Close  -->
-    <ion-button visible-xs visible-sm visible-mobile
-                *ngIf="enableBurstMode"
-                (click)="close($event)"
-                translate>COMMON.BTN_DONE</ion-button>
-
-    <!-- Validate  -->
+    <!-- Next (burst mode)
     <ion-button visible-xs visible-sm visible-mobile
                 *ngIf="enableBurstMode"
                 (click)="onSubmit($event)"
                 [disabled]="!form.valid">
       <ion-label translate>COMMON.BTN_NEXT</ion-label>
       <ion-icon slot="end" name="arrow-forward"></ion-icon>
-    </ion-button>
+    </ion-button>-->
 
   </ion-buttons>
 </app-modal-toolbar>
@@ -66,13 +60,35 @@
                    [showSampleDate]="showDateTime"
                    [showTaxonGroup]="showTaxonGroup"
                    [showTaxonName]="showTaxonName"
+                   [showComment]="showComment"
                    [maxVisibleButtons]="maxVisibleButtons"
-                   (onSubmit)="onSubmit($event)">
+                   (onSubmit)="enableBurstMode ? onSubmitAndNext($event) : onSubmit($event)">
+    <ion-row *ngIf="mobile">
+      <ion-col size="6">
+        <ion-item lines="none" class="ion-no-padding">
+          <ion-toggle [checked]="showComment" (ionChange)="toggleComment()"></ion-toggle>
+          <ion-label color="dark" (click)="toggleComment()" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+        </ion-item>
+      </ion-col>
+      <ion-col size="6" class="ion-text-end">
+        <!-- Next -->
+        <ion-button *ngIf="enableBurstMode && !disabled"
+                    [fill]="form.invalid ? 'clear' : 'solid'"
+                    [disabled]="disabled || form.invalid"
+                    [color]="form.invalid ? 'dark' : 'tertiary'"
+                    (click)="onSubmitAndNext($event)">
+          <ion-label translate>COMMON.BTN_VALIDATE_AND_CONTINUE</ion-label>
+          <ion-icon slot="end" name="arrow-forward"></ion-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
   </app-sample-form>
+
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
+<ion-footer hidden-xs hidden-sm *ngIf="!mobile">
 
   <ion-toolbar>
 
@@ -90,8 +106,9 @@
                     [disabled]="loading || invalid"
                     (keyup.enter)="onSubmit($event)"
                     (click)="onSubmit($event)">
-          <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
-          <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+          <ion-label *ngIf="enableBurstMode" translate>COMMON.BTN_VALIDATE_AND_CONTINUE</ion-label>
+          <ion-label *ngIf="!isNew && !enableBurstMode" translate>COMMON.BTN_VALIDATE</ion-label>
+          <ion-label *ngIf="isNew && !enableBurstMode" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>

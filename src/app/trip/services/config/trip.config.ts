@@ -67,7 +67,7 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
     key: 'sumaris.sample.modal.enableBurstMode',
     label: 'TRIP.SAMPLE.SETTINGS.BURST_MODE_ENABLE',
     type: 'boolean',
-    defaultValue: false
+    defaultValue: true
   }
 });
 

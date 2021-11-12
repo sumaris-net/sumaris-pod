@@ -123,7 +123,7 @@
               <!-- pmfms -->
               <ng-container *ngFor="let pmfm of pmfms; index as i;">
                 <ion-col size="12" size-md="6">
-                  <app-pmfm-field [formControlName]="pmfm.id.toString()"
+                  <app-pmfm-field [controlName]="pmfm.id.toString()"
                                   [pmfm]="pmfm">
                   </app-pmfm-field>
                 </ion-col>

@@ -43,6 +43,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _measurementValuesForm: FormGroup;
   protected data: T;
   protected applyingValue = false;
+  protected keepDisabledPmfmControl = false;
 
   get forceOptional(): boolean {
     return this._forceOptional;
@@ -360,10 +361,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const json = this.form.value;
 
     if (measurementValuesForm) {
-      // Find dirty pmfms, to avoid full update
-      const dirtyPmfms = (this.$pmfms.value || []).filter(pmfm => measurementValuesForm.controls[pmfm.id]?.dirty);
-      if (dirtyPmfms.length) {
-        json.measurementValues = Object.assign({}, this.data && this.data.measurementValues || {}, MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, dirtyPmfms));
+      // Filter pmfms, to avoid saving all, when update
+      const filteredPmfms = (this.$pmfms.value || [])
+        .filter(pmfm => {
+          const control = measurementValuesForm.controls[pmfm.id];
+          return control && (control.dirty || (this.keepDisabledPmfmControl && control.disabled));
+        });
+
+      if (filteredPmfms.length) {
+        json.measurementValues = Object.assign(this.data?.measurementValues || {},
+          MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, filteredPmfms));
       }
     }
 

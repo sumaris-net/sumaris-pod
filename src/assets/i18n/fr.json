@@ -1,6 +1,7 @@
 {
   "APP_NAME": "SUMARiS",
   "COMMON": {
+    "BTN_ADD_COMMENT": "Ajouter un commentaire",
     "BTN_CANCEL": "Annuler",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
@@ -23,6 +24,7 @@
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
+    "BTN_VALIDATE_AND_CONTINUE": "Valider et continuer",
     "BTN_NOT_SAVE": "Ne PAS sauvegarder",
     "BTN_SAVE": "Sauvegarder",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>auvegarder",
@@ -214,7 +216,8 @@
         "PARAMETER_GROUP_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
         "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
         "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
-        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées"
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
+        "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",

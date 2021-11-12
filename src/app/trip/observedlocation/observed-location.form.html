@@ -163,7 +163,7 @@
         <form [formGroup]="measurementValuesForm" *ngIf="($pmfms | async); else measurementsSkeleton; let pmfms;">
           <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                                       [pmfm]="pmfm"
-                                      [formControlName]="pmfm.id.toString()"
+                                      [controlName]="pmfm.id.toString()"
                                       [compact]="compact"
                                       [tabindex]="50 + i*2"
                                       [floatLabel]="floatLabel">

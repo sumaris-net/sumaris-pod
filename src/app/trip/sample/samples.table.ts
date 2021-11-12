@@ -110,12 +110,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
   @Input() weightDisplayedUnit: string;
-
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
-    if (this.$pmfmGroups.getValue() !== value) {
+    if (this.$pmfmGroups.value !== value) {
       this.showGroupHeader = true;
       this.showToolbar = false;
       this.$pmfmGroups.next(value);

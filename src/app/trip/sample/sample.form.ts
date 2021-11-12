@@ -3,8 +3,8 @@ import { MeasurementValuesForm } from '../measurement/measurement-values.form.cl
 import { DateAdapter } from '@angular/material/core';
 import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
+import { FormBuilder } from '@angular/forms';
+import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
@@ -36,12 +36,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
-
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
-
-  get measurementValues(): FormGroup {
-    return this.form.controls.measurementValues as FormGroup;
-  }
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -67,7 +62,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   ngOnInit() {
     super.ngOnInit();
 
-    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    this.tabindex = toNumber(this.tabindex, 1);
+    this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
@@ -83,6 +79,12 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     this.focusFieldName = !this.mobile && ((this.showLabel && 'label')
       || (this.showTaxonGroup && 'taxonGroup')
       || (this.showTaxonName && 'taxonName'));
+  }
+
+  protected getValue(): Sample {
+    const value = super.getValue();
+    if (!this.showComment) value.comments = undefined;
+    return value;
   }
 
   /* -- protected methods -- */

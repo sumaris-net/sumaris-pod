@@ -31,8 +31,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   protected data: Measurement[];
 
   $loadingControls = new BehaviorSubject<boolean>(true);
-  applyingValue = false;
-  keepRankOrder = false;
+  protected applyingValue = false;
+  protected keepRankOrder = false;
+  protected keepDisabledPmfmControl = false;
 
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
@@ -141,11 +142,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   }
 
   setValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
-    if (this.$loadingControls.getValue()) {
+    if (this.$loadingControls.value) {
       throw Error("Form not ready yet. Please use safeSetValue() instead!");
     }
 
-    const pmfms = this.$pmfms.getValue();
+    const pmfms = this.$pmfms.value;
     this.data = MeasurementUtils.initAllMeasurements(data, pmfms, this.entityName, this.keepRankOrder);
 
     const json = MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(this.data), pmfms);
@@ -158,7 +159,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   async ready(): Promise<void> {
     // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue() !== false || this._loadingPmfms !== false) {
+    if (this.$loadingControls.value !== false || this._loadingPmfms !== false) {
       if (this.debug) console.debug(`${this.logPrefix} waiting form to be ready...`);
       await firstNotNilPromise(this.$loadingControls
         .pipe(
@@ -206,12 +207,16 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     if (this.loading) return this.data; // Avoid to return not loading data
 
     // Find dirty pmfms, to avoid full update
-    const dirtyPmfms = (this.$pmfms.getValue() || []).filter(pmfm => this.form.controls[pmfm.id].dirty);
-    if (dirtyPmfms.length) {
+    const form = this.form;
+    const filteredPmfms = (this.$pmfms.value || []).filter(pmfm => {
+      const control =  form.controls[pmfm.id];
+      return control && (control.dirty || (this.keepDisabledPmfmControl && control.disabled));
+    });
 
+    if (filteredPmfms.length) {
       // Update measurements value
-      const json = this.form.value;
-      MeasurementUtils.setValuesByFormValues(this.data, json, dirtyPmfms);
+      const json = form.value;
+      MeasurementUtils.setValuesByFormValues(this.data, json, filteredPmfms);
     }
 
     return this.data;
