@@ -126,7 +126,6 @@ export const DataFragments = {
       ...TaxonNameFragment
     }
     measurementValues
-    measurementValuesMultiples
     qualityFlagId
     __typename
   }

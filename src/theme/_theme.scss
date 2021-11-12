@@ -20,6 +20,10 @@
 
 .mat-table {
 
+  .mat-row {
+    height: 50px !important;
+    overflow: hidden;
+  }
   .mat-header-row,
   .mat-row,
   .mat-footer-row {

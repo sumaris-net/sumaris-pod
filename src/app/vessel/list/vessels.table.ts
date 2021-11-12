@@ -1,31 +1,38 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {VesselValidatorService} from "../services/validator/vessel.validator";
-import {VesselService} from "../services/vessel-service";
-import {VesselModal, VesselModalOptions} from "../modal/vessel-modal";
-import {Vessel} from "../services/model/vessel.model";
-import {StatusList, ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
-import {ModalController} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService}  from "@sumaris-net/ngx-components";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {VesselValidatorService} from '../services/validator/vessel.validator';
+import {VesselService} from '../services/vessel-service';
+import {VesselModal, VesselModalOptions} from '../modal/vessel-modal';
+import {Vessel} from '../services/model/vessel.model';
+import {
+  AccountService,
+  EntitiesTableDataSource,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  PlatformService,
+  ReferentialRef,
+  referentialToString,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  SharedValidators,
+  StatusById,
+  StatusIds,
+  StatusList
+} from '@sumaris-net/ngx-components';
+import {ModalController} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {Observable} from 'rxjs';
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {isNil, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
-import {statusToColor, SynchronizationStatusEnum} from "../../data/services/model/model.utils";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {EntitiesTableDataSource}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {AppRootTable} from "../../data/table/root-table.class";
-import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {VesselFilter} from "../services/filter/vessel.filter";
-import {MatExpansionPanel} from "@angular/material/expansion";
+import {FormBuilder} from '@angular/forms';
+import {statusToColor, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {AppRootTable} from '@app/data/table/root-table.class';
+import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
+import {VesselFilter} from '../services/filter/vessel.filter';
+import {MatExpansionPanel} from '@angular/material/expansion';
 
 
 export const VesselsTableSettingsEnum = {
@@ -47,8 +54,9 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
 
   locations: Observable<ReferentialRef[]>;
   vesselTypes: Observable<ReferentialRef[]>;
-  statusList = StatusList;
-  statusById: any;
+
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() canEdit: boolean;
   @Input() canDelete: boolean;
@@ -135,18 +143,14 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       statusId: [null],
       synchronizationStatus: [null]
     });
-    this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.autoLoad = false;
     this.showIdColumn = accountService.isAdmin();
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
-
-    this.debug = !environment.production;
     this.settingsId = VesselsTableSettingsEnum.TABLE_ID; // Fixed value, to be able to reuse it in vessel modal
     this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
+
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

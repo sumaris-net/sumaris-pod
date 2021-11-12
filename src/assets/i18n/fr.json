@@ -155,6 +155,8 @@
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
       "CHECK_SAMPLE_UNIQUE_TAG": "Saisie > Vérifier l'unicité du code de prélèvement",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
+      "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
+      "FORUM_URL": "App > Adresse du forum (URL)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -274,6 +276,9 @@
     "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
     "BTN_REPORT_ISSUE": "Remonter un problème",
+    "HELP": "Aide en ligne :",
+    "FORUM": "Forum",
+    "USER_MANUAL": "Manuel",
     "SOURCE_CODE": "Code source :",
     "DEVELOPED_BY": "Développé par :",
     "PARTNERS": "Partenaires et sponsors :"
@@ -341,7 +346,7 @@
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
     "ERROR": {
-      "SUBSCRIBE_ACCOUNT_ERROR": "Echec de l'abonnement distant au compte utilisateur."
+      "SUBSCRIBE_ACCOUNT_ERROR": "Échec de l'abonnement distant au compte utilisateur."
     }
   },
   "SETTINGS": {
@@ -351,7 +356,7 @@
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
-    "PEER_URL": "Addresse du nœud réseau",
+    "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
@@ -603,6 +608,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
+        "TRIP_ID": "Marée",
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",
@@ -640,7 +646,7 @@
       "FORM": {
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
-        "TOTAL_CATCH": "Capture totale :"
+        "TOTAL_CATCH": "Capture (toutes espèces) :"
       }
     },
     "LANDED_CATCH": {
@@ -1349,6 +1355,7 @@
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
+      "TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT": "Capture > Afficher les mesures individuelles",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
@@ -1561,6 +1568,10 @@
         "STRATEGIES_HAS_DATA": "Les lignes de plan {{ label }} sont liées à une ou plusieurs observations individuelles",
         "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
         "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
+      },
+      "CONFIRM": {
+        "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+        "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
       }
     },
     "ERROR": {
@@ -1589,9 +1600,9 @@
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
         "BTN_UPDATE": "Executer",
-        "BTN_UPDATE_HELP": "Executer",
+        "BTN_UPDATE_HELP": "Executer maintenant",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
-        "FILTER_DOTS": "Filtrage des données sources :",
+        "FILTER_DOTS": "Filtrage sur la source des données :",
         "STRATUM_DOTS": "Couches géographiques :",
         "FORMAT_DOTS": "Documentation du format :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
@@ -1948,6 +1959,7 @@
     "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",
     "QUALIFY_ENTITY_ERROR": "Erreur lors de la qualification",
     "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Erreur lors de la synchronisation, le filage doit être synchronisé avant le virage. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",

@@ -84,7 +84,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     }
   }
 
-  set programLabel(value: string) {
+  @Input() set programLabel(value: string) {
     if (this._programLabel !== value && isNotNil(value)) {
       this._programLabel = value;
       this._onRefreshPmfms.emit();

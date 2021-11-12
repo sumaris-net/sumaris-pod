@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)" cdkTrapFocus>
 
   <ion-item *ngIf="error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -11,12 +11,13 @@
                           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate"
                           [config]="autocompleteFields.gear"
                           [tabindex]="tabindex"
-                          [required]="true">
+                          [required]="true"
+                          (focusout)="focusNextInput($event)">
   </mat-autocomplete-field>
 
   <!-- rankOrder -->
-  <mat-form-field [class.cdk-visually-hidden]="!canEditRankOrder">
-    <input matInput
+  <mat-form-field *ngIf="canEditRankOrder">
+    <input matInput #inputField
            formControlName="rankOrder"
            autocomplete="off"
            type="number"
@@ -44,24 +45,28 @@
   <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
 
     <!-- Measurements -->
-    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
+    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
                     [pmfm]="pmfm"
                     [formControlName]="pmfm.id.toString()"
                     [compact]="compact"
-                    [tabindex]="tabindex+10 + i*2"
-                    [floatLabel]="floatLabel">
+                    [tabindex]="tabindex+2 + i*2"
+                    [floatLabel]="floatLabel"
+                    (keydown.tab)="focusNextInput($event)"
+                    (keydown.enter)="focusNextInput($event)">
     </app-pmfm-field>
   </form>
 
   <!-- Comments -->
   <mat-form-field appearance="outline" *ngIf="showComment">
-    <textarea matInput #comments
+    <textarea matInput #comments #inputField
               matTextareaAutosize="true"
               matAutosizeMinRows="4"
               maxlength="2000"
               [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
               formControlName="comments"
-              tabindex="100">
+              tabindex="100"
+              (keydown.tab)="focusNextInput($event)"
+              (keydown.enter)="onSubmit.emit($event)">
     </textarea>
     <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
     <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

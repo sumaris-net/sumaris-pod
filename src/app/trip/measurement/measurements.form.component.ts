@@ -11,6 +11,7 @@ import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} 
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import {updateMetaProperty} from '@schematics/angular/third_party/github.com/Microsoft/TypeScript/lib/typescript';
 
 @Component({
   selector: 'app-form-measurements',
@@ -306,6 +307,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       });
       this.form.reset({}, {onlySelf: true, emitEvent: false});
       this._loading$.next(this.applyingValue); // Keep loading=true, when data not fully applied
+      this.$loadingControls.next(false);
+
       return true;
     }
 

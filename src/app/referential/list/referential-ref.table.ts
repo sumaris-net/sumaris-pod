@@ -1,15 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {StatusList}  from "@sumaris-net/ngx-components";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {debounceTime, filter} from "rxjs/operators";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {Entity}  from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "../services/filter/referential.filter";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {AppTable, Entity, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {debounceTime, filter} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
+import {ReferentialFilter} from '../services/filter/referential.filter';
 
 
 @Component({
@@ -20,12 +17,12 @@ import {ReferentialFilter} from "../services/filter/referential.filter";
 })
 export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilter> extends AppTable<T, F> {
 
-  statusList = StatusList;
-  statusById: any;
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
+
   filterForm: FormGroup;
 
   @Input() showToolbar = false;
-
   @Input() showFilter = true;
 
   @Input() set entityName(entityName: string) {
@@ -64,13 +61,8 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
       injector);
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting dataSource to be set
     this.inlineEdition = false;
-
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
       'searchText': [null]

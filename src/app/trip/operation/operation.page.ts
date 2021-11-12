@@ -19,8 +19,8 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialUtils,
-  SharedValidators,
-  UsageMode
+  SharedValidators, toBoolean, toNumber,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
 import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap} from 'rxjs/operators';
@@ -455,11 +455,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.saveOptions.withChildOperation = this.opeForm.allowParentOperation;
 
     this.batchTree.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+
+    const hasMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT);
+
+    this.batchTree.allowSamplingBatches = toBoolean(hasMeasure, true);
+    this.batchTree.defaultHasSubBatches = toBoolean(hasMeasure, false);
+    this.batchTree.allowSubBatches = toBoolean(hasMeasure, true);
+
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);
 
     this.$ready.next(true);
+  }
+
+  load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
+    return super.load(id, {...opts, withLinkedOperation: true});
   }
 
   async onNewEntity(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -473,12 +484,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Load parent trip
     const trip = await this.tripService.load(tripId);
-    data.trip = trip;
+    this.trip = trip;
+    this.saveOptions.trip = trip;
 
     // Use the default gear, if only one
     if (trip && trip.gears && trip.gears.length === 1) {
       data.physicalGear = trip.gears[0];
     }
+
+    // Copy some trip's properties (need by filter)
+    data.programLabel = trip.program?.label;
+    data.vesselId = trip.vesselSnapshot?.id;
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
@@ -511,11 +527,36 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.$tripId.next(+tripId);
 
     const trip = await this.tripService.load(tripId);
-    data.trip = trip;
+    this.trip = trip;
+    this.saveOptions.trip = trip;
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
+    data.programLabel = trip.program?.label;
+    data.vesselId = trip.vesselSnapshot?.id;
 
+    try {
+      // Load child operation (need by validator)
+      const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
+      if (isNotNil(childOperationId)) {
+        data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
+      }
+
+      // Load parent operation
+      else {
+        const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
+        if (isNotNil(parentOperationId)) {
+          data.parentOperation = await this.dataService.load(parentOperationId, {fetchPolicy: 'cache-first'});
+
+          // Force copy
+
+        }
+      }
+    } catch (err) {
+      console.error("Cannot load child/parent operation", err);
+      data.childOperation = undefined;
+      data.parentOperation = undefined;
+    }
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -634,24 +675,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async setValue(data: Operation) {
 
-    // set parent trip
-    const trip = data.trip as Trip;
-    delete data.trip;
-    this.trip = trip || this.trip;
-
     this.opeForm.value = data;
-    if (trip) {
-      this.opeForm.trip = trip;
+
+    // set parent trip
+    if (this.trip) {
+      this.saveOptions.trip = this.trip;
+      this.opeForm.trip = this.trip;
     }
 
-    const program = trip && trip.program && trip.program.label;
+    const programLabel = data.programLabel || this.trip?.program && this.trip.program?.label;
 
     // Get gear, from the physical gear
     const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
-    this.measurementsForm.programLabel = program;
+    this.measurementsForm.programLabel = programLabel;
     if (isNotNil(data.parentOperationId)) {
       await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
       this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
@@ -678,7 +717,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + '#'));
 
     // Applying program to tables (async)
-    if (program) this.$programLabel.next(program);
+    if (programLabel) this.$programLabel.next(programLabel);
   }
 
   isCurrentData(other: IEntity<any>): boolean {

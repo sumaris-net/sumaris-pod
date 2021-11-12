@@ -296,6 +296,12 @@ import {AppCoreModule} from '@app/core/core.module';
         },
         {
           siteUrl: 'https://www.pecheursdebretagne.eu', logo: 'assets/img/logo/logo-lpdb.png'
+        },
+        {
+          siteUrl: 'https://www.aglia.fr', logo: 'assets/img/logo/logo-aglia.png'
+        },
+        {
+          siteUrl: 'https://www.sfa.sc', logo: 'assets/img/logo/logo-sfa.jpg'
         }
       ]
     },

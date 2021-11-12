@@ -221,12 +221,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   protected async setProgram(program: Program) {
     await super.setProgram(program);
+    if (!program) return; // Skip
 
     this.$taxonGroupTypeId.next(program && program.taxonGroupType ? program.taxonGroupType.id : null);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
-
     await super.onNewEntity(data, options);
 
     // Define default back link

@@ -1,6 +1,6 @@
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from 'moment';
-import {MeasurementModelValues, MeasurementValuesUtils} from './measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from './measurement.model';
 import {Sample} from './sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
@@ -33,7 +33,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   location: ReferentialRef = null;
   rankOrder?: number = null;
   rankOrderOnVessel?: number = null;
-  measurementValues: MeasurementModelValues = null;
+  measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
   tripId: number = null;
 

@@ -46,6 +46,7 @@ import {environment} from '@environments/environment';
 import {Sample} from '../services/model/sample.model';
 import {ExpectedSaleForm} from '@app/trip/sale/expected-sale.form';
 import {TableElement} from '@e-is/ngx-material-table';
+import {LandingService} from '@app/trip/services/landing.service';
 
 const moment = momentImported;
 
@@ -99,6 +100,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
+    protected landingService: LandingService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
     protected formBuilder: FormBuilder,
   ) {
@@ -265,6 +267,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         if (!isEmptyArray(observedLocation.observers)) {
           data.observers = observedLocation.observers;
         }
+
+        // Synchronization status
+        if (observedLocation.synchronizationStatus && observedLocation.synchronizationStatus !== 'SYNC') {
+          data.synchronizationStatus = 'DIRTY';
+        }
       }
     } else {
       throw new Error("[landedTrip-page] the observedLocationId must be present");
@@ -294,7 +301,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       if (data.landing) {
         data.landing.rankOrderOnVessel = landingRankOrder;
       } else {
-        data.landing = Landing.fromObject({rankOrderOnVessel: landingRankOrder});
+        data.landing = Landing.fromObject({rankOrder: landingRankOrder});
       }
     }
 
@@ -470,6 +477,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       } finally {
         this.markAsLoaded();
       }
+    }
+  }
+
+  protected async onEntitySaved(data: Trip): Promise<void> {
+    if (data.landing && data.id < 0){
+      await this.landingService.save(data.landing);
     }
   }
 

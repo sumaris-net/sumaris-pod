@@ -41,7 +41,6 @@ import { ReferentialRefFilter } from '../services/filter/referential-ref.filter'
 })
 export class StrategyForm extends AppEntityEditor<Strategy> {
 
-
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
 
   filterForm: FormGroup;
@@ -379,7 +378,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
     this.pmfmsTable.value = data.pmfms || [];
 
-
   }
 
   /* -- protected methods -- */
@@ -392,7 +390,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     // Re add label, because missing when field disable
     json.label = this.form.get('label').value;
 
-    // TODO json.locations = this.locationssForm.value;
     json.gears = this.gearListForm.value;
     json.taxonGroups = this.taxonGroupListForm.value;
     json.taxonNames = this.taxonNameListForm.value;
@@ -401,7 +398,8 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
       const saved = await this.pmfmsTable.save();
       if (!saved) throw Error('Failed to save pmfmsTable');
     }
-    json.pmfms = this.pmfmsTable.value;
+    json.pmfms = this.pmfmsTable.value || [];
+
 
     return json;
   }

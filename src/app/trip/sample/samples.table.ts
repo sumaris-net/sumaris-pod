@@ -465,9 +465,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
       // skip first
       if (data.rankOrder === 1) {
-        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
+        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, null, 4)).slice(-4);
       } else if (data.rankOrder > 1 && !this.currentSample) {
-        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
+        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, null, 4)).slice(-4);
       } else if (this.currentSample) {
         // TODO attention, récupérer auyssi plus tard
         const previousSample = await this.findRowByEntity(this.currentSample);

@@ -374,8 +374,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
-  protected onEntityLoaded(data: SubBatch, opts?: {linkToParent?: boolean; }) {
-    super.onEntityLoaded(data);
+  protected onApplyingEntity(data: SubBatch, opts?: {linkToParent?: boolean; }) {
+    super.onApplyingEntity(data);
 
     // Replace parent with value from availableParents
     if (!opts || opts.linkToParent !== false) {

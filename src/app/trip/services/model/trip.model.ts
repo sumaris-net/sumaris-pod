@@ -1,5 +1,5 @@
 import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions,} from '@app/data/services/model/data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
 import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
@@ -37,6 +37,13 @@ export interface OperationFromObjectOptions {
   withBatchTree?: boolean;
 }
 
+export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObjectOptions>{
+  ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
+  batchAsTree: false,
+  sampleAsTree: false,
+  keepTrip: true // Trip is needed to apply filter on it
+});
+
 @EntityClass({typename: 'OperationVO'})
 export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
@@ -55,8 +62,11 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
 
   metier: Metier = null;
   physicalGear: PhysicalGear = null;
+
   tripId: number = null;
-  trip: Trip = null;
+  trip?: Trip;
+  vesselId: number = null; // Copy from trip (need by local filter)
+  programLabel: string = null; // Copy from trip (need by local filter)
 
   measurements: Measurement[] = [];
   samples: Sample[] = null;
@@ -150,12 +160,11 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     // Fishing areas
     target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
 
-    //Parent Operation
+    // Child/Parent operation id
     target.parentOperationId = this.parentOperationId || this.parentOperation && this.parentOperation.id;
     target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
 
-    if (opts.minify) {
-      delete target.operationTypeId;
+    if (opts?.minify) {
       delete target.parentOperation;
       delete target.childOperation;
     } else {
@@ -163,21 +172,23 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    if (opts.keepTrip) {
-      target.trip = this.trip && this.trip || undefined;
-
-    } else {
-      delete target.trip;
+    if (!opts || opts.keepTrip !== false) {
+      delete target.programLabel;
+      delete target.vesselId;
     }
+
     return target;
   }
 
   fromObject(source: any, opts?: OperationFromObjectOptions) {
     super.fromObject(source, opts);
+
+    this.tripId = source.tripId;
+    this.programLabel = source.programLabel;
+    this.vesselId = source.vesselId;
+
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
-    this.tripId = source.tripId;
-    this.trip = source.trip && Trip.fromObject(source.trip) || undefined;
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
@@ -506,7 +517,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
   rankOrder: number = null;
   gear: ReferentialRef = null;
   measurements: Measurement[] = null;
-  measurementValues: { [key: string]: string } = {};
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
   // Parent (used when lookup gears)
   trip: Trip = null;

@@ -32,7 +32,7 @@ export const environment = Object.freeze(<Environment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.13.0',
+  peerMinVersion: '1.14.0',
 
   defaultPeers: [
     {

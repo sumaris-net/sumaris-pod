@@ -27,10 +27,10 @@ export abstract class PositionUtils {
     if (PositionUtils.isNilOrInvalid(position1, {debug: true})
       || PositionUtils.isNilOrInvalid(position2, {debug: true})) return;
 
-    const latitude1Rad = position1.latitude * Math.PI / 180;
-    const longitude1Rad = position1.longitude * Math.PI / 180;
-    const latitude2Rad = position2.latitude * Math.PI / 180;
-    const longitude2Rad = position2.longitude * Math.PI / 180;
+    const latitude1Rad = Math.PI * position1.latitude / 180;
+    const longitude1Rad = Math.PI * position1.longitude / 180;
+    const latitude2Rad = Math.PI * position2.latitude / 180;
+    const longitude2Rad = Math.PI * position2.longitude / 180;
 
     let distance = 2 * 6371 * Math.asin(
       Math.sqrt(

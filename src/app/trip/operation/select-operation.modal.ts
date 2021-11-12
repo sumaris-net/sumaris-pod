@@ -1,17 +1,25 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
-import {ModalController} from "@ionic/angular";
-import {EntitiesTableDataSource, isNotNil} from '@sumaris-net/ngx-components';
-import {Operation, PhysicalGear} from '@app/trip/services/model/trip.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { EntitiesTableDataSource, isNotNil } from '@sumaris-net/ngx-components';
+import { Operation } from '@app/trip/services/model/trip.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
+
+export interface SelectOperationModalOptions {
+  filter: OperationFilter;
+  programLabel?: string;
+  enableGeolocation?: boolean;
+  gearIds?: number[];
+  parent?: Operation;
+}
 
 @Component({
   selector: 'app-select-operation-modal',
   templateUrl: './select-operation.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectOperationModal implements OnInit {
+export class SelectOperationModal implements OnInit, SelectOperationModalOptions {
 
   selectedTabIndex = 0;
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
@@ -19,9 +27,8 @@ export class SelectOperationModal implements OnInit {
   @ViewChild('table', { static: true }) table: SelectOperationByTripTable;
 
   @Input() filter: OperationFilter;
-  @Input() programLabel: string;
   @Input() enableGeolocation: boolean;
-  @Input() physicalGears: PhysicalGear[];
+  @Input() gearIds: number[];
   @Input() parent: Operation;
 
   get loading(): boolean {
@@ -41,8 +48,6 @@ export class SelectOperationModal implements OnInit {
     if (!this.filter) throw new Error("Missing argument 'filter'");
 
     this.filter = OperationFilter.fromObject(this.filter);
-    this.table.filter = this.filter;
-
     this.table.filter = this.filter;
 
     this.loadData();

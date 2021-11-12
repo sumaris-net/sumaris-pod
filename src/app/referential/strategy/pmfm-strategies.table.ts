@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output } from '@angular/core';
 import {
   AppFormUtils,
   AppInMemoryTable,
@@ -8,11 +8,12 @@ import {
   EntityFilter,
   EntityUtils,
   FilterFn,
-  firstFalsePromise, firstNotNilPromise,
+  firstNotNilPromise,
   FormFieldDefinition,
   FormFieldDefinitionMap,
   InMemoryEntitiesService,
-  IReferentialRef, isEmptyArray,
+  IReferentialRef,
+  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LoadResult,
@@ -20,19 +21,19 @@ import {
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {TableElement} from '@e-is/ngx-material-table';
-import {environment} from '@environments/environment';
-import {PmfmStrategyValidatorService} from '../services/validator/pmfm-strategy.validator';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {BehaviorSubject, merge, Observable, of} from 'rxjs';
-import {PmfmFilter, PmfmService} from '../services/pmfm.service';
-import {Pmfm} from '../services/model/pmfm.model';
-import { combineAll, debounceTime, distinctUntilChanged, filter, map, mergeAll, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
-import {PmfmValue, PmfmValueUtils} from '../services/model/pmfm-value.model';
-import {Parameter} from '../services/model/parameter.model';
+import { TableElement } from '@e-is/ngx-material-table';
+import { environment } from '@environments/environment';
+import { PmfmStrategyValidatorService } from '../services/validator/pmfm-strategy.validator';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { BehaviorSubject, merge, Observable, of } from 'rxjs';
+import { PmfmFilter, PmfmService } from '../services/pmfm.service';
+import { Pmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { PmfmStrategy } from '../services/model/pmfm-strategy.model';
+import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
+import { Parameter } from '../services/model/parameter.model';
 
 @EntityClass({typename: 'PmfmStrategyFilterVO'})
 export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStrategy> {
@@ -184,7 +185,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         .concat(RESERVED_END_COLUMNS),
       PmfmStrategy,
       new InMemoryEntitiesService(PmfmStrategy, PmfmStrategyFilter, {
-        onLoad: (data) => this.onLoadData(data)
+        onLoad: (data) => this.onLoadData(data),
+        equals: PmfmStrategy.equals
       }),
       validatorService,
       <AppTableDataSourceOptions<PmfmStrategy>>{
@@ -340,21 +342,30 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       autocomplete: {
         attributes: qvAttributes,
+        showAllOnFocus: true,
         items: this.onStartEditingRow
           .pipe(
-            tap(row => console.debug("Starting editing row")),
+            // DEBUG
+            //tap(row => console.debug("Starting editing row")),
             switchMap(row => {
               const control = row.validator?.get('pmfm');
               if (control) {
-                return control.valueChanges.pipe(startWith(control.value));
+                return control.valueChanges.pipe(startWith<any>(control.value));
               } else {
                 return of(row.currentData.pmfm);
               }
             }),
+            map(json => json?.id),
+            filter(isNotNil),
+            distinctUntilChanged(),
             debounceTime(200),
-            map(pmfm => isNotEmptyArray(pmfm && pmfm.qualitativeValues) ? pmfm.qualitativeValues : (pmfm.parameter && pmfm.parameter.qualitativeValues || []))
+            mergeMap(pmfmId => this.pmfmService.load(pmfmId)),
+            map( pmfm => (isNotEmptyArray(pmfm.qualitativeValues) ? pmfm.qualitativeValues : pmfm.parameter?.qualitativeValues) || []),
+            filter(isNotEmptyArray)
+
+            // DEBUG
+            //tap(items => console.debug("TODO Check Pmfm QV", items))
           ),
-        showAllOnFocus: false,
         class: 'mat-autocomplete-panel-large-size'
       },
       required: false
@@ -387,10 +398,13 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         target.acquisitionLevel = acquisitionLevels.find(i => i.label === target.acquisitionLevel);
       }
 
-      if (isNotNil(target.defaultValue)) {
-        console.debug("[pmfm-strategy-table] TODO check default value is valid: ", target.defaultValue);
+      if (isNotNil(target.defaultValue) && target.pmfm) {
+        target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm) as PmfmValue;
+        console.debug("[pmfm-strategy-table] Received default value: ", target.defaultValue);
       }
-      target.defaultValue = target.pmfm && PmfmValueUtils.fromModelValue(target.defaultValue, target.pmfm) as PmfmValue;
+      else {
+        target.defaultValue = null;
+      }
 
       return target;
     });
@@ -466,7 +480,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     console.debug("[pmfm-strategies-table] Resetting row");
     if (event) event.preventDefault(); // Avoid clickRow to be executed
-
 
     AppFormUtils.copyEntity2Form({}, row.validator);
     row.validator.markAsUntouched();

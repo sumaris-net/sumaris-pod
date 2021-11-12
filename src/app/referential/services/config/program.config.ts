@@ -112,6 +112,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.has.individual.measurement',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT',
+    defaultValue: '',
+    type: 'boolean'
+  },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE',

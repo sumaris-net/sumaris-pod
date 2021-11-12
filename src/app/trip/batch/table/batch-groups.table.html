@@ -205,9 +205,9 @@
   <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
 
     <mat-header-cell *matHeaderCellDef
-                     [class.total]="col.rankOrder % qvColumnCount < 2"
-                     [class.odd]="isQvOdd(col)"
-                     [class.even]="isQvEven(col)"
+                     [class.total]="(qvPmfm || showSamplingBatchColumns) && col.rankOrder % qvColumnCount < 2"
+                     [class.odd]="qvPmfm && isQvOdd(col)"
+                     [class.even]="qvPmfm && isQvEven(col)"
                      [class.hidden-lg]="col.rankOrder % qvColumnCount >= qvDisplayColumnCount"
                      [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
                      [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && col.rankOrder % qvColumnCount !== 3"
@@ -219,7 +219,7 @@
     </mat-header-cell>
 
     <mat-cell *matCellDef="let row"
-              [class.total]="col.rankOrder % qvColumnCount < 2"
+              [class.total]="(qvPmfm || showSamplingBatchColumns) && col.rankOrder % qvColumnCount < 2"
               [class.odd]="isQvOdd(col)"
               [class.even]="isQvEven(col)"
               [class.hidden-lg]="col.rankOrder % qvColumnCount >= qvDisplayColumnCount"

@@ -16,7 +16,7 @@ import {
   LocalSettingsService,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   SharedValidators,
   toBoolean,
   UsageMode,
@@ -31,7 +31,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ModalController } from '@ionic/angular';
-import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
+import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
@@ -317,27 +317,29 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   async openSelectOperationModal(): Promise<Operation> {
 
     const value = this.form.value as Partial<Operation>;
-    const endDate = value.fishingEndDateTime || this.trip.returnDateTime;
+    const endDate = value.fishingEndDateTime || this.trip && this.trip.returnDateTime || moment();
     const parent = value.parentOperation;
-    const startDate = fromDateISOString(this._trip.departureDateTime).clone().add(-15, 'day');
+    const trip = this.trip;
+    const startDate = trip && fromDateISOString(trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
+
+    const gearIds = removeDuplicatesFromArray((this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id));
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
-      componentProps: {
+      componentProps: <SelectOperationModalOptions>{
         filter: {
           programLabel: this.programLabel,
-          vesselId: this._trip.vesselSnapshot.id,
+          vesselId: trip.vesselSnapshot?.id,
           excludedIds: isNotNil(value.id) ? [value.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,
-          endDate,
+          //endDate,
           startDate,
-          gearIds: (this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id)
+          gearIds
         },
-        physicalGears: this._physicalGearsSubject.value,
-        programLabel: this.programLabel,
-        enableGeolocation: this.enableGeolocation,
-        parent
+        gearIds,
+        parent,
+        enableGeolocation: this.enableGeolocation
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -393,6 +395,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       metierControl.patchValue(operation.metier);
     } else {
       const physicalGear = this._physicalGearsSubject.getValue().filter((value) => {
+        // TODO: voir comment sélectionner l'engin par rankOrder, label, etc.
+        // Ou alors proposer à l'utilisateur de la choisir
         return value.gear.id === operation.physicalGear.gear.id;
       });
 
@@ -406,6 +410,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         if (metier.length === 1) {
           metierControl.patchValue(metier[0]);
+        }
+        else {
+          // TODO
         }
       } else if (physicalGear.length === 0) {
         console.warn('[operation-form] no matching physical gear on trip');
@@ -561,29 +568,46 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return res.data;
   }
 
-  setIsParentOperation(value: boolean, opts?: { emitEvent?: boolean; }) {
+  setIsParentOperation(isParent: boolean, opts?: { emitEvent?: boolean; }) {
 
-    if (this.debug) console.debug('[operation-form] Is parent operation ? ', value);
+    if (this.debug) console.debug('[operation-form] Is parent operation ? ', isParent);
 
-    if (this.isParentOperationControl.value !== value) {
-      this.isParentOperationControl.setValue(value);
+    if (this.isParentOperationControl.value !== isParent) {
+      this.isParentOperationControl.setValue(isParent);
     }
 
-    // Parent operation (or parent not used)
-    if (value) {
-      this.form.patchValue({
-        parentOperation: null
-      });
+    // Parent operation (= Filage) (or parent not used)
+    if (isParent) {
       if (!opts || opts.emitEvent !== false) {
+        // Clean child fields
+        this.form.patchValue({
+          fishingEndDateTime: null,
+          endDateTime: null,
+          physicalGear: null,
+          metier: null,
+          parentOperation: null
+        });
+
         this.updateFormGroup();
       }
     }
 
-    // Child operation (=Filage)
+    // Child operation (=Virage)
     else {
       if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
-        // Keep filled values
+        // Copy parent fields, to child fields
         this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
+        this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
+
+        // Clean parent fields (should be filled after parent selection)
+        this.form.patchValue({
+            startDateTime: null,
+            fishingStartDateTime: null,
+            physicalGear: null,
+            metier: null,
+            childOperation: null
+          });
+
         this.updateFormGroup();
 
         // Propage to page, that there is an operation
@@ -593,9 +617,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         this.addParentOperation();
       }
     }
-
-    // Filage or other case
-
   }
 
   protected setPosition(positionControl: AbstractControl, position?: VesselPosition) {
@@ -652,9 +673,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   protected updateFormGroup() {
 
     this.validatorService.updateFormGroup(this.form, {
+      isOnFieldMode: this.usageMode === 'FIELD',
       trip: this.trip,
-      withChild: this.allowParentOperation && this.isParentOperation,
-      withParent: this.isChildOperation
+      isParent: this.allowParentOperation && this.isParentOperation,
+      isChild: this.isChildOperation
     });
 
     this.form.updateValueAndValidity();

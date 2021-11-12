@@ -37,7 +37,7 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
-        <ng-content matSuffix select="[matAfter]"></ng-content>
+        <ng-content select="[matSuffix]"></ng-content>
 
         <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>

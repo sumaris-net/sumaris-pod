@@ -1,18 +1,18 @@
-import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {FormGroup, ValidationErrors} from '@angular/forms';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, ObjectMap, SharedValidators } from '@sumaris-net/ngx-components';
-import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
-import {LandingPage} from '../landing.page';
-import {Landing} from '../../services/model/landing.model';
-import { filter, first, tap, throttleTime } from 'rxjs/operators';
-import {ObservedLocation} from '../../services/model/observed-location.model';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
+import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { FormGroup, ValidationErrors } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
+import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
+import { LandingPage } from '../landing.page';
+import { Landing } from '../../services/model/landing.model';
+import { filter, first } from 'rxjs/operators';
+import { ObservedLocation } from '../../services/model/observed-location.model';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 
 @Component({
@@ -124,7 +124,7 @@ export class SamplingLandingPage extends LandingPage {
     // Compute final TAG_ID, using the strategy label
     const strategyLabel = data.measurementValues &&  data.measurementValues[PmfmIds.STRATEGY_LABEL];
     if (strategyLabel) {
-      const sampleLabelPrefix = strategyLabel + '-';
+      const sampleLabelPrefix = strategyLabel;
       (data.samples || []).forEach(sample => {
         const tagId = sample.measurementValues[PmfmIds.TAG_ID];
         if (tagId && !tagId.startsWith(sampleLabelPrefix)) {
@@ -150,12 +150,12 @@ export class SamplingLandingPage extends LandingPage {
 
     // Remove sample's TAG_ID prefix
     if (strategyLabel) {
-      const samplePrefix = strategyLabel + '-';
+      const samplePrefix = strategyLabel;
       (data.samples || []).map(sample => {
       if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
         const tagId = sample.measurementValues[PmfmIds.TAG_ID];
         if (tagId && tagId.startsWith(samplePrefix)) {
-          sample.measurementValues[PmfmIds.TAG_ID] = tagId.split('-')[1];
+          sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
         }
       }
     });

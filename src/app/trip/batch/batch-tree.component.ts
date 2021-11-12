@@ -65,6 +65,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() set allowSubBatches(value: boolean) {
     if (this._allowSubBatches !== value) {
       this._allowSubBatches = value;
+      this.showSubBatchesTable = value;
       // If disabled
       if (!value) {
         // Reset existing sub batches
@@ -375,10 +376,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   protected registerForms() {
-    this.addChildForms([this.catchBatchForm, this.batchGroupsTable]);
-    if (this.subBatchesTable) {
-      this.addChildForm(this.subBatchesTable);
-    }
+    this.addChildForms([
+      this.catchBatchForm,
+      this.batchGroupsTable,
+      () => this.subBatchesTable
+    ]);
   }
 
 

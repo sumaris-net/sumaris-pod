@@ -127,8 +127,8 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
-    target.registrationStartDate = toDateISOString(this.registrationStartDate);
-    target.registrationEndDate = toDateISOString(this.registrationEndDate);
+    target.registrationStartDate = !options || options.minify !== true ? toDateISOString(this.registrationStartDate) : undefined;
+    target.registrationEndDate = !options || options.minify !== true ? toDateISOString(this.registrationEndDate) : undefined;
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;

@@ -151,11 +151,12 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
-      "DEFAULT_WEIGHT_UNIT": "Default weight unit",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
+      "HELP_URL": "App > User manuel URL",
+      "FORUM_URL": "App > Forum address URL",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -231,8 +232,7 @@
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
-        "FILTER_PERIOD": "Landing > Show period filter?",
-        "FILTER_OBSERVERS": "Landing > Show observers filter?"
+        "FILTER_PERIOD": "Landing > Show period filter?"
       }
     },
     "CACHE": {
@@ -276,6 +276,9 @@
     "LICENSE": "<b>Free/libre software</b> (License GNU AGPL v3).",
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
+    "HELP": "Online help:",
+    "FORUM": "Forum",
+    "USER_MANUAL": "User manual",
     "SOURCE_CODE": "Source core:",
     "DEVELOPED_BY": "Developed by:",
     "PARTNERS": "Partners and sponsors:"
@@ -300,7 +303,7 @@
     "OFFLINE_MODE": "Force offline mode?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
-      "CONFIRM_MESSAGE": "Are you sure you want to logout ?",
+      "CONFIRM_MESSAGE": "Are you sure you want to logout?",
       "BTN_CONFIRM": "Yes, continue"
     }
   },
@@ -605,6 +608,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
+        "TRIP_ID": "Trip",
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
@@ -615,7 +619,6 @@
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
         "COMMENTS": "Comments",
-        "OPERATION_TYPE" : "Type",
         "QUALITY": "Status"
       },
       "ERROR": {
@@ -1332,6 +1335,7 @@
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: compute sampling nb indiv?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Individual measure: sort items on save?",
+      "TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT": "Catch > Display individual measures",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter individual number?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Catch > Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample: Scientific species?",
@@ -1516,6 +1520,10 @@
         "STRATEGIES_HAS_DATA": "Sampling schemes {{label}} used by observed locations",
         "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid",
         "NOT_UNIQUE_TAXON_CODE": "Generate taxon code is not unique"
+      },
+      "CONFIRM": {
+        "MANY_PMFM_DELETED": "WARNING ! Many collected parameter ({{count}}) <b>will be removed</b> from the strategy.<br/><br/><b>Are you sure</b> you want to continue?",
+        "RELOAD_PAGE": "Do you want to reload the page, to undo your last modifications</b>?"
       }
     },
     "ERROR": {
@@ -1543,11 +1551,14 @@
         "TITLE": "<small>Product <br/></small>{{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
         "BTN_OPEN_MAP": "Show the map",
+        "BTN_UPDATE": "Execute now",
+        "BTN_UPDATE_HELP": "Executer",
         "BTN_PREVIEW_DOC": "Preview doc",
+        "FILTER_DOTS": "Filter on source dataset:",
         "STRATUM_DOTS": "Spatial layers:",
         "FORMAT_DOTS": "Documentation:",
         "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
-        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
+        "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW_DOTS": "Preview:",
         "PROCESSING_FREQUENCY": "Processing frequency",
         "STRATA": {
@@ -1768,7 +1779,8 @@
       "LOAD_GEO_TYPES_ERROR": "Error while load spatial types",
       "LOAD_GEO_JSON_ERROR": "Error while loading spatial data",
       "LOAD_TECH_ERROR": "Error while loading chart's data",
-      "LOAD_MIN_MAX_ERROR": "Error while loading chart's min/max"
+      "LOAD_MIN_MAX_ERROR": "Error while loading chart's min/max",
+      "UPDATE_PRODUCT_ERROR": "Error while performing the extraction"
     }
   },
   "NETWORK": {

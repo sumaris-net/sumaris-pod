@@ -3,7 +3,7 @@ import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService} from '@sumaris-net/ngx-components';
-import {PhysicalGearModal} from './physical-gear.modal';
+import { PhysicalGearModal, PhysicalGearModalOptions } from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
 import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
@@ -97,9 +97,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     super.ngOnDestroy();
     this.onSelectPreviousGear.unsubscribe();
-
-    //this.memoryDataService.ngOnDestroy();
-    //this.memoryDataService = null;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -148,16 +145,18 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     const modal = await this.modalCtrl.create({
       component: PhysicalGearModal,
-      componentProps: {
-        program: this.programLabel,
+      componentProps: <PhysicalGearModalOptions>{
+        programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
-        isNew: isNew,
+        isNew,
         canEditRankOrder: this.canEditRankOrder,
         onInit: (inst: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
-          inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event));
+          this.registerSubscription(
+            inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event))
+          );
         },
         onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear)
       },

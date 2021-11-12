@@ -3,12 +3,13 @@ import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {
   AccountService,
   AppInMemoryTable,
-  StatusList,
   InMemoryEntitiesService,
   LocalSettingsService,
   Referential,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
+  StatusById,
+  StatusList
 } from '@sumaris-net/ngx-components';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ModalController, Platform} from '@ionic/angular';
@@ -35,8 +36,8 @@ import {environment} from '@environments/environment';
 })
 export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partial<ReferentialFilter>> {
 
-  statusList = StatusList;
-  statusById: any;
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() set entityName(entityName: string) {
     this.setFilter({
@@ -95,14 +96,10 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
       });
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting parent to load
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
+    this.autoLoad = false; // waiting parent to load
     this.showUpdateDateColumn = false;
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
 
     this.debug = !environment.production;
   }
