@@ -64,6 +64,7 @@ import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Packet } from '@app/trip/services/model/packet.model';
 
 const moment = momentImported;
 
@@ -1362,11 +1363,13 @@ export class TripService
     await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
 
     // Fill packets ids
-    const packets = entity.operationGroups.reduce((res, operationGroup) => {
-      return res.concat(operationGroup.packets.filter(packet => !packet.id));
-    }, []);
+    if (isNotEmptyArray(entity.operationGroups)) {
+      const packets = entity.operationGroups.reduce((res, operationGroup) => {
+        return res.concat(operationGroup.packets.filter(packet => !packet.id));
+      }, []);
 
-    await EntityUtils.fillLocalIds(packets,(_, count) => this.entities.nextValues(Packet.TYPENAME, count));
+      await EntityUtils.fillLocalIds(packets,(_, count) => this.entities.nextValues(Packet.TYPENAME, count));
+    }
 
   }
 
