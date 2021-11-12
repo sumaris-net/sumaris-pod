@@ -1,8 +1,8 @@
 import {
-  EntityClass,
+  EntityClass, isNil,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from './measurement.model';
@@ -59,6 +59,8 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
         && ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId)
         // same taxon group
         && ReferentialUtils.equals(p1.taxonGroup, p2.taxonGroup)
+        // same batch
+        && ((isNil(p1.batchId) && isNil(p1.batchId)) || p1.batchId === p2.batchId)
       ));
   }
 
