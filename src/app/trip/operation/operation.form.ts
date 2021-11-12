@@ -395,6 +395,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       metierControl.patchValue(operation.metier);
     } else {
       const physicalGear = this._physicalGearsSubject.getValue().filter((value) => {
+        // TODO: voir comment sélectionner l'engin par rankOrder, label, etc.
+        // Ou alors proposer à l'utilisateur de la choisir
         return value.gear.id === operation.physicalGear.gear.id;
       });
 
@@ -408,6 +410,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         if (metier.length === 1) {
           metierControl.patchValue(metier[0]);
+        }
+        else {
+          // TODO
         }
       } else if (physicalGear.length === 0) {
         console.warn('[operation-form] no matching physical gear on trip');
@@ -670,8 +675,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.validatorService.updateFormGroup(this.form, {
       isOnFieldMode: this.usageMode === 'FIELD',
       trip: this.trip,
-      withChild: this.allowParentOperation && this.isParentOperation,
-      withParent: this.isChildOperation
+      isParent: this.allowParentOperation && this.isParentOperation,
+      isChild: this.isChildOperation
     });
 
     this.form.updateValueAndValidity();

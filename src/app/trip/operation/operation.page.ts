@@ -535,17 +535,21 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
 
-    // Load child operation
     try {
+      // Load child operation (need by validator)
       const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
       if (isNotNil(childOperationId)) {
         data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
       }
+
       // Load parent operation
       else {
         const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
         if (isNotNil(parentOperationId)) {
           data.parentOperation = await this.dataService.load(parentOperationId, {fetchPolicy: 'cache-first'});
+
+          // Force copy
+
         }
       }
     } catch (err) {

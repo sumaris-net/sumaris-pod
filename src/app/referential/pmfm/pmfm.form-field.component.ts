@@ -33,17 +33,47 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
   type: string;
   numberInputStep: string;
-
-  // Form array stuff (for multiple PMFM)
-  formArray: FormArray;
   formArrayHelper: FormArrayHelper<PmfmValue>;
+
+  @Input() control: FormControl|FormArray;
+  @Input() controlName: string;
+
+  @Input() set formControl(value: FormControl) {
+    this.control = value;
+  }
+
+  get formControl(): FormControl {
+    return this.control as FormControl;
+  }
+
+  @Input() set formControlName(value: string) {
+    this.controlName = value;
+  }
+
+  get formControlName(): string {
+    return this.controlName;
+  }
+
+  @Input() set formArray(value: FormArray) {
+    this.control = value;
+  }
+
+  get formArray(): FormArray {
+    return this.control as FormArray;
+  }
+
+  @Input() set formArrayName(value: string) {
+    this.controlName = value;
+  }
+
+  get formArrayName(): string {
+    return this.controlName;
+  }
 
   @Input() pmfm: IPmfm;
   @Input() required: boolean;
   @Input() readonly = false;
   @Input() hidden = false;
-  @Input() formControl: FormControl|FormArray;
-  @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() compact = false;
   @Input() floatLabel: FloatLabelType = "auto";
@@ -88,15 +118,15 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
     //if (this.pmfm.isMultiple) throw new Error("Invalid 'pmfm' in <app-pmfm-field>. For 'isMutliple' should be false. Please use a FormArrayHelper instead");
 
-    const control = this.formControl || (this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName));
+    const control = this.control || (this.controlName && this.formGroupDir?.form.get(this.controlName));
     if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
 
 
     if (control instanceof FormArray) {
-      this.formArray = control;
+      this.control = control;
       this.acquisitionNumber = toNumber(this.acquisitionNumber, PmfmUtils.isDenormalizedPmfm(this.pmfm) ? this.pmfm.acquisitionNumber : -1);
       this.formArrayHelper = new FormArrayHelper<PmfmValue>(
-        this.formArray,
+        control,
         (value) => this.formBuilder.control(value || null),
         PmfmValueUtils.equals,
         PmfmValueUtils.isEmpty,
@@ -107,12 +137,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       this.type = 'array';
     }
     else if (control instanceof FormControl) {
-      this.formControl = control;
+      this.control = control;
       this.acquisitionNumber = 1; // Force to 1
-      this.formControl.setValidators(PmfmValidators.create(this.pmfm));
+      control.setValidators(PmfmValidators.create(this.pmfm));
 
       if (this.listenStatusChanges) {
-        this.formControl.statusChanges.subscribe((_) => this.cd.markForCheck());
+        control.statusChanges.subscribe((_) => this.cd.markForCheck());
       }
       this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
       if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
@@ -153,13 +183,11 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   writeValue(value: any): void {
-    if (this.formArray) {
-      if (Array.isArray(value))
-      if (value !== this.formArray.value) {
-        this.formControl.patchValue(value, {emitEvent: false});
+    if (this.type === 'array') {
+      if (Array.isArray(value) && value !== this.control.value) {
+        this.control.patchValue(value, {emitEvent: false});
         this._onChangeCallback(value);
       }
-      console.warn('TODO calling writeValue() on a formArray : something to DO ??')
     }
     else {
       // FIXME This is a hack, because some time invalid value are passed
@@ -167,8 +195,8 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       if (PmfmUtils.isNumeric(this.pmfm) && Number.isNaN(value)) {
         //console.warn("Trying to set NaN value, in a measurement field ! " + this.constructor.name);
         value = null;
-        if (value !== this.formControl.value) {
-          this.formControl.patchValue(value, {emitEvent: false});
+        if (value !== this.control.value) {
+          this.control.patchValue(value, {emitEvent: false});
           this._onChangeCallback(value);
         }
       }
@@ -188,12 +216,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   markAsTouched() {
-    if (this.formArray) {
-      this.formArray.markAllAsTouched();
-      this.cd.markForCheck();
-      this._onTouchedCallback();
-    }
-    else if (this.formControl?.touched) {
+    if (this.control?.touched) {
       this.cd.markForCheck();
       this._onTouchedCallback();
     }

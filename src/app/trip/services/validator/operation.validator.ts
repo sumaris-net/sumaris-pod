@@ -12,8 +12,8 @@ import { Operation, Trip } from '../model/trip.model';
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
   withMeasurements?: boolean;
-  withParent?: boolean;
-  withChild?: boolean;
+  isChild?: boolean;
+  isParent?: boolean;
   trip?: Trip;
 }
 
@@ -83,7 +83,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   getFormGroupOptions(data?: Operation, opts?: O): AbstractControlOptions {
 
     // Parent operation (=Filage)
-    if (opts?.withChild || data?.childOperation) {
+    if (opts?.isParent || data?.childOperation) {
       return {
         validators: Validators.compose([
           // Make sure date range
@@ -95,7 +95,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     }
 
     // Child operation (=Virage)
-    else if (opts?.withParent || data?.parentOperation) {
+    else if (opts?.isChild || data?.parentOperation) {
       return {
         validators: Validators.compose([
           // Make sure date range
@@ -139,7 +139,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const tripDatesValidators = opts?.trip && this.createTripDatesValidator(opts.trip) || undefined;
 
     // Is a parent
-    if (opts?.withChild) {
+    if (opts?.isParent) {
       console.info('[operation-validator] Updating validator -> Parent operation');
       parentControl.clearValidators();
       parentControl.disable();
@@ -168,7 +168,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     }
 
     // Is a child
-    else if (opts?.withParent) {
+    else if (opts?.isChild) {
       console.info('[operation-validator] Updating validator -> Child operation');
       parentControl.setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
       parentControl.enable();
