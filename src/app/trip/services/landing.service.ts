@@ -776,11 +776,10 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     //Could be different if Vessel has been synchronize previously then update on landing but not on trip.
     trip.vesselSnapshot = entity.vesselSnapshot;
 
-    const savedTrip = await this.tripService.synchronize(trip, {withOperation: false, withOperationGroup:true});
+    const savedTrip = await this.tripService.synchronize(trip, {withLanding: false, withOperation: false, withOperationGroup:true});
 
     entity.tripId = savedTrip.id;
     entity.trip = undefined;
-
 
     try {
 

@@ -1,6 +1,6 @@
-import { Injectable, Injector, Optional } from '@angular/core';
-import { gql } from '@apollo/client/core';
-import { filter, map } from 'rxjs/operators';
+import {Injectable, Injector, Optional} from '@angular/core';
+import {gql} from '@apollo/client/core';
+import {filter, map} from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
   AccountService,
@@ -31,7 +31,7 @@ import {
   toNumber,
   UserEventService,
 } from '@sumaris-net/ngx-components';
-import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
+import {DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -39,32 +39,33 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
 } from '@app/data/services/model/data-entity.model';
-import { Observable } from 'rxjs';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { OperationService } from './operation.service';
-import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { TripValidatorService } from './validator/trip.validator';
-import { Operation, PhysicalGear, Trip } from './model/trip.model';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
-import { SortDirection } from '@angular/material/sort';
-import { OverlayEventDetail } from '@ionic/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ToastController } from '@ionic/angular';
-import { TRIP_FEATURE_NAME } from './config/trip.config';
-import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { Sample } from './model/sample.model';
-import { ErrorCodes } from '@app/data/services/errors';
-import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
-import { TrashRemoteService } from '@app/core/services/trash-remote.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
-import { QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { Packet } from '@app/trip/services/model/packet.model';
+import {Observable} from 'rxjs';
+import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
+import {OperationService} from './operation.service';
+import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {TripValidatorService} from './validator/trip.validator';
+import {Operation, OperationGroup, PhysicalGear, Trip} from './model/trip.model';
+import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import {SortDirection} from '@angular/material/sort';
+import {OverlayEventDetail} from '@ionic/core';
+import {TranslateService} from '@ngx-translate/core';
+import {ToastController} from '@ionic/angular';
+import {TRIP_FEATURE_NAME} from './config/trip.config';
+import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {Sample} from './model/sample.model';
+import {ErrorCodes} from '@app/data/services/errors';
+import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
+import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {DomUtil} from 'leaflet';
+import {Packet} from '@app/trip/services/model/packet.model';
 
 const moment = momentImported;
 
@@ -720,7 +721,7 @@ export class TripService
         withOperationGroup: opts.withOperationGroup
       }
     };
-    const mutation = (opts.withLanding) ? TripMutations.saveLandedTrip : this.mutations.save;
+    const mutation = (opts.withLanding || opts.withOperationGroup) ? TripMutations.saveLandedTrip : this.mutations.save;
     await this.graphql.mutate<{ data: any }>({
       mutation,
       variables,
@@ -907,17 +908,22 @@ export class TripService
     }
 
     let packets;
-    let  expectedSaleProducts;
-    if (opts.withOperationGroup && entity.expectedSale){
-     packets = entity.operationGroups.reduce((res, operationGroup) => {
-        res = res.concat(operationGroup.packets);
+    let expectedSaleProducts;
+
+    if (opts.withOperationGroup) {
+      // Remove local ids.
+      packets = entity.operationGroups.reduce((res, operationGroup) => {
+        operationGroup.id = undefined;
         operationGroup.packets.forEach(packet => {
+          res = res.concat([packet.clone()]);
           packet.id = undefined;
         });
         return res;
       }, []);
+
+      //packet ids are needed to save expected sale product => it will be save later.
       expectedSaleProducts = entity.expectedSale.products;
-      entity.expectedSale.products = undefined;
+      entity.expectedSale.products = [];
     }
 
     try {
@@ -959,6 +965,34 @@ export class TripService
         operationToSaveLocally.push(savedOperation.id);
       }
     }
+
+    // Second save is only needed when expectedSale has some products
+    if (opts.withOperationGroup && expectedSaleProducts) {
+      const savedPackets = entity.operationGroups.reduce((res, operationGroup) => {
+        return res.concat(operationGroup.packets);
+      }, []);
+
+      entity.expectedSale.products = expectedSaleProducts;
+
+      savedPackets.forEach(savedPacket => {
+        const localPacket = packets.find(packet => savedPacket.equals(packet));
+
+        if (localPacket) {
+          const product = entity.expectedSale.products.find(p => p.batchId === localPacket.id);
+          if (product) {
+            product.batchId = savedPacket.id;
+          }
+        }
+      });
+
+      try {
+        entity = await this.save(entity, opts);
+      } catch (err) {
+        console.error(`[trip-service] Failed to locally re save trip {${entity.id}} for expectedSale`, err);
+        // Continue
+      }
+    }
+
 
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
@@ -1272,6 +1306,8 @@ export class TripService
         const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
         EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
 
+        targetOperationGroup.physicalGearId = sourceOperationGroup.physicalGearId;
+
         // Operation group's measurements
         if (sourceOperationGroup && sourceOperationGroup.measurements && targetOperationGroup.measurements) {
           targetOperationGroup.measurements.forEach(targetMeasurement => {
@@ -1364,11 +1400,13 @@ export class TripService
 
     // Fill packets ids
     if (isNotEmptyArray(entity.operationGroups)) {
+      await EntityUtils.fillLocalIds(entity.operationGroups, (_, count) => this.entities.nextValues(OperationGroup.TYPENAME, count));
+
       const packets = entity.operationGroups.reduce((res, operationGroup) => {
         return res.concat(operationGroup.packets.filter(packet => !packet.id));
       }, []);
 
-      await EntityUtils.fillLocalIds(packets,(_, count) => this.entities.nextValues(Packet.TYPENAME, count));
+      await EntityUtils.fillLocalIds(packets, (_, count) => this.entities.nextValues(Packet.TYPENAME, count));
     }
 
   }
