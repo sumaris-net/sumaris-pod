@@ -142,7 +142,7 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         target.setType(type.name().toLowerCase());
 
         // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
+        if (pmfm.getUnit() != null && !Objects.equals(pmfm.getUnit().getId(), UnitEnum.NONE.getId())) {
             target.setUnitLabel(pmfm.getUnit().getLabel());
         }
 

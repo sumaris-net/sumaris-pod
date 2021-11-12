@@ -29,6 +29,8 @@ import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
@@ -46,8 +48,8 @@ import javax.persistence.EntityManager;
 
 @Slf4j
 public class VesselFeaturesRepositoryImpl
-    extends DataRepositoryImpl<VesselFeatures, VesselFeaturesVO, VesselFilterVO, DataFetchOptions>
-    implements VesselFeaturesSpecifications<VesselFeatures, VesselFeaturesVO, VesselFilterVO, DataFetchOptions> {
+        extends DataRepositoryImpl<VesselFeatures, VesselFeaturesVO, VesselFilterVO, DataFetchOptions>
+        implements VesselFeaturesSpecifications<VesselFeatures, VesselFeaturesVO, VesselFilterVO, DataFetchOptions> {
 
     private final ReferentialDao referentialDao;
     private final LocationRepository locationRepository;
@@ -73,9 +75,9 @@ public class VesselFeaturesRepositoryImpl
     @Override
     public Specification<VesselFeatures> toSpecification(VesselFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(vesselId(filter.getVesselId()))
-            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
-            ;
+                .and(vesselId(filter.getVesselId()))
+                .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+                ;
     }
 
     @Override
@@ -140,16 +142,39 @@ public class VesselFeaturesRepositoryImpl
             } else {
                 target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
             }
-        }
-        else if (copyIfNull) {
+        } else if (copyIfNull) {
             // Set default
             target.setQualityFlag(getReference(QualityFlag.class, QualityFlagEnum.NOT_QUALIFIED.getId()));
+        }
+
+        // Vessel
+        if (copyIfNull || (source.getVessel() != null)) {
+            if (source.getVessel() == null) {
+                target.setVessel(null);
+            } else {
+                target.setVessel(getReference(Vessel.class, source.getVessel().getId()));
+            }
+        }
+    }
+
+    @Override
+    protected void onBeforeSaveEntity(VesselFeaturesVO vo, VesselFeatures entity, boolean isNew) {
+        super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // When new entity: set the creation date
+        if (isNew || entity.getCreationDate() == null) {
+            entity.setCreationDate(entity.getUpdateDate());
         }
     }
 
     @Override
     protected void onAfterSaveEntity(VesselFeaturesVO vo, VesselFeatures savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (isNew) {
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
+
     }
 
     @Override
