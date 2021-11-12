@@ -52,6 +52,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.app.name.description"),
         "SUMARiS",
         String.class),
+
     VERSION(
         "sumaris.version",
         n("sumaris.config.option.app.version.description"),
