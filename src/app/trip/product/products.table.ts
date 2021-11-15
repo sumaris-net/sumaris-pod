@@ -262,7 +262,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       product = new this.dataType();
       await this.onNewEntity(product);
 
-      product.parent = this.filter && this.filter.parent || undefined;
+      if (this.filter?.parent) {
+       product.parent = this.filter.parent;
+      } else if (this.$parents.value?.length === 1) {
+        product.parent =  this.$parents.value[0];
+      }
     }
 
     this.markAsLoading();

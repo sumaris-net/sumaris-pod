@@ -192,7 +192,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     const isNew = !packet && true;
     if (isNew) {
       packet = new Packet();
-      packet.parent = this.filter && this.filter.parent || undefined;
+
+      if (this.filter?.parent) {
+        packet.parent = this.filter.parent;
+      } else if (this.$parents.value?.length === 1) {
+        packet.parent =  this.$parents.value[0];
+      }
     }
 
     const modal = await this.modalCtrl.create({
