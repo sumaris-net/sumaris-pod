@@ -52,6 +52,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
     String SEARCH_TEXT_ANY_PARAM = "searchTextAny";
 
+    boolean enableRegistrationCodeSearchAsPrefix();
 
     default Specification<Vessel> vesselTypeId(Integer vesselTypeId) {
         if (vesselTypeId == null) return null;
@@ -194,7 +195,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
         // If not defined, search on :
         // - VesselFeatures.exteriorMarking (prefix match - e.g. '<searchText>%')
         // - VesselRegistrationPeriod.registrationCode (prefix match - e.g. '<searchText>%')
-        // - VesselFeatures.exteriorMarking (any match - e.g. '%<searchText>%')
+        // - VesselFeatures.name (any match - e.g. '%<searchText>%')
         final String[] attributes = searchAttributes != null ? searchAttributes : new String[] {
             // Label
             StringUtils.doting(Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING),
@@ -203,21 +204,22 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
             StringUtils.doting(Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME)
         };
 
+        boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
         boolean enableAnySearch = Arrays.stream(attributes)
             .anyMatch(attr -> attr.endsWith(VesselFeatures.Fields.NAME));
-        boolean enablePrefixSearch = Arrays.stream(attributes)
+        boolean enablePrefixSearch = enableRegistrationCodeSearchAsPrefix && Arrays.stream(attributes)
             .anyMatch(attr -> !attr.endsWith(VesselFeatures.Fields.NAME));
 
         BindableSpecification<Vessel> specification = BindableSpecification.where((root, query, cb) -> {
             final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
             final ParameterExpression<String> anyParam = cb.parameter(String.class, SEARCH_TEXT_ANY_PARAM);
 
-            return cb.or(
-                Arrays.stream(attributes).map(attr -> cb.like(
-                    cb.upper(Daos.composePath(root, attr)),
-                    attr.endsWith(VesselFeatures.Fields.NAME) ? anyParam : prefixParam)
-                ).toArray(Predicate[]::new)
-            );
+            Predicate[] predicates = Arrays.stream(attributes).map(attr -> cb.like(
+                cb.upper(Daos.composePath(root, attr)),
+                (enableRegistrationCodeSearchAsPrefix && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam)
+            ).toArray(Predicate[]::new);
+
+            return cb.or(predicates);
         });
 
         if (enablePrefixSearch) specification.addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());

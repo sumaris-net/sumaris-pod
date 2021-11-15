@@ -622,6 +622,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.class,
         false),
 
+    VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX(
+        "sumaris.persistence.vessel.registrationCode.searchAsPrefix",
+        n("sumaris.config.option.persistence.vessel.registrationCode.search.prefix.description"),
+        Boolean.TRUE.toString(),
+        Boolean.class,
+        false),
+
     ENABLE_BATCH_TAXON_NAME(
         "sumaris.trip.operation.batch.taxonName.enable",
         n("sumaris.config.option.trip.operation.batch.taxonName.enable.description"),

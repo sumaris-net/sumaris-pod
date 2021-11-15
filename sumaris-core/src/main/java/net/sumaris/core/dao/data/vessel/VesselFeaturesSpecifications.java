@@ -64,8 +64,11 @@ public interface VesselFeaturesSpecifications<
     String REGISTRATION_LOCATION_ID_PARAM = "registrationLocationId";
     String BASE_PORT_LOCATION_ID = "basePortLocationId";
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
+    String SEARCH_TEXT_ANY_PARAM = "searchTextAny";
 
     String VRP_PATH = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
+
+    boolean enableRegistrationCodeSearchAsPrefix();
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
@@ -218,17 +221,28 @@ public interface VesselFeaturesSpecifications<
             VesselFeatures.Fields.NAME
         };
 
-        return BindableSpecification.where((root, query, cb) -> {
-            final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
+        boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
+        boolean enableAnySearch = Arrays.stream(attributes)
+            .anyMatch(attr -> attr.endsWith(VesselFeatures.Fields.NAME));
+        boolean enablePrefixSearch = enableRegistrationCodeSearchAsPrefix && Arrays.stream(attributes)
+            .anyMatch(attr -> !attr.endsWith(VesselFeatures.Fields.NAME));
 
-            return cb.or(
-                Arrays.stream(attributes).map(attr -> cb.like(
-                    cb.upper(Daos.composePath(root, attr)),
-                    prefixParam)
-                ).toArray(Predicate[]::new)
-            );
-        })
-            .addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());
+        BindableSpecification<VesselFeatures> specification =  BindableSpecification.where((root, query, cb) -> {
+            final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
+            final ParameterExpression<String> anyParam = cb.parameter(String.class, SEARCH_TEXT_ANY_PARAM);
+
+            Predicate[] predicates = Arrays.stream(attributes).map(attr -> cb.like(
+                cb.upper(Daos.composePath(root, attr)),
+                (enableRegistrationCodeSearchAsPrefix && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam)
+            ).toArray(Predicate[]::new);
+
+            return cb.or(predicates);
+        });
+
+        if (enablePrefixSearch) specification.addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());
+        if (enableAnySearch) specification.addBind(SEARCH_TEXT_ANY_PARAM, "%" + searchTextAsPrefix.toUpperCase());
+
+        return specification;
     }
 
     default Optional<V> getLastByVesselId(int vesselId, O fetchOptions) {

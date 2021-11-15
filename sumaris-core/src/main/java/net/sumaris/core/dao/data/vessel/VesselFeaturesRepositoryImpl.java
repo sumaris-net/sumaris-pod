@@ -29,7 +29,9 @@ import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -41,6 +43,7 @@ import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.PostConstruct;
@@ -55,6 +58,7 @@ public class VesselFeaturesRepositoryImpl
     private final LocationRepository locationRepository;
     private final SumarisConfiguration configuration;
     private boolean isOracleDatabase;
+    private boolean enableRegistrationCodeSearchAsPrefix;
 
     @Autowired
     public VesselFeaturesRepositoryImpl(EntityManager entityManager,
@@ -70,6 +74,16 @@ public class VesselFeaturesRepositoryImpl
     @PostConstruct
     private void setup() {
         isOracleDatabase = Daos.isOracleDatabase(configuration.getJdbcURL());
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+    }
+
+    @Override
+    public boolean enableRegistrationCodeSearchAsPrefix() {
+        return enableRegistrationCodeSearchAsPrefix;
     }
 
     @Override
