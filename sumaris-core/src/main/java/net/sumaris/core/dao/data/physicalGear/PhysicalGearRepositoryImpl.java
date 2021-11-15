@@ -138,6 +138,10 @@ public class PhysicalGearRepositoryImpl
     }
 
     public List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources) {
+        return saveAllByTripId(tripId, sources, null);
+    }
+
+    public List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources, List<Integer> idsToRemove) {
 
         // Load parent entity
         Trip parent = getById(Trip.class, tripId);
@@ -162,7 +166,12 @@ public class PhysicalGearRepositoryImpl
 
         // Remove unused entities
         if (MapUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.values().forEach(this::delete);
+            if (idsToRemove != null){
+                idsToRemove.addAll(sourcesToRemove.keySet());
+            }
+            else {
+                sourcesToRemove.values().forEach(this::delete);
+            }
         }
 
         // Update the parent list
