@@ -187,7 +187,8 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche"
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -653,8 +654,8 @@
       }
     },
     "LANDED_CATCH": {
-      "TAB_PRODUCT": "Captures par espèce",
-      "TAB_BATCH": "Captures en paquet",
+      "TAB_PRODUCT": "Lots par espèce",
+      "TAB_BATCH": "Lots en paquet",
       "OPERATION_GROUP_FILTER": "Filtrer par effort"
     },
     "PRODUCT": {
@@ -1370,10 +1371,11 @@
       "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
-      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie > Date de fin ?",
+      "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
-      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie > Niveau(x) de lieu",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
@@ -1392,7 +1394,6 @@
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Sortie > Débarquements : Unité du poids",
-      "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
