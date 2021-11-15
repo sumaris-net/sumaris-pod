@@ -1,17 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {Platform} from '@ionic/angular';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {InMemoryEntitiesService, isNil, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
-import {MetierService} from '@app/referential/services/metier.service';
-import {OperationGroup} from '../services/model/trip.model';
-import {environment} from '@environments/environment';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
+import { Observable } from 'rxjs';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { InMemoryEntitiesService, isNil, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
+import { MetierService } from '@app/referential/services/metier.service';
+import { OperationGroup } from '../services/model/trip.model';
+import { environment } from '@environments/environment';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
 export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
@@ -144,12 +144,9 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     return undefined;
   }
 
-  getNextRankOrderOnPeriod(): number {
-    let next = 0;
-    (this.value || []).forEach(v => {
-      if (v.rankOrderOnPeriod && v.rankOrderOnPeriod > next) next = v.rankOrderOnPeriod;
-    });
-    return next + 1;
+  protected async getMaxRankOrderOnPeriod(): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrderOnPeriod || 0), 0);
   }
 
   async onMetierChange($event: FocusEvent, row: TableElement<OperationGroup>) {
@@ -224,23 +221,12 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
 
   protected async onNewEntity(data: OperationGroup): Promise<void> {
     if (isNil(data.rankOrderOnPeriod)) {
-      data.rankOrderOnPeriod = await this.getNextRankOrderOnPeriod();
+      data.rankOrderOnPeriod = (await this.getMaxRankOrderOnPeriod()) + 1;
     }
   }
 
   protected async findRowByOperationGroup(operationGroup: OperationGroup): Promise<TableElement<OperationGroup>> {
     return OperationGroup && (await this.dataSource.getRows()).find(r => operationGroup.equals(r.currentData));
-  }
-
-
-  protected async addRowToTable(): Promise<TableElement<OperationGroup>> {
-    const row = await super.addRowToTable();
-
-    // TODO BLA: a mettre dans onNewEntity() ?
-    row.validator.controls['rankOrderOnPeriod'].setValue(this.getNextRankOrderOnPeriod());
-    // row.validator.controls['rankOrderOnPeriod'].updateValueAndValidity();
-
-    return row;
   }
 
 }
