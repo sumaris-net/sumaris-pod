@@ -1,17 +1,17 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { Platform } from '@ionic/angular';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
-import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
-import { Observable } from 'rxjs';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { InMemoryEntitiesService, isNil, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
-import { MetierService } from '@app/referential/services/metier.service';
-import { OperationGroup } from '../services/model/trip.model';
-import { environment } from '@environments/environment';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {Platform} from '@ionic/angular';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
+import {Observable} from 'rxjs';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {InMemoryEntitiesService, isNil, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
+import {MetierService} from '@app/referential/services/metier.service';
+import {OperationGroup} from '../services/model/trip.model';
+import {environment} from '@environments/environment';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
 export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
@@ -25,7 +25,9 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useExisting: OperationGroupValidatorService},
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter)
+      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter,  {
+        equals: OperationGroup.equals
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
