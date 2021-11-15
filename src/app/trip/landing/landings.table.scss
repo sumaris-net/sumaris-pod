@@ -12,10 +12,13 @@
 }
 
 .mat-table {
+  .mat-column-select {
+    width: 50px;
+  }
+
   .mat-column-id {
     min-width: 30px;
     max-width: 30px;
-    left: 40px !important;
   }
 
   .mat-column-vessel {

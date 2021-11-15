@@ -22,7 +22,9 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
     {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE,
-      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter)
+      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
+        equals: PhysicalGear.equals
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush

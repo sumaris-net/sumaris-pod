@@ -22,7 +22,7 @@ import {
   UsageMode, waitIdle,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
-import { SelectVesselsModal } from './vessels/select-vessel.modal';
+import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -38,6 +38,7 @@ import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { waitForAsync } from '@angular/core/testing';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 const moment = momentImported;
 
@@ -70,6 +71,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   aggregatedLandings: boolean;
   allowAddNewVessel: boolean;
   showVesselType: boolean;
+  showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
@@ -241,15 +243,17 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const modal = await this.modalCtrl.create({
       component: SelectVesselsModal,
-      componentProps: {
+      componentProps: <SelectVesselsModalOptions>{
         allowMultiple: false,
-        allowAddNewVessel: this.allowAddNewVessel,
-        showVesselTypeColumn: this.showVesselType,
         landingFilter,
         vesselFilter: <VesselFilter>{
           statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
           onlyWithRegistration: true
-        }
+        },
+        allowAddNewVessel: this.allowAddNewVessel,
+        showVesselTypeColumn: this.showVesselType,
+        showBasePortLocationColumn: this.showVesselBasePortLocation,
+        defaultVesselSynchronizationStatus: 'SYNC'
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -315,6 +319,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+    this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
 
     this.cd.detectChanges();
     const landingsTable = this.landingsTable;
@@ -324,10 +329,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
       landingsTable.showVesselTypeColumn = this.showVesselType;
+      landingsTable.showVesselBasePortLocationColumn = this.showVesselBasePortLocation;
       landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
       landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
       landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
-      landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
     } else if (this.aggregatedLandingsTable) {
