@@ -8,7 +8,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {BehaviorSubject} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {PacketModal} from './packet.modal';
+import { PacketModal, PacketModalOptions } from './packet.modal';
 import {PacketSaleModal} from '../sale/packet-sale.modal';
 import {SaleProductUtils} from '../services/model/sale-product.model';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
@@ -202,9 +202,9 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const modal = await this.modalCtrl.create({
       component: PacketModal,
-      componentProps: {
+      componentProps: <PacketModalOptions>{
         mobile: this.mobile,
-        parents: this.$parents.getValue(),
+        parents: this.$parents.value,
         parentAttributes: this.parentAttributes,
         data: packet,
         isNew,

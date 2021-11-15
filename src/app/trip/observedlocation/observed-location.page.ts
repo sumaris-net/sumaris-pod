@@ -283,7 +283,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-
   addRow($event: MouseEvent) {
     if (this.landingsTable) {
       this.landingsTable.addRow($event);

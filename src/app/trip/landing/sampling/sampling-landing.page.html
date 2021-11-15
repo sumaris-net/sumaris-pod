@@ -198,10 +198,10 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()"
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
                         (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="landingForm.error||error||(samplesTable.error$|async); let error" lines="none">

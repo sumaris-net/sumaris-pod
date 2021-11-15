@@ -8,11 +8,20 @@ import {TranslateService} from '@ngx-translate/core';
 import {OperationGroup} from '@app/trip/services/model/trip.model';
 import {Product} from '@app/trip/services/model/product.model';
 
+export interface PacketModalOptions {
+  data: Packet;
+  mobile: boolean;
+  isNew: boolean;
+  parents: IWithPacketsEntity<any, any>[];
+  parentAttributes: string[];
+  onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
+}
+
 @Component({
   selector: 'app-packet-modal',
   templateUrl: './packet.modal.html'
 })
-export class PacketModal implements OnInit, OnDestroy {
+export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
 
   loading = false;
   subscription = new Subscription();
@@ -25,8 +34,6 @@ export class PacketModal implements OnInit, OnDestroy {
   @Input() isNew: boolean;
   @Input() parents: IWithPacketsEntity<any, any>[];
   @Input() parentAttributes: string[];
-
-
   @Input() onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
 
   get disabled() {

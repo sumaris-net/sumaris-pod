@@ -1,5 +1,5 @@
 import {RouterModule, Routes} from "@angular/router";
-import {AuthGuardService}  from "@sumaris-net/ngx-components";
+import { AuthGuardService, ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 import {NgModule} from "@angular/core";
 import {ExtractionTablePage} from "./table/extraction-table.page";
 import {ProductPage} from "./product/page/product.page";
@@ -20,11 +20,12 @@ const routes: Routes = [
   {
     path: 'product/:productId',
     component: ProductPage,
-    runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'SUPERVISOR',
       pathIdParam: 'productId'
-    }
+    },
+    runGuardsAndResolvers: 'pathParamsChange',
+    canDeactivate: [ComponentDirtyGuard]
   },
   {
     path: 'map',
