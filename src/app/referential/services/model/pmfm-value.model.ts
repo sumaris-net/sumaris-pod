@@ -28,7 +28,7 @@ export abstract class PmfmValueUtils {
     }
     switch (pmfm.type) {
       case 'qualitative_value':
-        return value && isNotNil(value.id) && value.id.toString() || undefined;
+        return value && isNotNil(value.id) && value.id.toString() || value || undefined;
       case 'integer':
       case 'double':
         if (isNil(value) && !isNaN(+value)) return undefined;

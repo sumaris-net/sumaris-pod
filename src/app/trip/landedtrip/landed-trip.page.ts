@@ -78,7 +78,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   $productFilter = new BehaviorSubject<ProductFilter>(undefined);
   $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
 
-  operationGroupAttributes = ['metier.label', 'metier.name'];
+  operationGroupAttributes = ['rankOrderOnPeriod', 'metier.label', 'metier.name'];
 
   productSalePmfms: DenormalizedPmfmStrategy[];
 

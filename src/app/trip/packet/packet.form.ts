@@ -87,8 +87,8 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       this.registerAutocompleteField('parent', {
         items: this.parents,
         attributes: this.parentAttributes,
-        columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined),
+        columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined))
       });
     }
 
