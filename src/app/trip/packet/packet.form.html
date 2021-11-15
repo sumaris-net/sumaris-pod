@@ -95,9 +95,8 @@
     </ion-row>
 
     <!--  composition row  -->
-    <ion-row *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; first as first"
-             [class.odd]="i | odd"
-             [class.even]="i | even">
+    <ion-row *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; first as first; even as even"
+             [class.even]="even">
 
       <!-- taxon group -->
       <ion-col size="4">
@@ -113,7 +112,8 @@
       </ion-col>
 
       <!-- ratios -->
-      <ion-col size="1" *ngFor="let index of packetIndexes">
+      <ion-col size="1" *ngFor="let index of packetIndexes"
+               [class.cdk-visually-hidden]="packetCount <= index">
         <mat-form-field>
           <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100" [tabIndex]="tabindex+10+i*9+index+1"
                  [formControl]="asFormGroup(compositionForm).controls['ratio'+index]">

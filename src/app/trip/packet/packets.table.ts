@@ -1,6 +1,17 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
 import {TableElement} from '@e-is/ngx-material-table';
-import {AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  AppTable,
+  EntitiesTableDataSource,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+} from '@sumaris-net/ngx-components';
 import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from '../services/model/packet.model';
 import {PacketValidatorService} from '../services/validator/packet.validator';
 import {ModalController, Platform} from '@ionic/angular';
@@ -139,21 +150,60 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   private async onRowCreated(row: TableElement<Packet>) {
     const data = row.currentData; // if validator enable, this will call a getter function
 
+    await this.onNewEntity(data);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    this.markForCheck();
+  }
+
+  protected async addEntityToTable(data: Packet, opts?: { confirmCreate?: boolean; }): Promise<TableElement<Packet>> {
+    if (!data) throw new Error("Missing data to add");
+    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row to table");
+
+    await this.onNewEntity(data);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    // Confirm the created row
+    if (!opts || opts.confirmCreate !== false) {
+      this.confirmEditCreate(null, row);
+      this.editedRow = null;
+    }
+    else {
+      this.editedRow = row;
+    }
+
+    this.markAsDirty();
+
+    return row;
+  }
+
+  protected async onNewEntity(data: Packet): Promise<void> {
     if (isNil(data.rankOrder)) {
       data.rankOrder = (await this.getMaxRankOrder()) + 1;
     }
-
-    // Set row data
-    row.currentData = data; // if validator enable, this will call a setter function
-
-    this.markForCheck();
   }
 
   protected async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
-
 
   protected markForCheck() {
     this.cd.markForCheck();
@@ -169,17 +219,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const res = await this.openDetailModal();
+    const { data, role } = await this.openDetailModal();
 
-    if (res && res.data) {
-      const row = await this.addRowToTable();
+    if (data) {
+      const row = await this.addEntityToTable(data);
 
-      row.validator.patchValue(res.data, {onlySelf: false, emitEvent: false});
-      row.validator.markAsDirty();
-
-      await this.onRowCreated(row);
-
-      if (res.role === 'sale') {
+      if (role === 'sale') {
         await this.openPacketSale(null, row);
       }
     } else {
