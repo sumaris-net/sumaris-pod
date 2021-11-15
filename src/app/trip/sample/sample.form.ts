@@ -54,6 +54,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
     this._enable = true;
+    this.keepDisabledPmfmControl = true;
+    this.keepComputedPmfmControl = true;
 
     // for DEV only
     this.debug = !environment.production;

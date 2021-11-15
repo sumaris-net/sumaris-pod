@@ -10,17 +10,16 @@
 .mat-header-row,
 .mat-row {
   max-height: 140px;
-  padding: 0 0px;
+  padding: 0 0;
   z-index: 999;
 
   .mat-column-metier {
     min-width: 175px;
   }
 
-
   .mat-column-endPosition,
   .mat-column-startPosition {
-    padding-left: 0px;
+    padding-left: 0;
     max-width: 200px;
     ion-col {
       padding: 0;

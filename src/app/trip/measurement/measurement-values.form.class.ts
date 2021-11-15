@@ -14,7 +14,8 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   onUpdateFormGroup?: (formGroup: FormGroup) => void | Promise<void>;
-  allowSetValueBeforePmfms?: boolean; // False by default
+  skipDisabledPmfmControl?: boolean; // True by default
+  skipComputedPmfmControl?: boolean; // True by default
 }
 
 export const MeasurementFormLoadingSteps = Object.freeze({
@@ -41,9 +42,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _acquisitionLevel: string;
   protected _forceOptional = false;
   protected _measurementValuesForm: FormGroup;
+  protected options: MeasurementValuesFormOptions<T>;
   protected data: T;
   protected applyingValue = false;
   protected keepDisabledPmfmControl = false;
+  protected keepComputedPmfmControl = false;
 
   get forceOptional(): boolean {
     return this._forceOptional;
@@ -147,9 +150,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
                         protected settings: LocalSettingsService,
                         protected cd: ChangeDetectorRef,
                         form?: FormGroup,
-                        protected options?: MeasurementValuesFormOptions<T>
+                        options?: MeasurementValuesFormOptions<T>
   ) {
     super(dateAdapter, form, settings);
+    this.options = {
+      skipComputedPmfmControl: true,
+      skipDisabledPmfmControl: true,
+      ...options
+    };
 
     this.registerSubscription(
       this._onRefreshPmfms.subscribe(() => this.loadPmfms())
@@ -269,7 +277,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       this.onApplyingEntity(data, opts);
 
       // Wait form is ready, before applying the data
-      const waitIdle = (!opts || opts.waitIdle !== false) && this.options?.allowSetValueBeforePmfms !== true;
+      const waitIdle = (!opts || opts.waitIdle !== false);
       if (waitIdle) await this.waitIdle();
 
       // Applying value to form (that should be ready).
@@ -294,7 +302,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; }) {
     // Warn is form is NOT ready
-    if (this.loading && (this.options?.allowSetValueBeforePmfms !== true)) {
+    if (this.loading) {
       console.warn(`${this.logPrefix} Trying to set value, but form not ready!`);
     }
 
@@ -365,7 +373,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       const filteredPmfms = (this.$pmfms.value || [])
         .filter(pmfm => {
           const control = measurementValuesForm.controls[pmfm.id];
-          return control && (control.dirty || (this.keepDisabledPmfmControl && control.disabled));
+          return control && (
+            // Dirty or disable
+              control.dirty || (this.options.skipDisabledPmfmControl === false && control.disabled))
+            // Computed (skipped by default)
+            || (this.options.skipComputedPmfmControl === false && pmfm.isComputed);
         });
 
       if (filteredPmfms.length) {
@@ -478,7 +490,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       }
 
       // Call the map function
-      if (this.options?.mapPmfms) {
+      if (this.options.mapPmfms) {
         const res = this.options.mapPmfms(pmfms);
         pmfms = (res instanceof Promise) ? await res : res;
       }

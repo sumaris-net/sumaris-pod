@@ -40,6 +40,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   @Input() parentAttributes: string[];
 
   @Input() showToolbar = true;
+  @Input() showIdColumn = true;
   @Input() useSticky = false;
 
   @Input()

@@ -72,7 +72,6 @@
       <!-- Measurements -->
       <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                       [pmfm]="pmfm"
-                      [controlName]="pmfm.id.toString()"
                       [compact]="compact"
                       [tabindex]="tabindex+4 + i"
                       [floatLabel]="floatLabel">
