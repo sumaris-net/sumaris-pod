@@ -311,7 +311,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return quarterEffort && quarterEffort.hasRealizedEffort && (isNil(period.acquisitionNumber) || period.acquisitionNumber < 0);
           }).map(period => period.startDate.quarter());
         if (isNotEmptyArray(invalidQuarters)) {
-          console.info("invalidQuarters: ", invalidQuarters)
           return <ValidationErrors>{ hasRealizedEffort: { quarters: invalidQuarters } };
         }
         SharedValidators.clearError(control, 'hasRealizedEffort');
