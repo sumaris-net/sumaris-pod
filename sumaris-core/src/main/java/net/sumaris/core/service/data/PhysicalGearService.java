@@ -47,4 +47,10 @@ public interface PhysicalGearService {
 	List<PhysicalGearVO> getAllByTripId(int tripId, DataFetchOptions options);
 
 	List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources);
+
+	List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources, List<Integer> idsToRemove);
+
+	void delete(List<Integer> ids);
+
+	void delete(int id);
 }

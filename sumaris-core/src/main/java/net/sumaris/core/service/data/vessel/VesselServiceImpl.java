@@ -31,6 +31,8 @@ import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
+import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -207,6 +209,13 @@ public class VesselServiceImpl implements VesselService {
                 savedVesselFeatures.setMeasurements(measurements);
             }
         }
+
+		if (savedVessel.getVesselRegistrationPeriod() != null) {
+			VesselRegistrationPeriodVO vesselRegistrationPeriod = savedVessel.getVesselRegistrationPeriod();
+			vesselRegistrationPeriod.setVessel(savedVessel);
+
+			vesselRegistrationPeriodRepository.save(vesselRegistrationPeriod, checkUpdateDate, true);
+		}
 
         return savedVessel;
     }

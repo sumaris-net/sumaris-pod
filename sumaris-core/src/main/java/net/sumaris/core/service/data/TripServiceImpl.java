@@ -279,6 +279,9 @@ public class TripServiceImpl implements TripService {
             fishingAreaService.saveAllByFishingTripId(target.getId(), ImmutableList.of());
         }
 
+        // Prepare list of physical Gear to remove after operation Group
+        List<Integer> physicalGearIdsToRemove = new ArrayList<>();
+
         // Save physical gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
             // Fille defaults, from the trip
@@ -290,7 +293,13 @@ public class TripServiceImpl implements TripService {
             });
 
             // Save
-            List<PhysicalGearVO> gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears());
+            List<PhysicalGearVO> gears;
+            if (withOperationGroup){
+                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears(), physicalGearIdsToRemove);
+            }
+            else {
+                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears());
+            }
             target.setGears(gears);
         }
         else {
@@ -350,6 +359,10 @@ public class TripServiceImpl implements TripService {
         } else {
             // Remove all
             expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
+        }
+
+        if (physicalGearIdsToRemove.size() > 0){
+            physicalGearService.delete(physicalGearIdsToRemove);
         }
 
         // Publish event
