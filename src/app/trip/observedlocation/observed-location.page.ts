@@ -323,8 +323,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
 
     this.cd.detectChanges();
-    const landingsTable = this.landingsTable;
-    if (landingsTable) {
+    if (this.landingsTable) {
+      const landingsTable = this.landingsTable;
       landingsTable.i18nColumnSuffix = i18nSuffix;
       landingsTable.detailEditor = this.landingEditor;
 
@@ -337,9 +337,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
     } else if (this.aggregatedLandingsTable) {
-      this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
-      this.aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+      const aggregatedLandingsTable = this.aggregatedLandingsTable;
+      aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+      aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
+    // Set this observedLocation as parent of the observedVesselTable
+    this.propagateParent(this.observedLocationForm.value);
 
     this.$ready.next(true);
 
@@ -405,14 +408,20 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async setValue(data: ObservedLocation) {
+    const dataObject = ObservedLocation.fromObject(data)?.clone();
+
     // Set data to form
     this.observedLocationForm.value = data;
 
-    console.info('[observed-location] Setting data', data);
+    console.info('[observed-location] Setting data', dataObject);
 
+    this.propagateParent(dataObject);
+  }
+
+  protected propagateParent(data: ObservedLocation) {
     const isNew = isNil(data.id);
     if (!isNew) {
-      // Propage to table parent
+      // Propagate to table parent
       this.table?.setParent(data)
     }
   }
