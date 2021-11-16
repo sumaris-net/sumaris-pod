@@ -226,7 +226,7 @@
             </mat-form-field>
           </form>
         </ion-col>
-        <ion-col *ngIf="appliedPeriodsForm.touched && appliedPeriodsForm.invalid"
+        <ion-col *ngIf="appliedPeriodsForm.touched && appliedPeriodsForm.invalid || form.touched"
                  size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3"
                  class="mat-form-field-errors">
           <mat-error *ngIf="appliedPeriodsForm.hasError('minLength')">
