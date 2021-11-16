@@ -5,6 +5,9 @@
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
+  &.mobile {
+    --mat-column-actions-width: 40px;
+  }
 }
 
 .mat-table {
@@ -36,9 +39,11 @@
 
     .mat-column-actions {
       text-align: end;
-      width: 82px !important;
+      width: var(--mat-column-actions-width, 82px) !important;
       max-width: unset;
+      padding-inline-start: 0 !important;
     }
   }
+
 
 }

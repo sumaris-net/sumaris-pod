@@ -28,7 +28,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div class="table-container" [class.has-toolbar]="showToolbar" [class.mobile]="mobile">
 
   <table mat-table [dataSource]="dataSource"
          [matSortActive]="defaultSortBy"
@@ -153,9 +153,10 @@
         <!-- packet sale -->
         <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
                 [title]="'PACKET.LIST.PACKET_SALE'|translate"
-                (click)="openPacketSale($event, row)">
-          <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.composition && (row.currentData.saleProducts.length / row.currentData.composition.length).toString()"
-                    [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length || !row.currentData.composition || !row.currentData.composition.length"
+                (click)="openPacketSale($event, row)"
+                [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined">
+          <mat-icon [matBadge]="(row.currentData.saleProducts?.length || 0) / (row.currentData.composition?.length || 1).toString()"
+                    [matBadgeHidden]="(row.currentData.saleProducts | isEmptyArray) || (row.currentData.composition  | isEmptyArray)"
                     matBadgeColor="accent"
                     matBadgeSize="small"
                     matBadgePosition="above after">local_offer

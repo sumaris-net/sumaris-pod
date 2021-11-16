@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, round, UsageMode} from '@sumaris-net/ngx-components';
+import { AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import {IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils} from '../services/model/packet.model';
 import {DateAdapter} from '@angular/material/core';
 import {Moment} from 'moment';
@@ -90,6 +90,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
     this.initCompositionHelper();
 
+    this.tabindex = toNumber(this.tabindex, 1);
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     if (this.showParent) {

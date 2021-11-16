@@ -30,12 +30,13 @@
       <ion-col size="6" size-md="4" class="ion-padding">
         <mat-form-field>
           <input matInput #packetNumber
+                 formControlName="number"
+                 [placeholder]="'PACKET.NUMBER' | translate"
                  autocomplete="off" type="number"
                  pattern="[0-9]*"
                  step="1"
-                 [placeholder]="'PACKET.NUMBER' | translate"
-                 formControlName="number"
-                 [required]="true">
+                 [tabIndex]="tabindex+1"
+                 required>
         </mat-form-field>
       </ion-col>
 
@@ -43,9 +44,10 @@
       <ion-col size="6" size-md="4" class="ion-padding">
         <mat-form-field class="computed mat-form-field-disabled">
           <input matInput #packetWeight
-                 autocomplete="off" type="number"
-                 [placeholder]="'PACKET.WEIGHT' | translate"
                  formControlName="weight"
+                 [placeholder]="'PACKET.WEIGHT' | translate"
+                 autocomplete="off" type="number"
+                 tabIndex="-1"
                  readonly>
         </mat-form-field>
       </ion-col>
@@ -55,7 +57,7 @@
 
   <table class="mat-table" [style.--packet-count]="packetCount">
 
-  <!-- header row -->
+    <!-- header row -->
     <tr class="mat-header-row">
       <th class="mat-header-cell mat-column-taxonGroup ion-text-center" rowspan="2">
         <ion-label translate>PACKET.COMPOSITION.TAXON_GROUP</ion-label>
@@ -76,11 +78,13 @@
       </th>
     </tr>
 
-    <!-- sampled weights -->
+    <!-- Row by taxon group -->
     <tr class="mat-row mat-row-all-taxonGroup">
       <td class="mat-cell mat-column-taxonGroup ion-text-end">
         <ion-label color="primary" class="text-italic" translate>PACKET.COMPOSITION.PACKETS_WEIGHT_DOTS</ion-label>
       </td>
+
+      <!-- Packet weight column -->
       <td class="mat-cell mat-column-small" *ngFor="let index of $packetIndexes | async ; even as colEven"
                [class.even]="colEven">
         <mat-form-field floatLabel="never">
@@ -89,7 +93,9 @@
                  decimal="true"
                  step="0.1"
                  [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1}"
-                 [formControlName]="'sampledWeight'+index">
+                 [formControlName]="'sampledWeight'+index"
+                 [tabIndex]="tabindex+10+(index+1)*100"
+          >
           <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
         </mat-form-field>
       </td>
@@ -111,18 +117,17 @@
                                 [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
                                 [config]="autocompleteFields.taxonGroup"
                                 [required]="first"
-                                [tabindex]="tabindex+10+i*9"
-        >
+                                [tabindex]="tabindex+10+i">
         </mat-autocomplete-field>
       </td>
 
       <!-- ratios -->
-      <td class="mat-cell mat-column-small" *ngFor="let index of $packetIndexes | async; even as colEven"
+      <td class="mat-cell mat-column-small" *ngFor="let packetIndex of $packetIndexes | async; even as colEven"
                [class.even]="colEven">
         <mat-form-field>
           <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100"
-                 [tabIndex]="tabindex+10+i*9+index+1"
-                 [formControlName]="'ratio'+index">
+                 [tabIndex]="tabindex+10+(packetIndex+1)*100+i"
+                 [formControlName]="'ratio'+packetIndex">
           <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
         </mat-form-field>
       </td>
@@ -135,11 +140,12 @@
       <!-- buttons -->
       <td class="mat-cell mat-column-actions">
         <ion-buttons>
-          <button type="button" mat-icon-button [tabindex]="tabindex+10+i*9+7"
+          <button type="button" mat-icon-button
                   *ngIf="last"
                   [disabled]="disabled"
                   [title]="'COMMON.BTN_ADD'|translate"
-                  (click)="addComposition()">
+                  (click)="addComposition()"
+                  [tabindex]="tabindex+999">
             <mat-icon>add</mat-icon>
           </button>
           <button type="button" mat-icon-button
@@ -172,7 +178,7 @@
 
   </table>
 
-  <ion-item lines="none">
+  <ion-item lines="none" class="ion-margin-top ion-no-padding">
     <ion-buttons class="ion-justify-content-between">
       <ng-content select="[packetSaleButtons]"></ng-content>
     </ion-buttons>
