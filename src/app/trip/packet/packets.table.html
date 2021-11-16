@@ -28,152 +28,172 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<table mat-table [dataSource]="dataSource"
-       class="table-packets"
-       matSort
-       matSortDirection="asc"
-       matSortDisableClear
-       [trackBy]="trackByFn">
+<div class="table-container" [class.has-toolbar]="showToolbar">
 
-  <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
-    <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || readOnly">
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                    [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </th>
-    <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || readOnly">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
-                    [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </td>
-  </ng-container>
+  <table mat-table [dataSource]="dataSource"
+         [matSortActive]="defaultSortBy"
+         [matSortDirection]="defaultSortDirection"
+         class="table-packets"
+         matSort
+         matSortDisableClear
+         [trackBy]="trackByFn">
 
-  <!-- id -->
-  <ng-container matColumnDef="id" [sticky]="useSticky">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
-      <app-loading-spinner [loading]="loadingSubject|async">
+    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || readOnly">
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || readOnly">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
+                      [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </td>
+    </ng-container>
+
+    <!-- id -->
+    <ng-container matColumnDef="id" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
         <ion-label>#</ion-label>
-      </app-loading-spinner>
-    </th>
-    <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
-      <ion-text>{{row.currentData.rankOrder}}</ion-text>
-    </td>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
+        <ion-text>{{row.currentData.rankOrder}}</ion-text>
+      </td>
+    </ng-container>
+
+    <!-- parent -->
+    <ng-container matColumnDef="parent">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>PACKET.LIST.PARENT</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+
+        <mat-autocomplete-field *ngIf="inlineEdition else readOnly"
+                                floatLabel="never"
+                                class="min-width-large ion-text-wrap"
+                                [formControl]="row.validator.controls.parent"
+                                [config]="autocompleteFields.parent"
+                                [autofocus]="row.id == -1 && row.editing"
+                                [placeholder]="'PACKET.LIST.PARENT'|translate"
+                                required>
+        </mat-autocomplete-field>
+        <ng-template #readOnly>
+          <ion-label>{{row.currentData.parent | referentialToString: autocompleteFields.parent.attributes}}</ion-label>
+        </ng-template>
+      </td>
+    </ng-container>
+
+    <!-- number -->
+    <ng-container matColumnDef="number">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>PACKET.LIST.NUMBER</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-label>{{row.currentData.number}}</mat-label>
+      </td>
+    </ng-container>
+
+    <!-- weight -->
+    <ng-container matColumnDef="weight">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>PACKET.LIST.WEIGHT</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-label>{{row.currentData.weight}}</mat-label>
+      </td>
+    </ng-container>
+
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
+      <th mat-header-cell *matHeaderCellDef >
+        <span class="ion-float-end">
+        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+          </span>
+      </th>
+      <td mat-cell *matCellDef="let row">
+
+        <!-- composition always visible -->
+        <button mat-icon-button color="light"
+                [title]="getComposition(row)"
+                (click)="openComposition($event, row)"
+                [hidden]="!inlineEdition">
+          <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
+                    [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
+                    matBadgeColor="accent"
+                    matBadgeSize="small"
+                    matBadgePosition="above after">pie_chart
+          </mat-icon>
+        </button>
+
+        <!-- undo or delete  -->
+        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="cancelOrDelete($event, row)"
+                [hidden]="!inlineEdition">
+          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+        </button>
+        <!-- validate -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+                [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)"
+                [hidden]="!inlineEdition">
+          <mat-icon>check</mat-icon>
+        </button>
+        <!-- add -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
+                [title]="'COMMON.BTN_ADD'|translate"
+                (click)="confirmAndAdd($event, row)"
+                [hidden]="!inlineEdition">
+          <mat-icon>add</mat-icon>
+        </button>
+
+        <!-- packet sale -->
+        <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
+                [title]="'PACKET.LIST.PACKET_SALE'|translate"
+                (click)="openPacketSale($event, row)">
+          <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.composition && (row.currentData.saleProducts.length / row.currentData.composition.length).toString()"
+                    [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length || !row.currentData.composition || !row.currentData.composition.length"
+                    matBadgeColor="accent"
+                    matBadgeSize="small"
+                    matBadgePosition="above after">local_offer
+          </mat-icon>
+        </button>
+
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        class="mat-row-disabled"
+        [class.mat-row-error]="row.validator.invalid"
+        [class.mat-row-disabled]="!row.editing"
+        [class.mat-row-dirty]="row.validator.dirty"
+        (click)="clickRow($event, row)"></tr>
+  </table>
+
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
   </ng-container>
 
-  <!-- parent -->
-  <ng-container matColumnDef="parent">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>PACKET.LIST.PARENT</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+    </ion-item>
+  </ng-template>
+</div>
 
-      <mat-autocomplete-field *ngIf="inlineEdition else readOnly"
-                              floatLabel="never" class="min-width-large ion-text-wrap"
-                              [autofocus]="row.id == -1 && row.editing"
-                              [formControl]="row.validator.controls.parent"
-                              [placeholder]="'PACKET.LIST.PARENT'|translate"
-                              [required]="true"
-                              [readonly]="!inlineEdition || !row.editing"
-                              [config]="autocompleteFields.parent">
-      </mat-autocomplete-field>
-      <ng-template #readOnly>
-        <ion-label>{{row.currentData.parent.metier.label}} - {{row.currentData.parent.metier.name}}</ion-label>
-      </ng-template>
-    </td>
-  </ng-container>
-
-  <!-- rankOrder (used for label) -->
-  <ng-container matColumnDef="rankOrder">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>PACKET.LIST.LABEL</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <mat-label>{{'PACKET.LIST.LABEL_VALUE' | translate : {rankOrder: row.currentData.rankOrder} }}</mat-label>
-    </td>
-  </ng-container>
-
-  <!-- number -->
-  <ng-container matColumnDef="number">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>PACKET.LIST.NUMBER</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <mat-label>{{row.currentData.number}}</mat-label>
-    </td>
-  </ng-container>
-
-  <!-- weight -->
-  <ng-container matColumnDef="weight">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>PACKET.LIST.WEIGHT</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <mat-label>{{row.currentData.weight}}</mat-label>
-    </td>
-  </ng-container>
-
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
-    <th mat-header-cell *matHeaderCellDef>
-      <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-    </th>
-    <td mat-cell *matCellDef="let row">
-
-      <!-- composition always visible -->
-      <button mat-icon-button color="light"
-              [title]="getComposition(row)"
-              (click)="openComposition($event, row)"
-              [hidden]="!inlineEdition">
-        <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
-                  [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">pie_chart
-        </mat-icon>
-      </button>
-
-      <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)"
-              [hidden]="!inlineEdition">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-      </button>
-      <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-              [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)"
-              [hidden]="!inlineEdition">
-        <mat-icon>check</mat-icon>
-      </button>
-      <!-- add -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-              [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAdd($event, row)"
-              [hidden]="!inlineEdition">
-        <mat-icon>add</mat-icon>
-      </button>
-
-      <!-- packet sale -->
-      <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
-              [title]="'PACKET.LIST.PACKET_SALE'|translate"
-              (click)="openPacketSale($event, row)">
-        <mat-icon [matBadge]="row.currentData.saleProducts && row.currentData.composition && (row.currentData.saleProducts.length / row.currentData.composition.length).toString()"
-                  [matBadgeHidden]="!row.currentData.saleProducts || !row.currentData.saleProducts.length || !row.currentData.composition || !row.currentData.composition.length"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">local_offer
-        </mat-icon>
-      </button>
-
-    </td>
-  </ng-container>
-
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-      class="mat-row-disabled"
-      (click)="clickRow($event, row)"></tr>
-</table>
+<ng-template #addRowButton>
+  <span *ngIf="!mobile && enabled">&nbsp;
+    <ion-button color="medium"
+                (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </span>
+</ng-template>

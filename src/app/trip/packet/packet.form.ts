@@ -6,6 +6,7 @@ import {Moment} from 'moment';
 import {PacketValidatorService} from '../services/validator/packet.validator';
 import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { BehaviorSubject } from 'rxjs';
 
 
 @Component({
@@ -22,8 +23,12 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   compositionHelper: FormArrayHelper<PacketComposition>;
   compositionFocusIndex = -1;
   packetIndexes = PacketIndexes;
+  compositionEditedIndex: number;
+  $packetCount = new BehaviorSubject<number>(undefined);
+  $packetIndexes = new BehaviorSubject<number[]>(undefined);
 
   @Input() mobile: boolean;
+  @Input() showParent: boolean;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
 
@@ -44,7 +49,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   }
 
   get packetCount() {
-    return this.form.controls.number.value
+    return this.$packetCount.value;
   }
 
   get value(): any {
@@ -87,19 +92,19 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
     this.usageMode = this.usageMode || this.settings.usageMode;
 
-    if (this.mobile) {
+    if (this.showParent) {
       this.registerAutocompleteField('parent', {
         items: this.parents,
         attributes: this.parentAttributes,
         columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
         columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
-        mobile: this.settings.mobile
+        mobile: this.mobile
       });
     }
 
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value, options) => this.suggestTaxonGroups(value, options),
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
   }
@@ -117,18 +122,23 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     if (!data) return;
 
     data.composition = data.composition && data.composition.length ? data.composition : [null];
-    this.compositionHelper.resize(Math.max(1, data.composition.length));
+    this.compositionHelper.resize(Math.min(Math.max(1, data.composition.length), 6));
 
 
     super.setValue(data, opts);
 
+    this.$packetCount.next(this.compositionHelper.size());
+    this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
     this.computeSampledRatios();
     this.computeTaxonGroupWeight();
 
-    this.registerSubscription(this.form.controls.number.valueChanges.subscribe(() => {
-      this.computeTotalWeight();
-      this.computeTaxonGroupWeight();
-    }));
+    this.registerSubscription(this.form.controls.number.valueChanges
+      .subscribe((packetCount) => {
+        this.$packetCount.next(Math.max(1, Math.min(6, packetCount||0)));
+        this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
+        this.computeTotalWeight();
+        this.computeTaxonGroupWeight();
+      }));
 
     PacketIndexes.forEach(index => {
       this.registerSubscription(this.form.controls['sampledWeight' + index].valueChanges.subscribe(() => {
@@ -229,6 +239,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.compositionHelper.add();
     if (!this.mobile) {
       this.compositionFocusIndex = this.compositionHelper.size() - 1;
+      this.compositionEditedIndex = this.compositionHelper.size() - 1;
+      this.markForCheck();
+      setTimeout(() => {
+        this.compositionFocusIndex = undefined
+      }, 500);
     }
   }
 

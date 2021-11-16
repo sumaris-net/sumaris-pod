@@ -26,8 +26,9 @@
 </mat-menu>
 
 
-<ion-content class="ion-padding">
+<ion-content class="ion-no-padding">
   <app-packet-form #packetForm
+                   [showParent]="mobile"
                    [mobile]="mobile"
                    [parents]="parents"
                    [parentAttributes]="parentAttributes">

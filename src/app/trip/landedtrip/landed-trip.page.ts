@@ -67,6 +67,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   showCatchTab = false;
   showSaleTab = false;
   showExpenseTab = false;
+  showCatchFilter = false;
   mobile = false;
 
   // List of trip's metier, used to populate operation group's metier combobox
@@ -113,6 +114,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       });
 
     this.mobile = platform.mobile;
+    this.showCatchFilter = !this.mobile;
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }

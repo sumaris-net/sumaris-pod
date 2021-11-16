@@ -1,21 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString} from '@sumaris-net/ngx-components';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {ProductValidatorService} from '../services/validator/product.validator';
-import {IWithProductsEntity, Product, ProductFilter} from '../services/model/product.model';
-import {Platform} from '@ionic/angular';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject} from 'rxjs';
-import {TableElement} from '@e-is/ngx-material-table';
-import {ProductSaleModal} from '../sale/product-sale.modal';
-import {SaleProductUtils} from '../services/model/sale-product.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {SamplesModal} from '../sample/samples.modal';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {OperationGroup} from '@app/trip/services/model/trip.model';
-import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
-import {ProductModal} from '@app/trip/product/product.modal';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { ProductSaleModal } from '../sale/product-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { environment } from '@environments/environment';
+import { SamplesModal } from '../sample/samples.modal';
+import { ProductModal } from '@app/trip/product/product.modal';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -105,6 +102,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
+    this.defaultSortBy = 'id'
+    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

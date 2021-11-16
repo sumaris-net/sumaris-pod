@@ -155,8 +155,9 @@
         <app-physicalgears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
                                  [showToolbar]="!mobile"
-                                 [debug]="debug"
-                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
+                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)"
+                                 [useSticky]="!mobile"
+                                 [debug]="debug">
         </app-physicalgears-table>
 
       </div>

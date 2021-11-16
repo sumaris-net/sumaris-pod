@@ -1,8 +1,82 @@
-.composition {
-//  change this property if more than 6 sampled packets
-  --ion-grid-columns: 12;
+
+.mat-table {
+  --packet-count: 6;
+  --mat-column-taxonGroup: calc(100vw / 3);
+  --mat-column-small-count: calc(var(--packet-count) + 2);
+  --mat-column-actions-width: 82px;
+  --mat-cell-vertical-padding: 4px;
+  --mat-header-background-color: rgba(0,0,0, 0.17);
+  --mat-header-background-color-even: var(--ion-color-medium-tint, grey);
+  --mat-footer-background-color: rgba(0,0,0, 0.07);
+  --mat-footer-background-color-even: var(--ion-color-medium-tint, grey);
+
+  .mat-header-row {
+    //background-color: whitesmoke;
+    text-align: center;
+    ion-label {
+      color: unset;
+    }
+  }
+
+  .mat-header-row {
+    background-color: var(--mat-header-background-color);
+    height: 25px !important;
+
+    .mat-header-cell.even {
+      background-color: var(--mat-header-background-color-even) !important;
+    }
+  }
+
+  .mat-footer-row {
+    background-color: var(--mat-footer-background-color);
+
+    .mat-footer-cell.even {
+      background-color: var(--mat-footer-background-color-even) !important;
+    }
+  }
+
+  .mat-row {
+    &.even {
+      background-color: var(--ion-color-light, whitesmoke) !important;
+      .mat-cell.even {
+        background-color: var(--ion-color-light-shade, grey) !important;
+      }
+    }
+
+    .mat-cell.even {
+      background-color: var(--ion-color-light-tint, whitesmoke) !important;
+    }
+
+  }
+
+  .mat-header-row,
+  .mat-footer-row,
+  .mat-row {
+    height: var(--mat-row-max-height, 48px);
+
+    .mat-header-cell,
+    .mat-footer-cell,
+    .mat-cell {
+      padding-inline-start: var(--mat-cell-vertical-padding, 0) !important;
+      padding-inline-end: var(--mat-cell-vertical-padding, 0) !important;
+    }
+
+    .mat-column-taxonGroup {
+      padding-left: 8px;
+      width: var(--mat-column-taxonGroup);
+    }
+
+    .mat-column-small {
+      width: calc(calc(100vw - var(--mat-column-taxonGroup) - var(--mat-column-actions-width)) / var(--mat-column-small-count));
+    }
+
+    .mat-column-actions {
+      width: var(--mat-column-actions-width) !important;
+    }
+  }
+
+
 }
 
-ion-row.even {
-  background-color: var(--ion-color-light, whitesmoke) !important;
-}
+
+

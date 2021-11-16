@@ -988,9 +988,10 @@
     "LABEL": "Numéro de lot",
     "LABEL_VALUE": "Lot #{{rankOrder}}",
     "NUMBER": "Nombre de paquets",
-    "WEIGHT": "Poids total des paquets calculé (kg)",
-    "SAMPLED_WEIGHTS": "Poids des échantillons (kg)",
+    "WEIGHT": "Poids total des paquets (kg)",
+    "SAMPLED_WEIGHTS": "Poids des échantillons<small><br/>(kg)</small>",
     "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
+    "TAXON_GROUP_SAMPLED_WEIGHT": "Poids total de l'espèce<small><br/>(kg)</small>",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
       "RANK_ORDER": "Numéro de lot",
@@ -1003,8 +1004,11 @@
       "PACKET_SALE": "Ventes"
     },
     "COMPOSITION": {
+      "SAMPLED_PACKETS": "Paquets échantillonnés",
+      "PACKETS_WEIGHT_DOTS": "Poids (kg) :",
       "TITLE": "Composition du Lot #{{rankOrder}}",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
+      "TOTAL_PCT_DOTS": "Totaux (%) :",
       "RATIO": "#{{rankOrder}} %",
       "WEIGHT": "Poids (kg)",
       "BTN_SALE": "Saisir les ventes",

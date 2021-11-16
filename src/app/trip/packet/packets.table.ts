@@ -1,31 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {
-  Alerts,
-  AppTable,
-  EntitiesTableDataSource,
-  InMemoryEntitiesService,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-} from '@sumaris-net/ngx-components';
-import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from '../services/model/packet.model';
-import {PacketValidatorService} from '../services/validator/packet.validator';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {BehaviorSubject} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from '../services/model/packet.model';
+import { PacketValidatorService } from '../services/validator/packet.validator';
+import { ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PacketModal, PacketModalOptions } from './packet.modal';
-import {PacketSaleModal} from '../sale/packet-sale.modal';
-import {SaleProductUtils} from '../services/model/sale-product.model';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Product} from '@app/trip/services/model/product.model';
+import { PacketSaleModal } from '../sale/packet-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-packets-table',
@@ -48,7 +36,6 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   @Input() showToolbar = true;
   @Input() useSticky = false;
-  @Input() mobile: boolean;
 
   @Input() set parentFilter(packetFilter: PacketFilter) {
     this.setFilter(packetFilter);
@@ -101,7 +88,6 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       RESERVED_START_COLUMNS
         .concat([
           'parent',
-          'rankOrder',
           'number',
           'weight'
         ])

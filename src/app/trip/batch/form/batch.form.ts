@@ -424,7 +424,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Wait ngAfterViewInit()
     await this.waitViewInit();
 
-
     // Add pmfms to form
     const measFormGroup = form.get('measurementValues') as FormGroup;
     if (measFormGroup) {
