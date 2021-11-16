@@ -76,6 +76,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         }
 
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true); // Avoid duplicated entries (because of join)
             ParameterExpression<Collection> userProfileParam = criteriaBuilder.parameter(Collection.class, USER_PROFILES_PARAMETER);
             ParameterExpression<Boolean> userProfileSetParam = criteriaBuilder.parameter(Boolean.class, USER_PROFILES_SET_PARAMETER);
             return criteriaBuilder.or(
