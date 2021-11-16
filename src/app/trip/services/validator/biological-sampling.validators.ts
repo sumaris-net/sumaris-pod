@@ -33,7 +33,12 @@ export class BiologicalSamplingValidators {
       }
       const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
-      const exactTagIdLength = measValues[PmfmIds.TAG_ID].length === 4;
+      let exactTagIdLength;
+      if (measValues[PmfmIds.TAG_ID]) {
+        exactTagIdLength = measValues[PmfmIds.TAG_ID]?.length === 0 || measValues[PmfmIds.TAG_ID]?.length === 4;
+      } else {
+        exactTagIdLength = true;
+      }
 
       if (!exactTagIdLength) {
         return { tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH' };
