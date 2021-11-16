@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
@@ -114,6 +115,15 @@ public class VesselRegistrationPeriodRepositoryImpl
                 target.setRegistrationLocation(null);
             } else {
                 target.setRegistrationLocation(getReference(Location.class, source.getRegistrationLocation().getId()));
+            }
+        }
+
+        // Vessel
+        if (copyIfNull || source.getVessel() != null) {
+            if (source.getVessel() == null || source.getVessel().getId() == null) {
+                target.setVessel(null);
+            } else {
+                target.setVessel(getReference(Vessel.class, source.getVessel().getId()));
             }
         }
 
