@@ -288,11 +288,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     ]);
 
     this.appliedPeriodsForm.setAsyncValidators([
-      async (control) => {
+      async (control: FormArray) => {
         const minLength = 1;
-        const appliedPeriods = control.value;
+        const appliedPeriods = control.controls;
         if (!isEmptyArray(appliedPeriods)) {
-          const values = appliedPeriods.filter(appliedPeriod => toNumber(appliedPeriod.acquisitionNumber, 0) >= 1);
+          const values = appliedPeriods.filter(appliedPeriod => toNumber(appliedPeriod.value.acquisitionNumber, 0) >= 1);
           if (!isEmptyArray(values) && values.length >= minLength) {
             SharedValidators.clearError(control, 'minLength');
             return null;
@@ -311,12 +311,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return quarterEffort && quarterEffort.hasRealizedEffort && (isNil(period.acquisitionNumber) || period.acquisitionNumber < 0);
           }).map(period => period.startDate.quarter());
         if (isNotEmptyArray(invalidQuarters)) {
+          console.info("invalidQuarters: ", invalidQuarters)
           return <ValidationErrors>{ hasRealizedEffort: { quarters: invalidQuarters } };
         }
         SharedValidators.clearError(control, 'hasRealizedEffort');
         return null;
       }
     ]);
+
+    this.appliedPeriodsForm.setErrors({ minLength: true });
 
     const pmfmValidator: AsyncValidatorFn = (_) => this.validatePmfmsForm();
     this.pmfmsForm.setAsyncValidators(pmfmValidator);
