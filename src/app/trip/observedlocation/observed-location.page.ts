@@ -17,9 +17,10 @@ import {
   isNotNil,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils, StatusIds,
+  ReferentialUtils,
+  StatusIds,
   toBoolean,
-  UsageMode, waitIdle,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
@@ -37,8 +38,6 @@ import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { waitForAsync } from '@angular/core/testing';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 const moment = momentImported;
 
@@ -49,6 +48,8 @@ const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
 };
+
+type ObservedVesselsTableType = 'LANDINGS' | 'AGGREGATED_LANDINGS';
 
 @Component({
   selector: 'app-observed-location-page',
@@ -68,7 +69,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   mobile: boolean;
   showLandingTab = false;
-  aggregatedLandings: boolean;
+  observedVesselsTableType = new BehaviorSubject<ObservedVesselsTableType>(undefined);
   allowAddNewVessel: boolean;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
@@ -300,8 +301,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-    this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-    if (this.aggregatedLandings) {
+    const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+    this.observedVesselsTableType.next(aggregatedLandings ? 'AGGREGATED_LANDINGS' : 'LANDINGS')
+    if (aggregatedLandings) {
       // Force some date properties
       this.observedLocationForm.showEndDateTime = true;
       this.observedLocationForm.showStartTime = false;
