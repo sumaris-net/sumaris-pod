@@ -35,6 +35,12 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'integer',
     defaultValue: 0
   },
+  VESSEL_FILTER_SEARCH_REGISTRATION_CODE_AS_PREFIX: <FormFieldDefinition>{
+    key: 'sumaris.persistence.vessel.registrationCode.searchAsPrefix',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.REGISTRATION_CODE_SEARCH_AS_PREFIX',
+    type: 'boolean',
+    defaultValue: true
+  },
   VESSEL_BASE_PORT_LOCATION_VISIBLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.field.showBasePortLocation',
     label: 'CONFIGURATION.OPTIONS.VESSEL.BASE_PORT_LOCATION_VISIBLE',

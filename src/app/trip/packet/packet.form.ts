@@ -43,6 +43,10 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     return this.form.controls.composition as FormArray;
   }
 
+  get packetCount() {
+    return this.form.controls.number.value
+  }
+
   get value(): any {
     const json = this.form.value;
 
@@ -88,12 +92,14 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         items: this.parents,
         attributes: this.parentAttributes,
         columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined))
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
+        mobile: this.settings.mobile
       });
     }
 
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value, options) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value, options) => this.suggestTaxonGroups(value, options),
+      mobile: this.settings.mobile
     });
 
   }

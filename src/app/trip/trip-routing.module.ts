@@ -2,7 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {OperationPage} from './operation/operation.page';
 import {LandingPage} from "./landing/landing.page";
-import {SharedRoutingModule} from "@sumaris-net/ngx-components";
+import { ComponentDirtyGuard, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import {TripTable} from "./trip/trips.table";
 import {TripPage} from "./trip/trip.page";
 import {TripModule} from "./trip.module";
@@ -25,7 +25,8 @@ const routes: Routes = [
         path: '',
         pathMatch: 'full',
         component: TripPage,
-        runGuardsAndResolvers: 'pathParamsChange'
+        runGuardsAndResolvers: 'pathParamsChange',
+        canDeactivate: [ComponentDirtyGuard]
       },
       {
         path: 'operation/:operationId',
@@ -38,7 +39,8 @@ const routes: Routes = [
             path: '',
             pathMatch: 'full',
             component: OperationPage,
-            runGuardsAndResolvers: 'pathParamsChange'
+            runGuardsAndResolvers: 'pathParamsChange',
+            canDeactivate: [ComponentDirtyGuard]
           }
         ]
       }

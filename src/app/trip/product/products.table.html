@@ -51,13 +51,17 @@
   </ng-container>
 
   <!-- id -->
-  <ng-container matColumnDef="id" [sticky]="useSticky && !showIdColumn">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!showIdColumn">
+  <ng-container matColumnDef="id" [sticky]="useSticky && !showIdColumn && !mobile">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header
+        [class.cdk-visually-hidden]="!showIdColumn"
+        [class.ion-padding-start]="mobile">
       <app-loading-spinner [loading]="loadingSubject|async">
         <ion-label>#</ion-label>
       </app-loading-spinner>
     </th>
-    <td mat-cell *matCellDef="let row" [hidden]="readOnly" [class.ion-padding-start]="!showIdColumn">
+    <td mat-cell *matCellDef="let row"
+        [class.cdk-visually-hidden]="!showIdColumn"
+        [class.ion-padding-start]="mobile">
       <ion-text>{{row.currentData.rankOrder}}</ion-text>
     </td>
   </ng-container>
