@@ -22,11 +22,12 @@
     </ion-row>
     <ion-row>
       <!--  empty col for alignment  -->
-      <ion-col size="4">
+      <ion-col size="0" size-md="4" class="ion-no-padding">
+        <!--<ion-label class="ion-float-end" translate>Total:</ion-label>-->
       </ion-col>
 
       <!--  NB packets  -->
-      <ion-col>
+      <ion-col size="6" size-md="4">
         <mat-form-field>
           <input matInput #packetNumber
                  autocomplete="off" type="number"
@@ -40,7 +41,7 @@
       </ion-col>
 
       <!--  weight (computed)  -->
-      <ion-col>
+      <ion-col size="6" size-md="4">
         <mat-form-field class="computed mat-form-field-disabled">
           <input matInput #packetWeight
                  autocomplete="off" type="number"
@@ -86,8 +87,7 @@
         <mat-form-field class="computed mat-form-field-disabled">
           <input matInput
                  autocomplete="off" type="number" readonly
-                 [formControlName]="'sampledRatio'+index"
-          >
+                 [formControlName]="'sampledRatio'+index">
         </mat-form-field>
       </ion-col>
       <ion-col size="1"></ion-col>

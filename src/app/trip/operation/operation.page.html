@@ -11,20 +11,21 @@
 
   <ion-title [innerHTML]="$title|async"></ion-title>
 
-  <ion-button slot="end"
-              *ngIf="!loading"
-              [matMenuTriggerFor]="operationsMenu">
-    <mat-icon slot="start">history</mat-icon>&nbsp;
-    <ion-label translate>TRIP.OPERATION.BTN_HISTORY</ion-label>
-  </ion-button>
+  <ion-buttons slot="end">
+    <!-- history -->
+    <ion-button [disabled]="loading"
+                *ngIf="mobile"
+                [matMenuTriggerFor]="operationsMenu">
+      <mat-icon slot="icon-only">history</mat-icon>
+    </ion-button>
 
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
-
-  <button slot="end" mat-icon-button
-          [matMenuTriggerFor]="optionsMenu"
-          [title]=" 'COMMON.BTN_OPTIONS'|translate">
-    <mat-icon>more_vert</mat-icon>
-  </button>
+    <!-- option menu -->
+    <ion-button
+            [matMenuTriggerFor]="optionsMenu"
+            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Last operations menu -->
