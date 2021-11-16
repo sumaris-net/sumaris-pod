@@ -318,8 +318,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
     ]);
 
-    this.appliedPeriodsForm.setErrors({ minLength: true });
-
     const pmfmValidator: AsyncValidatorFn = (_) => this.validatePmfmsForm();
     this.pmfmsForm.setAsyncValidators(pmfmValidator);
     this.lengthPmfmsForm.setAsyncValidators(pmfmValidator);
