@@ -300,6 +300,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     await super.setProgram(program);
     if (!program) return; // Skip
 
+    try {
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -343,13 +344,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
       aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
-    // Set this observedLocation as parent of the observedVesselTable
-    this.propagateParent(this.observedLocationForm.value);
 
     this.$ready.next(true);
 
     // Listen program, to reload if changes
     this.startListenProgramRemoteChanges(program);
+    }
+    catch (err) {
+      this.setError(err);
+    }
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
