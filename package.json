@@ -9,7 +9,7 @@
     "postinstall": "ngcc",
     "ng": "ng",
     "start": "ng serve",
-    "start.dev": "ng serve --configuration development",
+    "start.dev": "ng serve --configuration development --host 0.0.0.0 --disable-host-check",
     "start.prod": "ng serve  --configuration production",
     "serve.android": "ng run app:ionic-cordova-serve --platform=android",
     "prepare.android": "ionic cordova prepare --platform=android",

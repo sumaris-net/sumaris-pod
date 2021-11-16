@@ -418,7 +418,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async setValue(data: ObservedLocation) {
     console.info('[observed-location] Setting data', data);
 
-    await this.ready();
+    if (!this.isNewData) {
+      // Wait ready only on existing data (must not wait table because program is not set yet)
+      await this.ready();
+    }
 
     // Set data to form
     this.observedLocationForm.value = data;
