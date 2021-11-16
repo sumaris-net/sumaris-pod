@@ -269,7 +269,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * @param data
    * @param opts
    */
-  private async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+  protected async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
     this.applyingValue = true;
 
     try {
@@ -315,7 +315,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // If a program has been filled, always keep it
     const program = this.programControl?.value;
-    if (program) {
+    if (program?.label) {
       data.program = program;
     }
 

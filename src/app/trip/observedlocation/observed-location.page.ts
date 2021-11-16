@@ -413,17 +413,18 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async setValue(data: ObservedLocation) {
-    const dataObject = ObservedLocation.fromObject(data)?.clone();
+    console.info('[observed-location] Setting data', data);
+
+    await this.ready();
 
     // Set data to form
     this.observedLocationForm.value = data;
 
-    console.info('[observed-location] Setting data', dataObject);
-
-    this.propagateParent(dataObject);
+    this.propagateParent(data);
   }
 
-  protected propagateParent(data: ObservedLocation) {
+  protected propagateParent(data?: ObservedLocation) {
+    data = data || this.data;
     const isNew = isNil(data.id);
     if (!isNew) {
       // Propagate to table parent
