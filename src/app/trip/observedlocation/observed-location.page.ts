@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import * as momentImported from 'moment';
-import { ObservedLocationForm } from './observed-location.form';
-import { ObservedLocationService } from '../services/observed-location.service';
-import { LandingsTable } from '../landing/landings.table';
-import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup } from '@angular/forms';
+import {ObservedLocationForm} from './observed-location.form';
+import {ObservedLocationService} from '../services/observed-location.service';
+import {LandingsTable} from '../landing/landings.table';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
+import {FormGroup} from '@angular/forms';
 import {
+  AccountService,
   Alerts,
   AppTable,
   ConfigService,
@@ -17,28 +18,27 @@ import {
   isNotNil,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils, StatusIds,
+  ReferentialUtils,
+  StatusIds,
   toBoolean,
-  UsageMode, waitIdle,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import { ModalController } from '@ionic/angular';
-import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { Landing } from '../services/model/landing.model';
-import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject } from 'rxjs';
-import { filter, first, tap } from 'rxjs/operators';
-import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
-import { Program } from '@app/referential/services/model/program.model';
-import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
-import { environment } from '@environments/environment';
-import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
-import { LandingFilter } from '../services/filter/landing.filter';
-import { ContextService } from '@app/shared/context.service';
-import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { waitForAsync } from '@angular/core/testing';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import {ModalController} from '@ionic/angular';
+import {SelectVesselsModal, SelectVesselsModalOptions} from './vessels/select-vessel.modal';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {Landing} from '../services/model/landing.model';
+import {LandingEditor, ProgramProperties} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {BehaviorSubject} from 'rxjs';
+import {filter, first, tap} from 'rxjs/operators';
+import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
+import {Program} from '@app/referential/services/model/program.model';
+import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
+import {environment} from '@environments/environment';
+import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
+import {LandingFilter} from '../services/filter/landing.filter';
+import {ContextService} from '@app/shared/context.service';
+import {VesselFilter} from '@app/vessel/services/filter/vessel.filter';
 
 const moment = momentImported;
 
@@ -88,6 +88,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected configService: ConfigService,
+    protected accountService: AccountService,
     protected context: ContextService
   ) {
     super(injector,
@@ -349,6 +350,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
+
+      const user = this.accountService.account.asPerson();
+      data.observers.push(user);
 
       console.debug('[observed-location] New entity: set default values...');
 
