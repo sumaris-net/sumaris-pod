@@ -13,8 +13,9 @@ cd ${PROJECT_DIR}
 task=$1
 version=$2
 release_description=$3
-PROJECT_NAME=sumaris-pod
-REPO="sumaris-net/sumaris-pod"
+PROJECT_NAME="sumaris-pod"
+OWNER="sumaris-net"
+REPO="${OWNER}/${PROJECT_NAME}"
 REPO_API_URL=https://api.github.com/repos/$REPO
 REPO_PUBLIC_URL=https://github.com/$REPO
 
@@ -34,15 +35,15 @@ fi
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
     # Get it from user config dir
     GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
-    if [[ "_$GITHUB_TOKEN" != "_" ]]; then
-        GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
-    else
-        echo "ERROR: Unable to find github authentication token file: "
-        echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
-        echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
-        echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
-        exit 1
-    fi
+fi
+if [[ "_$GITHUB_TOKEN" != "_" ]]; then
+    GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
+else
+    echo "ERROR: Unable to find github authentication token file: "
+    echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
+    echo " - [if CI] Add a pipeline variable named 'GITHUB_TOKEN';"
+    echo " - [else] Or copy/paste the token into the file '~/.config/${PROJECT_NAME}/.github'."
+    exit 1
 fi
 
 case "$task" in
@@ -160,7 +161,7 @@ case "$task" in
   *)
     echo "Wrong arguments"
     echo "Usage:"
-    echo " > ./release-to-github.sh del|pre|rel <release_description>"
+    echo " > ./release-to-github.sh del|pre|rel <version> <release_description>"
     echo "With:"
     echo " - del: delete existing release"
     echo " - pre: use for pre-release"

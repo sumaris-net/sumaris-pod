@@ -480,8 +480,23 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
 
     public static String elapsedTime(long timeInMs) {
         long elapsedTime = System.currentTimeMillis() - timeInMs;
+        StringBuilder sb = new StringBuilder();
+        sb.append("in ");
+        if (elapsedTime < 1000) {
+            return sb.append(elapsedTime).append("ms").toString();
+        }
         double seconds = (double) elapsedTime / 1_000;
-        return "in " + seconds + "s";
+        if (seconds < 60) {
+            return sb.append(seconds).append("s").toString();
+        }
+        int minutesFloor = (int) Math.floor(seconds / 60);
+        int secondsFloor = (int) Math.floor(seconds - minutesFloor * 60);
+        int millis = (int) Math.floor((seconds - secondsFloor) * 1_000);
+
+        return sb.append(minutesFloor).append("min ")
+            .append(secondsFloor).append("s ")
+            .append(millis).append("ms")
+            .toString();
     }
 
     public static String checkISODateTimeString(String isoDate) throws SumarisTechnicalException {

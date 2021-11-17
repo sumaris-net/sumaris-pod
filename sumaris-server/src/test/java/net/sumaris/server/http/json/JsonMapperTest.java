@@ -30,7 +30,6 @@ import org.geojson.Feature;
 import org.geojson.FeatureCollection;
 import org.geojson.Point;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

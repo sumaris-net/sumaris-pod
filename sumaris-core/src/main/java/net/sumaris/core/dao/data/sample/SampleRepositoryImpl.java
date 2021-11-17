@@ -40,6 +40,7 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -340,7 +341,7 @@ public class SampleRepositoryImpl
             getEntityManager().clear();
         }
 
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples [OK] in %s ms", operationId, System.currentTimeMillis() - debugTime));
+        if (debugTime != 0L) log.debug("Saving operation {id: {}} samples [OK] in {}", operationId, TimeUtils.printDurationFrom(debugTime));
 
         return samples;
     }

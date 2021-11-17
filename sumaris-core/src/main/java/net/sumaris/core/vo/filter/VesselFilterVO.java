@@ -62,6 +62,10 @@ public class VesselFilterVO implements IRootDataFilter {
 
     private Integer registrationLocationId;
     private Integer basePortLocationId;
+
+    @Builder.Default
+    private Boolean onlyWithRegistration = false;
+
     private DataQualityStatusEnum[] dataQualityStatus; // Not used
 
     public void setDate(Date date) {

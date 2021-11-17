@@ -89,7 +89,7 @@ public class FishingAreaServiceImpl implements FishingAreaService {
     public List<FishingAreaVO> saveAllByFishingTripId(int tripId, List<FishingAreaVO> fishingAreas) {
         OperationGroupVO operationGroup = operationGroupRepository.getMainUndefinedOperationGroup(tripId);
         if (operationGroup == null) {
-            if (fishingAreas == null) {
+            if (fishingAreas == null || CollectionUtils.isEmpty(fishingAreas)) {
                 return null; // Nothing to delete
             }
             throw new SumarisTechnicalException("the main undefined operation was not found, please check the trip's metier");

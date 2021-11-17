@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.10.3-SNAPSHOT</version>
+  <version>1.14.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -52,9 +52,9 @@
     <module>sumaris-core-shared</module>
     <module>sumaris-test-shared</module>
     <module>sumaris-core</module>
-    <module>sumaris-core-importation</module>
-    <module>sumaris-core-extraction</module>
-    <module>sumaris-core-rdf</module>
+    <module>sumaris-importation</module>
+    <module>sumaris-extraction</module>
+    <module>sumaris-rdf</module>
     <module>sumaris-server</module>
   </modules>
 
@@ -108,10 +108,10 @@
     <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
     <opencsv.version>2.4.3</opencsv.version>
 
-    <hibernate.version>5.4.27.Final</hibernate.version>
-    <hibernate-tools.version>5.4.27.Final</hibernate-tools.version>
-    <hibernate-search.version>5.11.8.Final</hibernate-search.version>
-    <hibernate-spatial.version>5.4.27.Final</hibernate-spatial.version>
+    <hibernate.version>5.4.32.Final</hibernate.version>
+    <hibernate-tools.version>5.4.32.Final</hibernate-tools.version>
+    <hibernate-search.version>5.11.9.Final</hibernate-search.version>
+    <hibernate-spatial.version>5.4.32.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <spring.version>5.3.6</spring.version>
     <spring-web.version>5.3.6</spring-web.version>
@@ -124,11 +124,12 @@
     <ehcache.version>3.8.1</ehcache.version>
     <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.20</lombok.version>
-    <xmlquery.version>1.4</xmlquery.version>
+    <xmlquery.version>1.6</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
-    <spring-boot.version>2.4.5</spring-boot.version>
-    <spring-boot-plugin.version>2.4.5</spring-boot-plugin.version>
+    <spring-boot.version>2.4.10</spring-boot.version>
+    <spring-boot-plugin.version>2.4.10</spring-boot-plugin.version>
+    <micrometer.version>1.6.9</micrometer.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.12</reflections.version>
     <rxjava2.version>2.2.21</rxjava2.version>
@@ -222,7 +223,7 @@
     <!-- I18n configuration -->
     <i18n.bundles>fr_FR,en_GB</i18n.bundles>
     <i18n.silent>true</i18n.silent>
-    
+
     <!-- by default, use maven 2 source base dir -->
     <maven.src.dir>${basedir}/src</maven.src.dir>
     <java.main.dir>${maven.src.dir}/main/java</java.main.dir>
@@ -475,6 +476,16 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-test</artifactId>
         <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>1.6.6</version>
       </dependency>
 
       <!-- Cryptography -->
@@ -896,6 +907,10 @@
           <exclusion>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-cmds</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

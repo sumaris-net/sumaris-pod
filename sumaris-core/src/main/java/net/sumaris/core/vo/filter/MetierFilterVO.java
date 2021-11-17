@@ -44,5 +44,6 @@ public class MetierFilterVO extends ReferentialFilterVO {
     private Integer vesselId;
     private String programLabel;
     private Integer excludedTripId; // optional
+    private Integer[] gearIds;
 
 }

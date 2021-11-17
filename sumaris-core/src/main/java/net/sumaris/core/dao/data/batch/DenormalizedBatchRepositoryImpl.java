@@ -56,6 +56,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
@@ -408,9 +409,9 @@ public class DenormalizedBatchRepositoryImpl
     }
 
     protected PmfmVO getPmfm(int pmfmId) {
-        return pmfmRepository.get(pmfmId);
+        return pmfmRepository.findById(pmfmId)
+            .orElseThrow(() -> new DataRetrievalFailureException("Cannot find PMFM with id=" + pmfmId));
     }
-
 
     protected Integer getPmfmMethodId(int pmfmId) {
         PmfmVO pmfm = pmfmRepository.get(pmfmId);

@@ -24,18 +24,19 @@ package net.sumaris.core.dao.administration.user;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,8 +49,7 @@ import java.util.stream.Collectors;
  */
 public interface PersonSpecifications extends ReferentialSpecifications<Person> {
 
-    String USER_PROFILES_PARAMETER = "userProfiles";
-    String USER_PROFILES_SET_PARAMETER = "userProfilesSet";
+    String USER_PROFILE_IDS_PARAMETER = "userProfiles";
     String PUBKEY_PARAMETER = "pubkey";
     String EMAIL_PARAMETER = "email";
     String FIRST_NAME_PARAMETER = "firstName";
@@ -58,7 +58,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
 
     default Specification<Person> hasUserProfileIds(PersonFilterVO filter) {
         // Prepare user profile ids
-        Collection<Integer> userProfileIds;
+        Collection<Integer> userProfileIds = null;
         if (ArrayUtils.isNotEmpty(filter.getUserProfiles())) {
             userProfileIds = Arrays.stream(filter.getUserProfiles())
                 .map(UserProfileEnum::valueOf)
@@ -71,21 +71,20 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         else if (filter.getUserProfileId() != null) {
             userProfileIds = ImmutableList.of(filter.getUserProfileId());
         }
-        else {
-            userProfileIds = null;
-        }
+        if (CollectionUtils.isEmpty(userProfileIds)) return null;
 
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.distinct(true); // Avoid duplicated entries (because of join)
-            ParameterExpression<Collection> userProfileParam = criteriaBuilder.parameter(Collection.class, USER_PROFILES_PARAMETER);
-            ParameterExpression<Boolean> userProfileSetParam = criteriaBuilder.parameter(Boolean.class, USER_PROFILES_SET_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isFalse(userProfileSetParam),
-                criteriaBuilder.in(root.join(Person.Fields.USER_PROFILES, JoinType.LEFT).get(UserProfile.Fields.ID)).value(userProfileParam)
-            );
+
+            // Avoid multiple row
+            query.distinct(true);
+
+            ParameterExpression<Collection> userProfileIdsParam = criteriaBuilder.parameter(Collection.class, USER_PROFILE_IDS_PARAMETER);
+
+            return criteriaBuilder
+                .in(Daos.composePath(root, StringUtils.doting(Person.Fields.USER_PROFILES, UserProfile.Fields.ID)))
+                .value(userProfileIdsParam);
         })
-        .addBind(USER_PROFILES_SET_PARAMETER, CollectionUtils.isNotEmpty(userProfileIds))
-        .addBind(USER_PROFILES_PARAMETER, userProfileIds);
+        .addBind(USER_PROFILE_IDS_PARAMETER, userProfileIds);
     }
 
     default Specification<Person> hasPubkey(String pubkey) {
@@ -97,7 +96,8 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     }
 
     default Specification<Person> hasUsername(String username) {
-        if (username == null) return null;
+        if (StringUtils.isBlank(username)) return null;
+
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, USERNAME_PARAMETER);
             return criteriaBuilder.or(

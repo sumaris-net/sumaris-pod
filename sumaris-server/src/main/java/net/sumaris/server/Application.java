@@ -26,9 +26,6 @@ import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.ApplicationUtils;
 import net.sumaris.core.util.I18nUtil;
@@ -38,44 +35,35 @@ import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.EventListener;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.io.File;
 import java.io.IOException;
 
 @SpringBootApplication(
-        scanBasePackages = {
-                "net.sumaris.core",
-                "net.sumaris.rdf",
-                "net.sumaris.server"
-        },
-        exclude = {
-            LiquibaseAutoConfiguration.class,
-            FreeMarkerAutoConfiguration.class,
-            JsonbAutoConfiguration.class
-        }
+    scanBasePackages = {
+        "net.sumaris.core",
+        "net.sumaris.extraction",
+        "net.sumaris.rdf",
+        "net.sumaris.server"
+    },
+    exclude = {
+        LiquibaseAutoConfiguration.class,
+        FreeMarkerAutoConfiguration.class,
+        JsonbAutoConfiguration.class
+    }
 )
-@EntityScan(basePackages = {
-        "net.sumaris.core.model",
-        "net.sumaris.core.extraction.model",
-})
-@EnableJpaRepositories(basePackages = {
-        "net.sumaris.core.dao",
-        "net.sumaris.rdf.dao",
-        "net.sumaris.core.extraction.dao"
-})
 @EnableEmailTools
-@EnableTransactionManagement
+@EnableWebSocket
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 
@@ -88,7 +76,8 @@ public class Application extends SpringBootServletInitializer {
         SpringApplication.run(Application.class, args);
     }
 
-    @Bean("configuration")
+    @Bean
+    @Primary
     public static SumarisServerConfiguration configuration(ConfigurableEnvironment env) {
         SumarisServerConfiguration.initDefault(env);
         SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();

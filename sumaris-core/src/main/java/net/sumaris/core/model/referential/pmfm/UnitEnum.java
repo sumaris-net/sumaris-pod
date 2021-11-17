@@ -32,6 +32,7 @@ public enum UnitEnum implements Serializable {
 
     NONE(0, "None"),
     MM(1, "mm"),
+    KG(3, "kg"),
     CM(12, "cm");
 
     public static UnitEnum valueOf(final int id) {

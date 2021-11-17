@@ -50,7 +50,8 @@ import java.util.Date;
 @Configuration
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
 @ConditionalOnProperty(
-    name = "spring.cache.enabled",
+    prefix = "spring",
+    name = {"cache.enabled"},
     havingValue = "true",
     matchIfMissing = true
 )
@@ -90,6 +91,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PMFM_HAS_PREFIX = "net.sumaris.core.dao.referential.pmfmHasPrefix";
         String PMFM_HAS_SUFFIX = "net.sumaris.core.dao.referential.pmfmHasSuffix";
         String PMFM_HAS_MATRIX = "net.sumaris.core.dao.referential.pmfmHasMatrix";
+        String PMFM_HAS_PARAMETER_GROUP = "net.sumaris.core.dao.referential.pmfmHasParameterGroup";
         String PMFM_STRATEGIES_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.pmfmStrategiesByFilter";
         String DENORMALIZED_PMFM_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.denormalizedPmfmByFilter";
 
@@ -167,6 +169,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_PREFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_SUFFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_MATRIX, Boolean.class, 600);
+            Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_PARAMETER_GROUP, Boolean.class, 600);
 
             // Taxon name
             Caches.createEternalHeapCache(cacheManager, Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, Integer.class, TaxonNameVO.class, 600);

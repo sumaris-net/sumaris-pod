@@ -63,6 +63,7 @@ import java.util.Set;
 @Slf4j
 public abstract class DatabaseResource implements TestRule {
 
+    public static final String ACTIVE_PROFILE = "test";
     /** Constant <code>HSQLDB_DATASOURCE_TYPE="hsqldb"</code> */
     public static final String HSQLDB_DATASOURCE_TYPE = "hsqldb";
     public static final String ORACLE_DATASOURCE_TYPE = "oracle";
@@ -106,6 +107,10 @@ public abstract class DatabaseResource implements TestRule {
             ((ORACLE_DATASOURCE_TYPE.equals(configFileSuffix) || PGSQL_DATASOURCE_TYPE.equals(configFileSuffix))
             ? configFileSuffix
             : HSQLDB_DATASOURCE_TYPE);
+
+        // Enable profile
+        System.setProperty("spring.config.location", "classpath:/");
+        System.setProperty("spring.profiles.active", ACTIVE_PROFILE + "," + this.datasourcePlatform);
     }
 
     /**

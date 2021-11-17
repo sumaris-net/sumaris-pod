@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="aggregationCreateStationTable">
+
+  <query type="create" temp="false" table="&amp;stationTableName">
+
+    <with alias="TRIP_SUMMARY">
+      <subquery>
+        <subselect alias="TRIP_CODE" type="number">T.TRIP_CODE</subselect>
+        <subselect alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_IDENTIFIER</subselect>
+        <subselect alias="VESSEL_LENGTH_CLASS" type="text"><![CDATA[
+        CASE
+          WHEN (T.VESSEL_LENGTH < 6) THEN '0-6'
+          WHEN (T.VESSEL_LENGTH < 10) THEN '6-10'
+          WHEN (T.VESSEL_LENGTH < 12) THEN '10-12'
+          WHEN (T.VESSEL_LENGTH < 15) THEN '12-15'
+          WHEN (T.VESSEL_LENGTH < 24) THEN '15-24'
+          WHEN (T.VESSEL_LENGTH < 40) THEN '24-40'
+          WHEN (T.VESSEL_LENGTH >= 40) THEN '>=40'
+        END]]></subselect>
+
+        <subselect alias="NUMBER_OF_SETS" type="number">T.NUMBER_OF_SETS</subselect>
+        <subselect alias="FISHING_TIME" type="number">(SELECT SUM(FISHING_TIME) FROM &amp;rawStationTableName WHERE TRIP_CODE=T.TRIP_CODE)</subselect>
+
+        <from alias="T">&amp;rawTripTableName</from>
+
+        <where>1=1</where>
+
+        <where group="vesselFilter" operator="AND">T.VESSEL_IDENTIFIER in (&amp;vesselIds)</where>
+        <where group="tripFilter" operator="AND">T.TRIP_CODE in (&amp;tripCodes)</where>
+      </subquery>
+    </with>
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">UPPER('HH')</select>
+    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">S.YEAR</select>
+    <select alias="PROJECT" type="text">S.PROJECT</select>
+    <select alias="CATCH_REGISTRATION" type="text">S.CATCH_REGISTRATION</select>
+    <select alias="SPECIES_REGISTRATION" type="text">S.SPECIES_REGISTRATION</select>
+    <select alias="VESSEL_LENGTH_CLASS" type="text">T.VESSEL_LENGTH_CLASS</select>
+
+    <!-- time stratification -->
+    <select alias="MONTH" group="month" type="number">CAST(SUBSTR(S.DATE, 6, 2) AS INT)</select>
+    <select alias="QUARTER" group="quarter" type="number">ROUND((CAST(SUBSTR(S.DATE, 6, 2) AS INT) - 1) / 3 + 0.5)</select>
+
+    <!-- space stratification -->
+    <select alias="AREA" group="area" type="text">S.AREA</select>
+    <select alias="STATISTICAL_RECTANGLE" group="rect" type="text">S.STATISTICAL_RECTANGLE</select>
+    <select alias="SQUARE" group="square" type="text">F_TO_SQUARE(S.POS_END_LAT, S.POS_END_LON, 10)</select>
+
+    <!-- gear / metier stratification -->
+    <select alias="NATIONAL_METIER" group="nationalMetier" type="text">S.NATIONAL_METIER</select>
+    <select alias="EU_METIER_LEVEL5" group="euMetierLevel5" type="text">S.EU_METIER_LEVEL5</select>
+    <select alias="EU_METIER_LEVEL6" group="euMetierLevel6" type="text">S.EU_METIER_LEVEL6</select>
+    <select alias="GEAR_TYPE" group="gearType" type="text">S.GEAR_TYPE</select>
+
+    <!-- cumulative effort -->
+    <select alias="VESSEL_COUNT" type="text">COUNT(DISTINCT T.VESSEL_IDENTIFIER)</select>
+    <select alias="FISHING_TIME" type="number">SUM(S.FISHING_TIME)</select>
+    <select alias="STATION_COUNT" type="number">COUNT(DISTINCT S.STATION_NUMBER)</select>
+
+    <select alias="TRIP_COUNT_BY_STATION" type="number">CASE AVG(T.NUMBER_OF_SETS) WHEN 0 THEN AVG(T.NUMBER_OF_SETS) ELSE CAST(COUNT(DISTINCT S.TRIP_CODE) AS DECIMAL) * COUNT(DISTINCT S.STATION_NUMBER) / AVG(T.NUMBER_OF_SETS) END</select>
+    <select alias="TRIP_COUNT_BY_FISHING_TIME" type="number">CASE AVG(T.FISHING_TIME) WHEN 0 THEN AVG(T.FISHING_TIME) ELSE CAST(COUNT(DISTINCT T.TRIP_CODE) AS DECIMAL) * SUM(S.FISHING_TIME) / AVG(T.FISHING_TIME) END</select>
+
+    <!-- for debug on TRIP_COUNT_* computation
+    <select alias="TRIP_COUNT_RAW" type="number">COUNT(DISTINCT S.TRIP_CODE)</select>
+    <select alias="TRIP_AVG_NUMBER_OF_SETS" type="number">AVG(T.NUMBER_OF_SETS)</select>
+    <select alias="TRIP_SUM_FISHING_TIME" type="number">AVG(T.FISHING_TIME)</select> -->
+
+
+    <!-- Hidden field (use min trip/station as identifier) -->
+    <select alias="TRIP_CODES" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
+    <select alias="TRIP_CODES" dbms="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
+    <select alias="STATION_NUMBERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
+    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden">LISTAGG(S.STATION_NUMBER, ',')</select>
+
+    <from alias="S">&amp;rawStationTableName</from>
+    <from join="true">INNER JOIN TRIP_SUMMARY T on T.TRIP_CODE = S.TRIP_CODE</from>
+
+    <where>1=1</where>
+
+    <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL]]></where>
+
+    <where operator="AND" group="programFilter">
+      <in field="S.PROJECT">&amp;progLabels</in>
+    </where>
+    <where group="startDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') >= &startDate]]></where>
+    <where group="endDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') <= &endDate]]></where>
+    <where group="vesselFilter" operator="AND">
+      <in field="S.VESSEL_IDENTIFIER">&amp;vesselIds</in>
+    </where>
+    <where group="tripFilter" operator="AND">
+      <in field="S.TRIP_CODE">&amp;tripCodes</in>
+    </where>
+
+    <groupby>
+      S.SAMPLING_TYPE, S.LANDING_COUNTRY, S.VESSEL_FLAG_COUNTRY, S.YEAR, S.PROJECT,
+      S.CATCH_REGISTRATION, S.SPECIES_REGISTRATION,
+      VESSEL_LENGTH_CLASS
+    </groupby>
+    <groupby group="quarter">QUARTER</groupby>
+    <groupby group="month">MONTH</groupby>
+    <groupby group="area">S.AREA</groupby>
+    <groupby group="rect">S.STATISTICAL_RECTANGLE</groupby>
+    <groupby group="square">SQUARE</groupby>
+    <groupby group="nationalMetier">S.NATIONAL_METIER</groupby>
+    <groupby group="euMetierLevel5">S.EU_METIER_LEVEL5</groupby>
+    <groupby group="euMetierLevel6">S.EU_METIER_LEVEL6</groupby>
+    <groupby group="gearType">S.GEAR_TYPE</groupby>
+
+    <orderby direction="ASC">S.YEAR</orderby>
+    <orderby direction="ASC" group="quarter">QUARTER</orderby>
+    <orderby direction="ASC" group="month">MONTH</orderby>
+    <orderby group="area">S.AREA</orderby>
+    <orderby group="rect">S.STATISTICAL_RECTANGLE</orderby>
+    <orderby group="square">SQUARE</orderby>
+<!--    <orderby direction="ASC">SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, VESSEL_LENGTH, DATE, SQUARE, GEAR_TYPE</orderby>-->
+
+  </query>
+
+</queries>

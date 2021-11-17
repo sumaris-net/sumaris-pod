@@ -33,6 +33,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -539,7 +540,7 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
+            String defaultProgramLabel = ProgramEnum.SIH.getLabel(); //getConfig().getVesselDefaultProgramLabel();
             ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(getReference(Program.class, defaultProgram.getId()));

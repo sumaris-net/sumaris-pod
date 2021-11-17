@@ -1,10 +1,8 @@
-package net.sumaris.server.http.security;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -21,6 +19,8 @@ package net.sumaris.server.http.security;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.server.http.security;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,6 @@ import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.BadCredentialsException;

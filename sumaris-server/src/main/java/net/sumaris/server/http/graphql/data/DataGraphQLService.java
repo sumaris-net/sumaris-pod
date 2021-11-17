@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -21,6 +19,8 @@ package net.sumaris.server.http.graphql.data;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -48,8 +48,9 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.GraphQLUtils;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -65,18 +66,17 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
+@GraphQLApi
 @Transactional
 public class DataGraphQLService {
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private TripService tripService;
@@ -639,7 +639,7 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
         return operationService.findAllByTripId(filter.getTripId(), offset, size, sort,
                 SortDirection.fromString(direction),
-                DataFetchOptions.DEFAULT);
+                OperationFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -647,23 +647,49 @@ public class DataGraphQLService {
         if (CollectionUtils.isNotEmpty(trip.getOperations())) {
             return trip.getOperations();
         }
-        return operationService.findAllByTripId(trip.getId(), DataFetchOptions.DEFAULT);
+        return operationService.findAllByTripId(trip.getId(), OperationFetchOptions.DEFAULT);
+    }
+
+    @GraphQLQuery(name = "operations", description = "Search in operations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<OperationVO> findOperationsByFilter(@GraphQLArgument(name = "filter") OperationFilterVO filter,
+                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                          @GraphQLArgument(name = "sortBy") String sort,
+                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                          @GraphQLEnvironment() ResolutionEnvironment env
+    ) {
+
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkArgument(filter.getTripId() != null || filter.getProgramLabel() != null, "Missing filter.programLabel or filter.tripId");
+
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+        sort = (sort.equals("endPosition") || sort.equals("startPosition") ? "id" : sort);
+
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        return operationService.findAllByFilter(filter,
+                offset, size, sort, sortDirection,
+                getOperationFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
     @Transactional(readOnly = true)
     @IsUser
     public long countOperations(@GraphQLArgument(name = "filter") OperationFilterVO filter) {
-        Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
-        Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
-        return operationService.countByTripId(filter.getTripId());
+        Preconditions.checkNotNull(filter, "Missing filter");
+        Preconditions.checkArgument(filter.getTripId() != null || filter.getProgramLabel() != null, "Missing filter.programLabel or filter.tripId");
+        return operationService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "operation", description = "Get an operation")
     @Transactional(readOnly = true)
     @IsUser
-    public OperationVO getOperation(@GraphQLArgument(name = "id") int id) {
-        return operationService.get(id);
+    public OperationVO getOperation(@GraphQLArgument(name = "id") int id,
+                                    @GraphQLEnvironment() ResolutionEnvironment env) {
+        Set<String> fields = GraphQLUtils.fields(env);
+        return operationService.get(id, getOperationFetchOptions(fields));
     }
 
     @GraphQLMutation(name = "saveOperations", description = "Create or update many operations")
@@ -914,6 +940,7 @@ public class DataGraphQLService {
     @IsUser
     public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
                                 @GraphQLEnvironment ResolutionEnvironment env) {
+        // TODO: rename getTripFetchOptions -> getLandingFetchOptions ?
         final LandingVO result = landingService.get(id, getTripFetchOptions(GraphQLUtils.fields(env)));
 
         // Add additional properties if needed
@@ -997,12 +1024,19 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
             @GraphQLEnvironment ResolutionEnvironment env
     ) {
-        List<AggregatedLandingVO> result = aggregatedLandingService.saveAllByObservedLocationId(filter, aggregatedLandings);
+        List<AggregatedLandingVO> result = aggregatedLandingService.saveAll(filter, aggregatedLandings);
 
         vesselGraphQLService.fillVesselSnapshot(result, GraphQLUtils.fields(env));
 
         return result;
+    }
 
+    @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
+    public void deleteAggregatedLandings(
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
+    ) {
+        aggregatedLandingService.deleteAll(filter, vesselSnapshotIds);
     }
 
     /* -- Measurements -- */
@@ -1233,7 +1267,10 @@ public class DataGraphQLService {
     public Map<Integer, String> getLandingMeasurementsMap(@GraphQLContext LandingVO landing) {
         if (landing.getMeasurementValues() != null) return landing.getMeasurementValues();
         if (landing.getId() == null) return null;
-        return measurementService.getLandingMeasurementsMap(landing.getId());
+        Map<Integer, String> result = new HashMap<>();
+        Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+        Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+        return result;
     }
 
     // Measurement pmfm
@@ -1356,12 +1393,22 @@ public class DataGraphQLService {
     }
 
     protected DataFetchOptions getTripFetchOptions(Set<String> fields) {
-        DataFetchOptions fetchOption = DataFetchOptions.DEFAULT;
-        fetchOption.setWithExpectedSales(
+        return DataFetchOptions.builder()
+            .withExpectedSales(
                 fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
-                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID))
-        );
-        return fetchOption;
+                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID)))
+            .build();
+    }
+
+    protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
+        return OperationFetchOptions.builder()
+                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+                .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
+                .withParentOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.PARENT_OPERATION, IEntity.Fields.ID)))
+                .withChildOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.CHILD_OPERATION, IEntity.Fields.ID)))
+                .build();
     }
 
     /**
@@ -1398,12 +1445,12 @@ public class DataGraphQLService {
     }
 
     protected boolean canUserAccessNotSelfData() {
-        String minRole = config.getAccessNotSelfDataMinRole();
+        String minRole = configuration.getAccessNotSelfDataMinRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 

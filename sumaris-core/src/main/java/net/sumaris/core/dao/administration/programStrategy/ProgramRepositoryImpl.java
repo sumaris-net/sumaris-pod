@@ -147,12 +147,6 @@ public class ProgramRepositoryImpl
         target.setGearClassificationId(source.getGearClassification() != null ? source.getGearClassification().getId() : null);
         target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
 
-        // Location classifications (only IDs)
-        if (fetchOptions != null && fetchOptions.isWithLocationClassifications()) {
-            if (copyIfNull || source.getLocationClassifications() != null) {
-                target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
-            }
-        }
 
         // locations
         if (fetchOptions != null && fetchOptions.isWithLocations()) {
@@ -160,17 +154,21 @@ public class ProgramRepositoryImpl
                 Beans.getStream(source.getLocationClassifications())
                     .map(referentialDao::toVO)
                     .collect(Collectors.toList()));
-
-            target.setLocationClassificationIds(
-                Beans.getStream(target.getLocationClassifications())
-                    .map(ReferentialVO::getId)
-                    .collect(Collectors.toList()));
-
             target.setLocations(
                 Beans.getStream(source.getLocations())
                     .map(referentialDao::toVO)
                     .collect(Collectors.toList()));
+
+            target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
+            target.setLocationIds(Beans.collectIds(source.getLocations()));
         }
+        // Location classifications (only IDs)
+        else if (fetchOptions != null && fetchOptions.isWithLocationClassifications()) {
+            if (copyIfNull || source.getLocationClassifications() != null) {
+                target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
+            }
+        }
+
 
         // strategies
         if (fetchOptions != null && fetchOptions.isWithStrategies()) {

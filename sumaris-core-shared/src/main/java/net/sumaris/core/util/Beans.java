@@ -37,6 +37,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
@@ -361,7 +362,14 @@ public class Beans {
     }
 
     public static <E> List<E> filterCollection(Collection<E> collection, Predicate<E> predicate) {
-        return collection.stream().filter(predicate).collect(Collectors.toList());
+        return getList(collection).stream().filter(predicate).collect(Collectors.toList());
+    }
+
+    public static <K, V> Map<K, V> filterMap(Map<K, V> map, Predicate<K> predicate) {
+        return getMap(map).entrySet()
+            .stream()
+            .filter(entry -> predicate.test(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> function) {
@@ -377,7 +385,7 @@ public class Beans {
 
     public static <T> Comparator<T> naturalComparator(final String sortAttribute, final SortDirection sortDirection) {
         if (sortAttribute == null) {
-            return naturalComparator("id", sortDirection);
+            return Comparator.comparingInt((value) -> getProperty(value, "id"));
         }
 
         final Comparator<String> propertyComparator = ComparatorUtils.naturalComparator();
@@ -459,18 +467,7 @@ public class Beans {
 
         return Arrays.stream(bean.getClass().getDeclaredFields())
             .filter(field -> !ArrayUtils.contains(ignoredAttributes, field.getName()))
-            .allMatch(field -> {
-                Object property = getProperty(bean, field.getName());
-                if (property == null)
-                    return true;
-                if (property.getClass().isArray()) {
-                    return ArrayUtils.isEmpty((Object[]) property);
-                }
-                if (property instanceof Collection)
-                    return CollectionUtils.isEmpty((Collection<?>) property);
-                log.warn(String.format("Unable to determinate if %s is null", property));
-                return false;
-            });
+            .allMatch(field -> ObjectUtils.isEmpty((Object) getProperty(bean, field.getName())));
     }
 
     /**

@@ -64,6 +64,14 @@ public class OperationVO implements IDataVO<Integer> {
     private PhysicalGearVO physicalGear;
     private Integer physicalGearId;
 
+    @ToString.Exclude
+    private OperationVO parentOperation;
+    private Integer parentOperationId;
+
+    @ToString.Exclude
+    private OperationVO childOperation;
+    private Integer childOperationId;
+
     private List<VesselPositionVO> positions;
 
     private List<MeasurementVO> measurements;

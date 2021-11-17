@@ -61,10 +61,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nullable;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -72,7 +70,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TripServiceImpl implements TripService {
 
-    private final SumarisConfiguration configuration;
     private final TripRepository tripRepository;
     private final SaleService saleService;
     private final ExpectedSaleService expectedSaleService;
@@ -89,12 +86,11 @@ public class TripServiceImpl implements TripService {
     private final VesselService vesselService;
     private boolean enableTrash = false;
 
-    public TripServiceImpl(MeasurementDao measurementDao, SumarisConfiguration configuration, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
+    public TripServiceImpl(MeasurementDao measurementDao, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
                            OperationService operationService, OperationGroupService operationGroupService, PhysicalGearService physicalGearService, ApplicationEventPublisher publisher,
                            FishingAreaService fishingAreaService, PmfmService pmfmService, VesselService vesselService, LandingRepository landingRepository,
                            ObservedLocationRepository observedLocationRepository, ReferentialService referentialService) {
         this.measurementDao = measurementDao;
-        this.configuration = configuration;
         this.tripRepository = tripRepository;
         this.saleService = saleService;
         this.expectedSaleService = expectedSaleService;
@@ -122,7 +118,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> findAll(TripFilterVO filter, Page page, DataFetchOptions fieldOptions) {
+    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, DataFetchOptions fieldOptions) {
         return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
     }
 
@@ -161,7 +157,13 @@ public class TripServiceImpl implements TripService {
 
             // Operations
             else {
-                target.setOperations(operationService.findAllByTripId(id, fetchOptions));
+                OperationFetchOptions operationFetchOptions = OperationFetchOptions.builder()
+                        .withObservers(fetchOptions.isWithObservers())
+                        .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                        .withRecorderPerson(fetchOptions.isWithRecorderPerson())
+                        .build();
+
+                target.setOperations(operationService.findAllByTripId(id, operationFetchOptions));
             }
 
         }
@@ -225,7 +227,7 @@ public class TripServiceImpl implements TripService {
     public TripVO save(final TripVO source, TripSaveOptions options) {
         checkCanSave(source);
 
-        // Init save options with default values if not provided
+        // Create a options clone (to be able to edit it)
         options = TripSaveOptions.defaultIfEmpty(options);
         final boolean withOperationGroup = options.getWithOperationGroup();
         final boolean withExpectedSales = options.getWithExpectedSales();
@@ -239,6 +241,11 @@ public class TripServiceImpl implements TripService {
         if (!isNew) {
             operationGroupService.updateUndefinedOperationDates(source.getId(), source.getDepartureDateTime(), source.getReturnDateTime());
         }
+
+
+        // Keep source parent information
+        options.setLandingId(source.getLandingId());
+        options.setObservedLocationId(source.getObservedLocationId());
 
         // Save
         TripVO target = tripRepository.save(source);
@@ -261,23 +268,23 @@ public class TripServiceImpl implements TripService {
             List<MetierVO> metiers = operationGroupService.saveMetiersByTripId(target.getId(), source.getMetiers());
             target.setMetiers(metiers);
         }
-        else {
-            // Remove all
-          if (!isNew) {
+        // Remove all
+        else if (!isNew) {
             operationGroupService.saveMetiersByTripId(target.getId(), ImmutableList.of());
-          }
         }
 
         // Save fishing area
         if (CollectionUtils.isNotEmpty(source.getFishingAreas())) {
             List<FishingAreaVO> fishingAreas = fishingAreaService.saveAllByFishingTripId(target.getId(), source.getFishingAreas());
             target.setFishingAreas(fishingAreas);
-        } else {
-            // Remove all
-          if (!isNew) {
-            fishingAreaService.saveAllByFishingTripId(target.getId(), ImmutableList.of());
-          }
         }
+        // Remove all
+        else  if (!isNew) {
+            fishingAreaService.saveAllByFishingTripId(target.getId(), ImmutableList.of());
+        }
+
+        // Prepare list of physical Gear to remove after operation Group
+        List<Integer> physicalGearIdsToRemove = new ArrayList<>();
 
         // Save physical gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
@@ -290,14 +297,18 @@ public class TripServiceImpl implements TripService {
             });
 
             // Save
-            List<PhysicalGearVO> gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears());
+            List<PhysicalGearVO> gears;
+            if (withOperationGroup){
+                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears(), physicalGearIdsToRemove);
+            }
+            else {
+                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears());
+            }
             target.setGears(gears);
         }
-        else {
-            // Remove all
-          if (!isNew) {
-            physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
-          }
+        // Remove all
+        else if (!isNew) {
+          physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
 
         // Save operations (only if asked)
@@ -333,7 +344,9 @@ public class TripServiceImpl implements TripService {
             fillDefaultProperties(target, sale);
             List<SaleVO> sales = saleService.saveAllByTripId(target.getId(), ImmutableList.of(sale));
             target.setSale(sales.get(0));
-        } else if (!isNew) { // Remove all
+        }
+        // Remove all
+        else if (!isNew) {
             saleService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
 
@@ -349,9 +362,15 @@ public class TripServiceImpl implements TripService {
                 fillDefaultProperties(target, expectedSale);
                 List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
                 target.setExpectedSale(expectedSales.get(0));
-            } else if (!isNew) { // Remove all
+            }
+            // Remove all
+            else if (!isNew) {
                 expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
             }
+        }
+
+        if (physicalGearIdsToRemove.size() > 0){
+            physicalGearService.delete(physicalGearIdsToRemove);
         }
 
         // Publish event
@@ -518,28 +537,20 @@ public class TripServiceImpl implements TripService {
     }
 
     protected void fillOperationGroupPhysicalGears(List<OperationGroupVO> sources, List<PhysicalGearVO> physicalGears) {
-        Map<Integer, PhysicalGearVO> physicalGearsById = Beans.splitById(physicalGears);
         Multimap<Integer, PhysicalGearVO> physicalGearsByGearId = Beans.splitByNotUniqueProperty(physicalGears, PhysicalGearVO.Fields.GEAR + "." + ReferentialVO.Fields.ID);
 
         // Affect physical gears from savedTrip.getGears, because new oG can have a physicalGear with null id
         sources.forEach(source -> {
-            PhysicalGearVO physicalGear = source.getPhysicalGear();
-            if (physicalGear == null) {
-                if (source.getPhysicalGearId() != null) {
-                    physicalGear = physicalGearsById.get(source.getPhysicalGearId());
-                }
-            } else if (physicalGear.getId() == null && physicalGear.getGear() != null && physicalGear.getGear().getId() != null) {
-                // case of new operation group with unsaved physical gear
-                // try to find it with trip's gears
-                Collection<PhysicalGearVO> matches = physicalGearsByGearId.get(physicalGear.getGear().getId());
-                if (CollectionUtils.isNotEmpty(matches)) {
-                    physicalGear = matches.iterator().next();
-                }
+            if (source.getPhysicalGearId() == null && source.getMetier() != null && source.getMetier().getGear() != null) {
+                Collection<PhysicalGearVO> matches = Beans.getList(physicalGearsByGearId.get(source.getMetier().getGear().getId()));
+                matches.stream()
+                    .filter(physicalGearVO -> Objects.equals(physicalGearVO.getRankOrder(), source.getRankOrderOnPeriod()))
+                    .findFirst()
+                    .ifPresent(physicalGearVO -> source.setPhysicalGearId(physicalGearVO.getId()));
             }
 
             // Assert PhysicalGear
-            Preconditions.checkNotNull(physicalGear, "OperationGroup has no valid PhysicalGear");
-            source.setPhysicalGear(physicalGear);
+            Preconditions.checkNotNull(source.getPhysicalGearId(), "OperationGroup has no valid PhysicalGearId");
         });
     }
 
@@ -547,12 +558,11 @@ public class TripServiceImpl implements TripService {
 
         if (options.getWithLanding()) {
             // Landing
-            Preconditions.checkNotNull(trip.getLanding(), "The Landing object must be created first");
-            boolean createLanding = false;
-            if (trip.getLanding().getId() != null) {
+            Integer landingId = Optional.ofNullable(trip.getLandingId()).orElse(options.getLandingId());
+            if (landingId != null) {
 
                 // update update_date on landing
-                LandingVO landing = landingRepository.get(trip.getLanding().getId());
+                LandingVO landing = landingRepository.get(landingId);
 
                 if (landing.getTripId() == null) {
                     landing.setTripId(trip.getId());
@@ -560,23 +570,21 @@ public class TripServiceImpl implements TripService {
                 landing.setDateTime(trip.getReturnDateTime());
                 landing.setObservers(Beans.getSet(trip.getObservers()));
 
-                landingRepository.save(landing);
-
-            } else {
-
-                // a landing have to be created
-                createLanding = true;
-
+                // Don't check update date and don't lock
+                landingRepository.save(landing, false, false);
+                trip.setLandingId(landing.getId());
             }
 
             // ObservedLocation
-            if (trip.getObservedLocationId() != null) {
+            Integer observedLocationId = Optional.ofNullable(trip.getObservedLocationId()).orElse(options.getObservedLocationId());
+            if (observedLocationId != null) {
 
                 // update update_date on observed_location
-                ObservedLocationVO observedLocation = observedLocationRepository.get(trip.getObservedLocationId());
+                ObservedLocationVO observedLocation = observedLocationRepository.get(observedLocationId);
                 observedLocationRepository.save(observedLocation);
+                trip.setObservedLocationId(observedLocation.getId());
 
-                if (createLanding) {
+                if (landingId == null) {
 
                     LandingVO landing = new LandingVO();
 
@@ -592,6 +600,7 @@ public class TripServiceImpl implements TripService {
 
                     LandingVO savedLanding = landingRepository.save(landing);
                     trip.setLanding(savedLanding);
+                    trip.setLandingId(savedLanding.getId());
                 }
 
             }
@@ -604,7 +613,7 @@ public class TripServiceImpl implements TripService {
         if (physicalGear.getId() != null) {
             // Find with id
             operationGroup = operationGroups.stream()
-                .filter(og -> og.getPhysicalGear() != null ? physicalGear.getId().equals(og.getPhysicalGear().getId()) : physicalGear.getId().equals(og.getPhysicalGearId()))
+                .filter(og -> physicalGear.getId().equals(og.getPhysicalGearId()))
                 .findFirst().orElseThrow(() -> new SumarisTechnicalException(String.format("OperationGroup with PhysicalGear#%s not found", physicalGear.getId())));
 
         } else {
@@ -615,9 +624,9 @@ public class TripServiceImpl implements TripService {
 
             // Find with gear and rank order
             operationGroup = operationGroups.stream()
-                .filter(og -> og.getPhysicalGear() != null && og.getPhysicalGear().getGear() != null
-                    && physicalGear.getGear().getId().equals(og.getPhysicalGear().getGear().getId())
-                    && physicalGear.getRankOrder().equals(og.getPhysicalGear().getRankOrder()))
+                .filter(og -> og.getMetier() != null && og.getMetier().getGear() != null
+                    && physicalGear.getGear().getId().equals(og.getMetier().getGear().getId())
+                    && physicalGear.getRankOrder().equals(og.getRankOrderOnPeriod()))
                 .findFirst().orElseThrow(() -> new SumarisTechnicalException(
                     String.format("Operation with PhysicalGear.gear#%s and PhysicalGear.rankOrder#%s not found in OperationGroups",
                         physicalGear.getGear().getId(), physicalGear.getRankOrder()))

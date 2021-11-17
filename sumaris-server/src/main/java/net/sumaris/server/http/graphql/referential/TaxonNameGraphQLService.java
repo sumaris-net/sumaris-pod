@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.referential;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,6 +20,8 @@ package net.sumaris.server.http.graphql.referential;
  * #L%
  */
 
+package net.sumaris.server.http.graphql.referential;
+
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
@@ -36,7 +36,8 @@ import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.*;
-import net.sumaris.server.http.GraphQLUtils;
+import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
+@GraphQLApi
 @Transactional
 @Slf4j
 public class TaxonNameGraphQLService {
@@ -89,7 +91,7 @@ public class TaxonNameGraphQLService {
 
     @GraphQLQuery(name = "taxonNames", description = "Search in taxon names")
     @Transactional(readOnly = true)
-    public List<TaxonNameVO> findTaxonNamesByFilter(
+    public List<TaxonNameVO> findTaxonNames(
             @GraphQLArgument(name = "filter") TaxonNameFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,

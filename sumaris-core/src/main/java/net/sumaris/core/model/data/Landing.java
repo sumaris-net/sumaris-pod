@@ -133,7 +133,11 @@ public class Landing implements IRootDataEntity<Integer>,
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = LandingMeasurement.class, mappedBy = LandingMeasurement.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<LandingMeasurement> measurements = new ArrayList<>();
+    private List<LandingMeasurement> landingMeasurements = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SurveyMeasurement.class, mappedBy = SurveyMeasurement.Fields.LANDING)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<SurveyMeasurement> surveyMeasurements = new ArrayList<>();
 
     /* -- parent -- */
 

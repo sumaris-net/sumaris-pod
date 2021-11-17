@@ -114,5 +114,8 @@ public interface MeasurementService {
     @Transactional(readOnly = true)
     Map<Integer, String> getLandingMeasurementsMap(int landingId);
 
+    @Transactional(readOnly = true)
+    Map<Integer, String> getSurveyMeasurementsMap(int landingId);
+
 
 }

@@ -167,6 +167,8 @@ public class PersonServiceTest extends AbstractServiceTest{
     }
 
     @Test
+    @Ignore
+    // FIXME: find a user without data and right on program
     public void z_delete() {
 
         long userProfileCountBefore = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));

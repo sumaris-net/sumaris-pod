@@ -33,6 +33,7 @@ import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
@@ -163,7 +164,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             List<OperationVO> operations = operationService.findAllByTripId(tripId,
                 offset, pageSize, // Page
                 OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
-                DataFetchOptions.builder()
+                OperationFetchOptions.builder()
                     .withChildrenEntities(false)
                     .withMeasurementValues(false)
                     .build());

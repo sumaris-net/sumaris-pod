@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+
+  <select alias="SUBSTRATE_TYPE" type="text"> <![CDATA[
+  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&substrateTypePmfmId)]]></select>
+
+  <select alias="BOTTOM_TEMP_C" type="number">(SELECT SM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;bottomTempPmfmId)</select>
+
+  <select alias="SEA_STATE" type="text"><![CDATA[
+  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&seaStatePmfmId)]]></select>
+
+  <select alias="SURVIVAL_SAMPLING_TYPE" type="text"><![CDATA[
+  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&survivalSamplingTypePmfmId)]]></select>
+
+  <!-- catch batch-->
+  <select alias="ON_DECK_DATE_TIME" type="date" dbms="hsqldb">(SELECT TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')) FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;onDeckDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+  <select alias="ON_DECK_DATE_TIME" type="date" dbms="oracle,pgsql">(SELECT TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'DD-MM-YYYY HH24:MI:SS') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;onDeckDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+  <select alias="SORTING_START_DATE_TIME" type="date" dbms="hsqldb">(SELECT TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')) FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+  <select alias="SORTING_START_DATE_TIME" type="date" dbms="oracle,pgsql">(SELECT TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'DD-MM-YYYY HH24:MI:SS') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+  <select alias="SORTING_END_DATE_TIME" type="date" dbms="hsqldb">(SELECT TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')) FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingEndDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+  <select alias="SORTING_END_DATE_TIME" type="date" dbms="oracle,pgsql">(SELECT TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'DD-MM-YYYY HH24:MI:SS') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingEndDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+
+  <select alias="LANDING_WEIGHT" type="number">(SELECT SM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;landingWeightPmfmId)</select>
+  <select alias="SAND_STONES_WEIGHT_RANGE" type="text"><![CDATA[
+  (SELECT QV.NAME FROM SORTING_MEASUREMENT_B SM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
+    WHERE
+      SM.BATCH_FK=B.ID and SM.PMFM_FK=&sandStonesWeightRangePmfmId)]]></select>
+  <select alias="BENTHOS_WEIGHT_RANGE" type="text"><![CDATA[
+  (SELECT QV.NAME FROM SORTING_MEASUREMENT_B SM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
+    WHERE
+      SM.BATCH_FK=B.ID and SM.PMFM_FK=&benthosWeightRangePmfmId)]]></select>
+
+
+  <from join="true">LEFT OUTER JOIN BATCH B on B.OPERATION_FK=O.ID AND B.PARENT_BATCH_FK IS NULL</from>
+</query>

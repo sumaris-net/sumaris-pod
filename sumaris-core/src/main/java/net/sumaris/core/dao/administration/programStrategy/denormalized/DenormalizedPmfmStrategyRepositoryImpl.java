@@ -44,6 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -141,7 +142,7 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         target.setType(type.name().toLowerCase());
 
         // Unit symbol
-        if (pmfm.getUnit() != null && pmfm.getUnit().getId() != UnitEnum.NONE.getId()) {
+        if (pmfm.getUnit() != null && !Objects.equals(pmfm.getUnit().getId(), UnitEnum.NONE.getId())) {
             target.setUnitLabel(pmfm.getUnit().getLabel());
         }
 

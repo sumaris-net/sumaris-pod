@@ -32,8 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.nio.charset.Charset;
-
 @Service("serverCryptoService")
 @Slf4j
 public class ServerCryptoServiceImpl extends net.sumaris.core.service.crypto.CryptoServiceImpl implements ServerCryptoService {

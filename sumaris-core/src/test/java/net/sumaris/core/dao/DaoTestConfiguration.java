@@ -43,9 +43,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
                 "net.sumaris.core.test"
         }
 )
-@EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
-@EnableJpaRepositories("net.sumaris.core.dao")
 public class DaoTestConfiguration extends TestConfiguration {
 
 }

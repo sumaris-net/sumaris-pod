@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.technical;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,27 +20,30 @@ package net.sumaris.server.http.graphql.technical;
  * #L%
  */
 
+package net.sumaris.server.http.graphql.technical;
+
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.cache.Caches;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import java.util.Map;
 
-@Service
 @Slf4j
+@Component
+@GraphQLApi
 @ConditionalOnProperty(
-    name = "spring.cache.enabled",
+    prefix = "spring",
+    name = {"cache.enabled"},
     havingValue = "true",
     matchIfMissing = true
 )

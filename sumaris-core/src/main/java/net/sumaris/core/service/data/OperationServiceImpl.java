@@ -24,9 +24,8 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
-import net.sumaris.core.config.SumarisConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.data.operation.OperationRepository;
@@ -53,7 +52,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("operationService")
@@ -78,34 +79,45 @@ public class OperationServiceImpl implements OperationService {
     @Autowired
     protected FishingAreaService fishingAreaService;
 
-	@Autowired
-	private ApplicationEventPublisher publisher;
+    @Autowired
+    private ApplicationEventPublisher publisher;
 
-	private boolean enableTrash = false;
+    private boolean enableTrash = false;
 
-	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-	protected void onConfigurationReady(ConfigurationEvent event) {
-		this.enableTrash = event.getConfiguration().enableEntityTrash();
-	}
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        this.enableTrash = event.getConfiguration().enableEntityTrash();
+    }
 
 
     @Override
-    public List<OperationVO> findAllByTripId(int tripId, @NonNull DataFetchOptions fetchOptions) {
+    public List<OperationVO> findAllByTripId(int tripId, @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAllVO(operationRepository.hasTripId(tripId), fetchOptions);
     }
 
     @Override
     public List<OperationVO> findAllByTripId(int tripId,
                                              int offset, int size, String sortAttribute, SortDirection sortDirection,
-                                             @NonNull DataFetchOptions fetchOptions) {
+                                             @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAllVO(operationRepository.hasTripId(tripId),
-            Pageables.create(offset, size, sortAttribute, sortDirection),
-            fetchOptions).getContent();
+                Pageables.create(offset, size, sortAttribute, sortDirection),
+                fetchOptions).getContent();
+    }
+
+    @Override
+    public List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
+                                             @NonNull OperationFetchOptions fetchOptions) {
+        return operationRepository.findAll(filter != null ? filter : OperationFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
     public Long countByTripId(int tripId) {
         return operationRepository.count(OperationFilterVO.builder().tripId(tripId).build());
+    }
+
+    @Override
+    public Long countByFilter(OperationFilterVO filter) {
+        return operationRepository.count(filter);
     }
 
     @Override
@@ -125,6 +137,11 @@ public class OperationServiceImpl implements OperationService {
     @Override
     public OperationVO get(int operationId) {
         return operationRepository.get(operationId);
+    }
+
+    @Override
+    public OperationVO get(int operationId, OperationFetchOptions o) {
+        return operationRepository.get(operationId, o);
     }
 
 
@@ -152,20 +169,20 @@ public class OperationServiceImpl implements OperationService {
         Preconditions.checkNotNull(operations);
 
         return operations.stream()
-            .map(this::save)
-            .collect(Collectors.toList());
+                .map(this::save)
+                .collect(Collectors.toList());
     }
 
     @Override
     public void delete(int id) {
-		// Construct the event data
-		// (should be done before deletion, to be able to get the VO)
+        // Construct the event data
+        // (should be done before deletion, to be able to get the VO)
         OperationVO eventData = enableTrash ? get(id) : null;
 
-		// Apply deletion
-		operationRepository.deleteById(id);
+        // Apply deletion
+        operationRepository.deleteById(id);
 
-		// Emit the event
+        // Emit the event
 
         EntityDeleteEvent event = new EntityDeleteEvent(id, Operation.class.getSimpleName(), eventData);
         publisher.publishEvent(event);
@@ -175,8 +192,8 @@ public class OperationServiceImpl implements OperationService {
     public void delete(List<Integer> ids) {
         Preconditions.checkNotNull(ids);
         ids.stream()
-            .filter(Objects::nonNull)
-            .forEach(this::delete);
+                .filter(Objects::nonNull)
+                .forEach(this::delete);
     }
 
     /* -- protected methods -- */
@@ -208,7 +225,7 @@ public class OperationServiceImpl implements OperationService {
                 List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
                 measurements.forEach(m -> fillDefaultProperties(source, m, VesselUseMeasurement.class));
 
-				// TODO: dispatch measurement by GEAR/NOT GEAR
+                // TODO: dispatch measurement by GEAR/NOT GEAR
                 measurements = measurementDao.saveOperationVesselUseMeasurements(source.getId(), measurements);
                 source.setMeasurements(measurements);
             }

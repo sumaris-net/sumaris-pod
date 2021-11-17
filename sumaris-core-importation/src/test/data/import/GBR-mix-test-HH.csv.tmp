@@ -1,4 +1,0 @@
-record_type,sampling_type,vessel_flag_country,landing_country,year,project,trip_code,station_number,aggregation_level,catch_registration,species_registration,date,time,fishing_duration,pos_start_lat,pos_start_lon,pos_end_lat,pos_end_lon,area,statistical_rectangle,sub_polygon,main_fishing_depth,main_water_depth,national_metier,eu_metier_level5,eu_metier_level6,gear_type,mesh_size,selection_device,mesh_size_selection_device
-HH,M,BEL,BEL,2012,TEST-BEL,62533,999,T,LAN,PAR,2012-03-20,,,,,,,27.4.c,32F1,,,,,UNK_MZZ,UNK_MZZ_0_0_0,XXX,,,
-HH,M,FRA,FRA,2012,TEST-FRA,62620,999,T,LAN,PAR,2012-01-29,,,,,,,27.7.d,30F0,,,,,UNK_MZZ,UNK_MZZ_0_0_0,XXX,80,,
-HH,M,GBR,GBR,2012,TEST-GRB,62627,999,T,LAN,PAR,2012-01-09,,,,,,,27.4.c,33F1,,,,,UNK_MZZ,UNK_MZZ_0_0_0,XXX,,,

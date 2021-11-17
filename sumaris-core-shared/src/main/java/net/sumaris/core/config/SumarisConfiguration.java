@@ -507,12 +507,12 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>useLiquibaseAutoRun.</p>
+     * <p>isLiquibaseEnabled.</p>
      *
      * @return a boolean.
      */
-    public boolean useLiquibaseAutoRun() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_RUN_AUTO.getKey());
+    public boolean isLiquibaseEnabled() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.LIQUIBASE_ENABLED.getKey());
     }
 
     /**
@@ -765,6 +765,14 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * Is spring cache enabled ?
+     * @return
+     */
+    public boolean enableCache() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.CACHE_ENABLED.getKey());
+    }
+
+    /**
      * <p>getLiquibaseDiffTypes.</p>
      *
      * @return a {@link String} object.
@@ -772,7 +780,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public String getLiquibaseDiffTypes() {
         return applicationConfig.getOption(SumarisConfigurationOption.LIQUIBASE_DIFF_TYPES.getKey());
     }
-
 
     /**
      * Should enable configuration load from DB ?
@@ -906,8 +913,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return LockModeType.valueOf(applicationConfig.getOption(SumarisConfigurationOption.LOCK_MODE_TYPE.getKey()));
     }
 
-    public String getCsvSeparator() {
-        return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey());
+    public char getCsvSeparator() {
+        return applicationConfig.getOption(SumarisConfigurationOption.CSV_SEPARATOR.getKey()).charAt(0);
     }
 
     public boolean enableTechnicalTablesUpdate() {
@@ -926,6 +933,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_UNIQUE_TAG.getKey());
     }
 
+    /**
+     * Prefer ProgramEnum.SIH.getLabel()
+     */
+    @Deprecated
     public String getVesselDefaultProgramLabel() {
         return applicationConfig.getOption(SumarisConfigurationOption.VESSEL_DEFAULT_PROGRAM_LABEL.getKey());
     }
@@ -933,6 +944,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public boolean enableVesselRegistrationCodeNaturalOrder() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.VESSEL_REGISTRATION_CODE_NATURAL_ORDER.getKey());
     }
+
+    public boolean enableVesselRegistrationCodeSearchAsPrefix() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX.getKey());
+    }
+
 
     /**
      * <p>find the ActiveMQ broker URL.</p>

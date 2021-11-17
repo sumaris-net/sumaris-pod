@@ -221,7 +221,7 @@ public class DatabaseFixtures {
 	}
 
 	public Integer getPersonIdNoData() {
-		return getPersonId(2);
+		return getPersonId(4); // Inactive user
 	}
 
 	public Integer getMetierIdForOTB(int index) {

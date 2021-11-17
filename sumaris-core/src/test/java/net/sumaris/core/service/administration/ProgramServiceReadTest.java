@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.junit.Assert;
@@ -65,7 +66,9 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void getByLabel() {
-        ProgramVO program = service.getByLabel("ADAP-MER");
+        ProgramVO program = service.getByLabel("ADAP-MER", ProgramFetchOptions.builder()
+            .withProperties(true)
+            .build());
         Assert.assertNotNull(program);
         Assert.assertNotNull(program.getId());
         Assert.assertEquals(10, program.getId().intValue());
@@ -79,7 +82,16 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         Assert.assertNull(program.getLocations());
         Assert.assertNull(program.getLocationIds());
         Assert.assertNull(program.getLocationClassifications());
-        Assert.assertEquals(1, program.getLocationClassificationIds().size());
+        Assert.assertNull(program.getLocationClassificationIds());
+
+        program = service.getByLabel("ADAP-MER", ProgramFetchOptions.builder()
+            .withLocations(true)
+            .withLocationClassifications(true)
+            .build());
+        Assert.assertNotNull(program.getLocations());
+        Assert.assertNotNull(program.getLocationIds());
+        Assert.assertNotNull(program.getLocationClassificationIds());
+        Assert.assertNotNull(program.getLocationClassifications()); // ALways null, because filled by graphQL service
     }
 
     @Test
@@ -93,9 +105,10 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         programs = service.findByFilter(ProgramFilterVO.builder().withProperty("sumaris.trip.operation.batch.autoFill").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
         Assert.assertNotNull(programs);
-        Assert.assertEquals(1, programs.size());
-        Assert.assertEquals(10, programs.get(0).getId().intValue());
-
+        Assert.assertEquals(2, programs.size());
+        int[] expectedIds = new int[]{50, 10};
+        int[]  resultIds = programs.stream().mapToInt(ProgramVO::getId).toArray();
+        Assert.assertArrayEquals(expectedIds, resultIds);
     }
 
     @Test
@@ -103,7 +116,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         List<ProgramVO> programs = service.getAll();
         Assert.assertNotNull(programs);
-        Assert.assertEquals(9, programs.size());
+        Assert.assertEquals(10, programs.size());
 
     }
 

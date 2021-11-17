@@ -84,8 +84,9 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class Daos {
 
-    public final static String NVL_END_DATE_TIME_STR = "TO_DATE(' 2100-01-01 00:00:00', 'syyyy-mm-dd hh24:mi:ss')";
-    public final static Date NVL_END_DATE_TIME = Dates.fromISODateTimeString("2100-01-01T00:00:00.000Z");
+    // IMPORTANT: must a date in the future.
+    // Should be same as index, if any (see Oracle tables VESSEL_FEATURES and VESSEL_REGISTRATION_PERIOD)
+    public final static Date DEFAULT_END_DATE_TIME = Dates.fromISODateTimeString("2100-01-01T00:00:00.000Z");
 
     private final static String JDBC_URL_PREFIX = "jdbc:";
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + DatabaseType.hsqldb.name() + ":";
@@ -1664,6 +1665,26 @@ public class Daos {
             .replaceAll("[*]", "%"); // replace asterisk mark
     }
 
+    public static Pattern searchTextIgnoreCasePattern(String searchText, boolean searchAny) {
+        if (StringUtils.isBlank(searchText)) return null;
+
+        // add leading wildcard (if searchAny specified) and trailing wildcard
+        searchText = (searchAny ? "*" : "") + searchText + "*";
+
+        // translate searchText in regexp
+        StringBuilder sb = new StringBuilder();
+        String[] searchArray = searchText.split("\\*", -1);
+        for (int i = 0; i < searchArray.length; i++) {
+            if (!StringUtils.isEmpty(searchArray[i])) {
+                sb.append(Pattern.quote(searchArray[i]));
+            }
+            if (i < searchArray.length - 1) {
+                sb.append(".*");
+            }
+        }
+
+        return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    }
 
     public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
                                                       final Function<T, Boolean> hasNextFn,

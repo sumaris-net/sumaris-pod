@@ -22,6 +22,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service("physicalGearService")
 @Slf4j
@@ -52,8 +54,26 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	@Override
 	public List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources) {
-		return physicalGearRepository.saveAllByTripId(tripId, sources);
+		return physicalGearRepository.saveAllByTripId(tripId, sources, null);
 	}
 
+	@Override
+	public List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources, List<Integer> idsToRemove) {
+		return physicalGearRepository.saveAllByTripId(tripId, sources, idsToRemove);
+	}
+
+	@Override
+	public void delete(List<Integer> ids) {
+		Preconditions.checkNotNull(ids);
+		ids.stream()
+				.filter(Objects::nonNull)
+				.forEach(this::delete);
+	}
+
+	@Override
+	public void delete(int id) {
+		// Apply deletion
+		physicalGearRepository.deleteById(id);
+	}
 
 }

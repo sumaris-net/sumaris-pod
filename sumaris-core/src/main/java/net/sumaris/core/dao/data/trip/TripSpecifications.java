@@ -40,6 +40,7 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
     String VESSEL_ID_PARAM = "vesselId";
     String LOCATION_ID_PARAM = "locationId";
     String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
+    String INCLUDED_IDS_PARAM = "includedIds";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
@@ -96,4 +97,14 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
                 .value(parameter);
         }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }
+
+    default Specification<Trip> includedIds(Integer[] includedIds) {
+        if (ArrayUtils.isEmpty(includedIds)) return null;
+        return BindableSpecification.<Trip>where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAM);
+            return criteriaBuilder.in(root.get(Trip.Fields.ID)).value(param);
+        })
+                .addBind(INCLUDED_IDS_PARAM, Arrays.asList(includedIds));
+    }
+
 }

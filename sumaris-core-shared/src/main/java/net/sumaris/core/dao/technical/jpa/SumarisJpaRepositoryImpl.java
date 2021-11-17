@@ -39,7 +39,6 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -152,13 +151,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     @Override
     public V save(V vo) {
-        return save(vo, isCheckUpdateDate());
+        return save(vo, isCheckUpdateDate(), isLockForUpdate());
     }
 
     public E toEntity(V vo) {
         Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
+//            getSessionFactory().getCache().evict(getDomainClass(), vo.getId());
             entity = getById(vo.getId());
         } else {
             entity = createEntity();
@@ -183,7 +183,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Beans.copyProperties(source, target);
     }
 
-    protected V save(V vo, boolean checkUpdateDate) {
+    public V save(V vo, boolean checkUpdateDate, boolean lockForUpdate) {
         E entity = toEntity(vo);
 
         boolean isNew = entity.getId() == null;
@@ -200,7 +200,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentDate());
         }
 
-        if (!isNew && isLockForUpdate()) {
+        if (!isNew && lockForUpdate) {
             lockForUpdate(entity);
         }
 

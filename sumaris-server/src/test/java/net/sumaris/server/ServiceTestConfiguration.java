@@ -1,10 +1,8 @@
-package net.sumaris.server;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,7 +20,8 @@ package net.sumaris.server;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+package net.sumaris.server;
+
 import com.graphql.spring.boot.test.GraphQLTestTemplate;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -30,9 +29,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -45,13 +41,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     scanBasePackages = {
             "net.sumaris.core.dao",
             "net.sumaris.core.service",
-            "net.sumaris.core.extraction",
+            "net.sumaris.extraction.core",
             "net.sumaris.server"
     }
 )
-@EntityScan("net.sumaris.core.model")
 @EnableTransactionManagement
-@EnableJpaRepositories("net.sumaris.core.dao")
 public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-server";

@@ -30,6 +30,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.model.referential.pmfm.ParameterGroupEnum;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
@@ -124,6 +125,11 @@ public class PmfmServiceImpl implements PmfmService {
     }
 
     @Override
+    public boolean isSurveyPmfm(int pmfmId) {
+        return pmfmRepository.hasParameterGroupId(pmfmId, ParameterGroupEnum.SURVEY.getId());
+    }
+
+    @Override
     public String computeCompleteName(int pmfmId) {
         return pmfmRepository.computeCompleteName(pmfmId);
     }
@@ -132,7 +138,6 @@ public class PmfmServiceImpl implements PmfmService {
     public boolean isGearPhysicalPmfm(int pmfmId) {
         return pmfmRepository.hasLabelPrefix(pmfmId, "GEAR_PHYSICAL");
     }
-
 
 
 }

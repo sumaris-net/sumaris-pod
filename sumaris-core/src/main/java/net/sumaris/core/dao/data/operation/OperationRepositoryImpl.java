@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data.operation;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,24 +23,27 @@ package net.sumaris.core.dao.data.operation;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.data.VesselPositionDao;
-import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.VesselPositionDao;
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
+import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,8 +61,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class OperationRepositoryImpl
-    extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, DataFetchOptions>
-    implements OperationSpecifications {
+        extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, OperationFetchOptions>
+        implements OperationSpecifications {
 
     @Autowired
     private PhysicalGearRepository physicalGearRepository;
@@ -80,7 +83,11 @@ public class OperationRepositoryImpl
     private BatchRepository batchRepository;
 
     @Autowired
+    private TripRepository tripRepository;
+
+    @Autowired
     protected VesselPositionDao vesselPositionDao;
+
 
     protected OperationRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationVO.class, entityManager);
@@ -88,12 +95,18 @@ public class OperationRepositoryImpl
     }
 
     @Override
-    public void toVO(Operation source, OperationVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Operation source, OperationVO target, OperationFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Trip
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
+            if (fetchOptions != null && fetchOptions.isWithTrip()){
+                target.setTrip(tripRepository.toVO(source.getTrip(), DataFetchOptions.builder()
+                        .withRecorderDepartment(false)
+                        .withRecorderPerson(false)
+                        .build()));
+            }
         }
 
         // Physical gear
@@ -123,10 +136,10 @@ public class OperationRepositoryImpl
             // Batches
             target.setBatches(batchRepository.findAllVO(batchRepository.hasOperationId(operationId),
                     BatchFetchOptions.builder()
-                        .withChildrenEntities(false) // Use flat list, not a tree
-                        .withRecorderDepartment(false)
-                        .withMeasurementValues(true)
-                        .build()));
+                            .withChildrenEntities(false) // Use flat list, not a tree
+                            .withRecorderDepartment(false)
+                            .withMeasurementValues(true)
+                            .build()));
 
             // Samples
             target.setSamples(sampleRepository.findAllVO(sampleRepository.hasOperationId(operationId),
@@ -134,7 +147,7 @@ public class OperationRepositoryImpl
                             .withChildrenEntities(false) // Use flat list, not a tree
                             .withRecorderDepartment(false)
                             .withMeasurementValues(true)
-                    .build()));
+                            .build()));
         }
 
         // Measurements
@@ -143,6 +156,27 @@ public class OperationRepositoryImpl
             target.setGearMeasurements(measurementDao.getOperationGearUseMeasurements(operationId));
         }
 
+        // ParentOperation
+        if (source.getParentOperation() != null) {
+            target.setParentOperationId(source.getParentOperation().getId());
+            if (fetchOptions != null && fetchOptions.isWithParentOperation()) {
+                fetchOptions = OperationFetchOptions.clone(fetchOptions);
+                fetchOptions.setWithParentOperation(false);
+                fetchOptions.setWithChildOperation(false);
+                target.setParentOperation(toVO(source.getParentOperation(), fetchOptions));
+            }
+        }
+
+        // ChildOperation
+        else if (source.getChildOperation() != null) {
+            target.setChildOperationId(source.getChildOperation().getId());
+            if (fetchOptions != null && fetchOptions.isWithChildOperation()) {
+                fetchOptions = OperationFetchOptions.clone(fetchOptions);
+                fetchOptions.setWithParentOperation(false);
+                fetchOptions.setWithChildOperation(false);
+                target.setChildOperation(toVO(source.getChildOperation(), fetchOptions));
+            }
+        }
     }
 
     @Override
@@ -170,8 +204,8 @@ public class OperationRepositoryImpl
 
         // Update the parent entity
         Daos.replaceEntities(parent.getOperations(),
-            result,
-            (vo) -> getReference(Operation.class, vo.getId()));
+                result,
+                (vo) -> getReference(Operation.class, vo.getId()));
 
         return result;
     }
@@ -204,23 +238,23 @@ public class OperationRepositoryImpl
         {
             // Read physical gear id
             Integer physicalGearId = source.getPhysicalGearId() != null
-                ? source.getPhysicalGearId()
-                : source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null;
+                    ? source.getPhysicalGearId()
+                    : source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null;
 
             // If not found, try using the rankOrder
             if (physicalGearId == null && source.getPhysicalGear() != null && source.getPhysicalGear().getRankOrder() != null && target.getTrip() != null) {
                 Integer rankOrder = source.getPhysicalGear().getRankOrder();
                 physicalGearId = target.getTrip().getPhysicalGears()
-                    .stream()
-                    .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
-                    .map(PhysicalGear::getId)
-                    .findFirst().orElse(null);
+                        .stream()
+                        .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
+                        .map(PhysicalGear::getId)
+                        .findFirst().orElse(null);
                 if (physicalGearId == null) {
                     throw new DataIntegrityViolationException(
-                        String.format("Operation {starDateTime: '%s'} use a unknown PhysicalGear. PhysicalGear with {rankOrder: %s} not found in gears Trip.",
-                            Dates.toISODateTimeString(source.getStartDateTime()),
-                            source.getPhysicalGear().getRankOrder()
-                        ));
+                            String.format("Operation {starDateTime: '%s'} use a unknown PhysicalGear. PhysicalGear with {rankOrder: %s} not found in gears Trip.",
+                                    Dates.toISODateTimeString(source.getStartDateTime()),
+                                    source.getPhysicalGear().getRankOrder()
+                            ));
                 }
                 source.setPhysicalGearId(physicalGearId);
                 source.setPhysicalGear(null);
@@ -235,11 +269,57 @@ public class OperationRepositoryImpl
             }
         }
 
+        // Parent Operation
+        Integer parentOperationId = source.getParentOperationId() != null ? source.getParentOperationId() : (source.getParentOperation() != null ? source.getParentOperation().getId() : null);
+        if (copyIfNull || parentOperationId != null) {
+            if (parentOperationId == null) {
+                target.setParentOperation(null);
+            } else {
+                target.setParentOperation(getReference(Operation.class, parentOperationId));
+            }
+        }
+
+        // Child Operation
+        Integer childOperationId = source.getChildOperationId() != null ? source.getChildOperationId() : (source.getChildOperation() != null ? source.getChildOperation().getId() : null);
+        if (copyIfNull || childOperationId != null) {
+            if (childOperationId == null) {
+                target.setChildOperation(null);
+            } else {
+                target.setChildOperation(getReference(Operation.class, childOperationId));
+            }
+        }
+
+        //Quality Flag
+        Integer qualityFlag = source.getQualityFlagId();
+        if (qualityFlag != null) {
+            target.setQualityFlag(getReference(QualityFlag.class, qualityFlag));
+        } else {
+            target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+        }
     }
 
     @Override
-    protected Specification<Operation> toSpecification(OperationFilterVO filter, DataFetchOptions fetchOptions) {
+    protected Specification<Operation> toSpecification(OperationFilterVO filter, OperationFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasTripId(filter.getTripId()));
+                .and(hasTripId(filter.getTripId()))
+                .and(hasProgramLabel(filter.getProgramLabel()))
+                .and(hasVesselId(filter.getVesselId()))
+                .and(excludedIds(filter.getExcludedIds()))
+                .and(notChildOperation(filter.getExcludeChildOperation()))
+                .and(hasNoChildOperation(filter.getExcludeChildOperation()))
+                .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
+                .and(inGearIds(filter.getGearIds()))
+                .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
+                .and(hasQualityFlagId(filter.getQualityFlagId()))
+                .and(includedIds(filter.getIncludedIds()));
+    }
+
+    @Override
+    protected void onAfterSaveEntity(OperationVO vo, Operation savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (vo.getParentOperation() == null && vo.getParentOperationId() != null) {
+            vo.setParentOperation(this.get(vo.getParentOperationId()));
+        }
     }
 }

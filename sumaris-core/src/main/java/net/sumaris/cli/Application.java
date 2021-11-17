@@ -35,6 +35,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
@@ -43,10 +44,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 
@@ -70,6 +73,7 @@ import org.springframework.stereotype.Component;
 @Component("core-application")
 @Slf4j
 @Profile("!test")
+@ConditionalOnNotWebApplication()
 public class Application {
 
 	private static String[] ARGS;
@@ -96,10 +100,10 @@ public class Application {
 
 		// If not set yet, define custom config location
 		if (StringUtils.isNotBlank(configLocation)) {
-			System.getProperty("spring.config.location", configLocation);
+			System.setProperty("spring.config.location", configLocation);
 		}
 		else if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
-			System.getProperty("spring.config.location", "optional:file:./config/,classpath:/");
+			System.setProperty("spring.config.location", "optional:file:./config/,classpath:/");
 		}
 
 		try {
@@ -123,7 +127,7 @@ public class Application {
 		}
 	}
 
-	@Bean("configuration")
+	@Bean
 	public SumarisConfiguration configuration(ConfigurableEnvironment env) {
 
 		SumarisConfiguration config = SumarisConfiguration.getInstance();

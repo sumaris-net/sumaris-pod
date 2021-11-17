@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -21,6 +19,8 @@ package net.sumaris.server.http.graphql.data;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
@@ -41,8 +41,9 @@ import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.GraphQLUtils;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,13 +59,14 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@GraphQLApi
 @Transactional
 public class VesselGraphQLService {
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(VesselGraphQLService.class);
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private VesselService vesselService;
@@ -365,12 +367,12 @@ public class VesselGraphQLService {
     }
 
     protected boolean canUserAccessNotSelfData() {
-        String minRole = config.getAccessNotSelfDataMinRole();
+        String minRole = configuration.getAccessNotSelfDataMinRole();
         return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
     }
 
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 

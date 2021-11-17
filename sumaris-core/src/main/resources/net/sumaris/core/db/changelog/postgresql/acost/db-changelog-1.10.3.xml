@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/acost/db-changelog-1.10.3.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.acost.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+    <property name="sqlCheck.acost.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ACOST database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.acost.expectedResult}">${sqlCheck.acost.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Add PMFM HAS_INDIVIDUAL_MEASUREMENT -->
+    <changeSet author="camille.cotonnec@e-is.pro" id="1625816880597-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.acost.expectedResult}">${sqlCheck.acost.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(ID) FROM PMFM WHERE LABEL='HAS_INDIVIDUAL_MEASUREMENT' AND ID=381</sqlCheck>
+            </and>
+        </preConditions>
+        <sql><![CDATA[
+            insert into PMFM (id, parameter_fk, label, unit_fk, status_fk, creation_date, update_date)
+            values (381, 121, 'HAS_INDIVIDUAL_MEASUREMENT', 0, 1, '2021-09-01', '2021-09-01');
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

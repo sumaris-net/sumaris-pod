@@ -31,6 +31,7 @@ import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
@@ -46,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 
 @Service
+@GraphQLApi
+@Transactional
 @Slf4j
 public class AccountGraphQLService {
 
@@ -108,8 +111,8 @@ public class AccountGraphQLService {
 
     /* -- Subscriptions -- */
 
-    @GraphQLSubscription(name = "updateAccount", description = "Subscribe to an account update")
-    @IsUser
+    @GraphQLSubscription(name = "updateAccount", description = "Subscribe to any account update")
+    @IsGuest
     @Transactional(readOnly = true)
     public Publisher<AccountVO> updateAccount(
             @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond) {

@@ -56,4 +56,12 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
 
     private Integer[] includedIds;
     private Integer[] excludedIds;
+
+    public String getCategory() {
+        return levelLabel;
+    }
+
+    public void setCategory(String category) {
+        levelLabel = category;
+    }
 }

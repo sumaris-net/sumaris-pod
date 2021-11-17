@@ -35,7 +35,7 @@ import java.util.List;
 public class ParameterVO extends ReferentialVO {
 
     private String type;
-
+    private Integer parameterGroupId;
     List<ReferentialVO> qualitativeValues;
 
     public ParameterVO() {

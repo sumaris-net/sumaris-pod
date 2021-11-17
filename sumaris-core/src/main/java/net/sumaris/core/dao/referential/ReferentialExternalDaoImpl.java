@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -71,8 +72,6 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     private List<ReferentialVO> analyticReferences;
     private Date analyticReferencesUpdateDate = new Date(0L);
 
-    private Pattern searchPattern;
-    private Pattern searchAnyPattern;
 
     @Autowired
     public ReferentialExternalDaoImpl(SumarisConfiguration config) {
@@ -117,8 +116,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
         // Prepare search pattern
         filter.setSearchText(StringUtils.trimToNull(filter.getSearchText()));
-        searchPattern = getPattern(filter.getSearchText(), false);
-        searchAnyPattern = getPattern(filter.getSearchText(), true);
+
 
         return analyticReferences.stream()
                 .filter(getAnalyticReferencesPredicate(filter))
@@ -199,6 +197,9 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     private Predicate<ReferentialVO> getAnalyticReferencesPredicate(ReferentialFilterVO filter) {
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 
+        Pattern searchPattern = Daos.searchTextIgnoreCasePattern(filter.getSearchText(), false);
+        Pattern searchAnyPattern = Daos.searchTextIgnoreCasePattern(filter.getSearchText(), true);
+
         return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
                 && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
                 && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
@@ -206,27 +207,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                 && (filter.getLevelIds() == null || Arrays.asList(filter.getLevelIds()).contains(s.getLevelId()))
                 && (filter.getLevelLabels() == null || Arrays.asList(filter.getLevelLabels()).contains(s.getLabel()))
                 && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
-                && (filter.getSearchText() == null || searchPattern.matcher(s.getLabel()).matches() || searchAnyPattern.matcher(s.getName()).matches());
-    }
-
-    private static Pattern getPattern(String searchText, boolean searchAny) {
-
-        // add leading wildcard (if searchAny specified) and trailing wildcard
-        searchText = searchText != null ? ((searchAny ? "*" : "") + searchText + "*") : "";
-
-        // translate searchText in regexp
-        StringBuilder sb = new StringBuilder();
-        String[] searchArray = searchText.split("\\*", -1);
-        for (int i = 0; i < searchArray.length; i++) {
-            if (!StringUtils.isEmpty(searchArray[i])) {
-                sb.append(Pattern.quote(searchArray[i]));
-            }
-            if (i < searchArray.length - 1) {
-                sb.append(".*");
-            }
-        }
-
-        return Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+                && (searchPattern == null || searchPattern.matcher(s.getLabel()).matches() || searchAnyPattern.matcher(s.getName()).matches());
     }
 
 }

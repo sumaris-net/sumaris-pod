@@ -5,13 +5,14 @@
 
 SERVICE_NAME=sumaris-pod
 VERSION=@project.version@
-PROFILE=@env@
+PROFILE=hsqldb
 TIMEZONE=UTC
 
 # - Optional vars:
 #SUMARIS_HOME=/path/to/sumaris/home
 #SUMARIS_LOG="${SUMARIS_HOME}/logs/${SERVICE_NAME}.log"
-#JAVA_OPTS="-Xms2g -Xmx2g"
+#JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+#JAVA_OPTS="-Xms2g -Xmx2g -Xverify:none"
 
 # --- Fixed variables (DO NOT changes):  --------------------------------------
 
@@ -20,6 +21,7 @@ REPO_URL="https://github.com/sumaris-net/sumaris-pod"
 WAR_URL="${REPO_URL}/releases/download/${VERSION}/${WAR_FILENAME}"
 JAVA_VERSION=1.8.121
 JAVA_JRE_URL=https://nexus.e-is.pro/nexus/service/local/repositories/jvm/content/com/oracle/jre/${JAVA_VERSION}/jre-${JAVA_VERSION}-linux-x64.zip
+DEFAULT_JVM_OPTS="-Xms512m -Xmx1024m -Xverify:none"
 
 # --- Program start -----------------------------------------------------------
 
@@ -41,7 +43,7 @@ if [[ "_${JAVA_HOME}" == "_" ]]; then
   JAVA_HOME="${SUMARIS_HOME}/lib/jre-${JAVA_VERSION}"
 fi
 if [[ "${JAVA_OPTS}_" == "_" ]]; then
-  JAVA_OPTS="-Xms512m -Xmx1024m"
+  JAVA_OPTS="${DEFAULT_JVM_OPTS}"
 fi
 
 PID_FILE="${DATA_DIRECTORY}/${SERVICE_NAME}.pid"
@@ -51,6 +53,7 @@ JAVA_EXEC=${JAVA_HOME}/bin/java
 JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m"
 JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${SUMARIS_HOME}/config/"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${SUMARIS_HOME}"
+JAVA_OPTS="$JAVA_OPTS -Dsumaris.data.directory=${DATA_DIRECTORY}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${SUMARIS_LOG}"
 [[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"
 [[ "_${TIMEZONE}" != "_" ]] && JAVA_OPTS="$JAVA_OPTS -Duser.timezone=${TIMEZONE}"
@@ -78,7 +81,6 @@ download() {
     wget $ARGS
   fi
 }
-
 
 # Make sure Java JRE version is correct
 checkJreVersion() {

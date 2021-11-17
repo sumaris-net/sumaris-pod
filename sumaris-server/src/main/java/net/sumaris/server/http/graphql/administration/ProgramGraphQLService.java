@@ -1,26 +1,26 @@
-package net.sumaris.server.http.graphql.administration;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
@@ -54,8 +54,9 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.http.GraphQLUtils;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
@@ -74,11 +75,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@GraphQLApi
 @Slf4j
 public class ProgramGraphQLService {
 
     @Autowired
-    private SumarisServerConfiguration config;
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private ProgramService programService;
@@ -194,7 +196,7 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "locationClassifications", description = "Get program's location classifications")
     public List<ReferentialVO> getProgramLocationClassifications(@GraphQLContext ProgramVO program) {
-        if (program.getLocationClassificationIds() != null && program.getLocationClassifications() == null) {
+        if (CollectionUtils.isNotEmpty(program.getLocationClassificationIds()) && CollectionUtils.isEmpty(program.getLocationClassifications())) {
             return program.getLocationClassificationIds().stream()
                     .map(id -> referentialService.get(LocationClassification.class, id))
                     .collect(Collectors.toList());
@@ -394,6 +396,7 @@ public class ProgramGraphQLService {
         return ProgramFetchOptions.builder()
                 .withLocations(
                         fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATIONS, ReferentialVO.Fields.ID))
+                            || fields.contains(ProgramVO.Fields.LOCATION_IDS)
                 )
                 .withLocationClassifications(
                     fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
@@ -518,7 +521,7 @@ public class ProgramGraphQLService {
     }
 
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = config.getAccessNotSelfDataDepartmentIds();
+        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 }

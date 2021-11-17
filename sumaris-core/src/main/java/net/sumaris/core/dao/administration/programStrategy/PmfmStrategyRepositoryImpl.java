@@ -52,6 +52,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;

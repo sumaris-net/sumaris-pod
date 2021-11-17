@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.technical;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,6 +20,8 @@ package net.sumaris.server.http.graphql.technical;
  * #L%
  */
 
+package net.sumaris.server.http.graphql.technical;
+
 import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.technical.TrashService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@GraphQLApi
 @Slf4j
 public class TrashGraphQLService {
 

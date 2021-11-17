@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="extractionCreateStationTable">
+
+  <query type="create" temp="false" table="&amp;stationTableName" option="DISTINCT">
+
+    <!-- PK -->
+    <select alias="TYPE" type="text">UPPER('HH')</select>
+    <select alias="ID_MAREE" type="number">T.TRIP_CODE</select>
+    <select alias="ID_OP" type="number">O.ID</select>
+    <select alias="NUM_OP" type="number"><![CDATA[(
+      SELECT COUNT(O2.ID) + 1 FROM OPERATION O2
+      WHERE O2.TRIP_FK = O.TRIP_FK
+        AND O2.ID <> O.ID
+        AND COALESCE(O2.FISHING_START_DATE_TIME, O2.START_DATE_TIME) < COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)
+    )]]></select>
+
+    <!-- Hidden columns used by linked tables -->
+    <select alias="STATION_NUMBER" type="hidden">O.ID</select>
+    <select alias="DATE" type="hidden">COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</select>
+
+    <!-- other fields -->
+    <select alias="DEROULEMENT_OP" type="text"><![CDATA[(SELECT CASE VUM.NUMERICAL_VALUE WHEN 1 THEN 'Normal' WHEN 0 THEN 'Anormal' ELSE null END FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
+
+    <select alias="ETAT_MER" type="text"><![CDATA[
+    (SELECT QV.LABEL || ' - ' || (CASE QV.LABEL
+       when '0' then 'calme, vagues absentes'
+       when '1' then 'ridée, vagues de 0 à 0.1 mètres'
+       when '2' then 'belle, vagues de 0.1 à 0.5 mètres'
+       when '3' then 'peu agitée, vagues de 0.5 à 1.25 mètres'
+       when '4' then 'agitée, vagues de 1.25 à 2.5 mètres'
+       when '5' then 'forte, vagues de 2.5 à 4 mètres'
+       when '6' then 'très forte, vagues de 4 à 6 mètres'
+       when '7' then 'grosse, vagues de 6 à 9 mètres'
+       when '8' then 'très grosse, vagues de 9 à 14 mètres'
+       when '9' then 'énorme, vagues de 14 mètres et plus'
+      END) FROM VESSEL_USE_MEASUREMENT VUM
+        INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
+      WHERE
+        VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&seaStatePmfmId
+    )]]></select>
+
+    <select alias="DATE_FIN" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'DD-MM-YYYY HH24:MI:SS')</select>
+    <select alias="DUREE_OP" type="number" dbms="hsqldb,pgsql">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
+    <select alias="DUREE_OP" type="number" dbms="oracle">FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60)</select>
+    <select alias="LAT_DEB_OP" type="number">P_START.LATITUDE</select>
+    <select alias="LONG_DEB_OP" type="number">P_START.LONGITUDE</select>
+    <select alias="LAT_FIN_OP" type="number">P_END.LATITUDE</select>
+    <select alias="LONG_FIN_OP" type="number">P_END.LONGITUDE</select>
+
+    <select alias="AREA" type="text">null</select>
+    <select alias="RECTANGLE" type="text">F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)</select>
+
+    <select alias="PROF_FOND" type="number">(SELECT CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainWaterDepthPmfmId)</select>
+    <select alias="PROF_ENGIN" type="number">(SELECT CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainFishingDepthPmfmId)</select>
+
+    <select alias="ENGIN" group="gearType" type="text">G.LABEL || ' - ' || G.NAME</select>
+    <select alias="ESPECE_CIBLE" group="gearType" type="text">TG.LABEL || ' - ' || TG.NAME</select>
+    <select alias="METIER1" group="gearType" type="text">M.LABEL</select>
+
+    <select alias="METIER2" type="text">G.LABEL || '_' || TG.NAME</select>
+    <select alias="METIER3" type="text">null</select>
+    <select alias="METIER_DCF6" type="text">null</select>
+
+    <select alias="MAILL" type="number">(SELECT PGM.NUMERICAL_VALUE FROM PHYSICAL_GEAR_MEASUREMENT PGM WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&amp;meshSizePmfmId)</select>
+
+    <select alias="EFFORT" type="number"><![CDATA[
+    (SELECT CAST(ROUND(PGM.NUMERICAL_VALUE) as INTEGER)
+     FROM PHYSICAL_GEAR_MEASUREMENT PGM
+     WHERE
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK in (&effortPmfmIds)
+    )]]></select>
+
+    <select alias="DISPO_SELECT" type="text"><![CDATA[
+    COALESCE((SELECT 'Oui' FROM PHYSICAL_GEAR_MEASUREMENT PGM
+      WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId), 'Non')]]></select>
+
+    <select alias="DISPO_SELECT1" type="text"><![CDATA[
+    (SELECT QV.NAME FROM PHYSICAL_GEAR_MEASUREMENT PGM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
+    WHERE
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)]]></select>
+
+    <!-- TODO: ajouter un PSFM pour le 2eme dispositif selectif -->
+    <select alias="DISPO_SELECT2" type="text">null</select>
+
+    <select alias="DISPO_REPULS" type="text"><![CDATA[(
+    SELECT CASE count(*) WHEN 1 THEN 'Oui' ELSE 'Non' END
+    FROM PHYSICAL_GEAR_MEASUREMENT PGM
+    WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&acousticDeterrentDevicePmfmId
+    )]]></select>
+
+    <select alias="DISPO_REPULS1" type="text"><![CDATA[
+    (SELECT QV.NAME FROM PHYSICAL_GEAR_MEASUREMENT PGM
+      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
+    WHERE
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&acousticDeterrentDevicePmfmId)]]></select>
+
+    <select alias="CAPTURE" type="text"><![CDATA[
+       CASE WHEN B.ID IS NOT NULL THEN 'Oui'
+       ELSE 'Non'
+       END
+    ]]></select>
+
+    <select alias="POIDS_REF_CAPT" type="text">null</select> <!-- Not fill (ADAP) -->
+    <select alias="NBR_VRAC" type="number">2</select><!-- PR/PNR (ADAP) -->
+
+    <select alias="COMMENTAIRE" type="text">O.COMMENTS</select>
+
+    <select alias="GEAR_SPEED" type="number"><![CDATA[
+    (SELECT VUM.NUMERICAL_VALUE FROM VESSEL_USE_MEASUREMENT VUM
+    WHERE
+      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK in (&gearSpeedPmfmIds)
+    )]]></select>
+    <select alias="VESSEL_ASSOCIATION" type="number">null</select><!-- TODO: à ajouter au modèle -->
+    <select alias="IS_CATCH_ON_OPERATION_VESSEL" type="number">null</select><!-- TODO: à ajouter au modèle -->
+
+
+    <from alias="T">&amp;tripTableName</from>
+    <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>
+    <from join="true">LEFT OUTER JOIN METIER M ON M.ID = O.METIER_FK</from>
+    <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.PHYSICAL_GEAR_FK</from>
+    <from join="true">LEFT OUTER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
+    <from join="true">LEFT OUTER JOIN TAXON_GROUP TG ON TG.ID = M.TAXON_GROUP_FK</from>
+    <from join="true">LEFT OUTER JOIN BATCH B ON B.OPERATION_FK = O.ID AND B.PARENT_BATCH_FK IS NULL</from>
+
+    <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_START ON P_START.OPERATION_FK = O.ID and P_START.DATE_TIME=COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</from>
+    <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_END ON P_END.OPERATION_FK = O.ID and P_END.DATE_TIME=COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)</from>
+
+    <orderby direction="ASC">O.ID</orderby>
+
+  </query>
+
+</queries>

@@ -26,7 +26,6 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.PmfmVO;
-import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -66,6 +65,9 @@ public interface PmfmService {
 
     @Transactional(readOnly = true)
     boolean isGearPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
+    boolean isSurveyPmfm(int pmfmId);
 
     @Transactional(readOnly = true)
     String computeCompleteName(int pmfmId);

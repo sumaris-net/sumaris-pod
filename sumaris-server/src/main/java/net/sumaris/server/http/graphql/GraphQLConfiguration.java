@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,104 +20,55 @@ package net.sumaris.server.http.graphql;
  * #L%
  */
 
+package net.sumaris.server.http.graphql;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.GraphQL;
+import graphql.com.google.common.collect.Lists;
 import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
+import io.leangen.geantyref.GenericTypeReflector;
 import io.leangen.graphql.GraphQLSchemaGenerator;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
+import io.leangen.graphql.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.server.graphql.AggregationGraphQLService;
-import net.sumaris.server.graphql.ExtractionGraphQLService;
-import net.sumaris.server.http.graphql.administration.AccountGraphQLService;
-import net.sumaris.server.http.graphql.administration.AdministrationGraphQLService;
-import net.sumaris.server.http.graphql.administration.ProgramGraphQLService;
-import net.sumaris.server.http.graphql.administration.StrategyPredocGraphQLService;
-import net.sumaris.server.http.graphql.data.DataGraphQLService;
-import net.sumaris.server.http.graphql.data.VesselGraphQLService;
-import net.sumaris.server.http.graphql.referential.PmfmGraphQLService;
-import net.sumaris.server.http.graphql.referential.ReferentialExternalGraphQLService;
-import net.sumaris.server.http.graphql.referential.ReferentialGraphQLService;
-import net.sumaris.server.http.graphql.referential.TaxonNameGraphQLService;
-import net.sumaris.server.http.graphql.security.AuthGraphQLService;
-import net.sumaris.server.http.graphql.social.SocialGraphQLService;
-import net.sumaris.server.http.graphql.technical.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
 
 import java.io.Serializable;
+import java.lang.reflect.AnnotatedType;
+import java.util.Collection;
+import java.util.List;
 
 @Configuration
-@EnableWebSocket
+@ConditionalOnClass(GraphQLSchemaGenerator.class)
 @Slf4j
 public class GraphQLConfiguration implements WebSocketConfigurer {
 
-    @Autowired
-    private AccountGraphQLService accountGraphQLService;
+    private final ConfigurableApplicationContext context;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private AdministrationGraphQLService administrationService;
-
-    @Autowired
-    private ProgramGraphQLService programService;
-
-    @Autowired
-    private StrategyPredocGraphQLService strategyPredocService;
-
-    @Autowired
-    private SoftwareGraphQLService softwareService;
-
-    @Autowired
-    private ConfigurationGraphQLService configurationService;
-
-    @Autowired
-    private SocialGraphQLService socialService;
-
-    @Autowired
-    private TrashGraphQLService trashService;
-
-    @Autowired
-    private DataGraphQLService dataService;
-
-    @Autowired
-    private VesselGraphQLService vesselService;
-
-    @Autowired
-    private ReferentialGraphQLService referentialService;
-
-    @Autowired
-    private PmfmGraphQLService pmfmService;
-
-    @Autowired
-    private ReferentialExternalGraphQLService referentialExternalService;
-
-    @Autowired
-    private TaxonNameGraphQLService taxonNameGraphQLService;
-
-    @Autowired(required = false)
-    private ExtractionGraphQLService extractionGraphQLService;
-
-    @Autowired(required = false)
-    private AggregationGraphQLService aggregationGraphQLService;
-
-    @Autowired(required = false)
-    private CacheGraphQLService cacheGraphQLService;
-
-    @Autowired
-    private AuthGraphQLService authGraphQLService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    public GraphQLConfiguration(ConfigurableApplicationContext context,
+                                ObjectMapper objectMapper
+    ) {
+        this.context = context;
+        this.objectMapper = objectMapper;
+    }
 
     @Bean
     public WebMvcConfigurer configureGraphQL() {
@@ -129,10 +78,10 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping(GraphQLPaths.BASE_PATH)
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                        .allowCredentials(true);
+                    .allowedOriginPatterns("*")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                    .allowCredentials(true);
             }
         };
     }
@@ -143,50 +92,21 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
 
         log.info("Generating GraphQL schema (using SPQR)...");
 
-        GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
-                .withResolverBuilders(new AnnotatedResolverBuilder())
+        final GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
+            .withBasePackages("net.sumaris")
+            .withResolverBuilders(new AnnotatedResolverBuilder())
+            .withTypeTransformer(new DefaultTypeTransformer(false, true)
+            // Replace unbounded IEntity<ID> with IEntity<Serializable>
+            .addUnboundedReplacement(IEntity.class, Serializable.class))
+            .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
+                .withPrototype(objectMapper)
+                .build());
 
-                // Auth and technical
-                .withOperationsFromSingleton(authGraphQLService, AuthGraphQLService.class)
-                .withOperationsFromSingleton(accountGraphQLService, AccountGraphQLService.class)
-                .withOperationsFromSingleton(softwareService, SoftwareGraphQLService.class)
-                .withOperationsFromSingleton(configurationService, ConfigurationGraphQLService.class)
-                .withOperationsFromSingleton(trashService, TrashGraphQLService.class)
-
-                // Administration & Referential
-                .withOperationsFromSingleton(administrationService, AdministrationGraphQLService.class)
-                .withOperationsFromSingleton(programService, ProgramGraphQLService.class)
-                .withOperationsFromSingleton(strategyPredocService, StrategyPredocGraphQLService.class)
-                .withOperationsFromSingleton(referentialService, ReferentialGraphQLService.class)
-                .withOperationsFromSingleton(pmfmService, PmfmGraphQLService.class)
-                .withOperationsFromSingleton(taxonNameGraphQLService, TaxonNameGraphQLService.class)
-                .withOperationsFromSingleton(referentialExternalService, ReferentialExternalGraphQLService.class)
-
-                // Data
-                .withOperationsFromSingleton(dataService, DataGraphQLService.class)
-                .withOperationsFromSingleton(vesselService, VesselGraphQLService.class)
-
-                // Social
-                .withOperationsFromSingleton(socialService, SocialGraphQLService.class)
-
-                .withTypeTransformer(new DefaultTypeTransformer(false, true)
-                        // Replace unbounded IEntity<ID> with IEntity<Serializable>
-                        .addUnboundedReplacement(IEntity.class, Serializable.class))
-
-                .withValueMapperFactory(new JacksonValueMapperFactory.Builder()
-                        .withPrototype(objectMapper)
-                        .build());
-
-        // Add optional services
-        if (cacheGraphQLService != null)
-            generator.withOperationsFromSingleton(cacheGraphQLService, CacheGraphQLService.class);
-        if (extractionGraphQLService != null)
-            generator.withOperationsFromSingleton(extractionGraphQLService, ExtractionGraphQLService.class);
-        if (aggregationGraphQLService != null)
-            generator.withOperationsFromSingleton(aggregationGraphQLService, AggregationGraphQLService.class);
+        findGraphQLConfigurers().forEach(configurer -> configurer.configureSchema(generator));
 
         return generator.generate();
     }
+
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
@@ -194,9 +114,9 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         log.info(String.format("Starting GraphQL websocket endpoint {%s}...", GraphQLPaths.SUBSCRIPTION_PATH));
 
         webSocketHandlerRegistry
-                .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+            .addHandler(webSocketHandler(), GraphQLPaths.BASE_PATH)
+            .setAllowedOriginPatterns("*")
+            .withSockJS();
     }
 
     @Bean
@@ -209,6 +129,45 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         return GraphQL.newGraphQL(graphQLSchema())
             .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
             .build();
+    }
+
+    /* -- private methods -- */
+
+    private Collection<GraphQLConfigurer> findGraphQLConfigurers() {
+
+        List<GraphQLConfigurer> result = Lists.newArrayList();
+
+        // Add configurer beans
+        result.addAll(context.getBeansOfType(GraphQLConfigurer.class)
+            .values());
+
+        final String[] apiBeanNames = context.getBeanNamesForAnnotation(GraphQLApi.class);
+        final ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+
+        for (String beanName : apiBeanNames) {
+            BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+            AnnotatedType beanType;
+            BeanDefinition current = beanDefinition;
+            BeanDefinition originatingBeanDefinition = current;
+            while (current != null) {
+                originatingBeanDefinition = current;
+                current = current.getOriginatingBeanDefinition();
+            }
+            ResolvableType resolvableType = originatingBeanDefinition.getResolvableType();
+            if (resolvableType != ResolvableType.NONE && Utils.isNotEmpty(originatingBeanDefinition.getBeanClassName())
+                //Sanity check only -- should never happen
+                && !originatingBeanDefinition.getBeanClassName().startsWith("org.springframework.")) {
+                beanType = GenericTypeReflector.annotate(resolvableType.getType());
+            } else {
+                beanType = GenericTypeReflector.annotate(AopUtils.getTargetClass(context.getBean(beanName)));
+            }
+
+            result.add(schemaGenerator -> {
+                Object bean = context.getBean(beanName, beanType);
+                schemaGenerator.withOperationsFromSingleton(bean, beanType);
+            });
+        }
+        return result;
     }
 }
 

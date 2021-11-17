@@ -106,7 +106,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     }
 
     @Override
-    public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
+    public List<V> findAll(@Nullable F filter, @Nullable net.sumaris.core.dao.technical.Page page, O fetchOptions) {
         Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
         TypedQuery<E> query = getQuery(spec, page, getDomainClass());
         return streamQuery(query)

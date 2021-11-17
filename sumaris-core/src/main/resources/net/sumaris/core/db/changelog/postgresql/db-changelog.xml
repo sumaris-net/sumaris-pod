@@ -17,5 +17,16 @@
   <include relativeToChangelogFile="true" file="db-changelog-1.8.8.xml"/>
 
   <include relativeToChangelogFile="true" file="db-changelog-1.10.0.xml"/>
+  <include relativeToChangelogFile="true" file="all/db-changelog-1.10.0.xml"/>
+
+  <include relativeToChangelogFile="true" file="db-changelog-1.10.2.xml"/>
+  <include relativeToChangelogFile="true" file="all/db-changelog-1.10.2.xml"/>
+
+  <include relativeToChangelogFile="true" file="db-changelog-1.10.3.xml"/>
+  <include relativeToChangelogFile="true" file="acost/db-changelog-1.10.3.xml"/>
+
+  <include relativeToChangelogFile="true" file="db-changelog-1.11.0.xml"/>
+  <include relativeToChangelogFile="true" file="all/db-changelog-1.11.0.xml"/>
+
 
 </databaseChangeLog>

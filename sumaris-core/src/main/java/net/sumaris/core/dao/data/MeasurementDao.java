@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -27,12 +27,16 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface MeasurementDao {
 
+    char MEASUREMENTS_MAP_VALUE_SEPARATOR = '|';
+    char MEASUREMENTS_MAP_PRECISION_PREFIX = '~';
+    char MEASUREMENTS_MAP_QUALITY_FLAG_PREFIX = 'Q';
 
     <T extends IMeasurementEntity, V extends MeasurementVO> V toMeasurementVO(T measurement, Class<? extends V> voClass);
 
@@ -41,6 +45,11 @@ public interface MeasurementDao {
             List<V> sources,
             List<T> target,
             IEntity<?> parent);
+
+    <ID extends Serializable, T extends IMeasurementEntity> void deleteMeasurements(
+        final Class<T> targetClass,
+        final Class<? extends IEntity<ID>> parentClass,
+        final Collection<ID> parentIds);
 
     <T extends IMeasurementEntity> List<T> getMeasurementEntitiesByParentId(Class<T> entityClass,
                                                                      String parentPropertyName,
@@ -95,16 +104,22 @@ public interface MeasurementDao {
     Map<Integer, String> saveSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
 
     // Expected Sale
-    List<MeasurementVO> getExpectedSaleMeasurements(int saleId);
-    Map<Integer, String> getExpectedSaleMeasurementsMap(int saleId);
-    List<MeasurementVO> saveExpectedSaleMeasurements(int saleId, List<MeasurementVO> sources);
-    Map<Integer, String> saveExpectedSaleMeasurementsMap(int saleId, Map<Integer, String> sources);
+    List<MeasurementVO> getExpectedSaleMeasurements(int expectedSaleId);
+    Map<Integer, String> getExpectedSaleMeasurementsMap(int expectedSaleId);
+    List<MeasurementVO> saveExpectedSaleMeasurements(int expectedSaleId, List<MeasurementVO> sources);
+    Map<Integer, String> saveExpectedSaleMeasurementsMap(int expectedSaleId, Map<Integer, String> sources);
 
     // Landing
     List<MeasurementVO> saveLandingMeasurements(int landingId, List<MeasurementVO> sources);
     Map<Integer, String> saveLandingMeasurementsMap(final int landingId, Map<Integer, String> sources);
     List<MeasurementVO> getLandingMeasurements(int landingId);
     Map<Integer, String> getLandingMeasurementsMap(int landingId);
+
+    // Survey (from Landing)
+    List<MeasurementVO> saveSurveyMeasurements(int landingId, List<MeasurementVO> sources);
+    Map<Integer, String> saveSurveyMeasurementsMap(final int landingId, Map<Integer, String> sources);
+    List<MeasurementVO> getSurveyMeasurements(int landingId);
+    Map<Integer, String> getSurveyMeasurementsMap(int landingId);
 
     // Sample
     List<MeasurementVO> getSampleMeasurements(int sampleId);
@@ -140,4 +155,5 @@ public interface MeasurementDao {
 
     // Utils
     <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);
+
 }

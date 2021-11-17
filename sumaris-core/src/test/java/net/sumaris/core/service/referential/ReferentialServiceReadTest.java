@@ -95,7 +95,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
     public void getAllLevels() {
         List<ReferentialVO> levels = service.getAllLevels(Location.class.getSimpleName());
         Assert.assertNotNull(levels);
-        Assert.assertEquals(8, levels.size());
+        Assert.assertEquals(13, levels.size());
     }
 
     @Test
@@ -184,7 +184,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         // count by filter
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelId(1).build());
         Assert.assertNotNull(count);
-        Assert.assertEquals(36, count.longValue());
+        Assert.assertEquals(39, count.longValue());
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelIds(new Integer[]{1,2}).build());
         Assert.assertNotNull(count);
         Assert.assertEquals(19, count.longValue());

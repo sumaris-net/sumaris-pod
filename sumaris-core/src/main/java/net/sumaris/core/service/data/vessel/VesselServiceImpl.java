@@ -10,12 +10,12 @@ package net.sumaris.core.service.data.vessel;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -31,6 +31,8 @@ import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
+import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -173,40 +175,50 @@ public class VesselServiceImpl implements VesselService {
 
 	/* protected methods */
 
-	protected VesselVO save(VesselVO source, boolean checkUpdateDate) {
-		Preconditions.checkNotNull(source);
-		Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
-		Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
-		Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
+    protected VesselVO save(VesselVO source, boolean checkUpdateDate) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
+        Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
 
-		if (source.getVesselFeatures() != null) {
-			Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
-			Preconditions.checkNotNull(source.getVesselFeatures().getStartDate(), "Missing start date");
-			Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselFeatures().getExteriorMarking()), "Missing exterior marking");
+        if (source.getVesselFeatures() != null) {
+            Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
+            Preconditions.checkNotNull(source.getVesselFeatures().getStartDate(), "Missing start date");
+            Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselFeatures().getExteriorMarking()), "Missing exterior marking");
+        }
+
+        if (source.getVesselRegistrationPeriod() != null) {
+            Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselRegistrationPeriod().getRegistrationCode()), "Missing registration code");
+            Preconditions.checkNotNull(source.getVesselRegistrationPeriod().getRegistrationLocation().getId(), "Missing registration location");
+        }
+
+        VesselVO savedVessel = vesselRepository.save(source, checkUpdateDate, true);
+
+        if (savedVessel.getVesselFeatures() != null) {
+            VesselFeaturesVO vesselFeatures = savedVessel.getVesselFeatures();
+            vesselFeatures.setVessel(savedVessel);
+            VesselFeaturesVO savedVesselFeatures = vesselFeaturesRepository.save(vesselFeatures, checkUpdateDate, true);
+
+            // Save measurements
+            if (savedVesselFeatures.getMeasurementValues() != null) {
+                measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
+            } else {
+                List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
+                measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
+                measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
+                savedVesselFeatures.setMeasurements(measurements);
+            }
+        }
+
+		if (savedVessel.getVesselRegistrationPeriod() != null) {
+			VesselRegistrationPeriodVO vesselRegistrationPeriod = savedVessel.getVesselRegistrationPeriod();
+			vesselRegistrationPeriod.setVessel(savedVessel);
+
+			vesselRegistrationPeriodRepository.save(vesselRegistrationPeriod, checkUpdateDate, true);
 		}
 
-		if (source.getVesselRegistrationPeriod() != null) {
-			Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselRegistrationPeriod().getRegistrationCode()), "Missing registration code");
-			Preconditions.checkNotNull(source.getVesselRegistrationPeriod().getRegistrationLocation().getId(), "Missing registration location");
-		}
-
-		VesselVO savedVessel = vesselRepository.save(source, checkUpdateDate);
-
-		if (savedVessel.getVesselFeatures() != null) {
-			VesselFeaturesVO savedVesselFeatures = vesselFeaturesRepository.save(savedVessel.getVesselFeatures());
-			// Save measurements
-			if (savedVesselFeatures.getMeasurementValues() != null) {
-				measurementDao.saveVesselPhysicalMeasurementsMap(savedVesselFeatures.getId(), savedVesselFeatures.getMeasurementValues());
-			} else {
-				List<MeasurementVO> measurements = Beans.getList(savedVesselFeatures.getMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedVesselFeatures, m));
-				measurements = measurementDao.saveVesselPhysicalMeasurements(savedVesselFeatures.getId(), measurements);
-				savedVesselFeatures.setMeasurements(measurements);
-			}
-		}
-
-		return savedVessel;
-	}
+        return savedVessel;
+    }
 
 	protected void fillDefaultProperties(VesselFeaturesVO parent, MeasurementVO measurement) {
 		if (measurement == null) return;

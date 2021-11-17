@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -21,6 +19,8 @@ package net.sumaris.server.http.graphql;
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.server.http.graphql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.*;
@@ -39,7 +39,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @RestController

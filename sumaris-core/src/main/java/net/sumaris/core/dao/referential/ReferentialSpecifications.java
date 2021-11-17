@@ -117,7 +117,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
-        String searchJoinProperty = filter.getSearchJoin() != null ? StringUtils.uncapitalize(filter.getSearchJoin()) : null;
+        String searchJoinProperty = StringUtils.uncapitalize(filter.getSearchJoin());
         if (StringUtils.isNotBlank(searchJoinProperty)) {
             return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), filter.getSearchText());
         } else {

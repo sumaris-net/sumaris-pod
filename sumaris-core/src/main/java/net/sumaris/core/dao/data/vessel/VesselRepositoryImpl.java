@@ -26,7 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -35,11 +39,15 @@ import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -58,6 +66,7 @@ public class VesselRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final ReferentialDao referentialDao;
     private final ProgramRepository programRepository;
+    private boolean enableRegistrationCodeSearchAsPrefix = false;
 
     @Autowired
     public VesselRepositoryImpl(EntityManager entityManager,
@@ -73,6 +82,16 @@ public class VesselRepositoryImpl
         this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
         this.referentialDao = referentialDao;
         this.programRepository = programRepository;
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+    }
+
+    @Override
+    public boolean enableRegistrationCodeSearchAsPrefix() {
+        return enableRegistrationCodeSearchAsPrefix;
     }
 
     @Override
@@ -132,17 +151,12 @@ public class VesselRepositoryImpl
             .and(vesselTypeId(filter.getVesselTypeId()))
             // By period or single date
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
-            .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate()))
+            .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
             // By text
             .and(searchText(filter.getSearchAttributes(), filter.getSearchText()))
             // Quality
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             ;
-    }
-
-    @Override
-    public VesselVO save(VesselVO vo, boolean checkUpdateDate) {
-        return super.save(vo, checkUpdateDate);
     }
 
     @Override
@@ -203,7 +217,7 @@ public class VesselRepositoryImpl
 
         // Default program
         if (copyIfNull && target.getProgram() == null) {
-            String defaultProgramLabel = getConfig().getVesselDefaultProgramLabel();
+            String defaultProgramLabel = ProgramEnum.SIH.getLabel();
             ProgramVO defaultProgram =  StringUtils.isNotBlank(defaultProgramLabel) ? programRepository.getByLabel(defaultProgramLabel) : null;
             if (defaultProgram  != null && defaultProgram.getId() != null) {
                 target.setProgram(getReference(Program.class, defaultProgram.getId()));

@@ -304,6 +304,7 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID,  key = "#source.id", condition = "#source.entityName == 'ProgramPrivilege'"),
@@ -346,7 +347,7 @@ public class ReferentialDaoImpl
         }
 
         // VO -> Entity
-        referentialVOToEntity(source, entity, true);
+        toEntity(source, entity, true);
 
         // Update update_dt
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
@@ -719,7 +720,7 @@ public class ReferentialDaoImpl
         return classname;
     }
 
-    protected void referentialVOToEntity(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
+    protected void toEntity(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 

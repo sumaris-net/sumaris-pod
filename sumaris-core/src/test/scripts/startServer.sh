@@ -6,6 +6,7 @@ export M2_REPO="$HOME/.m2/repository"
 export CLASSPATH="${M2_REPO}/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"
 export DB_NAME="sumaris"
 export TEST_DB="../../../target/db"
+export DB_PORT=9001
 export DB_DIRECTORY="../../../target/db-server"
 #export JAVA_OPTS="-server -Xmx2g -Duser.timezone=UTC"
 export JAVA_OPTS="-server -Xms512m -Xmx512m -Duser.timezone=UTC"
@@ -30,10 +31,13 @@ fi;
 
 cp ${CLASSPATH} .
 
-export DB_OPTS="--database.0 file:${DB_DIRECTORY}/${DB_NAME} --dbname.0 ${DB_NAME}"
+DB_OPTS="--database.0 file:${DB_DIRECTORY}/${DB_NAME} --dbname.0 ${DB_NAME} --port ${DB_PORT}"
+
+JAVA_CMD="java ${JAVA_OPTS} -classpath ${CLASSPATH} org.hsqldb.Server ${DB_OPTS}"
 
 #export DB_TEMP_DIRECTORY="../db-temp"
 #export DB_OPTS=$DB_OPTS --database.1 file:$DB_TEMP_DIRECTORY/${DB_NAME} --dbname.1 ${DB_NAME}-temp
 
 # run db-server
-java ${JAVA_OPTS} -classpath ${CLASSPATH} org.hsqldb.Server ${DB_OPTS}
+echo $JAVA_CMD
+$JAVA_CMD

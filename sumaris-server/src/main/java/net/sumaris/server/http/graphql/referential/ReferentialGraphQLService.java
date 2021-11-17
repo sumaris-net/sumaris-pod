@@ -1,45 +1,41 @@
-package net.sumaris.server.http.graphql.referential;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+package net.sumaris.server.http.graphql.referential;
+
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
-import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
-import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.*;
-import net.sumaris.server.http.GraphQLUtils;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.ChangesPublisherService;
@@ -54,14 +50,12 @@ import java.util.List;
 import java.util.Set;
 
 @Service
+@GraphQLApi
 @Transactional
 public class ReferentialGraphQLService {
 
     @Autowired
     private ReferentialService referentialService;
-
-    @Autowired
-    private TaxonNameService taxonNameService;
 
     @Autowired
     private TaxonGroupService taxonGroupService;
@@ -206,27 +200,6 @@ public class ReferentialGraphQLService {
 
     /* -- taxon -- */
 
-    @GraphQLQuery(name = "taxonNames", description = "Search in taxon names")
-    @Transactional(readOnly = true)
-    public List<TaxonNameVO> findTaxonNames(
-            @GraphQLArgument(name = "filter") TaxonNameFilterVO filter,
-            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-            @GraphQLEnvironment ResolutionEnvironment env) {
-
-        return taxonNameService.findByFilter(
-            TaxonNameFilterVO.nullToEmpty(filter),
-            Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(),
-            getFetchOptions(GraphQLUtils.fields(env)));
-    }
-
     @GraphQLQuery(name = "taxonGroupIds", description = "Get taxon groups from a taxon name")
     public List<Integer> getTaxonGroupIdsByTaxonName(@GraphQLContext TaxonNameVO taxonNameVO) {
         if (taxonNameVO.getReferenceTaxonId() != null) {
@@ -236,7 +209,24 @@ public class ReferentialGraphQLService {
         return null;
     }
 
-    /* -- -- */
+    @GraphQLQuery(name = "taxonGroups", description = "Get taxon groups from a taxon name")
+    public List<TaxonGroupVO> getTaxonGroupByFilter  (@GraphQLArgument(name = "filter") ReferentialFilterVO filter,
+                                                      @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                      @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                      @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        return taxonGroupService.findTargetSpeciesByFilter(
+                ReferentialFilterVO.nullToEmpty(filter),
+                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+    }
+
+    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxonGroups")
+    @Transactional(readOnly = true)
+    public Long countTaxonGroups(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+        return referentialService.countByFilter("TaxonGroup", filter);
+    }
+
+    /* -- protected functions -- */
 
     protected TaxonNameFetchOptions getFetchOptions(Set<String> fields) {
         return TaxonNameFetchOptions.builder()

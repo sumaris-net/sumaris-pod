@@ -29,6 +29,9 @@ import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -41,6 +44,7 @@ import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -65,7 +69,8 @@ public class VesselSnapshotRepositoryImpl
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
     private final SumarisConfiguration configuration;
-    private boolean isOracleDatabase;
+    private boolean isOracleDatabase  = false;
+    private boolean enableRegistrationCodeSearchAsPrefix = false;
 
     @Autowired
     public VesselSnapshotRepositoryImpl(EntityManager entityManager,
@@ -84,6 +89,16 @@ public class VesselSnapshotRepositoryImpl
     @PostConstruct
     private void setup() {
         isOracleDatabase = Daos.isOracleDatabase(configuration.getJdbcURL());
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+    }
+
+    @Override
+    public boolean enableRegistrationCodeSearchAsPrefix() {
+        return enableRegistrationCodeSearchAsPrefix;
     }
 
     @Override

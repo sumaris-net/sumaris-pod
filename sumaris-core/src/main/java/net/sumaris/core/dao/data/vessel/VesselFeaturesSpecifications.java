@@ -68,6 +68,8 @@ public interface VesselFeaturesSpecifications<
 
     String VRP_PATH = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
 
+    boolean enableRegistrationCodeSearchAsPrefix();
+
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -103,7 +105,7 @@ public interface VesselFeaturesSpecifications<
             // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
             return root.get(VesselFeatures.Fields.NVL_END_DATE);
         }
-        return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.NVL_END_DATE_TIME);
+        return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
     }
 
     default Expression<Date> nvlRegistrationEndDate(Path<VesselRegistrationPeriod> vrp, CriteriaBuilder cb) {
@@ -111,7 +113,7 @@ public interface VesselFeaturesSpecifications<
             // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
             return vrp.get(VesselRegistrationPeriod.Fields.NVL_END_DATE);
         }
-        return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.NVL_END_DATE_TIME);
+        return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
     }
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
@@ -147,41 +149,25 @@ public interface VesselFeaturesSpecifications<
 
             // Start + end date
             if (startDate != null && endDate != null) {
-                return cb.and(
-                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
-                    // without VRP
-                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-
-                    // or NOT outside the start/end period
-                    cb.not(
-                        cb.or(
-                            cb.lessThan(nvlRegistrationEndDate(vrp, cb), startDate),
-                            cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
-                        )
+                // NOT outside the start/end period
+                return cb.not(
+                    cb.or(
+                        cb.lessThan(nvlRegistrationEndDate(vrp, cb), startDate),
+                        cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
             }
 
             // Start date only
             else if (startDate != null) {
-                return cb.and(
-                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
-                    // without VRP
-                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // VRP.end_date >= filter.startDate
-                    cb.greaterThanOrEqualTo(nvlRegistrationEndDate(vrp, cb), startDate)
-                );
+                // VRP.end_date >= filter.startDate
+                return cb.greaterThanOrEqualTo(nvlRegistrationEndDate(vrp, cb), startDate);
             }
 
             // End date only
             else {
-                return cb.and(
-                    cb.equal(vrp.get(VesselRegistrationPeriod.Fields.VESSEL), root.get(VesselFeatures.Fields.VESSEL)),
-                    // without VRP
-                    //cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
-                    // VRP.start_date <=> filter.endDate
-                    cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
-                );
+                // VRP.start_date <=> filter.endDate
+                return cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate);
             }
         };
     }
@@ -235,17 +221,28 @@ public interface VesselFeaturesSpecifications<
             VesselFeatures.Fields.NAME
         };
 
-        return BindableSpecification.where((root, query, cb) -> {
-            final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
+        boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
+        boolean enableAnySearch = Arrays.stream(attributes)
+            .anyMatch(attr -> attr.endsWith(VesselFeatures.Fields.NAME));
+        boolean enablePrefixSearch = enableRegistrationCodeSearchAsPrefix && Arrays.stream(attributes)
+            .anyMatch(attr -> !attr.endsWith(VesselFeatures.Fields.NAME));
 
-            return cb.or(
-                Arrays.stream(attributes).map(attr -> cb.like(
-                    cb.upper(Daos.composePath(root, attr)),
-                    prefixParam)
-                ).toArray(Predicate[]::new)
-            );
-        })
-            .addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());
+        BindableSpecification<VesselFeatures> specification =  BindableSpecification.where((root, query, cb) -> {
+            final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
+            final ParameterExpression<String> anyParam = cb.parameter(String.class, SEARCH_TEXT_ANY_PARAM);
+
+            Predicate[] predicates = Arrays.stream(attributes).map(attr -> cb.like(
+                cb.upper(Daos.composePath(root, attr)),
+                (enableRegistrationCodeSearchAsPrefix && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam)
+            ).toArray(Predicate[]::new);
+
+            return cb.or(predicates);
+        });
+
+        if (enablePrefixSearch) specification.addBind(SEARCH_TEXT_PREFIX_PARAM, searchTextAsPrefix.toUpperCase());
+        if (enableAnySearch) specification.addBind(SEARCH_TEXT_ANY_PARAM, "%" + searchTextAsPrefix.toUpperCase());
+
+        return specification;
     }
 
     default Optional<V> getLastByVesselId(int vesselId, O fetchOptions) {

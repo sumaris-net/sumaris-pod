@@ -38,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -52,8 +53,10 @@ import java.util.stream.Collectors;
  *
  * @author peck7 on 03/04/2020.
  */
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+
 @Slf4j
+@NoRepositoryBean
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends IReferentialFilter, O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {

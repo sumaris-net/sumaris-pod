@@ -1,10 +1,8 @@
-package net.sumaris.server.http.graphql.technical;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Server
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,6 +20,8 @@ package net.sumaris.server.http.graphql.technical;
  * #L%
  */
 
+package net.sumaris.server.http.graphql.technical;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLEnvironment;
@@ -35,11 +35,11 @@ import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
-import net.sumaris.server.http.security.AuthTokenTypeEnum;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 
 @Service
 @Transactional
+@GraphQLApi
 @Slf4j
 public class ConfigurationGraphQLService {
 

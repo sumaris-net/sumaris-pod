@@ -19,8 +19,14 @@ TIMEZONE=UTC
 
 # --- Fixed variables (DO NOT changes):  --------------------------------------
 
-HSQLDB_VERSION=2.5.0
-TEST_DB_VERSION=1.4.2
+HSQLDB_VERSION=@hsqldb.version@
+TEST_DB_VERSION=@project.version@
+#TEST_DB_VERSION=1.12.5
+
+HSQLDB_M2_REPO="https://nexus.e-is.pro/nexus/service/local/repositories/central/content"
+#HSQLDB_M2_REPO="http://www.hsqldb.org/repos"
+
+TEST_DB_GITHUB_REPO="https://github.com/sumaris-net/sumaris-pod"
 
 # --- Program start -----------------------------------------------------------
 
@@ -42,14 +48,15 @@ if [[ "${JAVA_OPTS}_" == "_" ]]; then
   JAVA_OPTS="-Xms512m -Xmx1024m"
 fi
 
+JAR_URL="${HSQLDB_M2_REPO}/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"
+TOOL_JAR_URL="${HSQLDB_M2_REPO}/org/hsqldb/sqltool/${HSQLDB_VERSION}/sqltool-${HSQLDB_VERSION}.jar"
+TEST_DB_URL="${TEST_DB_GITHUB_REPO}/releases/download/${TEST_DB_VERSION}/sumaris-db-${TEST_DB_VERSION}.zip"
+
 PID_FILE="${DATA_DIRECTORY}/${SERVICE_NAME}.pid"
 JAR_FILE="${SUMARIS_HOME}/lib/hsqldb-${HSQLDB_VERSION}.jar"
-JAR_URL="http://www.hsqldb.org/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"
 TOOL_JAR_FILE="${SUMARIS_HOME}/lib/sqltool-${HSQLDB_VERSION}.jar"
-TOOL_JAR_URL="http://www.hsqldb.org/repos/org/hsqldb/sqltool/${HSQLDB_VERSION}/sqltool-${HSQLDB_VERSION}.jar"
 DB_DIRECTORY=${DATA_DIRECTORY}/db
 DB_PATH=${DB_DIRECTORY}/sumaris
-TEST_DB_URL="https://github.com/sumaris-net/sumaris-pod/releases/download/${TEST_DB_VERSION}/sumaris-db-${TEST_DB_VERSION}.zip"
 SUMARIS_LOG="${SUMARIS_LOG_DIR}/sumaris-db.log"
 
 # WARN: with trailing slash
@@ -90,8 +97,8 @@ download() {
 
 # Make sure jar exists
 checkJarExists() {
-  if [[ ! -f "${$TOOL_JAR_FILE}" ]]; then
-    echo "Downloading Hsqldb Tools JAR...  ${TOOL_JAR_URL}"
+  if [[ ! -f "${TOOL_JAR_FILE}" ]]; then
+    echo "--- Downloading Hsqldb Tools JAR...  ${TOOL_JAR_URL}"
     download "${TOOL_JAR_URL}" -o "${TOOL_JAR_FILE}"
     if [[ $? -ne 0 ]]; then
       echo "ERROR - Missing Hsqldb JAR file at: ${TOOL_JAR_FILE}"
@@ -101,7 +108,7 @@ checkJarExists() {
     fi
   fi;
   if [ ! -f "${JAR_FILE}" ]; then
-    echo "Downloading Hsqldb JAR...  ${JAR_URL}"
+    echo "--- Downloading Hsqldb JAR...  ${JAR_URL}"
     download "${JAR_URL}" -o "${JAR_FILE}"
     if [[ $? -ne 0 ]]; then
       echo "ERROR - Missing Hsqldb JAR file at: ${JAR_FILE}"
@@ -117,7 +124,7 @@ checkDbExists() {
 
   if [ ! -f "${DB_PATH}.script" ]; then
     TMP_FILE="/tmp/sumaris-db-${TEST_DB_VERSION}.zip"
-    echo "Downloading test DB v${TEST_DB_VERSION}..."
+    echo "--- Downloading test DB v${TEST_DB_VERSION}..."
     download "$TEST_DB_URL" -o "$TMP_FILE"
     [[ $? -eq 0 ]] && unzip $TMP_FILE -d $DATA_DIRECTORY
     if [[ $? -ne 0 ]]; then
@@ -139,38 +146,42 @@ checkDbExists() {
   fi;
 }
 
-start() {
-  checkJarExists
-  checkDbExists
-
-  echo "Starting $SERVICE_NAME..."
-  echo " - args: $SERVER_ARGS"
-  echo " - log:  $SUMARIS_LOG"
-
-  echo "$JAVA_CMD"
-  $JAVA_CMD
-  #PID=`nohup $JAVA_CMD >> $SUMARIS_LOG 2>> $SUMARIS_LOG & echo $!`
-}
-
-backup() {
-  checkJarExists
-
-  FTP_URL=${BACKUP_FTP_URL}
-  FTP_REMOTE_DIR=${BACKUP_REMOTE_DIR}
-
+checkToolRcFile() {
   # Create sqltool.rc file
   # => Make sure to always re-create this file, because variables can be changed !
   TOOL_RC_FILE="${SUMARIS_HOME}/bin/sqltool.rc"
-  rm $TOOL_RC_FILE
+  rm -f $TOOL_RC_FILE
+
   if [ ! -f "${TOOL_RC_FILE}" ]; then
-    echo "Creating HSQLDB tool RC file: $TOOL_RC_FILE ..."
+    echo "--- Creating HSQLDB tool RC file: $TOOL_RC_FILE ..."
     echo "urlid ${DB_NAME}" > $TOOL_RC_FILE
     echo "url jdbc:hsqldb:hsql://127.0.0.1:${DB_PORT}/${DB_NAME}" >> $TOOL_RC_FILE
     echo "username sa" >> $TOOL_RC_FILE
     echo "password" >> $TOOL_RC_FILE
   fi
+}
 
-  echo "Starting backup of $SERVICE_NAME..."
+start() {
+  checkJarExists
+  checkDbExists
+
+  echo "--- Starting $SERVICE_NAME..."
+  echo " - args: $SERVER_ARGS"
+  echo " - log:  $SUMARIS_LOG"
+
+  echo "$JAVA_CMD"
+  #$JAVA_CMD
+  PID=`nohup $JAVA_CMD >> $SUMARIS_LOG 2>> $SUMARIS_LOG & echo $!`
+}
+
+backup() {
+  checkJarExists
+  checkToolRcFile
+
+  FTP_URL=${BACKUP_FTP_URL}
+  FTP_REMOTE_DIR=${BACKUP_REMOTE_DIR}
+
+  echo "--- Starting backup of $SERVICE_NAME..."
   echo "Starting backup of $SERVICE_NAME..." >> $BACKUP_LOG
   echo " - dir: $BACKUP_DIR"
   echo " - log: $BACKUP_LOG"
@@ -181,7 +192,7 @@ backup() {
   fi
 
   # Backup to file
-  java -classpath $JAR_FILE:$TOOL_JAR_FILE org.hsqldb.cmdline.SqlTool --rcFile=$TOOL_RC_FILE --sql="BACKUP DATABASE TO '$BACKUP_DIR' NOT BLOCKING;" ${DB_NAME} >> $BACKUP_LOG 2>> $BACKUP_LOG
+  java -classpath ${JAR_FILE}:${TOOL_JAR_FILE} org.hsqldb.cmdline.SqlTool --rcFile=${TOOL_RC_FILE} --sql="BACKUP DATABASE TO '${BACKUP_DIR}' NOT BLOCKING;" ${DB_NAME} >> ${BACKUP_LOG} 2>> ${BACKUP_LOG}
   if [[ $? -ne 0 ]]; then
     echo "ERROR while executing backup. See log: $BACKUP_LOG"
     exit 1
@@ -191,7 +202,7 @@ backup() {
 
   # FTP upload
   if [[ "_${FTP_URL}" != "_" ]]; then
-    echo "Uploading file $BACKUP_FILE to FTP..."
+    echo "--- Uploading file $BACKUP_FILE to FTP..."
     echo "Uploading file $BACKUP_FILE to FTP..." >> $BACKUP_LOG
     lftp $FTP_URL -e "mirror -e -R $BACKUP_DIR $FTP_REMOTE_DIR ; quit" >> $BACKUP_LOG 2>> $BACKUP_LOG
     if [[ $? -ne 0 ]]; then

@@ -36,10 +36,13 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.LandingMeasurement;
+import net.sumaris.core.model.data.SurveyMeasurement;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
@@ -48,12 +51,14 @@ import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -80,6 +85,9 @@ public class LandingServiceImpl implements LandingService {
     protected OperationGroupService operationGroupService;
 
     @Autowired
+    protected PmfmService pmfmService;
+
+    @Autowired
     private ApplicationEventPublisher publisher;
 
     private boolean enableTrash = false;
@@ -97,7 +105,8 @@ public class LandingServiceImpl implements LandingService {
         if (page != null) {
 
             // Use specific query to get landings by observed location (consider only observedLocationId is the only filter attribute)
-            if (Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
+            if (filter.getObservedLocationId() != null
+                && Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
                 return landingRepository.findAllByObservedLocationId(filter.getObservedLocationId(), page, fetchOptions);
             }
 
@@ -204,6 +213,7 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public void deleteAllByObservedLocationId(int observedLocationId) {
+        // TODO BLA: use a specific query, that only fetch IDs ?
         landingRepository.findAllByObservedLocationId(observedLocationId)
                 .forEach(l -> this.delete(l.getId()));
     }
@@ -220,6 +230,9 @@ public class LandingServiceImpl implements LandingService {
 
         // Delete linked samples
         sampleService.deleteAllByLandingId(id);
+
+        measurementDao.deleteMeasurements(LandingMeasurement.class, Landing.class, ImmutableList.of(id));
+        measurementDao.deleteMeasurements(SurveyMeasurement.class, Landing.class, ImmutableList.of(id));
 
         // Delete landing
         landingRepository.deleteByIds(ImmutableList.of(id));
@@ -271,12 +284,24 @@ public class LandingServiceImpl implements LandingService {
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
-            measurementDao.saveLandingMeasurementsMap(source.getId(), source.getMeasurementValues());
+            // Split survey and landing measurements
+            Map<Integer, String> surveyMeasurementMap = Beans.filterMap(source.getMeasurementValues(), pmfmId -> pmfmService.isSurveyPmfm(pmfmId));
+            Map<Integer, String> landingMeasurementMap = Beans.filterMap(source.getMeasurementValues(), pmfmId -> !surveyMeasurementMap.containsKey(pmfmId));
+            measurementDao.saveLandingMeasurementsMap(source.getId(), landingMeasurementMap);
+            measurementDao.saveSurveyMeasurementsMap(source.getId(), surveyMeasurementMap);
         } else {
-            List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-            measurements.forEach(m -> fillDefaultProperties(source, m));
-            measurements = measurementDao.saveLandingMeasurements(source.getId(), measurements);
-            source.setMeasurements(measurements);
+            // Split survey and landing measurements
+
+            List<MeasurementVO> surveyMeasurements = Beans.filterCollection(source.getMeasurements(), measurementVO -> pmfmService.isSurveyPmfm(measurementVO.getPmfmId()));
+            List<Integer> surveyPmfmIds = surveyMeasurements.stream().map(MeasurementVO::getPmfmId).collect(Collectors.toList());
+            List<MeasurementVO> landingMeasurements = Beans.filterCollection(source.getMeasurements(), measurementVO -> !surveyPmfmIds.contains(measurementVO.getPmfmId()));
+
+            landingMeasurements.forEach(m -> fillDefaultProperties(source, m, LandingMeasurement.class));
+            landingMeasurements = measurementDao.saveLandingMeasurements(source.getId(), landingMeasurements);
+            surveyMeasurements.forEach(m -> fillDefaultProperties(source, m, SurveyMeasurement.class));
+            surveyMeasurements = measurementDao.saveSurveyMeasurements(source.getId(), surveyMeasurements);
+
+            source.setMeasurements(ListUtils.union(landingMeasurements, surveyMeasurements));
         }
 
         // Save trip
@@ -341,14 +366,14 @@ public class LandingServiceImpl implements LandingService {
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
     }
 
-    protected void fillDefaultProperties(LandingVO parent, MeasurementVO measurement) {
+    protected void fillDefaultProperties(LandingVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> measurementClass) {
         if (measurement == null) return;
 
         // Set default value for recorder department and person
         DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
         DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
 
-        measurement.setEntityName(LandingMeasurement.class.getSimpleName());
+        measurement.setEntityName(measurementClass.getSimpleName());
     }
 
     protected void fillDefaultProperties(LandingVO parent, SampleVO sample) {

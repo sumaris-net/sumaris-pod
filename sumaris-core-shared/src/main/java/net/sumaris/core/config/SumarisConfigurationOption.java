@@ -52,6 +52,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.app.name.description"),
         "SUMARiS",
         String.class),
+
     VERSION(
         "sumaris.version",
         n("sumaris.config.option.app.version.description"),
@@ -360,11 +361,20 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         String.class,
         false),
 
+    /* -- Cache options-- */
+
+    CACHE_ENABLED(
+        "spring.cache.enabled",
+        n("sumaris.config.option.spring.cache.enabled.description"),
+        Boolean.TRUE.toString(),
+        boolean.class,
+        false),
+
     /* -- Liquibase options-- */
 
-    LIQUIBASE_RUN_AUTO(
+    LIQUIBASE_ENABLED(
         "spring.liquibase.enabled",
-        n("sumaris.config.option.liquibase.should.run.description"),
+        n("sumaris.config.option.spring.liquibase.enabled.description"),
         Boolean.TRUE.toString(),
         boolean.class,
         false),
@@ -609,6 +619,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "sumaris.persistence.vessel.registrationCode.naturalOrder.enable",
         n("sumaris.config.option.persistence.vessel.registrationCode.naturalOrder.enabled.description"),
         Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
+
+    VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX(
+        "sumaris.persistence.vessel.registrationCode.searchAsPrefix",
+        n("sumaris.config.option.persistence.vessel.registrationCode.search.prefix.description"),
+        Boolean.TRUE.toString(),
         Boolean.class,
         false),
 

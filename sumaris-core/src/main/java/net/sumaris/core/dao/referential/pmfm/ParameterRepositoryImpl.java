@@ -10,12 +10,12 @@ package net.sumaris.core.dao.referential.pmfm;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -26,9 +26,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.pmfm.Parameter;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.pmfm.QualitativeValue;
+import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ParameterVO;
@@ -103,6 +101,13 @@ public class ParameterRepositoryImpl
                     break;
             }
         }
+
+        // Parameter Group
+        Daos.setEntityProperty(getEntityManager(), target, Parameter.Fields.PARAMETER_GROUP, ParameterGroup.class,
+            // Use parameterGroupId from source
+            Optional.ofNullable(source.getParameterGroupId())
+                // Or default ParameterGroup
+                .orElse(ParameterGroupEnum.UNKNOWN.getId()));
     }
 
     @Override
@@ -121,6 +126,9 @@ public class ParameterRepositoryImpl
                 .collect(Collectors.toList());
             target.setQualitativeValues(qualitativeValues);
         }
+
+        // Parameter group
+        target.setParameterGroupId(source.getParameterGroup().getId());
 
         // EntityName (as metadata - see ReferentialVO)
         target.setEntityName(Parameter.class.getSimpleName());
@@ -166,8 +174,7 @@ public class ParameterRepositoryImpl
                 parent.getQualitativeValues().add(qvTarget);
                 qvTarget.setCreationDate(newUpdateDate);
                 getEntityManager().persist(qvTarget);
-            }
-            else {
+            } else {
                 getEntityManager().merge(qvTarget);
             }
 

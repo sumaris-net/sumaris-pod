@@ -282,7 +282,8 @@ public class StrategyRepositoryImpl
         Preconditions.checkNotNull(strategyLabel);
         final String prefix = StringUtils.isNotBlank(labelSeparator) ? strategyLabel + labelSeparator : strategyLabel;
 
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        EntityManager em = getEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<String> query = builder.createQuery(String.class);
         Root<Sample> root = query.from(Sample.class);
 
@@ -307,7 +308,7 @@ public class StrategyRepositoryImpl
                             builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
                         ));
 
-        String result = getEntityManager()
+        String result = em
             .createQuery(query)
             .setParameter(tagIdPmfmIdParam, PmfmEnum.TAG_ID.getId())
             .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
@@ -354,14 +355,15 @@ public class StrategyRepositoryImpl
     protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
-        getEntityManager().flush();
-        getEntityManager().clear();
+        EntityManager em = getEntityManager();
+        em.flush();
+        em.clear();
     }
 
     // TDO BLA: pourquoi en public ?
     public void saveProgramLocationsByStrategyId(int strategyId) {
         EntityManager em = getEntityManager();
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
 
         Strategy strategy = getById(Strategy.class, strategyId);
 
@@ -417,6 +419,21 @@ public class StrategyRepositoryImpl
                 .and(hasLocationIds(filter.getLocationIds()))
                 .and(hasParameterIds(filter.getParameterIds()))
                 .and(hasPeriods(filter.getPeriods()));
+    }
+
+    @Override
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
+            }
+    )
+    // TODO BLA: features/imgaine -> pourquoi supprimer la vidange du cache ?
+    public void deleteById(Integer id) {
+        super.deleteById(id);
     }
 
     @Override
