@@ -52,6 +52,7 @@ import org.apache.commons.lang3.mutable.MutableShort;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -127,6 +128,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Autowired
     private PmfmRepository pmfmRepository;
+
+    @Value("${sumaris.persistence.qualityFlagId.default:0}")
+    private int defaultQualityFlagId = QualityFlagEnum.NOT_QUALIFIED.getId();
 
     // TODO: enable this, when APP can manage it !
     private boolean enableMeasurementMapFullSerialization = false;
@@ -699,8 +703,11 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     }
                 }
 
+                // Fill default properties
+                fillDefaultProperties(parent, entity);
+
                 // VO -> Entity
-                measurementVOToEntity(source, entity, true);
+                toEntity(source, entity, true);
 
                 // Update rankOrder
                 if (entity instanceof ISortedMeasurementEntity) {
@@ -936,7 +943,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         fillDefaultProperties(parent, entity);
 
         // Set value to entity
-        measurementMapValueToEntity(value, pmfm, entity);
+        toEntity(value, pmfm, entity);
 
         // Link to parent
         setParent(entity, getEntityClass(parent), parent.getId(), false);
@@ -1026,9 +1033,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         return toMeasurementsMap(sources.stream());
     }
 
-    protected void measurementVOToEntity(MeasurementVO source,
-                                         IMeasurementEntity target,
-                                         boolean copyIfNull) {
+    protected void toEntity(MeasurementVO source,
+                            IMeasurementEntity target,
+                            boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
@@ -1058,7 +1065,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, defaultQualityFlagId));
             }
             else {
                 target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
@@ -1067,7 +1074,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     }
 
-    protected void measurementMapValueToEntity(String value, PmfmVO pmfm, IMeasurementEntity target) {
+    protected void toEntity(String value, PmfmVO pmfm, IMeasurementEntity target) {
 
 
         PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
@@ -1187,21 +1194,19 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     protected void fillDefaultProperties(IEntity<?> parent, IMeasurementEntity target) {
 
-        if (parent instanceof IDataEntity) {
-            IDataEntity<?> parentData = (IDataEntity<?>) parent;
-            // Recorder department
-            if (target.getRecorderDepartment() == null) {
-                if (parentData.getRecorderDepartment() == null || parentData.getRecorderDepartment().getId() == null) {
-                    target.setRecorderDepartment(null);
-                } else {
-                    target.setRecorderDepartment(parentData.getRecorderDepartment());
-                }
+        // Recorder department
+        if (target.getRecorderDepartment() == null && parent instanceof IWithRecorderDepartmentEntity) {
+            IWithRecorderDepartmentEntity<Integer, Department> sourceParent = (IWithRecorderDepartmentEntity<Integer, Department>) parent;
+            if (sourceParent.getRecorderDepartment() == null) {
+                target.setRecorderDepartment(null);
+            } else {
+                target.setRecorderDepartment(sourceParent.getRecorderDepartment());
             }
         }
 
         // Quality flag
         if (target.getQualityFlag() == null) {
-            target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+            target.setQualityFlag(getReference(QualityFlag.class, defaultQualityFlagId));
         }
     }
 
