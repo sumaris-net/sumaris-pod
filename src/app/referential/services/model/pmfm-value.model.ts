@@ -51,18 +51,16 @@ export abstract class PmfmValueUtils {
         if (isNilOrNaN(value)) return null;
         value = parseInt(value);
         // Apply conversion excepted for displaying the value
-        if (pmfm.displayConversion && !pmfm.alreadyConverted) {
+        if (pmfm.displayConversion) {
           value = value * pmfm.displayConversion.conversionCoefficient;
-          pmfm.alreadyConverted = true;
         }
         return value;
       case "double":
         if (isNilOrNaN(value)) return null;
         value = parseFloat(value);
         // Apply conversion excepted for displaying the value
-        if (pmfm.displayConversion && !pmfm.alreadyConverted) {
+        if (pmfm.displayConversion) {
           value = value * pmfm.displayConversion.conversionCoefficient;
-          pmfm.alreadyConverted = true;
         }
         return value;
       case "string":

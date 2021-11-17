@@ -38,7 +38,6 @@ export interface IPmfm<
   rankOrder?: number;
 
   displayConversion?: UnitConversion;
-  alreadyConverted?: boolean;
 }
 
 export interface IDenormalizedPmfm<
@@ -225,7 +224,7 @@ export abstract class PmfmUtils {
   }
 
   static isWeight(pmfm: IPmfm): boolean {
-    return pmfm.unitLabel === UnitLabel.KG || pmfm.label?.endsWith("WEIGHT");
+    return pmfm.unitLabel === UnitLabel.KG || pmfm.label?.endsWith("WEIGHT") || (pmfm instanceof Pmfm && (pmfm as Pmfm).parameter?.label?.endsWith("WEIGHT"));
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {

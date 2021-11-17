@@ -654,8 +654,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
                 {
                   pmfm.unitLabel = this.weightDisplayedUnit;
                   pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
+                  if (originalUnitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM)
+                  {
                   pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-                  pmfm.alreadyConverted = false;
+                  }
+                  else if (originalUnitLabel === UnitLabel.GRAM && this.weightDisplayedUnit === UnitLabel.KG)
+                  {
+                    pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
+                  }
                 }
                 else if (pmfm instanceof Pmfm)
                 {
@@ -665,8 +671,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
                     pmfm.unit.name = this.weightDisplayedUnit; // To upgrade with weightDisplayed (not computed yet)
                   }
                   pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
-                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-                  pmfm.alreadyConverted = false;
+                  if (originalUnitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM)
+                  {
+                    pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+                  }
+                  else if (originalUnitLabel === UnitLabel.GRAM && this.weightDisplayedUnit === UnitLabel.KG)
+                  {
+                    pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
+                  }
                 }
               }
             }
