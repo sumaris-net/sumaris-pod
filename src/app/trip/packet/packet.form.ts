@@ -1,12 +1,25 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import { AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
-import {IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils} from '../services/model/packet.model';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {PacketValidatorService} from '../services/validator/packet.validator';
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  AppForm,
+  FormArrayHelper,
+  IReferentialRef,
+  isNotEmptyArray,
+  isNotNilOrNaN,
+  LoadResult,
+  LocalSettingsService,
+  round,
+  selectInputContent,
+  toNumber,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
+import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { PacketValidatorService } from '../services/validator/packet.validator';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 
 
 @Component({
@@ -128,12 +141,13 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
     super.setValue(data, opts);
 
-    this.$packetCount.next(this.compositionHelper.size());
-    this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
     this.computeSampledRatios();
     this.computeTaxonGroupWeight();
 
     this.registerSubscription(this.form.controls.number.valueChanges
+      .pipe(
+        startWith(this.form.controls.number.value)
+      )
       .subscribe((packetCount) => {
         this.$packetCount.next(Math.max(1, Math.min(6, packetCount||0)));
         this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
@@ -255,4 +269,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  selectInputContent = selectInputContent;
 }

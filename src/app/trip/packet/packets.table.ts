@@ -249,12 +249,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[packet-table] packet modal result: ', data, role);
+    const res = await modal.onDidDismiss();
+    if (res?.data && this.debug) console.debug('[packet-table] packet modal result: ', res);
     this.markAsLoaded();
 
-    if (data) {
-      return {data: data as Packet, role};
+    if (res?.data) {
+      return {data: res.data as Packet, role: res.role};
     }
   }
 

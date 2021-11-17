@@ -13,10 +13,9 @@
         <!-- Parent -->
         <mat-autocomplete-field formControlName='parent'
                                 [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
-                                [required]="true"
                                 [tabindex]="tabindex"
                                 [config]="autocompleteFields.parent"
-                                [clearable]="true">
+                                required>
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -36,6 +35,7 @@
                  pattern="[0-9]*"
                  step="1"
                  [tabIndex]="tabindex+1"
+                 (click)="selectInputContent($event)"
                  required>
         </mat-form-field>
       </ion-col>
@@ -55,7 +55,7 @@
 
   </ion-grid>
 
-  <table class="mat-table" [style.--packet-count]="packetCount">
+  <table class="mat-table" [style.--packet-count]="packetCount" [class.mobile]="mobile">
 
     <!-- header row -->
     <tr class="mat-header-row">
@@ -95,7 +95,8 @@
                  [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1}"
                  [formControlName]="'sampledWeight'+index"
                  [tabIndex]="tabindex+10+(index+1)*100"
-          >
+                 (click)="selectInputContent($event)"
+                 required>
           <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
         </mat-form-field>
       </td>
@@ -106,9 +107,10 @@
 
     <!--  composition row  -->
     <tr class="mat-row" *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; first as first; last as last; even as even"
-             [formGroup]="compositionForm"
-             [class.even]="even"
-              (focusin)="compositionEditedIndex=i">
+        [formGroup]="compositionForm"
+        [class.even]="even"
+        [class.mat-row-selected]="compositionEditedIndex===i"
+        (focusin)="compositionEditedIndex=i">
 
       <!-- taxon group -->
       <td class="mat-cell mat-column-taxonGroup">
@@ -116,19 +118,23 @@
                                 [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP'|translate"
                                 [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
                                 [config]="autocompleteFields.taxonGroup"
-                                [required]="first"
-                                [tabindex]="tabindex+10+i">
+                                [tabindex]="tabindex+10+i"
+                                required>
         </mat-autocomplete-field>
       </td>
 
       <!-- ratios -->
       <td class="mat-cell mat-column-small" *ngFor="let packetIndex of $packetIndexes | async; even as colEven"
                [class.even]="colEven">
-        <mat-form-field>
+        <mat-form-field *ngIf="compositionForm.get('ratio'+packetIndex); let control">
           <input matInput autocomplete="off" type="number" pattern="[0-9]*" step="1" max="100"
                  [tabIndex]="tabindex+10+(packetIndex+1)*100+i"
-                 [formControlName]="'ratio'+packetIndex">
+                 [formControl]="control"
+                 (click)="selectInputContent($event)"
+                 required
+          >
           <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
+          <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </td>
 
@@ -141,7 +147,7 @@
       <td class="mat-cell mat-column-actions">
         <ion-buttons>
           <button type="button" mat-icon-button
-                  *ngIf="last"
+                  *ngIf="last && !mobile"
                   [disabled]="disabled"
                   [title]="'COMMON.BTN_ADD'|translate"
                   (click)="addComposition()"
@@ -149,8 +155,8 @@
             <mat-icon>add</mat-icon>
           </button>
           <button type="button" mat-icon-button
-                  *ngIf="compositionEditedIndex === i"
-                  [tabindex]="-1" [disabled]="disabled"
+                  *ngIf="compositionEditedIndex === i && !disabled"
+                  [tabindex]="-1"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="compositionHelper.removeAt(i)">
             <mat-icon>delete_outline</mat-icon>
