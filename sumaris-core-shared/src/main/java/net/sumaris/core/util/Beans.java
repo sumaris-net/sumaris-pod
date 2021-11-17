@@ -491,4 +491,11 @@ public class Beans {
         return map1.entrySet().stream()
             .allMatch(e -> e.getValue().equals(map2.get(e.getKey())));
     }
+
+    public static <E> int lastIndexOf(List<E> list, Predicate<E> predicate) {
+        for (ListIterator<E> iter = list.listIterator(list.size()); iter.hasPrevious(); )
+            if (predicate.test(iter.previous()))
+                return iter.nextIndex();
+        return -1;
+    }
 }

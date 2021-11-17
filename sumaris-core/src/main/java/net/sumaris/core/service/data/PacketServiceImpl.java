@@ -47,7 +47,6 @@ import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -406,25 +405,20 @@ public class PacketServiceImpl implements PacketService {
                 }
                 // add zeros on null values before first non null value
                 List<Integer> ratios = source.getRatios();
-                String ratioValue = "";
                 if (ratios.stream().anyMatch(Objects::nonNull)) {
-                    // if a non-zero value exists
-                    MutableBoolean firstNonNull = new MutableBoolean();
-                    ratioValue = ratios.stream()
-                        .map(ratio -> {
-                            if (firstNonNull.isFalse() && (ratio == null || ratio == 0)) {
-                                // set 0 on this null (or 0) value
-                                return 0;
+
+                    int lastNullIndex = Beans.lastIndexOf(ratios, Objects::nonNull);
+                    if (lastNullIndex != -1) {
+                        for (int i = 0; i < lastNullIndex; i++) {
+                            if (ratios.get(i) == null) {
+                                ratios.set(i, 0);
                             }
-                            // a non null value found, return it
-                            firstNonNull.setTrue();
-                            return ratio;
-                        })
-                        .filter(Objects::nonNull) // filter other null values
-                        .map(Object::toString)
-                        .collect(Collectors.joining(RATIO_SEPARATOR));
+                        }
+                    }
                 }
-                ratioMeasurement.setAlphanumericalValue(ratioValue);
+                ratioMeasurement.setAlphanumericalValue(
+                    ratios.stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
+                );
                 ratioMeasurement.setIsReferenceQuantification(false);
                 quantificationMeasurements.add(ratioMeasurement);
             }
