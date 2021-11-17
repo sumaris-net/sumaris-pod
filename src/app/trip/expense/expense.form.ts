@@ -62,6 +62,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   removingBait = false;
   baitsHelper: FormArrayHelper<number>;
   baitsFocusIndex = -1;
+  allData: Measurement[];
 
   /** The index of the active tab. */
   private _selectedTabIndex = 0;
@@ -233,18 +234,22 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     // add bait values
     this.baitForms.forEach(form => values.push(...form.value));
 
+    this.allData = values;
     return values;
   }
 
   async setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
+    // Make a copy of data to keep ice and bait measurements
+    this.allData = this.allData || data.slice();
+
     super.setValue(data, opts);
 
     // set ice value
-    await this.setIceValue(data);
+    await this.setIceValue(this.allData);
 
     // set bait values
-    await this.setBaitValue(data);
+    await this.setBaitValue(this.allData);
 
     // initial calculation of tuples
     this.calculateInitialTupleValues(this.fuelTuple);
