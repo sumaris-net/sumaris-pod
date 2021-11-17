@@ -303,6 +303,9 @@ import {AppCoreModule} from '@app/core/core.module';
         },
         {
           siteUrl: 'https://www.sfa.sc', logo: 'assets/img/logo/logo-sfa.jpg'
+        },
+        {
+          siteUrl: 'https://www.comite-peches.fr/', logo: 'assets/img/logo/logo-cnpmem.png'
         }
       ]
     },
