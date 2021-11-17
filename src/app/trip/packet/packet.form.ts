@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
-import {IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils} from '../services/model/packet.model';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {PacketValidatorService} from '../services/validator/packet.validator';
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { PacketValidatorService } from '../services/validator/packet.validator';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject } from 'rxjs';
 
 
@@ -123,12 +123,18 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     if (!data) return;
 
     data.composition = data.composition && data.composition.length ? data.composition : [null];
-    this.compositionHelper.resize(Math.min(Math.max(1, data.composition.length), 6));
-
+    this.compositionHelper.resize(Math.max(1, data.composition.length));
 
     super.setValue(data, opts);
 
-    this.$packetCount.next(this.compositionHelper.size());
+    // Calculate packet count
+    let packetCount = 0;
+    PacketIndexes.forEach(index => {
+      if (!!data['sampledWeight' + index])
+        packetCount++;
+    });
+    if (packetCount === 0) packetCount = 1;
+    this.$packetCount.next(packetCount);
     this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
     this.computeSampledRatios();
     this.computeTaxonGroupWeight();
