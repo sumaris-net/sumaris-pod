@@ -38,8 +38,9 @@
         </ng-template>
       </ion-col>
       <ion-col size="2" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-button [disabled]="isGenerateLabelButtonDisable()"
-                    (click)="generateLabelIncrementButton()" translate>PROGRAM.STRATEGY.EDIT.GENERATE_LABEL_INCREMENT_BUTTON</ion-button>
+        <ion-button [disabled]="disabled || hasLanding || disableEditionListeners"
+                    [color]="canGenerateLabel ? 'tertiary' : 'light'"
+                    (click)="generateLabelIncrement()" translate>PROGRAM.STRATEGY.EDIT.GENERATE_LABEL_INCREMENT_BUTTON</ion-button>
       </ion-col>
 
     </ion-row>

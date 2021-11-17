@@ -23,7 +23,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { ReferentialService } from './referential.service';
-import { Pmfm } from './model/pmfm.model';
+import { IPmfm, Pmfm } from './model/pmfm.model';
 import { Observable, of } from 'rxjs';
 import { ReferentialFragments } from './referential.fragments';
 import { map } from 'rxjs/operators';
@@ -407,8 +407,10 @@ export class PmfmService
     throw new Error("Not implemented yet");
   }
 
-  async suggest(value: any, filter?: PmfmFilter|any,
-    sortBy?: keyof Referential, sortDirection?: SortDirection,
+  async suggest(value: any,
+                filter?: PmfmFilter|any,
+                sortBy?: keyof Pmfm,
+                sortDirection?: SortDirection,
     ): Promise<LoadResult<Pmfm>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;

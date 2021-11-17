@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } 
 import { AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import { isMoment, Moment } from 'moment';
 import {
   AppForm,
   AppFormUtils,
@@ -48,7 +48,7 @@ import {
 import { ProgramProperties } from '../../services/config/program.config';
 import {BehaviorSubject, merge, Subscription} from 'rxjs';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
-import { PmfmService } from '../../services/pmfm.service';
+import { PmfmFilter, PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
 import { TaxonName, TaxonNameRef, TaxonUtils } from '@app/referential/services/model/taxon-name.model';
 import { TaxonNameService } from '@app/referential/services/taxon-name.service';
@@ -56,12 +56,16 @@ import { PmfmStrategyValidatorService } from '@app/referential/services/validato
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
 
 const moment = momentImported;
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 
 const MIN_PMFM_COUNT = 2;
+
+const STRATEGY_LABEL_UI_PREFIX_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
+const STRATEGY_LABEL_UI_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
 
 @Component({
   selector: 'app-sampling-strategy-form',
@@ -189,6 +193,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.form.controls.fractionPmfms as FormArray;
   }
 
+  get taxonNameStrategyControl(): FormGroup {
+    return this.taxonNamesHelper?.at(0) as FormGroup;
+  }
+
+  get loading(): boolean {
+    return this._loading;
+  }
+
+  get touched(): boolean {
+    return this.form.touched;
+  }
+  get untouched(): boolean {
+    return this.form.untouched;
+  }
+
   $filteredAnalyticsReferences: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   $filteredLocations: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
   $filteredDepartments: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
@@ -202,14 +221,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
 
   enable(opts?: { onlySelf?: boolean, emitEvent?: boolean; }) {
+
     super.enable(opts);
 
-    // disable whole form or form part
-    if (!this.canUserWrite()) {
-      this.disable();
-       // FIXME fractions not disabled
-      this.fractionPmfmsHelper.disable();
-    } else if (this.hasLanding) {
+    if (this.hasLanding) {
       this.taxonNamesFormArray.disable();
       this.appliedStrategiesForm.disable();
       this.lengthPmfmsForm.disable();
@@ -234,6 +249,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    // FIXME fractions not disabled
+    this.fractionPmfmsHelper.disable();
+  }
+
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
     protected validatorService: StrategyValidatorService,
@@ -249,6 +270,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ) {
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
+    this._loading = true;
 
     // Add missing control
     this.form.addControl('year', new FormControl());
@@ -271,8 +293,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
+    const notLoadingFn = () => !this._loading;
     this.registerSubscription(
-      this.form.get('age').valueChanges.subscribe(hasAge => {
+      this.form.get('age').valueChanges
+        .pipe(filter(notLoadingFn))
+        .subscribe(hasAge => {
         if (hasAge) {
           this.loadFraction();
           this.fractionPmfmsForm.enable();
@@ -281,14 +306,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           this.fractionPmfmsForm.disable();
         }
       }));
-    this.taxonNamesFormArray.setAsyncValidators([async (_) => {
+    this.taxonNamesFormArray.setAsyncValidators(async (_) => {
         this.loadFraction();
         return null;
-      }
-    ]);
+      });
 
     this.appliedPeriodsForm.setAsyncValidators([
       async (control: FormArray) => {
+        if (this.untouched) return;
         const minLength = 1;
         const appliedPeriods = control.controls;
         if (!isEmptyArray(appliedPeriods)) {
@@ -337,37 +362,48 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       })
     );
 
-    this.registerSubscription(this.form.get('label').valueChanges.subscribe(value => this.onEditLabel(value)));
-    this.registerSubscription(this.form.get('year').valueChanges.subscribe(date => this.onDateChange(date)));
-    this.registerSubscription(this.taxonNamesFormArray.valueChanges.subscribe(() => this.onTaxonChange()));
+    this.registerSubscription(
+      merge(
+        this.form.get('label').valueChanges.pipe(map(_ => 'label')),
+        this.form.get('year').valueChanges.pipe(map(_ => 'year')),
+        this.taxonNameStrategyControl.valueChanges.pipe(map(_ => 'taxonName'))
+      )
+      .pipe(
+        filter(() => !this.disableEditionListeners && !this._loading),
+        tap(event => console.debug('TODO: event update=', event)),
+        debounceTime(100) // Need to make sure year date has been updated
+      )
+      .subscribe(_ => this.generateLabelPrefix()));
 
     const idControl = this.form.get('id');
-    this.form.get('label').setAsyncValidators([
-      async (control) => {
-        const label = control.value;
-        const parts = label.split(" ");
-        if (parts.some(str => str.indexOf("_") !== -1)) {
-          return <ValidationErrors>{ required: true };
-        }
-        if (label.includes('000')) {
-          return <ValidationErrors>{ zero: true };
-        }
-        console.debug('[sampling-strategy-form] Checking of label is unique...');
-        const exists = await this.strategyService.existsByLabel(label, {
-          programId: this.program && this.program.id,
-          excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
-          fetchPolicy: 'network-only' // Force to check remotely
-        });
-        if (exists) {
-          console.warn('[sampling-strategy-form] Label not unique!');
-          return <ValidationErrors>{ unique: true };
-        }
+    this.form.get('label').setAsyncValidators(async (control) => {
+      if (this.untouched) return;
+      const programId = this.program?.id;
+      if (isNil(programId)) return; // Skip
 
-        console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
-        SharedValidators.clearError(control, 'unique');
-        SharedValidators.clearError(control, 'zero');
+      const label = control.value;
+      const parts = label.split(" ");
+      if (parts.some(str => str.indexOf("_") !== -1)) {
+        return <ValidationErrors>{ required: true };
       }
-    ]);
+      if (label.includes('000')) {
+        return <ValidationErrors>{ zero: true };
+      }
+      console.debug('[sampling-strategy-form] Checking of label is unique...');
+      const exists = await this.strategyService.existsByLabel(label, {
+        programId,
+        excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined,
+        fetchPolicy: 'network-only' // Force to check remotely
+      });
+      if (exists) {
+        console.warn('[sampling-strategy-form] Label not unique!');
+        return <ValidationErrors>{ unique: true };
+      }
+
+      console.debug('[sampling-strategy-form] Checking of label is unique [OK]');
+      SharedValidators.clearError(control, 'unique');
+      SharedValidators.clearError(control, 'zero');
+    });
 
     // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
@@ -379,7 +415,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // Department autocomplete
@@ -388,7 +424,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 8],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // appliedStrategy autocomplete
@@ -400,7 +436,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         //  et non pas un option de Program ?
         levelIds: LocationLevelIds.LOCATIONS_AREA
       }),
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // Analytic reference autocomplete
@@ -409,7 +445,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
       columnSizes: [4, 6],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // length PMFM autocomplete
@@ -422,7 +458,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }),
       attributes: ['name', 'unit.label', 'matrix.name', 'fraction.name', 'method.name'],
       columnNames: ['REFERENTIAL.NAME', 'REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD'],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // appliedStrategy autocomplete
@@ -434,7 +470,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }),
       attributes: ['name', 'unit.label', 'matrix.name', 'fraction.name', 'method.name'],
       columnNames: ['REFERENTIAL.NAME', 'REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD'],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // appliedStrategy autocomplete
@@ -446,7 +482,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }),
       attributes: ['name', 'unit.label', 'matrix.name', 'fraction.name', 'method.name'],
       columnNames: ['REFERENTIAL.NAME', 'REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD'],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     // Fraction autocomplete
@@ -458,12 +494,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }),
       attributes: ['name'],
       columnNames: ['REFERENTIAL.NAME'],
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
   }
 
-  public setDisableEditionListeners (disable : boolean)
-  {
+  setDisableEditionListeners (disable : boolean) {
     this.disableEditionListeners = disable;
   }
 
@@ -751,7 +786,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         excludedIds
       });
     } else {
-      return this.pmfmService.suggest(newValue, {
+      return this.pmfmService.suggest(newValue, <PmfmFilter>{
         ...filter,
         excludedIds,
         entityName: Pmfm.ENTITY_NAME
@@ -853,93 +888,105 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
 
-    const isNew = isNil(data.id);
-    this.data = SamplingStrategy.fromObject(data);
+    this.markAsLoading();
+    try {
+      const isNew = isNil(data.id);
+      this.data = SamplingStrategy.fromObject(data);
 
-    // Fill efforts (need by validator)
-    this.hasEffort = this.data.hasRealizedEffort;
-    this.hasLanding = this.data.hasLanding;
+      // Fill efforts (need by validator)
+      this.hasEffort = this.data.hasRealizedEffort;
+      this.hasLanding = this.data.hasLanding;
 
-    // Make sure to have (at least) one department
-    data.departments = data.departments && data.departments.length ? data.departments : [null];
-    // Resize strategy department array
-    this.departmentsHelper.resize(Math.max(1, data.departments.length));
+      // Make sure to have (at least) one department
+      data.departments = data.departments && data.departments.length ? data.departments : [null];
+      // Resize strategy department array
+      this.departmentsHelper.resize(Math.max(1, data.departments.length));
 
-    data.appliedStrategies = isNotEmptyArray(data.appliedStrategies) ? data.appliedStrategies : [new AppliedStrategy()];
-    // Resize strategy department array
-    this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
+      data.appliedStrategies = isNotEmptyArray(data.appliedStrategies) ? data.appliedStrategies : [new AppliedStrategy()];
+      // Resize strategy department array
+      this.appliedStrategiesHelper.resize(Math.max(1, data.appliedStrategies.length));
 
-    data.taxonNames = data.taxonNames && data.taxonNames.length ? data.taxonNames : [null];
-    // Resize pmfm strategy array
-    this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
+      data.taxonNames = data.taxonNames && data.taxonNames.length ? data.taxonNames : [null];
+      // Resize pmfm strategy array
+      this.taxonNamesHelper.resize(Math.max(1, data.taxonNames.length));
 
-    // APPLIED_PERIODS
-    // get model appliedPeriods which are stored in first applied strategy
-    const appliedStrategyWithPeriods = firstArrayValue((data.appliedStrategies || []).filter(as => as && isNotEmptyArray(as.appliedPeriods)))
-      || firstArrayValue(data.appliedStrategies || []);
-    const appliedPeriods = appliedStrategyWithPeriods.appliedPeriods || [];
+      // APPLIED_PERIODS
+      // get model appliedPeriods which are stored in first applied strategy
+      const appliedStrategyWithPeriods = firstArrayValue((data.appliedStrategies || []).filter(as => as && isNotEmptyArray(as.appliedPeriods)))
+        || firstArrayValue(data.appliedStrategies || []);
+      const appliedPeriods = appliedStrategyWithPeriods.appliedPeriods || [];
 
-    // Find year, from applied period, or use current
-    const year: number = firstArrayValue(appliedPeriods.map(ap => ap.startDate.year())) || moment().year();
+      // Find year, from applied period, or use current
+      const year: number = firstArrayValue(appliedPeriods.map(ap => ap.startDate.year())) || moment().year();
 
-    // format periods for applied period in view and init default period by quarter if no set
-    appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
-      const startMonth = (quarter - 1) * 3 + 1;
-      const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
-      const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-      // Find the existing entity, or create a new one
-      const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
-        || AppliedPeriod.fromObject({ acquisitionNumber: undefined });
-      appliedPeriod.startDate = startDate;
-      appliedPeriod.endDate = endDate;
+      // format periods for applied period in view and init default period by quarter if no set
+      appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
+        const startMonth = (quarter - 1) * 3 + 1;
+        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+        const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
+        // Find the existing entity, or create a new one
+        const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
+          || AppliedPeriod.fromObject({ acquisitionNumber: undefined });
+        appliedPeriod.startDate = startDate;
+        appliedPeriod.endDate = endDate;
 
-      return appliedPeriod;
-    });
-
-    // Resize applied periods array
-    this.appliedPeriodsHelper.resize(4);
-
-    // Get first period
-    const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
-
-    data.year = firstAppliedPeriod ? firstAppliedPeriod.startDate : moment();
-
-    data.pmfms = data.pmfms || [];
-
-    // If new
-    if (isNew) {
-      // pmfms = [null, null];
-      data.sex = null;
-      data.age = null;
-    } else {
-      data.age = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1;
-      data.sex = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1;
-      console.debug("[sampling-strategy-form] Has sex ?", data.sex, PmfmIds.SEX);
-      data.label = data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
-    }
-
-    data.lengthPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
-    data.weightPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
-    data.maturityPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
-    data.fractionPmfms = (data.pmfms || [])
-      .filter(p => p.fraction && !p.pmfm)
-      .map(ps => {
-        ps.fraction = this.$allFractions.value.find(fraction => fraction.id === ps.fraction.id);
-        return ps;
+        return appliedPeriod;
       });
 
-    // Min size = 1
-    if (isEmptyArray(data.lengthPmfms)) data.lengthPmfms = [new PmfmStrategy()];
-    if (isEmptyArray(data.weightPmfms)) data.weightPmfms = [new PmfmStrategy()];
-    if (isEmptyArray(data.maturityPmfms)) data.maturityPmfms = [new PmfmStrategy()];
-    if (isEmptyArray(data.fractionPmfms)) data.fractionPmfms = [new PmfmStrategy()];
+      // Resize applied periods array
+      this.appliedPeriodsHelper.resize(4);
 
-    this.lengthPmfmsHelper.resize(Math.max(1, data.lengthPmfms.length));
-    this.weightPmfmsHelper.resize(Math.max(1, data.weightPmfms.length));
-    this.maturityPmfmsHelper.resize(Math.max(1, data.maturityPmfms.length));
-    this.fractionPmfmsHelper.resize(Math.max(1, data.fractionPmfms.length));
+      // Get first period
+      const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-    super.setValue(data, opts);
+      data.year = firstAppliedPeriod ? firstAppliedPeriod.startDate : moment();
+
+      data.pmfms = data.pmfms || [];
+
+      // If new
+      if (isNew) {
+        // pmfms = [null, null];
+        data.sex = null;
+        data.age = null;
+      } else {
+        data.age = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1;
+        data.sex = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1;
+        console.debug("[sampling-strategy-form] Has sex ?", data.sex, PmfmIds.SEX);
+        data.label = data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
+      }
+
+      data.lengthPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);
+      data.weightPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.WEIGHT, ParameterLabelGroups.WEIGHT);
+      data.maturityPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.MATURITY, ParameterLabelGroups.MATURITY);
+      data.fractionPmfms = (data.pmfms || [])
+        .filter(p => p.fraction && !p.pmfm)
+        .map(ps => {
+          ps.fraction = this.$allFractions.value.find(fraction => fraction.id === ps.fraction.id);
+          return ps;
+        });
+
+      // Min size = 1
+      if (isEmptyArray(data.lengthPmfms)) data.lengthPmfms = [new PmfmStrategy()];
+      if (isEmptyArray(data.weightPmfms)) data.weightPmfms = [new PmfmStrategy()];
+      if (isEmptyArray(data.maturityPmfms)) data.maturityPmfms = [new PmfmStrategy()];
+      if (isEmptyArray(data.fractionPmfms)) data.fractionPmfms = [new PmfmStrategy()];
+
+      this.lengthPmfmsHelper.resize(Math.max(1, data.lengthPmfms.length));
+      this.weightPmfmsHelper.resize(Math.max(1, data.weightPmfms.length));
+      this.maturityPmfmsHelper.resize(Math.max(1, data.maturityPmfms.length));
+      this.fractionPmfmsHelper.resize(Math.max(1, data.fractionPmfms.length));
+
+      super.setValue(data, opts);
+
+    }
+    catch(err) {
+      this.error = err && err.message || err;
+      console.error(err);
+    }
+    finally {
+      this.markAsPristine();
+      this.markAsLoaded();
+    }
 
   }
 
@@ -1046,30 +1093,34 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return target;
   }
 
-  protected async onEditLabel(value: string) {
+  protected async onStrategyLabelChanged(label: string) {
     if (this.disableEditionListeners) return;
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    if (!value) return
-    const expectedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] ___$/);
-    if (value.match(expectedLabelFormatRegex)) {
-      const currentViewTaxon = taxonNameControl?.value?.taxonName;
-      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+    if (!label) return
+
+    const taxonNameStrategyControl = this.taxonNameStrategyControl;
+    const taxonCode = label.substring(3, 10);
+    const taxonName = taxonNameStrategyControl?.value?.taxonName;
+
+    // Only prefix has been set
+    if (label.match(STRATEGY_LABEL_UI_PREFIX_REGEXP)) {
+      const isUnique = await this.isTaxonNameUnique(taxonCode, taxonName?.id);
       if (!isUnique) {
-        taxonNameControl.setErrors({ uniqueTaxonCode: true });
+        taxonNameStrategyControl.setErrors({ uniqueTaxonCode: true });
       } else {
         SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
       }
+      this.form.get('label').setErrors({pattern: true});
     }
-    const acceptedLabelFormatRegex = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z][a-zA-Z] \d\d\d$/);
-    if (value.match(acceptedLabelFormatRegex)) {
-      const currentViewTaxon = taxonNameControl?.value?.taxonName;
-      const isUnique = await this.isTaxonNameUnique(value.substring(3, 10), currentViewTaxon?.id);
+
+    // Full label filled
+    else if (label.match(STRATEGY_LABEL_UI_REGEXP)) {
+      const isUnique = await this.isTaxonNameUnique(taxonCode, taxonName?.id);
       if (!isUnique) {
         //taxonNameControl.setErrors({ uniqueTaxonCode: true });
       } else {
-        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+        SharedValidators.clearError(taxonNameStrategyControl, 'uniqueTaxonCode');
         const labelControl = this.form.get('label');
-        labelControl.setValue(value?.replace(/\s/g, '').toUpperCase());
+        labelControl.setValue(label?.replace(/\s/g, '').toUpperCase());
       }
     }
   }
@@ -1095,73 +1146,55 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.taxonNameService.countAll({
         ...taxonNameFilter,
         searchText: TaxonUtils.generateNameSearchPatternFromLabel(label, true)
-      }),
+      })
     ])
 
     return (first + second) === 0;
   }
 
-  protected async onDateChange(date?: Moment) {
-    if (this.disableEditionListeners) return;
-    let dateAsMoment: Moment;
-    if (typeof date === 'string') {
-      dateAsMoment = moment(date, 'YYYY-MM-DD');
-    } else {
-      dateAsMoment = date;
-    }
-    if (!dateAsMoment || dateAsMoment.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
 
-      await this.generateLabel(dateAsMoment);
-  }
+  protected async generateLabelPrefix() {
+    if (this.untouched || this.loading) return // Skip
 
-  protected async onTaxonChange() {
-    if (this.disableEditionListeners) return;
-    if (!this.program) return; // Skip if program is missing
-    await this.generateLabel();
-    // TODO try to limit pmfms, by loading previous sampling strategies ?
-  }
-
-  protected async generateLabel(date?: Moment) {
-
-    date = fromDateISOString(date || this.form.get('year').value);
-    if (!date || !this.program) return // Skip if year or program is missing
-    const yearMask = date.format('YY');
+    const yearCode = this.yearCode;
+    if (!yearCode || !this.program) return; // Skip
 
     let errors: ValidationErrors;
-    const taxonNameControl = this.taxonNamesHelper.at(0);
-    const currentViewTaxon = taxonNameControl?.value?.taxonName;
-    const currentViewTaxonName = taxonNameControl?.value?.taxonName?.name;
-    const previousFormTaxonName = this.form.getRawValue().taxonNames[0]?.taxonName?.name?.clone;
-    const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
-    const storedDataYear = this.data.appliedStrategies[0]?.appliedPeriods[0]?.startDate ? fromDateISOString(this.data.appliedStrategies[0].appliedPeriods[0].startDate).format('YY') : undefined;
-    let previousFormYear = undefined;
-    if (this.form.getRawValue().year && fromDateISOString(this.form.getRawValue().year)) {
-      previousFormYear = fromDateISOString(this.form.getRawValue().year).format('YY');
-    }
+
     const labelControl = this.form.get('label');
+    const taxonNameStrategyControl = this.taxonNameStrategyControl;
+    if (!taxonNameStrategyControl) return;
 
-    const label = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
-    const isUnique = await this.isTaxonNameUnique(label, currentViewTaxon?.id);
+    const currentViewTaxon = taxonNameStrategyControl.value?.taxonName;
+    const currentViewTaxonName = taxonNameStrategyControl.value?.taxonName?.name;
+    const storedDataTaxonName = this.data.taxonNames[0]?.taxonName?.name;
+    const taxonCode = currentViewTaxonName && TaxonUtils.generateLabelFromName(currentViewTaxonName);
+    const isUnique = await this.isTaxonNameUnique(taxonCode, currentViewTaxon?.id);
 
-    if (!label) {
+    const formRawValue = this.form.getRawValue();
+    const previousFormTaxonName = formRawValue.taxonNames[0]?.taxonName?.name?.clone;
+    const previousFormYear = fromDateISOString(formRawValue.year)?.format('YY');
+
+    if (!taxonCode) {
       errors = {cannotComputeTaxonCode: true};
     } else if (!isUnique) {
       errors = {uniqueTaxonCode: true};
     }
 
+    // Skip generate label when there is no update on year or taxon
+    if (currentViewTaxonName && currentViewTaxonName === previousFormTaxonName && yearCode && yearCode === previousFormYear) return;
+
+    // Update label mask
     // @ts-ignore
-    const newMask = yearMask.split("")
+    this.labelMask = yearCode.split("")
       .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
 
-    if (currentViewTaxonName  && currentViewTaxonName === previousFormTaxonName && yearMask && yearMask === previousFormYear) return; // Skip generate label when there is no update on year or taxon
-    this.labelMask = newMask;
-
-    if (errors && taxonNameControl) {
+    if (errors) {
       // if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === labelControl.value.toUpperCase().substring(2, 9)) {
       //   labelControl.setValue(this.data.label);
       // } else {
-        const computedLabel = `${yearMask} `;
-        if (!taxonNameControl.errors) {
+        const computedLabel = `${yearCode} `;
+        if (!taxonNameStrategyControl.errors) {
 
           if ((this.data.label && this.data.label === labelControl.value) && (storedDataTaxonName && storedDataTaxonName === currentViewTaxonName)) {
             // When function is called back after save, we do nothing
@@ -1170,16 +1203,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             labelControl.setValue(computedLabel);
           }
         }
-        taxonNameControl.setErrors(errors);
+        taxonNameStrategyControl.setErrors(errors);
       // }
     } else {
       //const computedLabel = this.program && (await this.strategyService.computeNextLabel(this.program.id, `${yearMask}${label}`, 3));
-      SharedValidators.clearError(taxonNameControl, 'cannotComputeTaxonCode');
+      SharedValidators.clearError(taxonNameStrategyControl, 'cannotComputeTaxonCode');
       //console.info('[sampling-strategy-form] Computed label: ' + computedLabel);
       //labelControl.setValue(computedLabel);
       // if current date and taxon code are same than stored data, set stored data
-      const formTaxon = labelControl.value?.replace(/\s/g, '').toUpperCase().substring(2, 9);
-      if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === formTaxon && formTaxon === label) {
+      const formTaxonCode = labelControl.value?.replace(/\s/g, '').toUpperCase().substring(2, 9);
+      if (this.data.label && this.data.label.substring(0, 2) === yearCode && this.data.label.substring(2, 9) === formTaxonCode && formTaxonCode === taxonCode) {
         // Complete label with '___' when increment isn't set in order to throw a warning in validator
         if (this.data.label.length === 9) {
           labelControl.setValue(this.data.label + '___');
@@ -1189,51 +1222,52 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }
       } else {
         // Complete label with '___' when increment isn't set in order to throw a warning in validator
-        labelControl.setValue(`${yearMask} ${label} ___`);
+        labelControl.setValue(`${yearCode} ${taxonCode} ___`);
       }
+
     }
   }
 
-  async generateLabelIncrementButton() {
-    let date: Moment;
-    if (typeof this.form.get('year').value === 'string') {
-      date = moment(this.form.get('year').value, 'YYYY-MM-DD');
-    } else {
-      date = this.form.get('year').value;
-    }
-    if (date.isBefore(moment("1900-12-31T00:00:00.000Z", 'YYYY-MM-DD'))) return;
-    const year = date.format('YY');
+  get canGenerateLabel(): boolean {
+    return !this.loading && this.program && this.year && this.taxonNameStrategyControl.value?.taxonName && true;
+  }
 
-    const inputLabel = this.form.get('label');
-    const inputLabelValueWithoutSpaces = inputLabel.value?.replace(/\s/g, '').toUpperCase();
-    let label = '';
-    if (inputLabelValueWithoutSpaces.substring(2, 9))
-    {
-      // Label automatically or manually set
-      label = inputLabelValueWithoutSpaces.substring(2, 9);
-    }
-    else {
-      if (this.taxonNamesHelper.at(0).value?.taxonName) {
-        label = TaxonUtils.generateLabelFromName(this.taxonNamesHelper.at(0).value?.taxonName?.name);
-        if (!label) {
-          this.taxonNamesHelper.at(0).setErrors({cannotComputeTaxonCode: true});
+  async generateLabelIncrement() {
+    if (this.loading) return; // Skip
+
+    const yearCode = this.yearCode;
+    const programId = this.program?.id;
+    if (isNil(yearCode) || isNil(programId)) return; // Skip
+
+    // Get label, or computed from label
+    const labelControl = this.form.get('label');
+    const taxonNameStrategyControl = this.taxonNameStrategyControl;
+    let inputLabel = labelControl.value;
+    inputLabel = inputLabel && inputLabel.replace(/\s/g, '').toUpperCase();
+    let taxonCode = inputLabel && inputLabel.substring(2, 9);
+    // No taxon code
+    if (isNilOrBlank(taxonCode)) {
+      const taxonName = taxonNameStrategyControl.value?.taxonName;
+      if (taxonName) {
+        taxonCode = TaxonUtils.generateLabelFromName(taxonName.name);
+        if (!taxonCode) {
+          taxonNameStrategyControl.setErrors({cannotComputeTaxonCode: true});
           return;
         }
-        const isUnique = await this.isTaxonNameUnique(label, this.taxonNamesHelper.at(0).value?.taxonName?.id);
+        const isUnique = await this.isTaxonNameUnique(taxonCode, taxonName.id);
         if (!isUnique) {
-          this.taxonNamesHelper.at(0).setErrors({uniqueTaxonCode: true});
+          taxonNameStrategyControl.setErrors({uniqueTaxonCode: true});
           return;
         }
       }
     }
-      // if current date and taxon code are same than stored data, set stored data
-      // if (this.data.label && this.data.label.substring(0, 2) === year && this.data.label.substring(2, 9) === label.toUpperCase()) {
-      //   this.form.get('label').setValue(this.data.label);
-      // } else {
-        this.form.get('label').setValue(await this.strategyService.computeNextLabel(this.program.id, year + label.toUpperCase(), 3));
-      // }
-      SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
-      SharedValidators.clearError(this.taxonNamesHelper.at(0), 'cannotComputeTaxonCode');
+
+    SharedValidators.clearError(taxonNameStrategyControl, 'uniqueTaxonCode');
+    SharedValidators.clearError(taxonNameStrategyControl, 'cannotComputeTaxonCode');
+
+    const labelPrefix = this.yearCode + taxonCode.toUpperCase();
+    const label = await this.strategyService.computeNextLabel(programId, labelPrefix, 3);
+    labelControl.setValue(label);
   }
 
   // TaxonName Helper -----------------------------------------------------------------------------------------------
@@ -1386,6 +1420,21 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.strategyService.canUserWrite(this.data);
   }
 
+  // Get the year
+  protected get year(): number {
+    const value = this.form.get('year').value;
+    const date: Moment = isMoment(value) ? value : moment(value, 'YYYY-MM-DD');
+    const year = date && +(date.format('YYYY'));
+    if (year && year < 1970) return; // Skip if too old
+    return year;
+  }
+
+  // Get year, as string (last 2 digits)
+  protected get yearCode(): string {
+    const year = this.year;
+    return year && (''+year).substr(2,2);
+  }
+
   requiredPeriodMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: FormArray): ValidationErrors | null => {
@@ -1395,10 +1444,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
       return null;
     };
-  }
-
-  isGenerateLabelButtonDisable(): boolean {
-    return this.hasLanding;
   }
 
   isDepartmentDisable(index: number): boolean {
@@ -1448,6 +1493,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async validatePmfmsForm(): Promise<ValidationErrors | null> {
+
     // DEBUG
     //console.debug('DEV Call validatePmfmsForm()...');
 

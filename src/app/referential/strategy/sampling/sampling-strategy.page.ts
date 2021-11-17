@@ -217,7 +217,6 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     return result;
   }
 
-
   /**
    * Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
    * @param target

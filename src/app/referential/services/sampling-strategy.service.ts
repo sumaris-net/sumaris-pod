@@ -132,7 +132,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             //tap(_ => console.debug('[sampling-strategy-service] timer reach !')),
 
             mergeMap((_) => this.fillEfforts(res.data).then(_ => res)),
-            startWith(res)
+            startWith(res as LoadResult<SamplingStrategy>)
           )
         )
       );
@@ -353,7 +353,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       console.debug(`[sampling-strategy-service] No effort to load: Skip`);
       return; // Skip is empty
     }
-
 
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,
