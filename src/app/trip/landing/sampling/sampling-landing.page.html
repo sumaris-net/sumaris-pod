@@ -113,19 +113,19 @@
                                              [value]="$strategy|async"
                                              [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
                                              [calcifiedTypesDisplayed]="true">
-                    <!-- calcified types-->
-                        <ng-container *ngIf="strategyCard.data &&  (strategyCard.data.pmfms | isNotEmptyArray)">
-                          <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
-                          <ion-label class="status">
-                            <ul>
-                              <ng-container *ngFor="let caclcifiedType of strategyCard.data.pmfms; let i=index">
-                              <li *ngIf="caclcifiedType.fraction && !caclcifiedType.pmfm">
-                                <span>{{caclcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
-                              </li>
-                              </ng-container>
-                            </ul>
-                          </ion-label>
-                        </ng-container>
+                    <!-- age fractions -->
+                    <ng-container *ngIf="strategyCard.data?.pmfms | isNotEmptyArray">
+                      <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+                      <ion-label class="status">
+                        <ul>
+                          <ng-container *ngFor="let calcifiedType of strategyCard.data.pmfms; let i=index">
+                          <li *ngIf="calcifiedType.fraction && !calcifiedType.pmfm">
+                            <span>{{calcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
+                          </li>
+                          </ng-container>
+                        </ul>
+                      </ion-label>
+                    </ng-container>
                   </app-strategy-summary-card>
                 </ion-col>
 
@@ -141,7 +141,6 @@
                       <ion-icon name="warning"></ion-icon>&nbsp;
                         {{warning|translate}}
                     </ion-text>
-
                   </app-entity-metadata>
                 </ion-col>
               </ion-row>
@@ -175,8 +174,8 @@
                             [showError]="mobile"
                             [showLabelColumn]="false"
                             [showDateTimeColumn]="false"
-                            [showTaxonGroupColumn]="false"
                             [showTaxonNameColumn]="false"
+                            [showTaxonGroupColumn]="false"
                             [showPmfmDetails]="true"
                             [canAddPmfm]="true"
                             [defaultSampleDate]="data?.dateTime"
@@ -199,10 +198,10 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()"
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
                         (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="landingForm.error||error||(samplesTable.error$|async); let error" lines="none">

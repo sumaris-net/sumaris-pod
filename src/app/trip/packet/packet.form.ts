@@ -1,11 +1,12 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, PlatformService, round, UsageMode} from '@sumaris-net/ngx-components';
-import {Packet, PacketComposition, PacketIndexes, PacketUtils} from '../services/model/packet.model';
+import { AppForm, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, LocalSettingsService, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import {IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils} from '../services/model/packet.model';
 import {DateAdapter} from '@angular/material/core';
 import {Moment} from 'moment';
 import {PacketValidatorService} from '../services/validator/packet.validator';
 import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import { BehaviorSubject } from 'rxjs';
 
 
 @Component({
@@ -16,63 +17,72 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 })
 export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
-    private _program: string;
+  private _program: string;
 
-    computing = false;
-    compositionHelper: FormArrayHelper<PacketComposition>;
-    compositionFocusIndex = -1;
-    packetIndexes = PacketIndexes;
+  computing = false;
+  compositionHelper: FormArrayHelper<PacketComposition>;
+  compositionFocusIndex = -1;
+  packetIndexes = PacketIndexes;
+  compositionEditedIndex: number;
+  $packetCount = new BehaviorSubject<number>(undefined);
+  $packetIndexes = new BehaviorSubject<number[]>(undefined);
 
-    @Input() mobile: boolean;
-    @Input() showError = true;
-    @Input() usageMode: UsageMode;
+  @Input() mobile: boolean;
+  @Input() showParent: boolean;
+  @Input() showError = true;
+  @Input() usageMode: UsageMode;
 
-    @Input()
-    set program(value: string) {
-      this._program = value;
-    }
+  @Input() parents: IWithPacketsEntity<any, any>[];
+  @Input() parentAttributes: string[];
 
-    get program(): string {
-      return this._program;
-    }
+  @Input()
+  set program(value: string) {
+    this._program = value;
+  }
 
-    get compositionsFormArray(): FormArray {
-      return this.form.controls.composition as FormArray;
-    }
+  get program(): string {
+    return this._program;
+  }
 
-    get value(): any {
-      const json = this.form.value;
+  get compositionsFormArray(): FormArray {
+    return this.form.controls.composition as FormArray;
+  }
 
-      // Update rankOrder on composition
-      if (json.composition && isNotEmptyArray(json.composition)) {
-        for (let i = 0; i < json.composition.length; i++) {
-          // Set rankOrder
-          json.composition[i].rankOrder = i + 1;
+  get packetCount() {
+    return this.$packetCount.value;
+  }
 
-          // Fix ratio if empty
-          // for (const index of PacketComposition.indexes) {
-          //   if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
-          //     json.composition[i]['ratio' + index] = 0;
-          //   }
-          // }
-        }
+  get value(): any {
+    const json = this.form.value;
+
+    // Update rankOrder on composition
+    if (json.composition && isNotEmptyArray(json.composition)) {
+      for (let i = 0; i < json.composition.length; i++) {
+        // Set rankOrder
+        json.composition[i].rankOrder = i + 1;
+
+        // Fix ratio if empty
+        // for (const index of PacketComposition.indexes) {
+        //   if (isNotNilOrNaN(json['sampledWeight' + index]) && isNil(json.composition[i]['ratio' + index])) {
+        //     json.composition[i]['ratio' + index] = 0;
+        //   }
+        // }
       }
-
-      return json;
     }
 
-    constructor(
-      protected dateAdapter: DateAdapter<Moment>,
-      protected validatorService: PacketValidatorService,
-      protected settings: LocalSettingsService,
-      protected formBuilder: FormBuilder,
-      protected programRefService: ProgramRefService,
-      protected platform: PlatformService,
-      protected cd: ChangeDetectorRef
+    return json;
+  }
+
+  constructor(
+    protected dateAdapter: DateAdapter<Moment>,
+    protected validatorService: PacketValidatorService,
+    protected settings: LocalSettingsService,
+    protected formBuilder: FormBuilder,
+    protected programRefService: ProgramRefService,
+    protected cd: ChangeDetectorRef
   ) {
     super(dateAdapter, validatorService.getFormGroup(undefined, {withComposition: true}), settings);
 
-    this.mobile = platform.mobile;
   }
 
   ngOnInit() {
@@ -80,10 +90,22 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
     this.initCompositionHelper();
 
+    this.tabindex = toNumber(this.tabindex, 1);
     this.usageMode = this.usageMode || this.settings.usageMode;
 
+    if (this.showParent) {
+      this.registerAutocompleteField('parent', {
+        items: this.parents,
+        attributes: this.parentAttributes,
+        columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
+        mobile: this.mobile
+      });
+    }
+
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value, options) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value, options) => this.suggestTaxonGroups(value, options),
+      mobile: this.mobile
     });
 
   }
@@ -101,18 +123,23 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     if (!data) return;
 
     data.composition = data.composition && data.composition.length ? data.composition : [null];
-    this.compositionHelper.resize(Math.max(1, data.composition.length));
+    this.compositionHelper.resize(Math.min(Math.max(1, data.composition.length), 6));
 
 
     super.setValue(data, opts);
 
+    this.$packetCount.next(this.compositionHelper.size());
+    this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
     this.computeSampledRatios();
     this.computeTaxonGroupWeight();
 
-    this.registerSubscription(this.form.controls.number.valueChanges.subscribe(() => {
-      this.computeTotalWeight();
-      this.computeTaxonGroupWeight();
-    }));
+    this.registerSubscription(this.form.controls.number.valueChanges
+      .subscribe((packetCount) => {
+        this.$packetCount.next(Math.max(1, Math.min(6, packetCount||0)));
+        this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
+        this.computeTotalWeight();
+        this.computeTaxonGroupWeight();
+      }));
 
     PacketIndexes.forEach(index => {
       this.registerSubscription(this.form.controls['sampledWeight' + index].valueChanges.subscribe(() => {
@@ -213,6 +240,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.compositionHelper.add();
     if (!this.mobile) {
       this.compositionFocusIndex = this.compositionHelper.size() - 1;
+      this.compositionEditedIndex = this.compositionHelper.size() - 1;
+      this.markForCheck();
+      setTimeout(() => {
+        this.compositionFocusIndex = undefined
+      }, 500);
     }
   }
 

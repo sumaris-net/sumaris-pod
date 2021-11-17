@@ -1,15 +1,32 @@
+.table-container {
+  height: calc(100% - var(--table-toolbar-height) - 1px);
+
+  --table-toolbar-height: 0px;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+}
+
 .mat-header-row,
 .mat-row {
   max-height: 140px;
-  padding: 0 0px;
+  padding: 0 0;
   z-index: 999;
+
+  .mat-column-metier {
+    min-width: 175px;
+  }
 
   .mat-column-endPosition,
   .mat-column-startPosition {
-    padding-left: 0px;
+    padding-left: 0;
     max-width: 200px;
     ion-col {
       padding: 0;
     }
+  }
+
+  .mat-cell app-pmfm-field{
+    padding-left: 7px;
   }
 }

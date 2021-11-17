@@ -418,14 +418,14 @@
       </ion-col>
     </ion-row>
 
-    <!-- Calcified Pmfms -->
+    <!-- Age fractions -->
     <ion-row [class.cdk-visually-hidden]="!hasAge"
-             *ngFor="let pmfmsFraction of fractionPmfmsForm?.controls; index as i; first as first">
+             *ngFor="let fractionControl of fractionPmfmsForm?.controls; index as i; first as first">
       <ion-col [size]="first ? 12 : 0" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
       </ion-col>
       <ion-col>
-        <form [formGroup]="fractionPmfmsHelper.at(i)">
+        <form [formGroup]="fractionControl">
           <mat-autocomplete-field #fractionField
                                   formControlName="fraction"
                                   [placeholder]="(i18nFieldPrefix + 'CALCIFIED_TYPE_PLACEHOLDER'|translate) + (i+1)"
@@ -448,7 +448,7 @@
       <ion-col size="auto" class="ion-align-self-center">
 
         <button type="button" mat-icon-button
-                [disabled]="isFractionDisable(i)"
+                [disabled]="fractionControl.disabled"
                 [tabindex]="tabindex+10++i*3+1"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addPmfmFraction()">
@@ -456,7 +456,7 @@
         </button>
 
         <button type="button" mat-icon-button
-                [disabled]="isFractionDisable(i)"
+                [disabled]="fractionControl.disabled"
                 [tabindex]="tabindex+10++i*3+2"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="fractionPmfmsHelper.removeAt(i)">

@@ -10,7 +10,7 @@ import {
   ViewChild
 } from "@angular/core";
 import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import { Entity, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
 import {TranslateService} from "@ngx-translate/core";
@@ -18,13 +18,27 @@ import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/servic
 import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {BatchGroupForm} from "../form/batch-group.form";
 import {isNil, toBoolean} from "@sumaris-net/ngx-components";
-import {debounceTime, map, startWith} from "rxjs/operators";
+import { debounceTime, filter, map, mergeMap, startWith } from 'rxjs/operators';
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {Alerts} from "@sumaris-net/ngx-components";
 import {BatchGroup} from "../../services/model/batch-group.model";
 import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../../environments/environment";
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+
+
+export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
+
+  showSamplingBatch: boolean;
+
+  allowSubBatches: boolean;
+  defaultHasSubBatches: boolean;
+
+  openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
+}
 
 @Component({
   selector: 'app-batch-group-modal',
@@ -32,41 +46,36 @@ import {environment} from "../../../../environments/environment";
   styleUrls: ['batch-group.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupModal implements OnInit, OnDestroy {
+export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptions {
 
   private _subscription = new Subscription();
 
   debug = false;
   loading = false;
   mobile: boolean;
-  data: BatchGroup;
   $title = new BehaviorSubject<string>(undefined);
 
-  @Input() acquisitionLevel: string;
-
-  @Input() programLabel: string;
-
-  @Input() disabled: boolean;
-
+  @Input() data: BatchGroup;
   @Input() isNew: boolean;
-
-  @Input() showTaxonGroup = true;
-
-  @Input() showTaxonName = true;
-
-  @Input() taxonGroupsNoWeight: string[];
-
-  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() disabled: boolean;
+  @Input() usageMode: UsageMode;
 
   @Input() qvPmfm: PmfmStrategy;
+  @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
+  @Input() acquisitionLevel: string;
+  @Input() programLabel: string;
 
-  @Input()
-  set value(value: BatchGroup) {
-    this.data = value;
-  }
+  @Input() showTaxonGroup = true;
+  @Input() showTaxonName = true;
+  @Input() showIndividualCount = false;
+  @Input() showSamplingBatch: boolean;
+  @Input() allowSubBatches = true;
+  @Input() defaultHasSubBatches: boolean;
+  @Input() taxonGroupsNoWeight: string[];
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() maxVisibleButtons: number;
 
-  @Input() openSubBatchesModal: (parent: Batch) => Promise<BatchGroup>;
-
+  @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;
@@ -123,20 +132,15 @@ export class BatchGroupModal implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-
     this.isNew = toBoolean(this.isNew, !this.data);
-    this.data = this.data || new BatchGroup();
-    this.form.setValue(this.data);
-
+    this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
-
     if (this.disabled) {
       this.disable();
     }
-    else {
-      this.enable();
-    }
 
+    this.data = this.data || new BatchGroup();
+    this.form.setValue(this.data);
 
     // Update title, when form change
     this._subscription.add(
@@ -145,6 +149,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
         this.form.form.get('taxonName').valueChanges
       )
       .pipe(
+        filter(_ => !this.form.loading),
         debounceTime(500),
         map(() => this.form.value),
         // Start with current data
@@ -204,9 +209,13 @@ export class BatchGroupModal implements OnInit, OnDestroy {
     try {
       // Wait pending async validator
       await AppFormUtils.waitWhilePending(this.form, {
-        timeout: 2000 // Workaround because from child form never finish FIXME
+        timeout: 2000 // Workaround because of child form never finish FIXME
       });
+    } catch(err) {
+      console.warn('FIXME - Batch group form pending timeout!');
+    }
 
+    try {
       const invalid = !this.valid;
       if (invalid) {
         let allowInvalid = !opts || opts.allowInvalid !== false;
@@ -221,7 +230,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
         // Invalid not allowed: stop
         if (!allowInvalid) {
           if (this.debug) this.form.logFormErrors("[batch-group-modal] ");
-          this.form.markAsTouched({emitEvent: true});
+          this.form.markAllAsTouched();
           return undefined;
         }
       }
@@ -271,7 +280,7 @@ export class BatchGroupModal implements OnInit, OnDestroy {
 
     this.data.observedIndividualCount = updatedParent.observedIndividualCount;
     this.form.form.patchValue({observedIndividualCount: updatedParent.observedIndividualCount}, {emitEvent: false});
-    this.form.hasIndividualMeasure = (updatedParent.observedIndividualCount > 0);
+    this.form.hasSubBatches = (updatedParent.observedIndividualCount > 0);
     this.form.markAsDirty();
   }
 

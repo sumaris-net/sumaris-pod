@@ -1,8 +1,6 @@
-import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
-import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import { TypePolicies } from '@apollo/client/core';
+import { changeCaseToUnderscore, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
+import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds } from '../model/model.enum';
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -227,6 +225,102 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.SEX
   },
+  PMFM_PACKAGING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PACKAGING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PACKAGING_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.PACKAGING
+  },
+  PMFM_SIZE_CATEGORY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SIZE_CATEGORY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_CATEGORY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.SIZE_CATEGORY
+  },
+  PMFM_SALE_RANK_ORDER_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SALE_RANK_ORDER.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_RANK_ORDER_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.SALE_RANK_ORDER
+  },
+  PMFM_SALE_ESTIMATED_RATIO_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SALE_ESTIMATED_RATIO.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_ESTIMATED_RATIO_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.SALE_ESTIMATED_RATIO
+  },
+  PMFM_AVERAGE_WEIGHT_PRICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.AVERAGE_WEIGHT_PRICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_WEIGHT_PRICE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.AVERAGE_WEIGHT_PRICE
+  },
+  PMFM_AVERAGE_PACKAGING_PRICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.AVERAGE_PACKAGING_PRICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_PACKAGING_PRICE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.AVERAGE_PACKAGING_PRICE
+  },
+  PMFM_TOTAL_PRICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.TOTAL_PRICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TOTAL_PRICE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.TOTAL_PRICE
+  },
+  PMFM_REFUSED_SURVEY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.REFUSED_SURVEY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_REFUSED_SURVEY_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.REFUSED_SURVEY
+  },
 
   // Methods
   METHOD_MEASURED_BY_OBSERVER_ID: <FormFieldDefinition>{
@@ -284,6 +378,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: {
       filter: {
         entityName: 'Matrix',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MatrixIds.INDIVIDUAL
+  },
+  UNIT_NONE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Unit.NONE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_NONE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Unit',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },

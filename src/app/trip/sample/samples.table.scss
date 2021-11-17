@@ -1,14 +1,13 @@
 
 .table-container {
-  height: calc(100% - var(--table-toolbar-height) - var(--table-container-top, 0px));
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
   min-width: 100%;
   overflow: auto;
 
-  --table-toolbar-height: 0px;
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
-
   &.has-group-header .mat-header-row.second-header-row {
     th {
       top: 0 !important;
@@ -21,9 +20,7 @@
     .mat-row {
 
       .mat-column-id {
-        min-width: 50px;
-        max-width: 50px;
-        left: 50px !important;
+        width: 50px;
       }
       .mat-column-label,
       .mat-column-TAG_ID,
@@ -40,6 +37,7 @@
       .mat-column-comments {
         min-width: 110px;
         max-width: 110px;
+
       }
 
       .mat-column-pmfm {
@@ -161,8 +159,15 @@
 
   &.mobile {
     .mat-column-pmfm {
-      min-width: unset;
-      max-width: unset;
+      min-width: unset !important;
+      max-width: unset !important;
+    }
+
+    .mat-column-comments {
+      min-width: unset !important;
+      max-width: unset !important;
+      width: 40px !important;
+      padding-left: 6px;
     }
   }
 }

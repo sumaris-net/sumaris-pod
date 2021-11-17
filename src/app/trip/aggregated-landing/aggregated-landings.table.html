@@ -30,81 +30,101 @@
 
 </mat-toolbar>
 
+<div class="table-container" [class.has-toolbar]="true">
 
-<!-- table -->
-<mat-table [dataSource]="dataSource" matSort matSortActive="vessel" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+  <!-- table -->
+  <mat-table [dataSource]="dataSource" matSort matSortActive="vessel" matSortDirection="asc"
+             matSortDisableClear [trackBy]="trackByFn">
 
-  <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                    [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Id Column -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
-      <app-loading-spinner [loading]="loadingSubject|async">
-        <ion-label>#</ion-label>
-      </app-loading-spinner>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
-  </ng-container>
-
-  <!-- Vessel Column -->
-  <ng-container matColumnDef="vessel">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.vesselSnapshot, ['exteriorMarking', 'name'])}}</ion-label>
-    </mat-cell>
-  </ng-container>
-
-  <ng-container *ngIf="!mobile">
-    <ng-container *ngFor="let date of $dates | async" [matColumnDef]="date.valueOf().toString()">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label>{{date | dateFormat: {pattern: 'dddd L'} }}</ion-label>
+    <ng-container matColumnDef="select">
+      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" class="mat-cell-clickable" (click)="clickCell($event, row, date)">
-        <div *ngFor="let activity of getActivities(row, date)">
-          <div *ngFor="let pmfm of $pmfms | async">
-            {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm} }}
-          </div>
-          <div *ngFor="let metier of activity.metiers; last as last">
-            <span>{{metier | referentialToString: ['label'] }}</span><span *ngIf="!last">,</span>
-          </div>
-          <span class="comments-italic">{{activity.comments}}</span>
-        </div>
+      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+        </mat-checkbox>
       </mat-cell>
     </ng-container>
-  </ng-container>
 
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-      <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
-        <mat-icon>undo</mat-icon>
-      </button>
-    </mat-cell>
-  </ng-container>
+    <!-- Id Column -->
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+        <app-loading-spinner [loading]="loadingSubject|async">
+          <ion-label>#</ion-label>
+        </app-loading-spinner>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
+    </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;"
-           class="mat-row-disabled mat-row-height-auto"
-           (click)="clickRow($event, row)"
-  >
-  </mat-row>
-</mat-table>
+    <!-- Vessel Column -->
+    <ng-container matColumnDef="vessel">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-label>{{referentialToString(row.currentData.vesselSnapshot, ['exteriorMarking', 'name'])}}</ion-label>
+      </mat-cell>
+    </ng-container>
 
+    <ng-container *ngIf='mobile && ($currentDate | async) as currentDate; else allDates'>
+      <ng-container [matColumnDef]="currentDate.valueOf().toString()">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{currentDate | dateFormat: {pattern: 'dddd L'} }}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="mat-cell-clickable" (click)="clickCell($event, row, currentDate)">
+          <div *ngFor="let activity of getActivities(row, currentDate)">
+            <div *ngFor="let pmfm of $pmfms | async">
+              {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
+            </div>
+            <div *ngFor="let metier of activity.metiers; last as last">
+              <span>{{metier | referentialToString: ['label', 'name'] }}</span><span *ngIf="!last">,</span>
+            </div>
+            <span class="comments-italic">{{activity.comments}}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+    </ng-container>
+    <ng-template #allDates>
+      <ng-container *ngFor="let date of $dates | async" [matColumnDef]="date.valueOf().toString()">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label>{{date | dateFormat: {pattern: 'dddd L'} }}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="mat-cell-clickable" (click)="clickCell($event, row, date)">
+          <div *ngFor="let activity of getActivities(row, date)">
+            <div *ngFor="let pmfm of $pmfms | async">
+              {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
+            </div>
+            <div *ngFor="let metier of activity.metiers; last as last">
+              <span>{{metier | referentialToString: ['label'] }}</span><span *ngIf="!last">,</span>
+            </div>
+            <span class="comments-italic">{{activity.comments}}</span>
+          </div>
+        </mat-cell>
+      </ng-container>
+    </ng-template>
+
+    <!-- Actions buttons column -->
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
+        <button mat-icon-button color="light" *ngIf="row.editing" [title]="'COMMON.BTN_UNDO'|translate" (click)="cancelOrDelete($event, row)">
+          <mat-icon>undo</mat-icon>
+        </button>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"
+             class="mat-row-disabled mat-row-height-auto"
+             (click)="clickRow($event, row)"
+    >
+    </mat-row>
+  </mat-table>
+
+</div>
 
 <!-- Add button -->
 <!--<ion-fab vertical="bottom" horizontal="end"-->

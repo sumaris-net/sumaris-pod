@@ -23,6 +23,7 @@
     "BTN_YES_DELETE": "Oui, delete",
     "BTN_YES_CONTINUE": "Oui, continue",
     "BTN_VALIDATE": "Validate",
+    "BTN_VALIDATE_AND_CONTINUE": "Validate and continue",
     "BTN_NOT_SAVE": "do NOT save",
     "BTN_SAVE": "Save",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>ave",
@@ -115,7 +116,7 @@
       "ITEMS_PER_PAGE":"Items per page",
       "NEXT_PAGE":"Next page",
       "PREVIOUS_PAGE":"Previous page",
-      "OF": "sur"
+      "OF": "on"
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtered)"
@@ -151,11 +152,12 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
-      "DEFAULT_WEIGHT_UNIT": "Default weight unit",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
+      "HELP_URL": "App > User manuel URL",
+      "FORUM_URL": "App > Forum address URL",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -231,8 +233,7 @@
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
-        "FILTER_PERIOD": "Landing > Show period filter?",
-        "FILTER_OBSERVERS": "Landing > Show observers filter?"
+        "FILTER_PERIOD": "Landing > Show period filter?"
       }
     },
     "CACHE": {
@@ -276,6 +277,9 @@
     "LICENSE": "<b>Free/libre software</b> (License GNU AGPL v3).",
     "REPORT_ISSUE": "Please report any issue to us!",
     "BTN_REPORT_ISSUE": "Report an issue",
+    "HELP": "Online help:",
+    "FORUM": "Forum",
+    "USER_MANUAL": "User manual",
     "SOURCE_CODE": "Source core:",
     "DEVELOPED_BY": "Developed by:",
     "PARTNERS": "Partners and sponsors:"
@@ -300,7 +304,7 @@
     "OFFLINE_MODE": "Force offline mode?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
-      "CONFIRM_MESSAGE": "Are you sure you want to logout ?",
+      "CONFIRM_MESSAGE": "Are you sure you want to logout?",
       "BTN_CONFIRM": "Yes, continue"
     }
   },
@@ -374,7 +378,7 @@
       "TAXON_GROUP": "Dropdown list > Commercial species",
       "TAXON_NAME": "Dropdown list > Scientific species",
       "GEAR": "Dropdown list > Fishing gears",
-      "CALCIFIED_TYPE": "Dropdown list > Calcified types",
+      "FRACTION": "Dropdown list > Fraction (Calcified types...)",
       "ATTRIBUTES": {
         "LABEL": "Code",
         "NAME": "Name",
@@ -398,6 +402,7 @@
     "AVATAR": "Avatar",
     "EMAIL": "Email",
     "USERNAME": "Username",
+    "USERNAME_EXTRANET": "Username Extranet",
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
@@ -500,13 +505,11 @@
         "LOCAL_TRASH_CLEANED": "Local trash has been cleaned"
       }
     },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuring offline mode",
+      "DURATION_PLACEHOLDER": "Period to import"
+    },
     "ERROR": {
-      "LOAD_TRIP_ERROR": "Error while loading the trip.",
-      "LOAD_TRIPS_ERROR": "Error while loading trips.",
-      "SAVE_TRIP_ERROR": "Error while saving the trip.",
-      "SAVE_TRIPS_ERROR": "Error while saving trips.",
-      "SUBSCRIBE_TRIP_ERROR": "Error while listening trip's changes.",
-      "CONTROL_TRIP_ERROR": "Error while terminating the trip",
       "NO_PRACTICED_METIER_FOUND": "No practiced metier found"
     },
     "MEASUREMENT": {
@@ -574,7 +577,31 @@
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Other features:",
-        "NO_TARGET_SPECIES_FOUND": "No species for this gear"
+        "NO_TARGET_SPECIES_FOUND": "No species for this gear",
+        "DISTANCE_DOTS" : "Dist.: {{distance}} miles",
+        "START_PARENT_OPERATION" : "Start laying:",
+        "END_PARENT_OPERATION" : "End laying / Start Fishing:",
+        "START_CHILD_OPERATION" : "End fishing / Start hauling:",
+        "END_CHILD_OPERATION" : "End hauling:",
+        "PARENT_OPERATION" : "Associated operation",
+        "PLEASE_SELECT_HELP": "Select an operation",
+        "TYPE": {
+          "TITLE" : "Operation type:",
+          "PARENT" : "Setting",
+          "CHILD" : "Hauling"
+        },
+        "BTN_EDIT_PARENT" : "Edit setting",
+        "BTN_SELECT_PARENT" : "Select setting"
+      },
+      "PARENT": {
+        "TITLE" : "Select setting",
+        "TRIP" : "{{vessel}} - Trip {{departureDateTime}}",
+        "FILTER" : {
+          "SEARCH_TEXT" : "Search : code gear / target species",
+          "START_DATE" : "Start period",
+          "GEAR" : "Gear",
+          "TARGET_SPECIE" : "Target species"
+        }
       },
       "MAP": {
         "TITLE": "Positions map",
@@ -582,6 +609,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
+        "TRIP_ID": "Trip",
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
@@ -591,7 +619,8 @@
         "FISHING_END_DATE_TIME": "Towing",
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
-        "COMMENTS": "Comments"
+        "COMMENTS": "Comments",
+        "QUALITY": "Status"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
@@ -600,7 +629,18 @@
         "LOAD_OPERATIONS_ERROR": "Error while loading operations.",
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes."
+        "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
+        "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
+        "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)"
+      }
+    },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "New effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
       }
     },
     "CATCH": {
@@ -619,6 +659,7 @@
       "LIST": {
         "PARENT": "Effort",
         "TAXON_GROUP": "Commercial species (FAO)",
+        "SALE_TYPE": "Disposal",
         "WEIGHT": "Weight (kg)",
         "INDIVIDUAL_COUNT": "Individual count",
         "INDIVIDUAL_SAMPLING": "Sampling",
@@ -631,6 +672,14 @@
         "AVG_WEIGHT_PRICE": "Average weight price",
         "AVG_PACKAGING_PRICE": "Average packaging price",
         "TOTAL_PRICE": "Total price"
+      },
+      "NEW": {
+        "TITLE": "New batch"
+      },
+      "EDIT": {
+        "TITLE": "Batch #{{rankOrder}}",
+        "BTN_SALE": "Fill sales",
+        "BTN_INDIVIDUAL_SAMPLING": "Fill sampling"
       }
     },
     "BATCH": {
@@ -738,6 +787,10 @@
       }
     }
   },
+  "EXPECTED_SALE": {
+    "FEATURES": "Features:",
+    "CALCULATED_TOTAL": "Calculated total:"
+  },
   "SALE": {
     "TITLE": "Sale",
     "SALE_FIELD": "Sale:",
@@ -811,6 +864,7 @@
       "QUALITY": "Status",
       "LOCATION": "Location",
       "OBSERVERS": "Observers",
+      "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
       "NO_LOCAL_RESULT": "No result (in <b>NOT sended</b> occasions)",
       "FILTER": {
@@ -893,15 +947,12 @@
     "SELECT_MODAL": {
       "TITLE": "Detail of observed vessels"
     },
-    "ERROR": {
-      "LOAD_ALL_ERROR": "Error while loading observed vessels.",
-      "LOAD_ERROR": "Error while loading observed vessel.",
-      "SAVE_ERROR": "Error while saving observed vessel",
-      "SAVE_ALL_ERROR": "Error while saving observed vessels",
-      "SUBSCRIBE_ERROR": "Error while subscribe to observed vessel changes.",
-      "NO_STRATEGY_EFFORT_ERROR": "For this sample row and date, there is no effort on sample row (no value defined)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0",
+    "WARNING": {
       "NOT_OBSERVER_ERROR": "Sampling recorder is not an observer"
+    },
+    "ERROR": {
+      "NO_STRATEGY_EFFORT_ERROR": "For this sample row and date, there is no effort on sample row (no value defined)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "For this sample row and date, effort on sample row is 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -914,11 +965,13 @@
     "LABEL": "Batch number",
     "LABEL_VALUE": "Batch #{{rankOrder}}",
     "NUMBER": "Packet count",
-    "WEIGHT": "Calculated packets total weight (kg)",
+    "WEIGHT": "Packets total weight (kg)",
     "SAMPLED_WEIGHTS": "Sampled weights (kg)",
     "SAMPLED_WEIGHT": "Packet #{{rankOrder}}",
+    "TAXON_GROUP_SAMPLED_WEIGHT": "Total weight by species<small><br/>(kg)</small>",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "RANK_ORDER": "Batch number",
       "LABEL": "Batch number",
       "LABEL_VALUE": "Batch #{{rankOrder}}",
       "PARENT": "Effort",
@@ -928,10 +981,17 @@
       "PACKET_SALE": "Sales"
     },
     "COMPOSITION": {
+      "SAMPLED_PACKETS": "Sampled packets",
+      "PACKETS_WEIGHT_DOTS": "Weight (kg) :",
       "TITLE": "Packet composition of Batch #{{rankOrder}}",
       "TAXON_GROUP": "Commercial species (FAO)",
+      "TOTAL_PCT_DOTS": "Total (%) :",
       "RATIO": "#{{rankOrder}} %",
-      "WEIGHT": "Weight (kg)"
+      "WEIGHT": "Weight (kg)",
+      "BTN_SALE": "Fill sales",
+      "NEW": {
+        "TITLE": "New Batch"
+      }
     },
     "SALE": {
       "TITLE": "Sales of Batch #{{rankOrder}}",
@@ -982,7 +1042,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Fishing area",
+    "TITLE": "Fishing area:",
     "LOCATION": "Location",
     "DISTANCE_TO_COAST_GRADIENT": "Distance to coast gradient",
     "DEPTH_GRADIENT": "Depth gradient",
@@ -1030,7 +1090,7 @@
     "COMMENTS": "Comments",
     "TAB_GENERAL": "General information",
     "TAB_HISTORY": "History",
-    "FEATURES": {
+    "VESSEL_FEATURES": {
       "START_DATE": "Validity start date",
       "END_DATE": "Validity end date",
       "NAME": "Name",
@@ -1042,7 +1102,7 @@
       "LENGTH_OVER_ALL": "Length over all (m)",
       "COMMENTS": "Comments"
     },
-    "REGISTRATION": {
+    "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Registration start date",
       "END_DATE": "Registration end date",
       "REGISTRATION_CODE": "Registration Code",
@@ -1280,6 +1340,7 @@
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: compute sampling nb indiv?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Individual measure: sort items on save?",
+      "TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT": "Catch > Display individual measures",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter individual number?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Catch > Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample: Scientific species?",
@@ -1287,6 +1348,10 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Catch > Survival test: Commercial species?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Default direction:",
+      "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation : Associated operations (laying/hauling) ?",
+      "TRIP_METIER_FILTER": "Trip > Operation : Filter already used metiers ?",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation : Max travelled distance before warning :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation : Max travelled distance before error : ",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation > Add landing: Show history?",
@@ -1308,6 +1373,7 @@
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
+      "LANDING_SAMPLES_WEIGHT_UNIT": "Observation > Landings: Weight unit",
       "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "STRATEGY_EDITOR" : "Strategy > editor",
@@ -1461,6 +1527,10 @@
         "STRATEGIES_HAS_DATA": "Sampling schemes {{label}} used by observed locations",
         "CANNOT_COMPUTE_TAXON_CODE": "Taxon name is invalid",
         "NOT_UNIQUE_TAXON_CODE": "Generate taxon code is not unique"
+      },
+      "CONFIRM": {
+        "MANY_PMFM_DELETED": "WARNING ! Many collected parameter ({{count}}) <b>will be removed</b> from the strategy.<br/><br/><b>Are you sure</b> you want to continue?",
+        "RELOAD_PAGE": "Do you want to reload the page, to undo your last modifications</b>?"
       }
     },
     "ERROR": {
@@ -1488,11 +1558,14 @@
         "TITLE": "<small>Product <br/></small>{{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
         "BTN_OPEN_MAP": "Show the map",
+        "BTN_UPDATE": "Execute now",
+        "BTN_UPDATE_HELP": "Executer",
         "BTN_PREVIEW_DOC": "Preview doc",
+        "FILTER_DOTS": "Filter on source dataset:",
         "STRATUM_DOTS": "Spatial layers:",
         "FORMAT_DOTS": "Documentation:",
         "MARKDOWN_HELP": "Use <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a> format",
-        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
+        "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW_DOTS": "Preview:",
         "PROCESSING_FREQUENCY": "Processing frequency",
         "STRATA": {
@@ -1515,13 +1588,11 @@
         "PROCESSING_FREQUENCY_ENUM": {
           "NEVER": "Never",
           "MANUALLY": "ManuallyManuelle",
+          "HOURLY": "Hourly",
           "DAILY": "Daily",
           "WEEKLY": "Weekly",
           "MONTHLY": "Monthly"
         }
-      },
-      "PRODUCT": {
-        "NEW_NAME": "Product {{name}}"
       }
     },
     "FILTER": {
@@ -1551,7 +1622,7 @@
     "MAP": {
       "BTN_MAP_LIST": "List of maps",
       "BTN_MAPS": "Maps",
-      "BTN_SELECT_TYPE_HELP": "Show all availables maps",
+      "BTN_SELECT_TYPE_HELP": "Show all available maps",
       "BTN_SELECT_AGG": "Indicator ?",
       "BTN_ADD_CHART": "Chart...",
       "BTN_ADD_CHART_HELP": "Add a chart",
@@ -1664,6 +1735,7 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
     },
     "PRODUCT": {
+      "NEW_NAME": "Product {{name}}",
       "P01_RDB": {
         "TITLE": "ICES Data call (RDB v1.3)"
       }
@@ -1714,7 +1786,8 @@
       "LOAD_GEO_TYPES_ERROR": "Error while load spatial types",
       "LOAD_GEO_JSON_ERROR": "Error while loading spatial data",
       "LOAD_TECH_ERROR": "Error while loading chart's data",
-      "LOAD_MIN_MAX_ERROR": "Error while loading chart's min/max"
+      "LOAD_MIN_MAX_ERROR": "Error while loading chart's min/max",
+      "UPDATE_PRODUCT_ERROR": "Error while performing the extraction"
     }
   },
   "NETWORK": {
@@ -1837,6 +1910,7 @@
     "LOAD_ENTITIES_ERROR": "Error when loading the list",
     "SAVE_ENTITY_ERROR": "Error while saving",
     "SAVE_ENTITIES_ERROR": "Error while saving the list",
+    "DELETE_ENTITY_ERROR": "Error while deleting. <small><br/>If the problem persists, please contact your administrator.</small>",
     "SUBSCRIBE_ENTITY_ERROR": "Error while subscribing to remte changes",
     "CONTROL_ENTITY_ERROR": "Error while checking data validity",
     "TERMINATE_ENTITY_ERROR": "Cannot terminate entry. <small><br/>If the problem persists, please contact your administrator.</small>",
@@ -1844,6 +1918,7 @@
     "UNVALIDATE_ENTITY_ERROR": "Error while un-validating data",
     "QUALIFY_ENTITY_ERROR": "Error when qualifying data",
     "SYNCHRONIZE_ENTITY_ERROR": "Cannot synchronize. <small><br/>If the problem persists, please contact your administrator.</small>",
+    "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Error when synchronize, setting has to be synchronize before hauling. <small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
     "SUBSCRIBE_ERROR": "Error while subscribe to changes",
@@ -1853,6 +1928,7 @@
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Some changes have not been saved.<br/><br/>Do you want <b>save your changes</b>?",
     "SAVE_BEFORE_CLOSE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before closing?",
+    "SAVE_BEFORE_CONTINUE": "Some changes have not been saved.<br/><br/>Do you want to <b>save your changes</b> before continuing?",
     "CANCEL_CHANGES": "Your last changes will be canceled.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE": "<b>Are you sure</b> you want to delete?",
     "ACTION": "<b>Are you sure</b> you want to continue?",

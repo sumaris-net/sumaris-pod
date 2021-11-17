@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import {ExtractionColumn} from "../../services/model/extraction-type.model";
-import {FormArray, FormBuilder, FormGroup} from "@angular/forms";
+import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../../services/model/extraction-type.model';
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
 import {ReferentialForm} from "../../../referential/form/referential.form";
 import {BehaviorSubject} from "rxjs";
@@ -10,13 +10,14 @@ import {Moment} from "moment";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {ExtractionService} from "../../services/extraction.service";
 import {debounceTime} from "rxjs/operators";
-import {AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyItems} from "../../services/model/extraction-product.model";
+import { AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyIds, ProcessingFrequencyItems } from '../../services/model/extraction-product.model';
 import {ExtractionUtils} from "../../services/extraction.utils";
 import {ExtractionProductService} from "../../services/extraction-product.service";
 import {FormArrayHelper}  from "@sumaris-net/ngx-components";
 import {AppForm}  from "@sumaris-net/ngx-components";
 import {StatusIds}  from "@sumaris-net/ngx-components";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
+import { ExtractionCriteriaForm } from '@app/extraction/form/extraction-criteria.form';
 
 declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
@@ -38,6 +39,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
   data: ExtractionProduct;
   frequenciesById = FrequenciesById;
+  frequencyItems = ProcessingFrequencyItems;
 
   $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
@@ -61,10 +63,11 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   showMarkdownPreview = true;
   $markdownContent = new BehaviorSubject<string>(undefined);
 
-  @Input()
-  showError = true;
+  @Input() showError = true;
+  @Input() showFilter = false;
 
   @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
+  @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
 
   get value(): any {
     const json = this.form.value;
@@ -84,7 +87,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   }
 
   get isSpatial(): boolean {
-    return this.form.controls['isSpatial'].value;
+    return this.form.controls.isSpatial.value;
+  }
+
+  get processingFrequencyId(): number {
+    return this.form.controls.processingFrequencyId.value;
+  }
+
+  get isManualProcessing(): boolean {
+    return this.processingFrequencyId === ProcessingFrequencyIds.MANUALLY;
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -225,6 +236,29 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     console.debug('[product-form] Setting value: ', data);
+
+    // Set filter to criteria form
+    this.criteriaForm.type = data;
+    if (/*!this.criteriaForm.sheetName && */data.sheetNames?.length) {
+      this.criteriaForm.sheetName = data.sheetNames[0];
+    }
+    if (data.filter) {
+      const filter = (typeof data.filter === 'string') ? JSON.parse(data.filter) : data.filter;
+      const criteria = (filter?.criteria || []).map(ExtractionFilterCriterion.fromObject);
+      // TODO find a way to get columns, from source extraction type
+      /*this.criteriaForm.columns = [<ExtractionColumn>{
+        columnName: "trip_code", type: 'integer', label: 'trip_code', name: 'trip_code'
+      }];
+      this.criteriaForm.waitIdle().then(() => {
+        console.debug('[product-form] Update criteria form:', criteria);
+        criteria.forEach(c => this.criteriaForm.addFilterCriterion(c));
+        this.showFilter = true;
+      })*/
+    }
+    else {
+      this.showFilter = false;
+    }
+
     // If spatial, load columns
     if (data && data.isSpatial) {
       // If spatial product, make sure there is one strata
@@ -244,8 +278,6 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     super.setValue(data, opts);
 
   }
-
-
 
   protected markForCheck() {
     this.cd.markForCheck();

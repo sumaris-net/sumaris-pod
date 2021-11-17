@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ErrorCodes } from './trip.errors';
-import { DataFragments, Fragments } from './trip.queries';
+import { DataCommonFragments, DataFragments } from './trip.queries';
 import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, IEntitiesService, LoadResult } from '@sumaris-net/ngx-components';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -13,6 +12,7 @@ import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
 import { SaleFilter } from '@app/trip/services/filter/sale.filter';
 import { DocumentNode } from 'graphql';
+import { ErrorCodes } from '@app/data/services/errors';
 
 export const SaleFragments = {
   lightSale: gql`fragment LightSaleFragment_PENDING on SaleVO {
@@ -32,10 +32,10 @@ export const SaleFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.location}
-  ${Fragments.lightDepartment}
+  ${DataCommonFragments.location}
+  ${DataCommonFragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   `,
   sale: gql`fragment SaleFragment_PENDING on SaleVO {
     id
@@ -66,13 +66,13 @@ export const SaleFragments = {
       ...LightPersonFragment
     }
   }
-  ${Fragments.lightPerson}
-  ${Fragments.lightDepartment}
-  ${Fragments.measurement}
-  ${Fragments.location}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.measurement}
+  ${DataCommonFragments.location}
   ${DataFragments.sample}
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${Fragments.referential}
+  ${DataCommonFragments.referential}
   `
 };
 
@@ -176,7 +176,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       // mutationFilterFn: SaleFilter.searchFilter(filter),
       query,
       variables,
-      error: { code: ErrorCodes.LOAD_SALES_ERROR, message: "TRIP.SALE.ERROR.LOAD_SALES_ERROR" },
+      error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR" },
       fetchPolicy: options && options.fetchPolicy || 'cache-and-network'
     })
       .pipe(
@@ -215,10 +215,8 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
     return this.graphql.watchQuery<{ data: any }>({
       query: queries.load,
-      variables: {
-        id
-      },
-      error: { code: ErrorCodes.LOAD_SALE_ERROR, message: "TRIP.SALE.ERROR.LOAD_SALE_ERROR" }
+      variables: { id },
+      error: { code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR" }
     })
       .pipe(
         map((res) => {
@@ -244,8 +242,8 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
         interval: 10
       },
       error: {
-        code: ErrorCodes.SUBSCRIBE_SALE_ERROR,
-        message: 'TRIP.SALE.ERROR.SUBSCRIBE_SALE_ERROR'
+        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
+        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
@@ -269,7 +267,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
 
     if (!options || !options.tripId) {
       console.error("[sale-service] Missing options.tripId");
-      throw { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALES_ERROR" };
+      throw { code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" };
     }
     const now = Date.now();
     if (this._debug) console.debug("[sale-service] Saving sales...");
@@ -291,7 +289,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       variables: {
         sales: json
       },
-      error: { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALES_ERROR" },
+      error: { code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" },
       update: (proxy, {data}) => {
         // Copy id and update date
         (data && data.saveSales && entities || [])
@@ -329,7 +327,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       variables: {
         sales: [json]
       },
-      error: { code: ErrorCodes.SAVE_SALES_ERROR, message: "TRIP.SALE.ERROR.SAVE_SALE_ERROR" },
+      error: { code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" },
       update: (proxy, {data}) => {
         const savedEntity = data && data.saveSales && data.saveSales[0];
         if (savedEntity && savedEntity !== entity) {

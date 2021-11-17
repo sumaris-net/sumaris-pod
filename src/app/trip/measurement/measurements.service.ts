@@ -139,7 +139,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       .pipe(
         filter(isNotNil),
         first(),
-        switchMap((pmfms) => {
+        switchMap(pmfms => {
           let cleanSortBy = sortBy;
 
           // Do not apply sortBy to delegated service, when sort on a pmfm
@@ -186,7 +186,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       // Adapt measurementValues to entity, but :
       // - keep the original JSON object measurementValues, because may be still used (e.g. in table without validator, in row.currentData)
       // - keep extra pmfm's values, because table can have filtered pmfms, to display only mandatory PMFM (e.g. physical gear table)
-      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, pmfms));
+      entity.measurementValues = Object.assign({}, json.measurementValues, MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues as any, pmfms));
       return entity;
     });
 
@@ -256,7 +256,8 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       pmfms = (res instanceof Promise) ? await res : res;
     }
 
-    if (pmfms instanceof Array && pmfms !== this.$pmfms.getValue()) {
+
+    if (pmfms instanceof Array && pmfms !== this.$pmfms.value) {
 
       // DEBUG log
       if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);

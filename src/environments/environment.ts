@@ -13,14 +13,14 @@ import 'zone.js/dist/zone-error';
 
 const pkg = require('../../package.json');
 
-export const environment: Environment = Object.freeze({
+export const environment = Object.freeze(<Environment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
   baseUrl: "/",
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
-  apolloFetchPolicy: "cache-first",
+  apolloFetchPolicy: "no-cache",
   mock: false,
 
   // FIXME: GraphQL subscription never unsubscribe...
@@ -32,7 +32,7 @@ export const environment: Environment = Object.freeze({
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.10.0',
+  peerMinVersion: '1.14.0',
 
   defaultPeers: [
     {
@@ -103,6 +103,15 @@ export const environment: Environment = Object.freeze({
   // Storage
   storage: {
     driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  },
+
+  // Default login user
+  defaultAuthValues: {
+    // Basic auth (using Person.username)
+    // username: 'admq2', password: 'q22006'
+
+    // Token auth (using Person.pubkey)
+    username: 'admin@sumaris.net', password: 'admin',
   }
 });
 

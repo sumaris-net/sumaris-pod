@@ -9,11 +9,11 @@ import {
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
-import {Vessel, VesselFeatures, VesselRegistrationPeriod} from '../model/vessel.model';
-import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
-import {Moment} from 'moment';
+import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../model/vessel.model';
+import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
+import { Moment } from 'moment';
 
 @EntityClass({typename: 'VesselFilterVO'})
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
@@ -26,6 +26,7 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
   vesselId: number;
   statusId: number;
   statusIds: number[];
+  onlyWithRegistration: boolean;
 
   // (e.g. Can be a country flag, or the exact registration location)
   // Filter (on pod) will use LocationHierarchy) but NOT local filtering
@@ -38,9 +39,10 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
     this.searchText = source.searchText;
     this.searchAttributes = source.searchAttributes || undefined;
     this.date = fromDateISOString(source.date);
+    this.vesselId = source.vesselId;
     this.statusId = source.statusId;
     this.statusIds = source.statusIds;
-    this.vesselId = source.vesselId;
+    this.onlyWithRegistration = source.onlyWithRegistration;
     this.registrationLocation = ReferentialRef.fromObject(source.registrationLocation) ||
       isNotNilOrBlank(source.registrationLocationId) && ReferentialRef.fromObject({id: source.registrationLocationId}) || undefined;
     this.basePortLocation = ReferentialRef.fromObject(source.basePortLocation) ||
@@ -64,6 +66,8 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
 
       target.vesselTypeId = this.vesselType?.id;
       delete target.vesselType;
+
+      if (target.onlyWithRegistration !== true) delete target.onlyWithRegistration;
     }
     else {
       target.registrationLocation = this.registrationLocation?.asObject(opts);
@@ -85,6 +89,11 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
     const statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
     if (isNotEmptyArray(statusIds)) {
       filterFns.push(t => statusIds.includes(t.statusId));
+    }
+
+    // Only with registration
+    if (this.onlyWithRegistration) {
+      filterFns.push(t => isNotNil(t.vesselRegistrationPeriod));
     }
 
     // registration location

@@ -3,14 +3,15 @@
   <ion-grid class="ion-no-padding ion-padding-top form-container">
     <ion-row *ngIf="$packagingPmfms | async">
       <!-- type -->
-      <ion-col size="12" size-md="2" size-lg="3"
+      <ion-col size="12" size-md="4" size-lg="3"
                *ngIf="$typePmfm | async; let typePmfm">
         <app-pmfm-qv-field [pmfm]="typePmfm"
-                                       [formControlName]="typePmfm.id.toString()"
-                                       [hidden]="typePmfm.hidden"
-                                       [style]="mobile? 'button' : 'autocomplete'"
-                                       [compact]="compact"
-                                       [tabindex]="tabindex+1">
+                           [formControlName]="typePmfm.id.toString()"
+                           [hidden]="typePmfm.hidden"
+                           [style]="mobile? 'button' : 'autocomplete'"
+                           [compact]="compact"
+                           [maxVisibleButtons]="3"
+                           [tabindex]="tabindex+1">
         </app-pmfm-qv-field>
       </ion-col>
       <ion-col>
@@ -28,8 +29,8 @@
     </ion-row>
 
     <ion-row *ngIf="$totalPmfm | async; let totalPmfm">
-      <ion-col size="12" size-md="2" size-lg="3"
-        [class.cdk-visually-hidden]="!($typePmfm|async)">
+      <ion-col size="12" size-md="4" size-lg="3"
+               [class.cdk-visually-hidden]="!($typePmfm|async)">
       </ion-col>
       <ion-col>
         <app-pmfm-field [pmfm]="totalPmfm"

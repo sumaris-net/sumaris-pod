@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '../../../referential/services/model/model.enum';
-import {LandingPage} from '../landing.page';
-import {debounceTime, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {Landing} from '../../services/model/landing.model';
-import {AuctionControlValidators} from '../../services/validator/auction-control.validators';
-import {ModalController} from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
+import { LandingPage } from '../landing.page';
+import { debounceTime, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { Landing } from '../../services/model/landing.model';
+import { AuctionControlValidators } from '../../services/validator/auction-control.validators';
+import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
   EntityServiceLoadOptions,
@@ -20,14 +20,14 @@ import {
   LoadResult,
   ReferentialUtils,
   SharedValidators,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {ObservedLocation} from '../../services/model/observed-location.model';
-import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {TaxonGroupLabels, TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
-import {Program} from '../../../referential/services/model/program.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
-import {AppRootDataEditor} from '../../../data/form/root-data-editor.class';
+import { ObservedLocation } from '../../services/model/observed-location.model';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
+import { Program } from '../../../referential/services/model/program.model';
+import { IPmfm } from '../../../referential/services/model/pmfm.model';
+import { AppRootDataEditor } from '../../../data/form/root-data-editor.class';
 
 @Component({
   selector: 'app-auction-control',
@@ -221,12 +221,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   protected async setProgram(program: Program) {
     await super.setProgram(program);
+    if (!program) return; // Skip
 
     this.$taxonGroupTypeId.next(program && program.taxonGroupType ? program.taxonGroupType.id : null);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
-
     await super.onNewEntity(data, options);
 
     // Define default back link

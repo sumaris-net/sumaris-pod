@@ -25,7 +25,7 @@ import {
   APP_LOCALES,
   APP_MENU_ITEMS,
   APP_TESTING_PAGES,
-  AppGestureConfig,
+  AppGestureConfig, ComponentDirtyGuard,
   CORE_CONFIG_OPTIONS,
   DATE_ISO_PATTERN,
   Department,
@@ -34,7 +34,7 @@ import {
   LocalSettings,
   SharedModule,
   SocialModule,
-  TestingPage
+  TestingPage,
 } from '@sumaris-net/ngx-components';
 import {environment} from '@environments/environment';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
@@ -172,6 +172,7 @@ import {AppCoreModule} from '@app/core/core.module';
     },
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
+    /*{provide: ComponentDirtyGuard, useExisting: ComponentDirtyGuard},*/
 
     // Configure hammer gesture
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
@@ -222,7 +223,7 @@ import {AppCoreModule} from '@app/core/core.module';
         },
 
         // Data extraction
-        {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enable', profile: 'GUEST'},
+        {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
 
@@ -296,6 +297,15 @@ import {AppCoreModule} from '@app/core/core.module';
         },
         {
           siteUrl: 'https://www.pecheursdebretagne.eu', logo: 'assets/img/logo/logo-lpdb.png'
+        },
+        {
+          siteUrl: 'https://www.aglia.fr', logo: 'assets/img/logo/logo-aglia.png'
+        },
+        {
+          siteUrl: 'https://www.sfa.sc', logo: 'assets/img/logo/logo-sfa.jpg'
+        },
+        {
+          siteUrl: 'https://www.comite-peches.fr/', logo: 'assets/img/logo/logo-cnpmem.png'
         }
       ]
     },

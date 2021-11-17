@@ -12,6 +12,8 @@
                         [debug]="debug"
                         (onSubmit)="doSubmit($event)">
 
+
+
     <ion-row>
       <ion-col>
         <mat-form-field floatLabel="never">
@@ -31,9 +33,9 @@
                       [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY'|translate" required>
             <mat-select-trigger>
               <span *ngIf="form.controls.statusId.value &gt;= 0">
-              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate}}</span>
+              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate }}</span>
             </mat-select-trigger>
-            <mat-option *ngFor="let item of (frequenciesById | mapValues)" [value]="item.id">
+            <mat-option *ngFor="let item of frequencyItems" [value]="item.id">
               {{ item.label |translate }}
             </mat-option>
           </mat-select>
@@ -42,9 +44,22 @@
       </ion-col>
     </ion-row>
 
-    <ion-toolbar *ngIf="form.controls.isSpatial.value">
-      <ion-label color="primary" translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-label>
-    </ion-toolbar>
+
+    <h3 [class.cdk-visually-hidden]="!showFilter">
+      <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FILTER_DOTS</ion-text>
+    </h3>
+
+    <ion-row [class.cdk-visually-hidden]="!showFilter">
+      <ion-col>
+        <!-- filter criteria -->
+        <app-extraction-criteria-form #criteriaForm>
+        </app-extraction-criteria-form>
+      </ion-col>
+    </ion-row>
+
+    <h3 *ngIf="form.controls.isSpatial.value">
+      <ion-text translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-text>
+    </h3>
 
     <!-- stratum -->
     <ion-row *ngFor="let strataForm of strataForms; index as i; first as first; last as last; odd as odd"
@@ -56,7 +71,8 @@
         <ion-col size-md="2" size="4">
           <mat-form-field>
             <mat-select formControlName="sheetName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SHEET_NAME'|translate">
+                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SHEET_NAME'|translate"
+                        required>
               <mat-option *ngFor="let sheetName of $sheetNames | async"
                           [value]="sheetName">{{'EXTRACTION.SHEET.' + sheetName | translate}}</mat-option>
             </mat-select>
@@ -68,7 +84,8 @@
         <ion-col size-md="1" size="4">
           <mat-form-field>
             <mat-select formControlName="timeColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TIME_COLUMN'|translate">
+                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TIME_COLUMN'|translate"
+                        required>
               <mat-option *ngFor="let item of $timeColumns | async | mapGet: strataForm.controls.sheetName.value"
                           [value]="item.columnName">{{item.name}}</mat-option>
             </mat-select>
@@ -80,7 +97,8 @@
         <ion-col size-md="2" size="4">
           <mat-form-field>
             <mat-select formControlName="spatialColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SPACE_COLUMN'|translate">
+                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SPACE_COLUMN'|translate"
+                        required>
               <mat-option *ngFor="let item of ($spatialColumns | async | mapGet: strataForm.controls.sheetName.value)"
                           [value]="item.columnName">{{item.name}}</mat-option>
             </mat-select>
@@ -92,7 +110,8 @@
         <ion-col size-md="2" size="4">
           <mat-form-field>
             <mat-select formControlName="aggColumnName"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_COLUMN'|translate">
+                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_COLUMN'|translate"
+                        required>
               <mat-option *ngFor="let item of ($aggColumns | async | mapGet: strataForm.controls.sheetName.value)"
                           [value]="item.columnName">{{item.name}}</mat-option>
             </mat-select>
@@ -104,7 +123,8 @@
         <ion-col size-md="2" size="4">
           <mat-form-field>
             <mat-select formControlName="aggFunction"
-                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_FUNCTION'|translate">
+                        [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_FUNCTION'|translate"
+                        required>
               <mat-option *ngFor="let item of aggFunctions"
                           [value]="item.value">{{item.name | translate}}</mat-option>
             </mat-select>
@@ -138,10 +158,12 @@
         </ion-col>
     </ion-row>
 
+    <h3>
+      <ion-text translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_DOTS</ion-text>
+    </h3>
     <ion-row style="min-height: 36px;" class="ion-margin-top">
-      <ion-col size="{{showMarkdownPreview ? 6 : 12}}">
-        <ion-label color="primary" translate>EXTRACTION.AGGREGATION.EDIT.FORMAT_DOTS</ion-label>
-        <ion-text>&nbsp;(<small [innerHTML]="'EXTRACTION.AGGREGATION.EDIT.MARKDOWN_HELP'|translate"></small>)</ion-text>
+      <ion-col  size="{{showMarkdownPreview ? 6 : 12}}">
+        <ion-text color="primary"><small [innerHTML]="'EXTRACTION.AGGREGATION.EDIT.MARKDOWN_HELP'|translate"></small></ion-text>
         <!-- show preview button -->
         <ion-button *ngIf="!showMarkdownPreview"
                     size="small" class="ion-float-end" color="light"

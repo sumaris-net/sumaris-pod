@@ -1,23 +1,32 @@
-import {Injectable} from "@angular/core";
-import {ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import { Injectable } from '@angular/core';
+import { ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import {ErrorCodes} from "../../trip/services/trip.errors";
-import {AccountService, LoadResult} from "@sumaris-net/ngx-components";
-import {ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType} from "./model/extraction-type.model";
-import {isNil, isNotNil, isNotNilOrBlank, trimEmptyToNull} from "@sumaris-net/ngx-components";
-import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {Fragments} from "../../trip/services/trip.queries";
-import {SortDirection} from "@angular/material/sort";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {BaseGraphqlService}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {DataEntityAsObjectOptions} from "../../data/services/model/data-entity.model";
-
-import {Person}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {
+  AccountService, BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityService,
+  BaseGraphqlService, EntitySaveOptions, EntityServiceLoadOptions,
+  EntityUtils,
+  firstNotNilPromise,
+  GraphqlService,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  LoadResult,
+  Person, PlatformService,
+  trimEmptyToNull,
+} from '@sumaris-net/ngx-components';
+import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType } from './model/extraction-type.model';
+import { DataCommonFragments } from '../../trip/services/trip.queries';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '../../../environments/environment';
+import { DataEntityAsObjectOptions } from '../../data/services/model/data-entity.model';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { ExtractionErrorCodes } from '@app/extraction/services/extraction.errors';
+import { ExtractionTypeFilter } from '@app/extraction/services/filter/extraction-type.filter';
+import { DocumentNode } from 'graphql';
+import { EntitiesServiceWatchOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
 
 export const ExtractionFragments = {
@@ -37,7 +46,8 @@ export const ExtractionFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.lightDepartment}`,
+  ${DataCommonFragments.lightDepartment}`,
+
   column: gql`fragment ExtractionColumnFragment on ExtractionTableColumnVO {
     label
     name
@@ -49,18 +59,19 @@ export const ExtractionFragments = {
 };
 
 
-export const LoadTypesQuery: any = gql`
-  query ExtractionTypes {
-    data: extractionTypes {
-      ...ExtractionTypeFragment
+export const ExtractionQueries: BaseEntityGraphqlQueries & {
+  loadRows: any;
+  getFile: any;
+} = {
+  loadAll: gql`query ExtractionTypes {
+      data: extractionTypes {
+        ...ExtractionTypeFragment
+      }
     }
-  }
-  ${ExtractionFragments.type}
-`;
+    ${ExtractionFragments.type}`,
 
-const LoadRowsQuery: any = gql`
-  query ExtractionRows($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    extractionRows(type: $type, filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  loadRows: gql`query ExtractionRows($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: extractionRows(type: $type, filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       columns {
         ...ExtractionColumnFragment
       }
@@ -68,78 +79,76 @@ const LoadRowsQuery: any = gql`
       total
     }
   }
-  ${ExtractionFragments.column}
-`;
+  ${ExtractionFragments.column}`,
 
+  getFile: gql`query ExtractionFile($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput){
+    data: extractionFile(type: $type, filter: $filter)
+  }`
+}
 
-const GetFileQuery = gql`
-  query ExtractionFile($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput){
-    extractionFile(type: $type, filter: $filter)
-  }
-`;
-
-export const SaveExtractionMutation = gql`
-  mutation SaveExtraction($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput) {
-    data: saveExtraction(type: $type, filter: $filter) {
+export const ExtractionMutation: BaseEntityGraphqlMutations = {
+  save: gql`mutation SaveExtraction($data: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput) {
+    data: saveExtraction(type: $data, filter: $filter) {
       ...ExtractionTypeFragment
     }
   }
-  ${ExtractionFragments.type}
-`;
+  ${ExtractionFragments.type}`
+};
+
+const fixWorkaroundDataFn = ({data, total}) => {
+  // Workaround because saveAggregation() doest not add NEW extraction type correctly
+  data = (data || []).filter(e => {
+    if (isNil(e?.label)) {
+      console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?');
+      return false;
+    }
+    return true;
+  });
+  return {data, total}
+};
 
 @Injectable({providedIn: 'root'})
-export class ExtractionService extends BaseGraphqlService {
+export class ExtractionService extends BaseEntityService<ExtractionType, ExtractionTypeFilter> {
+
+
 
   constructor(
     protected graphql: GraphqlService,
+    protected platformService: PlatformService,
     protected accountService: AccountService,
   ) {
-    super(graphql, environment);
+    super(graphql, platformService,
+      ExtractionType, ExtractionTypeFilter,
+      {
+        queries: ExtractionQueries,
+        mutations: ExtractionMutation
+      });
   }
 
-  /**
-   * Load extraction types
-   */
-  async loadAll(): Promise<ExtractionType[]> {
-    return await firstNotNilPromise(this.watchAll());
+  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+          filter?: Partial<ExtractionTypeFilter>,
+          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<ExtractionType>> {
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, {
+      ...opts,
+      withTotal: false // Always false (loadAllWithTotal query not defined yet)
+    })
+      .then(fixWorkaroundDataFn);
   }
 
   /**
    * Watch extraction types
    */
-  watchAll(opts?: { fetchPolicy?: WatchQueryFetchPolicy }): Observable<ExtractionType[]> {
-    let now = Date.now();
-    if (this._debug) console.debug("[extraction-service] Loading extraction types...");
+  watchAll(
+    offset: number, size: number,
+    sortAttribute?: string,
+    sortDirection?: SortDirection,
+    filter?: ExtractionTypeFilter,
+    opts?: EntitiesServiceWatchOptions & {query?: any}): Observable<LoadResult<ExtractionType>> {
 
-    return this.mutableWatchQuery<LoadResult<ExtractionType>>({
-      queryName: 'LoadExtractionTypes',
-      query: LoadTypesQuery,
-      arrayFieldName: 'data',
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_TYPES_ERROR"},
-      ...opts
-    })
-      .pipe(
-        map((data) => {
-          const res = (data && data.data || [])
-            .filter(json => {
-              // Workaround because saveAggregation() doest not add NEW extraction type correctly
-              if (!json || isNil(json.label)) {
-                console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?');
-                return false;
-              }
-              return true;
-            })
-            .map(ExtractionType.fromObject);
-          if (this._debug && now) {
-            console.debug(`[extraction-service] Extraction types loaded in ${Date.now() - now}ms`, res);
-            now = undefined;
-          }
-          else {
-            console.debug(`[extraction-service] Extraction types updated (probably by cache)`, res);
-          }
-          return res;
-        })
-      );
+    return super.watchAll(offset, size, sortAttribute, sortDirection, filter, {
+      ...opts,
+      withTotal: false // Always false (loadAllWithTotal query not defined yet)
+    }).pipe(map(fixWorkaroundDataFn));
   }
 
   /**
@@ -152,7 +161,6 @@ export class ExtractionService extends BaseGraphqlService {
    * @param filter
    * @param options
    */
-
   async loadRows(
     type: ExtractionType,
     offset: number,
@@ -173,19 +181,19 @@ export class ExtractionService extends BaseGraphqlService {
       size: size || 100,
       sortBy: sortBy || undefined,
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter
     };
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
-    const res = await this.graphql.query<{ extractionRows: ExtractionResult }>({
-      query: LoadRowsQuery,
-      variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+    const res = await this.graphql.query<{ data: ExtractionResult }>({
+      query: ExtractionQueries.loadRows,
+      variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'no-cache'
     });
-    if (!res || !res.extractionRows) return null;
-    const data = ExtractionResult.fromObject(res.extractionRows);
+    if (!res || !res.data) return null;
+    const data = ExtractionResult.fromObject(res.data);
 
     // Compute column index
     (data.columns || []).forEach((c, index) => c.index = index);
@@ -193,7 +201,6 @@ export class ExtractionService extends BaseGraphqlService {
     if (this._debug) console.debug(`[extraction-service] Rows ${type.category} ${type.label} loaded in ${Date.now() - now}ms`, data);
     return data;
   }
-
 
   /**
    * Download extraction to file
@@ -218,13 +225,13 @@ export class ExtractionService extends BaseGraphqlService {
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
-    const res = await this.graphql.query<{ extractionFile: string }>({
-      query: GetFileQuery,
+    const res = await this.graphql.query<{ data: string }>({
+      query: ExtractionQueries.getFile,
       variables: variables,
-      error: {code: ErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
+      error: {code: ExtractionErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
-    const fileUrl = res && res.extractionFile;
+    const fileUrl = res && res.data;
     if (!fileUrl) return undefined;
 
     if (this._debug) console.debug(`[extraction-service] Extraction ${type.category} ${type.label} done in ${Date.now() - now}ms: ${fileUrl}`, res);
@@ -232,6 +239,65 @@ export class ExtractionService extends BaseGraphqlService {
     return fileUrl;
   }
 
+
+  async save(entity: ExtractionType, opts?: EntitySaveOptions & {
+    filter: ExtractionFilter
+  }): Promise<ExtractionType> {
+    const filter = opts && opts.filter;
+    if (this._debug) console.debug("[extraction-service] Saving extraction...", entity, filter);
+
+    this.fillDefaultProperties(entity);
+
+    const json = this.asObject(entity);
+
+    const isNew = isNil(entity.id) || entity.id < 0; // Exclude live types
+
+    await this.graphql.mutate<{ data: any }>({
+      mutation: ExtractionMutation.save,
+      variables: { data: json, filter },
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      update: (cache, {data}) => {
+        const savedEntity = data && data.data;
+
+        this.copyIdAndUpdateDate(savedEntity, entity);
+
+        // Insert into cache
+        if (isNew) {
+          this.insertIntoCache(cache, savedEntity);
+        }
+      }
+    });
+
+    return entity;
+  }
+
+  insertIntoCache(cache: ApolloCache<{data: any}>, entity: ExtractionType) {
+    if (!entity || isNil(entity.id)) throw new Error('Extraction type (with an id) is required, to insert into the cache.');
+
+    console.info('[extraction-service] Inserting into cache:', entity);
+    this.insertIntoMutableCachedQueries(cache, {
+      queries: this.getLoadQueries(),
+      data: entity
+    });
+  }
+
+  updateCache(cache: ApolloCache<{data: any}>, entity: ExtractionType) {
+    if (!entity || isNil(entity.id)) throw new Error('Extraction type (with an id) is required, to update the cache.');
+
+    console.info('[extraction-service] Updating cache:', entity);
+
+    // Remove, then insert, from extraction types
+    const exists = this.removeFromMutableCachedQueriesByIds(cache, {
+      queries: this.getLoadQueries(),
+      ids: entity.id
+    }) > 0;
+    if (exists) {
+      this.insertIntoMutableCachedQueries(cache, {
+        queries: this.getLoadQueries(),
+        data: entity
+      });
+    }
+  }
 
   prepareFilter(source?: ExtractionFilter | any): ExtractionFilter {
     if (isNil(source)) return undefined;
@@ -287,62 +353,6 @@ export class ExtractionService extends BaseGraphqlService {
     return target;
   }
 
-  async save(entity: ExtractionType, filter: ExtractionFilter): Promise<ExtractionType> {
-    if (this._debug) console.debug("[extraction-service] Saving extraction...", entity, filter);
-
-    this.fillDefaultProperties(entity);
-
-    const json = this.asObject(entity);
-
-    const isNew = isNil(entity.id) || entity.id < 0; // Exclude live types
-
-    await this.graphql.mutate<{ data: any }>({
-      mutation: SaveExtractionMutation,
-      variables: { type: json, filter },
-      // TODO : change error code
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
-      update: (cache, {data}) => {
-        const savedEntity = data && data.data;
-        EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
-
-        // Insert into cache
-        if (isNew) {
-          this.insertIntoCache(cache, savedEntity);
-        }
-      }
-    });
-
-    return entity;
-  }
-
-  insertIntoCache(cache: ApolloCache<{data: any}>, type: ExtractionType) {
-    if (!type || !type.label) throw new Error('Invalid type for cache: ' + type);
-
-    console.info('[extraction-service] Inserting into cache:', type);
-    this.insertIntoMutableCachedQueries(cache, {
-      queryName: "LoadExtractionTypes",
-      query: LoadTypesQuery,
-      data: type
-    });
-  }
-
-  updateCache(cache: ApolloCache<{data: any}>, type: ExtractionType) {
-    if (!type || !type.label) throw new Error('Invalid type for cache: ' + type);
-    console.info('[extraction-service] Updating cache:', type);
-    // Remove, then insert, from extraction types
-    const exists = this.removeFromMutableCachedQueriesByIds(cache, {
-      queryName: "LoadExtractionTypes",
-      query: LoadTypesQuery,
-      ids: type.id
-    }) > 0;
-    if (exists) {
-      this.insertIntoMutableCachedQueries(cache, {
-        queryName: "LoadExtractionTypes",
-        query: LoadTypesQuery,
-        data: type
-      });
-    }
-  }
 
   /* -- protected functions -- */
 
@@ -383,5 +393,17 @@ export class ExtractionService extends BaseGraphqlService {
     }
 
     return copy;
+  }
+
+
+  copyIdAndUpdateDate(source: ExtractionType | undefined, target: ExtractionType) {
+    if (!source) return;
+
+    EntityUtils.copyIdAndUpdateDate(source, target);
+
+    // Copy category and label
+    target.label = source.label;
+    target.category = source.category;
+
   }
 }

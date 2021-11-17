@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {FormBuilder, FormGroup, ValidationErrors} from '@angular/forms';
-import {Program} from '../services/model/program.model';
-import {ProgramService} from '../services/program.service';
-import {ReferentialForm} from '../form/referential.form';
-import {ProgramValidatorService} from '../services/validator/program.validator';
-import {StrategiesTable} from '../strategy/strategies.table';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup, ValidationErrors } from '@angular/forms';
+import { Program } from '../services/model/program.model';
+import { ProgramService } from '../services/program.service';
+import { ReferentialForm } from '../form/referential.form';
+import { ProgramValidatorService } from '../services/validator/program.validator';
+import { StrategiesTable } from '../strategy/strategies.table';
 import {
   AccountService,
   AppEntityEditor,
@@ -24,17 +24,17 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  SharedValidators
+  SharedValidators,
 } from '@sumaris-net/ngx-components';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {ModalController} from '@ionic/angular';
-import {ProgramProperties, StrategyEditor} from '../services/config/program.config';
-import {ActivatedRoute} from '@angular/router';
-import {SelectReferentialModal} from '../list/select-referential.modal';
-import {environment} from '../../../environments/environment';
-import {Strategy} from '../services/model/strategy.model';
-import {SamplingStrategiesTable} from '../strategy/sampling/sampling-strategies.table';
-import {ReferentialRefFilter} from '../services/filter/referential-ref.filter';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { ModalController } from '@ionic/angular';
+import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
+import { ActivatedRoute } from '@angular/router';
+import { SelectReferentialModal } from '../list/select-referential.modal';
+import { environment } from '../../../environments/environment';
+import { Strategy } from '../services/model/strategy.model';
+import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
+import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 
 export enum AnimationState {
   ENTER = 'enter',

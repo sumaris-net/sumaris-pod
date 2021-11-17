@@ -1,6 +1,6 @@
 import {Moment} from 'moment';
 import {Department, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {Vessel} from '@app/vessel/services/model/vessel.model';
+import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
@@ -21,17 +21,55 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
       vesselType: source.vesselType,
       vesselStatusId: source.statusId,
       name: source.vesselFeatures?.name,
+      creationDate: source.creationDate,
+      updateDate: source.updateDate,
       startDate: source.vesselFeatures?.startDate,
       endDate: source.vesselFeatures?.endDate,
       exteriorMarking: source.vesselFeatures?.exteriorMarking,
       basePortLocation: source.vesselFeatures?.basePortLocation,
+      grossTonnageGt: source.vesselFeatures?.grossTonnageGt,
+      grossTonnageGrt: source.vesselFeatures?.grossTonnageGrt,
+      lengthOverAll: source.vesselFeatures?.lengthOverAll,
       registrationId: source.vesselRegistrationPeriod?.id,
       registrationCode: source.vesselRegistrationPeriod?.registrationCode,
+      intRegistrationCode: source.vesselRegistrationPeriod?.intRegistrationCode,
       registrationStartDate: source.vesselRegistrationPeriod?.startDate,
       registrationEndDate: source.vesselRegistrationPeriod?.endDate,
-      registrationLocation: source.vesselRegistrationPeriod?.registrationLocation
+      registrationLocation: source.vesselRegistrationPeriod?.registrationLocation,
     });
     return target;
+  }
+
+
+  static toVessel(source: Partial<VesselSnapshot>): Vessel {
+    if (!source) return undefined;
+    return Vessel.fromObject({
+      id: source.id,
+      vesselType: source.vesselType,
+      statusId : source.vesselStatusId,
+      creationDate : source.creationDate,
+      updateDate : source.updateDate,
+      vesselFeatures : <Partial<VesselFeatures>>{
+        vesselId: source.id,
+        name: source.name,
+        startDate: source.startDate,
+        endDate: source.endDate,
+        exteriorMarking: source.exteriorMarking,
+        grossTonnageGt: source.grossTonnageGt,
+        grossTonnageGrt: source.grossTonnageGrt,
+        lengthOverAll: source.lengthOverAll,
+        basePortLocation: source.basePortLocation,
+      },
+      vesselRegistrationPeriod: <Partial<VesselRegistrationPeriod>>{
+        id: source.registrationId,
+        vesselId: source.id,
+        registrationCode: source.registrationCode,
+        intRegistrationCode: source.intRegistrationCode,
+        registrationStartDate: source.startDate,
+        registrationEndDate: source.endDate,
+        registrationLocation: source.registrationLocation
+      }
+    });
   }
 
   program: ReferentialRef;
@@ -89,8 +127,8 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
-    target.registrationStartDate = toDateISOString(this.registrationStartDate);
-    target.registrationEndDate = toDateISOString(this.registrationEndDate);
+    target.registrationStartDate = !options || options.minify !== true ? toDateISOString(this.registrationStartDate) : undefined;
+    target.registrationEndDate = !options || options.minify !== true ? toDateISOString(this.registrationEndDate) : undefined;
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;

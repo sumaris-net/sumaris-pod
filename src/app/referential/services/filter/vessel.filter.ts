@@ -3,12 +3,18 @@ import {Moment} from 'moment';
 import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {SynchronizationStatus} from "@app/data/services/model/model.utils";
+import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 
 @EntityClass({typename: 'VesselFilterVO'})
 export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, VesselSnapshot> {
 
   static DEFAULT_SEARCH_ATTRIBUTES = ['exteriorMarking', 'name'];
   static fromObject: (source: any, opts?: any) => VesselSnapshotFilter;
+
+  static fromVesselFilter(filter?: Partial<VesselFilter>) {
+    if (!filter) return undefined;
+    return VesselSnapshotFilter.fromObject(filter);
+  }
 
   program: ReferentialRef;
   date: Moment;

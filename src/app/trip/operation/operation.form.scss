@@ -1,5 +1,7 @@
+@import 'theme.globals';
+
 form {
-  ion-col>ion-label {
+  ion-col > ion-label {
     word-wrap: break-word;
     white-space: normal;
   }
@@ -7,5 +9,30 @@ form {
   ion-col[no-padding] {
     padding: 0 !important;
   }
+}
 
+:host ::ng-deep {
+  mat-date-time-field {
+    .mat-form-field-disabled {
+      .mat-form-field-infix {
+        min-height: 38px !important;
+      }
+    }
+  }
+
+  @media screen and (max-width: $screen-md-max) {
+    .high {
+      .mat-form-field-infix {
+        min-height: 64px !important;
+        //padding-top: 16px;
+        input, .mat-form-field-label-wrapper label.ng-star-inserted {
+          padding: 10px 0 0 5px;
+        }
+      }
+    }
+  }
+}
+
+input.cursor-pointer {
+  cursor: pointer !important;
 }

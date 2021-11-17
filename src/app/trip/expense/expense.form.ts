@@ -1,36 +1,31 @@
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { FormArray, FormBuilder } from '@angular/forms';
 import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {FormArray, FormBuilder} from "@angular/forms";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {MeasurementsForm} from "../measurement/measurements.form.component";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {filterNotNil, firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {BehaviorSubject} from "rxjs";
-import {isNil, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, round} from "@sumaris-net/ngx-components";
-import {debounceTime, filter} from "rxjs/operators";
-import {Measurement, MeasurementUtils} from "../services/model/measurement.model";
-import {ExpenseValidatorService} from "../services/validator/expense.validator";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {getMaxRankOrder} from "../../data/services/model/model.utils";
-import {TypedExpenseForm} from "./typed-expense.form";
-import {MatTabChangeEvent, MatTabGroup} from "@angular/material/tabs";
-import {ObjectMap} from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
+  filterNotNil,
+  firstNotNilPromise,
+  FormArrayHelper,
+  isNil,
+  isNotEmptyArray,
+  isNotNilOrNaN,
+  LocalSettingsService,
+  ObjectMap,
+  PlatformService,
+  remove,
+  removeAll,
+  round,
+} from '@sumaris-net/ngx-components';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime, filter } from 'rxjs/operators';
+import { Measurement, MeasurementUtils } from '../services/model/measurement.model';
+import { ExpenseValidatorService } from '../services/validator/expense.validator';
+import { getMaxRankOrder } from '../../data/services/model/model.utils';
+import { TypedExpenseForm } from './typed-expense.form';
+import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { ProgramRefService } from '../../referential/services/program-ref.service';
+import { IPmfm } from '../../referential/services/model/pmfm.model';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -67,6 +62,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   removingBait = false;
   baitsHelper: FormArrayHelper<number>;
   baitsFocusIndex = -1;
+  allData: Measurement[];
 
   /** The index of the active tab. */
   private _selectedTabIndex = 0;
@@ -238,18 +234,22 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     // add bait values
     this.baitForms.forEach(form => values.push(...form.value));
 
+    this.allData = values;
     return values;
   }
 
   async setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
+    // Make a copy of data to keep ice and bait measurements
+    this.allData = this.allData || data.slice();
+
     super.setValue(data, opts);
 
     // set ice value
-    await this.setIceValue(data);
+    await this.setIceValue(this.allData);
 
     // set bait values
-    await this.setBaitValue(data);
+    await this.setBaitValue(this.allData);
 
     // initial calculation of tuples
     this.calculateInitialTupleValues(this.fuelTuple);
@@ -476,7 +476,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   isEstimatedTotalPmfm(pmfm: IPmfm): boolean {
-    return pmfm.label === 'TOTAL_COST';
+    return pmfm.label === 'TOTAL_COST'; // todo use PmfmIds with config
   }
 
   isFuelTypePmfm(pmfm: IPmfm): boolean {
@@ -539,6 +539,12 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     super.markAsTouched(opts);
     this.iceFrom && this.iceFrom.markAsTouched(opts);
     this.baitForms && this.baitForms.forEach(form => form.markAsTouched(opts));
+  }
+
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAllAsTouched(opts);
+    this.iceFrom && this.iceFrom.markAllAsTouched(opts);
+    this.baitForms && this.baitForms.forEach(form => form.markAllAsTouched(opts));
   }
 
   protected markForCheck() {

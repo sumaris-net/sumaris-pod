@@ -15,6 +15,7 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
   withMetiers?: boolean;
   withFishingAreas?: boolean;
+  returnFieldsRequired?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
@@ -64,8 +65,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         __typename: [Trip.TYPENAME],
         departureDateTime: [data && data.departureDateTime || null, Validators.required],
         departureLocation: [data && data.departureLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        returnDateTime: [data && data.returnDateTime || null, opts.isOnFieldMode ? null : Validators.required],
-        returnLocation: [data && data.returnLocation || null, opts.isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
+        returnDateTime: [data && data.returnDateTime || null, opts.isOnFieldMode && !opts.returnFieldsRequired ? null : Validators.required],
+        returnLocation: [data && data.returnLocation || null, opts.isOnFieldMode && !opts.returnFieldsRequired ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
       });
 
     // Add observers
@@ -99,8 +100,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   updateFormGroup(form: FormGroup, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    form.get('returnDateTime').setValidators(opts.isOnFieldMode ? null : Validators.required);
-    form.get('returnLocation').setValidators(opts.isOnFieldMode ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
+    form.get('returnDateTime').setValidators(!opts.returnFieldsRequired ? null : Validators.required);
+    form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
 
     return form;
   }
@@ -122,6 +123,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
+
+    opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, false);
 
     return opts;
   }

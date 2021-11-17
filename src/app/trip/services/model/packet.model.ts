@@ -1,5 +1,17 @@
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {EntityClass, equalsOrNil, FilterFn, IEntity, isNil, isNotNilOrNaN, ReferentialAsObjectOptions, ReferentialRef, referentialToString, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {
+  EntityClass,
+  equalsOrNil,
+  FilterFn,
+  IEntity,
+  isNil,
+  isNotNil,
+  isNotNilOrNaN,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
 import {Product} from './product.model';
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
@@ -47,6 +59,17 @@ export class PacketFilter extends DataEntityFilter<PacketFilter, Packet> {
 export class Packet extends DataEntity<Packet> {
 
   static fromObject: (source: any, opts?: any) => Packet;
+
+  public static equals(p1: Packet | any, p2: Packet | any): boolean {
+    return p1 && p2 && ((isNotNil(p1.id) && p1.id === p2.id)
+      // Or by functional attributes
+      || (p1.rankOrder === p2.rankOrder
+        // same operation
+        && ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId)
+        && (p1.number === p2.number)
+        && (p1.weight === p2.weight)
+      ));
+  }
 
   rankOrder: number;
   number: number;

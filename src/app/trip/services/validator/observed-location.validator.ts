@@ -1,19 +1,15 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
-import {ObservedLocation} from "../model/observed-location.model";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {
-  DataRootEntityValidatorOptions,
-  DataRootEntityValidatorService
-} from "../../../data/services/validator/root-data-entity.validator";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {ProgramProperties} from "../../../referential/services/config/program.config";
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { fromDateISOString, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { ObservedLocation } from '../model/observed-location.model';
+import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
+  startDateDay?: number;
 }
 
 @Injectable({providedIn: 'root'})
@@ -52,7 +48,7 @@ export class ObservedLocationValidatorService
       ...super.getFormGroupConfig(data),
       __typename: [ObservedLocation.TYPENAME],
       location: [data && data.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      startDateTime: [data && data.startDateTime || null, Validators.required],
+      startDateTime: [data && data.startDateTime || null, opts.startDateDay ? Validators.compose([Validators.required, this.validStartDate(opts.startDateDay)]) : Validators.required],
       endDateTime: [data && data.endDateTime || null],
       measurementValues: this.formBuilder.group({}),
       observers: this.getObserversFormArray(data),
@@ -60,6 +56,25 @@ export class ObservedLocationValidatorService
       recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity]
     };
 
+  }
+
+  updateFormGroup(formGroup: FormGroup, opts?: ObservedLocationValidatorOptions) {
+    opts = this.fillDefaultOptions(opts);
+
+    formGroup.get('startDateTime').setValidators(opts.startDateDay ? Validators.compose([Validators.required, this.validStartDate(opts.startDateDay)]) : Validators.required);
+
+    return formGroup;
+  }
+
+  validStartDate(day: number): ValidatorFn {
+    return (control: FormControl): ValidationErrors | null => {
+      const value = control.value;
+      const date = fromDateISOString(value);
+      if (date && date.day() !== day) {
+        return {validDate: true};
+      }
+      return null;
+    };
   }
 
   getFormGroupOptions(data?: any): AbstractControlOptions {
@@ -73,7 +88,7 @@ export class ObservedLocationValidatorService
 
     opts.withObservers = toBoolean(opts.withObservers,
       toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-        ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
+        ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'));
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, !!opts.program);
 

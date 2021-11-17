@@ -1,11 +1,8 @@
-// TODO BL: gérer pour etre dynamique (=6 pour le SIH)
 
-// LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
-import {ObjectMap} from "@sumaris-net/ngx-components";
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
-
+// LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
   // Lands
   COUNTRY: 1,
@@ -76,9 +73,13 @@ export const PmfmIds = {
   SIZE_CATEGORY: 174,
   TOTAL_PRICE: 270,
   AVERAGE_PACKAGING_PRICE: 271,
-  AVERAGE_PRICE_WEI: 272,
+  AVERAGE_WEIGHT_PRICE: 272,
   SALE_ESTIMATED_RATIO: 278,
   SALE_RANK_ORDER: 279,
+  REFUSED_SURVEY: 266,
+
+  /* ACOST pmfms */
+  HAS_INDIVIDUAL_MEASURE: 381
 };
 
 export const QualitativeLabels = {
@@ -111,6 +112,10 @@ export const MethodIds = {
 
 export const MatrixIds = {
   INDIVIDUAL: 2
+}
+
+export const UnitIds = {
+  NONE: 0
 }
 
 export const autoCompleteFractions = {
@@ -152,7 +157,8 @@ export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
   KG: 'kg',
-  GRAM: 'g'
+  GRAM: 'g',
+  TOM: 't'
 };
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
@@ -174,29 +180,30 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
 
 export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
-  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' ;
+  | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
 
-export const AcquisitionLevelCodes: { [key: string]: AcquisitionLevelType} = {
-  TRIP: 'TRIP',
-  PHYSICAL_GEAR: 'PHYSICAL_GEAR',
-  OPERATION: 'OPERATION',
-  CATCH_BATCH: 'CATCH_BATCH',
-  SORTING_BATCH: 'SORTING_BATCH',
-  SORTING_BATCH_INDIVIDUAL: 'SORTING_BATCH_INDIVIDUAL',
-  SAMPLE: 'SAMPLE',
-  SURVIVAL_TEST: 'SURVIVAL_TEST',
-  INDIVIDUAL_MONITORING: 'INDIVIDUAL_MONITORING',
-  INDIVIDUAL_RELEASE: 'INDIVIDUAL_RELEASE',
-  LANDING: 'LANDING',
-  SALE: 'SALE',
-  OBSERVED_LOCATION: 'OBSERVED_LOCATION',
-  OBSERVED_VESSEL: 'OBSERVED_VESSEL',
-  PRODUCT: 'PRODUCT',
-  PRODUCT_SALE: 'PRODUCT_SALE',
-  PACKET_SALE: 'PACKET_SALE',
-  EXPENSE: 'EXPENSE',
-  BAIT_EXPENSE: 'BAIT_EXPENSE',
-  ICE_EXPENSE: 'ICE_EXPENSE'
+export const AcquisitionLevelCodes = {
+  TRIP: <AcquisitionLevelType>'TRIP',
+  PHYSICAL_GEAR: <AcquisitionLevelType>'PHYSICAL_GEAR',
+  OPERATION: <AcquisitionLevelType>'OPERATION',
+  CATCH_BATCH: <AcquisitionLevelType>'CATCH_BATCH',
+  SORTING_BATCH: <AcquisitionLevelType>'SORTING_BATCH',
+  SORTING_BATCH_INDIVIDUAL: <AcquisitionLevelType>'SORTING_BATCH_INDIVIDUAL',
+  SAMPLE: <AcquisitionLevelType>'SAMPLE',
+  SURVIVAL_TEST: <AcquisitionLevelType>'SURVIVAL_TEST',
+  INDIVIDUAL_MONITORING: <AcquisitionLevelType>'INDIVIDUAL_MONITORING',
+  INDIVIDUAL_RELEASE: <AcquisitionLevelType>'INDIVIDUAL_RELEASE',
+  LANDING: <AcquisitionLevelType>'LANDING',
+  SALE: <AcquisitionLevelType>'SALE',
+  OBSERVED_LOCATION: <AcquisitionLevelType>'OBSERVED_LOCATION',
+  OBSERVED_VESSEL: <AcquisitionLevelType>'OBSERVED_VESSEL',
+  PRODUCT: <AcquisitionLevelType>'PRODUCT',
+  PRODUCT_SALE: <AcquisitionLevelType>'PRODUCT_SALE',
+  PACKET_SALE: <AcquisitionLevelType>'PACKET_SALE',
+  EXPENSE: <AcquisitionLevelType>'EXPENSE',
+  BAIT_EXPENSE: <AcquisitionLevelType>'BAIT_EXPENSE',
+  ICE_EXPENSE: <AcquisitionLevelType>'ICE_EXPENSE',
+  CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION'
 };
 
 export const SaleTypeIds = {

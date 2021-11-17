@@ -1,6 +1,7 @@
 {
   "APP_NAME": "SUMARiS",
   "COMMON": {
+    "BTN_ADD_COMMENT": "Ajouter un commentaire",
     "BTN_CANCEL": "Annuler",
     "BTN_OK": "Ok",
     "BTN_ABORT_CHANGES": "Abandonner les modifications",
@@ -23,6 +24,7 @@
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
+    "BTN_VALIDATE_AND_CONTINUE": "Valider et continuer",
     "BTN_NOT_SAVE": "Ne PAS sauvegarder",
     "BTN_SAVE": "Sauvegarder",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>auvegarder",
@@ -155,6 +157,8 @@
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
       "CHECK_SAMPLE_UNIQUE_TAG": "Saisie > Vérifier l'unicité du code de prélèvement",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
+      "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
+      "FORUM_URL": "App > Adresse du forum (URL)",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -183,7 +187,8 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche"
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -212,7 +217,8 @@
         "PARAMETER_GROUP_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
         "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
         "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
-        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées"
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
+        "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
@@ -274,6 +280,9 @@
     "LICENSE": "Application <b>libre</b> (Licence GNU AGPL v3).",
     "REPORT_ISSUE": "N'hésitez pas à nous remonter les anomalies rencontrés !",
     "BTN_REPORT_ISSUE": "Remonter un problème",
+    "HELP": "Aide en ligne :",
+    "FORUM": "Forum",
+    "USER_MANUAL": "Manuel",
     "SOURCE_CODE": "Code source :",
     "DEVELOPED_BY": "Développé par :",
     "PARTNERS": "Partenaires et sponsors :"
@@ -341,7 +350,7 @@
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
     "ERROR": {
-      "SUBSCRIBE_ACCOUNT_ERROR": "Echec de l'abonnement distant au compte utilisateur."
+      "SUBSCRIBE_ACCOUNT_ERROR": "Échec de l'abonnement distant au compte utilisateur."
     }
   },
   "SETTINGS": {
@@ -351,7 +360,7 @@
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
-    "PEER_URL": "Addresse du nœud réseau",
+    "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Nettoyer les données en cache",
@@ -396,6 +405,7 @@
     "AVATAR": "Avatar",
     "EMAIL": "Email",
     "USERNAME": "Identifiant",
+    "USERNAME_EXTRANET": "Identifiant Extranet",
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
@@ -498,13 +508,11 @@
         "LOCAL_TRASH_CLEANED": "La corbeille locale a été vidée"
       }
     },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuration du mode hors-ligne",
+      "DURATION_PLACEHOLDER": "Période à importer"
+    },
     "ERROR": {
-      "LOAD_TRIP_ERROR": "Erreur de chargement de la marée.",
-      "LOAD_TRIPS_ERROR": "Erreur de chargement des marées.",
-      "SAVE_TRIP_ERROR": "Erreur lors de la sauvegarde de la marée.",
-      "SAVE_TRIPS_ERROR": "Erreur lors de la sauvegarde des marées.",
-      "SUBSCRIBE_TRIP_ERROR": "Echec de l'abonnement distant aux modifications de la marée.",
-      "CONTROL_TRIP_ERROR": "Erreur lors de la terminaison de la marée",
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
     },
     "MEASUREMENT": {
@@ -572,7 +580,31 @@
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
         "OTHER_FEATURES": "Caractéristiques :",
-        "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin"
+        "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
+        "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
+        "START_PARENT_OPERATION" : "Début pose :",
+        "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
+        "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
+        "END_CHILD_OPERATION" : "Fin virage :",
+        "PARENT_OPERATION" : "Opération associée",
+        "PLEASE_SELECT_HELP": "Sélectionner une opération",
+        "TYPE": {
+          "TITLE" : "Type d'opération :",
+          "PARENT" : "Filage",
+          "CHILD" : "Virage"
+        },
+        "BTN_EDIT_PARENT" : "Modifier le filage...",
+        "BTN_SELECT_PARENT" : "Sélectionner le filage..."
+      },
+      "PARENT": {
+        "TITLE" : "Sélectionner filage",
+        "TRIP" : "{{vessel}} - Marée {{departureDateTime}}",
+        "FILTER" : {
+          "SEARCH_TEXT" : "Recherche : code engin / espèce",
+          "START_DATE" : "Début de période",
+          "GEAR" : "Engin",
+          "TARGET_SPECIE" : "Espèce cible"
+        }
       },
       "MAP": {
         "TITLE": "Carte des positions",
@@ -580,6 +612,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
+        "TRIP_ID": "Marée",
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",
@@ -589,7 +622,8 @@
         "FISHING_END_DATE_TIME": "Fin de pêche",
         "START_POSITION": "Position début",
         "END_POSITION": "Position de fin",
-        "COMMENTS": "Commentaires"
+        "COMMENTS": "Commentaires",
+        "QUALITY": "État"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -598,25 +632,37 @@
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération."
+        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
+        "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
+        "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)"
+      }
+    },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "Nouvel effort"
+      },
+      "EDIT": {
+        "TITLE": "Effort #{{rankOrderOnPeriod}}"
       }
     },
     "CATCH": {
       "FORM": {
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
-        "TOTAL_CATCH": "Capture totale :"
+        "TOTAL_CATCH": "Capture (toutes espèces) :"
       }
     },
     "LANDED_CATCH": {
-      "TAB_PRODUCT": "Captures par espèce",
-      "TAB_BATCH": "Captures en paquet",
+      "TAB_PRODUCT": "Lots par espèce",
+      "TAB_BATCH": "Lots en paquet",
       "OPERATION_GROUP_FILTER": "Filtrer par effort"
     },
     "PRODUCT": {
       "LIST": {
         "PARENT": "Effort",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "SALE_TYPE": "Type de vente",
         "WEIGHT": "Poids (kg)",
         "INDIVIDUAL_COUNT": "Nombre individus",
         "INDIVIDUAL_SAMPLING": "Echantillonnage",
@@ -629,6 +675,14 @@
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
         "AVG_PACKAGING_PRICE": "Prix moyen / conditionnement",
         "TOTAL_PRICE": "Prix total"
+      },
+      "NEW": {
+        "TITLE": "Nouveau lot"
+      },
+      "EDIT": {
+        "TITLE": "Lot #{{rankOrder}}",
+        "BTN_SALE": "Saisir les ventes",
+        "BTN_INDIVIDUAL_SAMPLING": "Saisir l'échantillonage"
       }
     },
     "BATCH": {
@@ -756,6 +810,10 @@
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
       }
     }
+  },
+  "EXPECTED_SALE": {
+    "FEATURES": "Caractéristiques:",
+    "CALCULATED_TOTAL": "Total calculé:"
   },
   "SALE": {
     "TITLE": "Vente",
@@ -913,15 +971,12 @@
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
     },
-    "ERROR": {
-      "LOAD_ALL_ERROR": "Erreur de chargement des navires observés.",
-      "LOAD_ERROR": "Erreur de chargement du navire observé.",
-      "SAVE_ERROR": "Erreur de sauvegarde du navire observé",
-      "SAVE_ALL_ERROR": "Erreur de sauvegarde des navires observés",
-      "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications du navire observé.",
-      "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
-      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0",
+    "WARNING": {
       "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"
+    },
+    "ERROR": {
+      "NO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, il n'y a pas d'effort défini sur la ligne de plan (aucune valeur définie)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "Pour cette ligne de plan et cette date, l'effort défini sur la ligne de plan est de 0"
     }
   },
   "AGGREGATED_LANDING": {
@@ -934,11 +989,13 @@
     "LABEL": "Numéro de lot",
     "LABEL_VALUE": "Lot #{{rankOrder}}",
     "NUMBER": "Nombre de paquets",
-    "WEIGHT": "Poids total des paquets calculé (kg)",
-    "SAMPLED_WEIGHTS": "Poids des échantillons (kg)",
+    "WEIGHT": "Poids total des paquets (kg)",
+    "SAMPLED_WEIGHTS": "Poids des échantillons<small><br/>(kg)</small>",
     "SAMPLED_WEIGHT": "Paquet #{{rankOrder}}",
+    "TAXON_GROUP_SAMPLED_WEIGHT": "Poids total de l'espèce<small><br/>(kg)</small>",
     "SAMPLED_RATIO": "Composition %",
     "LIST": {
+      "RANK_ORDER": "Numéro de lot",
       "LABEL": "Numéro de lot",
       "LABEL_VALUE": "Lot #{{rankOrder}}",
       "PARENT": "Effort",
@@ -948,10 +1005,17 @@
       "PACKET_SALE": "Ventes"
     },
     "COMPOSITION": {
+      "SAMPLED_PACKETS": "Paquets échantillonnés",
+      "PACKETS_WEIGHT_DOTS": "Poids (kg) :",
       "TITLE": "Composition du Lot #{{rankOrder}}",
       "TAXON_GROUP": "Espèce commerciale (FAO)",
+      "TOTAL_PCT_DOTS": "Totaux (%) :",
       "RATIO": "#{{rankOrder}} %",
-      "WEIGHT": "Poids (kg)"
+      "WEIGHT": "Poids (kg)",
+      "BTN_SALE": "Saisir les ventes",
+      "NEW": {
+        "TITLE": "Nouveau Lot"
+      }
     },
     "SALE": {
       "TITLE": "Ventes du Lot #{{rankOrder}}",
@@ -1002,7 +1066,7 @@
     }
   },
   "FISHING_AREA": {
-    "TITLE": "Zone de pêche",
+    "TITLE": "Zone de pêche :",
     "LOCATION": "Lieu",
     "DISTANCE_TO_COAST_GRADIENT": "Gradient de distance à la côte",
     "DEPTH_GRADIENT": "Gradient de profondeur",
@@ -1050,7 +1114,7 @@
     "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Détails",
     "TAB_HISTORY": "Historique",
-    "FEATURES": {
+    "VESSEL_FEATURES": {
       "START_DATE": "Début validité",
       "END_DATE": "Fin validité",
       "NAME": "Nom",
@@ -1062,7 +1126,7 @@
       "LENGTH_OVER_ALL": "Longueur hors tout (m)",
       "COMMENTS": "Commentaires"
     },
-    "REGISTRATION": {
+    "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Début immatriculation",
       "END_DATE": "Fin immatriculation",
       "REGISTRATION_CODE": "Immatriculation",
@@ -1300,6 +1364,7 @@
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
+      "TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT": "Capture > Afficher les mesures individuelles",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
@@ -1307,10 +1372,15 @@
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
-      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie > Date de fin ?",
+      "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
+      "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
-      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie > Niveau(x) de lieu",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Sortie > Calendrier d'activité hebdomadaire > Programme cible",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
@@ -1329,7 +1399,6 @@
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Sortie > Débarquements : Unité du poids",
-      "LANDING_ONE_TAB_ENABLE": "Sortie > Débarquement : un seul onglet ?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
@@ -1510,6 +1579,10 @@
         "STRATEGIES_HAS_DATA": "Les lignes de plan {{ label }} sont liées à une ou plusieurs observations individuelles",
         "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
         "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
+      },
+      "CONFIRM": {
+        "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
+        "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
       }
     },
     "ERROR": {
@@ -1537,11 +1610,14 @@
         "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
+        "BTN_UPDATE": "Executer",
+        "BTN_UPDATE_HELP": "Executer maintenant",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
+        "FILTER_DOTS": "Filtrage sur la source des données :",
         "STRATUM_DOTS": "Couches géographiques :",
         "FORMAT_DOTS": "Documentation du format :",
         "MARKDOWN_HELP": "Saisir au format <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
-        "FORMAT_PLACEHOLDER": "Describe the output format...",
+        "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
         "FORMAT_PREVIEW_DOTS": "Prévisualisation :",
         "PROCESSING_FREQUENCY": "Fréquence de mise à jour",
         "STRATA": {
@@ -1570,9 +1646,6 @@
           "MONTHLY": "Mensuelle"
         }
       }
-    },
-    "PRODUCT": {
-      "NEW_NAME": "Produit {{name}}"
     },
     "FILTER": {
       "TITLE": "Filtrer les données :",
@@ -1714,6 +1787,7 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
+      "NEW_NAME": "Produit {{name}}",
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
@@ -1764,7 +1838,8 @@
       "LOAD_GEO_TYPES_ERROR": "Erreur de chargement des types de données spatiale",
       "LOAD_GEO_JSON_ERROR": "Erreur de chargement des données spatiales",
       "LOAD_TECH_ERROR": "Erreur de chargement des données du graphiques",
-      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes"
+      "LOAD_MIN_MAX_ERROR": "Erreur de chargement des bornes",
+      "UPDATE_PRODUCT_ERROR": "Erreur lors de l'execution de l'extraction"
     }
   },
   "NETWORK": {
@@ -1887,6 +1962,7 @@
     "LOAD_ENTITIES_ERROR": "Erreur lors de chargement de la liste",
     "SAVE_ENTITY_ERROR": "Erreur lors de la sauvegarde",
     "SAVE_ENTITIES_ERROR": "Erreur lors de la sauvegarde de la liste",
+    "DELETE_ENTITY_ERROR": "Erreur lors de la suppression. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SUBSCRIBE_ENTITY_ERROR": "Erreur lors de l'abonnement aux modifications distantes",
     "CONTROL_ENTITY_ERROR": "Erreur lors du contrôle de la validité des données",
     "TERMINATE_ENTITY_ERROR": "Terminaision de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
@@ -1894,6 +1970,7 @@
     "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",
     "QUALIFY_ENTITY_ERROR": "Erreur lors de la qualification",
     "SYNCHRONIZE_ENTITY_ERROR": "Synchronisation impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Erreur lors de la synchronisation, le filage doit être synchronisé avant le virage. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
@@ -1903,6 +1980,7 @@
     "ALERT_HEADER": "Confirmation",
     "SAVE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "SAVE_BEFORE_CLOSE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de fermer ?",
+    "SAVE_BEFORE_CONTINUE": "Des modifications n'ont pas été enregistrées.<br/><br/>Voulez-vous les <b>sauvegarder</b> avant de continuer ?",
     "CANCEL_CHANGES": "Vos dernières modifications seront annulées.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE": "<b>Êtes-vous sûr</b> de vouloir supprimer ?",
     "ACTION": "<b>Êtes-vous sûr</b> de vouloir continuer ?",

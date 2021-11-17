@@ -1,8 +1,8 @@
-import {EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition} from '@sumaris-net/ngx-components';
-import {Operation, Trip} from '../model/trip.model';
-import {TypePolicies} from '@apollo/client/core';
-import {ObservedLocation} from '../model/observed-location.model';
-import {Landing} from '../model/landing.model';
+import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition } from '@sumaris-net/ngx-components';
+import { Operation, Trip } from '../model/trip.model';
+import { TypePolicies } from '@apollo/client/core';
+import { ObservedLocation } from '../model/observed-location.model';
+import { Landing } from '../model/landing.model';
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -67,13 +67,19 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
     key: 'sumaris.sample.modal.enableBurstMode',
     label: 'TRIP.SAMPLE.SETTINGS.BURST_MODE_ENABLE',
     type: 'boolean',
-    defaultValue: false
+    defaultValue: true
   }
 });
 
 export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MeasurementVO': {
     keyFields: ['entityName', 'id']
+  },
+  'AggregatedLandingVO': {
+    keyFields: ['vesselSnapshot']
+  },
+  'VesselActivityVO': {
+    keyFields: ['date', 'rankOrder', 'observedLocationId', 'landingId']
   }
 };
 
@@ -89,8 +95,13 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
 
   'OperationVO': <EntityStoreTypePolicy<Operation>>{
     mode: 'by-id',
-    skipNonLocalEntities: true,
-    lightFieldsExcludes: ["trip", "measurements", "samples", "batches", "catchBatch", "gearMeasurements", 'fishingAreas']
+    skipNonLocalEntities: false,
+    lightFieldsExcludes: <(keyof Operation)[]>["samples", "catchBatch",
+      'fishingAreas',
+      "gearMeasurements", // TODO: to remove ?
+      'childOperation', 'parentOperation' // TODO: to remove ?
+    ]
+
   },
 
   'ObservedLocationVO': <EntityStoreTypePolicy<ObservedLocation>>{
@@ -103,6 +114,18 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
     skipNonLocalEntities: true,
     lightFieldsExcludes: ["samples"]
   },
+
+  // 'AggregatedLandingVO': <EntityStoreTypePolicy<AggregatedLanding>>{
+  //   mode: 'default',
+  //   skipNonLocalEntities: true,
+  //   lightFieldsExcludes: ['vesselActivities']
+  // },
+  //
+  // 'VesselActivityVO': <EntityStoreTypePolicy<VesselActivity>>{
+  //   mode: 'default',
+  //   skipNonLocalEntities: true,
+  //   lightFieldsExcludes: ['metiers']
+  // },
 
   // Fake entity, use to store historical data
   'Remote#LandingVO': <EntityStoreTypePolicy<Landing>>{

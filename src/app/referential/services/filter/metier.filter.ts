@@ -21,6 +21,7 @@ export class MetierFilter extends ReferentialRefFilter {
   endDate: Moment = null;
   vesselId: number = null;
   excludedTripId: number = null;
+  gearIds: number[] = null;
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -30,6 +31,7 @@ export class MetierFilter extends ReferentialRefFilter {
     this.endDate = fromDateISOString(source.endDate);
     this.vesselId = source.vesselId;
     this.excludedTripId = source.excludedTripId;
+    this.gearIds = source.gearIds;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -39,6 +41,7 @@ export class MetierFilter extends ReferentialRefFilter {
     target.endDate = toDateISOString(this.endDate);
     target.vesselId = this.vesselId;
     target.excludedTripId = this.excludedTripId;
+    target.gearIds = this.gearIds;
 
     return target;
   }

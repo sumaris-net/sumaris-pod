@@ -1,4 +1,4 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form class="form-container" [formGroup]="form">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
@@ -11,14 +11,14 @@
 
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
+        <ion-label class="ion-float-end" translate>EXPECTED_SALE.FEATURES</ion-label>
       </ion-col>
       <ion-col>
         <app-form-measurements #saleMeasurementsForm
                                entityName="SaleMeasurement"
                                acquisitionLevel="SALE"
                                [debug]="debug"
-                               [programLabel]="program"
+                               [programLabel]="programLabel"
                                [tabindex]="30">
         </app-form-measurements>
       </ion-col>
@@ -26,11 +26,10 @@
 
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>SALE.PRODUCT.TOTAL_PRICE</ion-label>
+        <ion-label class="ion-float-end" translate>EXPECTED_SALE.CALCULATED_TOTAL</ion-label>
       </ion-col>
       <ion-col>
-<!--        TODO -->
-        <ion-label>{{totalPriceCalculated}}</ion-label>
+        <ion-label class='total'>{{totalPriceCalculated}}</ion-label>
       </ion-col>
     </ion-row>
 
@@ -39,11 +38,12 @@
 
 
   <app-products-table #productsTable
-                      [programLabel]="program"
+                      [programLabel]="programLabel"
                       acquisitionLevel="PRODUCT_SALE"
-                      [showParent]="false"
+                      [showParent]='false'
                       [readOnly]="true"
-  >
+                      [showIdColumn]="false"
+                      [showToolbar]="!mobile">
   </app-products-table>
 
 </form>

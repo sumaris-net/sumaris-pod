@@ -318,6 +318,7 @@ export abstract class RootDataSynchroService<
    */
   protected getImportJobs(opts: {
     maxProgression: undefined;
+    dataFilter?: any;
   }): Observable<number>[] {
     return JobUtils.defers([
       (p, o) => this.referentialRefService.executeImport(p, o),

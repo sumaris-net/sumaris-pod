@@ -16,15 +16,17 @@
 
      <!-- Filter -->
      <ion-row>
+       <!-- Program -->
        <ion-col>
-         <mat-autocomplete-field formControlName="program"
+         <mat-autocomplete-field formControlName="program" class="min-width-large ion-text-wrap"
                                  [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
+                                 [config]="autocomplete.fields.program"
                                  [tabindex]="1"
-                                 [required]="true"
-                                 [config]="autocomplete.fields.program">
+                                 required>
          </mat-autocomplete-field>
        </ion-col>
 
+       <!-- Gear -->
        <ion-col>
          <mat-autocomplete-field formControlName="gear"
                                  [placeholder]="'TRIP.PHYSICAL_GEAR.LIST.GEAR'|translate"
@@ -33,6 +35,8 @@
                                  [config]="autocomplete.fields.gear">
          </mat-autocomplete-field>
        </ion-col>
+
+       <!-- Example select -->
        <ion-col>
          <mat-autocomplete-field formControlName="example"
                                  placeholder="Data example"
@@ -80,8 +84,8 @@
                           queryTabIndexParamName="mobileTab"
                           [programLabel]="$programLabel | async"
                           [usageMode]="'FIELD'"
-                          mobile="true"
-                          debug="true">
+                          [mobile]="true"
+                          [debug]="true">
           </app-batch-tree>
         </ion-col>
 
@@ -128,8 +132,8 @@
                          queryTabIndexParamName="desktopTab"
                          [usageMode]="'FIELD'"
                          [mobile]="false"
-                         [showSubBatchesTable]="true"
-                         debug="true">
+                         [allowSubBatches]="true"
+                         [debug]="true">
          </app-batch-tree>
        </ion-col>
 

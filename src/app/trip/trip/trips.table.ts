@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {TripValidatorService} from '../services/validator/trip.validator';
 import {TripService} from '../services/trip.service';
-import {TripFilter} from '../services/filter/trip.filter';
+import {TripFilter, TripOfflineFilter} from '../services/filter/trip.filter';
 import {ModalController} from '@ionic/angular';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
@@ -34,6 +34,7 @@ import {environment} from '@environments/environment';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 import {filter, tap} from 'rxjs/operators';
 import {BehaviorSubject} from 'rxjs';
+import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
 import {DataQualityStatusList, DataQualityStatusEnum} from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 
@@ -259,6 +260,48 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     // On dismiss
     const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED
+  }
+
+  async prepareOfflineMode(event?: UIEvent, opts?: {
+    toggleToOfflineMode?: boolean;
+    showToast?: boolean;
+    filter?: any;
+  }): Promise<undefined | boolean> {
+    if (this.importing) return; // Skip
+
+    if (event) {
+      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
+        name: this.dataService.featureName
+      };
+      const filter = this.asFilter(this.filterForm.value);
+      const value = <TripOfflineFilter>{
+        vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
+        programLabel: filter.program && filter.program.label || undefined,
+        ...feature.filter
+      };
+      const modal = await this.modalCtrl.create({
+        component: TripOfflineModal,
+        componentProps: {
+          value
+        }, keyboardClose: true
+      });
+
+      // Open the modal
+      modal.present();
+
+      // Wait until closed
+      const res = await modal.onDidDismiss();
+      if (!res || !res.data) return; // User cancelled
+
+      // Update feature filter, and save it into settings
+      feature.filter = res && res.data;
+      this.settings.saveOfflineFeature(feature);
+
+      // DEBUG
+      console.debug('[trip-table] Will prepare offline mode, using filter:', feature.filter);
+    }
+
+    return super.prepareOfflineMode(event, opts);
   }
 
   clearFilterValue(key: keyof TripFilter, event?: UIEvent) {

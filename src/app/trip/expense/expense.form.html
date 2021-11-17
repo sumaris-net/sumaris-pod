@@ -39,7 +39,6 @@
 
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="selectedTabChange.emit($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
                  dynamicHeight>
 
     <!-- SUB-TAB: fluid -->
@@ -49,13 +48,14 @@
 
           <!-- fuel -->
           <ion-row [hidden]="!($fuelTypePmfm | async) && !($fuelPmfms | async)">
-            <ion-col size="12" size-md="2" size-lg="3">
+            <ion-col size="12" size-md="3" size-lg="3">
               <app-pmfm-qv-field  *ngIf="$fuelTypePmfm | async; let fuelTypePmfm"
                                   [pmfm]="fuelTypePmfm"
                                  [style]="mobile? 'button' : 'autocomplete'"
                                  [formControlName]="fuelTypePmfm.id.toString()"
                                  [compact]="false"
-                                 [tabindex]="tabindex+2">
+                                 [tabindex]="tabindex+2"
+                                 [maxVisibleButtons]="2">
               </app-pmfm-qv-field>
             </ion-col>
             <ng-container *ngIf="$fuelPmfms | async; let fuelPmfms;">
@@ -85,7 +85,7 @@
 
           <!-- engine oil -->
           <ion-row  *ngIf="$engineOilPmfms | async; let engineOilPmfms;">
-            <ion-col size="12" size-md="2" size-lg="3">
+            <ion-col size="12" size-md="3" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.ENGINE_OIL</ion-label>
             </ion-col>
             <ion-col *ngFor="let pmfm of engineOilPmfms; index as i;">
@@ -114,7 +114,7 @@
 
           <!-- hydraulic oil -->
           <ion-row *ngIf="$hydraulicOilPmfms | async; let hydraulicOilPmfms;">
-            <ion-col size="12" size-md="2" size-lg="3">
+            <ion-col size="12" size-md="3" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.HYDRAULIC_OIL</ion-label>
             </ion-col>
             <ion-col *ngFor="let pmfm of hydraulicOilPmfms; index as i;">

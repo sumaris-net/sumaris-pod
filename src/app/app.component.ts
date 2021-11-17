@@ -113,7 +113,8 @@ export class AppComponent {
         options.colors[colorName + '900'] = color && mixHex('#000000', color, 12) || undefined;
       });
 
-      Object.getOwnPropertyNames(options.colors).forEach(colorName => {
+      Object.getOwnPropertyNames(options.colors)
+        .forEach(colorName => {
 
         // Remove existing value
         style.removeProperty(`--ion-color-${colorName}`);
@@ -142,6 +143,7 @@ export class AppComponent {
           style.setProperty(`--ion-color-${colorName}-tint`, getColorTint(color));
         }
       });
+
     }
   }
 
@@ -190,6 +192,14 @@ export class AppComponent {
     this.matIconRegistry.addSvgIcon(
       "fish",
       this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
+    );
+    this.matIconRegistry.addSvgIcon(
+      "down-arrow",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/down-arrow.svg")
+    );
+    this.matIconRegistry.addSvgIcon(
+      "rollback-arrow",
+      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/rollback-arrow.svg")
     );
   }
 }

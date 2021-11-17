@@ -1,17 +1,12 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {
-  DataEntityValidatorOptions,
-  DataEntityValidatorService
-} from "../../../data/services/validator/data-entity.validator";
-import {MeasurementsValidatorService} from "./measurement.validator";
-import {Program} from "../../../referential/services/model/program.model";
-import {OperationGroup} from "../model/trip.model";
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { Program } from '@app/referential/services/model/program.model';
+import { OperationGroup } from '../model/trip.model';
 
 export interface OperationGroupValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -40,32 +35,30 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
-    if (opts.withMeasurements) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
-      form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
-        isOnFieldMode: opts.isOnFieldMode,
-        pmfms
-      }));
-    }
+    // if (opts.withMeasurements) {
+    //   const pmfms = (opts.program?.strategies?.[0]?.denormalizedPmfms || [])
+    //     .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+    //   form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
+    //     isOnFieldMode: opts.isOnFieldMode,
+    //     pmfms
+    //   }));
+    // }
 
     return form;
   }
 
   getFormGroupConfig(data?: OperationGroup, opts?: O): { [key: string]: any } {
 
-    const formConfig = Object.assign(
+    return Object.assign(
       super.getFormGroupConfig(data, opts),
       {
         __typename: [OperationGroup.TYPENAME],
-        rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
-        metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        // physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        physicalGear: [data && data.physicalGear || null, Validators.required], // Just required because new physicalGear fails the entity validator
-        comments: [data && data.comments || null, Validators.maxLength(2000)]
+        rankOrderOnPeriod: [data?.rankOrderOnPeriod || null],
+        metier: [data?.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        physicalGearId: [data?.physicalGearId || null],
+        measurementValues: this.formBuilder.group({}),
+        comments: [data?.comments || null, Validators.maxLength(2000)]
       });
-
-    return formConfig;
   }
 
   /* -- protected methods -- */

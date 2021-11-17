@@ -127,7 +127,7 @@
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of $pmfms | async">
             <ng-container *ngIf="pmfm.id !== qvPmfm.id" [matColumnDef]="pmfm.id.toString()">
-              <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm|isDatePmfm" >
+              <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
               </mat-header-cell>
               <mat-cell *matCellDef="let row" class="mat-column-pmfm"

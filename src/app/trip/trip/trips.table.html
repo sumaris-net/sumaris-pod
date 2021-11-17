@@ -243,7 +243,7 @@
           <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
             <mat-form-field>
               <mat-select [formControl]="control"
-                          [placeholder]="'TRIP.TABLE.QUALITY'|translate" required>
+                          [placeholder]="'TRIP.TABLE.QUALITY'|translate">
                 <mat-select-trigger>
                   <span *ngIf="statusById | mapGet: control.value; let item">
                     <ion-icon [name]="item.icon"></ion-icon>
@@ -402,7 +402,7 @@
           <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-label>{{row.currentData.vesselSnapshot | referentialToString:autocompleteFields.vesselSnapshot.attributes }}</ion-label>
+          <ion-label *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton">{{row.currentData.vesselSnapshot | referentialToString:autocompleteFields.vesselSnapshot.attributes }}</ion-label>
         </td>
       </ng-container>
 

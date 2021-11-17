@@ -1,8 +1,7 @@
 .table-container {
-  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height, 0px) - var(--table-container-top, 0px));
-
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height) - var(--table-paginator-height, 0px));
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
@@ -13,10 +12,13 @@
 }
 
 .mat-table {
+  .mat-column-select {
+    width: 50px;
+  }
+
   .mat-column-id {
     min-width: 30px;
     max-width: 30px;
-    left: 40px !important;
   }
 
   .mat-column-vessel {

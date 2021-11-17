@@ -11,7 +11,7 @@
     <ion-row>
       <!--  weight  -->
       <ion-col *ngIf="isProductWithWeight()">
-        <mat-form-field>
+        <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
                  [formControl]="form.controls.weight"
@@ -22,7 +22,7 @@
 
       <!--  individualCount  -->
       <ion-col *ngIf="isProductWithNumber()">
-        <mat-form-field>
+        <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
                  [formControl]="form.controls.individualCount"
@@ -33,28 +33,31 @@
 
     </ion-row>
 
-    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first">
+    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last; even as even"
+             [formGroup]="saleForm"
+             [class.even]="even">
 
-<!--      todo use ion-card -->
+      <!--      todo use ion-card -->
 
       <!-- sale type -->
-      <ion-col>
-        <mat-autocomplete-field [formControl]="asFormGroup(saleForm).controls.saleType"
+      <ion-col size-lg="2" size-xs="3">
+        <mat-autocomplete-field formControlName="saleType"
                                 [placeholder]="'TRIP.PRODUCT.SALE.SALE_TYPE'|translate"
                                 [floatLabel]="first ? 'always' : 'never'"
                                 [config]="autocompleteFields.saleType"
                                 [tabindex]="tabindex+3+i*9"
-                                [required]="true">
+                                [autofocus]="last && adding"
+                                required>
           <ion-icon matPrefix name="card"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
 
       <!-- ratio -->
-      <ion-col>
+      <ion-col size-lg="1" size-xs="3">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="isProductWithNumber() || !!asFormGroup(saleForm).controls.ratioCalculated.value"
-        >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.ratio"
+                        [class.mat-form-field-disabled]="isProductWithNumber()">
+          <input matInput formControlName="ratio"
                  [placeholder]="'TRIP.PRODUCT.SALE.RATIO'|translate"
                  autocomplete="off" type="number" step="1" max="100"
                  [tabIndex]="tabindex+3+i*9+1"
@@ -64,11 +67,11 @@
       </ion-col>
 
       <!-- weight -->
-      <ion-col *ngIf="isProductWithWeight()">
+      <ion-col *ngIf="isProductWithWeight()" size-lg="1" size-xs="3">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="isProductWithNumber() || !!asFormGroup(saleForm).controls.weightCalculated.value"
-        >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.weight"
+                        [class.mat-form-field-disabled]="isProductWithNumber()">
+          <input matInput formControlName="weight"
                  [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
                  autocomplete="off" type="number" step="0.1"
                  [tabIndex]="tabindex+3+i*9+2"
@@ -78,75 +81,65 @@
       </ion-col>
 
       <!-- avg weight price -->
-      <ion-col *ngIf="isProductWithWeight()">
+      <ion-col *ngIf="isProductWithWeight()" size-lg="2" size-xs="3">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="!!asFormGroup(saleForm).controls.averageWeightPriceCalculated.value"
-        >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.averageWeightPrice"
+                        [class.mat-form-field-disabled]="isProductWithNumber()">
+          <input matInput formControlName="averageWeightPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
                  [tabIndex]="tabindex+3+i*9+3"
-                 [readonly]="isProductWithNumber()"
-          >
+                 [readonly]="isProductWithNumber()">
         </mat-form-field>
       </ion-col>
 
       <!-- individualCount -->
-      <ion-col *ngIf="isProductWithNumber()">
+      <ion-col *ngIf="isProductWithNumber()" size-lg="2" size-xs="3">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'">
-          <input matInput [formControl]="asFormGroup(saleForm).controls.individualCount"
+          <input matInput formControlName="individualCount"
                  [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
                  autocomplete="off" type="number" pattern="[0-9]*" step="1"
-                 [tabIndex]="tabindex+3+i*9+4"
-          >
+                 [tabIndex]="tabindex+3+i*9+4">
         </mat-form-field>
       </ion-col>
 
       <!-- avg packaging price -->
-      <ion-col *ngIf="isProductWithNumber()">
+      <ion-col *ngIf="isProductWithNumber()" size-lg="2" size-xs="3">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
-                        [class.computed]="!!asFormGroup(saleForm).controls.averagePackagingPriceCalculated.value"
-        >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.averagePackagingPrice"
+                        [class.computed]="!!asFormGroup(saleForm).controls.averagePackagingPriceCalculated.value">
+          <input matInput formControlName="averagePackagingPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+5"
-          >
+                 [tabIndex]="tabindex+3+i*9+5">
         </mat-form-field>
       </ion-col>
 
       <!-- total price -->
-      <ion-col>
+      <ion-col size-lg="1" size-xs="3">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="!!asFormGroup(saleForm).controls.totalPriceCalculated.value"
         >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.totalPrice"
+          <input matInput formControlName="totalPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+6"
-          >
+                 [tabIndex]="tabindex+3+i*9+6">
         </mat-form-field>
       </ion-col>
 
       <!-- buttons -->
-      <ion-col size="1" class="ion-align-self-center">
+      <ion-col size-lg="1" size-xs="3" class="ion-align-self-center ion-text-end">
         <button type="button" mat-icon-button [tabindex]="tabindex+3+i*9+7" [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addSale()">
           <mat-icon>add</mat-icon>
         </button>
-        <button type="button" mat-icon-button [tabindex]="tabindex+3+i*9+8" [disabled]="disabled"
+        <button type="button" mat-icon-button [tabindex]="-1" [disabled]="disabled"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="removeSale(i)">
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
-
     </ion-row>
 
-
   </ion-grid>
-
-
-
 </form>

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {ValidatorService} from '@e-is/ngx-material-table';
 import {StrategyValidatorService} from '../services/validator/strategy.validator';
 import {Strategy} from '../services/model/strategy.model';
-import {AppTable, StatusList, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
+import {AppTable, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
 import {StrategyService} from '../services/strategy.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ModalController, Platform} from '@ionic/angular';
@@ -10,7 +10,6 @@ import {Location} from '@angular/common';
 import {Program} from '../services/model/program.model';
 import {environment} from '@environments/environment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-
 
 @Component({
   selector: 'app-strategy-table',
@@ -25,8 +24,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
   private _program: Program;
 
-  statusList = StatusList;
-  statusById: any;
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -88,12 +87,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     this.inlineEdition = false
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting parent to load
     this.confirmBeforeDelete = true;
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.autoLoad = false; // waiting parent to load
 
     this.debug = !environment.production;
   }

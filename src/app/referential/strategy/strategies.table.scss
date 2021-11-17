@@ -1,11 +1,10 @@
 .table-container {
-  height: calc(100% - var(--table-container-offset, 0) - var(--table-toolbar-height, 0) - 1px);
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - 1px);
 
-  --table-toolbar-height: 0;
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
-
 }
 
 .mat-table {

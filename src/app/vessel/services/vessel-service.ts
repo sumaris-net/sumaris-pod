@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {QualityFlagIds} from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
+  EntitiesServiceWatchOptions, Entity,
   EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
@@ -11,12 +12,12 @@ import {
   IEntitiesService,
   IEntityService,
   isEmptyArray,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
-  Person,
-  StatusIds
+  Person, sort,
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import {map} from 'rxjs/operators';
 import {ReferentialFragments} from '../../referential/services/referential.fragments';
@@ -32,6 +33,12 @@ import {VESSEL_FEATURE_NAME} from './config/vessel.config';
 import {VesselFilter} from './filter/vessel.filter';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {environment} from '@environments/environment';
+import {VesselSnapshotFilter} from '@app/referential/services/filter/vessel.filter';
+import {ErrorCodes} from '@app/data/services/errors';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
+import {LandingService} from '@app/trip/services/landing.service';
+import {TripService} from '@app/trip/services/trip.service';
+import { OperationService } from '@app/trip/services/operation.service';
 
 
 export const VesselFragments = {
@@ -66,7 +73,7 @@ export const VesselFragments = {
         ...LightPersonFragment
       }
     }`,
-    vessel: gql`fragment VesselFragment on VesselVO {
+  vessel: gql`fragment VesselFragment on VesselVO {
         id
         comments
         statusId
@@ -171,8 +178,7 @@ export interface VesselSaveOptions extends EntitySaveOptions {
 @Injectable({providedIn: 'root'})
 export class VesselService
   extends RootDataSynchroService<Vessel, VesselFilter>
-  implements
-    IEntitiesService<Vessel, VesselFilter>,
+  implements IEntitiesService<Vessel, VesselFilter>,
     IEntityService<Vessel>,
     IDataSynchroService<Vessel> {
 
@@ -180,13 +186,27 @@ export class VesselService
     injector: Injector,
     private vesselFeatureService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
+    private landingService: LandingService,
+    private tripService: TripService,
+    private operationService: OperationService,
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
-      mutations: VesselMutations
+      mutations: VesselMutations,
+      equalsFn: (e1, e2) => this.vesselEquals(e1, e2)
     });
     this._featureName = VESSEL_FEATURE_NAME;
     this._debug = !environment.production;
+  }
+
+  private vesselEquals(e1: Vessel, e2: Vessel) {
+    return e1 && e2 && (
+      // check id equals
+      e1.id === e2.id ||
+      // or exteriorMarking and registrationCode equals
+      (e1.vesselFeatures?.exteriorMarking === e2.vesselFeatures?.exteriorMarking &&
+        e1.vesselRegistrationPeriod?.registrationCode === e2.vesselRegistrationPeriod?.registrationCode)
+    );
   }
 
   /**
@@ -196,12 +216,14 @@ export class VesselService
    * @param sortBy
    * @param sortDirection
    * @param filter
+   * @param opts
    */
   watchAll(offset: number,
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: VesselFilter): Observable<LoadResult<Vessel>> {
+           filter?: VesselFilter,
+           opts?: EntitiesServiceWatchOptions & { query?: any }): Observable<LoadResult<Vessel>> {
 
     // Load offline
     const offline = this.network.offline || filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC';
@@ -209,38 +231,31 @@ export class VesselService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
     }
 
-    return super.watchAll(offset, size,  sortBy || 'features.exteriorMarking', sortDirection, filter);
+    return super.watchAll(offset, size, sortBy || 'vesselFeatures.exteriorMarking', sortDirection, filter, opts);
   }
 
   watchAllLocally(offset: number,
-                 size: number,
-                 sortBy?: string,
-                 sortDirection?: SortDirection,
-                 filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
+                  size: number,
+                  sortBy?: string,
+                  sortDirection?: SortDirection,
+                  filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
 
-    filter = this.asFilter(filter);
+    // Adapt filter
+    const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
-    const variables: any = {
-      offset: offset || 0,
-      size: size || 100,
-      sortBy: sortBy || 'features.exteriorMarking',
-      sortDirection: sortDirection || 'asc',
-      filter: filter?.asFilterFn()
-    };
+    sortBy = sortBy && sortBy.substr(sortBy.lastIndexOf('.') + 1) || undefined;
 
-    if (this._debug) console.debug("[vessel-service] Loading local vessels using options:", variables);
-
-    return this.entities.watchAll<Vessel>(Vessel.TYPENAME, variables)
+    return this.vesselSnapshotService.watchAllLocally(offset, size, sortBy, sortDirection, vesselSnapshotFilter)
       .pipe(
         map(({data, total}) => {
-          const entities = (data || []).map(Vessel.fromObject);
+          const entities = (data || []).map(VesselSnapshot.toVessel);
           return {data: entities, total};
         }));
   }
 
   /**
    * Save many vessels
-   * @param vessels
+   * @param entities
    */
   async saveAll(entities: Vessel[], opts?: VesselSaveOptions): Promise<Vessel[]> {
 
@@ -285,7 +300,7 @@ export class VesselService
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
         const newStartDate = entity.vesselFeatures.startDate.clone();
-        newStartDate.subtract(1, "seconds");
+        newStartDate.subtract(1, 'seconds');
         opts.previousVessel.vesselFeatures.endDate = newStartDate;
 
       }
@@ -293,7 +308,7 @@ export class VesselService
       else if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
         const newRegistrationStartDate = entity.vesselRegistrationPeriod.startDate.clone();
-        newRegistrationStartDate.subtract(1, "seconds");
+        newRegistrationStartDate.subtract(1, 'seconds');
         opts.previousVessel.vesselRegistrationPeriod.endDate = newRegistrationStartDate;
       }
 
@@ -309,7 +324,7 @@ export class VesselService
     // Save locally, when offline
     const offline = this.network.offline || EntityUtils.isLocal(entity) || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC');
     if (offline) {
-      console.debug("[vessel-service] Saving a vessel locally...");
+      console.debug('[vessel-service] Saving a vessel locally...');
 
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
@@ -345,7 +360,7 @@ export class VesselService
       if (opts.isNewFeatures) {
         // set end date = new start date - 1
         const newStartDate = entity.vesselFeatures.startDate.clone();
-        newStartDate.subtract(1, "seconds");
+        newStartDate.subtract(1, 'seconds');
         opts.previousVessel.vesselFeatures.endDate = newStartDate;
 
       }
@@ -353,7 +368,7 @@ export class VesselService
       else if (opts.isNewRegistration) {
         // set registration end date = new registration start date - 1
         const newRegistrationStartDate = entity.vesselRegistrationPeriod.startDate.clone();
-        newRegistrationStartDate.subtract(1, "seconds");
+        newRegistrationStartDate.subtract(1, 'seconds');
         opts.previousVessel.vesselRegistrationPeriod.endDate = newRegistrationStartDate;
       }
 
@@ -369,7 +384,7 @@ export class VesselService
     // Save locally, when offline
     const offline = this.network.offline || EntityUtils.isLocal(entity);
     if (offline) {
-      console.debug("[vessel-service] Saving a vessel locally...");
+      console.debug('[vessel-service] Saving a vessel locally...');
 
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
@@ -401,13 +416,68 @@ export class VesselService
     await this.entities.deleteMany(snapshots, {entityName: VesselSnapshot.TYPENAME});
   }
 
-  async synchronize(data: Vessel, opts?: any): Promise<Vessel> {
-    console.info(`[vessel-service] Synchronizing vessel {${data.id}}...`);
-    return data;
+  async synchronize(entity: Vessel, opts?: VesselSaveOptions): Promise<Vessel> {
+    console.info(`[vessel-service] Synchronizing vessel {${entity.id}}...`);
+    opts = {
+      isNewFeatures: true, // Optimistic response not need
+      isNewRegistration: true,
+      ...opts
+    };
+
+    const localId = entity?.id;
+    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (this.network.offline) throw new Error('Could not synchronize if network if offline');
+
+    // Clone (to keep original entity unchanged)
+    entity = entity instanceof Entity ? entity.clone() : entity;
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
+
+    entity.vesselFeatures.vesselId = undefined;
+    entity.vesselRegistrationPeriod.vesselId = undefined;
+
+    try {
+      entity = await this.save(entity, opts);
+
+      // Check return entity has a valid id
+      if (isNil(entity.id) || entity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+    } catch (err) {
+      throw {
+        ...err,
+        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
+        message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
+      };
+    }
+
+    if (this._debug) console.debug(`[vessel-service] Adding new VesselSnapshot {${entity.id}} into the local storage`);
+    const vesselSnapshot = VesselSnapshot.fromVessel(entity);
+    await this.vesselSnapshotService.saveLocally(vesselSnapshot);
+
+    // Replace local vessel, in data
+    await this.replaceLocalVessel(localId, vesselSnapshot);
+
+    // Delete local vessel (wan failed)
+    try {
+      if (this._debug) console.debug(`[vessel-service] Deleting vessel snapshot {${localId}} from local storage`);
+      await this.vesselSnapshotService.deleteLocally({vesselId: localId});
+
+      if (this._debug) console.debug(`[vessel-service] Deleting vessel {${localId}} from local storage`);
+      await this.entities.deleteById(localId, {entityName: Vessel.TYPENAME});
+
+    } catch (err) {
+      console.error(`[vessel-service] Failed to locally delete vessel {${entity.id}}`, err);
+      // Continue
+    }
+    return entity;
+
   }
 
   listenChanges(id: number, options?: any): Observable<Vessel> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   control(entity: Vessel, opts?: any): Promise<FormErrors> {
@@ -432,8 +502,7 @@ export class VesselService
     if (person && person.department && (!entity.recorderDepartment || entity.recorderDepartment.id !== person.department.id)) {
       if (!entity.recorderDepartment) {
         entity.recorderDepartment = person.department;
-      }
-      else {
+      } else {
         // Update the recorder department
         entity.recorderDepartment.id = person.department.id;
       }
@@ -441,8 +510,7 @@ export class VesselService
       if (entity.vesselFeatures) {
         if (!entity.vesselFeatures.recorderDepartment) {
           entity.vesselFeatures.recorderDepartment = person.department;
-        }
-        else {
+        } else {
           // Update the VF recorder department
           entity.vesselFeatures.recorderDepartment.id = person.department.id;
         }
@@ -475,7 +543,7 @@ export class VesselService
 
     // If new, generate a local id
     if (isNew) {
-      entity.id =  await this.entities.nextValue(entity);
+      entity.id = await this.entities.nextValue(entity);
     }
 
     // Force status as temporary
@@ -490,5 +558,32 @@ export class VesselService
       EntityUtils.copyIdAndUpdateDate(source.vesselRegistrationPeriod, target.vesselRegistrationPeriod);
     }
 
+  }
+
+  protected async replaceLocalVessel(localVesselId: number, remoteVesselSnapshot: VesselSnapshot) {
+
+    // Replace in landings
+    if (this._debug) console.debug(`[vessel-service] Update local landings: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    const landings = (await this.landingService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
+    if (isNotEmptyArray(landings)) {
+      landings.forEach(l => l.vesselSnapshot = remoteVesselSnapshot);
+      await this.landingService.saveAllLocally(landings);
+    }
+
+    // Replace in trips
+    if (this._debug) console.debug(`[vessel-service] Update local trips: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    const trips = (await this.tripService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
+    if (isNotEmptyArray(trips)) {
+      trips.forEach(l => l.vesselSnapshot = remoteVesselSnapshot);
+      await this.tripService.saveAllLocally(trips);
+    }
+
+    // Replace in operations
+    if (this._debug) console.debug(`[vessel-service] Update local operations: replace vessel #${localVesselId} by #${remoteVesselSnapshot.id}`);
+    const operations = (await this.operationService.loadAllLocally(0, 999, null, null, {vesselId: localVesselId}, {withTotal: false, fullLoad: true}))?.data;
+    if (isNotEmptyArray(operations)) {
+      operations.forEach(l => l.vesselId = remoteVesselSnapshot.id);
+      await this.operationService.saveAllLocally(operations);
+    }
   }
 }

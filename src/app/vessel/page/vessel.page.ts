@@ -1,21 +1,15 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
-import {VesselService} from '../services/vessel-service';
-import {VesselForm} from '../form/form-vessel';
-import {Vessel, VesselFeatures, VesselRegistrationPeriod} from '../services/model/vessel.model';
-import { AccountService, PlatformService } from '@sumaris-net/ngx-components';
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {FormGroup, Validators} from "@angular/forms";
-import * as momentImported from "moment";
-import {VesselFeaturesHistoryComponent} from "./vessel-features-history.component";
-import {VesselRegistrationHistoryComponent} from "./vessel-registration-history.component";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {DateFormatPipe} from "@sumaris-net/ngx-components";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
-import {VesselFeaturesFilter, VesselRegistrationFilter} from "../services/filter/vessel.filter";
-import {VesselFeaturesService} from "../services/vessel-features.service";
-import {VesselRegistrationService} from "../services/vessel-registration.service";
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { VesselService } from '../services/vessel-service';
+import { VesselForm } from '../form/form-vessel';
+import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
+import { AccountService, AppEntityEditor, DateFormatPipe, EntityServiceLoadOptions, HistoryPageReference, isNil, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
+import { FormGroup, Validators } from '@angular/forms';
+import * as momentImported from 'moment';
+import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
+import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
+import { VesselFeaturesFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
+import { VesselFeaturesService } from '../services/vessel-features.service';
+import { VesselRegistrationService } from '../services/vessel-registration.service';
 
 const moment = momentImported;
 
@@ -64,7 +58,9 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     private vesselRegistrationService: VesselRegistrationService,
     private dateAdapter: DateFormatPipe
   ) {
-    super(injector, Vessel, vesselService);
+    super(injector, Vessel, vesselService, {
+      tabCount: 2
+    });
     this.defaultBackHref = '/vessels';
     this.mobile = platform.mobile;
   }
@@ -141,7 +137,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   }
 
   async reload(): Promise<void> {
-    this.loading = true;
+    this.markAsLoading();
     await this.load(this.data && this.data.id);
   }
 
@@ -182,7 +178,8 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     this.form.get("vesselFeatures.startDate").setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.vesselFeatures.startDate,
-        this.dateAdapter.format(this.previousVessel.vesselFeatures.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
+        this.dateAdapter.format(this.previousVessel.vesselFeatures.startDate, this.translate.instant('COMMON.DATE_PATTERN')),
+        'day')
     ]);
     this.form.enable();
 
@@ -233,7 +230,8 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     this.form.get("vesselRegistrationPeriod.startDate").setValidators([
       Validators.required,
       SharedValidators.dateIsAfter(this.previousVessel.vesselRegistrationPeriod.startDate,
-        this.dateAdapter.format(this.previousVessel.vesselRegistrationPeriod.startDate, this.translate.instant('COMMON.DATE_PATTERN')))
+        this.dateAdapter.format(this.previousVessel.vesselRegistrationPeriod.startDate, this.translate.instant('COMMON.DATE_PATTERN')),
+        'day')
     ]);
     this.form.enable();
 

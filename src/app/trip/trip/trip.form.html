@@ -17,7 +17,7 @@
         <mat-autocomplete-field formControlName="program"
                                 [placeholder]="'TRIP.PROGRAM'|translate"
                                 [config]="autocompleteFields.program"
-                                [required]="true">
+                                required>
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -30,10 +30,10 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-          [placeholder]="'TRIP.VESSEL'|translate"
-          formControlName="vesselSnapshot"
-          [config]="autocompleteFields.vesselSnapshot"
-          [required]="true">
+                                formControlName="vesselSnapshot"
+                                [placeholder]="'TRIP.VESSEL'|translate"
+                                [config]="autocompleteFields.vesselSnapshot"
+                                required>
           <ion-icon matPrefix name="boat"></ion-icon>
 
           <button matAfter type="button" mat-icon-button tabindex="-1"
@@ -80,7 +80,7 @@
                                 [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [filter]="locationFilter"
-                                [required]="usageMode|isNotOnField"
+                                [required]="returnFieldsRequired"
                                 [panelWidth]="!mobile && '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
@@ -89,8 +89,8 @@
         <mat-date-time-field [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"
                              formControlName="returnDateTime"
                              [startDate]="form.controls.departureDateTime.value"
-                             [required]="usageMode|isNotOnField"
-                             [clearable]="usageMode|isOnField">
+                             [required]="returnFieldsRequired"
+                             [clearable]="!returnFieldsRequired">
           <mat-hint align="end" *ngIf="form.controls.returnDateTime.value">
             <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
             startValue: form.get('departureDateTime').value,

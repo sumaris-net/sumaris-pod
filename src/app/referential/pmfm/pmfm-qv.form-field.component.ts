@@ -46,6 +46,8 @@ import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
 import {IonButton} from '@ionic/angular';
 import {DOCUMENT} from '@angular/common';
 
+export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
+
 @Component({
   selector: 'app-pmfm-qv-field',
   styleUrls: ['./pmfm-qv.form-field.component.scss'],
@@ -74,7 +76,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   selectedIndex = -1;
   _tabindex: number;
   showAllButtons = false;
-  buttonsColCount: number;
 
   get nativeElement(): any {
     return this.matInput && this.matInput.nativeElement;
@@ -92,11 +93,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() readonly = false;
   @Input() compact = false;
   @Input() clearable = false;
-  @Input() style: 'autocomplete' | 'select' | 'button';
+  @Input() style: PmfmQvFormFieldStyle;
   @Input() searchAttributes: string[];
   @Input() sortAttribute: string;
-  @Input() maxVisibleButtons: number;
   @Input() autofocus: boolean;
+  @Input() maxVisibleButtons: number;
+  @Input() buttonsColCount: number;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -125,12 +127,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     private platform: PlatformService,
     private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
-    @Inject(DOCUMENT) private document: HTMLDocument,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
     this.mobile = platform.mobile;
-
-
   }
 
   ngOnInit() {
@@ -156,7 +155,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
     const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
     this.searchAttributes = isNotEmptyArray(this.searchAttributes) && this.searchAttributes || attributes;
-    this.sortAttribute =  isNotNil(this.sortAttribute) ? this.sortAttribute : (attributes[0]);
+    this.sortAttribute =  isNotNil(this.sortAttribute)
+      ? this.sortAttribute
+      : (this.style === 'button' ? 'name' : attributes[0]);
 
     // Sort values
     this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
@@ -195,11 +196,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // If button, listen enable/disable changes (hack using statusChanges)
     if (this.style === 'button') {
 
-      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 10);
-      if (this._qualitativeValues.length < this.maxVisibleButtons) {
-        this.maxVisibleButtons = 999; // Not need to limit
+      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
+      this.buttonsColCount = toNumber(this.buttonsColCount, Math.min(this.maxVisibleButtons, 4));
+      if (this._qualitativeValues.length <= this.maxVisibleButtons) {
+        this.maxVisibleButtons = 999; // Hide the expand button
       }
-      this.buttonsColCount = Math.min(Math.min(this.maxVisibleButtons, this._qualitativeValues.length), 10);
 
       this.formControl.statusChanges
         .pipe(
@@ -217,14 +218,14 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.formControl.value;
   }
 
-  writeValue(obj: any, event?: UIEvent): void {
-    if (obj !== this.formControl.value) {
-      this.formControl.patchValue(obj, {emitEvent: false});
-      this._onChangeCallback(obj);
+  writeValue(value: any, event?: UIEvent) {
+    if (value !== this.formControl.value) {
+      this.formControl.patchValue(value, {emitEvent: false});
+      this._onChangeCallback(value);
     }
 
     if (this.style === 'button') {
-      const index = (obj && isNotNil(obj.id)) ? this._qualitativeValues.findIndex(qv => qv.id === obj.id) : -1;
+      const index = (value && isNotNil(value.id)) ? this._qualitativeValues.findIndex(qv => qv.id === value.id) : -1;
       if (this.selectedIndex !== index) {
         this.selectedIndex = index;
         this.markForCheck();

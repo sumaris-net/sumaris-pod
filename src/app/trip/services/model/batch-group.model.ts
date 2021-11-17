@@ -1,6 +1,6 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
 import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import { EntityClass, EntityUtils } from '@sumaris-net/ngx-components';
 
 @EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {
@@ -56,5 +56,15 @@ export class BatchGroupUtils {
 
     // Compute observed indiv. count
     batch.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
+  }
+
+  /**
+   * Check equality of BatchGroup
+   * @param batchGroup1
+   * @param batchGroup2
+   */
+  static equals(batchGroup1: BatchGroup, batchGroup2: BatchGroup) {
+    return EntityUtils.equals(batchGroup1, batchGroup2, 'rankOrder')
+      && EntityUtils.equals(batchGroup1, batchGroup2, 'parentId');
   }
 }

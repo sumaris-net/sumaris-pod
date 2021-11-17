@@ -31,11 +31,13 @@ export interface IPmfm<
   qualitativeValues: ReferentialRef[];
 
   unitLabel: string;
-  isQualitative: boolean;
-  required?: boolean;
-  isComputed: boolean;
-  hidden?: boolean;
   rankOrder?: number;
+
+  isQualitative: boolean;
+  isComputed: boolean;
+  isMultiple: boolean;
+  required?: boolean;
+  hidden?: boolean;
 
   displayConversion?: UnitConversion;
 }
@@ -47,6 +49,7 @@ export interface IDenormalizedPmfm<
 
   completeName?: string;
   name?: string;
+  acquisitionNumber?: number;
 
   gearIds: number[];
   taxonGroupIds: number[];
@@ -118,13 +121,13 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
     this.entityName = Pmfm.ENTITY_NAME;
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
+  asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject({
-      ...options,
+      ...opts,
       minify: false // Do NOT minify itself
     });
 
-    if (options && options.minify) {
+    if (opts && opts.minify) {
       target.parameterId = this.parameter && this.parameter.id;
       target.matrixId = this.matrix && this.matrix.id;
       target.fractionId = this.fraction && this.fraction.id;
@@ -137,14 +140,14 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
       delete target.unit;
     }
     else {
-      target.parameter = this.parameter && this.parameter.asObject(options);
-      target.matrix = this.matrix && this.matrix.asObject(options);
-      target.fraction = this.fraction && this.fraction.asObject(options);
-      target.method = this.method && this.method.asObject(options);
-      target.unit = this.unit && this.unit.asObject(options);
+      target.parameter = this.parameter && this.parameter.asObject(opts);
+      target.matrix = this.matrix && this.matrix.asObject(opts);
+      target.fraction = this.fraction && this.fraction.asObject(opts);
+      target.method = this.method && this.method.asObject(opts);
+      target.unit = this.unit && this.unit.asObject(opts);
     }
 
-    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
+    target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(opts)) || undefined;
     return target;
   }
 
@@ -193,6 +196,10 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
 
   get isComputed(): boolean {
     return PmfmUtils.isComputed(this);
+  }
+
+  get isMultiple(): boolean {
+    return false; // Default value
   }
 }
 

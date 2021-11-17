@@ -1,25 +1,19 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {Strategy} from "../services/model/strategy.model";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {StrategyForm} from "./strategy.form";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {StrategyValidatorService} from "../services/validator/strategy.validator";
-import {StrategyService} from "../services/strategy.service";
-import {BehaviorSubject} from "rxjs";
-import {Program} from "../services/model/program.model";
-import {ReferentialForm} from "../form/referential.form";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {debounceTime, filter, tap} from "rxjs/operators";
-import {EntityServiceLoadOptions} from "@sumaris-net/ngx-components";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {isNil, isNotNil} from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../services/program-ref.service";
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Strategy } from '../services/model/strategy.model';
+import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { ModalController } from '@ionic/angular';
+import { StrategyForm } from './strategy.form';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { StrategyService } from '../services/strategy.service';
+import { BehaviorSubject } from 'rxjs';
+import { Program } from '../services/model/program.model';
+import { ReferentialForm } from '../form/referential.form';
+import { debounceTime, filter, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { ProgramRefService } from '../services/program-ref.service';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -35,6 +29,8 @@ export enum AnimationState {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
+
+  private initialPmfmCount: number;
 
   $program = new BehaviorSubject<Program>(null);
 
@@ -93,18 +89,20 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
         .subscribe(value => this.strategyForm.form.patchValue({...value, entityName: undefined})));
   }
 
-  /* -- protected methods -- */
+
+  setError(err: any) {
+    // Special case when user cancelled save. See strategy form
+    if (err === 'CANCELLED') {
+      this.askConfirmationToReload();
+      return;
+    }
+
+    super.setError(err);
+  }
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
-  }
-
-  protected canUserWrite(data: Strategy): boolean {
-    // TODO : check user is in strategy managers
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
@@ -113,6 +111,14 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     if (!this.isNewData) {
       this.form.get('label').disable();
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected canUserWrite(data: Strategy): boolean {
+    // TODO : check user is in strategy managers
+    return (this.isNewData && this.accountService.isAdmin())
+      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
   }
 
   protected registerForms() {
@@ -145,6 +151,9 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
     await this.strategyForm.updateView(data);
 
+    // Remember count - see getJsonValueToSave()
+    this.initialPmfmCount = data.pmfms?.length;
+
     this.markAsPristine();
   }
 
@@ -159,7 +168,24 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     // Re add label, because missing when field disable
     data.label = this.referentialForm.form.get('label').value;
 
+    console.debug('[strategy-page] JSON value to save:', data);
+
+    // Workaround to avoid to many PMFM_STRATEGY deletion
+    const deletedPmfmCount = (this.initialPmfmCount || 0) - (data.pmfms?.length || 0);
+    if (deletedPmfmCount > 1) {
+      const confirm = await Alerts.askConfirmation('PROGRAM.STRATEGY.CONFIRM.MANY_PMFM_DELETED',
+        this.alertCtrl, this.translate, null, {count: deletedPmfmCount});
+      if (!confirm) throw 'CANCELLED'; // Stop
+    }
+
     return data;
+  }
+
+  protected async askConfirmationToReload() {
+    const confirm = await Alerts.askConfirmation('PROGRAM.STRATEGY.CONFIRM.RELOAD_PAGE', this.alertCtrl, this.translate, null);
+    if (confirm) {
+      return this.reload();
+    }
   }
 
   protected async computeTitle(data: Strategy): Promise<string> {

@@ -11,8 +11,7 @@
     <ion-row>
 
       <!-- Taxon group -->
-      <ion-col size="12" size-md="6"
-               *ngIf="showTaxonGroup">
+      <ion-col size="12" size-md="6" *ngIf="showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup" #firstInput
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
                                 [tabindex]="tabindex"
@@ -33,35 +32,35 @@
       </ion-col>
     </ion-row>
 
-    <ion-row>
+    <ion-row *ngIf="allowSubBatches">
       <ion-col>
         <!-- Has individual measures ? -->
         <mat-form-field floatLabel="always">
           <input matInput type="text" hidden
-                 [formControl]="hasIndividualMeasureControl"
+                 [formControl]="hasSubBatchesControl"
                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
                  required>
-          <ion-grid class="ion-no-padding" @fadeInAnimation *ngIf="!loading">
-            <ion-row class="ion-no-padding">
+          <ion-grid class="ion-no-padding" >
+            <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!loading; else rowSkeleton">
               <ion-col>
                 <ion-button class="mat-form-field-button"
-                            [disabled]="hasIndividualMeasureControl.disabled"
+                            [disabled]="hasSubBatchesControl.disabled"
                             [tabindex]="tabindex && tabindex + 9 || -1"
-                            (click)="hasIndividualMeasureControl.setValue(false)"
-                            (keyup.enter)="hasIndividualMeasureControl.setValue(false)"
+                            (click)="hasSubBatchesControl.setValue(false)"
+                            (keyup.enter)="hasSubBatchesControl.setValue(false)"
                             fill="solid" expand="full"
-                            [color]="hasIndividualMeasure === undefined ? 'danger': (!hasIndividualMeasure ? 'accent' : 'light')">
+                            [color]="hasSubBatches === undefined ? 'danger': (!hasSubBatches ? 'accent' : 'light')">
                   <ion-label translate>TRIP.BATCH.EDIT.WITHOUT_MEASURE</ion-label>
                 </ion-button>
               </ion-col>
               <ion-col>
                 <ion-button class="mat-form-field-button"
-                            [disabled]="hasIndividualMeasureControl.disabled"
+                            [disabled]="hasSubBatchesControl.disabled"
                             [tabindex]="tabindex && tabindex + 8 || -1"
-                            (click)="hasIndividualMeasureControl.setValue(true)"
-                            (keyup.enter)="hasIndividualMeasureControl.setValue(true)"
+                            (click)="hasSubBatchesControl.setValue(true)"
+                            (keyup.enter)="hasSubBatchesControl.setValue(true)"
                             fill="solid" expand="full"
-                            [color]="hasIndividualMeasure === undefined ? 'danger': (hasIndividualMeasure ? 'accent' : 'light')">
+                            [color]="hasSubBatches === undefined ? 'danger': (hasSubBatches ? 'accent' : 'light')">
                   <ion-label translate>TRIP.BATCH.EDIT.WITH_MEASURE</ion-label>
                 </ion-button>
               </ion-col>
@@ -76,19 +75,19 @@
       </ion-col>
     </ion-row>
 
-    <ion-spinner class="ion-align-self-center" *ngIf="loading"></ion-spinner>
-
   </ion-grid>
 
 
-  <ion-grid *ngIf="qvPmfm" @fadeInAnimation>
-
-    <!-- QV children -->
+  <!-- QV children -->
+  <ion-grid *ngIf="qvPmfm">
     <ion-row>
-      <ion-col size="12" size-md=""
-               *ngFor="let qv of qvPmfm.qualitativeValues; index as i;">
+      <ion-col *ngFor="let qv of qvPmfm.qualitativeValues; index as i;"
+               size="12" size-md="">
 
-        <ion-card class="qv ion-no-margin ion-no-padding" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
+        <ion-card class="qv ion-no-margin ion-no-padding"
+                  [class.even]="i % 2 === 0"
+                  [class.odd]="i % 2 !== 0"
+                  [style.opacity]="animated ? 0 : 1">
 
           <ion-card-header>
             <ion-card-title>{{ qv.name }}</ion-card-title>
@@ -99,15 +98,17 @@
                             [tabindex]="tabindex + 10 + 10*i"
                             [acquisitionLevel]="acquisitionLevel"
                             [pmfms]="$childrenPmfms | async"
+                            [showTaxonName]="false"
                             [showTaxonGroup]="false"
                             [availableTaxonGroups]="[]"
-                            [showTaxonName]="false"
-                            [showSampleBatch]="showChildrenSampleBatch"
                             [showWeight]="showChildrenWeight"
-                            [showTotalIndividualCount]="showTotalIndividualCount"
-                            [showIndividualCount]="showIndividualCount"
-                            [requiredWeight]="hasIndividualMeasure && showChildrenWeight"
-                            [requiredSampleWeight]="hasIndividualMeasure && showChildrenWeight"
+                            [showIndividualCount]="showChildrenIndividualCount"
+                            [showSamplingBatch]="showChildrenSamplingBatch"
+                            [showSampleWeight]="showChildrenWeight"
+                            [requiredWeight]="hasSubBatches && showChildrenWeight"
+                            [requiredSampleWeight]="hasSubBatches && showChildrenWeight"
+                            [requiredIndividualCount]="hasSubBatches && showChildrenIndividualCount"
+                            [maxVisibleButtons]="maxVisibleButtons"
             ></app-batch-form>
           </ion-card-content>
         </ion-card>
@@ -115,3 +116,12 @@
     </ion-row>
   </ion-grid>
 </form>
+
+
+<ng-template #rowSkeleton>
+  <ion-row class="ion-no-padding ion-row-buttons">
+    <ion-col>
+      <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+    </ion-col>
+  </ion-row>
+</ng-template>

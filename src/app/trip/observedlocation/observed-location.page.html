@@ -97,56 +97,53 @@
         </mat-icon>
         <ion-label *ngIf="$ready|async; else skeletonText100">{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}</ion-label>
 
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="landingsTable?.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table?.invalid"></ion-icon>
       </ng-template>
 
-      <div class="ion-no-padding" *ngIf="aggregatedLandings === false">
+
+      <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="landingsTable?.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="table?.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="landingsTable?.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="table?.error|translate"></ion-label>
         </ion-item>
 
+        <ng-container [ngSwitch]='observedVesselsTableType|async'>
 
-        <app-landings-table #landingsTable
-                            [debug]="debug"
-                            [programLabel]="$programLabel|async"
-                            [showObserversColumn]="false"
-                            [showDateTimeColumn]="false"
-                            [showToolbar]="!mobile"
-                            (onOpenRow)="onOpenLanding($event)"
-                            (onNewRow)="onNewLanding($event)"
-                            (onNewTrip)="onNewTrip($event)">
-        </app-landings-table>
-      </div>
+          <app-aggregated-landings-table #aggregatedLandingsTable
+                                         *ngSwitchCase="'AGGREGATED_LANDINGS'"
+                                         [debug]="debug"
+                                         [programLabel]="$programLabel|async"
+                                         (onNewRow)="onNewAggregatedLanding($event)">
+          </app-aggregated-landings-table>
 
-      <div class="ion-no-padding" *ngIf="aggregatedLandings">
+          <app-landings-table #landingsTable
+                              *ngSwitchCase="'LANDINGS'"
+                              [debug]="debug"
+                              [programLabel]="$programLabel|async"
+                              [showObserversColumn]="false"
+                              [showDateTimeColumn]="false"
+                              [showToolbar]="true"
+                              (onOpenRow)="onOpenLanding($event)"
+                              (onNewRow)="onNewLanding($event)"
+                              (onNewTrip)="onNewTrip($event)">
+          </app-landings-table>
 
-        <!-- error -->
-        <ion-item *ngIf="aggregatedLandingsTable?.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="aggregatedLandingsTable?.error|translate"></ion-label>
-        </ion-item>
-
-        <app-aggregated-landings-table #aggregatedLandingsTable
-                                       [debug]="debug"
-                                       (onNewRow)="onNewAggregatedLanding($event)">
-        </app-aggregated-landings-table>
+        </ng-container>
 
       </div>
-
     </mat-tab>
-
   </mat-tab-group>
 
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

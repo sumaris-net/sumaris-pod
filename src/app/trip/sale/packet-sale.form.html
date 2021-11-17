@@ -1,22 +1,22 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" lines="none">
+  <ion-item *ngIf="error && showError" lines="none" class="ion-padding">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-margin-bottom">
 
-    <ion-row>
+    <ion-row class="ion-padding">
       <!--  label  -->
-<!--      <ion-col>-->
-<!--        <h3>{{'PACKET.LABEL_VALUE' | translate : {rankOrder: form.controls.rankOrder.value} }}</h3>-->
-<!--      </ion-col>-->
+      <!--      <ion-col>-->
+      <!--        <h3>{{'PACKET.LABEL_VALUE' | translate : {rankOrder: form.controls.rankOrder.value} }}</h3>-->
+      <!--      </ion-col>-->
 
       <!--  number -->
       <ion-col>
-        <mat-form-field>
+        <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.NUMBER'|translate"
                  [formControl]="form.controls.number"
@@ -27,7 +27,7 @@
 
       <!--  weight  -->
       <ion-col>
-        <mat-form-field>
+        <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.WEIGHT'|translate"
                  [formControl]="form.controls.weight"
@@ -38,35 +38,37 @@
 
     </ion-row>
 
-    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first">
+    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last, even as even"
+             class="ion-padding" [class.even]="even">
 
       <!-- sale type -->
-      <ion-col>
+      <ion-col size-lg="3" size-xs="4">
         <mat-autocomplete-field [formControl]="asFormGroup(saleForm).controls.saleType"
                                 [placeholder]="'PACKET.SALE.SALE_TYPE'|translate"
                                 [floatLabel]="first ? 'always' : 'never'"
                                 [config]="autocompleteFields.saleType"
                                 [tabindex]="tabindex+3+i*7"
+                                [autofocus]='last && adding'
                                 [required]="true">
           <ion-icon matPrefix name="card"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
 
       <!-- subgroupCount -->
-      <ion-col>
+      <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'">
           <input matInput [formControl]="asFormGroup(saleForm).controls.subgroupCount"
                  [placeholder]="'PACKET.NUMBER'|translate"
                  autocomplete="off" type="number" pattern="[0-9]*" step="1"
-                 [tabIndex]="tabindex+3+i*7+1"
-          >
+                 [tabIndex]="tabindex+3+i*7+1">
         </mat-form-field>
       </ion-col>
 
       <!-- weight -->
-      <ion-col>
+      <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="true"
+                        class="mat-form-field-disabled"
         >
           <input matInput [formControl]="asFormGroup(saleForm).controls.weight"
                  [placeholder]="'PACKET.WEIGHT'|translate"
@@ -78,7 +80,7 @@
       </ion-col>
 
       <!-- avg packaging price -->
-      <ion-col>
+      <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="!!asFormGroup(saleForm).controls.averagePackagingPriceCalculated.value"
         >
@@ -91,7 +93,7 @@
       </ion-col>
 
       <!-- total price -->
-      <ion-col>
+      <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="!!asFormGroup(saleForm).controls.totalPriceCalculated.value"
         >
@@ -104,7 +106,7 @@
       </ion-col>
 
       <!-- buttons -->
-      <ion-col size="1" class="ion-align-self-center">
+      <ion-col size-lg="1" size-xs="4" class="ion-align-self-center ion-text-end">
         <button type="button" mat-icon-button [tabindex]="tabindex+3+i*7+5" [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD'|translate"
                 (click)="addSale()">
@@ -116,12 +118,7 @@
           <mat-icon>close</mat-icon>
         </button>
       </ion-col>
-
     </ion-row>
 
-
   </ion-grid>
-
-
-
 </form>

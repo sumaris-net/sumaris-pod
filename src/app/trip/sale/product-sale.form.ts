@@ -1,14 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {Product} from '../services/model/product.model';
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode} from '@sumaris-net/ngx-components';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {ProductValidatorService} from '../services/validator/product.validator';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {Subscription} from 'rxjs';
-import {SaleProduct, SaleProductUtils} from '../services/model/sale-product.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Product } from '../services/model/product.model';
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
+import { DateAdapter } from '@angular/material/core';
+import { Moment } from 'moment';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Subscription } from 'rxjs';
+import { SaleProduct, SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @Component({
   selector: 'app-product-sale-form',
@@ -28,6 +28,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   mobile: boolean;
+  adding = false;
   private _product: Product;
 
   @Input() showError = true;
@@ -170,19 +171,18 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   addSale() {
-    // create new saleProduct directly from form value which is base product
-    // const newSaleProduct = SaleProductUtils.productToSaleProduct(this.form.value, this.productSalePmfms);
-    // this.salesHelper.add(newSaleProduct);
     this.salesHelper.add();
     this.initSubscription();
     if (!this.mobile) {
       this.salesFocusIndex = this.salesHelper.size() - 1;
     }
+    this.adding = true;
   }
 
   removeSale(index: number) {
     this.salesHelper.removeAt(index);
     this.initSubscription();
+    this.adding = false;
   }
 
   protected markForCheck() {

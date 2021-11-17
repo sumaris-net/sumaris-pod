@@ -1,16 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from "@angular/core";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
-import {AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS}  from "@sumaris-net/ngx-components";
-import {PmfmFilter} from "../services/pmfm.service";
-import {StatusList}  from "@sumaris-net/ngx-components";
-import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, Platform} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {debounceTime, filter} from "rxjs/operators";
-import {environment} from "../../../environments/environment";
-import {Pmfm} from "../services/model/pmfm.model";
-
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
+import {PmfmFilter} from '../services/pmfm.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {debounceTime, filter} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
+import {Pmfm} from '../services/model/pmfm.model';
 
 @Component({
   selector: 'app-pmfms-table',
@@ -19,9 +16,11 @@ import {Pmfm} from "../services/model/pmfm.model";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
-  statusList = StatusList;
-  statusById: any;
+
   filterForm: FormGroup;
+
+  readonly statusList = StatusList;
+  readonly statusById = StatusById;
 
   @Input() showToolbar = false;
   @Input() showFilter = true;
@@ -52,13 +51,8 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
       injector);
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
-    this.autoLoad = false; // waiting dataSource to be set
     this.inlineEdition = false;
-
-
-    // Fill statusById
-    this.statusById = {};
-    this.statusList.forEach((status) => this.statusById[status.id] = status);
+    this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
       'searchText': [null]

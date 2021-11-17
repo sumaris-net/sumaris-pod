@@ -1,9 +1,9 @@
-import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import {MethodIds} from '../services/model/model.enum';
-import {PmfmValueUtils} from '../services/model/pmfm-value.model';
-import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
-import {isNotNilOrBlank, TranslateContextService} from '@sumaris-net/ngx-components';
-import {TranslateService} from '@ngx-translate/core';
+import { Injectable, Pipe, PipeTransform } from '@angular/core';
+import { MethodIds } from '../services/model/model.enum';
+import { PmfmValueUtils } from '../services/model/pmfm-value.model';
+import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { isNotNilOrBlank, TranslateContextService } from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
 
 @Pipe({
     name: 'pmfmName'
@@ -52,7 +52,7 @@ export class PmfmNamePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class PmfmValuePipe implements PipeTransform {
 
-  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; }): any {
+  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): any {
     return PmfmValueUtils.valueToString(val, opts);
   }
 }
@@ -79,5 +79,17 @@ export class IsComputedPmfmPipe implements PipeTransform {
     //if (isNil(pmfm && pmfm.methodId)) console.warn('TODO cannot check if computed - no method :', pmfm.name);
 
     return pmfm.type && (pmfm.methodId === MethodIds.CALCULATED);
+  }
+}
+
+
+@Pipe({
+  name: 'isMultiplePmfm'
+})
+@Injectable({providedIn: 'root'})
+export class IsMultiplePmfmPipe implements PipeTransform {
+
+  transform(pmfm: IPmfm): any {
+    return pmfm && pmfm.isMultiple;
   }
 }

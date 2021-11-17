@@ -1,6 +1,6 @@
-import {AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds} from '../../../referential/services/model/model.enum';
-import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
-import {IEntityWithMeasurement, IMeasurementValue, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, QualityFlagIds } from '../../../referential/services/model/model.enum';
+import { DataEntity, DataEntityAsObjectOptions } from '../../../data/services/model/data-entity.model';
+import { IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import {
   EntityClass,
   EntityUtils,
@@ -13,13 +13,13 @@ import {
   ReferentialAsObjectOptions,
   referentialToString,
   ReferentialUtils,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
-import {PmfmValueUtils} from '../../../referential/services/model/pmfm-value.model';
-import {IPmfm} from '../../../referential/services/model/pmfm.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
+import { TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
+import { PmfmValue, PmfmValueUtils } from '../../../referential/services/model/pmfm-value.model';
+import { IPmfm } from '../../../referential/services/model/pmfm.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
@@ -36,14 +36,12 @@ export interface BatchFromObjectOptions {
 // WARN: always recreate en entity, even if source is a Batch
 // because options can have changed
 @EntityClass({typename: 'BatchVO', fromObjectReuseStrategy: 'clone'})
-export class Batch<
-  T extends Batch<T, ID> = Batch<any, any>,
+export class Batch<T extends Batch<T, ID> = Batch<any, any>,
   ID = number,
   O extends BatchAsObjectOptions = BatchAsObjectOptions,
   FO extends BatchFromObjectOptions = BatchFromObjectOptions>
   extends DataEntity<T, ID, O, FO>
-  implements
-    IEntityWithMeasurement<T, ID>,
+  implements IEntityWithMeasurement<T, ID>,
     ITreeItemEntity<Batch> {
 
   static SAMPLING_BATCH_SUFFIX = '.%';
@@ -124,7 +122,7 @@ export class Batch<
   taxonGroup: TaxonGroupRef = null;
   taxonName: TaxonNameRef = null;
   comments: string = null;
-  measurementValues: { [key: number]: any } = {};
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   weight: BatchWeight = null;
 
   operationId: number = null;
@@ -143,8 +141,8 @@ export class Batch<
     delete target.parentBatch;
     this.parent = parent;
 
-    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
-    target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/ } as ReferentialAsObjectOptions) || undefined;
+    target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
+    target.taxonName = this.taxonName && this.taxonName.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
@@ -262,7 +260,7 @@ export class BatchUtils {
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
   }
 
-  public static getAcquisitionLevelFromLabel(batch: Batch): string|undefined {
+  public static getAcquisitionLevelFromLabel(batch: Batch): string | undefined {
     if (!batch || !batch.label) return undefined;
     const parts = batch.label.split('#');
     return parts.length > 0 && parts[0];
@@ -329,19 +327,18 @@ export class BatchUtils {
 
   static getChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
     return (batch.children || []).reduce((res, child) => {
-      if (child.label && child.label.startsWith(acquisitionLevel + "#")) return res.concat(child);
+      if (child.label && child.label.startsWith(acquisitionLevel + '#')) return res.concat(child);
       return res.concat(BatchUtils.getChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
   }
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
     return batch && (batch.children || []).findIndex(child => {
-      return (child.label && child.label.startsWith(acquisitionLevel + "#")) ||
+      return (child.label && child.label.startsWith(acquisitionLevel + '#')) ||
         // If children, recursive call
         (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
     }) !== -1;
   }
-
 
 
   /**
@@ -375,8 +372,7 @@ export class BatchUtils {
         console.warn(`[batch-utils] Fix batch {${source.label}} individual count  ${source.individualCount} => ${sumChildrenIndividualCount}`);
         //source.individualCount = childrenIndividualCount;
         source.qualityFlagId = QualityFlagIds.BAD;
-      }
-      else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
+      } else if (isNil(source.individualCount) || source.individualCount > sumChildrenIndividualCount) {
         // Create a sampling batch, to hold the sampling individual count
         const samplingBatch = new Batch();
         samplingBatch.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
@@ -390,7 +386,7 @@ export class BatchUtils {
 
   static computeRankOrder(source: Batch) {
 
-    if (!source.label || !source.children ) return; // skip
+    if (!source.label || !source.children) return; // skip
 
     // Sort by id and rankOrder (new batch at the end)
     source.children = source.children
@@ -458,8 +454,7 @@ export class BatchUtils {
           }
           message += ' ' + key + ':' + value;
         });
-    }
-    else {
+    } else {
 
       if (isNotNil(batch.id)) {
         message += ' id:' + batch.id;
@@ -470,8 +465,7 @@ export class BatchUtils {
         if (batch.parent) {
           if (isNotNil(batch.parent.id)) {
             message += ' parent.id:' + batch.parent.id;
-          }
-          else if (isNotNil(batch.parent.label)) {
+          } else if (isNotNil(batch.parent.label)) {
             message += ' parent.label:' + batch.parent.label;
           }
         }
@@ -496,19 +490,21 @@ export class BatchUtils {
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
           message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
         }
-        if (isNotNil(batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT])) {
-          message += ' weight:' + batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT] + 'kg';
+        const weight = batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
+          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
+        if (isNotNil(weight)) {
+          message += ' weight:' + weight + 'kg';
         }
       }
     }
 
     // Print
     if (opts.println) opts.println(message);
-    else  console.debug(message);
+    else console.debug(message);
 
     const childrenCount = batch.children && batch.children.length || 0;
     if (childrenCount > 0) {
-      batch.children.forEach((b, index, ) => {
+      batch.children.forEach((b, index,) => {
         const childOpts = (index === childrenCount - 1) ? {
           println: opts.println,
           indent: nextIndent + ' \\- ',
@@ -522,7 +518,6 @@ export class BatchUtils {
       });
     }
   }
-
 
 
 }

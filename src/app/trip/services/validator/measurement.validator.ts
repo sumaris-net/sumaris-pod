@@ -1,12 +1,12 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from '@angular/forms';
 
-import {toBoolean} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Measurement, MeasurementUtils, MeasurementValuesUtils} from "../model/measurement.model";
-import {PmfmValidators} from "../../../referential/services/validator/pmfm.validators";
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
+import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
+import {Measurement, MeasurementUtils, MeasurementValuesUtils} from '../model/measurement.model';
+import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
+import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -52,8 +52,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       const validator = PmfmValidators.create(pmfm, null, opts);
       if (validator) {
         res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
-      }
-      else {
+      } else {
         res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
       }
       return res;
@@ -67,34 +66,43 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   updateFormGroup(form: FormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
-    const controlNamesToRemove: string[] = [];
-    // tslint:disable-next-line:forin
-    for (const controlName in form.controls) {
-      controlNamesToRemove.push(controlName);
-    }
+    const controlNamesToRemove = Object.keys(form.controls);
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
-      let formControl: AbstractControl = form.get(controlName);
-      // If new pmfm: add as control
-      if (!formControl) {
 
-        formControl = this.formBuilder.control(pmfm.defaultValue || '', PmfmValidators.create(pmfm, null, opts));
-        form.addControl(controlName, formControl);
+      // Only one acquisition
+      if (!pmfm.isMultiple) {
+        let formControl: AbstractControl = form.get(controlName);
+        // If new pmfm: add as control
+        if (!formControl) {
+          formControl = this.formBuilder.control(PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null, PmfmValidators.create(pmfm, null, opts));
+          form.addControl(controlName, formControl);
+        }
+      }
+
+      // Multiple acquisition: use form array
+      else {
+        const formArray = this.formBuilder.array([pmfm.defaultValue].map(value => {
+          this.formBuilder.control(value || '', PmfmValidators.create(pmfm, null, opts));
+        }), SharedFormArrayValidators.requiredArrayMinLength(pmfm.required ? 1 : 0));
+
+        form.addControl(controlName, formArray);
       }
 
       // Remove from the remove list
       const index = controlNamesToRemove.indexOf(controlName);
-      if (index >= 0) controlNamesToRemove.splice(index, 1);
-
+      if (index !== -1) controlNamesToRemove.splice(index, 1);
     });
 
     // Remove unused controls
     controlNamesToRemove
-      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) // Keep protected columns
+      // Excluded protected attributes
+      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName))
       .forEach(controlName => form.removeControl(controlName));
   }
 
-  /* -- -- */
+  /* -- protected functions -- */
+
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 

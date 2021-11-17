@@ -1,20 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {OperationGroupValidatorService} from "../services/validator/operation-group.validator";
-import {BehaviorSubject} from "rxjs";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {MetierService} from "../../referential/services/metier.service";
-import {OperationGroup, PhysicalGear} from "../services/model/trip.model";
-import {DenormalizedPmfmStrategy} from "../../referential/services/model/pmfm-strategy.model";
-import {ReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {IPmfm} from "../../referential/services/model/pmfm.model";
-import {OperationFilter} from "@app/trip/services/filter/operation.filter";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {Platform} from '@ionic/angular';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
+import {Observable} from 'rxjs';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {InMemoryEntitiesService, isNil, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
+import {MetierService} from '@app/referential/services/metier.service';
+import {OperationGroup} from '../services/model/trip.model';
+import {environment} from '@environments/environment';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
 
-export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier', 'physicalGear', 'targetSpecies'];
+export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
+export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
 export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 @Component({
@@ -25,15 +25,20 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useExisting: OperationGroupValidatorService},
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter)
+      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter,  {
+        equals: OperationGroup.equals
+      })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationFilter> implements OnInit, OnDestroy {
 
+  @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
+
+  referentialToString = referentialToString;
   displayAttributes: {
-    [key: string]: string[]
+    [key: string]: string[];
   };
 
   @Input()
@@ -49,7 +54,8 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     return super.dirty || this.memoryDataService.dirty;
   }
 
-  @Input() $metiers: BehaviorSubject<ReferentialRef[]>;
+  @Input() showToolbar = true;
+  @Input() useSticky = false;
 
   constructor(
     injector: Injector,
@@ -66,13 +72,13 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       {
         prependNewElements: false,
         suppressErrors: environment.production,
-        reservedStartColumns: OPERATION_GROUP_RESERVED_START_COLUMNS,
+        reservedStartColumns: platform.is('mobile') ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
         reservedEndColumns: platform.is('mobile') ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
       });
     this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
-    this.inlineEdition = true;
+    this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
 
@@ -86,7 +92,7 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
   ngOnInit() {
     super.ngOnInit();
 
-    this.displayAttributes = {
+      this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
       taxonGroup: ['taxonGroup.label', 'taxonGroup.name']
     };
@@ -95,47 +101,54 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
-      items: this.$metiers,
+      items: this.metiers,
       attributes: metierAttributes,
       columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined)
     });
-
   }
 
-  referentialToString = referentialToString;
-
-  /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    if (this.platform.is('mobile')) {
-      // hide pmfms on mobile
-      return [];
+  async openDetailModal(operationGroup?: OperationGroup): Promise<OperationGroup | undefined> {
+    const isNew = !operationGroup && true;
+    if (isNew) {
+      operationGroup = new this.dataType();
+      await this.onNewEntity(operationGroup);
     }
 
-    return pmfms;
-  }
+    this.markAsLoading();
 
-  protected async addRowToTable(): Promise<TableElement<OperationGroup>> {
-    const row = await super.addRowToTable();
-
-    // TODO BLA: a mettre dans onNewEntity() ?
-    row.validator.controls['rankOrderOnPeriod'].setValue(this.getNextRankOrderOnPeriod());
-    // row.validator.controls['rankOrderOnPeriod'].updateValueAndValidity();
-
-    return row;
-  }
-
-  getNextRankOrderOnPeriod(): number {
-    let next = 0;
-    (this.value || []).forEach(v => {
-      if (v.rankOrderOnPeriod && v.rankOrderOnPeriod > next) next = v.rankOrderOnPeriod;
+    const modal = await this.modalCtrl.create({
+      component: OperationGroupModal,
+      componentProps: {
+        programLabel: this.programLabel,
+        acquisitionLevel: this.acquisitionLevel,
+        metiers: this.metiers,
+        disabled: this.disabled,
+        value: operationGroup,
+        isNew,
+        onDelete: (event, OperationGroup) => this.deleteOperationGroup(event, OperationGroup)
+      },
+      keyboardClose: true
     });
-    return next + 1;
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug("[operation-groups-table] operation-groups modal result: ", data);
+    this.markAsLoaded();
+
+    if (data instanceof OperationGroup) {
+      return data as OperationGroup;
+    }
+
+    // Exit if empty
+    return undefined;
+  }
+
+  protected async getMaxRankOrderOnPeriod(): Promise<number> {
+    const rows = await this.dataSource.getRows();
+    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrderOnPeriod || 0), 0);
   }
 
   async onMetierChange($event: FocusEvent, row: TableElement<OperationGroup>) {
@@ -143,23 +156,80 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       console.debug('[operation-group.table] onMetierChange', $event, row.currentData.metier);
       const operationGroup: OperationGroup = row.currentData;
 
-      if (!operationGroup.physicalGear || operationGroup.physicalGear.gear.id !== operationGroup.metier.gear.id) {
+      if (operationGroup.metier?.id && (!operationGroup.metier?.gear || !operationGroup.metier?.taxonGroup)) {
 
         // First, load the Metier (with children)
         const metier = await this.metierService.load(operationGroup.metier.id);
 
-        // create new physical gear if missing
-        const physicalGear = new PhysicalGear();
-        physicalGear.gear = metier.gear;
-        // affect same rank order than operation group
-        physicalGear.rankOrder = operationGroup.rankOrderOnPeriod;
-
         // affect to current row
         row.validator.controls['metier'].setValue(metier);
-        row.validator.controls['physicalGear'].setValue(physicalGear);
       }
-
     }
   }
+
+  async deleteOperationGroup(event: UIEvent, data: OperationGroup): Promise<boolean> {
+    const row = await this.findRowByOperationGroup(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
+  }
+
+  /* -- protected methods -- */
+
+  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+
+  // if (this.mobile) {
+  //   pmfms.forEach(pmfm => pmfm.hidden = true);
+  //   // return [];
+  // }
+
+    return pmfms;
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
+    }
+    return true;
+  }
+
+  protected async openRow(id: number, row: TableElement<OperationGroup>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    const data = this.toEntity(row, true);
+
+    const updatedData = await this.openDetailModal(data);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
+    }
+    else {
+      this.editedRow = null;
+    }
+    return true;
+  }
+
+  protected async onNewEntity(data: OperationGroup): Promise<void> {
+    if (isNil(data.rankOrderOnPeriod)) {
+      data.rankOrderOnPeriod = (await this.getMaxRankOrderOnPeriod()) + 1;
+    }
+  }
+
+  protected async findRowByOperationGroup(operationGroup: OperationGroup): Promise<TableElement<OperationGroup>> {
+    return OperationGroup && (await this.dataSource.getRows()).find(r => operationGroup.equals(r.currentData));
+  }
+
 }
 

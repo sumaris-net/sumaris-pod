@@ -1,6 +1,5 @@
 <app-modal-toolbar [modalName]="modalName"
                    [title]="'TRIP.OPERATION.MAP.TITLE'|translate"
-                   [showSpinner]="loading"
                    [color]="'secondary'"
                    (cancel)="cancel()"
                    [canValidate]="false">
@@ -40,7 +39,6 @@
 
           <ion-card-content class="ion-no-padding">
             <!-- duration -->
-
             <ion-grid>
               <ion-row>
                 <ion-col class="ion-text-center">
@@ -66,8 +64,7 @@
   </ion-grid>
 
   <!-- Leaflet map -->
-  <div *ngIf="ready" #map
-       leaflet
+  <div *ngIf="modalReady" #map leaflet
        (leafletMapReady)="onMapReady($event)"
        [leafletOptions]="options"
        [leafletLayersControl]="layersControl">

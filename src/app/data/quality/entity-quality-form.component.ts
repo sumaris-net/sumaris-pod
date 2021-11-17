@@ -159,7 +159,7 @@ export class EntityQualityFormComponent<
 
       if (!valid) {
         this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM', details: {errors} });
-        this.editor.markAsTouched();
+        this.editor.markAllAsTouched();
       }
       else {
         // Emit event (refresh component with the new data)

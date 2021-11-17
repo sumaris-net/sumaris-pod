@@ -1,37 +1,36 @@
-import {NgModule} from '@angular/core';
-import {CoreModule} from "@sumaris-net/ngx-components";
+import { NgModule } from '@angular/core';
 
-import {ReferentialForm} from "./form/referential.form";
-import {ProgramPage} from "./program/program.page";
-import {StrategiesTable} from "./strategy/strategies.table";
-import {SoftwarePage} from "./software/software.page";
-import {PmfmPage} from "./pmfm/pmfm.page";
-import {ParameterPage} from "./pmfm/parameter.page";
-import {PmfmStrategiesTable} from "./strategy/pmfm-strategies.table";
-import {SelectReferentialModal} from "./list/select-referential.modal";
-import {ReferentialRefTable} from "./list/referential-ref.table";
-import {StrategyForm} from "./strategy/strategy.form";
-import {PmfmQvFormField} from "./pmfm/pmfm-qv.form-field.component";
-import {PmfmFormField} from "./pmfm/pmfm.form-field.component";
-import {ReferentialToStringPipe} from "./services/pipes/referential-to-string.pipe";
-import {TranslateModule} from "@ngx-translate/core";
-import {IsComputedPmfmPipe, IsDatePmfmPipe, PmfmNamePipe, PmfmValuePipe} from "./pipes/pmfms.pipe";
-import {StrategyPage} from "./strategy/strategy.page";
+import { ReferentialForm } from './form/referential.form';
+import { ProgramPage } from './program/program.page';
+import { StrategiesTable } from './strategy/strategies.table';
+import { SoftwarePage } from './software/software.page';
+import { PmfmPage } from './pmfm/pmfm.page';
+import { ParameterPage } from './pmfm/parameter.page';
+import { PmfmStrategiesTable } from './strategy/pmfm-strategies.table';
+import { SelectReferentialModal } from './list/select-referential.modal';
+import { ReferentialRefTable } from './list/referential-ref.table';
+import { StrategyForm } from './strategy/strategy.form';
+import { PmfmQvFormField } from './pmfm/pmfm-qv.form-field.component';
+import { PmfmFormField } from './pmfm/pmfm.form-field.component';
+import { ReferentialToStringPipe } from './services/pipes/referential-to-string.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { IsComputedPmfmPipe, IsDatePmfmPipe, IsMultiplePmfmPipe, PmfmNamePipe, PmfmValuePipe } from './pipes/pmfms.pipe';
+import { StrategyPage } from './strategy/strategy.page';
 
-import {TextMaskModule} from "angular2-text-mask";
-import {CommonModule} from "@angular/common";
-import {ProgramsPage} from "./program/programs.page";
-import {SamplingStrategyForm} from "./strategy/sampling/sampling-strategy.form";
-import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
-import {SamplingStrategiesTable} from "./strategy/sampling/sampling-strategies.table";
-import {SimpleReferentialTable} from "./list/referential-simple.table";
-import {PmfmsTable} from "./pmfm/pmfms.table";
-import {SelectPmfmModal} from "./pmfm/select-pmfm.modal";
-import {TaxonNamePage} from "./taxon/taxon-name.page";
-import {ReferentialsPage} from '@app/referential/list/referentials.page';
-import {AppCoreModule} from '@app/core/core.module';
-import {StrategiesPage} from './strategy/strategies.page';
-import {StrategyModal} from '@app/referential/strategy/strategy.modal';
+import { TextMaskModule } from 'angular2-text-mask';
+import { CommonModule } from '@angular/common';
+import { ProgramsPage } from './program/programs.page';
+import { SamplingStrategyForm } from './strategy/sampling/sampling-strategy.form';
+import { SamplingStrategyPage } from './strategy/sampling/sampling-strategy.page';
+import { SamplingStrategiesTable } from './strategy/sampling/sampling-strategies.table';
+import { SimpleReferentialTable } from './list/referential-simple.table';
+import { PmfmsTable } from './pmfm/pmfms.table';
+import { SelectPmfmModal } from './pmfm/select-pmfm.modal';
+import { TaxonNamePage } from './taxon/taxon-name.page';
+import { ReferentialsPage } from '@app/referential/list/referentials.page';
+import { AppCoreModule } from '@app/core/core.module';
+import { StrategiesPage } from './strategy/strategies.page';
+import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 
 @NgModule({
   imports: [
@@ -48,6 +47,7 @@ import {StrategyModal} from '@app/referential/strategy/strategy.modal';
     PmfmValuePipe,
     IsDatePmfmPipe,
     IsComputedPmfmPipe,
+    IsMultiplePmfmPipe,
 
     // Components
     ReferentialsPage,
@@ -106,8 +106,9 @@ import {StrategyModal} from '@app/referential/strategy/strategy.modal';
     SelectPmfmModal,
     PmfmStrategiesTable,
     TaxonNamePage,
-    StrategyModal
-  ]
+    StrategyModal,
+    IsMultiplePmfmPipe,
+  ],
 })
 export class AppReferentialModule {
 }

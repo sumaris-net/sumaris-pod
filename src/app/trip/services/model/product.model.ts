@@ -1,11 +1,11 @@
 import {
-  EntityClass,
+  EntityClass, isNil,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {IEntityWithMeasurement, MeasurementFormValues, MeasurementValuesUtils} from "./measurement.model";
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from './measurement.model';
 import {equalsOrNil, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {IEntity}  from "@sumaris-net/ngx-components";
 import {Sample} from "./sample.model";
@@ -40,7 +40,7 @@ export class ProductFilter extends DataEntityFilter<ProductFilter, Product> {
 
   buildFilter(): FilterFn<Product>[] {
     return [
-      (p) => p.parent && this.parent.equals(p.parent)
+      (p) => (!this.parent) || (p.parent && this.parent && this.parent.equals(p.parent))
     ];
   }
 
@@ -59,6 +59,8 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
         && ((!p1.operationId && !p2.operationId) || p1.operationId === p2.operationId)
         // same taxon group
         && ReferentialUtils.equals(p1.taxonGroup, p2.taxonGroup)
+        // same batch
+        && ((isNil(p1.batchId) && isNil(p1.batchId)) || p1.batchId === p2.batchId)
       ));
   }
 
@@ -72,7 +74,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   weightCalculated: boolean;
   saleType: ReferentialRef;
 
-  measurementValues: MeasurementFormValues;
+  measurementValues: MeasurementModelValues|MeasurementFormValues;
 
   operationId: number;
   saleId: number;
@@ -175,7 +177,7 @@ export class ProductUtils {
 
   static isSampleOfProduct(product: Product, sample: Sample): boolean {
     return product && sample
-      && product.operationId === sample.operationId
+      && ((product.operationId === sample.operationId) || (product.parent && product.parent.id === sample.operationId))
       && product.taxonGroup && sample.taxonGroup
       && ReferentialUtils.equals(product.taxonGroup, sample.taxonGroup);
   }

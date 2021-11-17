@@ -1,24 +1,20 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from "@angular/core";
-import {InMemoryEntitiesService} from "@sumaris-net/ngx-components";
-import {AppMeasurementsTable} from "../measurement/measurements.table.class";
-import {ProductValidatorService} from "../services/validator/product.validator";
-import {IWithProductsEntity, Product, ProductFilter} from "../services/model/product.model";
-import {Platform} from "@ionic/angular";
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject} from "rxjs";
-import {IReferentialRef, referentialToString}  from "@sumaris-net/ngx-components";
-import {TableElement} from "@e-is/ngx-material-table";
-import {ProductSaleModal} from "../sale/product-sale.modal";
-import {isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {SaleProductUtils} from "../services/model/sale-product.model";
-import {filterNotNil} from "@sumaris-net/ngx-components";
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {SamplesModal} from "../sample/samples.modal";
-import {LoadResult} from "@sumaris-net/ngx-components";
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { ProductValidatorService } from '../services/validator/product.validator';
+import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
+import { Platform } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { ProductSaleModal } from '../sale/product-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { environment } from '@environments/environment';
+import { SamplesModal } from '../sample/samples.modal';
+import { ProductModal } from '@app/trip/product/product.modal';
 
-export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'taxonGroup', 'weight', 'individualCount'];
+export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
 
 @Component({
@@ -37,9 +33,30 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
 })
 export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
 
-  @Input() showParent = true;
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
+
+  @Input() showToolbar = true;
+  @Input() showIdColumn = true;
+  @Input() useSticky = false;
+
+  @Input()
+  set showParent(value: boolean) {
+    this.setShowColumn('parent', value);
+  }
+
+  get showParent(): boolean {
+    return this.getShowColumn('parent');
+  }
+
+  @Input()
+  set showSaleType(value: boolean) {
+    this.setShowColumn('saleType', value);
+  }
+
+  get showSaleType(): boolean {
+    return this.getShowColumn('saleType');
+  }
 
   @Input() set parentFilter(productFilter: ProductFilter) {
     this.setFilter(productFilter);
@@ -75,17 +92,18 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS
       });
     this.i18nColumnPrefix = 'TRIP.PRODUCT.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
-    this.inlineEdition = true;
+    this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
     this.defaultPageSize = -1; // Do not use paginator
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
+    this.defaultSortBy = 'id'
+    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -94,12 +112,14 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
   ngOnInit() {
     super.ngOnInit();
 
-    this.registerAutocompleteField('parent', {
-      items: this.$parents,
-      attributes: this.parentAttributes,
-      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
-    });
+    if (this.showParent && this.parentAttributes) {
+      this.registerAutocompleteField('parent', {
+        items: this.$parents,
+        attributes: this.parentAttributes,
+        columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined))
+      });
+    }
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
@@ -116,30 +136,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         }));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
-  }
-
-  /* -- protected methods -- */
-
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    if (this.platform.is('mobile')) {
-      // hide pmfms on mobile
-      return [];
-    }
-
-    return pmfms;
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {
@@ -178,7 +174,6 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
       row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
       this.markAsDirty();
     }
-
   }
 
   async openSampling(event: MouseEvent, row: TableElement<Product>) {
@@ -214,18 +209,140 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     if (data) {
       if (this.debug)
-        console.debug("[products-table] Modal result: ", data);
+        console.debug('[products-table] Modal result: ', data);
 
       // patch samples only
       row.validator.patchValue({samples: data}, {emitEvent: true});
       this.markAsDirty();
     }
+  }
 
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail || this.readOnly) return false;
+
+    const res = await this.openDetailModal();
+    if (res && res.data) {
+      const row = await this.addEntityToTable(res.data);
+      if (res.role === 'sampling') {
+        await this.openSampling(null, row);
+      } else if (res.role === 'sale') {
+        await this.openProductSale(null, row);
+      }
+    }
+    return true;
+  }
+
+
+  protected async openRow(id: number, row: TableElement<Product>): Promise<boolean> {
+    if (!this.allowRowDetail || this.readOnly) return false;
+
+    const data = this.toEntity(row, true);
+
+    const res = await this.openDetailModal(data);
+    if (res && res.data) {
+      await this.updateEntityToTable(res.data, row, {confirmCreate: false});
+    } else {
+      this.editedRow = null;
+    }
+
+    if (res && res.role) {
+      if (res.role === 'sampling') {
+        await this.openSampling(null, row);
+      } else if (res.role === 'sale') {
+        await this.openProductSale(null, row);
+      }
+    }
+    return true;
+  }
+
+  async openDetailModal(product?: Product): Promise<{ data: Product, role: string } | undefined> {
+    const isNew = !product && true;
+    if (isNew) {
+      product = new this.dataType();
+      await this.onNewEntity(product);
+
+      if (this.filter?.parent) {
+       product.parent = this.filter.parent;
+      } else if (this.$parents.value?.length === 1) {
+        product.parent =  this.$parents.value[0];
+      }
+    }
+
+    this.markAsLoading();
+
+    const modal = await this.modalCtrl.create({
+      component: ProductModal,
+      componentProps: {
+        programLabel: this.programLabel,
+        acquisitionLevel: this.acquisitionLevel,
+        data: product,
+        parents: this.$parents && this.$parents.getValue() || null,
+        parentAttributes: this.parentAttributes,
+        disabled: this.disabled,
+        mobile: this.mobile,
+        isNew,
+        onDelete: (event, Product) => this.deleteProduct(event, Product)
+      },
+      cssClass: 'modal-large',
+      keyboardClose: true
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data, role} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug('[product-table] product modal result: ', data, role);
+    this.markAsLoaded();
+
+    if (data) {
+      return {data: data as Product, role};
+    } else if (role) {
+      return {data: undefined, role};
+    }
+
+    // Exit if empty
+    return undefined;
+  }
+
+  async deleteProduct(event: UIEvent, data: Product): Promise<boolean> {
+    const row = await this.findRowByProduct(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
+  }
+
+  /* -- protected methods -- */
+
+  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    return this.programRefService.suggestTaxonGroups(value,
+      {
+        program: this.programLabel,
+        searchAttribute: options && options.searchAttribute
+      });
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  protected async findRowByProduct(product: Product): Promise<TableElement<Product>> {
+    return Product && (await this.dataSource.getRows()).find(r => product.equals(r.currentData));
   }
 
   private onStartEditProduct(row: TableElement<Product>) {
-    if (this.filter && this.filter.parent && row.currentData && !row.currentData.parent) {
-      row.validator.patchValue({parent: this.filter.parent});
+    if (row.currentData && !row.currentData.parent) {
+      if (this.filter?.parent) {
+        row.validator.patchValue({parent: this.filter.parent});
+      } else if (this.$parents.value?.length === 1) {
+        row.validator.patchValue({parent: this.$parents.value[0]});
+      }
     }
   }
 }

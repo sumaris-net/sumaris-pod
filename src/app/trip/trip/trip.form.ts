@@ -56,6 +56,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   private _showObservers: boolean;
   private _showMetiers: boolean;
+  private _returnFieldsRequired: boolean;
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -73,7 +74,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   @Input() showComment = true;
   @Input() showAddVessel = true;
   @Input() showError = true;
-  @Input() usageMode: UsageMode;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
 
@@ -116,6 +116,15 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   get locationLevelIds(): number[] {
     return this.locationFilter && this.locationFilter.levelIds;
+  }
+
+  @Input() set returnFieldsRequired(value: boolean){
+    this._returnFieldsRequired = value;
+    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
+  };
+
+  get returnFieldsRequired(): boolean {
+    return this._returnFieldsRequired;
   }
 
   get vesselSnapshot(): VesselSnapshot {
@@ -174,7 +183,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Default values
     this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
     this.showMetiers = toBoolean(this.showMetiers, true); // Will init the metiers helper
-    this.usageMode = this.usageMode || this.settings.usageMode;
+    this.returnFieldsRequired = toBoolean(this.returnFieldsRequired, !this.settings.isOnFieldMode);
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs

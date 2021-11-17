@@ -1,3 +1,9 @@
 :host {
   width: 100%;
+
+  .mat-boolean-field-button {
+    .mat-form-field-buttons {
+      padding-inline-end: 50px;
+    }
+  }
 }

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} fr
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import {isNil, isNotEmptyArray, isNotNil, toBoolean} from "@sumaris-net/ngx-components";
+import { firstNotNilPromise, isNil, isNotEmptyArray, isNotNil, sleep, toBoolean } from '@sumaris-net/ngx-components';
 import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../services/model/extraction-type.model";
 import {ExtractionService} from "../services/extraction.service";
 import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
@@ -108,9 +108,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       this.$columns
         .pipe(
           filter(isNotNil),
-          map(columns => {
-            return columns.map(c => this.toFieldDefinition(c));
-          })
+          map(columns => columns.map(c => this.toFieldDefinition(c)))
         )
         .subscribe(definitions => this.$columnValueDefinitions.next(definitions))
     );
@@ -287,7 +285,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
     const operator = criterionForm && criterionForm.controls.operator.value || '=';
     const definition = (operator === 'NULL' || operator === 'NOT NULL') ? undefined
-      : columnName && this.$columnValueDefinitions.getValue().find(d => d.key === columnName) || null;
+      : columnName && (this.$columnValueDefinitions.value || []).find(d => d.key === columnName) || null;
 
     // Reset the criterion value, is ask by caller
     if (resetValue) criterionForm.patchValue({value: null});
@@ -301,6 +299,13 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       subject.next(definition);
     }
     return subject;
+  }
+
+  waitIdle(): Promise<any> {
+    if (!this.type) {
+      return sleep(200).then(() => this.waitIdle());
+    }
+    return firstNotNilPromise(this.$columnValueDefinitions);
   }
 
   protected toFieldDefinition(column: ExtractionColumn): FormFieldDefinition {

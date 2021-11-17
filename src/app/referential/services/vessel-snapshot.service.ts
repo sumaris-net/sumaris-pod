@@ -1,29 +1,39 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
-import {ErrorCodes} from './errors';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { ErrorCodes } from './errors';
 import {
-  BaseEntityGraphqlQueries,
-  BaseGraphqlService, ConfigService, Configuration,
+  BaseGraphqlService,
+  ConfigService,
   EntitiesStorage,
-  EntityServiceLoadOptions, firstNotNilPromise,
-  GraphqlService, isNotNil,
+  EntityServiceLoadOptions,
+  firstNotNilPromise,
+  GraphqlService, isEmptyArray, isNil,
+  isNotNil,
   JobUtils,
-  LoadResult, LocalSettingsService, MatAutocompleteFieldAddOptions,
+  LoadResult,
+  LocalSettingsService,
+  MatAutocompleteFieldAddOptions,
   NetworkService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
-import {ReferentialFragments} from './referential.fragments';
-import {BehaviorSubject, merge, Observable} from 'rxjs';
-import {VesselSnapshot} from './model/vessel-snapshot.model';
-import {SortDirection} from '@angular/material/sort';
-import {environment} from '@environments/environment';
-import {VesselSnapshotFilter} from './filter/vessel.filter';
-import {ProgramLabel} from '@app/referential/services/model/model.enum';
-import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {filter, mergeMap} from 'rxjs/operators';
+import { ReferentialFragments } from './referential.fragments';
+import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { VesselSnapshot } from './model/vessel-snapshot.model';
+import { SortDirection } from '@angular/material/sort';
+import { environment } from '@environments/environment';
+import { VesselSnapshotFilter } from './filter/vessel.filter';
+import { ProgramLabel } from '@app/referential/services/model/model.enum';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { filter, map } from 'rxjs/operators';
+import {Landing} from '@app/trip/services/model/landing.model';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
+import {LandingSaveOptions} from '@app/trip/services/landing.service';
+import {VesselService} from '@app/vessel/services/vessel-service';
+import {LandingFilter} from '@app/trip/services/filter/landing.filter';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
 
 
 export const VesselSnapshotFragments = {
@@ -44,6 +54,8 @@ export const VesselSnapshotFragments = {
     exteriorMarking
     registrationCode
     intRegistrationCode
+    startDate
+    endDate
     basePortLocation {
       ...LocationFragment
     }
@@ -76,7 +88,7 @@ const LoadQueries = {
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.location}`,
+  ${ReferentialFragments.referential}`,
 
   // Load all with total
   loadAllWithTotal: gql`query VesselSnapshotsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -115,9 +127,8 @@ const LoadQueries = {
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.location}`
-}
+  ${ReferentialFragments.referential}`
+};
 
 export declare interface VesselServiceLoadOptions extends EntityServiceLoadOptions {
   debug?: boolean;
@@ -136,11 +147,11 @@ export class VesselSnapshotService
   private _started = false;
   private _startPromise: Promise<any>;
 
-  private get onConfigOrSettingsChanges(): Observable<any>{
-      return merge(
-        this.configService.config,
-        this.settings.onChange
-      );
+  private get onConfigOrSettingsChanges(): Observable<any> {
+    return merge(
+      this.configService.config,
+      this.settings.onChange
+    );
   }
 
   constructor(
@@ -153,7 +164,7 @@ export class VesselSnapshotService
     super(graphql, environment);
 
     // Start
-    this.start()
+    this.start();
   }
 
   start(): Promise<void> {
@@ -213,7 +224,7 @@ export class VesselSnapshotService
     opts = {
       ...this.defaultLoadOptions,
       ...opts
-    }
+    };
 
     const variables: any = {
       offset: offset || 0,
@@ -224,7 +235,7 @@ export class VesselSnapshotService
 
     const debug = this._debug && (!opts || opts.debug !== false);
     const now = debug && Date.now();
-    if (debug) console.debug("[vessel-snapshot-service] Loading vessel snapshots using options:", variables);
+    if (debug) console.debug('[vessel-snapshot-service] Loading vessel snapshots using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
     let res: LoadResult<VesselSnapshot>;
@@ -251,7 +262,7 @@ export class VesselSnapshotService
           ...variables,
           filter: filter?.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: "VESSEL.ERROR.LOAD_ERROR"},
+        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR'},
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
     }
@@ -261,7 +272,7 @@ export class VesselSnapshotService
       (res?.data || []) as VesselSnapshot[];
 
     const total = res?.total || entities.length;
-    res = {total,  data: entities};
+    res = {total, data: entities};
 
     // Add fetch more capability, if total was fetched
     if (withTotal) {
@@ -281,7 +292,7 @@ export class VesselSnapshotService
     // Make sure service has been started, before using defaults (e.g. minSearchTextLength)
     if (!this._started) await this.ready();
 
-    const searchText = (typeof value === "string" && value !== '*') && value || undefined;
+    const searchText = (typeof value === 'string' && value !== '*') && value || undefined;
 
     // Not enough character to launch the search
     if ((searchText && searchText.length || 0) < this.minSearchTextLength) return {data: undefined};
@@ -298,7 +309,7 @@ export class VesselSnapshotService
         searchText,
         searchAttributes
       }, {
-        fetchPolicy: "cache-first"
+        fetchPolicy: 'cache-first'
       }
     );
   }
@@ -314,11 +325,11 @@ export class VesselSnapshotService
     const offline = (id < 0) || (this.network.offline && (!opts || opts.fetchPolicy !== 'network-only'));
     if (offline) {
       const data = await this.entities.load<VesselSnapshot>(id, VesselSnapshot.TYPENAME);
-      if (!data) throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      if (!data) throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
       return ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(data) : data as VesselSnapshot) || null;
     }
 
-    const { data } = await this.graphql.query<{ data: any[]; }>({
+    const {data} = await this.graphql.query<{ data: any[] }>({
       query: LoadQueries.load,
       variables: {
         vesselId: id,
@@ -327,26 +338,94 @@ export class VesselSnapshotService
       fetchPolicy: opts && opts.fetchPolicy || undefined
     });
     const res = data && data[0];
-    return res && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(res) : res as VesselSnapshot)  || null;
+    return res && ((!opts || opts.toEntity !== false) ? VesselSnapshot.fromObject(res) : res as VesselSnapshot) || null;
+  }
+
+  watchAllLocally(offset: number,
+                  size: number,
+                  sortBy?: string,
+                  sortDirection?: SortDirection,
+                  filter?: Partial<VesselSnapshotFilter>): Observable<LoadResult<VesselSnapshot>> {
+
+    filter = this.asFilter(filter);
+
+    const variables: any = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || 'exteriorMarking',
+      sortDirection: sortDirection || 'asc',
+      filter: filter?.asFilterFn()
+    };
+
+    if (this._debug) console.debug("[vessel-snapshot-service] Loading local vessel snapshots using options:", variables);
+
+    return this.entities.watchAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables)
+      .pipe(
+        map(({data, total}) => {
+          const entities = (data || []).map(VesselSnapshot.fromObject);
+          return {data: entities, total};
+        }));
+  }
+
+  /**
+   * Save into the local storage
+   * @param entity
+   */
+  async saveLocally(entity: VesselSnapshot): Promise<VesselSnapshot> {
+
+    if (this._debug) console.debug('[vessel-snapshot-service] [offline] Saving vesselSnapshot locally...', entity);
+
+    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+
+    // Save locally
+    return await this.entities.save(json, {entityName: VesselSnapshot.TYPENAME});
+  }
+
+  /**
+   * Delete vesselSnapshot locally (from the entity storage)
+   */
+  async deleteLocally(filter: Partial<VesselSnapshotFilter>): Promise<VesselSnapshot[]> {
+    if (!filter) throw new Error('Missing arguments \'filter\'');
+
+    const dataFilter = this.asFilter(filter);
+    const variables = {
+      filter: dataFilter && dataFilter.asFilterFn()
+    };
+
+    try {
+      // Find vessel snapshot to delete
+      const res = await this.entities.loadAll<VesselSnapshot>(VesselSnapshot.TYPENAME, variables, {fullLoad: false});
+      const ids = (res && res.data || []).map(o => o.id);
+      if (isEmptyArray(ids)) return undefined; // Skip
+
+      // Apply deletion
+      return await this.entities.deleteMany(ids, {entityName: VesselSnapshot.TYPENAME});
+    } catch (err) {
+      console.error(`[vessel-snapshot-service] Failed to delete vessel snapshot ${JSON.stringify(filter)}`, err);
+      throw err;
+    }
   }
 
   async executeImport(progression: BehaviorSubject<number>,
-    opts?: {
-      maxProgression?: number;
-    }): Promise<void> {
+                      opts?: {
+                        maxProgression?: number;
+                        dataFilter?: any;
+                      }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
     const filter: Partial<VesselSnapshotFilter> = {
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      program: ReferentialRef.fromObject({label: ProgramLabel.SIH})
+      program: ReferentialRef.fromObject({label: ProgramLabel.SIH}),
+      ...opts.dataFilter
     };
 
-    console.info("[vessel-snapshot-service] Importing vessels (snapshot)...");
+    console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
-          fetchPolicy: "network-only",
+          fetchPolicy: 'network-only',
+          withBasePortLocation: true,
           withTotal: (offset === 0), // Compute total only once
           toEntity: false
         }),
@@ -376,7 +455,7 @@ export class VesselSnapshotService
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
       : baseAttributes;
 
-    return {
+    return <MatAutocompleteFieldAddOptions>{
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggest(value, filter),
       attributes: displayAttributes,
@@ -394,11 +473,11 @@ export class VesselSnapshotService
 
   async initDefaults() {
     // DEBUG
-    console.debug("[vessel-snapshot-service] Init defaults load options")
+    console.debug('[vessel-snapshot-service] Init defaults load options');
 
     const config = await firstNotNilPromise(this.configService.config);
 
-    const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE)
+    const withBasePortLocation = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_VISIBLE);
 
     // Set filter, with registration location
     const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);

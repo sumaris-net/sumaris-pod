@@ -1,51 +1,51 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, Output, ViewChild} from "@angular/core";
-import {AlertController, IonContent, ModalController} from "@ionic/angular";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {PhysicalGearForm} from "./physical-gear.form";
-import {BehaviorSubject} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {PhysicalGear} from "../services/model/trip.model";
-import {createPromiseEventEmitter, emitPromiseEvent} from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
+import { PhysicalGearForm } from './physical-gear.form';
+import { BehaviorSubject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, PlatformService } from '@sumaris-net/ngx-components';
+import { PhysicalGear } from '../services/model/trip.model';
+
+export interface PhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear, M = PhysicalGearModal> {
+  acquisitionLevel: string;
+  programLabel: string;
+  value: T;
+  disabled: boolean;
+  isNew: boolean;
+  mobile: boolean;
+  canEditRankOrder: boolean;
+  onInit: (instance: M) => void;
+  onDelete: (event: UIEvent, data: T) => Promise<boolean>;
+}
 
 @Component({
   selector: 'app-physical-gear-modal',
   templateUrl: './physical-gear.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearModal implements OnInit, AfterViewInit {
+export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, PhysicalGearModalOptions<PhysicalGear, PhysicalGearModal> {
 
   loading = false;
   originalData: PhysicalGear;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: string;
-
-  @Input() program: string;
-
+  @Input() programLabel: string;
   @Input() disabled = false;
-
   @Input() isNew = false;
+  @Input() mobile: boolean;
+  @Input() canEditRankOrder = false;
+  @Input() onInit: (instance: PhysicalGearModal) => void;
+  @Input() onDelete: (event: UIEvent, data: PhysicalGear) => Promise<boolean>;
 
   @Input() set value(value: PhysicalGear) {
     this.originalData = value;
   }
 
-  @Input() mobile: boolean;
-
-  @Input() canEditRankOrder = false;
-
-  @Input() onInit: (instance: PhysicalGearModal) => void;
-
-  @Input() onDelete: (event: UIEvent, data: PhysicalGear) => Promise<boolean>;
-
   @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
-
   @ViewChild(IonContent, {static: true}) content: IonContent;
 
   get enabled(): boolean {
@@ -87,6 +87,11 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
      }
   }
 
+  ngOnDestroy() {
+    this.onCopyPreviousGearClick?.complete();
+    this.onCopyPreviousGearClick?.unsubscribe();
+  }
+
   async copyPreviousGear(event?: UIEvent) {
 
     if (this.onCopyPreviousGearClick.observers.length === 0) return; // Skip
@@ -116,7 +121,7 @@ export class PhysicalGearModal implements OnInit, AfterViewInit {
       this.form.unload();
       this.form.reset(data);
 
-      await this.form.ready();
+      await this.form.waitIdle();
       this.form.markAsDirty();
     }
     catch (err) {

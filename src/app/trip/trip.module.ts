@@ -37,6 +37,10 @@ import {TranslateModule} from '@ngx-translate/core';
 import {CommonModule} from '@angular/common';
 import {TripTrashModal} from './trip/trash/trip-trash.modal';
 import {AppCoreModule} from '@app/core/core.module';
+import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
+import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
+import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
+import { A11yModule } from '@angular/cdk/a11y';
 
 @NgModule({
   imports: [
@@ -48,13 +52,15 @@ import {AppCoreModule} from '@app/core/core.module';
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
-    SocialModule
+    SocialModule,
+    A11yModule
   ],
   declarations: [
     TripTable,
     TripForm,
     TripPage,
     TripTrashModal,
+    TripOfflineModal,
     PhysicalGearTable,
     PhysicalGearForm,
     PhysicalGearModal,
@@ -64,6 +70,8 @@ import {AppCoreModule} from '@app/core/core.module';
     OperationForm,
     OperationPage,
     OperationsMap,
+    SelectOperationModal,
+    SelectOperationByTripTable,
     MeasurementsForm,
     CatchBatchForm,
     SamplesTable,
@@ -116,8 +124,9 @@ import {AppCoreModule} from '@app/core/core.module';
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    SubSamplesTable
-  ]
+    SubSamplesTable,
+    BatchGroupForm,
+  ],
 })
 export class TripModule {
 

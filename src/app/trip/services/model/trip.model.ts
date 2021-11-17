@@ -1,5 +1,5 @@
 import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions,} from '@app/data/services/model/data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
 import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
@@ -14,7 +14,8 @@ import {IWithProductsEntity, Product} from './product.model';
 import {IWithPacketsEntity, Packet} from './packet.model';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
-import { Metier } from "@app/referential/services/model/metier.model";
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {Metier} from '@app/referential/services/model/metier.model';
 
 /* -- Helper function -- */
 
@@ -28,12 +29,20 @@ const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
   sampleAsTree?: boolean;
+  keepTrip?: boolean; //Allow to keep trip, needed to apply filter on local storage
 }
 
 export interface OperationFromObjectOptions {
   withSamples?: boolean;
   withBatchTree?: boolean;
 }
+
+export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObjectOptions>{
+  ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
+  batchAsTree: false,
+  sampleAsTree: false,
+  keepTrip: true // Trip is needed to apply filter on it
+});
 
 @EntityClass({typename: 'OperationVO'})
 export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
@@ -53,13 +62,21 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
 
   metier: Metier = null;
   physicalGear: PhysicalGear = null;
+
   tripId: number = null;
-  trip: RootDataEntity<any> = null;
+  trip?: Trip;
+  vesselId: number = null; // Copy from trip (need by local filter)
+  programLabel: string = null; // Copy from trip (need by local filter)
 
   measurements: Measurement[] = [];
   samples: Sample[] = null;
   catchBatch: Batch = null;
   fishingAreas: FishingArea[] = [];
+  parentOperationId: number = null;
+  parentOperation: Operation = null;
+  qualityFlagId: number = null;
+  childOperationId: number = null;
+  childOperation: Operation = null;
 
   constructor() {
     super(Operation.TYPENAME);
@@ -143,14 +160,35 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     // Fishing areas
     target.fishingAreas = this.fishingAreas && this.fishingAreas.map(value => value.asObject(opts)) || undefined;
 
+    // Child/Parent operation id
+    target.parentOperationId = this.parentOperationId || this.parentOperation && this.parentOperation.id;
+    target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
+
+    if (opts?.minify) {
+      delete target.parentOperation;
+      delete target.childOperation;
+    } else {
+      target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
+      target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
+    }
+
+    if (!opts || opts.keepTrip !== false) {
+      delete target.programLabel;
+      delete target.vesselId;
+    }
+
     return target;
   }
 
   fromObject(source: any, opts?: OperationFromObjectOptions) {
     super.fromObject(source, opts);
+
+    this.tripId = source.tripId;
+    this.programLabel = source.programLabel;
+    this.vesselId = source.vesselId;
+
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
-    this.tripId = source.tripId;
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
@@ -209,6 +247,14 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
         // Convert list to tree (useful when fetching from a pod)
         Batch.fromObjectArrayAsTree(source.batches);
     }
+
+    //Parent Operation
+    this.parentOperationId = source.parentOperationId;
+    this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId}) : undefined;
+
+    //Child Operation
+    this.childOperationId = source.childOperationId;
+    this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
   }
 
   equals(other: Operation): boolean {
@@ -220,60 +266,47 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   }
 }
 
+@EntityClass({typename: 'OperationGroupVO'})
 export class OperationGroup extends DataEntity<OperationGroup>
   implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
 
-  static TYPENAME = 'OperationGroupVO';
-
-  static fromObject(source: any): OperationGroup {
-    const res = new OperationGroup();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any) => OperationGroup;
 
   comments: string;
   rankOrderOnPeriod: number;
   hasCatch: boolean;
 
-  metier: Metier;
-  physicalGear: PhysicalGear;
+  metier: Metier = null;
+  physicalGearId: number;
   tripId: number;
   trip: RootDataEntity<any>;
 
-  measurements: Measurement[];
-  gearMeasurements: Measurement[];
+  measurements: Measurement[] = [];
+  gearMeasurements: Measurement[] = [];
 
   // all measurements in table
-  measurementValues: MeasurementModelValues | MeasurementFormValues;
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
-  products: Product[];
-  samples: Sample[];
-  packets: Packet[];
-  fishingAreas: FishingArea[];
+  products: Product[] = [];
+  samples: Sample[] = [];
+  packets: Packet[] = [];
+  fishingAreas: FishingArea[] = [];
 
   constructor() {
-    super();
-    this.__typename = OperationGroup.TYPENAME;
-    this.metier = null;
-    this.physicalGear = null;
-    this.measurementValues = {};
-    this.measurements = [];
-    this.gearMeasurements = [];
-    this.products = [];
-    this.samples = [];
-    this.packets = [];
-    this.fishingAreas = [];
+    super(OperationGroup.TYPENAME);
+  }
+
+  static equals(o1: OperationGroup | any, o2: OperationGroup | any): boolean {
+    return o1 && o2 && ((isNotNil(o1.id) && o1.id === o2.id)
+      // Or by functional attributes
+      || o1.metier.equals(o2.metier) && ((!o1.rankOrderOnPeriod && !o2.rankOrderOnPeriod) || (o1 === o2.rankOrderOnPeriod))
+      );
   }
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(opts);
 
     target.metier = this.metier && this.metier.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/} as ReferentialAsObjectOptions) || undefined;
-
-    // Physical gear
-    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    if (target.physicalGear)
-      delete target.physicalGear.measurementValues;
 
     // Measurements
     target.measurements = this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map(m => m.asObject(opts)) || undefined;
@@ -318,7 +351,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.tripId = source.tripId;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && Metier.fromObject(source.metier) || undefined;
-    this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
+    this.physicalGearId = source.physicalGearId;
 
     // Measurements
     this.measurements = source.measurements && source.measurements.map(Measurement.fromObject) || [];
@@ -326,11 +359,10 @@ export class OperationGroup extends DataEntity<OperationGroup>
     this.measurementValues = {
       ...MeasurementUtils.toMeasurementValues(this.measurements),
       ...MeasurementUtils.toMeasurementValues(this.gearMeasurements),
-      ...(this.physicalGear && this.physicalGear.measurementValues),
       ...source.measurementValues // important: keep at last assignment
     };
     if (Object.keys(this.measurementValues).length === 0) {
-      console.warn("Source as no measurement. Should never occur! ", source);
+      console.warn('Source as no measurement. Should never occur! ', source);
     }
 
     // Products
@@ -369,7 +401,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 }
 
-@EntityClass({typename: "TripVO"})
+@EntityClass({typename: 'TripVO'})
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
 
   static fromObject: (source: any, opts?: any) => Trip;
@@ -467,6 +499,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.landing = source.landing && Landing.fromObject(source.landing) || undefined;
     this.observedLocationId = source.observedLocationId;
 
+    this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot) || undefined;
+
     return this;
   }
 
@@ -486,11 +520,22 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
 
   static fromObject: (source: any, opts?: any) => PhysicalGear;
+  static equals(s1: PhysicalGear, s2: PhysicalGear) {
+    return s1 && s2 && s1.id === s2.id
+      // Or
+      || (
+        // Same gear
+        (s1.gear && s2.gear && s1.gear.id === s2.gear.id)
+        // Same rankOrder
+        && (s1.rankOrder === s2.rankOrder)
+        // WARN: compare parent (e.g. same trip) is tto complicated, because it can be not set yet, before saving
+      );
+  }
 
   rankOrder: number = null;
   gear: ReferentialRef = null;
   measurements: Measurement[] = null;
-  measurementValues: { [key: string]: string } = {};
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
   // Parent (used when lookup gears)
   trip: Trip = null;
@@ -530,8 +575,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
     if (source.trip) {
       this.trip = source.trip && Trip.fromObject(source.trip);
       this.tripId = this.trip && this.trip.id;
-    }
-    else {
+    } else {
       this.trip = null;
       this.tripId = null;
     }

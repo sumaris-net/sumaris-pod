@@ -28,18 +28,21 @@
 <ion-content cdkTrapFocus class="ion-padding">
 
   <app-batch-group-form #form
-                        [acquisitionLevel]="acquisitionLevel"
-                        [programLabel]="programLabel"
                         [showTaxonGroup]="showTaxonGroup"
                         [showTaxonName]="showTaxonName"
+                        [showChildrenSamplingBatch]="showSamplingBatch"
                         [availableTaxonGroups]="availableTaxonGroups"
                         [taxonGroupsNoWeight]="taxonGroupsNoWeight"
+                        [allowSubBatches]="allowSubBatches"
+                        [defaultHasSubBatches]="defaultHasSubBatches"
+                        [maxVisibleButtons]="maxVisibleButtons"
                         (onSubmit)="close($event)"
+                        [pmfms]="pmfms"
                         [debug]="debug">
 
       <!-- open individual modal -->
       <ion-button afterSpeciesButtons mat-button
-                  *ngIf="openSubBatchesModal && form.hasIndividualMeasure"
+                  *ngIf="openSubBatchesModal && form.hasSubBatches"
                   fill="clear" color="tertiary" expand="full"
                   (click)="onShowSubBatchesButtonClick($event)">
         <mat-icon slot="start">assessment</mat-icon>

@@ -81,6 +81,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
   protected currentSample: Sample; // require to preset presentation on new row
+
+  // TODO BLA : rename
   private latestCorrectTagId: string;
 
   // Top group header
@@ -111,9 +113,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
   @Input() weightDisplayedUnit: string;
+  @Input() tagIdMinLength = 4;
+  @Input() tagIdPadString = '0';
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
-    if (this.$pmfmGroups.getValue() !== value) {
+    if (this.$pmfmGroups.value !== value) {
       this.showGroupHeader = true;
       this.showToolbar = false;
       this.$pmfmGroups.next(value);
@@ -270,14 +274,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
 
-  async openDetailModal(sample?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
     //const pmfms = await firstNotNilPromise(this.$pmfms);
 
-    let isNew = !sample && true;
+    let isNew = !dataToOpen && true;
     if (isNew) {
-      sample = new Sample();
-      await this.onNewEntity(sample);
+      dataToOpen = new Sample();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
@@ -300,27 +304,29 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         const pmfms = await firstNotNilPromise(modal.$pmfms);
         this.onPrepareRowForm.emit({form, pmfms});
       },
-      onSaveAndNew: async (data) => {
+      onSaveAndNew: async (dataToSave) => {
         if (isNew) {
-          await this.addEntityToTable(data);
+          await this.addEntityToTable(dataToSave);
         }
         else {
-          this.updateEntityToTable(data, row);
+          this.updateEntityToTable(dataToSave, row);
           row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
           isNew = true; // Next row should be new
         }
+        // Prepare new sample
         const newData = new Sample();
         await this.onNewEntity(newData);
         return newData;
       },
-      onDelete: (event, data) => this.delete(event, data),
+
+      onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
 
       // Override using given options
       ...this.modalOptions,
 
-      // Give data
-      data: sample,
+      // Data to open
       isNew,
+      data: dataToOpen
     };
 
     const modal = await this.modalCtrl.create({
@@ -454,7 +460,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
 
     // server call for first sample and increment from server call value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel) {
+
+      // TODO BLA review the code
+      //  => à clarifier, en utilisant une variable 'tagId'
+
       // skip first
       if (data.rankOrder === 1) {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
@@ -463,6 +473,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
         this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
       } else if (this.currentSample) {
+        // TODO attention, récupérer auyssi plus tard
         const previousSample = await this.findRowBySample(this.currentSample);
         if (previousSample) { // row exist
           if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
@@ -481,7 +492,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.latestCorrectTagId + 1);
         }
 
-        if (data.measurementValues[PmfmIds.TAG_ID] !== '') {
+        if (isNotNilOrBlank(data.measurementValues[PmfmIds.TAG_ID])) {
           data.measurementValues[PmfmIds.TAG_ID] = data?.measurementValues[PmfmIds.TAG_ID].toString().padStart(4, "0");
           this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
         }
@@ -492,10 +503,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING)) {
       // skip first
       if (data.rankOrder > 1 && !this.currentSample) {
+        // TODO BLA: review this code
+        //  => à optimiser !! ici on récupère le sample précédent 2 fois : pour le TAG_ID et ici, mais pas avec la meme méthode.
         const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
         data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
       } else if (this.currentSample) {
-        const previousSample = await this.findRowBySample(this.currentSample);
+        const previousSample = await this.findRowByEntity(this.currentSample);
         if (previousSample) {
           data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData?.measurementValues[PmfmIds.DRESSING];
         } else {
@@ -504,10 +517,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       }
       this.currentSample = data;
     }
-  }
-
-  deleteSelection(event: UIEvent): Promise<number> {
-    return super.deleteSelection(event);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -543,25 +552,25 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return true;
   }
 
-  protected prepareEntityToSave(sample: Sample) {
+  protected prepareEntityToSave(data: Sample) {
     // Override by subclasses
   }
 
-  protected async findRowBySample(data: Sample): Promise<TableElement<Sample>> {
+  protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error("Missing argument data or data.rankOrder");
     return (await this.dataSource.getRows())
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
 
-  async delete(event: UIEvent, data: Sample): Promise<boolean> {
-    const row = await this.findRowBySample(data);
+  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
     if (!row) return true;
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.deleteRow(event, row, {interactive: false /*already confirmed*/});
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
     }
     return canDeleteRow;
   }
@@ -650,35 +659,19 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             if (PmfmUtils.isWeight(pmfm)) {
               const originalUnitLabel = pmfm.unitLabel || UnitLabel.KG;
               if (originalUnitLabel !== this.weightDisplayedUnit) {
-                if (pmfm instanceof DenormalizedPmfmStrategy)
-                {
+                if (pmfm instanceof DenormalizedPmfmStrategy) {
                   pmfm.unitLabel = this.weightDisplayedUnit;
-                  pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
-                  if (originalUnitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM)
-                  {
-                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-                  }
-                  else if (originalUnitLabel === UnitLabel.GRAM && this.weightDisplayedUnit === UnitLabel.KG)
-                  {
-                    pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
-                  }
                 }
-                else if (pmfm instanceof Pmfm)
-                {
-                  if (pmfm.unit)
-                  {
-                    pmfm.unit.label = this.weightDisplayedUnit;
-                    pmfm.unit.name = this.weightDisplayedUnit; // To upgrade with weightDisplayed (not computed yet)
-                  }
-                  pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
-                  if (originalUnitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM)
-                  {
-                    pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-                  }
-                  else if (originalUnitLabel === UnitLabel.GRAM && this.weightDisplayedUnit === UnitLabel.KG)
-                  {
-                    pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
-                  }
+                else if ((pmfm instanceof Pmfm) && pmfm.unit) {
+                  pmfm.unit.label = this.weightDisplayedUnit;
+                  pmfm.unit.name = this.weightDisplayedUnit; // To upgrade with weightDisplayed (not computed yet)
+                }
+                pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
+                if (originalUnitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
+                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+                }
+                else if (originalUnitLabel === UnitLabel.GRAM && this.weightDisplayedUnit === UnitLabel.KG) {
+                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
                 }
               }
             }
@@ -693,7 +686,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
             const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
-            const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
+            const key = 'group-' + group;
             return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
               key,
               label: group,
@@ -757,6 +750,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected async addRowToTable(insertAt?: number): Promise<TableElement<Sample>> {
     const editedRow = await super.addRowToTable(insertAt);
+    // TODO BLA: review this
     editedRow.validator?.updateValueAndValidity({ emitEvent: true, onlySelf: false });
     return editedRow;
   }

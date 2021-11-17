@@ -3,12 +3,12 @@ import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 
-import {ErrorCodes} from "../../trip/services/trip.errors";
+
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {FeatureCollection} from "geojson";
-import {Fragments} from "../../trip/services/trip.queries";
+import {DataCommonFragments} from "../../trip/services/trip.queries";
 import {SAVE_AS_OBJECT_OPTIONS} from "../../data/services/model/data-entity.model";
 import {ReferentialUtils}  from "@sumaris-net/ngx-components";
 import {SortDirection} from "@angular/material/sort";
@@ -22,6 +22,8 @@ import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {ExtractionProductFilter} from "./filter/extraction-product.filter";
 import {LoadResult} from "@sumaris-net/ngx-components";
+import { ErrorCodes } from '@app/data/services/errors';
+import { ExtractionErrorCodes } from '@app/extraction/services/extraction.errors';
 
 
 export const AggregationFragments = {
@@ -59,8 +61,8 @@ export const AggregationFragments = {
       ...LightDepartmentFragment
     }
   }
-  ${Fragments.lightDepartment}
-  ${Fragments.lightPerson}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
   `
 };
 
@@ -138,6 +140,17 @@ const SaveAggregation: any = gql`
   ${AggregationFragments.aggregationType}
 `;
 
+
+const UpdateProduct: any = gql`
+  mutation UpdateProduct($id: Int!){
+    data: updateProduct(id: $id){
+      ...AggregationTypeFragment
+      documentation
+    }
+  }
+  ${AggregationFragments.aggregationType}
+`;
+
 const DeleteAggregations: any = gql`
   mutation DeleteAggregations($ids:[Int]){
     deleteAggregations(ids: $ids)
@@ -145,6 +158,7 @@ const DeleteAggregations: any = gql`
 `;
 
 @Injectable({providedIn: 'root'})
+// TODO: use BaseEntityService
 export class ExtractionProductService extends BaseGraphqlService {
 
   constructor(
@@ -155,19 +169,13 @@ export class ExtractionProductService extends BaseGraphqlService {
     super(graphql, environment);
   }
 
-  /**
-   * Load aggregated types
-   */
-  async loadAll(): Promise<ExtractionProduct[]> {
-    return await firstNotNilPromise(this.watchAll());
-  }
 
   /**
    * Watch products
    */
   watchAll(dataFilter?: Partial<ExtractionProductFilter>,
            options?: { fetchPolicy?: WatchQueryFetchPolicy }
-  ): Observable<ExtractionProduct[]> {
+  ): Observable<LoadResult<ExtractionProduct>> {
     if (this._debug) console.debug("[product-service] Loading products...");
 
     dataFilter = this.asFilter(dataFilter);
@@ -182,11 +190,17 @@ export class ExtractionProductService extends BaseGraphqlService {
       arrayFieldName: 'data',
       insertFilterFn: dataFilter && dataFilter.asFilterFn(),
       variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPES_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     })
       .pipe(
-        map((data) => (data && data.data || []).map(ExtractionProduct.fromObject))
+        map((data) => {
+          const entities = (data && data.data || []).map(ExtractionProduct.fromObject);
+          return {
+            data: entities,
+            total: data.total || entities.length
+          }
+        })
       );
   }
 
@@ -198,7 +212,7 @@ export class ExtractionProductService extends BaseGraphqlService {
       variables: {
         id
       },
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_TYPES_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_TYPE_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -231,7 +245,7 @@ export class ExtractionProductService extends BaseGraphqlService {
     const res = await this.graphql.query<{ aggregationColumns: ExtractionColumn[] }>({
       query: LoadAggColumnsQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     if (!res || !res.aggregationColumns) return null;
@@ -273,7 +287,7 @@ export class ExtractionProductService extends BaseGraphqlService {
     const res = await this.graphql.query<{ aggregationGeoJson: any }>({
       query: LoadAggGeoJsonQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
     if (!res || !res.aggregationGeoJson) return null;
@@ -295,7 +309,7 @@ export class ExtractionProductService extends BaseGraphqlService {
     const res = await this.graphql.query<{ aggregationTech: {data: Map<string, any>} }>({
       query: LoadAggByTechQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_TECH_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_TECH_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -316,7 +330,7 @@ export class ExtractionProductService extends BaseGraphqlService {
     const res = await this.graphql.query<{ aggregationTechMinMax: {min: number; max: number; } }>({
       query: LoadAggMinMaxByTechQuery,
       variables: variables,
-      error: {code: ErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR"},
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
 
@@ -345,7 +359,7 @@ export class ExtractionProductService extends BaseGraphqlService {
         type: json,
         filter
       },
-      error: {code: ErrorCodes.SAVE_AGGREGATION_ERROR, message: "ERROR.SAVE_DATA_ERROR"},
+      error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR"},
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
@@ -408,6 +422,37 @@ export class ExtractionProductService extends BaseGraphqlService {
   async deleteAll(entities: ExtractionProduct[]): Promise<any> {
     await Promise.all((entities || [])
       .filter(t => t && isNotNil(t.id)).map(type => this.delete(type)));
+  }
+
+  /**
+   * Update data product (re-execute the extraction or the aggregation)
+   * @param entity
+   * @param filter
+   */
+  async updateProduct(id: number): Promise<ExtractionProduct> {
+    const now = Date.now();
+    if (this._debug) console.debug(`[product-service] Updating extraction product #{id}...`);
+
+    let savedEntity: ExtractionProduct;
+    await this.graphql.mutate<{ data: any }>({
+      mutation: UpdateProduct,
+      variables: { id },
+      error: {code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: "EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR"},
+      update: (cache, {data}) => {
+        savedEntity = data && data.data;
+        console.debug(`[product-service] Product updated in ${Date.now() - now}ms`, savedEntity);
+
+        // Convert into the extraction type
+        const savedExtractionType = ExtractionType.fromObject(savedEntity).asObject({keepTypename: false});
+        savedExtractionType.category = 'PRODUCT';
+        savedExtractionType.__typename = ExtractionType.TYPENAME;
+
+        // Update from cached queries
+        this.extractionService.updateCache(cache, savedExtractionType);
+      }
+    });
+
+    return ExtractionProduct.fromObject(savedEntity);
   }
 
   /* -- protected methods  -- */

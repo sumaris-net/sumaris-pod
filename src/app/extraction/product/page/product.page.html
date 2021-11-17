@@ -30,7 +30,7 @@
     <ion-row class="ion-no-padding ion-padding-top">
       <ion-col>
         <!-- form -->
-        <app-product-form #typeForm
+        <app-product-form #productForm
                           [showError]="false">
         </app-product-form>
 
@@ -41,8 +41,7 @@
 
           <!-- open map button -->
           <ion-button color="secondary" size="full"
-                      *ngIf="form.controls.isSpatial.value"
-                      [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
+                      *ngIf="productForm.isSpatial"
                       (click)="openMap($event)"
                       [disabled]="loading">
             <mat-icon slot="start">
@@ -50,6 +49,16 @@
             </mat-icon>
             <ion-label>
             {{'EXTRACTION.AGGREGATION.EDIT.BTN_OPEN_MAP'|translate}}
+            </ion-label>
+          </ion-button>
+
+          <!-- Run extraction -->
+          <ion-button color="danger" size="full"
+                      *ngIf="productForm.isManualProcessing"
+                      (click)="updateProduct($event)"
+                      [disabled]="loading">
+            <ion-label>
+              {{'EXTRACTION.AGGREGATION.EDIT.BTN_UPDATE'|translate}}
             </ion-label>
           </ion-button>
         </app-entity-metadata>
@@ -62,9 +71,11 @@
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
-  <app-form-buttons-bar (onCancel)="cancel() " (onSave)="save($event) "
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

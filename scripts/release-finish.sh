@@ -18,7 +18,7 @@ PROJECT_DIR=`pwd`
 if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
-  echo " > ./release-gitflow-finish.sh <version> <release_description>"
+  echo " > ./release-finish.sh <version> <release_description>"
   echo "with:"
   echo " - version: x.y.z"
   echo " - release_description: a comment on release"
@@ -45,7 +45,6 @@ git add package.json src/assets/manifest.json config.xml install.sh
 git commit -m ''"$description"''
 # finishing release with:
 # -F: fetch master & develop before
-# -n: don't tag (github.sh already do it)
 # -m: use default message
 # -p: push all tags after finish
-git flow release finish -F -p -n "$version" -m ''"$description"''
+git flow release finish -F -p "$version" -m ''"$description"''

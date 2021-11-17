@@ -1,12 +1,47 @@
 <ng-container [ngSwitch]="type">
 
-  <!-- hidden -->
-  <mat-form-field *ngSwitchCase="'hidden'" [floatLabel]="floatLabel" class="cdk-visually-hidden">
-    <input matInput type="text" hidden
-           [placeholder]="placeholder"
-           [formControl]="formControl"
-           [required]="required">
-  </mat-form-field>
+  <div *ngSwitchCase="'hidden'" class="cdk-visually-hidden">
+    <!-- nothing to display (hidden) -->
+  </div>
+
+  <div *ngSwitchCase="'array'">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col *ngFor="let childControl of formArray.controls ; index as j; last as last"
+                 size="auto">
+          <ion-row>
+            <ion-col size="auto" class="ion-align-self-center">
+              <app-pmfm-field [pmfm]="pmfm" #pmfmField
+                              [control]="childControl"
+                              [required]="required"
+                              [readonly]="readonly"
+                              [tabindex]="tabindex+j"
+                              [floatLabel]="floatLabel"
+                              [autofocus]="autofocus"
+                              [placeholder]="placeholder">
+              </app-pmfm-field>
+            </ion-col>
+
+            <ion-col size="auto" class="ion-align-self-center">
+              <button type="button" mat-icon-button
+                      [title]="'COMMON.BTN_ADD'|translate"
+                      *ngIf="last && formArrayHelper.size() < acquisitionNumber || acquisitionNumber === -1"
+                      (click)="formArrayHelper.add()">
+                <mat-icon>add</mat-icon>
+              </button>
+              <button type="button" mat-icon-button
+                      [title]="'COMMON.BTN_DELETE'|translate"
+                      (click)="formArrayHelper.removeAt(j)"
+                      tabindex="-1">
+                <mat-icon>close</mat-icon>
+              </button>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+  </div>
 
   <!-- integer -->
   <mat-form-field *ngSwitchCase="'integer'" [floatLabel]="floatLabel">
@@ -86,13 +121,19 @@
 
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
+                     [style]="style"
                      [formControl]="formControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
                      [required]="required"
                      [compact]="compact"
-                     [tabindex]="tabindex">
+                     [tabindex]="tabindex"
+                     [buttonsColCount]="maxVisibleButtons">
     <div matSuffix>
+      <!-- Add a fake fab button, to have same alignment as a pmfm QV field -->
+      <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
+                      style="visibility: hidden;">
+      </ion-fab-button>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
   </mat-boolean-field>
@@ -137,6 +178,9 @@
                      [readonly]="readonly"
                      [compact]="compact"
                      [tabindex]="tabindex"
+                     [style]="style"
+                     [maxVisibleButtons]="maxVisibleButtons"
+                     [buttonsColCount]="maxVisibleButtons"
                      (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
       <ng-content select="[matSuffix]"></ng-content>

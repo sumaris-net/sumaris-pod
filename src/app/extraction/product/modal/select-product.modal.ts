@@ -1,11 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
 import {ModalController} from "@ionic/angular";
 import {ExtractionProduct} from "../../services/model/extraction-product.model";
-import {Observable} from "rxjs";
-import {first} from "rxjs/operators";
+import { Observable, Subscription } from 'rxjs';
+import { first, map } from 'rxjs/operators';
 import {TranslateService} from "@ngx-translate/core";
 import {ExtractionProductService} from "../../services/extraction-product.service";
 import {ExtractionProductFilter} from "../../services/filter/extraction-product.filter";
+import { capitalizeFirstLetter, isNil, propertyComparator } from '@sumaris-net/ngx-components';
+import { ExtractionTypeUtils } from '@app/extraction/services/model/extraction-type.model';
 
 @Component({
   selector: 'app-select-product-modal',
@@ -14,8 +16,9 @@ import {ExtractionProductFilter} from "../../services/filter/extraction-product.
 })
 export class SelectProductModal implements OnInit {
 
+  _subscription = new Subscription();
   loading = true;
-  $types: Observable<ExtractionProduct[]>;
+  types$: Observable<ExtractionProduct[]>;
 
   @Input() filter: Partial<ExtractionProductFilter> = {};
   @Input() program: string;
@@ -32,10 +35,18 @@ export class SelectProductModal implements OnInit {
   ngOnInit() {
 
     // Load items
-    this.$types = this.service.watchAll(this.filter, {});
+    this.types$ = this.service.watchAll(this.filter, {})
+      .pipe(
+        map(({data}) =>
+          // Compute i18n name
+          data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+            // Then sort by name
+            .sort(propertyComparator('name'))
+        )
+      );
 
     // Update loading indicator
-    this.$types.pipe(first()).subscribe((_) => this.loading = false);
+    this.types$.pipe(first()).subscribe((_) => this.loading = false);
   }
 
   selectType(type: ExtractionProduct) {
@@ -51,19 +62,6 @@ export class SelectProductModal implements OnInit {
   async cancel() {
     await this.viewCtrl.dismiss();
   }
-
-  getI18nTypeName(type: ExtractionProduct) {
-    if (type.name) return type.name;
-    const format = type.label && type.label.split('-')[0].toUpperCase();
-    const key = `EXTRACTION.PRODUCT.${format}.TITLE`;
-
-    const message = this.translate.instant(key);
-    if (message !== key) return message;
-
-    // No i18n message: compute a new one
-    return type.name;
-  }
-
 
   protected markForCheck() {
     this.cd.markForCheck();

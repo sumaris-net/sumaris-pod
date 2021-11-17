@@ -1,12 +1,10 @@
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MeasurementValuesUtils} from "./measurement.model";
-import {isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, round} from "@sumaris-net/ngx-components";
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Product} from "./product.model";
-import {Packet, PacketUtils} from "./packet.model";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {PmfmIds} from '@app/referential/services/model/model.enum';
-import {ObjectMap} from "@sumaris-net/ngx-components";
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MeasurementValuesUtils } from './measurement.model';
+import { isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { Product } from './product.model';
+import { Packet, PacketUtils } from './packet.model';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 export class SaleProduct extends Product {
 
@@ -91,21 +89,21 @@ export class SaleProductUtils {
 
     // parse measurements to sale properties
     if (product.measurementValues && pmfms) {
-      const rankOrder = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, true);
+      const rankOrder = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER);
       if (rankOrder) {
         // replace product rankOrder by saleRankOrder
         target.rankOrder = isNotNilOrNaN(rankOrder) ? +rankOrder : undefined;
       }
-      const ratio = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, true);
+      const ratio = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO);
       target.ratio = isNotNilOrNaN(ratio) ? +ratio : undefined;
       target.ratioCalculated = !target.ratio;
-      const averageWeightPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PRICE_WEI, true);
+      const averageWeightPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE);
       target.averageWeightPrice = isNotNilOrNaN(averageWeightPrice) ? +averageWeightPrice : undefined;
       target.averageWeightPriceCalculated = !target.averageWeightPrice;
-      const averagePackagingPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE, true);
+      const averagePackagingPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE);
       target.averagePackagingPrice = isNotNilOrNaN(averagePackagingPrice) ? +averagePackagingPrice : undefined;
       target.averagePackagingPriceCalculated = !target.averagePackagingPrice;
-      const totalPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE, true);
+      const totalPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE);
       target.totalPrice = isNotNilOrNaN(totalPrice) ? +totalPrice : undefined;
       target.totalPriceCalculated = !target.totalPrice;
     }
@@ -179,12 +177,8 @@ export class SaleProductUtils {
 
     // even a calculated ratio need to be saved
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
-    // if (saleProduct.batchId && saleProduct.rankOrder) {
-    //   // TODO for a packet sale, the rankOrder is stored in measurement (SIH)
-    //   MeasurementValuesUtils.setValue(target.measurementValues, pmfms, 'SALE_RANK_ORDER', saleProduct.rankOrder);
-    // }
     // add measurements for each non calculated values
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PRICE_WEI,
+    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
       isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined);
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE,
       isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated ? saleProduct.averagePackagingPrice : undefined);
@@ -227,7 +221,7 @@ export class SaleProductUtils {
         MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, saleProduct.rankOrder);
 
         // average packaging converted to average weight price
-        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PRICE_WEI,
+        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
           isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated
             ? round(compositionAverageRatio * saleProduct.averagePackagingPrice)
             : undefined);

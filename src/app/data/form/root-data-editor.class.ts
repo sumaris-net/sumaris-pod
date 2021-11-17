@@ -2,7 +2,7 @@ import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
 import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {distinctUntilChanged, filter, map, switchMap, tap} from "rxjs/operators";
+import {distinctUntilChanged, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {Program} from "../../referential/services/model/program.model";
 import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
 import {AppEditorOptions, AppEntityEditor}  from "@sumaris-net/ngx-components";
@@ -185,9 +185,7 @@ export abstract class AppRootDataEditor<
     super.enable(opts);
 
     // Leave program disable once saved
-    if (!this.isNewData) {
-      this.form.controls['program'].disable(opts);
-    }
+    if (!this.isNewData) this.programControl.disable(opts);
 
     this.markForCheck();
   }
@@ -251,6 +249,9 @@ export abstract class AppRootDataEditor<
   private startListenProgramChanges() {
     this.registerSubscription(
       this.programControl.valueChanges
+        .pipe(
+          startWith<Program>(this.programControl.value as Program)
+        )
         .subscribe(program => {
           if (ReferentialUtils.isNotEmpty(program)) {
             console.debug("[root-data-editor] Propagate program change: " + program.label);
@@ -342,7 +343,7 @@ export abstract class AppRootDataEditor<
    * @param page
    */
   protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    page.subtitle = page.subtitle || this.data.program.label;
+    page.subtitle = page.subtitle || this.data.program?.label || this.$programLabel.value;
     return super.addToPageHistory(page, opts);
   }
 
@@ -351,7 +352,7 @@ export abstract class AppRootDataEditor<
     const data = await super.getValue();
 
     // Re add program, because program control can be disabled
-    data.program = ReferentialRef.fromObject(this.form.controls['program'].value);
+    data.program = ReferentialRef.fromObject(this.programControl.value);
 
     return data;
   }

@@ -1,0 +1,123 @@
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <ion-grid class="ion-no-padding">
+    <ion-row class="ion-no-padding">
+      <ion-col size="12" size-md="">
+
+        <!-- Parent -->
+        <mat-autocomplete-field formControlName='parent'
+                                [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
+                                [required]="true"
+                                [tabindex]="tabindex"
+                                [config]="autocompleteFields.parent">
+        </mat-autocomplete-field>
+      </ion-col>
+
+      <ion-col size="12" size-md="">
+
+        <!-- Taxon Group -->
+        <mat-autocomplete-field formControlName='taxonGroup'
+                                [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
+                                [required]="true"
+                                [tabindex]="tabindex+1"
+                                [config]="autocompleteFields.taxonGroup">
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="ion-no-padding">
+
+      <!-- weight -->
+      <ion-col size="12" size-md="">
+        <mat-form-field>
+          <input matInput
+                 autocomplete="off"
+                 formControlName="weight"
+                 type="number"
+                 decimal="true"
+                 [tabIndex]="tabindex+2"
+                 [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
+                 required>
+          <mat-error *ngIf="form.controls.weight.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+
+        </mat-form-field>
+      </ion-col>
+
+      <!-- individualCount -->
+      <ion-col size="12" size-md="">
+
+        <mat-form-field>
+          <input matInput
+                 autocomplete="off"
+                 formControlName="individualCount"
+                 type="number"
+                 [tabIndex]="tabindex+3"
+                 [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
+                 required>
+          <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+
+    <ng-content></ng-content>
+
+    <ion-row [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+
+      <!-- Measurements -->
+      <ion-col *ngFor="let pmfm of pmfms; index as i;"
+               size="12" size-md="6">
+        <app-pmfm-field
+                        [pmfm]="pmfm"
+                        [compact]="compact"
+                        [tabindex]="tabindex+4 + i"
+                        [floatLabel]="floatLabel">
+        </app-pmfm-field>
+      </ion-col>
+    </ion-row>
+
+    <!-- Comments -->
+    <!--    <ion-row class="ion-no-padding" *ngIf="showComment">-->
+    <!--      <ion-col>-->
+    <!--        <mat-form-field appearance="outline">-->
+    <!--          <textarea matInput #comments-->
+    <!--                    formControlName="comments"-->
+    <!--                    matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"-->
+    <!--                    [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"-->
+    <!--                    [tabindex]="tabindex+100">-->
+    <!--          </textarea>-->
+    <!--          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>-->
+    <!--          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>-->
+    <!--        </mat-form-field>-->
+    <!--      </ion-col>-->
+    <!--    </ion-row>-->
+
+    <ion-row>
+      <ion-col>
+        <ion-buttons class="ion-justify-content-between">
+          <ng-content select="[samplingButtons]"></ng-content>
+          <ng-content select="[productSaleButtons]"></ng-content>
+        </ion-buttons>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+
+</form>
+
+<ng-template #measurementsSkeleton>
+  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+</ng-template>
+
+<ng-template #measurementSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

@@ -1,5 +1,5 @@
-import {FormFieldDefinition, StatusIds} from '@sumaris-net/ngx-components';
-import { LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
+import { LocationLevelIds , UnitLabel } from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -11,134 +11,140 @@ export const ProgramProperties = Object.freeze({
   // Trip
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.location.level.ids',
-    label: "PROGRAM.OPTIONS.TRIP_LOCATION_LEVEL_IDS",
+    label: 'PROGRAM.OPTIONS.TRIP_LOCATION_LEVEL_IDS',
     type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
   TRIP_SALE_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.sale.enable",
-    label: "PROGRAM.OPTIONS.TRIP_SALE_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.sale.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SALE_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_OBSERVERS_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.observers.enable",
-    label: "PROGRAM.OPTIONS.TRIP_OBSERVERS_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.observers.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_OBSERVERS_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_METIERS_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.metiers.enable",
-    label: "PROGRAM.OPTIONS.TRIP_METIERS_ENABLE",
-    defaultValue: "false",
+    key: 'sumaris.trip.metiers.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_METIERS_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   TRIP_METIERS_HISTORY_NB_DAYS: <FormFieldDefinition>{
-    key: "sumaris.trip.metiers.history.days",
-    label: "PROGRAM.OPTIONS.TRIP_METIERS_HISTORY_NB_DAYS",
-    defaultValue: "30",
+    key: 'sumaris.trip.metiers.history.days',
+    label: 'PROGRAM.OPTIONS.TRIP_METIERS_HISTORY_NB_DAYS',
+    defaultValue: '30',
     type: 'integer'
   },
   TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL: <FormFieldDefinition>{
     key: 'sumaris.trip.onboard.measurements.optional',
-    label: "PROGRAM.OPTIONS.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL',
+    defaultValue: 'false',
     type: 'boolean'
   },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.gear.rankOrder.enable",
-    label: "PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE",
-    defaultValue: "false",
+    key: 'sumaris.trip.gear.rankOrder.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   // Trip map
   TRIP_MAP_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.map.enable",
-    label: "PROGRAM.OPTIONS.TRIP_MAP_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.map.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_MAP_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_MAP_CENTER: <FormFieldDefinition>{
-    key: "sumaris.trip.map.center",
-    label: "PROGRAM.OPTIONS.TRIP_MAP_CENTER",
-    defaultValue: "46.879966,-10",
+    key: 'sumaris.trip.map.center',
+    label: 'PROGRAM.OPTIONS.TRIP_MAP_CENTER',
+    defaultValue: '46.879966,-10',
     type: 'string'
   },
   TRIP_MAP_ZOOM: <FormFieldDefinition>{
-    key: "sumaris.trip.map.zoom",
-    label: "PROGRAM.OPTIONS.TRIP_MAP_ZOOM",
+    key: 'sumaris.trip.map.zoom',
+    label: 'PROGRAM.OPTIONS.TRIP_MAP_ZOOM',
     defaultValue: 5,
     type: 'integer'
   },
   TRIP_BATCH_TAXON_NAME_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.taxonName.enable",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.batch.taxonName.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_BATCH_TAXON_GROUP_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.taxonGroup.enable",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUP_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.batch.taxonGroup.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUP_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.taxonGroups.noWeight",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT",
-    defaultValue: "",
+    key: 'sumaris.trip.operation.batch.taxonGroups.noWeight',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT',
+    defaultValue: '',
     type: 'string'
   },
   TRIP_BATCH_AUTO_FILL: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.autoFill",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_AUTO_FILL",
-    defaultValue: "false",
+    key: 'sumaris.trip.operation.batch.autoFill',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_AUTO_FILL',
+    defaultValue: 'false',
     type: 'boolean'
   },
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.individualCount.compute",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.batch.individualCount.compute',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.individualCount.enable",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.batch.individualCount.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.batch.rankOrder.compute",
-    label: "PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE",
-    defaultValue: "false",
+    key: 'sumaris.trip.operation.batch.rankOrder.compute',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.has.individual.measurement',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT',
+    defaultValue: '',
     type: 'boolean'
   },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.sample.taxonName.enable",
-    label: "PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.sample.taxonName.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_SAMPLE_TAXON_GROUP_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.sample.taxonGroup.enable",
-    label: "PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.sample.taxonGroup.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_GROUP_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.survivalTest.taxonName.enable",
-    label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.survivalTest.taxonName.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.survivalTest.taxonGroup.enable",
-    label: "PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE",
-    defaultValue: "true",
+    key: 'sumaris.trip.operation.survivalTest.taxonGroup.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.latitude.defaultSign",
-    label: "PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN",
+    key: 'sumaris.trip.operation.latitude.defaultSign',
+    label: 'PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN',
     type: 'enum',
     values: [
       {
@@ -152,8 +158,8 @@ export const ProgramProperties = Object.freeze({
     ]
   },
   TRIP_LONGITUDE_SIGN: <FormFieldDefinition>{
-    key: "sumaris.trip.operation.longitude.defaultSign",
-    label: "PROGRAM.OPTIONS.TRIP_LONGITUDE_DEFAULT_SIGN",
+    key: 'sumaris.trip.operation.longitude.defaultSign',
+    label: 'PROGRAM.OPTIONS.TRIP_LONGITUDE_DEFAULT_SIGN',
     type: 'enum',
     values: [
       {
@@ -166,61 +172,91 @@ export const ProgramProperties = Object.freeze({
       }
     ]
   },
+  TRIP_ALLOW_PARENT_OPERATION: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.allowParent',
+    label: 'PROGRAM.OPTIONS.TRIP_ALLOW_PARENT_OPERATION',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_FILTER_METIER: <FormFieldDefinition>{
+    key: 'sumaris.trip.metier.filter',
+    label: 'PROGRAM.OPTIONS.TRIP_METIER_FILTER',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_DISTANCE_MAX_WARNING: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.distanceMaxWarning',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_DISTANCE_MAX_WARNING',
+    defaultValue: '0',
+    type: 'integer'
+  },
+  TRIP_DISTANCE_MAX_ERROR: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.distanceMaxError',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_DISTANCE_MAX_ERROR',
+    defaultValue: '0',
+    type: 'integer'
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_END_DATE_TIME_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  OBSERVED_LOCATION_START_TIME_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.startTime.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_START_TIME_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   OBSERVED_LOCATION_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.location.level.ids',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS',
     type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.enable',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.program',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM",
-    defaultValue: "",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM',
+    defaultValue: '',
     type: 'string'
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.startDay',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY",
-    defaultValue: "1",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY',
+    defaultValue: '1',
     type: 'integer'
   },
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.dayCount',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT",
-    defaultValue: "7",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT',
+    defaultValue: '7',
     type: 'integer'
   },
   OBSERVED_LOCATION_CREATE_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.createVessel.enable',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE",
-    defaultValue: "true",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.createLanding.history.enable',
-    label: "PROGRAM.OPTIONS.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY",
-    defaultValue: "true",
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY',
+    defaultValue: 'true',
     type: 'boolean'
   },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
-    label: "PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
 
@@ -251,50 +287,50 @@ export const ProgramProperties = Object.freeze({
   },
   LANDING_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.dateTime.enable',
-    label: "PROGRAM.OPTIONS.LANDING_DATE_TIME_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.LANDING_DATE_TIME_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_CREATION_DATE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.creationDate.enable',
-    label: "PROGRAM.OPTIONS.LANDING_CREATION_DATE_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.LANDING_CREATION_DATE_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_RECORDER_PERSON_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.recorderPerson.enable',
-    label: "PROGRAM.OPTIONS.LANDING_RECORDER_PERSON_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.LANDING_RECORDER_PERSON_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.vesselBasePortLocation.enable',
-    label: "PROGRAM.OPTIONS.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.location.enable',
-    label: "PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.LANDING_LOCATION_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_OBSERVERS_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.landing.observers.enable",
-    label: "PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE",
-    defaultValue: "false",
+    key: 'sumaris.landing.observers.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_OBSERVERS_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_STRATEGY_ENABLE: <FormFieldDefinition>{
-    key: "sumaris.landing.strategy.enable",
-    label: "PROGRAM.OPTIONS.LANDING_STRATEGY_ENABLE",
-    defaultValue: "false",
+    key: 'sumaris.landing.strategy.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_STRATEGY_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
   LANDING_SAMPLES_COUNT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.samplesCount.enable',
-    label: "PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE",
-    defaultValue: "false",
+    label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_COUNT_ENABLE',
+    defaultValue: 'false',
     type: 'boolean'
   },
 
@@ -345,8 +381,8 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '100'
   },
   STRATEGY_EDITOR: <FormFieldDefinition>{
-    key: "sumaris.program.strategy.editor",
-    label: "PROGRAM.OPTIONS.STRATEGY_EDITOR",
+    key: 'sumaris.program.strategy.editor',
+    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR',
     type: 'enum',
     values: [
       {
@@ -358,18 +394,18 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_ENUM.SAMPLING'
       }
     ],
-    defaultValue: "legacy"
+    defaultValue: 'legacy'
   },
   STRATEGY_EDITOR_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.program.strategy.location.level.ids',
-    label: "PROGRAM.OPTIONS.STRATEGY_EDITOR_LOCATION_LEVEL_IDS",
+    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_LOCATION_LEVEL_IDS',
     type: 'string',
     defaultValue: LocationLevelIds.ICES_DIVISION.toString()
   },
 
   I18N_SUFFIX: <FormFieldDefinition>{
-    key: "sumaris.i18nSuffix",
-    label: "PROGRAM.OPTIONS.I18N_SUFFIX",
+    key: 'sumaris.i18nSuffix',
+    label: 'PROGRAM.OPTIONS.I18N_SUFFIX',
     type: 'enum',
     values: [
       {

@@ -1,17 +1,19 @@
 <!-- catch batch form -->
-<div [hidden]="!catchBatchForm.hasPmfms" class="ion-padding">
+<div class="ion-padding" [class.cdk-visually-hidden]="!showCatchForm">
   <form-catch-batch #catchBatchForm
-                    (onSubmit)="save($event)" [showError]="false" [debug]="debug"
-                    acquisitionLevel="CATCH_BATCH"
                     [programLabel]="$programLabel|async"
-                    [tabindex]="200">
+                    acquisitionLevel="CATCH_BATCH"
+                    (onSubmit)="save($event)"
+                    [tabindex]="200"
+                    [showError]="false"
+                    [debug]="debug">
   </form-catch-batch>
 </div>
 
 <mat-tab-group #tabGroup
                class="mat-tab-group-header-pagination-hidden"
                [class.cdk-visually-hidden]="!showBatchTables"
-               [class.mat-tab-group-header-hidden]="!showSubBatchesTable"
+               [class.mat-tab-group-header-hidden]="mobile"
                [(selectedIndex)]="selectedTabIndex"
                (selectedTabChange)="onTabChange($event)"
                [animationDuration]="tabGroupAnimationDuration">
@@ -33,6 +35,8 @@
                             [disabled]="disabled"
                             [debug]="debug"
                             [mobile]="mobile"
+                            [allowSubBatches]="allowSubBatches"
+                            [defaultHasSubBatches]="defaultHasSubBatches"
                             [showTaxonGroupColumn]="true"
                             [showTaxonNameColumn]="true"
                             [showCommentsColumn]="false"
@@ -47,7 +51,8 @@
 
   <!-- TAB: individual measure -->
   <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-           [disabled]="!enableSubBatchesTab">
+           [disabled]="!allowSubBatches || !showSubBatchesTable"
+           *ngIf="!mobile">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL</ion-label>
@@ -56,7 +61,6 @@
     </ng-template>
 
     <app-sub-batches-table #subBatchesTable
-                           *ngIf="showSubBatchesTable"
                            acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                            [programLabel]="$programLabel | async"
                            [usageMode]="usageMode"

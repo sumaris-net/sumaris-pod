@@ -26,9 +26,11 @@
   </button>
 
   <!-- reset -->
-  <button mat-menu-item  (click)="cancel($event)" [disabled]="!dirty">
+  <button mat-menu-item (click)="cancel($event)" [disabled]="!dirty">
     <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <mat-icon>
+        <ion-icon slot="start" name="refresh"></ion-icon>
+      </mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
@@ -46,9 +48,13 @@
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
+                 [class.mobile]="mobile"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 dynamicHeight="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
@@ -73,7 +79,8 @@
             <form-trip #tripForm
                        (onSubmit)="save($event)"
                        [showError]="false"
-                       [showAddVessel]="false">
+                       [showAddVessel]="false"
+                       [returnFieldsRequired]="true">
 
               <!-- Main fishing area  -->
               <app-fishing-area-form #fishingAreaForm
@@ -129,13 +136,14 @@
       <app-operation-group-table #operationGroupTable
                                  [programLabel]="$programLabel | async"
                                  acquisitionLevel="OPERATION"
-                                 [$metiers]="$metiers"
+                                 [metiers]="$metiers.asObservable()"
+                                 [showToolbar]="!mobile"
                                  (onOpenRow)="onOpenOperationGroup($event)"
                                  (onNewRow)="onNewOperationGroup($event)">
       </app-operation-group-table>
     </mat-tab>
 
-    <!-- TAB: caches -->
+    <!-- TAB: catches -->
     <mat-tab label="{{'TRIP.TAB_CATCHES'|translate}}" [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="scan"></ion-icon>
@@ -144,65 +152,104 @@
                   *ngIf="submitted && (productsTable.invalid || packetsTable.invalid)"></ion-icon>
       </ng-template>
 
-      <form class="form-container" [formGroup]="catchFilterForm">
-        <ion-grid>
-          <ion-row>
-            <ion-col size="12" size-md="2" size-lg="3">
-              <ion-label class="ion-float-end" translate>TRIP.LANDED_CATCH.OPERATION_GROUP_FILTER</ion-label>
-            </ion-col>
-            <ion-col>
-              <mat-autocomplete-field floatLabel="never" [clearable]="true"
-                [placeholder]="'COMMON.EMPTY_OPTION'|translate"
-                [config]="autocompleteFields.operationGroupFilter"
-                formControlName="operationGroup">
-                <ion-icon matPrefix name="locate"></ion-icon>
-              </mat-autocomplete-field>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </form>
+      <div class="mat-tab-group-body-catches" [class.has-filter]="showCatchFilter">
+        <form class="form-container" [formGroup]="catchFilterForm" *ngIf="showCatchFilter">
+          <ion-grid>
+            <ion-row>
+              <ion-col size="12" size-md="2" size-lg="3">
+                <ion-label class="ion-float-end" translate>TRIP.LANDED_CATCH.OPERATION_GROUP_FILTER</ion-label>
+              </ion-col>
+              <ion-col>
+                <mat-autocomplete-field floatLabel="never" [clearable]="true"
+                                        [placeholder]="'COMMON.EMPTY_OPTION'|translate"
+                                        [config]="autocompleteFields.operationGroupFilter"
+                                        formControlName="operationGroup">
+                  <ion-icon matPrefix name="locate"></ion-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </form>
 
-      <mat-tab-group #catchTabGroup
-                     animationDuration="0s"
-                     (selectedTabChange)="onSubTabChange($event)">
+        <mat-tab-group #catchTabGroup
+                       animationDuration="0s"
+                       (selectedTabChange)="onSubTabChange($event)">
 
-        <!-- SUB-TAB: products -->
-        <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_PRODUCT'|translate}}">
-          <ng-template mat-tab-label>
-            <ion-label translate>TRIP.LANDED_CATCH.TAB_PRODUCT</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="submitted && productsTable.invalid"></ion-icon>
-          </ng-template>
+          <!-- SUB-TAB: products -->
+          <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_PRODUCT'|translate}}">
+            <ng-template mat-tab-label>
+              <ion-label
+                [matBadge]='productsTable?.value?.length'
+                [matBadgeHidden]="!productsTable?.value?.length"
+                matBadgeOverlap='false'
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after"
+                translate>TRIP.LANDED_CATCH.TAB_PRODUCT
+              </ion-label>
+              <ion-icon slot="end" name="alert-circle" color="danger"
+                        *ngIf="submitted && productsTable.invalid"></ion-icon>
+            </ng-template>
 
-          <app-products-table #productsTable
-                              [debug]="debug"
-                              [programLabel]="$programLabel | async"
-                              acquisitionLevel="PRODUCT"
-                              [$parents]="$operationGroups"
-                              [parentFilter]="$productFilter | async"
-                              [parentAttributes]="operationGroupAttributes"
-          >
-          </app-products-table>
-        </mat-tab>
+            <app-products-table #productsTable
+                                [debug]="debug"
+                                [programLabel]="$programLabel | async"
+                                acquisitionLevel="PRODUCT"
+                                [$parents]="$operationGroups"
+                                [parentFilter]="$productFilter | async"
+                                [parentAttributes]="operationGroupAttributes"
+                                [showSaleType]='false'
+                                [showToolbar]="!mobile"
+                                [useSticky]="true">
+            </app-products-table>
+          </mat-tab>
 
-        <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_BATCH'|translate}}">
-          <ng-template mat-tab-label>
-            <ion-label translate>TRIP.LANDED_CATCH.TAB_BATCH</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="submitted && packetsTable.invalid"></ion-icon>
-          </ng-template>
+          <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_BATCH'|translate}}">
+            <ng-template mat-tab-label>
+              <ion-label
+                [matBadge]='packetsTable?.value?.length'
+                [matBadgeHidden]="!packetsTable?.value?.length"
+                matBadgeOverlap='false'
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after"
+                translate>TRIP.LANDED_CATCH.TAB_BATCH
+              </ion-label>
+              <ion-icon slot="end" name="alert-circle" color="danger"
+                        *ngIf="submitted && packetsTable.invalid"></ion-icon>
+            </ng-template>
 
-          <app-packets-table #packetsTable
-                             [debug]="debug"
-                             [program]="$programLabel | async"
-                             [$parents]="$operationGroups"
-                             [parentFilter]="$packetFilter | async"
-                             [parentAttributes]="operationGroupAttributes"
-            ></app-packets-table>
+            <app-packets-table #packetsTable
+                               [debug]="debug"
+                               [program]="$programLabel | async"
+                               [$parents]="$operationGroups"
+                               [parentFilter]="$packetFilter | async"
+                               [parentAttributes]="operationGroupAttributes"
+                               [showToolbar]="!mobile"
+                               [useSticky]="true">
+            </app-packets-table>
 
-        </mat-tab>
+          </mat-tab>
 
-      </mat-tab-group>
+        </mat-tab-group>
+      </div>
+
+    </mat-tab>
+
+    <!-- TAB: expected sale -->
+    <mat-tab label="{{'TRIP.TAB_SALES'|translate}}" [disabled]="!showSaleTab">
+      <ng-template mat-tab-label>
+        <mat-icon slot='start'>local_offer</mat-icon>
+        <ion-label translate>TRIP.TAB_SALES</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expenseForm.invalid"></ion-icon>
+      </ng-template>
+
+      <app-expected-sale-form #expectedSaleForm
+                              [programLabel]='$programLabel|async'
+                              [showError]="true"
+                              [mobile]="mobile"
+      >
+      </app-expected-sale-form>
     </mat-tab>
 
     <!-- TAB: expenses -->
@@ -231,9 +278,10 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

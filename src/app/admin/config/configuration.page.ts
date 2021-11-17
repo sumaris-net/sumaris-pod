@@ -52,7 +52,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
       validatorService,
       configOptions,
       {
-        tabCount: 2
+        tabCount: 4
       });
 
     // default values
