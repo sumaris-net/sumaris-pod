@@ -291,32 +291,40 @@ public class StrategyRepositoryImpl
         ParameterExpression<Integer> strategyPmfmIdParam = builder.parameter(Integer.class);
         ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
 
-        Join<Sample, Operation> operationInnerJoin = root.join(Sample.Fields.OPERATION, JoinType.INNER);
-        Join<Operation, Trip> tripInnerJoin = operationInnerJoin.join(Operation.Fields.TRIP, JoinType.INNER);
-        Join<Trip, Landing> landingInnerJoin = tripInnerJoin.joinList(Trip.Fields.LANDINGS, JoinType.INNER);
-        Join<Landing, LandingMeasurement> strategyMeasurementInnerJoin = landingInnerJoin.joinList(Landing.Fields.MEASUREMENTS, JoinType.INNER);
-        Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
+        Join<Sample, Operation> operationJoin = root.join(Sample.Fields.OPERATION, JoinType.INNER);
+        Join<Operation, Trip> tripJoin = operationJoin.join(Operation.Fields.TRIP, JoinType.INNER);
+        Join<Trip, Landing> landingInnerJoin = tripJoin.joinList(Trip.Fields.LANDINGS, JoinType.INNER);
+        Join<Landing, LandingMeasurement> landingMeasurementJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
+        Join<Sample, SampleMeasurement> sampleMeasurementJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 
-        query.select(tagIdInnerJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE))
-                .distinct(true)
-                .where(
-                        builder.and(
-                            // Tag id measurement
-                            builder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
-                            // Strategy measurement
-                            builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
-                            builder.equal(strategyMeasurementInnerJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
-                        ));
+        Expression<String> lpadValue = builder.function("lpad", String.class,
+            builder.substring(
+                sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), prefix.length()
+            ),
+            builder.literal(nbDigit),
+            builder.literal('0')
+        );
+
+        query.select(lpadValue)
+            .where(
+                    builder.and(
+                        // Sample measurement: select Pmfm = Tag id
+                        builder.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                        // Sample measurement: select Pmfm = Strategy label
+                        builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
+                        builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
+                    ))
+            .orderBy(builder.desc(lpadValue));
 
         String result = em
             .createQuery(query)
             .setParameter(tagIdPmfmIdParam, PmfmEnum.TAG_ID.getId())
             .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
             .setParameter(strategyLabelParam, strategyLabel)
+            .setMaxResults(10)
             .getResultStream()
-            .map(source -> StringUtils.removeStart(source, prefix))
-            .filter(source -> StringUtils.isNumeric(source))
-            .max(String::compareTo)
+            .filter(StringUtils::isNumeric)
+            .findFirst()
             .orElse("0");
 
         if (!StringUtils.isNumeric(result)) {

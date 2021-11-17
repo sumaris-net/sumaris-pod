@@ -158,11 +158,11 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals("20LEUCCIR003", label);
 
         // By strategyLabel
-        label = service.computeNextSampleLabelByStrategy("BIO1", null, 0);
-        Assert.assertEquals("BIO11", label);
+        label = service.computeNextSampleLabelByStrategy("BIO1", "-", 0);
+        Assert.assertEquals("BIO1-1", label);
 
-        label = service.computeNextSampleLabelByStrategy("20LEUCCIR001", null, 4);
-        Assert.assertEquals("20LEUCCIR0010005", label);
+        label = service.computeNextSampleLabelByStrategy("20LEUCCIR001", "-", 4);
+        Assert.assertEquals("20LEUCCIR001-0005", label);
     }
 
 

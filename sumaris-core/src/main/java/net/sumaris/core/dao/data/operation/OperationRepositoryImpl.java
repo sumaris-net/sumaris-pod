@@ -305,7 +305,7 @@ public class OperationRepositoryImpl
                 .and(hasProgramLabel(filter.getProgramLabel()))
                 .and(hasVesselId(filter.getVesselId()))
                 .and(excludedIds(filter.getExcludedIds()))
-                .and(notChildOperation(filter.getExcludeChildOperation()))
+                .and(excludeChildOperation(filter.getExcludeChildOperation()))
                 .and(hasNoChildOperation(filter.getExcludeChildOperation()))
                 .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
                 .and(inGearIds(filter.getGearIds()))
