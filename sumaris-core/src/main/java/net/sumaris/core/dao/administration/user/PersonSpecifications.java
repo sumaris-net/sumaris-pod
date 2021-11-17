@@ -71,15 +71,13 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         else if (filter.getUserProfileId() != null) {
             userProfileIds = ImmutableList.of(filter.getUserProfileId());
         }
+
+        // Stop if filter not need
         if (CollectionUtils.isEmpty(userProfileIds)) return null;
 
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-
-            // Avoid multiple row
-            query.distinct(true);
-
+            query.distinct(true); // Avoid duplicate persons
             ParameterExpression<Collection> userProfileIdsParam = criteriaBuilder.parameter(Collection.class, USER_PROFILE_IDS_PARAMETER);
-
             return criteriaBuilder
                 .in(Daos.composePath(root, StringUtils.doting(Person.Fields.USER_PROFILES, UserProfile.Fields.ID)))
                 .value(userProfileIdsParam);
