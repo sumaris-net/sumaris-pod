@@ -1,4 +1,4 @@
-import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import {
   EntityClass,
   equalsOrNil,
@@ -10,11 +10,11 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   referentialToString,
-  ReferentialUtils
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import {Product} from './product.model';
-import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { Product } from './product.model';
+import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 const PacketNumber = 6; // default packet number for SFA
 export const PacketIndexes = [...Array(PacketNumber).keys()]; // produce: [0,1,2,3,4,5] with PacketNumber = 6
@@ -213,11 +213,20 @@ export class PacketUtils {
     return packet && packet.composition && packet.composition.map(composition => referentialToString(composition.taxonGroup)).join('\n') || "";
   }
 
-  static getCompositionAverageRatio(composition: PacketComposition): number {
+  static getCompositionAverageRatio(packet: Packet, composition: PacketComposition): number {
     const ratios: number[] = PacketIndexes.map(index => composition['ratio' + index]).filter(value => isNotNilOrNaN(value));
     const sum = ratios.reduce((a, b) => a + b, 0);
-    const avg = (sum / ratios.length) || 0;
+    const avg = (sum / PacketUtils.getSampledPacketCount(packet)) || 0;
     return avg / 100;
+  }
+
+  static getSampledPacketCount(packet: Packet): number {
+    let count = 0;
+    PacketIndexes.forEach(index => {
+      if (!!packet['sampledWeight' + index])
+        count++;
+    });
+    return count
   }
 
 }

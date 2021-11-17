@@ -209,7 +209,7 @@ export class SaleProductUtils {
         product.saleType = saleProduct.saleType;
 
         // get or calculate average weight
-        const compositionAverageRatio = PacketUtils.getCompositionAverageRatio(composition);
+        const compositionAverageRatio = PacketUtils.getCompositionAverageRatio(packet, composition);
         let averageWeight = composition.weight;
         if (!averageWeight) {
           averageWeight = compositionAverageRatio * packet.weight;
