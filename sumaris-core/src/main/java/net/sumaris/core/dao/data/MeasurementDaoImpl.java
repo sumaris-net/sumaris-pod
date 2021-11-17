@@ -681,8 +681,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // note: Need Beans.getList() to avoid NullPointerException if target=null
         final Map<Integer, T> sourceToRemove = Beans.splitById(Beans.getList(target));
 
-        boolean hasRankOrder = entityClass.isAssignableFrom(ISortedMeasurementEntity.class);
-        boolean isQuantification = !hasRankOrder && entityClass.isAssignableFrom(IQuantifiedMeasurementEntity.class);
+        boolean hasRankOrder = (ISortedMeasurementEntity.class).isAssignableFrom(entityClass);
+        boolean isQuantification = !hasRankOrder && (IQuantifiedMeasurementEntity.class).isAssignableFrom(entityClass);
 
         Short maxRankOrder = hasRankOrder ? Beans.<Short, V>collectProperties(sources, ISortedMeasurementEntity.Fields.RANK_ORDER)
                 .stream()
