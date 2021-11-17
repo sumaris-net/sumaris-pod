@@ -5,11 +5,11 @@ import {
   AppInMemoryTable,
   InMemoryEntitiesService,
   LocalSettingsService,
-  Referential,
+  Referential, ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusById,
-  StatusList
+  StatusList,
 } from '@sumaris-net/ngx-components';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ModalController, Platform} from '@ionic/angular';
@@ -28,7 +28,9 @@ import {environment} from '@environments/environment';
     {
       provide: InMemoryEntitiesService,
       useFactory: () => {
-        return new InMemoryEntitiesService(Referential, ReferentialFilter);
+        return new InMemoryEntitiesService(Referential, ReferentialFilter, {
+          equals: ReferentialUtils.equals
+        });
       }
     }
   ],

@@ -343,7 +343,7 @@ export abstract class AppRootDataEditor<
    * @param page
    */
   protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
-    page.subtitle = page.subtitle || this.data.program.label;
+    page.subtitle = page.subtitle || this.data.program?.label || this.$programLabel.value;
     return super.addToPageHistory(page, opts);
   }
 

@@ -18,7 +18,7 @@ import {
   referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { BehaviorSubject } from 'rxjs';
@@ -54,7 +54,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   isAdmin: boolean;
   filterIsEmpty = true;
   offline = false;
-  mobile: boolean;
   showLabelForPmfmIds: number[];
 
   $currentDate = new BehaviorSubject<Moment>(undefined);
@@ -107,6 +106,9 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   set parent(value: ObservedLocation | undefined) {
     this.setParent(value);
   }
+
+  @Input() showToolbar = true;
+  @Input() useSticky = true;
 
   constructor(
     public network: NetworkService,

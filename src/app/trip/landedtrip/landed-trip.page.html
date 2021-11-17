@@ -143,7 +143,7 @@
       </app-operation-group-table>
     </mat-tab>
 
-    <!-- TAB: caches -->
+    <!-- TAB: catches -->
     <mat-tab label="{{'TRIP.TAB_CATCHES'|translate}}" [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <ion-icon slot="start" name="scan"></ion-icon>
@@ -152,8 +152,8 @@
                   *ngIf="submitted && (productsTable.invalid || packetsTable.invalid)"></ion-icon>
       </ng-template>
 
-      <div>
-        <form class="form-container" [formGroup]="catchFilterForm">
+      <div class="mat-tab-group-body-catches" [class.has-filter]="showCatchFilter">
+        <form class="form-container" [formGroup]="catchFilterForm" *ngIf="showCatchFilter">
           <ion-grid>
             <ion-row>
               <ion-col size="12" size-md="2" size-lg="3">
@@ -226,7 +226,7 @@
                                [parentFilter]="$packetFilter | async"
                                [parentAttributes]="operationGroupAttributes"
                                [showToolbar]="!mobile"
-                               [mobile]="mobile">
+                               [useSticky]="true">
             </app-packets-table>
 
           </mat-tab>
@@ -236,7 +236,7 @@
 
     </mat-tab>
 
-    <!-- TAB: expenses -->
+    <!-- TAB: expected sale -->
     <mat-tab label="{{'TRIP.TAB_SALES'|translate}}" [disabled]="!showSaleTab">
       <ng-template mat-tab-label>
         <mat-icon slot='start'>local_offer</mat-icon>
@@ -278,9 +278,10 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

@@ -7,15 +7,18 @@
   <div *ngSwitchCase="'array'">
     <ion-grid class="ion-no-padding">
       <ion-row>
-        <ion-col *ngFor="let control of formArray.controls ; index as j; last as last"
+        <ion-col *ngFor="let childControl of formArray.controls ; index as j; last as last"
                  size="auto">
-
           <ion-row>
             <ion-col size="auto" class="ion-align-self-center">
               <app-pmfm-field [pmfm]="pmfm" #pmfmField
-                              [formControl]="control"
+                              [control]="childControl"
+                              [required]="required"
+                              [readonly]="readonly"
                               [tabindex]="tabindex+j"
-                              [required]="required">
+                              [floatLabel]="floatLabel"
+                              [autofocus]="autofocus"
+                              [placeholder]="placeholder">
               </app-pmfm-field>
             </ion-col>
 

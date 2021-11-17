@@ -26,11 +26,13 @@
 </mat-menu>
 
 
-<ion-content class="ion-padding">
+<ion-content class="ion-no-padding" cdkTrapFocus>
   <app-packet-form #packetForm
+                   [showParent]="mobile"
                    [mobile]="mobile"
                    [parents]="parents"
                    [parentAttributes]="parentAttributes">
+
     <!-- open packet sale modal -->
     <ion-button packetSaleButtons mat-button
                 fill="clear" color="tertiary" expand="full"

@@ -15,6 +15,17 @@ import { Subscription } from 'rxjs';
 import { MatTabGroup } from '@angular/material/tabs';
 import { LandingFilter } from '../../services/filter/landing.filter';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
+
+export interface SelectVesselsModalOptions {
+  landingFilter: LandingFilter|null;
+  vesselFilter: VesselFilter|null;
+  allowMultiple: boolean;
+  allowAddNewVessel: boolean;
+  showVesselTypeColumn?: boolean;
+  showBasePortLocationColumn?: boolean;
+  defaultVesselSynchronizationStatus: SynchronizationStatus;
+}
 
 @Component({
   selector: 'app-select-vessel-modal',
@@ -34,10 +45,13 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   @Input() landingFilter: LandingFilter|null = null;
-  @Input() vesselFilter: any = null;
+  @Input() vesselFilter: VesselFilter|null = null;
   @Input() allowMultiple: boolean;
   @Input() allowAddNewVessel: boolean;
   @Input() showVesselTypeColumn: boolean;
+  @Input() showBasePortLocationColumn: boolean;
+
+  @Input() defaultVesselSynchronizationStatus: SynchronizationStatus;
 
   get loading(): boolean {
     const table = this.table;
@@ -93,6 +107,10 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     this.allowMultiple = toBoolean(this.allowMultiple, false);
     this.allowAddNewVessel = toBoolean(this.allowAddNewVessel, true);
     this.showVesselTypeColumn = toBoolean(this.showVesselTypeColumn, false);
+    this.showBasePortLocationColumn = toBoolean(this.showBasePortLocationColumn, true);
+
+    // Init vessel table filter
+    this.vesselsTable.filter = this.vesselFilter;
 
     setTimeout(() => {
       // Load landings
@@ -101,11 +119,6 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
       this.tabGroup.realignInkBar();
       this.markForCheck();
 
-      // Set vessel table filter
-      if (this.vesselsTable) {
-        this.vesselsTable.setFilter(
-          VesselFilter.fromObject(this.vesselFilter));
-      }
     }, 200);
   }
 

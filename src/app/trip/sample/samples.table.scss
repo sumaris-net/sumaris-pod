@@ -20,9 +20,7 @@
     .mat-row {
 
       .mat-column-id {
-        min-width: 50px;
-        max-width: 50px;
-        left: 50px !important;
+        width: 50px;
       }
       .mat-column-label,
       .mat-column-TAG_ID,
@@ -39,6 +37,7 @@
       .mat-column-comments {
         min-width: 110px;
         max-width: 110px;
+
       }
 
       .mat-column-pmfm {
@@ -160,8 +159,15 @@
 
   &.mobile {
     .mat-column-pmfm {
-      min-width: unset;
-      max-width: unset;
+      min-width: unset !important;
+      max-width: unset !important;
+    }
+
+    .mat-column-comments {
+      min-width: unset !important;
+      max-width: unset !important;
+      width: 40px !important;
+      padding-left: 6px;
     }
   }
 }

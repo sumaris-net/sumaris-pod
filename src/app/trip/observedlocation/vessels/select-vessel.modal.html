@@ -48,6 +48,7 @@
       <app-landings-table #landingsTable
                           [showDateTimeColumn]="true"
                           [showVesselTypeColumn]="showVesselTypeColumn"
+                          [showBasePortLocationColumn]="showBasePortLocationColumn"
                           [showToolbar]="false"
                           [showIdColumn]="false"
                           [showLocationColumn]="false"
@@ -71,12 +72,13 @@
       </ng-template>
 
       <app-vessels-table #vesselsTable
-                         [showIdColumn]="false"
                          [canEdit]="false"
                          [canDelete]="false"
                          [showToolbar]="false"
+                         [showIdColumn]="false"
                          [showVesselTypeColumn]="showVesselTypeColumn"
-                         [synchronizationStatus]="'SYNC'"
+                         [showBasePortLocationColumn]="showBasePortLocationColumn"
+                         [synchronizationStatus]="defaultVesselSynchronizationStatus"
                          (onOpenRow)="selectRow($event)"
                          (onNewRow)="close($event)">
       </app-vessels-table>

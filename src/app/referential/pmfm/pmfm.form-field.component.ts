@@ -116,7 +116,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <app-pmfm-field>.");
     if (typeof this.pmfm !== 'object') throw new Error("Invalid attribute 'pmfm' in <app-pmfm-field>. Should be an object.");
-    //if (this.pmfm.isMultiple) throw new Error("Invalid 'pmfm' in <app-pmfm-field>. For 'isMutliple' should be false. Please use a FormArrayHelper instead");
+    this.controlName = this.controlName || this.pmfm.id?.toString();
 
     const control = this.control || (this.controlName && this.formGroupDir?.form.get(this.controlName));
     if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");

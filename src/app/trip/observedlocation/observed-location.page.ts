@@ -6,6 +6,7 @@ import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormGroup } from '@angular/forms';
 import {
+  AccountService,
   Alerts,
   AppTable,
   ConfigService,
@@ -17,12 +18,13 @@ import {
   isNotNil,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils, StatusIds,
+  ReferentialUtils,
+  StatusIds,
   toBoolean,
-  UsageMode, waitIdle,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
-import { SelectVesselsModal } from './vessels/select-vessel.modal';
+import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -37,7 +39,6 @@ import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { waitForAsync } from '@angular/core/testing';
 
 const moment = momentImported;
 
@@ -48,6 +49,8 @@ const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
 };
+
+type ObservedVesselsTableType = 'LANDINGS' | 'AGGREGATED_LANDINGS';
 
 @Component({
   selector: 'app-observed-location-page',
@@ -67,9 +70,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   mobile: boolean;
   showLandingTab = false;
-  aggregatedLandings: boolean;
+  observedVesselsTableType = new BehaviorSubject<ObservedVesselsTableType>(undefined);
   allowAddNewVessel: boolean;
   showVesselType: boolean;
+  showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
   $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
@@ -86,6 +90,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected configService: ConfigService,
+    protected accountService: AccountService,
     protected context: ContextService
   ) {
     super(injector,
@@ -241,15 +246,17 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     const modal = await this.modalCtrl.create({
       component: SelectVesselsModal,
-      componentProps: {
+      componentProps: <SelectVesselsModalOptions>{
         allowMultiple: false,
-        allowAddNewVessel: this.allowAddNewVessel,
-        showVesselTypeColumn: this.showVesselType,
         landingFilter,
         vesselFilter: <VesselFilter>{
           statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
           onlyWithRegistration: true
-        }
+        },
+        allowAddNewVessel: this.allowAddNewVessel,
+        showVesselTypeColumn: this.showVesselType,
+        showBasePortLocationColumn: this.showVesselBasePortLocation,
+        defaultVesselSynchronizationStatus: 'SYNC'
       },
       keyboardClose: true,
       cssClass: 'modal-large'
@@ -279,7 +286,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-
   addRow($event: MouseEvent) {
     if (this.landingsTable) {
       this.landingsTable.addRow($event);
@@ -294,11 +300,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     await super.setProgram(program);
     if (!program) return; // Skip
 
+    try {
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-    this.aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-    if (this.aggregatedLandings) {
+    const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+    this.observedVesselsTableType.next(aggregatedLandings ? 'AGGREGATED_LANDINGS' : 'LANDINGS')
+    if (aggregatedLandings) {
       // Force some date properties
       this.observedLocationForm.showEndDateTime = true;
       this.observedLocationForm.showStartTime = false;
@@ -315,36 +323,45 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+    this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
 
     this.cd.detectChanges();
-    const landingsTable = this.landingsTable;
-    if (landingsTable) {
+    if (this.landingsTable) {
+      const landingsTable = this.landingsTable;
       landingsTable.i18nColumnSuffix = i18nSuffix;
       landingsTable.detailEditor = this.landingEditor;
 
       landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
       landingsTable.showVesselTypeColumn = this.showVesselType;
+      landingsTable.showVesselBasePortLocationColumn = this.showVesselBasePortLocation;
       landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
       landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
       landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
-      landingsTable.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
       landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
     } else if (this.aggregatedLandingsTable) {
-      this.aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
-      this.aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+      const aggregatedLandingsTable = this.aggregatedLandingsTable;
+      aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+      aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
     }
 
     this.$ready.next(true);
 
     // Listen program, to reload if changes
     this.startListenProgramRemoteChanges(program);
+    }
+    catch (err) {
+      this.setError(err);
+    }
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
+
+      const user = this.accountService.account.asPerson();
+      data.observers.push(user);
 
       console.debug('[observed-location] New entity: set default values...');
 
@@ -399,14 +416,24 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async setValue(data: ObservedLocation) {
+    console.info('[observed-location] Setting data', data);
+
+    if (!this.isNewData) {
+      // Wait ready only on existing data (must not wait table because program is not set yet)
+      await this.ready();
+    }
+
     // Set data to form
     this.observedLocationForm.value = data;
 
-    console.info('[observed-location] Setting data', data);
+    this.propagateParent(data);
+  }
 
+  protected propagateParent(data?: ObservedLocation) {
+    data = data || this.data;
     const isNew = isNil(data.id);
     if (!isNew) {
-      // Propage to table parent
+      // Propagate to table parent
       this.table?.setParent(data)
     }
   }

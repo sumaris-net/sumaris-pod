@@ -50,15 +50,13 @@
 
   <app-vessels-table #table
                      [canEdit]="canEdit"
-                     [autoLoad]="true"
                      [showFabButton]="true"
                      [canDelete]="canDelete"
                      [showPaginator]="false"
                      [showToolbar]="false"
                      [paginator]='paginator'
-                     (onOpenRow)="onOpenRow($event)"
-                     [paginator]="paginator"
-  ></app-vessels-table>
+                     (onOpenRow)="onOpenRow($event)">
+  </app-vessels-table>
 
 </ion-content>
 

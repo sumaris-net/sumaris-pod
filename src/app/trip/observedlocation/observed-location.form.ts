@@ -236,9 +236,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  async setValue(data: ObservedLocation, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }) {
+  protected onApplyingEntity(data: ObservedLocation, opts?: { [p: string]: any }) {
     if (!data) return;
+
+    super.onApplyingEntity(data, opts);
 
     // Make sure to have (at least) one observer
     data.observers = data.observers && data.observers.length ? data.observers : [null];
@@ -263,7 +264,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Update form group
     this.validatorService.updateFormGroup(this.form, {startDateDay: this.filterStartDateDay});
 
-    await super.setValue(data, opts);
   }
 
   addObserver() {

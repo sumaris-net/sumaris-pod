@@ -204,8 +204,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
 
-    //this.saveBeforeDelete = false;
-    this.saveBeforeDelete = true;
+    this.saveBeforeDelete = false;
+    // this.saveBeforeDelete = true;
 
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
 

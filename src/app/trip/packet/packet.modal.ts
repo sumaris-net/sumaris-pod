@@ -1,18 +1,26 @@
-import {AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {IWithPacketsEntity, Packet} from '../services/model/packet.model';
-import {ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
-import {PacketForm} from './packet.form';
-import {AppFormUtils, isNil} from '@sumaris-net/ngx-components';
-import {TranslateService} from '@ngx-translate/core';
-import {OperationGroup} from '@app/trip/services/model/trip.model';
-import {Product} from '@app/trip/services/model/product.model';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { IWithPacketsEntity, Packet } from '../services/model/packet.model';
+import { ModalController } from '@ionic/angular';
+import { Subject, Subscription } from 'rxjs';
+import { PacketForm } from './packet.form';
+import { AppFormUtils, isNil, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
+
+export interface PacketModalOptions {
+  data: Packet;
+  mobile: boolean;
+  showParent?: boolean;
+  isNew: boolean;
+  parents: IWithPacketsEntity<any, any>[];
+  parentAttributes: string[];
+  onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
+}
 
 @Component({
   selector: 'app-packet-modal',
   templateUrl: './packet.modal.html'
 })
-export class PacketModal implements OnInit, OnDestroy {
+export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
 
   loading = false;
   subscription = new Subscription();
@@ -22,11 +30,10 @@ export class PacketModal implements OnInit, OnDestroy {
 
   @Input() data: Packet;
   @Input() mobile: boolean;
+  @Input() showParent: boolean;
   @Input() isNew: boolean;
   @Input() parents: IWithPacketsEntity<any, any>[];
   @Input() parentAttributes: string[];
-
-
   @Input() onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
 
   get disabled() {
@@ -44,12 +51,15 @@ export class PacketModal implements OnInit, OnDestroy {
 
   constructor(
     protected viewCtrl: ModalController,
-    protected translate: TranslateService
+    protected translate: TranslateService,
+    protected platform: PlatformService
   ) {
 
+    this.mobile = platform.mobile;
   }
 
   ngOnInit(): void {
+    this.showParent = toBoolean(this.showParent, this.mobile);
     this.enable();
     this.computeTitle(this.data);
     setTimeout(() => this.packetForm.setValue(this.data))

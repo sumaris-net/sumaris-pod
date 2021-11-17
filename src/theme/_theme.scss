@@ -19,7 +19,6 @@
 }
 
 .mat-table {
-
   .mat-row {
     height: 50px !important;
     overflow: hidden;
@@ -27,6 +26,10 @@
   .mat-header-row,
   .mat-row,
   .mat-footer-row {
+
+    .mat-column-select {
+      width: 50px; // Force to 50px, because sticky column must have fixed width
+    }
 
     .mat-header-cell,
     .mat-cell,

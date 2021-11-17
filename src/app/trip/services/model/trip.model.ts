@@ -296,6 +296,13 @@ export class OperationGroup extends DataEntity<OperationGroup>
     super(OperationGroup.TYPENAME);
   }
 
+  static equals(o1: OperationGroup | any, o2: OperationGroup | any): boolean {
+    return o1 && o2 && ((isNotNil(o1.id) && o1.id === o2.id)
+      // Or by functional attributes
+      || o1.metier.equals(o2.metier) && ((!o1.rankOrderOnPeriod && !o2.rankOrderOnPeriod) || (o1 === o2.rankOrderOnPeriod))
+      );
+  }
+
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     const target = super.asObject(opts);
 
@@ -513,6 +520,17 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntityWithMeasurement<PhysicalGear> {
 
   static fromObject: (source: any, opts?: any) => PhysicalGear;
+  static equals(s1: PhysicalGear, s2: PhysicalGear) {
+    return s1 && s2 && s1.id === s2.id
+      // Or
+      || (
+        // Same gear
+        (s1.gear && s2.gear && s1.gear.id === s2.gear.id)
+        // Same rankOrder
+        && (s1.rankOrder === s2.rankOrder)
+        // WARN: compare parent (e.g. same trip) is tto complicated, because it can be not set yet, before saving
+      );
+  }
 
   rankOrder: number = null;
   gear: ReferentialRef = null;

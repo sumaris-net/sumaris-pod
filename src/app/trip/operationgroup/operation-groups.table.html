@@ -46,137 +46,137 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-<table mat-table [dataSource]="dataSource"
-       matSort
-       matSortDirection="asc"
-       matSortDisableClear
-       [trackBy]="trackByFn">
+  <table mat-table [dataSource]="dataSource"
+         matSort
+         matSortDirection="asc"
+         matSortDisableClear
+         [trackBy]="trackByFn">
 
-  <ng-container matColumnDef="select" [sticky]="useSticky">
-    <th mat-header-cell  *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-        [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </th>
-    <td mat-cell  *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </td>
-  </ng-container>
+    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+      <th mat-header-cell  *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </th>
+      <td mat-cell  *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+        </mat-checkbox>
+      </td>
+    </ng-container>
 
-  <!-- id -->
-  <ng-container matColumnDef="id" [sticky]="useSticky">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-    <ion-label>#</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
-    </td>
-  </ng-container>
+    <!-- id -->
+    <ng-container matColumnDef="id" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+      <ion-label>#</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
+        <ion-text>{{row.currentData.rankOrderOnPeriod}}</ion-text>
+      </td>
+    </ng-container>
 
-  <!-- metier -->
-  <ng-container matColumnDef="metier">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <mat-autocomplete-field *ngIf="inlineEdition else readOnly" floatLabel="never" class="min-width-large ion-text-wrap"
-                              [autofocus]="row.id === -1 && row.editing"
-                              [formControl]="row.validator.controls.metier"
-                              [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
-                              [readonly]="!row.editing || mobile"
-                              [config]="autocompleteFields.metier"
-                              (blur)="onMetierChange($event, row)"
-                              required>
-      </mat-autocomplete-field>
-      <ng-template #readOnly>
-        <ion-label>{{row.currentData.metier.label}} - {{row.currentData.metier.name}}</ion-label>
-      </ng-template>
-    </td>
-  </ng-container>
+    <!-- metier -->
+    <ng-container matColumnDef="metier">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-autocomplete-field *ngIf="inlineEdition else readOnly" floatLabel="never" class="min-width-large ion-text-wrap"
+                                [autofocus]="row.id === -1 && row.editing"
+                                [formControl]="row.validator.controls.metier"
+                                [placeholder]="'TRIP.OPERATION.LIST.METIER'|translate"
+                                [readonly]="!row.editing || mobile"
+                                [config]="autocompleteFields.metier"
+                                (blur)="onMetierChange($event, row)"
+                                required>
+        </mat-autocomplete-field>
+        <ng-template #readOnly>
+          <ion-label>{{row.currentData.metier.label}} - {{row.currentData.metier.name}}</ion-label>
+        </ng-template>
+      </td>
+    </ng-container>
 
-  <!-- physical gear -->
-  <ng-container matColumnDef="gear">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.physicalGear?.gear || row.currentData.metier?.gear, displayAttributes.gear)}}</ion-label>
-    </td>
-  </ng-container>
+    <!-- physical gear -->
+    <ng-container matColumnDef="gear">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>{{ (row.currentData.physicalGear?.gear || row.currentData.metier?.gear) | referentialToString: displayAttributes.gear }}</ion-label>
+      </td>
+    </ng-container>
 
-  <!-- target species -->
-  <ng-container matColumnDef="targetSpecies">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <ion-label>{{referentialToString(row.currentData.metier, displayAttributes.taxonGroup)}}</ion-label>
-    </td>
-  </ng-container>
+    <!-- target species -->
+    <ng-container matColumnDef="targetSpecies">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>{{row.currentData.metier | referentialToString: displayAttributes.taxonGroup}}</ion-label>
+      </td>
+    </ng-container>
 
-  <!-- Pmfm columns -->
-  <ng-container  *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
-      <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
-    </th>
-    <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
-              [class.mat-cell-computed]="pmfm|isComputedPmfm">
-      <app-pmfm-field
-        [readonly]="!row.editing"
-        [pmfm]="pmfm" [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
-        [compact]="true" floatLabel="never"></app-pmfm-field>
-    </td>
+    <!-- Pmfm columns -->
+    <ng-container  *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="pmfm|isDatePmfm"
+                [class.mat-cell-computed]="pmfm|isComputedPmfm">
+        <app-pmfm-field
+          [readonly]="!row.editing"
+          [pmfm]="pmfm" [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+          [compact]="true" floatLabel="never"></app-pmfm-field>
+      </td>
 
-  </ng-container>
+    </ng-container>
 
 
-  <!-- Comments column -->
-  <ng-container matColumnDef="comments">
-    <th mat-header-cell *matHeaderCellDef>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <mat-icon class="comment"
-                *ngIf="row.currentData.comments"
-                [title]="row.currentData.comments"></mat-icon>
-    </td>
-  </ng-container>
+    <!-- Comments column -->
+    <ng-container matColumnDef="comments">
+      <th mat-header-cell *matHeaderCellDef>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-icon class="comment"
+                  *ngIf="row.currentData.comments"
+                  [title]="row.currentData.comments"></mat-icon>
+      </td>
+    </ng-container>
 
-  <!-- Actions buttons column -->
-<!--  <app-actions-column (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"-->
-<!--                      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"-->
-<!--                      [canCancel]="false">-->
-<!--  </app-actions-column>-->
-  <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
-    <th mat-header-cell *matHeaderCellDef>
-      <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-    </th>
-    <td mat-cell *matCellDef="let row">
-      <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)" [hidden]="!inlineEdition">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-      </button>
-      <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
-              (click)="confirmEditCreate($event, row)" [hidden]="!inlineEdition">
-        <mat-icon>check</mat-icon>
-      </button>
-      <!-- add -->
-      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-              (click)="confirmAndAdd($event, row)" [hidden]="!inlineEdition">
-        <mat-icon>add</mat-icon>
-      </button>
+    <!-- Actions buttons column -->
+  <!--  <app-actions-column (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"-->
+  <!--                      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"-->
+  <!--                      [canCancel]="false">-->
+  <!--  </app-actions-column>-->
+    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
+      <th mat-header-cell *matHeaderCellDef>
+        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <!-- undo or delete  -->
+        <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                (click)="cancelOrDelete($event, row)" [hidden]="!inlineEdition">
+          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+        </button>
+        <!-- validate -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
+                (click)="confirmEditCreate($event, row)" [hidden]="!inlineEdition">
+          <mat-icon>check</mat-icon>
+        </button>
+        <!-- add -->
+        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
+                (click)="confirmAndAdd($event, row)" [hidden]="!inlineEdition">
+          <mat-icon>add</mat-icon>
+        </button>
 
-    </td>
-  </ng-container>
+      </td>
+    </ng-container>
 
-  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
-</table>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
+  </table>
 
   <ng-container *ngIf="loadingSubject|async; else noResult">
     <ion-item>

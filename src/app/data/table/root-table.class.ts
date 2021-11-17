@@ -527,8 +527,14 @@ export abstract class AppRootTable<
       filter.synchronizationStatus = 'DIRTY';
     }
 
-    this.filterForm.patchValue(filter.asObject());
     this.setFilter(filter, {emitEvent: true, ...opts});
+  }
+
+  setFilter(filter: F, opts?: { emitEvent: boolean }) {
+
+    filter = this.asFilter(filter);
+    this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
+    super.setFilter(filter, opts);
   }
 
   protected async checkUpdateOfflineNeed() {

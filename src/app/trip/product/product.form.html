@@ -15,8 +15,7 @@
                                 [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
                                 [required]="true"
                                 [tabindex]="tabindex"
-                                [config]="autocompleteFields.parent"
-                                [clearable]="true">
+                                [config]="autocompleteFields.parent">
         </mat-autocomplete-field>
       </ion-col>
 
@@ -27,39 +26,40 @@
                                 [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP'|translate"
                                 [required]="true"
                                 [tabindex]="tabindex+1"
-                                [config]="autocompleteFields.taxonGroup"
-                                [clearable]="true">
+                                [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
 
     <ion-row class="ion-no-padding">
-      <ion-col size="12" size-md="">
 
-        <!-- weight -->
+      <!-- weight -->
+      <ion-col size="12" size-md="">
         <mat-form-field>
           <input matInput
                  autocomplete="off"
-                 [formControl]="form.controls.weight"
+                 formControlName="weight"
                  type="number"
                  decimal="true"
                  [tabIndex]="tabindex+2"
-                 [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate">
+                 [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
+                 required>
           <mat-error *ngIf="form.controls.weight.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
         </mat-form-field>
       </ion-col>
-      <ion-col size="12" size-md="">
 
-        <!-- individualCount -->
+      <!-- individualCount -->
+      <ion-col size="12" size-md="">
 
         <mat-form-field>
           <input matInput
                  autocomplete="off"
-                 [formControl]="form.controls.individualCount"
+                 formControlName="individualCount"
                  type="number"
                  [tabIndex]="tabindex+3"
-                 [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate">
+                 [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
+                 required>
           <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
@@ -67,17 +67,19 @@
 
     <ng-content></ng-content>
 
-    <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+    <ion-row [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
 
       <!-- Measurements -->
-      <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
-                      [pmfm]="pmfm"
-                      [formControlName]="pmfm.id.toString()"
-                      [compact]="compact"
-                      [tabindex]="tabindex+4 + i"
-                      [floatLabel]="floatLabel">
-      </app-pmfm-field>
-    </form>
+      <ion-col *ngFor="let pmfm of pmfms; index as i;"
+               size="12" size-md="6">
+        <app-pmfm-field
+                        [pmfm]="pmfm"
+                        [compact]="compact"
+                        [tabindex]="tabindex+4 + i"
+                        [floatLabel]="floatLabel">
+        </app-pmfm-field>
+      </ion-col>
+    </ion-row>
 
     <!-- Comments -->
     <!--    <ion-row class="ion-no-padding" *ngIf="showComment">-->

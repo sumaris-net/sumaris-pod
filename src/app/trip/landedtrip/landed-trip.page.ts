@@ -6,6 +6,7 @@ import {AcquisitionLevelCodes, SaleTypeIds} from '@app/referential/services/mode
 import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {
+  AccountService,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -67,6 +68,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   showCatchTab = false;
   showSaleTab = false;
   showExpenseTab = false;
+  showCatchFilter = false;
   mobile = false;
 
   // List of trip's metier, used to populate operation group's metier combobox
@@ -78,7 +80,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   $productFilter = new BehaviorSubject<ProductFilter>(undefined);
   $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
 
-  operationGroupAttributes = ['metier.label', 'metier.name'];
+  operationGroupAttributes = ['rankOrderOnPeriod', 'metier.label', 'metier.name'];
 
   productSalePmfms: DenormalizedPmfmStrategy[];
 
@@ -101,6 +103,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
     protected landingService: LandingService,
+    protected accountService: AccountService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
     protected formBuilder: FormBuilder,
   ) {
@@ -113,6 +116,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       });
 
     this.mobile = platform.mobile;
+    this.showCatchFilter = !this.mobile;
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -308,6 +313,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
       data.returnDateTime = moment();
+
+      if (isEmptyArray(data.observers)) {
+        const user = this.accountService.account.asPerson();
+        data.observers.push(user);
+      }
     }
 
   }

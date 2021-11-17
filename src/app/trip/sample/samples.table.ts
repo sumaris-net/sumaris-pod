@@ -110,12 +110,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() compactFields = true;
   @Input() showDisplayColumn = true;
   @Input() weightDisplayedUnit: string;
-
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
-    if (this.$pmfmGroups.getValue() !== value) {
+    if (this.$pmfmGroups.value !== value) {
       this.showGroupHeader = true;
       this.showToolbar = false;
       this.$pmfmGroups.next(value);
@@ -669,7 +668,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
             const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
-            const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
+            const key = 'group-' + group;
             return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
               key,
               label: group,

@@ -1,20 +1,19 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from '@sumaris-net/ngx-components';
-import {IWithPacketsEntity, Packet, PacketFilter, PacketUtils} from '../services/model/packet.model';
-import {PacketValidatorService} from '../services/validator/packet.validator';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {BehaviorSubject} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {PacketModal} from './packet.modal';
-import {PacketSaleModal} from '../sale/packet-sale.modal';
-import {SaleProductUtils} from '../services/model/sale-product.model';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Product} from '@app/trip/services/model/product.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from '../services/model/packet.model';
+import { PacketValidatorService } from '../services/validator/packet.validator';
+import { ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { BehaviorSubject } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PacketModal, PacketModalOptions } from './packet.modal';
+import { PacketSaleModal } from '../sale/packet-sale.modal';
+import { SaleProductUtils } from '../services/model/sale-product.model';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-packets-table',
@@ -37,7 +36,6 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
   @Input() showToolbar = true;
   @Input() useSticky = false;
-  @Input() mobile: boolean;
 
   @Input() set parentFilter(packetFilter: PacketFilter) {
     this.setFilter(packetFilter);
@@ -90,7 +88,6 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       RESERVED_START_COLUMNS
         .concat([
           'parent',
-          'rankOrder',
           'number',
           'weight'
         ])
@@ -120,8 +117,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     this.registerAutocompleteField('parent', {
       items: this.$parents,
       attributes: this.parentAttributes,
-      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : undefined)
+      columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+      columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined))
     });
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
@@ -139,21 +136,60 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   private async onRowCreated(row: TableElement<Packet>) {
     const data = row.currentData; // if validator enable, this will call a getter function
 
+    await this.onNewEntity(data);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    this.markForCheck();
+  }
+
+  protected async addEntityToTable(data: Packet, opts?: { confirmCreate?: boolean; }): Promise<TableElement<Packet>> {
+    if (!data) throw new Error("Missing data to add");
+    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
+
+    const row = await this.addRowToTable();
+    if (!row) throw new Error("Could not add row to table");
+
+    await this.onNewEntity(data);
+
+    // Affect new row
+    if (row.validator) {
+      row.validator.patchValue(data);
+      row.validator.markAsDirty();
+    } else {
+      row.currentData = data;
+    }
+
+    // Confirm the created row
+    if (!opts || opts.confirmCreate !== false) {
+      this.confirmEditCreate(null, row);
+      this.editedRow = null;
+    }
+    else {
+      this.editedRow = row;
+    }
+
+    this.markAsDirty();
+
+    return row;
+  }
+
+  protected async onNewEntity(data: Packet): Promise<void> {
     if (isNil(data.rankOrder)) {
       data.rankOrder = (await this.getMaxRankOrder()) + 1;
     }
-
-    // Set row data
-    row.currentData = data; // if validator enable, this will call a setter function
-
-    this.markForCheck();
   }
 
   protected async getMaxRankOrder(): Promise<number> {
     const rows = await this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
-
 
   protected markForCheck() {
     this.cd.markForCheck();
@@ -169,17 +205,12 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const res = await this.openDetailModal();
+    const { data, role } = await this.openDetailModal();
 
-    if (res && res.data) {
-      const row = await this.addRowToTable();
+    if (data) {
+      const row = await this.addEntityToTable(data);
 
-      row.validator.patchValue(res.data, {onlySelf: false, emitEvent: false});
-      row.validator.markAsDirty();
-
-      await this.onRowCreated(row);
-
-      if (res.role === 'sale') {
+      if (role === 'sale') {
         await this.openPacketSale(null, row);
       }
     } else {
@@ -192,14 +223,19 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     const isNew = !packet && true;
     if (isNew) {
       packet = new Packet();
-      packet.parent = this.filter && this.filter.parent || undefined;
+
+      if (this.filter?.parent) {
+        packet.parent = this.filter.parent;
+      } else if (this.$parents.value?.length === 1) {
+        packet.parent =  this.$parents.value[0];
+      }
     }
 
     const modal = await this.modalCtrl.create({
       component: PacketModal,
-      componentProps: {
+      componentProps: <PacketModalOptions>{
         mobile: this.mobile,
-        parents: this.$parents.getValue(),
+        parents: this.$parents.value,
         parentAttributes: this.parentAttributes,
         data: packet,
         isNew,

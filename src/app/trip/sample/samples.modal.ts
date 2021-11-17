@@ -27,33 +27,22 @@ export class SamplesModal implements OnInit {
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() acquisitionLevel: AcquisitionLevelType;
-
   @Input() programLabel: string;
-
   @Input() canEdit: boolean;
-
   @Input() disabled: boolean;
-
   @Input() isNew = false;
-
   @Input() defaultSampleDate: Moment;
-
   @Input() defaultTaxonGroup: ReferentialRef;
-
   @Input() showTaxonGroup = true;
-
   @Input() showTaxonName = true;
-
   @Input() showLabel = false;
-
   @Input() title: string;
+  @Input() onReady: (modal: SamplesModal) => void;
 
   @Input()
   set value(value: Sample[]) {
     this.data = value;
   }
-
-  @Input() onReady: (modal: SamplesModal) => void;
 
   @ViewChild('table', { static: true }) table: SamplesTable;
 

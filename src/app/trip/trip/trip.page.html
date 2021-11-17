@@ -155,8 +155,9 @@
         <app-physicalgears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
                                  [showToolbar]="!mobile"
-                                 [debug]="debug"
-                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)">
+                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)"
+                                 [useSticky]="!mobile"
+                                 [debug]="debug">
         </app-physicalgears-table>
 
       </div>
@@ -187,9 +188,10 @@
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
-  <app-form-buttons-bar (onCancel)="cancel()" (onSave)="save($event)"
-                        [disabled]="!dirty || loading"
-                        [disabledCancel]="!dirty || loading">
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

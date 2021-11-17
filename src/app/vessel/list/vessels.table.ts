@@ -53,7 +53,6 @@ export const VesselsTableSettingsEnum = {
 export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
 
   locations: Observable<ReferentialRef[]>;
-  vesselTypes: Observable<ReferentialRef[]>;
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
@@ -64,6 +63,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
   @Input() showError = true;
   @Input() showToolbar = true;
   @Input() showPaginator = true;
+  @Input() useSticky = true;
 
   @Input()
   set showIdColumn(value: boolean) {
@@ -81,6 +81,15 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
 
   get showVesselTypeColumn(): boolean {
     return this.getShowColumn('vesselType');
+  }
+
+  @Input()
+  set showBasePortLocationColumn(value: boolean) {
+    this.setShowColumn('vesselFeatures.basePortLocation', value);
+  }
+
+  get showBasePortLocationColumn(): boolean {
+    return this.getShowColumn('vesselFeatures.basePortLocation');
   }
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
@@ -141,7 +150,8 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       date: [null, SharedValidators.validDate],
       searchText: [null],
       statusId: [null],
-      synchronizationStatus: [null]
+      synchronizationStatus: [null],
+      onlyWithRegistration: [null]
     });
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
@@ -193,10 +203,8 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
       mobile: this.mobile
     });
 
-    // TODO fill vessel types
-
     // Restore filter from settings, or load all
-    this.restoreFilterOrLoad({emitEvent: this.autoLoad});
+    this.restoreFilterOrLoad();
   }
 
   async openNewRowDetail(): Promise<boolean> {

@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {environment} from "../../../environments/environment";
 import {AlertController, IonContent, ModalController} from "@ionic/angular";
-import {BehaviorSubject, isObservable, Observable, of} from "rxjs";
+import { BehaviorSubject, isObservable, Observable, of, Subscription, TeardownLogic } from 'rxjs';
 import {TranslateService} from "@ngx-translate/core";
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
@@ -14,11 +14,12 @@ import {UsageMode}  from "@sumaris-net/ngx-components";
 import {Alerts} from "@sumaris-net/ngx-components";
 import {TRIP_LOCAL_SETTINGS_OPTIONS} from "../services/config/trip.config";
 import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime} from "rxjs/operators";
+import { debounceTime, filter, takeUntil } from 'rxjs/operators';
 import {AppFormUtils}  from "@sumaris-net/ngx-components";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
 import {referentialToString}  from "@sumaris-net/ngx-components";
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { until } from 'protractor';
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 
@@ -43,13 +44,14 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
   templateUrl: 'sample.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SampleModal implements OnInit, ISampleModalOptions {
+export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
-  private _pmfms$ = new BehaviorSubject<IPmfm[]>(undefined);
+  private _subscription = new Subscription();
+  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
   mobile: boolean;
-  $title = new BehaviorSubject<string>(undefined);
 
   @Input() isNew: boolean;
   @Input() data: Sample;
@@ -63,28 +65,15 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   @Input() showDateTime = true;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
-
-  // Avoid to load PMFM from program
-  @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
-    if (isObservable(pmfms)) {
-      pmfms.subscribe(pmfms => this._pmfms$.next(pmfms));
-    }
-    else {
-      this._pmfms$.next(pmfms);
-    }
-  }
-
-  get $pmfms(): Observable<IPmfm[]> {
-    return this._pmfms$.asObservable();
+  @Input() showComment: boolean;
+  @Input() set pmfms(value: Observable<IPmfm[]> | IPmfm[]) {
+    this.setPmfms(value);
   }
 
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
-
-
   @Input() onReady: (modal: SampleModal) => void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
   @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
-
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
 
@@ -120,6 +109,7 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
     // TODO: for DEV only
     this.debug = !environment.production;
+    this.showComment = !this.mobile;
   }
 
   ngOnInit() {
@@ -146,9 +136,11 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
     if (!this.isNew) {
       // Update title each time value changes
-      this.form.valueChanges
-        .pipe(debounceTime(250))
-        .subscribe(json => this.computeTitle(json));
+      this._subscription.add(
+        this.form.valueChanges
+          .pipe(debounceTime(250))
+          .subscribe(json => this.computeTitle(json))
+      );
     }
 
     // Add callback
@@ -156,6 +148,10 @@ export class SampleModal implements OnInit, ISampleModalOptions {
       if (this.onReady) this.onReady(this);
       this.markForCheck();
     });
+  }
+
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
   }
 
   async close(event?: UIEvent) {
@@ -182,37 +178,49 @@ export class SampleModal implements OnInit, ISampleModalOptions {
     await this.form.waitIdle();
   }
 
-  async onSubmit(event?: UIEvent) {
+  /**
+   * Add and reset form
+   */
+  async onSubmitAndNext(event?: UIEvent) {
+    if (this.loading) return undefined; // avoid many call
     // DEBUG
-    //console.debug('[sample-modal] Calling onSubmit()');
+    //console.debug('[sample-modal] Calling onSubmitAndNext()');
 
-    // Add and reset
-    if (this.enableBurstMode) {
-      if (this.loading) return undefined; // avoid many call
-      const data = this.getDataToSave();
-      if (!data) return; // invalid
+    const data = this.getDataToSave();
+    if (!data) return; // invalid
 
-      this.loading = true;
+    this.loading = true;
 
-      try {
-        const newData = await this.onSaveAndNew(data);
-        this.reset(newData);
+    try {
+      const newData = await this.onSaveAndNew(data);
+      this.reset(newData);
 
-        await this.scrollToTop();
-      }
-      finally {
-        this.loading = false;
-        this.markForCheck();
-      }
+      await this.scrollToTop();
     }
-    // Or leave
+    finally {
+      this.loading = false;
+      this.markForCheck();
+    }
+  }
+
+  /**
+   * Validate and close
+   * @param event
+   */
+  async onSubmit(event?: UIEvent) {
+    if (this.loading) return undefined; // avoid many call
+
+    // Leave without saving
+    if (!this.dirty) {
+      this.loading = true;
+      await this.modalCtrl.dismiss();
+    }
+    // Convert and dismiss
     else {
-      if (this.loading) return undefined; // avoid many call
-      const data = this.getDataToSave();
+      const data = this.dirty ? this.getDataToSave() : this.data;
       if (!data) return; // invalid
 
       this.loading = true;
-
       await this.modalCtrl.dismiss(data);
     }
   }
@@ -232,10 +240,29 @@ export class SampleModal implements OnInit, ISampleModalOptions {
   toggleBurstMode() {
     this.enableBurstMode = !this.enableBurstMode;
 
+    // Remember (store in local settings)
     this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE.key, this.enableBurstMode);
   }
 
+  toggleComment() {
+    this.showComment = !this.showComment;
+    this.markForCheck();
+  }
+
   /* -- protected methods -- */
+
+  private setPmfms(value: Observable<IPmfm[]> | IPmfm[]) {
+    if (isObservable(value)) {
+      this.registerSubscription(
+        value
+          .pipe(filter(pmfms => pmfms !== this.$pmfms.value))
+          .subscribe(pmfms => this.$pmfms.next(pmfms))
+      );
+    }
+    else if (value !== this.$pmfms.value){
+      this.$pmfms.next(value);
+    }
+  }
 
   protected getDataToSave(opts?: { markAsLoading?: boolean; }): Sample {
 
@@ -316,6 +343,10 @@ export class SampleModal implements OnInit, ISampleModalOptions {
 
   async scrollToTop() {
     return this.content.scrollToTop();
+  }
+
+  protected registerSubscription(teardown: TeardownLogic) {
+    this._subscription.add(teardown);
   }
 
   protected markForCheck() {

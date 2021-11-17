@@ -40,12 +40,12 @@
 <!-- First header row -->
 <mat-table *ngIf="qvPmfm">
   <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile"></mat-header-cell>
   </ng-container>
 
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef [class.ion-padding-start]="mobile"></mat-header-cell>
   </ng-container>
 
   <!-- taxon group (commercial species) -->
@@ -144,12 +144,12 @@
   </ng-container> -->
 
   <ng-container matColumnDef="select">
-    <mat-header-cell  *matHeaderCellDef>
+    <mat-header-cell  *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
       <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
         [indeterminate]="selection.hasValue() && !isAllSelected()">
       </mat-checkbox>
     </mat-header-cell>
-    <mat-cell  *matCellDef="let row">
+    <mat-cell  *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
       <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
@@ -157,11 +157,11 @@
 
   <!-- rankOrder Column = id -->
   <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+      <ion-label>#</ion-label>
     </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-label>{{ row.currentData?.rankOrder }}</ion-label>
+    <mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
+      <ion-label>{{ row.currentData.rankOrder }}</ion-label>
     </mat-cell>
   </ng-container>
 
@@ -292,12 +292,12 @@
              [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select">
-      <mat-header-cell  *matHeaderCellDef>
+      <mat-header-cell  *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell  *matCellDef="let row">
+      <mat-cell  *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
       </mat-cell>
@@ -305,11 +305,11 @@
 
     <!-- rankOrder Column = id -->
     <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+      <mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+        <ion-label>#</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-label>{{ row.currentData?.rankOrder }}</ion-label>
+      <mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
+        <ion-label>{{ row.currentData.rankOrder }}</ion-label>
       </mat-cell>
     </ng-container>
 

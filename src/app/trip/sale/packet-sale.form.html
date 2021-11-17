@@ -1,14 +1,14 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" lines="none">
+  <ion-item *ngIf="error && showError" lines="none" class="ion-padding">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-margin-bottom">
 
-    <ion-row>
+    <ion-row class="ion-padding">
       <!--  label  -->
       <!--      <ion-col>-->
       <!--        <h3>{{'PACKET.LABEL_VALUE' | translate : {rankOrder: form.controls.rankOrder.value} }}</h3>-->
@@ -38,9 +38,8 @@
 
     </ion-row>
 
-    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last"
-             [class.odd]="i | odd"
-             [class.even]="i | even">
+    <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last, even as even"
+             class="ion-padding" [class.even]="even">
 
       <!-- sale type -->
       <ion-col size-lg="3" size-xs="4">
