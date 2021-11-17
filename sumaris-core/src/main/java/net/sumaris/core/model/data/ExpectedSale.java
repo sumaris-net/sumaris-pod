@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;
@@ -40,7 +41,8 @@ import java.util.List;
 @Entity
 @Table(name = "expected_sale")
 public class ExpectedSale implements IEntity<Integer>,
-    IWithProductsEntity<Integer, Product> {
+    IWithProductsEntity<Integer, Product>,
+    IWithRecorderDepartmentEntity<Integer, Department> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXPECTED_SALE_SEQ")
@@ -80,4 +82,15 @@ public class ExpectedSale implements IEntity<Integer>,
     @ToString.Exclude
     private Landing landing;
 
+    @Override
+    public Department getRecorderDepartment() {
+        if (landing != null) return landing.getRecorderDepartment();
+        if (trip != null) return trip.getRecorderDepartment();
+        return null;
+    }
+
+    @Override
+    public void setRecorderDepartment(Department recorderDepartment) {
+        throw new IllegalArgumentException("Cannot set recorder department on ExpectedSale");
+    }
 }

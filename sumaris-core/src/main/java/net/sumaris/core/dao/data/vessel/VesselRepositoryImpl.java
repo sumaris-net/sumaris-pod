@@ -26,6 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
@@ -44,6 +47,7 @@ import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -62,6 +66,7 @@ public class VesselRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final ReferentialDao referentialDao;
     private final ProgramRepository programRepository;
+    private boolean enableRegistrationCodeSearchAsPrefix = false;
 
     @Autowired
     public VesselRepositoryImpl(EntityManager entityManager,
@@ -77,6 +82,16 @@ public class VesselRepositoryImpl
         this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
         this.referentialDao = referentialDao;
         this.programRepository = programRepository;
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+    }
+
+    @Override
+    public boolean enableRegistrationCodeSearchAsPrefix() {
+        return enableRegistrationCodeSearchAsPrefix;
     }
 
     @Override

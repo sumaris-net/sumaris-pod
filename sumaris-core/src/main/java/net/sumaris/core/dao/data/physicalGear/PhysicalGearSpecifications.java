@@ -92,5 +92,5 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
         };
     }
 
-    List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources);
+    List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources, List<Integer> idsToRemove);
 }

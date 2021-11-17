@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
@@ -43,5 +44,9 @@ public class VesselRegistrationPeriodVO implements IEntity<Integer>, IValueObjec
     private Date endDate;
 
     private Integer qualityFlagId;
+
+    @ToString.Exclude
+    private VesselVO vessel;
+
 
 }

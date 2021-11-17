@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -52,6 +52,7 @@ import org.apache.commons.lang3.mutable.MutableShort;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -127,6 +128,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     @Autowired
     private PmfmRepository pmfmRepository;
+
+    @Value("${sumaris.persistence.qualityFlagId.default:0}")
+    private int defaultQualityFlagId = QualityFlagEnum.NOT_QUALIFIED.getId();
 
     // TODO: enable this, when APP can manage it !
     private boolean enableMeasurementMapFullSerialization = false;
@@ -677,10 +681,18 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // note: Need Beans.getList() to avoid NullPointerException if target=null
         final Map<Integer, T> sourceToRemove = Beans.splitById(Beans.getList(target));
 
-        MutableShort rankOrder = new MutableShort(1);
+        boolean hasRankOrder = (ISortedMeasurementEntity.class).isAssignableFrom(entityClass);
+        boolean isQuantification = !hasRankOrder && (IQuantifiedMeasurementEntity.class).isAssignableFrom(entityClass);
+
+        Short maxRankOrder = hasRankOrder ? Beans.<Short, V>collectProperties(sources, ISortedMeasurementEntity.Fields.RANK_ORDER)
+                .stream()
+                .filter(Objects::nonNull)
+                .max(Short::compareTo)
+                .orElse((short) 0) : 0;
+
+        MutableShort rankOrder = new MutableShort(maxRankOrder + 1);
         Date newUpdateDate = null;
         String entityName = getEntityName(entityClass);
-        List<V> result = Lists.newArrayList();
         for (V source: sources) {
             if (isNotEmpty(source)) {
                 IMeasurementEntity entity = null;
@@ -699,18 +711,26 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     }
                 }
 
+                // Fill default properties
+                fillDefaultProperties(parent, entity);
+
                 // VO -> Entity
-                measurementVOToEntity(source, entity, true);
+                toEntity(source, entity, true);
 
                 // Update rankOrder
-                if (entity instanceof ISortedMeasurementEntity) {
-                    ((ISortedMeasurementEntity)entity).setRankOrder(rankOrder.getValue());
-                    source.setRankOrder(rankOrder.getValue());
-                    rankOrder.increment();
+                if (hasRankOrder) {
+                    if (source.getRankOrder() != null) {
+                        ((ISortedMeasurementEntity)entity).setRankOrder(source.getRankOrder());
+                    }
+                    else {
+                        ((ISortedMeasurementEntity)entity).setRankOrder(rankOrder.getValue());
+                        source.setRankOrder(rankOrder.getValue());
+                        rankOrder.increment();
+                    }
                 }
 
                 // Is reference ?
-                if (entity instanceof IQuantifiedMeasurementEntity) {
+                if (isQuantification) {
                     ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(rankOrder.getValue() == 1);
                     ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder.getValue() == 1 ? null : (short)(rankOrder.getValue() - 1));
                     rankOrder.increment();
@@ -741,7 +761,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             sourceToRemove.values().forEach(em::remove);
         }
 
-        return result;
+        return sources;
     }
 
     @Override
@@ -936,7 +956,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         fillDefaultProperties(parent, entity);
 
         // Set value to entity
-        measurementMapValueToEntity(value, pmfm, entity);
+        toEntity(value, pmfm, entity);
 
         // Link to parent
         setParent(entity, getEntityClass(parent), parent.getId(), false);
@@ -1026,9 +1046,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         return toMeasurementsMap(sources.stream());
     }
 
-    protected void measurementVOToEntity(MeasurementVO source,
-                                         IMeasurementEntity target,
-                                         boolean copyIfNull) {
+    protected void toEntity(MeasurementVO source,
+                            IMeasurementEntity target,
+                            boolean copyIfNull) {
 
         Beans.copyProperties(source, target);
 
@@ -1058,7 +1078,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Quality flag
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, defaultQualityFlagId));
             }
             else {
                 target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
@@ -1067,7 +1087,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     }
 
-    protected void measurementMapValueToEntity(String value, PmfmVO pmfm, IMeasurementEntity target) {
+    protected void toEntity(String value, PmfmVO pmfm, IMeasurementEntity target) {
 
 
         PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
@@ -1187,21 +1207,19 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     protected void fillDefaultProperties(IEntity<?> parent, IMeasurementEntity target) {
 
-        if (parent instanceof IDataEntity) {
-            IDataEntity<?> parentData = (IDataEntity<?>) parent;
-            // Recorder department
-            if (target.getRecorderDepartment() == null) {
-                if (parentData.getRecorderDepartment() == null || parentData.getRecorderDepartment().getId() == null) {
-                    target.setRecorderDepartment(null);
-                } else {
-                    target.setRecorderDepartment(parentData.getRecorderDepartment());
-                }
+        // Recorder department
+        if (target.getRecorderDepartment() == null && parent instanceof IWithRecorderDepartmentEntity) {
+            IWithRecorderDepartmentEntity<Integer, Department> sourceParent = (IWithRecorderDepartmentEntity<Integer, Department>) parent;
+            if (sourceParent.getRecorderDepartment() == null) {
+                target.setRecorderDepartment(null);
+            } else {
+                target.setRecorderDepartment(sourceParent.getRecorderDepartment());
             }
         }
 
         // Quality flag
         if (target.getQualityFlag() == null) {
-            target.setQualityFlag(getReference(QualityFlag.class, getConfig().getDefaultQualityFlagId()));
+            target.setQualityFlag(getReference(QualityFlag.class, defaultQualityFlagId));
         }
     }
 
