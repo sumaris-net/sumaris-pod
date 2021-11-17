@@ -276,7 +276,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             // Iterate over vessel's activities for the date
             activityByVesselId.keySet().forEach(vesselId -> {
                 Collection<VesselActivityVO> activities = activityByVesselId.get(vesselId);
-                List<LandingVO> landingsToSave = landingsByVesselId.get(vesselId);
+                List<LandingVO> landingsToSave = Beans.getList(landingsByVesselId.removeAll(vesselId));
                 List<Integer> landingIdsToRemove = Beans.collectIds(landingsToSave);
                 AtomicBoolean landingsDirty = new AtomicBoolean(false);
                 // Part 1 : Landings
@@ -300,12 +300,16 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
                 // Part 2 : Trips
                 activities.forEach(activity -> {
-                    if (createOrUpdateTrips(observedLocation, landingsByVesselId.get(vesselId), vesselId, activity)) {
+                    if (createOrUpdateTrips(observedLocation, landingsToSave, vesselId, activity)) {
                         // Add the observed location to check list
                         observationIdsToCheck.add(observedLocation.getId());
                     }
                 });
             });
+            // Delete remaining landings
+            if (!landingsByVesselId.isEmpty()) {
+                landingService.delete(Beans.collectIds(landingsByVesselId.values()));
+            }
         });
 
         if (!observedLocationByDate.isEmpty()) {
