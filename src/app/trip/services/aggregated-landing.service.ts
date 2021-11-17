@@ -6,6 +6,7 @@ import {
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
+  fromDateISOString,
   GraphqlService,
   IEntitiesService,
   isEmptyArray,
@@ -46,6 +47,7 @@ ${ReferentialFragments.referential}`;
 const AggregatedLandingFragment = gql`fragment AggregatedLandingFragment on AggregatedLandingVO {
   __typename
   id
+  observedLocationId
   vesselSnapshot {
     ...LightVesselSnapshotFragment
   }
@@ -141,7 +143,7 @@ export class AggregatedLandingService
           filter: dataFilter && dataFilter.asPodObject()
         },
         error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
-        fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'cache-and-network')
+        fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'no-cache')
       })
       .pipe(
         filter(() => !this.loading),
@@ -232,13 +234,31 @@ export class AggregatedLandingService
       error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: (proxy, {data}) => {
 
-        if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, entities);
+        const res = data?.saveAggregatedLandings || [];
+        if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, res);
 
-        entities = (data && data.saveAggregatedLandings || []);
+        entities.forEach(aggLanding => {
+          const savedAggLanding = res.find(value => value.vesselSnapshot.id === aggLanding.vesselSnapshot.id);
+          if (savedAggLanding) {
 
+            aggLanding.observedLocationId = savedAggLanding.observedLocationId;
+
+            aggLanding.vesselActivities.forEach(vesselActivity=>{
+              const savedVesselActivity = savedAggLanding.vesselActivities.find(value => fromDateISOString(value.date).isSame(fromDateISOString(vesselActivity.date)));
+              if (savedVesselActivity) {
+                vesselActivity.observedLocationId = savedVesselActivity.observedLocationId;
+                vesselActivity.landingId = savedVesselActivity.landingId;
+                if (vesselActivity.tripId !== savedVesselActivity.tripId) {
+                  console.warn(`!!!!!!!!!!!!!! ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`)
+                }
+                vesselActivity.tripId = savedVesselActivity.tripId;
+              }
+            })
+
+          }
+        })
       }
     });
-
     return entities;
   }
 

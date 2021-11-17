@@ -76,10 +76,10 @@ export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
     keyFields: ['entityName', 'id']
   },
   'AggregatedLandingVO': {
-    keyFields: ['vesselSnapshot']
+    keyFields: ['observedLocationId', 'vesselSnapshot', ['id']]
   },
   'VesselActivityVO': {
-    keyFields: ['date', 'rankOrder', 'observedLocationId', 'landingId']
+    keyFields: ['date', 'rankOrder', 'observedLocationId', 'tripId'] //'landingId',
   }
 };
 
