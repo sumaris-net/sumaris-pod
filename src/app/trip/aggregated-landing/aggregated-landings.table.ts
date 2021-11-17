@@ -107,6 +107,9 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.setParent(value);
   }
 
+  @Input() showToolbar = true;
+  @Input() useSticky = true;
+
   constructor(
     public network: NetworkService,
     protected injector: Injector,
