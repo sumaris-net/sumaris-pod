@@ -86,9 +86,6 @@ public class ProductQuantificationMeasurement implements IQuantifiedMeasurementE
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order")
-    private Integer rankOrder;
-
     @Column(name = "subgroup_number")
     private Short subgroupNumber;
 

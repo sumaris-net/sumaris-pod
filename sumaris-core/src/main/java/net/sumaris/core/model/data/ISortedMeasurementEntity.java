@@ -23,6 +23,9 @@ package net.sumaris.core.model.data;
  */
 
 public interface ISortedMeasurementEntity extends IMeasurementEntity {
+    interface Fields extends IMeasurementEntity.Fields {
+        String RANK_ORDER = "rankOrder";
+    }
 
     Short getRankOrder();
 
