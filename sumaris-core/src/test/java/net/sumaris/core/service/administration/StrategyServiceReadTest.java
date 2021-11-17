@@ -189,7 +189,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
 
         // Filter by reference taxon
@@ -200,7 +200,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(2, strategies.size());
-            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
 
         // Filter by department
@@ -211,7 +211,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
 
         // Filter by location
@@ -222,7 +222,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
 
         // Filter by pmfm
@@ -233,8 +233,8 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(2, strategies.size());
-            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
-            Assert.assertEquals("20-LEUCCIR-002", strategies.get(1).getLabel());
+            Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
+            Assert.assertEquals("20LEUCCIR002", strategies.get(1).getLabel());
         }
 
         // Filter by periods
@@ -249,7 +249,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());
-            Assert.assertEquals("20-LEUCCIR-001", strategies.get(0).getLabel());
+            Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
     }
 }

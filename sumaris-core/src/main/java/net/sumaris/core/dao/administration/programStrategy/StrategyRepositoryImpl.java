@@ -33,6 +33,7 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.NotUniqueException;
@@ -235,7 +236,7 @@ public class StrategyRepositoryImpl
     /**
      * @param programId program id
      * @param labelPrefix label prefix (ex: 20-LEUCCIR-)
-     * @return next strategy label for this prefix (ex: 20-LEUCCIR-001)
+     * @return next strategy label for this prefix (ex: 20LEUCCIR001)
      */
     @Override
     public String computeNextLabelByProgramId(int programId, String labelPrefix, int nbDigit) {
@@ -273,14 +274,15 @@ public class StrategyRepositoryImpl
     }
 
     /**
-     * @param strategyLabel strategy label (ex: 20-LEUCCIR-001)
-     * @param labelSeparator label separator (ex: -)
-     * @return next strategy sample label for this strategy (ex: 20-LEUCCIR-001-0001)
+     * @param strategyLabel strategy label (ex: 20LEUCCIR001)
+     * @param separator label separator (ex: -)
+     * @return next strategy sample label for this strategy (ex: 20LEUCCIR001-0001)
      */
     @Override
-    public String computeNextSampleLabelByStrategy(String strategyLabel, String labelSeparator, int nbDigit) {
+    public String computeNextSampleLabelByStrategy(String strategyLabel, String separator, int nbDigit) {
         Preconditions.checkNotNull(strategyLabel);
-        final String prefix = StringUtils.isNotBlank(labelSeparator) ? strategyLabel + labelSeparator : strategyLabel;
+        separator = net.sumaris.core.util.StringUtils.nullToEmpty(separator);
+        final String prefix = strategyLabel.concat(separator);
 
         EntityManager em = getEntityManager();
         CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -288,8 +290,11 @@ public class StrategyRepositoryImpl
         Root<Sample> root = query.from(Sample.class);
 
         ParameterExpression<Integer> tagIdPmfmIdParam = builder.parameter(Integer.class);
+        ParameterExpression<String> tagLikeParam = builder.parameter(String.class);
         ParameterExpression<Integer> strategyPmfmIdParam = builder.parameter(Integer.class);
         ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
+        ParameterExpression<Integer> lpadSizeParam = builder.parameter(Integer.class);
+        ParameterExpression<String> lpadFillParam = builder.parameter(String.class);
 
         Join<Sample, Operation> operationJoin = root.join(Sample.Fields.OPERATION, JoinType.INNER);
         Join<Operation, Trip> tripJoin = operationJoin.join(Operation.Fields.TRIP, JoinType.INNER);
@@ -297,12 +302,13 @@ public class StrategyRepositoryImpl
         Join<Landing, LandingMeasurement> landingMeasurementJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
         Join<Sample, SampleMeasurement> sampleMeasurementJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 
-        Expression<String> lpadValue = builder.function("lpad", String.class,
+        Expression<String> lpadValue = builder.function(AdditionalSQLFunctions.lpad.name(), String.class,
             builder.substring(
-                sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), prefix.length()
+                sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE),
+                prefix.length()
             ),
-            builder.literal(nbDigit),
-            builder.literal('0')
+            lpadSizeParam,
+            lpadFillParam
         );
 
         query.select(lpadValue)
@@ -310,19 +316,24 @@ public class StrategyRepositoryImpl
                     builder.and(
                         // Sample measurement: select Pmfm = Tag id
                         builder.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                        builder.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
                         // Sample measurement: select Pmfm = Strategy label
                         builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
                         builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
                     ))
             .orderBy(builder.desc(lpadValue));
 
-        String result = em
+        List<String> results = em
             .createQuery(query)
             .setParameter(tagIdPmfmIdParam, PmfmEnum.TAG_ID.getId())
+            .setParameter(tagLikeParam, prefix + "%")
+            .setParameter(lpadSizeParam, nbDigit)
+            .setParameter(lpadFillParam, "0")
             .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
             .setParameter(strategyLabelParam, strategyLabel)
-            .setMaxResults(10)
-            .getResultStream()
+            .setMaxResults(10).getResultList();
+
+        String result = results.stream()
             .filter(StringUtils::isNumeric)
             .findFirst()
             .orElse("0");
