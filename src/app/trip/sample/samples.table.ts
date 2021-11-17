@@ -474,7 +474,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
       } else if (this.currentSample) {
         // TODO attention, récupérer auyssi plus tard
-        const previousSample = await this.findRowBySample(this.currentSample);
+        const previousSample = await this.findRowByEntity(this.currentSample);
         if (previousSample) { // row exist
           if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
             data.measurementValues[PmfmIds.TAG_ID] = '';

@@ -47,8 +47,8 @@
                   <input matInput class="cdk-visually-hidden" type="text"
                          [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION'|translate">
                   <app-list-form #locationClassificationList
-                                 [displayWith]="referentialToString"
                                  [formArray]="form.controls.locationClassifications"
+                                 [displayWith]="referentialToString"
                                  [equals]="referentialEquals"
                                  [options]="{allowEmptyArray: false, allowMultipleSelection: false}"
                                  (onNewItem)="addLocationClassification()"></app-list-form>
