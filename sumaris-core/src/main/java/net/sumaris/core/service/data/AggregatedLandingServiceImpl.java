@@ -219,7 +219,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         });
         // Check all activity have date without time
         aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
-            .forEach(activity -> Preconditions.checkArgument(activity.getDate().equals(Dates.resetTime(activity.getDate())), "Must have a date without time")));
+            .forEach(activity ->
+                Preconditions.checkArgument(
+                    activity.getDate().equals(Dates.resetTime(activity.getDate())),
+                    String.format("Must have a date without time : %s", activity.getDate())
+                )));
 
         // Load VesselSnapshot Entity
         aggregatedLandings.parallelStream()
