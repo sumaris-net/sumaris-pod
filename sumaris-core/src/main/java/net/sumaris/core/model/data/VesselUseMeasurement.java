@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name="vessel_use_measurement")
-public class VesselUseMeasurement implements IMeasurementEntity {
+public class VesselUseMeasurement implements IMeasurementEntity, ISortedMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_MEASUREMENT_SEQ")
@@ -87,7 +87,7 @@ public class VesselUseMeasurement implements IMeasurementEntity {
     private QualitativeValue qualitativeValue;
 
     @Column(name = "rank_order")
-    private Integer rankOrder;
+    private Short rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
     @JoinColumn(name = "pmfm_fk", nullable = false)

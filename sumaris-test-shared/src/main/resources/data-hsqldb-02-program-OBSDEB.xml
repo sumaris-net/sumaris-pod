@@ -49,7 +49,7 @@
   <PROGRAM_PROPERTY ID="48" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.vessel.type.enable" NAME="true"/>
 
   <PROGRAM_PROPERTY ID="50" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="51" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.program" NAME="OBSDEB"/>
+  <PROGRAM_PROPERTY ID="51" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.program" NAME="SIH-OBSDEB"/>
   <PROGRAM_PROPERTY ID="52" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.startDay" NAME="1"/>
   <PROGRAM_PROPERTY ID="53" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.dayCount" NAME="7"/>
   <PROGRAM_PROPERTY ID="54" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.location.level.ids" NAME="2"/>
