@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
-  AppForm,
+  AppForm, AppFormUtils,
   FormArrayHelper,
   IReferentialRef,
   isNotEmptyArray,
@@ -269,5 +269,5 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.cd.markForCheck();
   }
 
-  selectInputContent = selectInputContent;
+  selectInputContent = AppFormUtils.selectInputContent;
 }
