@@ -25,6 +25,7 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.io.Serializable;
@@ -33,7 +34,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class AppliedStrategyVO implements Serializable {
+public class AppliedStrategyVO implements IValueObject<Integer> {
 
     private Integer id;
 

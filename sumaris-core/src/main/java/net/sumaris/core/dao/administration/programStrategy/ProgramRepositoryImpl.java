@@ -529,31 +529,19 @@ public class ProgramRepositoryImpl
         // Location
         Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
         if (copyIfNull || locationId != null) {
-            if (locationId == null) {
-                target.setLocation(null);
-            } else {
-                target.setLocation(getReference(Location.class, locationId));
-            }
+            target.setLocation(locationId != null ? getReference(Location.class, locationId) : null);
         }
 
         // Department
         Integer departmentId = source.getDepartment() != null ? source.getDepartment().getId() : null;
         if (copyIfNull || departmentId != null) {
-            if (departmentId == null) {
-                target.setDepartment(null);
-            } else {
-                target.setDepartment(getReference(Department.class, departmentId));
-            }
+            target.setDepartment(departmentId != null ? getReference(Department.class, departmentId) : null);
         }
 
         // Privilege
         Integer privilegeId = source.getPrivilege() != null ? source.getPrivilege().getId() : null;
         if (copyIfNull || privilegeId != null) {
-            if (privilegeId == null) {
-                target.setPrivilege(null);
-            } else {
-                target.setPrivilege(getReference(ProgramPrivilege.class, privilegeId));
-            }
+            target.setPrivilege(privilegeId != null ? getReference(ProgramPrivilege.class, privilegeId) : null);
         }
     }
 

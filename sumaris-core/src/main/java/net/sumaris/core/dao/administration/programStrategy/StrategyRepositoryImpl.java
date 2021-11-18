@@ -24,6 +24,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
@@ -523,97 +524,42 @@ public class StrategyRepositoryImpl
     public List<AppliedStrategyVO> saveAppliedStrategiesByStrategyId(int strategyId, List<AppliedStrategyVO> sources) {
         Preconditions.checkNotNull(sources);
 
-        Strategy parent = getById(Strategy.class, strategyId);
+        final Strategy parent = getById(Strategy.class, strategyId);
 
-        sources.forEach(source -> source.setStrategyId(strategyId));
-
-        EntityManager em = getEntityManager();
-
-        // Remember existing entities
-        Map<Integer, AppliedStrategy> sourcesToRemove = Beans.splitById(parent.getAppliedStrategies());
-
-        // Save each applied strategy
-        sources.forEach(source -> {
-
-            AppliedStrategy target = source.getId() != null ? sourcesToRemove.remove(source.getId()) : null;
-            boolean isNew = target == null;
-            if (isNew) {
-                target = new AppliedStrategy();
+        saveChildren(
+            sources,
+            parent.getAppliedStrategies(),
+            AppliedStrategy.class,
+            (source, target, copyIfNull) -> {
+                source.setStrategyId(parent.getId());
                 target.setStrategy(parent);
-            }
-            if (source.getLocation() != null) {
-                target.setLocation(getReference(Location.class, source.getLocation().getId()));
-            }
 
-            if (isNew) {
-                em.persist(target);
-                source.setId(target.getId());
-            }
-            else {
-                em.merge(target);
-            }
+                // Location
+                Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
+                if (copyIfNull || locationId != null) {
+                    target.setLocation(locationId != null ? getReference(Location.class, locationId) : null);
+                }
+            },
+            parent);
 
-            // Applied periods
-            saveAppliedPeriodsByAppliedStrategyId(target.getId(), source.getAppliedPeriods());
-        });
+        // Save applied periods
+        sources.forEach(source -> saveAppliedPeriodsByAppliedStrategyId(source.getId(), source.getAppliedPeriods()));
 
-        // Remove unused entities
-        if (MapUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.values().forEach(em::remove);
-        }
-
-        return sources.isEmpty() ? null : sources;
+        return sources;
     }
-
 
     @Override
     public List<StrategyDepartmentVO> saveDepartmentsByStrategyId(int strategyId, List<StrategyDepartmentVO> sources) {
         Preconditions.checkNotNull(sources);
 
-        Strategy parent = getById(Strategy.class, strategyId);
+        final Strategy parent = getById(Strategy.class, strategyId);
 
-        sources.forEach(source -> source.setStrategyId(strategyId));
-
-        EntityManager em = getEntityManager();
-
-        // Remember existing entities
-        Map<Integer, StrategyDepartment> sourcesToRemove = Beans.splitById(parent.getDepartments());
-
-        // Save each strategy department
-        Beans.getStream(sources).forEach(source -> {
-            Integer strategyDepartmentId = source.getId();
-            //if (strategyDepartmentId == null) throw new DataIntegrityViolationException("Missing id in a StrategyDepartmentVO");
-            StrategyDepartment target = sourcesToRemove.remove(strategyDepartmentId);
-            boolean isNew = target == null;
-            if (isNew) {
-                target = new StrategyDepartment();
-                target.setStrategy(parent);
-                target.setUpdateDate(getDatabaseCurrentDate());
-            }
-            if (source.getLocation() != null) {
-                target.setLocation(getReference(Location.class, source.getLocation().getId()));
-            }
-            if (source.getDepartment() != null) {
-                target.setDepartment(getReference(Department.class, source.getDepartment().getId()));
-            }
-            if (source.getPrivilege() != null) {
-                target.setPrivilege(getReference(ProgramPrivilege.class, source.getPrivilege().getId()));
-            }
-
-            if (isNew) {
-                em.persist(target);
-            }
-            else {
-                em.merge(target);
-            }
-        });
-
-        // Remove unused entities
-        if (MapUtils.isNotEmpty(sourcesToRemove)) {
-            sourcesToRemove.values().forEach(em::remove);
-        }
-
-        return sources.isEmpty() ? null : sources;
+        return saveChildren(
+            sources,
+            parent.getDepartments(),
+            StrategyDepartment.class,
+            (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, parent, copyIfNull),
+            parent);
     }
 
 
@@ -915,5 +861,34 @@ public class StrategyRepositoryImpl
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
                 .collect(Collectors.toList());
+    }
+
+    protected void toDepartmentEntity(@NonNull StrategyDepartmentVO source,
+                                      @NonNull StrategyDepartment target,
+                                      @NonNull Strategy parent, boolean copyIfNull) {
+        Preconditions.checkNotNull(parent.getId());
+
+        Beans.copyProperties(source, target);
+
+        source.setStrategyId(parent.getId());
+        target.setStrategy(parent);
+
+        // Location
+        Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
+        if (copyIfNull || locationId != null) {
+            target.setLocation(locationId != null ? getReference(Location.class, locationId) : null);
+        }
+
+        // Department
+        Integer departmentId = source.getDepartment() != null ? source.getDepartment().getId() : null;
+        if (copyIfNull || departmentId != null) {
+            target.setDepartment(departmentId != null ? getReference(Department.class, departmentId) : null);
+        }
+
+        // Privilege
+        Integer privilegeId = source.getPrivilege() != null ? source.getPrivilege().getId() : null;
+        if (copyIfNull || privilegeId != null) {
+            target.setPrivilege(privilegeId != null ? getReference(ProgramPrivilege.class, privilegeId) : null);
+        }
     }
 }
