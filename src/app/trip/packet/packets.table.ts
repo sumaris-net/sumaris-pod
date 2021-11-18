@@ -249,12 +249,13 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[packet-table] packet modal result: ', data, role);
+    const res = await modal.onDidDismiss();
     this.markAsLoaded();
 
-    if (data) {
-      return {data: data as Packet, role};
+    if (res?.data) {
+      if (this.debug) console.debug('[packet-table] packet modal result: ', res);
+
+      return {data: res.data as Packet, role: res.role};
     }
   }
 
@@ -283,7 +284,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       // update sales
       this.updateSaleProducts(row);
 
-      this.markAsDirty();
+      this.markAsDirty({emitEvent: false});
+      this.markForCheck();
 
       if (res.role === 'sale') {
         await this.openPacketSale(null, row);
@@ -324,7 +326,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     if (res && res.data) {
       // patch saleProducts only
       row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
-      this.markAsDirty();
+      this.markAsDirty({emitEvent: false});
+      this.markForCheck();
     }
   }
 

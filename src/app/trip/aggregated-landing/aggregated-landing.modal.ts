@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 import {AlertController, ModalController} from "@ionic/angular";
 import {BehaviorSubject, Subject, Subscription} from "rxjs";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
+import { AppFormUtils, isEmptyArray } from '@sumaris-net/ngx-components';
 import {TranslateService} from "@ngx-translate/core";
 import {AggregatedLandingForm, AggregatedLandingFormOption} from "./aggregated-landing.form";
 import {AggregatedLanding, VesselActivity} from "../services/model/aggregated-landing.model";
@@ -26,6 +26,7 @@ import {isNil} from "@sumaris-net/ngx-components";
 export class AggregatedLandingModal implements OnInit, OnDestroy {
 
   loading = true;
+  _disabled = false;
   subscription = new Subscription();
   $title = new BehaviorSubject<string>('');
 
@@ -35,11 +36,16 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   @Input() options: AggregatedLandingFormOption;
 
   get disabled() {
-    return !this.form ? true : this.form.disabled;
+    return this._disabled || this.form?.disabled;
+  }
+
+  @Input() set disabled(value: boolean) {
+    this._disabled = value;
+    if (this.form) this.form.disable();
   }
 
   get canValidate(): boolean {
-    return !this.loading && this.dirty;
+    return !this.loading && !this.disabled;
   }
 
   get dirty(): boolean {
@@ -55,14 +61,23 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.enable();
+    this.form.enable();
     this.form.data = this.data;
     this.updateTitle();
-
     this.loading = false;
+
+    if (!this._disabled) {
+      this.enable();
+
+      // Add first activity
+      if (isEmptyArray(this.data.vesselActivities)) {
+        this.addActivity();
+      }
+    }
   }
 
-  addActivity() {
+  async addActivity() {
+    await this.form.ready();
     this.form.addActivity();
   }
 
@@ -83,6 +98,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
 
     if (this.form.invalid) {
       AppFormUtils.logFormErrors(this.form.form);
+      this.form.markAllAsTouched();
       return;
     }
 
@@ -106,10 +122,12 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
 
   disable() {
     this.form.disable();
+    this._disabled = true;
   }
 
   enable() {
     this.form.enable();
+    this._disabled = false;
   }
 
   cancel() {

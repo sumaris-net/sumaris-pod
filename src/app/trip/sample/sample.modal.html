@@ -65,9 +65,9 @@
                    (onSubmit)="enableBurstMode ? onSubmitAndNext($event) : onSubmit($event)">
     <ion-row *ngIf="mobile">
       <ion-col size="6">
-        <ion-item lines="none" class="ion-no-padding">
-          <ion-toggle [checked]="showComment" (ionChange)="toggleComment()"></ion-toggle>
-          <ion-label color="dark" (click)="toggleComment()" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+        <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable="">
+          <ion-toggle [checked]="showComment" ></ion-toggle>
+          <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
         </ion-item>
       </ion-col>
       <ion-col size="6" class="ion-text-end">
