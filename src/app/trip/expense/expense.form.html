@@ -39,7 +39,7 @@
 
   <mat-tab-group #tabGroup
                  [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="selectedTabChange.emit($event)"
-                 dynamicHeight>
+                 [dynamicHeight]='false'>
 
     <!-- SUB-TAB: fluid -->
     <mat-tab label="{{'EXPENSE.TAB_FLUID'|translate}}">
