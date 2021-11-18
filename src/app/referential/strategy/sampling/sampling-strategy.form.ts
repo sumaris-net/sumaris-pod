@@ -27,7 +27,7 @@ import {
   SharedValidators,
   StatusIds,
   suggestFromArray,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
 import { Program } from '../../services/model/program.model';
@@ -43,10 +43,10 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramPrivilegeIds,
-  TaxonomicLevelIds
+  TaxonomicLevelIds,
 } from '../../services/model/model.enum';
 import { ProgramProperties } from '../../services/config/program.config';
-import {BehaviorSubject, merge, Subscription} from 'rxjs';
+import { BehaviorSubject, merge } from 'rxjs';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { PmfmFilter, PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
@@ -56,7 +56,8 @@ import { PmfmStrategyValidatorService } from '@app/referential/services/validato
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
+import { environment } from '@environments/environment';
 
 const moment = momentImported;
 
@@ -271,6 +272,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     super(dateAdapter, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
     this._loading = true;
+    this.debug = !environment.production;
 
     // Add missing control
     this.form.addControl('year', new FormControl());
@@ -356,24 +358,32 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       merge(
         this.form.get('sex').valueChanges,
         this.form.get('age').valueChanges
-      ).subscribe(() => {
+      )
+      .pipe(filter(() => !this._loading && !this.disabled && !this.disableEditionListeners))
+      .subscribe(() => {
         this.pmfmsForm.updateValueAndValidity();
         this.validatePmfmsForm();
       })
     );
 
     this.registerSubscription(
+      this.form.get('label').valueChanges
+        .pipe(filter(() => !this._loading && !this.disabled && !this.disableEditionListeners))
+        .subscribe(label => this.onStrategyLabelChanged(label))
+    )
+
+    this.registerSubscription(
       merge(
-        this.form.get('label').valueChanges.pipe(map(_ => 'label')),
-        this.form.get('year').valueChanges.pipe(map(_ => 'year')),
+        this.form.get('year').valueChanges.pipe(
+          map(_ => 'year')
+        ),
         this.taxonNameStrategyControl.valueChanges.pipe(map(_ => 'taxonName'))
       )
       .pipe(
-        filter(() => !this.disableEditionListeners && !this._loading),
-        tap(event => console.debug('TODO: event update=', event)),
-        debounceTime(100) // Need to make sure year date has been updated
+        filter(() => !this._loading && !this.disabled && !this.disableEditionListeners),
+        //debounceTime(200) // Need to make sure year date has been updated
       )
-      .subscribe(_ => this.generateLabelPrefix()));
+      .subscribe(event => this.generateLabelPrefix(event)));
 
     const idControl = this.form.get('id');
     this.form.get('label').setAsyncValidators(async (control) => {
@@ -508,22 +518,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     const now = Date.now();
     console.debug('[sampling-strategy-form] Starting...');
-    this._startPromise = Promise.all([
-
-      this.referentialRefService.loadAll(0, 1000, null, null, {
-        entityName: 'Fraction',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
-      })
-        .then(({data}) => this.$allFractions.next(data)),
-
-      // Load pmfm by parameter groups
-      this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
-        .then(pmfmGroups => this._$pmfmGroups.next(pmfmGroups))
-    ]).then(() => {
-      console.debug('[sampling-strategy-form] Started in ' + (Date.now() - now) + 'ms');
-      this._started = true;
-    });
+    this._startPromise = this.loadReferentialItems()
+      .then(() => {
+        console.debug('[sampling-strategy-form] Started in ' + (Date.now() - now) + 'ms');
+        this._started = true;
+      });
     return this._startPromise;
   }
 
@@ -563,12 +562,44 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
   }
 
-  loadFilteredItems(program: Program): Promise<void> {
+  async loadReferentialItems(): Promise<void> {
+    // Make sure all enumerations has been override, by config
+    await this.referentialRefService.ready();
+
+    try {
+      console.debug('[sampling-strategy-form] Loading referential items...');
+
+      await Promise.all([
+
+        this.referentialRefService.loadAll(0, 1000, null, null, {
+          entityName: 'Fraction',
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          includedIds: FractionIdGroups.CALCIFIED_STRUCTURE
+        })
+          .then(({data}) => this.$allFractions.next(data)),
+
+        // Load pmfm by parameter groups
+        this.pmfmService.loadIdsGroupByParameterLabels()
+          .then(pmfmGroups => {
+            if (this.debug) console.debug('[sampling-strategy-form] Pmfm groups loaded: ', pmfmGroups);
+            this._$pmfmGroups.next(pmfmGroups);
+          })
+      ])
+    }
+    catch (err) {
+      console.error('Error while loading referential items', err);
+    }
+  }
+
+  async loadFilteredItems(program: Program): Promise<void> {
     // Get load options, from program properties
     const autoEnableFilter = program.getPropertyAsBoolean(ProgramProperties.STRATEGY_EDITOR_PREDOC_ENABLE);
     const fetchSize = program.getPropertyAsInt(ProgramProperties.STRATEGY_EDITOR_PREDOC_FETCH_SIZE);
 
-    return Promise.all([
+    const now = Date.now();
+    console.info(`[sampling-strategy-form] Loading filtered items... {autoEnableFilter: ${autoEnableFilter}, fetchSize: ${fetchSize}}`);
+
+    await Promise.all([
 
       // Analytic References
       this.strategyService.loadStrategiesReferentials(program.id, 'AnalyticReference', undefined, 0, fetchSize)
@@ -578,7 +609,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           this.autocompleteFilters.analyticReference = autoEnableFilter && isNotEmptyArray(analyticReferences); // Enable filtering, if need by program
         })
         .catch(err => {
-          console.debug('Error on load AnalyticReferences: ', err);
+          console.debug('[sampling-strategy-form] Error while loading filtered analyticReferences: ', err);
           this.autocompleteFilters.analyticReference = false;
         }),
 
@@ -587,6 +618,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .then(departments => {
           this.$filteredDepartments.next(departments);
           this.autocompleteFilters.department = autoEnableFilter && isNotEmptyArray(departments); // Enable filtering, if need by program
+        })
+        .catch(err => {
+          console.debug('[sampling-strategy-form] Error while loading filtered departments: ', err);
+          this.autocompleteFilters.department = false;
         }),
 
       // Locations
@@ -594,6 +629,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .then(locations => {
           this.$filteredLocations.next(locations);
           this.autocompleteFilters.location = autoEnableFilter && isNotEmptyArray(locations); // Enable filtering, if need by program
+        })
+        .catch(err => {
+          console.debug('[sampling-strategy-form] Error while loading filtered locations: ', err);
+          this.autocompleteFilters.location = false;
         }),
 
       // Taxons
@@ -601,6 +640,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .then(taxons => {
           this.$filteredTaxonNames.next(taxons as TaxonNameRef[]);
           this.autocompleteFilters.taxonName = autoEnableFilter && isNotEmptyArray(taxons); // Enable filtering, if need by program
+        })
+        .catch(err => {
+          console.debug('[sampling-strategy-form] Error while loading filtered taxonNames: ', err);
+          this.autocompleteFilters.taxonName = false;
         }),
 
       // Length pmfms
@@ -630,8 +673,15 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
           this.$filteredFractionPmfms.next(fractions);
           this.autocompleteFilters.fractionPmfm = autoEnableFilter && isNotEmptyArray(fractions); // Enable filtering, if need by program
         })
+        .catch(err => {
+          console.debug('[sampling-strategy-form] Error while loading filtered fractions: ', err);
+          this.autocompleteFilters.fractionPmfm = false;
+        })
     ])
-    .then(() => this.markForCheck());
+
+    console.info(`[sampling-strategy-form] Loading filtered items [OK] in ${Date.now() - now}ms`);
+
+    this.markForCheck();
   }
 
 
@@ -1094,8 +1144,11 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async onStrategyLabelChanged(label: string) {
-    if (this.disableEditionListeners) return;
-    if (!label) return
+    if (this.disableEditionListeners || this.loading) return;
+
+    const labelControl = this.form.get('label');
+    label = label || labelControl.value;
+    if (isNilOrBlank(label)) return; // Skip is empty
 
     const taxonNameStrategyControl = this.taxonNameStrategyControl;
     const taxonCode = label.substring(3, 10);
@@ -1107,9 +1160,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       if (!isUnique) {
         taxonNameStrategyControl.setErrors({ uniqueTaxonCode: true });
       } else {
-        SharedValidators.clearError(this.taxonNamesHelper.at(0), 'uniqueTaxonCode');
+        SharedValidators.clearError(taxonNameStrategyControl, 'uniqueTaxonCode');
       }
-      this.form.get('label').setErrors({pattern: true});
+      labelControl.setErrors({pattern: true});
     }
 
     // Full label filled
@@ -1119,8 +1172,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         //taxonNameControl.setErrors({ uniqueTaxonCode: true });
       } else {
         SharedValidators.clearError(taxonNameStrategyControl, 'uniqueTaxonCode');
-        const labelControl = this.form.get('label');
-        labelControl.setValue(label?.replace(/\s/g, '').toUpperCase());
+        labelControl.setValue(label?.replace(/\s/g, '').toUpperCase(), {emitEvent: false});
       }
     }
   }
@@ -1153,15 +1205,17 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
 
-  protected async generateLabelPrefix() {
-    if (this.untouched || this.loading) return // Skip
+  protected async generateLabelPrefix(event?: string) {
+    const labelControl = this.form.get('label');
+    if (this.loading || labelControl.disabled) return // Skip
+
+    if (this.debug) console.debug('[sampling-strategy-fom] Generating label prefix, from event: ' + event);
 
     const yearCode = this.yearCode;
     if (!yearCode || !this.program) return; // Skip
 
     let errors: ValidationErrors;
 
-    const labelControl = this.form.get('label');
     const taxonNameStrategyControl = this.taxonNameStrategyControl;
     if (!taxonNameStrategyControl) return;
 
@@ -1226,10 +1280,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       }
 
     }
+
+    labelControl.markAsDirty();
   }
 
   get canGenerateLabel(): boolean {
-    return !this.loading && this.program && this.year && this.taxonNameStrategyControl.value?.taxonName && true;
+    return !this.hasLanding && !this.loading && this.program && this.year && this.taxonNameStrategyControl.value?.taxonName && true;
   }
 
   async generateLabelIncrement() {
@@ -1493,6 +1549,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   protected async validatePmfmsForm(): Promise<ValidationErrors | null> {
+    const pmfmsForm = this.pmfmsForm;
+    if (this.loading || pmfmsForm.disabled) return;
 
     // DEBUG
     //console.debug('DEV Call validatePmfmsForm()...');
@@ -1510,7 +1568,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       };
     }
     else {
-      SharedValidators.clearError(this.pmfmsForm, 'weightOrSize');
+      SharedValidators.clearError(pmfmsForm, 'weightOrSize');
     }
 
     let length = (this.hasAge ? 1 : 0)
@@ -1525,12 +1583,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       };
     }
     else {
-      SharedValidators.clearError(this.pmfmsForm, 'minLength');
+      SharedValidators.clearError(pmfmsForm, 'minLength');
     }
-    this.pmfmsForm.setErrors(errors);
+    pmfmsForm.setErrors(errors);
     if (errors) {
-      this.pmfmsForm.markAllAsTouched();
-      this.pmfmsForm.markAsDirty();
+      pmfmsForm.markAllAsTouched();
+      pmfmsForm.markAsDirty();
     }
     return null;
   }

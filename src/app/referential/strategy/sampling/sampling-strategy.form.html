@@ -2,43 +2,43 @@
   <ion-grid>
 
     <!-- year + label -->
-    <ion-row>
+    <ion-row *ngIf="form.controls.label; let labelControl">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
 
       <!-- label -->
-      <ion-col size="6" size-md="5" size-lg="5">
+      <ion-col size="6" size-md="5" size-lg="5" >
         <mat-form-field *ngIf="labelMask; else noLabelMask">
           <input matInput #matInput
-                 formControlName="label"
+                 [formControl]="labelControl"
                  autocomplete="off"
                  type="text"
                  [textMask]="{mask: labelMask, keepCharPositions: true, showMask: true, guide: true}"
                  (click)="selectMask(matInput)"
                  placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
-          <mat-error *ngIf="form.controls.label.hasError('unique')"
+          <mat-error *ngIf="labelControl.hasError('unique')"
                      translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
-          <mat-error *ngIf="form.controls.label.hasError('zero')"
+          <mat-error *ngIf="labelControl.hasError('zero')"
                      translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
         </mat-form-field>
 
         <ng-template #noLabelMask>
           <mat-form-field>
             <input matInput #matInput
-                   formControlName="label"
+                   [formControl]="labelControl"
                    autocomplete="off"
                    type="text"
                    placeholder="{{ i18nFieldPrefix + 'LABEL' | translate }}" >
-            <mat-error *ngIf="form.controls.label.hasError('unique')"
+            <mat-error *ngIf="labelControl.hasError('unique')"
                        translate>PROGRAM.STRATEGY.ERROR.LABEL.UNIQUE</mat-error>
-            <mat-error *ngIf="form.controls.label.hasError('zero')"
+            <mat-error *ngIf="labelControl.hasError('zero')"
                        translate>PROGRAM.STRATEGY.ERROR.LABEL.ZERO</mat-error>
           </mat-form-field>
         </ng-template>
       </ion-col>
       <ion-col size="2" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-button [disabled]="disabled || hasLanding || disableEditionListeners"
+        <ion-button [disabled]="labelControl.disabled || labelControl.pristine || disableEditionListeners"
                     [color]="canGenerateLabel ? 'tertiary' : 'light'"
                     (click)="generateLabelIncrement()" translate>PROGRAM.STRATEGY.EDIT.GENERATE_LABEL_INCREMENT_BUTTON</ion-button>
       </ion-col>

@@ -30,7 +30,6 @@ export class Strategy<
     this.__typename = Strategy.TYPENAME;
   }
 
-// TODO : Check if clone is needed
   clone(): T {
     const target = new Strategy();
     target.fromObject(this);
@@ -77,21 +76,20 @@ export class Strategy<
   }
 }
 
+@EntityClass({typename: 'StrategyDepartmentVO'})
 export class StrategyDepartment extends Entity<StrategyDepartment> {
+
+  static fromObject: (source: any, opts?: any) => StrategyDepartment;
 
   strategyId: number;
   location: ReferentialRef;
   privilege: ReferentialRef;
   department: ReferentialRef;
 
-  static fromObject(source: any): StrategyDepartment {
-    if (!source || source instanceof StrategyDepartment) return source;
-    const res = new StrategyDepartment();
-    res.fromObject(source);
-    return res;
+  constructor() {
+    super(StrategyDepartment.TYPENAME);
   }
 
-// TODO : Check if clone is needed
   clone(): StrategyDepartment {
     const target = new StrategyDepartment();
     target.fromObject(this);
@@ -135,7 +133,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     super();
     this.__typename = AppliedStrategy.TYPENAME;
   }
-// TODO : Check if clone is needed
+
   clone(): AppliedStrategy {
     const target = new AppliedStrategy();
     target.fromObject(this);
