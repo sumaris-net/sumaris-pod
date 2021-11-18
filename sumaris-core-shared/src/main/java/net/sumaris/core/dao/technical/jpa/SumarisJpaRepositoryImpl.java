@@ -33,10 +33,12 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.dao.technical.model.function.ToEntityFunction;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.LockOptions;
@@ -580,4 +582,54 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return query;
     }
 
+    protected <ID extends Serializable, CV extends IValueObject<ID>, CT extends IEntity<ID>, PT extends IUpdateDateEntityBean<?, Date>>
+        List<CV> saveChildren(List<CV> sources,
+                              List<CT> targets,
+                              Class<CT> targetClass,
+                              ToEntityFunction<ID, CV, CT> toEntity,
+                              PT parent) {
+        Preconditions.checkNotNull(sources);
+        Preconditions.checkNotNull(parent);
+
+        final EntityManager em = getEntityManager();
+        final Date updateDate = parent.getUpdateDate();
+
+        Map<ID, CT> entitiesToRemove = Beans.splitById(targets);
+
+        Beans.getStream(sources)
+            .forEach(source -> {
+                CT target = source.getId() != null ? entitiesToRemove.remove(source.getId()) : null;
+                boolean isNew = (target == null);
+                if (isNew) {
+                    try {
+                        target = targetClass.newInstance();
+                    } catch (IllegalAccessException | InstantiationException e) {
+                        throw new SumarisTechnicalException(e);
+                    }
+                }
+
+                // Copy update, from parent
+                if (updateDate != null && source instanceof IUpdateDateEntityBean) {
+                    ((IUpdateDateEntityBean<ID, Date>)source).setUpdateDate(updateDate);
+                }
+
+                // Convert to entity
+                toEntity.call(source, target, true);
+
+                if (isNew) {
+                    em.persist(target);
+                    source.setId(target.getId());
+                } else {
+                    em.merge(target);
+                }
+            });
+
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(entitiesToRemove)) {
+            entitiesToRemove.values().forEach(em::remove);
+        }
+
+        return sources.isEmpty() ? null : sources;
+    }
 }

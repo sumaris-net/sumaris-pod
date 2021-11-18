@@ -50,4 +50,10 @@ public class ProgramFetchOptions implements IFetchOptions {
     @Builder.Default
     private boolean withStrategies = false;
 
+    @Builder.Default
+    private boolean withDepartments = false;
+
+    @Builder.Default
+    private boolean withPersons = false;
+
 }

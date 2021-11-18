@@ -105,6 +105,14 @@ public class Program implements IItemReferentialEntity {
                     @JoinColumn(name = "location_fk", nullable = false, updatable = false) })
     private Set<Location> locations = Sets.newHashSet();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProgramDepartment.class, mappedBy = ProgramDepartment.Fields.PROGRAM)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<ProgramDepartment> departments = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProgramPerson.class, mappedBy = ProgramPerson.Fields.PROGRAM)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<ProgramPerson> persons = new ArrayList<>();
+
     public int hashCode() {
         return Objects.hash(label);
     }

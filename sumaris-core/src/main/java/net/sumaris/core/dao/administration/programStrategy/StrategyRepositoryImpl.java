@@ -356,30 +356,6 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    protected void onBeforeSaveEntity(StrategyVO vo, Strategy entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
-
-        // Verify label is unique by program
-        long count = this.findAll(StrategyFilterVO.builder()
-            .programIds(new Integer[]{vo.getProgramId()}).label(vo.getLabel()).build())
-                .stream()
-                .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
-                .count();
-        if (count > 0) {
-            throw new NotUniqueException(String.format("Strategy label '%s' already exists", vo.getLabel()));
-        }
-    }
-
-    @Override
-    protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-
-        EntityManager em = getEntityManager();
-        em.flush();
-        em.clear();
-    }
-
-    // TDO BLA: pourquoi en public ?
     public void saveProgramLocationsByStrategyId(int strategyId) {
         EntityManager em = getEntityManager();
         CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -393,7 +369,7 @@ public class StrategyRepositoryImpl
             Root<Program2Location> root = query.from(Program2Location.class);
             query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), strategy.getProgram()));
             em.createQuery(query).getResultStream().forEach(p2l ->
-                    programLocations.putIfAbsent(p2l.getLocation().getId(), p2l));
+                programLocations.putIfAbsent(p2l.getLocation().getId(), p2l));
         }
 
         // Get existing strategy locations
@@ -403,104 +379,27 @@ public class StrategyRepositoryImpl
             Root<Strategy> root = query.from(Strategy.class);
             Join<Strategy, AppliedStrategy> appliedStrategyInnerJoin = root.joinList(Strategy.Fields.APPLIED_STRATEGIES, JoinType.INNER);
             query.select(appliedStrategyInnerJoin.get(AppliedStrategy.Fields.LOCATION))
-                    .where(cb.equal(root.get(Strategy.Fields.PROGRAM), strategy.getProgram()));
+                .where(cb.equal(root.get(Strategy.Fields.PROGRAM), strategy.getProgram()));
             em.createQuery(query).getResultStream().forEach(l ->
-                    strategyLocations.putIfAbsent(l.getId(), l));
+                strategyLocations.putIfAbsent(l.getId(), l));
         }
 
         // Persist new entities
         strategyLocations.values()
-                .stream()
-                .filter(location -> !programLocations.containsKey(location.getId()))
-                .forEach(location -> {
-                    Program2Location p2l = new Program2Location();
-                    p2l.setProgram(strategy.getProgram());
-                    p2l.setLocation(location);
-                    em.persist(p2l);
-                });
+            .stream()
+            .filter(location -> !programLocations.containsKey(location.getId()))
+            .forEach(location -> {
+                Program2Location p2l = new Program2Location();
+                p2l.setProgram(strategy.getProgram());
+                p2l.setLocation(location);
+                em.persist(p2l);
+            });
 
         // Remove unused entities
         programLocations.values()
-                .stream()
-                .filter(p2l -> !strategyLocations.containsKey(p2l.getLocation().getId()))
-                .forEach(em::remove);
-    }
-
-    @Override
-    protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
-        Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
-        if (filter.getId() != null) return spec;
-        return spec
-                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
-                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-                .and(hasDepartmentIds(filter.getDepartmentIds()))
-                .and(hasLocationIds(filter.getLocationIds()))
-                .and(hasParameterIds(filter.getParameterIds()))
-                .and(hasPeriods(filter.getPeriods()));
-    }
-
-    @Override
-    @Caching(
-            evict = {
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
-            }
-    )
-    // TODO BLA: features/imgaine -> pourquoi supprimer la vidange du cache ?
-    public void deleteById(Integer id) {
-        super.deleteById(id);
-    }
-
-    @Override
-    protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
-        final StrategyFetchOptions opts = StrategyFetchOptions.nullToDefault(fetchOptions);
-
-        super.toVO(source, target, fetchOptions, copyIfNull);
-
-        // Program
-        target.setProgramId(source.getProgram().getId());
-
-        // Gears
-        if (opts.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
-            List<ReferentialVO> gears = source.getGears()
-                .stream()
-                .map(referentialDao::toVO)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-            target.setGears(gears);
-        }
-
-        // Taxon groups
-        if (opts.isWithTaxonGroups()) {
-            target.setTaxonGroups(getTaxonGroupStrategies(source));
-        }
-
-        // Taxon names
-        if (opts.isWithTaxonNames()) {
-            target.setTaxonNames(getTaxonNameStrategies(source));
-        }
-
-        // Applied strategies
-        target.setAppliedStrategies(getAppliedStrategies(source));
-
-        // Strategy departments
-        if (opts.isWithDepartments()) {
-            target.setDepartments(getDepartments(source));
-        }
-
-        // Pmfm strategies
-        if (opts.isWithPmfms()) {
-            target.setPmfms(getPmfms(source, opts.getPmfmsFetchOptions()));
-        }
-
-        // Pmfm strategies
-        if (opts.isWithDenormalizedPmfms()) {
-            target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
-        }
+            .stream()
+            .filter(p2l -> !strategyLocations.containsKey(p2l.getLocation().getId()))
+            .forEach(em::remove);
     }
 
     @Override
@@ -735,6 +634,93 @@ public class StrategyRepositoryImpl
     }
 
     /* -- protected methods -- **/
+
+
+    @Override
+    protected void onBeforeSaveEntity(StrategyVO vo, Strategy entity, boolean isNew) {
+        super.onBeforeSaveEntity(vo, entity, isNew);
+
+        // Verify label is unique by program
+        long count = this.findAll(StrategyFilterVO.builder()
+                .programIds(new Integer[]{vo.getProgramId()}).label(vo.getLabel()).build())
+            .stream()
+            .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
+            .count();
+        if (count > 0) {
+            throw new NotUniqueException(String.format("Strategy label '%s' already exists", vo.getLabel()));
+        }
+    }
+
+    @Override
+    protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        EntityManager em = getEntityManager();
+        em.flush();
+        em.clear();
+    }
+
+    @Override
+    protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
+        Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
+        if (filter.getId() != null) return spec;
+        return spec
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasAnalyticReferences(filter.getAnalyticReferences()))
+            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+            .and(hasDepartmentIds(filter.getDepartmentIds()))
+            .and(hasLocationIds(filter.getLocationIds()))
+            .and(hasParameterIds(filter.getParameterIds()))
+            .and(hasPeriods(filter.getPeriods()));
+    }
+
+    @Override
+    protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
+        final StrategyFetchOptions opts = StrategyFetchOptions.nullToDefault(fetchOptions);
+
+        super.toVO(source, target, fetchOptions, copyIfNull);
+
+        // Program
+        target.setProgramId(source.getProgram().getId());
+
+        // Gears
+        if (opts.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
+            List<ReferentialVO> gears = source.getGears()
+                .stream()
+                .map(referentialDao::toVO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+            target.setGears(gears);
+        }
+
+        // Taxon groups
+        if (opts.isWithTaxonGroups()) {
+            target.setTaxonGroups(getTaxonGroupStrategies(source));
+        }
+
+        // Taxon names
+        if (opts.isWithTaxonNames()) {
+            target.setTaxonNames(getTaxonNameStrategies(source));
+        }
+
+        // Applied strategies
+        target.setAppliedStrategies(getAppliedStrategies(source));
+
+        // Strategy departments
+        if (opts.isWithDepartments()) {
+            target.setDepartments(getDepartments(source));
+        }
+
+        // Pmfm strategies
+        if (opts.isWithPmfms()) {
+            target.setPmfms(getPmfms(source, opts.getPmfmsFetchOptions()));
+        }
+
+        // Pmfm strategies
+        if (opts.isWithDenormalizedPmfms()) {
+            target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
+        }
+    }
 
     protected List<TaxonNameStrategyVO> getTaxonNameStrategies(Strategy source) {
         if (CollectionUtils.isEmpty(source.getReferenceTaxons())) return null;

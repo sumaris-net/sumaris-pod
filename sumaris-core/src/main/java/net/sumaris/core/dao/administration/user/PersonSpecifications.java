@@ -129,6 +129,8 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         }).addBind(LAST_NAME_PARAMETER, lastName.toUpperCase());
     }
 
+    PersonVO get(int id);
+
     Optional<PersonVO> findById(int id);
 
     Optional<PersonVO> findByPubkey(String pubkey);

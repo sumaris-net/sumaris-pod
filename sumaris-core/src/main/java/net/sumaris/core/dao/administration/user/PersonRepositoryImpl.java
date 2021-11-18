@@ -56,6 +56,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -98,6 +99,11 @@ public class PersonRepositoryImpl
     })
     public void clearCache() {
         log.debug("Cleaning Person's cache...");
+    }
+
+    @Override
+    public PersonVO get(int id) {
+        return findById(id).orElseThrow(() -> new DataRetrievalFailureException("Cannot load person with id=" + id));
     }
 
     @Override

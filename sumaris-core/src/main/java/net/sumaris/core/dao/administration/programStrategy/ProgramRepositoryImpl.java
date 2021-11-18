@@ -10,12 +10,12 @@ package net.sumaris.core.dao.administration.programStrategy;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -27,13 +27,19 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
+import net.sumaris.core.dao.administration.user.DepartmentRepository;
+import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -43,8 +49,8 @@ import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -80,6 +86,19 @@ public class ProgramRepositoryImpl
     @Autowired
     private StrategyRepository strategyRepository;
 
+    @Autowired
+    private LocationRepository locationRepository;
+
+    @Autowired
+    protected DepartmentRepository departmentRepository;
+
+    @Autowired
+    protected PersonRepository personRepository;
+
+    @Autowired
+    protected ProgramPrivilegeRepository programPrivilegeRepository;
+
+
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
         setLockForUpdate(true);
@@ -88,8 +107,8 @@ public class ProgramRepositoryImpl
     @Override
     public Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
         return getQuery(BindableSpecification
-                .where(hasId(id))
-                .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
+            .where(hasId(id))
+            .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
             .getResultStream()
             .findFirst()
             .map(source -> toVO(source, fetchOptions));
@@ -147,7 +166,6 @@ public class ProgramRepositoryImpl
         target.setGearClassificationId(source.getGearClassification() != null ? source.getGearClassification().getId() : null);
         target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
 
-
         // locations
         if (fetchOptions != null && fetchOptions.isWithLocations()) {
             target.setLocationClassifications(
@@ -169,13 +187,22 @@ public class ProgramRepositoryImpl
             }
         }
 
-
         // strategies
         if (fetchOptions != null && fetchOptions.isWithStrategies()) {
             target.setStrategies(
                 Beans.getStream(source.getStrategies())
                     .map(strategyRepository::toVO)
                     .collect(Collectors.toList()));
+        }
+
+        // Departments
+        if (fetchOptions != null && fetchOptions.isWithDepartments()) {
+            target.setDepartments(getDepartments(source));
+        }
+
+        // Persons
+        if (fetchOptions != null && fetchOptions.isWithPersons()) {
+            target.setPersons(getPersons(source));
         }
     }
 
@@ -186,20 +213,14 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
         },
         put = {
-            @CachePut(cacheNames= CacheConfiguration.Names.PROGRAM_BY_ID, key="#vo.id", condition = " #vo.id != null"),
-            @CachePut(cacheNames= CacheConfiguration.Names.PROGRAM_BY_LABEL, key="#vo.label", condition = "#vo.label != null")
+            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#vo.id", condition = " #vo.id != null"),
+            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null")
         }
     )
     public ProgramVO save(ProgramVO vo) {
         Preconditions.checkNotNull(vo);
         Preconditions.checkNotNull(vo.getLabel(), "Missing 'label'");
         Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
-        Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
-
-        if (vo.getId() == null && vo.getStatusId() == null)
-            // Set default status to Temporary
-            vo.setStatusId(StatusEnum.TEMPORARY.getId());
-
         return super.save(vo);
     }
 
@@ -213,8 +234,7 @@ public class ProgramRepositoryImpl
         if (copyIfNull || gearClassificationId != null) {
             if (gearClassificationId == null) {
                 target.setGearClassification(null);
-            }
-            else {
+            } else {
                 target.setGearClassification(getReference(GearClassification.class, gearClassificationId));
             }
         }
@@ -225,8 +245,7 @@ public class ProgramRepositoryImpl
         if (copyIfNull || taxonGroupTypeId != null) {
             if (taxonGroupTypeId == null) {
                 target.setTaxonGroupType(null);
-            }
-            else {
+            } else {
                 target.setTaxonGroupType(getReference(TaxonGroupType.class, taxonGroupTypeId));
             }
         }
@@ -259,76 +278,6 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    protected void onAfterSaveEntity(ProgramVO vo, Program savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-
-        // Save properties
-        saveProperties(vo.getProperties(), savedEntity, savedEntity.getUpdateDate());
-
-        getEntityManager().flush();
-        getEntityManager().clear();
-
-    }
-
-    protected void saveProperties(Map<String, String> source, Program parent, Date updateDate) {
-        final EntityManager em = getEntityManager();
-        if (MapUtils.isEmpty(source)) {
-            if (parent.getProperties() != null) {
-                List<ProgramProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
-                parent.getProperties().clear();
-                toRemove.forEach(em::remove);
-            }
-        }
-        else {
-            // WARN: database can stored many values for the same keys.
-            // Only the first existing instance will be reused. Duplicate properties will be removed
-            ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
-                Beans.getList(parent.getProperties()),
-                ProgramProperty.Fields.LABEL);
-            List<ProgramProperty> existingValues = Beans.getList(existingPropertiesMap.values());
-            final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
-            if (parent.getProperties() == null) {
-                parent.setProperties(Lists.newArrayList());
-            }
-            final List<ProgramProperty> targetProperties = parent.getProperties();
-
-            // Transform each entry into ProgramProperty
-            source.keySet().stream()
-                    .map(key -> {
-                        ProgramProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
-                        boolean isNew = (prop == null);
-                        if (isNew) {
-                            prop = new ProgramProperty();
-                            prop.setLabel(key);
-                            prop.setProgram(parent);
-                            prop.setCreationDate(updateDate);
-                        }
-                        else {
-                            existingValues.remove(prop);
-                        }
-                        prop.setName(source.get(key));
-                        prop.setStatus(enableStatus);
-                        prop.setUpdateDate(updateDate);
-                        if (isNew) {
-                            em.persist(prop);
-                        }
-                        else {
-                            em.merge(prop);
-                        }
-                        return prop;
-                    })
-                    .forEach(targetProperties::add);
-
-            // Remove old properties
-            if (CollectionUtils.isNotEmpty(existingValues)) {
-                parent.getProperties().removeAll(existingValues);
-                existingValues.forEach(em::remove);
-            }
-
-        }
-    }
-
-    @Override
     @Caching(
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
@@ -349,7 +298,6 @@ public class ProgramRepositoryImpl
 
         Join<TaxonGroup, TaxonGroupStrategy> innerJoinTGS = root.joinList(TaxonGroup.Fields.STRATEGIES, JoinType.INNER);
         Join<TaxonGroupStrategy, Strategy> innerJoinS = innerJoinTGS.join(TaxonGroupStrategy.Fields.STRATEGY, JoinType.INNER);
-
 
         query.select(root)
             .where(
@@ -402,20 +350,252 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    public boolean hasUserPrivilege(int id, int personId, ProgramPrivilegeEnum privilege) {
+    public boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege) {
         return getEntityManager().createNamedQuery("ProgramPerson.count", Long.class)
-                .setParameter("programId", id)
-                .setParameter("personId", personId)
-                .setParameter("privilegeId", privilege.getId())
-                .getSingleResult() > 0;
+            .setParameter("programId", programId)
+            .setParameter("personId", personId)
+            .setParameter("privilegeId", privilege.getId())
+            .getSingleResult() > 0;
     }
 
     @Override
-    public boolean hasDepartmentPrivilege(int id, int departmentId, ProgramPrivilegeEnum privilege) {
+    public boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege) {
         return getEntityManager().createNamedQuery("ProgramDepartment.count", Long.class)
-                .setParameter("programId", id)
-                .setParameter("departmentId", departmentId)
-                .setParameter("privilegeId", privilege.getId())
-                .getSingleResult() > 0;
+            .setParameter("programId", programId)
+            .setParameter("departmentId", departmentId)
+            .setParameter("privilegeId", privilege.getId())
+            .getSingleResult() > 0;
+    }
+
+    @Override
+    public List<ProgramDepartmentVO> getDepartmentsById(int id) {
+        return getDepartments(getReference(Program.class, id));
+    }
+
+    @Override
+    public List<ProgramPersonVO> getPersonsById(int id) {
+        return getPersons(getReference(Program.class, id));
+    }
+
+    /* -- protected functions -- */
+
+    @Override
+    protected void onBeforeSaveEntity(ProgramVO vo, Program entity, boolean isNew) {
+        // Set default status to Temporary
+        if (isNew && vo.getStatusId() == null) {
+            vo.setStatusId(StatusEnum.TEMPORARY.getId());
+        }
+    }
+
+    @Override
+    protected void onAfterSaveEntity(final ProgramVO vo, final Program savedEntity, boolean isNew) {
+        EntityManager em = getEntityManager();
+
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        // Save properties
+        saveProperties(vo.getProperties(), savedEntity, savedEntity.getUpdateDate());
+
+        // Save departments
+        saveChildren(vo.getDepartments(),
+            savedEntity.getDepartments(),
+            ProgramDepartment.class,
+            (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, savedEntity, copyIfNull),
+            savedEntity);
+
+        // Save persons
+        saveChildren(vo.getPersons(),
+            savedEntity.getPersons(),
+            ProgramPerson.class,
+            (source, target, copyIfNull) -> this.toPersonEntity(source, target, savedEntity, copyIfNull),
+            savedEntity);
+
+        // Flush
+        em.flush();
+        em.clear();
+    }
+
+
+    protected void saveProperties(Map<String, String> source, Program parent, Date updateDate) {
+        final EntityManager em = getEntityManager();
+        if (MapUtils.isEmpty(source)) {
+            if (parent.getProperties() != null) {
+                List<ProgramProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
+                parent.getProperties().clear();
+                toRemove.forEach(em::remove);
+            }
+        } else {
+            // WARN: database can stored many values for the same keys.
+            // Only the first existing instance will be reused. Duplicate properties will be removed
+            ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
+                Beans.getList(parent.getProperties()),
+                ProgramProperty.Fields.LABEL);
+            List<ProgramProperty> existingValues = Beans.getList(existingPropertiesMap.values());
+            final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
+            if (parent.getProperties() == null) {
+                parent.setProperties(Lists.newArrayList());
+            }
+            final List<ProgramProperty> targetProperties = parent.getProperties();
+
+            // Transform each entry into ProgramProperty
+            source.keySet().stream()
+                .map(key -> {
+                    ProgramProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
+                    boolean isNew = (prop == null);
+                    if (isNew) {
+                        prop = new ProgramProperty();
+                        prop.setLabel(key);
+                        prop.setProgram(parent);
+                        prop.setCreationDate(updateDate);
+                    } else {
+                        existingValues.remove(prop);
+                    }
+                    prop.setName(source.get(key));
+                    prop.setStatus(enableStatus);
+                    prop.setUpdateDate(updateDate);
+                    if (isNew) {
+                        em.persist(prop);
+                    } else {
+                        em.merge(prop);
+                    }
+                    return prop;
+                })
+                .forEach(targetProperties::add);
+
+            // Remove old properties
+            if (CollectionUtils.isNotEmpty(existingValues)) {
+                parent.getProperties().removeAll(existingValues);
+                existingValues.forEach(em::remove);
+            }
+
+        }
+    }
+
+    protected List<ProgramDepartmentVO> getDepartments(Program source) {
+        if (CollectionUtils.isEmpty(source.getDepartments())) return null;
+        return source.getDepartments()
+            .stream()
+            .map(item -> {
+                ProgramDepartmentVO target = new ProgramDepartmentVO();
+                target.setId(item.getId());
+                target.setUpdateDate(item.getUpdateDate());
+                target.setProgramId(source.getId());
+
+                if (item.getLocation() != null) {
+                    target.setLocation(locationRepository.get(item.getLocation().getId()));
+                }
+
+                target.setDepartment(departmentRepository.get(item.getDepartment().getId()));
+                target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
+
+                return target;
+            })
+            .collect(Collectors.toList());
+    }
+
+    protected List<ProgramPersonVO> getPersons(Program source) {
+        if (CollectionUtils.isEmpty(source.getPersons())) return null;
+        return source.getPersons()
+            .stream()
+            .map(item -> {
+                ProgramPersonVO target = new ProgramPersonVO();
+                target.setId(item.getId());
+                target.setUpdateDate(item.getUpdateDate());
+                target.setProgramId(source.getId());
+
+                if (item.getLocation() != null) {
+                    target.setLocation(locationRepository.get(item.getLocation().getId()));
+                }
+
+                target.setPerson(personRepository.get(item.getPerson().getId()));
+                target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
+
+                return target;
+            })
+            .collect(Collectors.toList());
+    }
+
+    protected void toDepartmentEntity(@NonNull ProgramDepartmentVO source,
+                                      @NonNull ProgramDepartment target,
+                                      @NonNull Program parent, boolean copyIfNull) {
+        Preconditions.checkNotNull(parent.getId());
+
+        Beans.copyProperties(source, target);
+
+        // Program
+        source.setProgramId(parent.getId());
+        target.setProgram(parent);
+
+        // Location
+        Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
+        if (copyIfNull || locationId != null) {
+            if (locationId == null) {
+                target.setLocation(null);
+            } else {
+                target.setLocation(getReference(Location.class, locationId));
+            }
+        }
+
+        // Department
+        Integer departmentId = source.getDepartment() != null ? source.getDepartment().getId() : null;
+        if (copyIfNull || departmentId != null) {
+            if (departmentId == null) {
+                target.setDepartment(null);
+            } else {
+                target.setDepartment(getReference(Department.class, departmentId));
+            }
+        }
+
+        // Privilege
+        Integer privilegeId = source.getPrivilege() != null ? source.getPrivilege().getId() : null;
+        if (copyIfNull || privilegeId != null) {
+            if (privilegeId == null) {
+                target.setPrivilege(null);
+            } else {
+                target.setPrivilege(getReference(ProgramPrivilege.class, privilegeId));
+            }
+        }
+    }
+
+    protected void toPersonEntity(@NonNull ProgramPersonVO source,
+                                  @NonNull ProgramPerson target,
+                                  @NonNull Program parent, boolean copyIfNull) {
+        Preconditions.checkNotNull(parent.getId());
+
+        Beans.copyProperties(source, target);
+
+        // Program
+        source.setProgramId(parent.getId());
+        target.setProgram(parent);
+
+        // Location
+        Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
+        if (copyIfNull || locationId != null) {
+            if (locationId == null) {
+                target.setLocation(null);
+            } else {
+                target.setLocation(getReference(Location.class, locationId));
+            }
+        }
+
+        // Person
+        Integer personId = source.getPerson() != null ? source.getPerson().getId() : null;
+        if (copyIfNull || personId != null) {
+            if (personId == null) {
+                target.setPerson(null);
+            } else {
+                target.setPerson(getReference(Person.class, personId));
+            }
+        }
+
+        // Privilege
+        Integer privilegeId = source.getPrivilege() != null ? source.getPrivilege().getId() : null;
+        if (copyIfNull || privilegeId != null) {
+            if (privilegeId == null) {
+                target.setPrivilege(null);
+            } else {
+                target.setPrivilege(getReference(ProgramPrivilege.class, privilegeId));
+            }
+        }
     }
 }
