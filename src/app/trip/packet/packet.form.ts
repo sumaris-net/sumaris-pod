@@ -140,10 +140,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
     super.setValue(data, opts);
 
-    // Calculate packet count
-    const packetCount = Math.max(1, PacketUtils.getSampledPacketCount(data));
-    this.$packetCount.next(packetCount);
-    this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
     this.computeSampledRatios();
     this.computeTaxonGroupWeight();
 
