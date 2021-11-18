@@ -155,13 +155,8 @@ export abstract class AppRootTable<
             if (!valid && this.debug) AppFormUtils.logFormErrors(this.filterForm);
             return valid;
           }),
-          tap(value => {
-            const filter = this.asFilter(value);
-            this.filterCriteriaCount = filter.countNotEmptyCriteria();
-            this.markForCheck();
-            // Update the filter, without reloading the content
-            this.setFilter(filter, {emitEvent: false});
-          }),
+          // Update the filter, without reloading the content
+          tap(json => this.setFilter(json, {emitEvent: false})),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
           tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
@@ -518,22 +513,32 @@ export abstract class AppRootTable<
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 
-    const filter = this.asFilter(json);
-
-    this.hasOfflineMode = (filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || (await this.dataService.hasOfflineData());
+    this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this.dataService.hasOfflineData());
 
     // Force offline, if no network AND has offline feature
     if (this.network.offline && this.hasOfflineMode) {
-      filter.synchronizationStatus = 'DIRTY';
+      json.synchronizationStatus = 'DIRTY';
     }
 
-    this.setFilter(filter, {emitEvent: true, ...opts});
+    this.setFilter(json, {emitEvent: true, ...opts});
   }
 
   setFilter(filter: F, opts?: { emitEvent: boolean }) {
 
     filter = this.asFilter(filter);
-    this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
+
+    // Update criteria count
+    const criteriaCount = filter.countNotEmptyCriteria();
+    if (criteriaCount !== this.filterCriteriaCount) {
+      this.filterCriteriaCount = criteriaCount;
+      this.markForCheck();
+    }
+
+    // Update the form content
+    if (!opts || opts.emitEvent !== false) {
+      this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
+    }
+
     super.setFilter(filter, opts);
   }
 

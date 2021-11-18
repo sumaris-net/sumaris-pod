@@ -67,7 +67,6 @@ export class AggregatedLanding extends Entity<AggregatedLanding, number, DataEnt
 
   static fromObject: (source: any, opts?: any) => AggregatedLanding;
 
-  id: number;
   vesselSnapshot: VesselSnapshot;
   vesselActivities: VesselActivity[];
 
@@ -98,6 +97,7 @@ export class AggregatedLanding extends Entity<AggregatedLanding, number, DataEnt
     super.fromObject(source);
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     // this.id = this.vesselSnapshot.id;
+    this.observedLocationId = source.observedLocationId;
     this.vesselActivities = source.vesselActivities && source.vesselActivities.map(VesselActivity.fromObject) || [];
     this.synchronizationStatus = source.synchronizationStatus;
   }
