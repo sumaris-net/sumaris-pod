@@ -5,7 +5,7 @@ import {ProgramPage} from "./program/program.page";
 import {SoftwarePage} from "./software/software.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {PmfmPage} from "./pmfm/pmfm.page";
-import {SharedRoutingModule} from "@sumaris-net/ngx-components";
+import { ComponentDirtyGuard, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import {AppReferentialModule} from "./referential.module";
 import {StrategyPage} from "./strategy/strategy.page";
 import {ProgramsPage} from "./program/programs.page";
@@ -29,14 +29,13 @@ const routes: Routes = [
       {
         path: '',
         component: ProgramsPage,
-        runGuardsAndResolvers: 'pathParamsChange',
         data: {
           profile: 'SUPERVISOR'
-        }
+        },
+        runGuardsAndResolvers: 'pathParamsChange'
       },
       {
         path: ':programId',
-        runGuardsAndResolvers: 'pathParamsChange',
         children: [
           {
             path: '',
@@ -45,7 +44,9 @@ const routes: Routes = [
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'programId'
-            }
+            },
+            runGuardsAndResolvers: 'pathParamsChange',
+            canDeactivate: [ComponentDirtyGuard]
           },
           {
             path: 'strategies',
@@ -53,37 +54,31 @@ const routes: Routes = [
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'programId'
-            }
+            },
+            runGuardsAndResolvers: 'pathParamsChange',
+            canDeactivate: [ComponentDirtyGuard]
           },
           {
             path: 'strategy/legacy/:strategyId',
+            pathMatch: 'full',
+            component: StrategyPage,
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'strategyId'
             },
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                component: StrategyPage
-              }
-            ]
+            runGuardsAndResolvers: 'pathParamsChange',
+            canDeactivate: [ComponentDirtyGuard]
           },
-
           {
             path: 'strategy/sampling/:strategyId',
+            pathMatch: 'full',
             component: SamplingStrategyPage,
             data: {
               profile: 'SUPERVISOR',
               pathIdParam: 'strategyId'
             },
-            children: [
-              {
-                path: '',
-                pathMatch: 'full',
-                component: StrategyPage
-              }
-            ]
+            runGuardsAndResolvers: 'pathParamsChange',
+            canDeactivate: [ComponentDirtyGuard]
           }
         ]
       }

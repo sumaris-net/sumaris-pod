@@ -10,7 +10,7 @@ import {
   chainPromises,
   ConfigService,
   Configuration,
-  EntitiesStorage,
+  EntitiesStorage, firstTruePromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
@@ -23,7 +23,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
@@ -98,6 +98,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
     IEntitiesService<ReferentialRef, ReferentialRefFilter> {
 
+  private _$ready = new BehaviorSubject<boolean>(false);
   private _importedEntities: string[];
 
   constructor(
@@ -110,7 +111,14 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   ) {
     super(graphql, environment);
 
-    configService.config.subscribe(config => this.updateModelEnumerations(config));
+    configService.config.subscribe(config => {
+      this.updateModelEnumerations(config);
+      this._$ready.next(true);
+    });
+  }
+
+  ready(): Promise<any> {
+    return firstTruePromise(this._$ready);
   }
 
   /**

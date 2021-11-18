@@ -81,8 +81,8 @@
                               [autofocus]="row.id === -1 && row.editing"
                               [formControl]="row.validator.controls.parent"
                               [placeholder]="'TRIP.SAMPLE.TABLE.PARENT'|translate"
-                              [required]="true"
-                              [config]="autocompleteFields.parent">
+                              [config]="autocompleteFields.parent"
+                              required>
       </mat-autocomplete-field>
     </mat-cell>
 

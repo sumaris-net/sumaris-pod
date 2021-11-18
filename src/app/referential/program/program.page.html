@@ -132,13 +132,17 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
         </mat-icon>
-        <ion-label translate>PROGRAM.TAB_ACCESS_RIGHTS</ion-label>
+        <ion-label translate>PROGRAM.TAB_PRIVILEGES</ion-label>
         <!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
       </ng-template>
 
-      <div class="ion-padding">
+      <div style="height: var(--mat-tab-body-content-height)">
+        <app-person-privileges-table #personsTable
+                                     [title]="'PROGRAM.PRIVILEGES.TITLE'|translate"
+                                     [canEdit]="enabled"
+                                     [canDelete]="enabled">
 
-        <h2>Coming soon !</h2>
+        </app-person-privileges-table>
       </div>
     </mat-tab>
 

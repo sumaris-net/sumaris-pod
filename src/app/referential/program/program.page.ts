@@ -35,6 +35,7 @@ import { environment } from '../../../environments/environment';
 import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
+import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -44,6 +45,7 @@ export enum AnimationState {
 @Component({
   selector: 'app-program',
   templateUrl: 'program.page.html',
+  styleUrls: ['./program.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
@@ -64,6 +66,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
   @ViewChild('legacyStrategiesTable', { static: true }) legacyStrategiesTable: StrategiesTable;
   @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
+  @ViewChild('personsTable', { static: true }) personsTable: PersonPrivilegesTable;
+
 
   get strategiesTable(): AppTable<Strategy> {
     return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
@@ -157,12 +161,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
-  async updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+  updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
 
     this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
     this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
 
-    await super.updateView(data, opts);
+    return super.updateView(data, opts);
   }
 
 
@@ -183,7 +187,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.addChildForms([
       this.referentialForm,
       this.propertiesForm,
-      this.locationClassificationList
+      this.locationClassificationList,
+      this.personsTable
     ]);
   }
 
@@ -218,8 +223,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
 
     // Location classification
-    console.log('TODO: make sure location classification are loaded : ', data.locationClassifications);
     this.locationClassificationList.setValue(data.locationClassifications);
+
+    this.personsTable.setValue(data.persons)
 
     this.markForCheck();
   }
@@ -270,6 +276,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     data.properties
       .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
       .forEach(property => property.value = (property.value as any)?.id);
+
+    if (this.personsTable.dirty) {
+      await this.personsTable.save();
+    }
+    data.persons = this.personsTable.value;
+
     return data;
   }
 
@@ -369,4 +381,3 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   referentialEquals = ReferentialUtils.equals;
 
 }
-

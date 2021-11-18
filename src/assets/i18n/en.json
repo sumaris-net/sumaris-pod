@@ -1303,7 +1303,7 @@
     "TAB_GENERAL": "Details",
     "TAB_STRATEGIES": "Strategies",
     "TAB_STRATEGIES.SAMPLING": "Samples row",
-    "TAB_ACCESS_RIGHTS": "Access rights",
+    "TAB_PRIVILEGES": "Access rights",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Referential for taxon groups",
     "GEAR_CLASSIFICATION": "Referential for gears",
@@ -1319,6 +1319,13 @@
     },
     "LIST": {
       "TITLE": "Data collection program"
+    },
+    "PRIVILEGES": {
+      "TITLE": "Users",
+      "PERSON": "User",
+      "DEPARTMENT": "Department",
+      "LOCATION": "Location",
+      "PRIVILEGE": "Privilege"
     },
     "OPTIONS": {
       "I18N_SUFFIX" : "Thematic dictionary",

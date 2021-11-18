@@ -1327,7 +1327,7 @@
     "TAB_GENERAL": "Détails",
     "TAB_STRATEGIES": "Stratégies",
     "TAB_STRATEGIES.SAMPLING": "Lignes de plan",
-    "TAB_ACCESS_RIGHTS": "Droits d'accès",
+    "TAB_PRIVILEGES": "Droits d'accès",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Référentiel des espèces commerciales",
     "GEAR_CLASSIFICATION": "Référentiel engins",
@@ -1343,6 +1343,13 @@
     },
     "LIST": {
       "TITLE": "Programmes de collecte"
+    },
+    "PRIVILEGES": {
+      "TITLE": "Utilisateurs",
+      "PERSON": "Utilisateur",
+      "DEPARTMENT": "Service",
+      "LOCATION": "Lieu/Zone",
+      "PRIVILEGE": "Privilège"
     },
     "OPTIONS": {
       "I18N_SUFFIX" : "Dictionnaire thématique",

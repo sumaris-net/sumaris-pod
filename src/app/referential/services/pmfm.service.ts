@@ -356,7 +356,7 @@ export class PmfmService
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || 'label',
+      sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
       filter: filter && filter.asPodObject()
     };
@@ -414,7 +414,7 @@ export class PmfmService
     ): Promise<LoadResult<Pmfm>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    return this.loadAll(0, !value ? 30 : 10, sortBy || filter && filter.searchAttribute || null, sortDirection,
+    return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       { ...filter, searchText: value},
       {
         query: LoadAllWithPartsQueryWithTotal,
@@ -432,6 +432,10 @@ export class PmfmService
                                       opts?: {
                                         cache?: boolean;
                                       }): Promise<ObjectMap<number[]>> {
+
+
+    // Make sure enumeration has been override by config
+    await this.referentialRefService.ready();
 
     parameterLabelsMap = parameterLabelsMap || ParameterLabelGroups;
 

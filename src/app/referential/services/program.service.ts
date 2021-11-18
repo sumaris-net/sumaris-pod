@@ -21,7 +21,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
 import {ReferentialRefService} from './referential-ref.service';
-import {Program} from './model/program.model';
+import { Program, ProgramPerson } from './model/program.model';
 import {SortDirection} from '@angular/material/sort';
 import {ReferentialService} from './referential.service';
 import {ProgramFragments} from './program.fragments';
@@ -40,7 +40,8 @@ const ProgramQueries: BaseEntityGraphqlQueries = {
     }
   }
   ${ProgramFragments.program}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightPerson}`,
 
   // Load all query
   loadAll: gql`query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -67,7 +68,8 @@ const ProgramMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${ProgramFragments.program}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightPerson}`,
 
   delete: gql`mutation DeletePrograms($ids:[Int]){
     deleteReferentials(entityName: "Program", ids: $ids)
@@ -263,6 +265,15 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
   copyIdAndUpdateDate(source: Program, target: Program) {
     EntityUtils.copyIdAndUpdateDate(source, target);
 
+    // Update persons
+    if (target.persons && source.persons) {
+      target.persons.forEach(targetPerson => {
+        targetPerson.programId = source.id;
+        const sourcePerson = source.persons.find(p => ProgramPerson.equals(p, targetPerson));
+        EntityUtils.copyIdAndUpdateDate(sourcePerson, targetPerson);
+      });
+    }
+
     // Update strategies
     if (target.strategies && source.strategies) {
       target.strategies.forEach(entity => {
@@ -272,6 +283,8 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
       });
     }
+
+
   }
 
   /* -- protected methods -- */
