@@ -222,10 +222,10 @@ public interface VesselFeaturesSpecifications<
         };
 
         boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
-        boolean enableAnySearch = Arrays.stream(attributes)
-            .anyMatch(attr -> attr.endsWith(VesselFeatures.Fields.NAME));
-        boolean enablePrefixSearch = enableRegistrationCodeSearchAsPrefix && Arrays.stream(attributes)
-            .anyMatch(attr -> !attr.endsWith(VesselFeatures.Fields.NAME));
+        boolean enableAnySearch = !enableRegistrationCodeSearchAsPrefix
+            || Arrays.stream(attributes).anyMatch(attr -> attr.endsWith(VesselFeatures.Fields.NAME));
+        boolean enablePrefixSearch = enableRegistrationCodeSearchAsPrefix
+            && Arrays.stream(attributes).anyMatch(attr -> !attr.endsWith(VesselFeatures.Fields.NAME));
 
         BindableSpecification<VesselFeatures> specification =  BindableSpecification.where((root, query, cb) -> {
             final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
@@ -233,7 +233,7 @@ public interface VesselFeaturesSpecifications<
 
             Predicate[] predicates = Arrays.stream(attributes).map(attr -> cb.like(
                 cb.upper(Daos.composePath(root, attr)),
-                (enableRegistrationCodeSearchAsPrefix && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam)
+                (enablePrefixSearch && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam)
             ).toArray(Predicate[]::new);
 
             return cb.or(predicates);
