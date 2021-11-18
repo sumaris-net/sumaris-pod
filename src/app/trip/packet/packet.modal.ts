@@ -5,6 +5,7 @@ import { Subject, Subscription } from 'rxjs';
 import { PacketForm } from './packet.form';
 import { AppFormUtils, isNil, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
+import { environment } from '@environments/environment.prod';
 
 export interface PacketModalOptions {
   data: Packet;
@@ -23,10 +24,11 @@ export interface PacketModalOptions {
 export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
 
   loading = false;
+  readonly debug: boolean;
   subscription = new Subscription();
   $title = new Subject<string>();
 
-  @ViewChild('packetForm', {static: true}) packetForm: PacketForm;
+  @ViewChild('form', {static: true}) packetForm: PacketForm;
 
   @Input() data: Packet;
   @Input() mobile: boolean;
@@ -56,6 +58,7 @@ export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
   ) {
 
     this.mobile = platform.mobile;
+    this.debug = !environment.production;
   }
 
   ngOnInit(): void {
@@ -77,12 +80,13 @@ export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
   async onSave(event: any, role?: string): Promise<any> {
 
     // Avoid multiple call
-    if (this.disabled) return;
+    if (this.disabled || this.loading) return;
 
     await AppFormUtils.waitWhilePending(this.packetForm);
 
     if (this.packetForm.invalid) {
-      AppFormUtils.logFormErrors(this.packetForm.form);
+      if (this.debug) AppFormUtils.logFormErrors(this.packetForm.form);
+      this.packetForm.markAllAsTouched();
       return;
     }
 

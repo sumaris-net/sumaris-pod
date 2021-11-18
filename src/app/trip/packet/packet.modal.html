@@ -2,7 +2,7 @@
                    [title]="$title | async"
                    [color]="'secondary'"
                    [showSpinner]="loading"
-                   [canValidate]="!loading && valid"
+                   [canValidate]="!loading"
                    (cancel)="cancel()"
                    (validate)="onSave($event)">
   <ion-buttons slot="end">
@@ -27,7 +27,7 @@
 
 
 <ion-content class="ion-no-padding" cdkTrapFocus>
-  <app-packet-form #packetForm
+  <app-packet-form #form
                    [showParent]="mobile"
                    [mobile]="mobile"
                    [parents]="parents"
@@ -41,13 +41,21 @@
       <mat-icon slot="start">local_offer</mat-icon>
       <ion-label>
         <span translate>PACKET.COMPOSITION.BTN_SALE</span>
-        <span *ngIf="packetForm.value.saleProducts && packetForm.value.saleProducts.length && packetForm.value.composition && packetForm.value.composition.length">&nbsp;
-          ({{(packetForm.value.saleProducts.length / packetForm.value.composition.length).toString()}})
+        <span *ngIf="form.value.saleProducts && form.value.saleProducts.length && form.value.composition && form.value.composition.length">&nbsp;
+          ({{(form.value.saleProducts.length / form.value.composition.length).toString()}})
         </span>
       </ion-label>
     </ion-button>
 
   </app-packet-form>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+
+    <ion-fab-button color="tertiary" (click)="form.addComposition()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

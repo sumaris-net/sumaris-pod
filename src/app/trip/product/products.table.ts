@@ -172,7 +172,8 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     if (res && res.data) {
       // patch saleProducts only
       row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
-      this.markAsDirty();
+      this.markAsDirty({emitEvent: false});
+      this.markForCheck();
     }
   }
 
@@ -205,15 +206,15 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const res = await modal.onDidDismiss();
 
-    if (data) {
-      if (this.debug)
-        console.debug('[products-table] Modal result: ', data);
+    if (res?.data) {
+      if (this.debug) console.debug('[products-table] Modal result: ', res.data);
 
       // patch samples only
-      row.validator.patchValue({samples: data}, {emitEvent: true});
-      this.markAsDirty();
+      row.validator.patchValue({samples: res?.data}, {emitEvent: true});
+      this.markAsDirty({emitEvent: false});
+      this.markForCheck();
     }
   }
 

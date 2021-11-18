@@ -1,24 +1,22 @@
 <app-modal-toolbar modalName="AggregatedLandingModal"
+                   color="secondary"
                    [title]="$title | async"
-                   [color]="'secondary'"
                    [showSpinner]="loading"
                    [canValidate]="canValidate"
                    (cancel)="cancel()"
                    (validate)="onSave($event)"
 ></app-modal-toolbar>
 
-<ion-content class="ion-padding">
+<ion-content>
   <app-aggregated-landings-form #form
                                 [options]="options"
-                                (onOpenTrip)="openTrip($event)"
-  ></app-aggregated-landings-form>
+                                (onOpenTrip)="openTrip($event)">
+  </app-aggregated-landings-form>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-
     <ion-fab-button color="tertiary" (click)="addActivity()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
-
   </ion-fab>
 </ion-content>
 
