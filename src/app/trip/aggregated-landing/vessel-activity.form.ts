@@ -1,10 +1,10 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit } from '@angular/core';
 import { DateAdapter } from '@angular/material/core';
 import { Moment } from 'moment';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
-import { FormArrayHelper, LocalSettingsService, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { FormArrayHelper, isNotNilOrBlank, LocalSettingsService, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { AggregatedLandingService } from '../services/aggregated-landing.service';
 import { VesselActivity } from '../services/model/aggregated-landing.model';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
@@ -19,12 +19,14 @@ import { MetierFilter } from '@app/referential/services/filter/metier.filter';
   selector: 'app-vessel-activity-form',
   templateUrl: './vessel-activity.form.html',
   styleUrls: ['./vessel-activity.form.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> implements OnInit {
 
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
   @Input() mobile: boolean;
+  @Input() showComment = false;
 
   onRefresh = new EventEmitter<any>();
   dates: Moment[];
@@ -87,6 +89,8 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
 
     // Resize metiers array
     this.metiersHelper.resize(Math.max(1, data?.metiers?.length));
+
+    this.showComment = isNotNilOrBlank(data?.comments);
   }
 
   addMetier() {
@@ -118,6 +122,14 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
       this.metiersHelper.resize(1);
 
     }
+  }
+
+  toggleComment() {
+    this.showComment = !this.showComment;
+    if (!this.showComment) {
+      this.form.get('comments').setValue(null);
+    }
+    this.markForCheck();
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {

@@ -4,7 +4,19 @@ import { Moment } from 'moment';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
-import { AppForm, DateFormatPipe, DisplayFn, filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, LocalSettingsService, NetworkService, SharedValidators } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  DateFormatPipe,
+  DisplayFn,
+  fadeInAnimation, fadeInOutAnimation,
+  filterNotNil,
+  firstNotNilPromise,
+  FormArrayHelper,
+  isNil,
+  LocalSettingsService,
+  NetworkService,
+  SharedValidators,
+} from '@sumaris-net/ngx-components';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { AggregatedLandingService } from '../services/aggregated-landing.service';
@@ -25,7 +37,8 @@ export class AggregatedLandingFormOption {
   selector: 'app-aggregated-landings-form',
   templateUrl: './aggregated-landing.form.html',
   styleUrls: ['./aggregated-landing.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [fadeInOutAnimation]
 })
 export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements OnInit {
 
@@ -39,6 +52,10 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   get dirty(): boolean {
     return super.dirty && this._activityDirty;
+  }
+
+  get loading(): boolean {
+    return this._loading;
   }
 
   private $data = new BehaviorSubject<AggregatedLanding>(undefined);
@@ -131,16 +148,19 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       .subscribe(value => {
         if (this.debug) console.debug('[aggregated-landing] activities changes', value);
         this._activityDirty = true;
+        this.markForCheck();
       });
 
     this.initActivitiesHelper();
 
+    const dateControl = this.form.get('date');
     this.registerSubscription(
       combineLatest([
-        this.form.get('date').valueChanges.pipe(distinctUntilChanged()),
+        dateControl.valueChanges
+          .pipe(distinctUntilChanged()),
         filterNotNil(this.$data)
       ])
-        .subscribe(_ => this.showAtDate(this.form.value.date))
+        .subscribe(_ => this.showAtDate(dateControl.value))
     );
 
     super.ngOnInit();
@@ -174,7 +194,8 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     }
 
     this.enable();
-    setTimeout(() => this.markAsLoaded(), 500);
+    this.markAsLoaded();
+    //setTimeout(() => this.markAsLoaded(), 500);
   }
 
   addActivity() {
@@ -190,6 +211,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     const activity = new VesselActivity();
     activity.rankOrder = maxRankOrder + 1;
     activity.date = this.form.value.date;
+    this.activities.push(activity);
     return activity;
   }
 
@@ -214,12 +236,12 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.cd.markForCheck();
   }
 
-  displayDate(): DisplayFn {
+  get displayDateFn(): DisplayFn {
     return (obj: any) => this.dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString();
   }
 
-  compareDate() {
-    return (d1: Moment, d2: Moment) => d1 && d2 && d1.isSame(d2) || false;
+  compareDateFn(d1: Moment, d2: Moment)  {
+    return d1 && d2 && d1.isSame(d2) || false;
   }
 
   private initActivitiesHelper() {
@@ -240,7 +262,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       return;
     }
     if (this.debug) console.debug(`[aggregated-landing-form] save activities at ${date}`);
-    const newActivities = this.$data.getValue().vesselActivities.filter(value => !value.date.isSame(date)).slice() || [];
+    const newActivities = this.$data.value.vesselActivities.filter(value => !value.date.isSame(date)).slice() || [];
     const activities = this.activitiesForm.value.map(v => VesselActivity.fromObject(v));
     newActivities.push(...activities);
     this.$data.getValue().vesselActivities = newActivities;
