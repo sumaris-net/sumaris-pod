@@ -240,6 +240,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
+      physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
     };
 
