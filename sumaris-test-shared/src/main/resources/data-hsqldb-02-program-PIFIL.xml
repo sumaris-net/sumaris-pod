@@ -45,6 +45,7 @@
   <PROGRAM_PROPERTY ID="109" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.latitude.defaultSign" NAME="+"/>
   <PROGRAM_PROPERTY ID="110" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
   <PROGRAM_PROPERTY ID="111" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="112" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.position.enable" NAME="false"/>
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="60" LOCATION_CLASSIFICATION_FK="2"/>
 
