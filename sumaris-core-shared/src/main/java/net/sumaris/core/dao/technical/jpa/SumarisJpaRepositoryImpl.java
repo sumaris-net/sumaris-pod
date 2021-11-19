@@ -38,6 +38,7 @@ import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
@@ -588,7 +589,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                               Class<CT> targetClass,
                               ToEntityFunction<ID, CV, CT> toEntity,
                               PT parent) {
-        Preconditions.checkNotNull(sources);
         Preconditions.checkNotNull(parent);
 
         final EntityManager em = getEntityManager();
@@ -630,6 +630,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             entitiesToRemove.values().forEach(em::remove);
         }
 
-        return sources.isEmpty() ? null : sources;
+        return CollectionUtils.isEmpty(sources) ? null : sources;
     }
 }

@@ -31,7 +31,7 @@ import java.util.Date;
 public interface IRootDataEntity<ID extends Serializable>
         extends IDataEntity<ID>,
         IWithRecorderPersonEntity<ID, Person>,
-        IWithDataQualityEntity<ID>{
+        IWithDataQualityEntity<ID> {
 
     interface Fields extends IDataEntity.Fields,
         IWithDataQualityEntity.Fields,
