@@ -1095,12 +1095,12 @@
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Non qualifiée",
       "GOOD": "Bonne",
-      "OUT_STATS": "Hors statistique",
+      "OUT_STATS": "Hors statistiques",
       "DOUBTFUL": "Douteuse",
       "BAD": "Mauvaise",
       "FIXED": "Corrigée",
       "NOT_COMPLETED": "Incomplète",
-      "MISSING": "à remplir"
+      "MISSING": "Absente"
     },
     "ERROR": {
       "INVALID_FORM": "Vérifier et corriger votre saisie."
@@ -1363,14 +1363,16 @@
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
-      "TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT": "Capture > Afficher les mesures individuelles",
+      "TRIP_BATCH_ENABLE": "Capture > Lots pas espèces: Activer ?",
+      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lots pas espèces: Activer les mesures individuelles ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
-      "TRIP_LATITUDE_DEFAULT_SIGN": "Position > Latitude: Direction par défaut :",
-      "TRIP_LONGITUDE_DEFAULT_SIGN": "Position > Longitude: Direction par défaut :",
+      "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
+      "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
+      "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",

@@ -75,6 +75,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   enableCatchTab = true;
   showSampleTables = false;
   showBatchTables = false;
+  showBatchTablesByProgram = true;
   mobile: boolean;
   sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
 
@@ -239,17 +240,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // DEBUG
     //console.debug('[operation-page] Measurement form is ready');
 
-    if (this._measurementSubscription) this._measurementSubscription.unsubscribe();
+    // Clean existing subscription (e.g. when acquisition level change, this function can= be called many times)
+    this._measurementSubscription?.unsubscribe();
     this._measurementSubscription = new Subscription();
 
     const formGroup = this.measurementsForm.form as FormGroup;
-    let showDefaultTables = true;
+    let defaultTableStates = true;
 
     // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables
     const samplingTypeControl = formGroup?.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
     if (isNotNil(samplingTypeControl)) {
-      showDefaultTables = false;
-      this.enableCatchTab = this.batchTree.catchBatchForm.hasPmfms;
+      defaultTableStates = false;
+      this.enableCatchTab = this.batchTree.showCatchForm;
       this._measurementSubscription.add(
         samplingTypeControl.valueChanges
           .pipe(
@@ -290,41 +292,29 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       );
     }
 
-    // If PMFM "Is Sampling ?" exists, then use to enable/disable some tables
-    const isSamplingControl = formGroup?.controls[PmfmIds.IS_SAMPLING];
-    if (isNotNil(isSamplingControl)) {
-      showDefaultTables = false;
-      isSamplingControl.setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
+    // If PMFM "Has accidental catches ?" exists, then use to enable/disable sample tables
+    const hasAccidentalCatchesControl = formGroup?.controls[PmfmIds.HAS_ACCIDENTAL_CATCHES];
+    if (isNotNil(hasAccidentalCatchesControl)) {
+      defaultTableStates = true; // Applying defaults (because will not manage the catch
+      hasAccidentalCatchesControl.setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
       this._measurementSubscription.add(
-        isSamplingControl.valueChanges
+        hasAccidentalCatchesControl.valueChanges
           .pipe(
             debounceTime(400),
-            startWith<any, any>(isSamplingControl.value),
+            startWith<any, any>(hasAccidentalCatchesControl.value),
             filter(isNotNil),
             distinctUntilChanged()
           )
-          .subscribe(isSampling => {
+          .subscribe(hasAccidentalCatches => {
 
-            if (this.debug) console.debug('[operation] Detected PMFM changes value for IS_SAMPLING: ', isSampling);
+            if (this.debug) console.debug('[operation] Enable/Disable samples table, because HAS_ACCIDENTAL_CATCHES=' + hasAccidentalCatches);
 
-            if (isSampling) {
-              if (this.debug) console.debug('[operation] Enable batch sampling tables');
-              this.enableCatchTab = true;
-              this.tabCount = 2;
-              this.showBatchTables = true;
-              this.showSampleTables = false;
-            } else {
-              if (this.debug) console.debug('[operation] Disable batch sampling tables');
-              this.enableCatchTab = this.batchTree.showCatchForm;
-              this.tabCount = this.enableCatchTab ? 2 : 1;
-              this.showBatchTables = false;
-              this.showSampleTables = false;
-            }
+            // Enable samples, when has accidental catches
+            this.showSampleTables = hasAccidentalCatches;
+            this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
+            this.tabCount = this.enableCatchTab ? 2 : 1;
 
             // Force first tab index
-            this.batchTree.allowSamplingBatches = isSampling;
-            this.batchTree.defaultHasSubBatches = isSampling;
-            this.batchTree.allowSubBatches = isSampling;
             this.selectedBatchTabIndex = 0;
             this.selectedSampleTabIndex = 0;
             this.updateTablesState();
@@ -334,7 +324,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     if (this.opeForm.allowParentOperation) {
-      showDefaultTables = false;
+      defaultTableStates = false;
       this._measurementSubscription.add(
         this.opeForm.onParentChanges
           .pipe(
@@ -342,30 +332,31 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             map(parent => !!parent), // into boolean
             distinctUntilChanged()
           )
-          .subscribe(async (hasParent) => {
+          .subscribe((hasParent) => {
             let acquisitionLevel: AcquisitionLevelType;
             if (hasParent) {
               if (this.debug) console.debug('[operation] Enable batch tables');
-              this.enableCatchTab = true;
-              this.tabCount = 2;
-              this.showBatchTables = true;
+              this.showBatchTables = this.showBatchTablesByProgram;
               this.showSampleTables = false;
+              this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
+              this.tabCount = this.enableCatchTab ? 2 : 1;
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
-              this.enableCatchTab = false;
-              this.tabCount = 1;
               this.showBatchTables = false;
               this.showSampleTables = false;
+              this.enableCatchTab = false;
+              this.tabCount = 1;
               acquisitionLevel = AcquisitionLevelCodes.OPERATION;
             }
 
             // Change acquisition level, if need
             if (this.$acquisitionLevel.value !== acquisitionLevel) {
-              this.measurementsForm.setAcquisitionLevel(acquisitionLevel, []);
+              this.measurementsForm.setAcquisitionLevel(acquisitionLevel, []/* force cleaning previous values*/);
               this.$acquisitionLevel.next(acquisitionLevel);
             }
 
+            // Force first tab index
             this.selectedBatchTabIndex = 0;
             this.selectedSampleTabIndex = 0;
             this.updateTablesState();
@@ -374,37 +365,37 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       );
     }
 
-    const hasMeasureControl = formGroup?.controls[PmfmIds.HAS_INDIVIDUAL_MEASURE];
-    if (isNotNil(hasMeasureControl)) {
-      showDefaultTables = false;
+    const hasIndividualMeasuresControl = formGroup?.controls[PmfmIds.HAS_INDIVIDUAL_MEASURES];
+    if (isNotNil(hasIndividualMeasuresControl)) {
+      defaultTableStates = false;
       this._measurementSubscription.add(
-        hasMeasureControl.valueChanges
+        hasIndividualMeasuresControl.valueChanges
           .pipe(
             debounceTime(400),
-            startWith<any, any>(hasMeasureControl.value),
+            startWith<any, any>(hasIndividualMeasuresControl.value),
             filter(isNotNil),
             distinctUntilChanged()
           )
-          .subscribe(hasMeasure => {
-            this.batchTree.allowSamplingBatches = hasMeasure;
-            this.batchTree.defaultHasSubBatches = hasMeasure;
-            this.batchTree.allowSubBatches = hasMeasure;
+          .subscribe(hasIndividualMeasures => {
+            this.batchTree.allowSamplingBatches = hasIndividualMeasures;
+            this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
+            this.batchTree.allowSubBatches = hasIndividualMeasures;
           })
       );
     }
 
     // Show default tables
-    if (showDefaultTables) {
+    if (defaultTableStates) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
-      this.enableCatchTab = true;
-      this.tabCount = 2;
+      this.showBatchTables = this.showBatchTablesByProgram;
       this.showSampleTables = false;
-      this.showBatchTables = true;
+      this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
+      this.tabCount = 2;
       this.updateTablesState();
       this.markForCheck();
     }
 
-    // Abnormal trip => Set comment as required
+    // Abnormal trip => Change comments as required
     const tripProgressControl = formGroup?.controls[PmfmIds.TRIP_PROGRESS];
     if (isNotNil(samplingTypeControl)) {
       this._measurementSubscription.add(
@@ -415,15 +406,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             filter(isNotNilOrBlank),
             distinctUntilChanged()
           )
-          .subscribe(value => {
-            const commentControl = this.opeForm.form.get('comments');
-            if (!value) {
-              commentControl.setValidators(Validators.required);
-              commentControl.markAsTouched({onlySelf: true});
-            } else {
-              commentControl.clearValidators();
-            }
-            commentControl.updateValueAndValidity({emitEvent: false, onlySelf: true});
+          .subscribe(normalProgress => {
+            if (!normalProgress) console.debug('[operation] Abnormal OPE: comment is now required');
+            this.opeForm.requiredComment = !normalProgress;
           })
       );
     }
@@ -443,6 +428,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
+    this.opeForm.showPosition = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
@@ -450,17 +436,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
+
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
     this.saveOptions.withChildOperation = this.opeForm.allowParentOperation;
 
+    this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
+
     this.batchTree.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
 
-    const hasMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT);
-
-    this.batchTree.allowSamplingBatches = toBoolean(hasMeasure, true);
-    this.batchTree.defaultHasSubBatches = toBoolean(hasMeasure, false);
-    this.batchTree.allowSubBatches = toBoolean(hasMeasure, true);
+    const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.batchTree.allowSamplingBatches = hasBatchMeasure;
+    this.batchTree.allowSubBatches = hasBatchMeasure;
 
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);

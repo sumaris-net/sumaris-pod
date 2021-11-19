@@ -70,6 +70,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 5,
     type: 'integer'
   },
+  TRIP_POSITION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.position.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_POSITION_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
+  TRIP_BATCH_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   TRIP_BATCH_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE',
@@ -112,10 +124,10 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.batch.has.individual.measurement',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_HAS_INDIVIDUAL_MEASUREMENT',
-    defaultValue: '',
+  TRIP_BATCH_MEASURE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.measure.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ENABLE',
+    defaultValue: 'true',
     type: 'boolean'
   },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
