@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorService } from '../services/validator/operation.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output} from '@angular/core';
+import {OperationValidatorService} from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   AccountService,
-  AppForm, AppFormUtils,
+  AppForm,
+  AppFormUtils,
   DateFormatPipe,
   EntityUtils,
   fromDateISOString,
@@ -16,26 +17,26 @@ import {
   LocalSettingsService,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils, removeDuplicatesFromArray,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
   SharedValidators,
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
-import { BehaviorSubject, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
-import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Router } from '@angular/router';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { IPosition } from '@app/trip/services/model/position.model';
+import {AbstractControl, FormControl, FormGroup, Validators} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {BehaviorSubject, merge} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ModalController} from '@ionic/angular';
+import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/operation/select-operation.modal';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {PositionUtils} from '@app/trip/services/position.utils';
 
 const moment = momentImported;
 
@@ -167,7 +168,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     super(dateFormat, validatorService.getFormGroup(), settings);
     this.mobile = this.settings.mobile;
 
-    // A boolean control, to store if parent is a parent or child opteration
+    // A boolean control, to store if parent is a parent or child operation
     this.isParentOperationControl = new FormControl(true, Validators.required);
   }
 
@@ -242,13 +243,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
 
-    const isChildOperation = isNotNil(data.parentOperation?.id);
+    const isChildOperation =  isNotNil(data.parentOperationId) || isNotNil(data.parentOperation?.id);
     if (isChildOperation || this.allowParentOperation) {
-      this.allowParentOperation = true;
+      this._allowParentOperation = true; // do not use setter to not update form group
       this.setIsParentOperation(!isChildOperation, {emitEvent: false});
     }
 
     super.setValue(data, opts);
+
+    if (data.childOperation && data.childOperation.fishingEndDateTime){
+      this.setChildOperation(data.childOperation, {emitEvent:false});
+    }
   }
 
   setTrip(trip: Trip) {
@@ -269,6 +274,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       // Update form group
       this.updateFormGroup();
     }
+  }
+
+  setChildOperation(value: Operation, opts?: {emitEvent: boolean}) {
+    this.form.patchValue({
+      childOperation: value,
+      childOperationFishingEndDateTime: value.fishingEndDateTime
+    }, opts);
+
+    if (!opts || opts.emitEvent !== false){
+      this.updateFormGroup();
+    }
+  }
+
+  async setParentOperation(value: Operation) {
+    this.parentControl.setValue(value);
+    await this.onParentOperationChanged(value, {emitEvent: false});
+    this.updateFormGroup();
   }
 
   /**
@@ -295,7 +317,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.form.markAsDirty({onlySelf: true});
     this.form.updateValueAndValidity();
 
-    this.updateDistance({emitEvent: false /* done after */ });
+    this.updateDistance({emitEvent: false /* done after */});
 
     this.markForCheck();
   }
@@ -353,11 +375,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return (data instanceof Operation) ? data : undefined;
   }
 
-  async onParentOperationChanged(parentOperation?: Operation) {
+  async onParentOperationChanged(parentOperation?: Operation, opts?: { emitEvent: boolean }) {
     parentOperation = parentOperation || this.form.get('parentOperation').value;
     if (this.debug) console.debug('[operation-form] Parent operation changed: ', parentOperation);
 
-    this.onParentChanges.emit(parentOperation);
+    if (!opts || opts.emitEvent !== false) {
+      this.onParentChanges.emit(parentOperation);
+    }
 
     // Compute parent operation label
     let parentLabel = '';
@@ -410,8 +434,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         if (metier.length === 1) {
           metierControl.patchValue(metier[0]);
-        }
-        else {
+        } else {
           // TODO
         }
       } else if (physicalGear.length === 0) {
@@ -433,7 +456,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return operation;
   }
 
-  updateDistanceValidity(distance?: number, opts?: {emitEvent?: boolean}) {
+  updateDistanceValidity(distance?: number, opts?: { emitEvent?: boolean }) {
     distance = distance || this.distance;
     if (isNotNilOrNaN(distance)) {
       // Distance > max error distance
@@ -573,7 +596,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     if (this.debug) console.debug('[operation-form] Is parent operation ? ', isParent);
 
     if (this.isParentOperationControl.value !== isParent) {
-      this.isParentOperationControl.setValue(isParent);
+      this.isParentOperationControl.setValue(isParent, opts);
     }
 
     // Parent operation (= Filage) (or parent not used)
@@ -601,12 +624,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         // Clean parent fields (should be filled after parent selection)
         this.form.patchValue({
-            startDateTime: null,
-            fishingStartDateTime: null,
-            physicalGear: null,
-            metier: null,
-            childOperation: null
-          });
+          startDateTime: null,
+          fishingStartDateTime: null,
+          physicalGear: null,
+          metier: null,
+          childOperation: null
+        });
 
         this.updateFormGroup();
 
@@ -631,7 +654,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     longitudeControl.patchValue(position && position.longitude || null);
   }
 
-  protected updateDistance(opts?: {emitEvent?: boolean}) {
+  protected updateDistance(opts?: { emitEvent?: boolean }) {
     const startPosition = this.form.get('startPosition').value;
     const endPosition = this.form.get('endPosition').value;
 

@@ -74,6 +74,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         comments: [data && data.comments || null, Validators.maxLength(2000)],
         parentOperation: [data && data.parentOperation || null],
         childOperation: [data && data.childOperation || null],
+        childOperationFishingEndDateTime: [data && data.childOperation.fishingEndDateTime || null],
         qualityFlagId: [data && data.qualityFlagId || null]
       });
 
@@ -143,6 +144,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       console.info('[operation-validator] Updating validator -> Parent operation');
       parentControl.clearValidators();
       parentControl.disable();
+      childControl.enable();
 
       // Set Quality flag, to mark as parent operation
       qualityFlagControl.setValidators(Validators.required);
@@ -153,12 +155,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       const fishingStartDateTimeValidators = [
         tripDatesValidators,
         SharedValidators.dateRangeEnd('startDateTime'),
-        SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'),
+        SharedValidators.dateRangeStart('childOperationFishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'),
 
       ];
       fishingStartDateTimeControl.setValidators(opts?.isOnFieldMode
         ? Validators.compose(fishingStartDateTimeValidators)
         : Validators.compose([Validators.required, ...fishingStartDateTimeValidators]));
+      fishingStartDateTimeControl.enable();
 
       // Disable unused controls
       fishingEndDateTimeControl.disable();
@@ -172,6 +175,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       console.info('[operation-validator] Updating validator -> Child operation');
       parentControl.setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
       parentControl.enable();
+      childControl.clearValidators();
       childControl.disable();
 
       // Clear quality flag
