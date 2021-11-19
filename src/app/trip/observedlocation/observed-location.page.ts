@@ -187,7 +187,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       ? this.save(event)
       // If desktop mode: ask before save
       : this.saveIfDirtyAndConfirm();
-
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
       this.markAsLoading();
@@ -195,7 +194,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       try {
         const vessel = await this.openSelectVesselModal(true);
         if (vessel && this.aggregatedLandingsTable) {
-          await this.aggregatedLandingsTable.addAggregatedRow(vessel);
+          await this.aggregatedLandingsTable.addAggregatedRow(vessel, this.data.synchronizationStatus);
         }
       } finally {
         this.markAsLoaded();

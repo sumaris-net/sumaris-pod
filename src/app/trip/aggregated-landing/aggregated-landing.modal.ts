@@ -162,7 +162,7 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
     }
     // set last activity
     this.viewCtrl.dismiss({
-      aggregatedLanding: undefined,
+      aggregatedLanding: this.form.data,
       saveOnDismiss: saveBeforeLeave,
       tripToOpen: $event.activity
     });

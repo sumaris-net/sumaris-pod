@@ -1,11 +1,13 @@
-import { Injectable, Injector } from '@angular/core';
-import { AggregatedLanding, AggregatedLandingUtils } from './model/aggregated-landing.model';
+import {Injectable, Injector} from '@angular/core';
+import {AggregatedLanding, AggregatedLandingUtils} from './model/aggregated-landing.model';
 import {
   BaseEntityGraphqlMutations,
   BaseGraphqlService,
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
+  Entity,
+  firstNotNilPromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
@@ -16,18 +18,18 @@ import {
   LoadResult,
   NetworkService,
 } from '@sumaris-net/ngx-components';
-import { gql } from '@apollo/client/core';
-import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { EMPTY, Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { SortDirection } from '@angular/material/sort';
-import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
-import { environment } from '@environments/environment';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
-import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
-import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
-import { ErrorCodes } from '@app/data/services/errors';
+import {gql} from '@apollo/client/core';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {EMPTY, Observable} from 'rxjs';
+import {filter, map} from 'rxjs/operators';
+import {SortDirection} from '@angular/material/sort';
+import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
+import {environment} from '@environments/environment';
+import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
+import {BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
+import {ErrorCodes} from '@app/data/services/errors';
 
 const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
   __typename
@@ -104,6 +106,15 @@ export class AggregatedLandingService
     // FOR DEV ONLY
     this._debug = !environment.production;
   }
+
+  async loadAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number; }, opts?: EntitiesServiceWatchOptions): Promise<LoadResult<AggregatedLanding>> {
+    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
+  }
+
+  watchAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number; }, opts?: EntitiesServiceWatchOptions): Observable<LoadResult<AggregatedLanding>> {
+    return this.watchAll(0, -1, null, null, filter, opts);
+  }
+
 
   watchAll(offset: number,
            size: number,
@@ -305,6 +316,52 @@ export class AggregatedLandingService
 
   }
 
+
+  async synchronize(entity: AggregatedLanding, opts?: any): Promise<AggregatedLanding> {
+    opts = {
+      enableOptimisticResponse: false, // Optimistic response not need
+      ...opts
+    };
+
+    const localId = entity?.id;
+    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (this.network.offline) throw new Error('Could not synchronize if network if offline');
+
+    // Clone (to keep original entity unchanged)
+    entity = entity instanceof Entity ? entity.clone() : entity;
+    entity.synchronizationStatus = 'SYNC';
+    entity.id = undefined;
+
+
+    try {
+
+      // entity = await this.save(entity, opts);
+
+      // Check return entity has a valid id
+      if (isNil(entity.id) || entity.id < 0) {
+        throw {code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR};
+      }
+
+    } catch (err) {
+      throw {
+        ...err,
+        code: ErrorCodes.SYNCHRONIZE_ENTITY_ERROR,
+        message: 'ERROR.SYNCHRONIZE_ENTITY_ERROR',
+        context: entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE)
+      };
+    }
+
+    try {
+      if (this._debug) console.debug(`[aggregated-landing-service] Deleting aggregated landing {${entity.id}} from local storage`);
+      await this.entities.deleteById(localId, {entityName: AggregatedLanding.TYPENAME});
+
+    } catch (err) {
+      console.error(`[aggregated-landing-service] Failed to locally delete aggregated landing {${entity.id}}`, err);
+      // Continue
+    }
+    return entity;
+  }
+
   asFilter(filter: Partial<AggregatedLandingFilter>): AggregatedLandingFilter {
     return AggregatedLandingFilter.fromObject(filter);
   }
@@ -330,7 +387,7 @@ export class AggregatedLandingService
    * @param entity
    * @param opts
    */
-  protected async saveLocally(entity: AggregatedLanding, opts?: any): Promise<AggregatedLanding> {
+  async saveLocally(entity: AggregatedLanding, opts?: any): Promise<AggregatedLanding> {
     if (entity.observedLocationId >= 0) throw new Error('Must be a local entity');
 
     // Fill default properties (as recorder department and person)

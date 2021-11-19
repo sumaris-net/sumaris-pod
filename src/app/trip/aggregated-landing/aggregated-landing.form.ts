@@ -271,7 +271,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   openTrip(activity: VesselActivity) {
     if (!activity || !activity.observedLocationId || !activity.tripId) {
       console.warn(`Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`);
-      return;
+      // return;
     }
 
     this.onOpenTrip.emit({activity});

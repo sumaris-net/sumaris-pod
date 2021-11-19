@@ -801,10 +801,10 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     try {
       if (this._debug) console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
-      await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
+      await this.entities.deleteById(localId, {entityName: Landing.TYPENAME});
 
     } catch (err) {
-      console.error(`[observed-location-service] Failed to locally delete landing {${entity.id}}`, err);
+      console.error(`[landing-service] Failed to locally delete landing {${entity.id}}`, err);
       // Continue
     }
     return entity;

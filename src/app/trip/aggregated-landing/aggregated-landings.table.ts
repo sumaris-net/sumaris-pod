@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AlertController, ModalController } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { FormBuilder } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {AlertController, ModalController} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
+import {FormBuilder} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
@@ -14,30 +14,32 @@ import {
   isNotNil,
   LocalSettingsService,
   NetworkService,
-  PlatformService,
+  PlatformService, ReferentialRef,
   referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { BehaviorSubject } from 'rxjs';
-import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
-import { AggregatedLandingService } from '../services/aggregated-landing.service';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {BehaviorSubject} from 'rxjs';
+import {AggregatedLanding, VesselActivity} from '../services/model/aggregated-landing.model';
+import {AggregatedLandingService} from '../services/aggregated-landing.service';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { TableElement } from '@e-is/ngx-material-table';
-import { MeasurementValuesUtils } from '../services/model/measurement.model';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { AggregatedLandingModal } from './aggregated-landing.modal';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AggregatedLandingFormOption } from './aggregated-landing.form';
-import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
+import {Moment} from 'moment';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {TableElement} from '@e-is/ngx-material-table';
+import {MeasurementValuesUtils} from '../services/model/measurement.model';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
+import {AggregatedLandingModal} from './aggregated-landing.modal';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {AggregatedLandingFormOption} from './aggregated-landing.form';
+import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
+import {SynchronizationStatus} from '@app/data/services/model/model.utils';
+import {ObservedLocationService} from '@app/trip/services/observed-location.service';
 
 const moment = momentImported;
 
@@ -124,6 +126,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
+    protected observedLocationService: ObservedLocationService,
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
@@ -179,12 +182,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.registerSubscription(filterNotNil(this.$dates).subscribe(() => this.updateColumns()));
   }
 
-  setParent(parent: ObservedLocation|undefined) {
+  setParent(parent: ObservedLocation | undefined) {
     // Filter on parent
     if (!parent) {
       this.setFilter(null); // Null filter will return EMPTY observable, in the data service
-    }
-    else {
+    } else {
       const filter = new AggregatedLandingFilter();
       this.startDate = parent.startDateTime;
       filter.observedLocationId = parent.id;
@@ -267,6 +269,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
       if (toBoolean(res.data.saveOnDismiss, false)) {
         // call save
+        row.currentData =  await this.observedLocationService.fillVesselActivityObservedLocation(res.data.aggregatedLanding, this.filter);
         await this.save();
       }
 
@@ -276,7 +279,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
         this.markForCheck();
 
         try {
-          await this.router.navigateByUrl(`/observations/${res.data.tripToOpen.observedLocationId}/trip/${res.data.tripToOpen.tripId}`);
+          const activity = row.currentData.vesselActivities.find(activity => activity.rankOrder === res.data.tripToOpen.rankOrder);
+          await this.router.navigateByUrl(`/observations/${activity.observedLocationId}/trip/${activity.tripId}`);
         } finally {
           this.markAsLoaded();
           this.markForCheck();
@@ -285,9 +289,16 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     }
   }
 
-  async addAggregatedRow(vessel: VesselSnapshot) {
+
+
+  async addAggregatedRow(vessel: VesselSnapshot, synchronizationStatus?: SynchronizationStatus) {
     const row = await this.addRowToTable();
     row.currentData.vesselSnapshot = vessel;
+    row.currentData.observedLocationId = this.filter.observedLocationId;
+    if (synchronizationStatus) {
+      row.currentData.synchronizationStatus = synchronizationStatus;
+    }
+
     this.markForCheck();
     // TODO scroll to row
     // this.scrollToRow(row);

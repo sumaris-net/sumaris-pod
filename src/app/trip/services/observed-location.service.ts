@@ -18,7 +18,7 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService,
+  NetworkService, ReferentialRef,
   StatusIds,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -32,7 +32,7 @@ import {ObservedLocation} from './model/observed-location.model';
 import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
 import {SortDirection} from '@angular/material/sort';
 import {IDataEntityQualityService} from '../../data/services/data-quality-service.class';
-import {LandingFragments, LandingService} from './landing.service';
+import {LandingFragments, LandingService, LandingServiceWatchOptions} from './landing.service';
 import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
 import {Landing} from './model/landing.model';
 import {ObservedLocationValidatorService} from './validator/observed-location.validator';
@@ -49,6 +49,10 @@ import {ErrorCodes} from '@app/data/services/errors';
 import {TripErrorCodes} from '@app/trip/services/trip.errors';
 import {VesselService} from '@app/vessel/services/vessel-service';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {AggregatedLandingService} from '@app/trip/services/aggregated-landing.service';
+import {AggregatedLanding, VesselActivity} from '@app/trip/services/model/aggregated-landing.model';
+import {AggregatedLandingFilter} from '@app/trip/services/filter/aggregated-landing.filter';
+import {Trip} from '@app/trip/services/model/trip.model';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -259,6 +263,7 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected vesselService: VesselService,
     protected landingService: LandingService,
+    protected aggregatedLandingService: AggregatedLandingService,
     protected tripService: TripService
   ) {
     super(injector, ObservedLocation, ObservedLocationFilter, {
@@ -389,6 +394,35 @@ export class ObservedLocationService
       this.loading = false;
     }
   }
+
+  async loadAllLocally(offset: number,
+                       size: number,
+                       sortBy?: string,
+                       sortDirection?: SortDirection,
+                       filter?: Partial<ObservedLocationFilter>,
+                       opts?: ObservedLocationLoadOptions & {
+                         fullLoad?: boolean;
+                       }
+  ): Promise<LoadResult<ObservedLocation>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy) || 'endDateTime',
+      sortDirection: sortDirection || 'asc',
+      filter: filter.asFilterFn()
+    };
+
+    const res = await this.entities.loadAll('ObservedLocationVO', variables, {fullLoad: opts && opts.fullLoad});
+    const entities = (!opts || opts.toEntity !== false) ?
+      (res.data || []).map(json => this.fromObject(json)) :
+      (res.data || []) as ObservedLocation[];
+
+    return {data: entities, total: res.total};
+  }
+
 
   public listenChanges(id: number, opts?: { interval?: number }): Observable<ObservedLocation> {
     if (!id && id !== 0) throw new Error('Missing argument \'id\' ');
@@ -683,9 +717,9 @@ export class ObservedLocationService
     entity.id = undefined;
 
     // Fill landings
-    const res = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
+    const resLandings = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
       {fullLoad: true, rankOrderOnPeriod: false});
-    const landings = res && res.data || [];
+    const landings = resLandings && resLandings.data || [];
     entity.landings = undefined;
 
     // Get temporary vessel (not saved)
@@ -695,15 +729,15 @@ export class ObservedLocationService
       const vesselToSave = tempVessels.map(VesselSnapshot.toVessel);
       const savedVessels: Map<number, VesselSnapshot> = new Map<number, VesselSnapshot>();
 
-      for (const vessel of vesselToSave){
-        const vesselLocalId= vessel.id;
+      for (const vessel of vesselToSave) {
+        const vesselLocalId = vessel.id;
         const savedVessel = await this.vesselService.synchronize(vessel);
         savedVessels.set(vesselLocalId, VesselSnapshot.fromVessel(savedVessel));
       }
 
       //replace landing local vessel's by saved one
       landings.forEach(landing => {
-        if (savedVessels.has(landing.vesselSnapshot.id)){
+        if (savedVessels.has(landing.vesselSnapshot.id)) {
           landing.vesselSnapshot = savedVessels.get(landing.vesselSnapshot.id);
         }
       });
@@ -726,6 +760,16 @@ export class ObservedLocationService
         const savedLanding = await this.landingService.synchronize(landing);
         entity.landings.push(savedLanding);
       }
+
+      const resAggregatedLandings = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
+        {fullLoad: true, rankOrderOnPeriod: false});
+      const aggregatedLandings = resAggregatedLandings && resAggregatedLandings.data || [];
+      for (const aggregatedLanding of aggregatedLandings) {
+        aggregatedLanding.observedLocationId = entity.id;
+        // const savedLanding = await this.aggregatedLandingService.synchronize(aggregatedLanding);
+      }
+
+
     } catch (err) {
       throw {
         ...err,
@@ -795,6 +839,75 @@ export class ObservedLocationService
     } else {
       return super.getImportJobs(opts);
     }
+  }
+
+  async fillVesselActivityObservedLocation(parent: AggregatedLanding, parentFilter: AggregatedLandingFilter): Promise<AggregatedLanding> {
+
+    if (parent.id < 0 || (parent.synchronizationStatus && parent.synchronizationStatus !== 'SYNC')) {
+
+      for (const entity of parent.vesselActivities) {
+
+        if (entity.observedLocationId && entity.landingId && entity.tripId) continue;
+
+        const location = await this.referentialRefService.loadById(parentFilter.locationId, 'Location');
+        const program = await this.programRefService.loadByLabel(parentFilter.programLabel);
+
+        const filter: Partial<ObservedLocationFilter> = {
+          location,
+          program,
+          startDate: entity.date.set({h: 0, m: 0}),
+          endDate: entity.date.set({h: 23, m: 59})
+        };
+
+        const res = await this.loadAllLocally(0, 999, null, null, filter);
+        const observedLocations = res.data || [];
+
+        const landing: Landing = new Landing();
+        landing.id = undefined;
+        landing.measurementValues = entity.measurementValues;
+        landing.vesselSnapshot = parent.vesselSnapshot;
+        landing.synchronizationStatus = 'DIRTY';
+
+        const trip: Trip = new Trip();
+        trip.id = undefined;
+        trip.program = program;
+        trip.metiers = entity.metiers;
+        trip.departureDateTime = entity.date;
+        trip.vesselSnapshot = parent.vesselSnapshot;
+        trip.synchronizationStatus = 'DIRTY';
+
+        let observedLocation = observedLocations.find(o => o.startDateTime <= entity.date && o.endDateTime >= entity.date) || undefined;
+
+        //If there is an observed location for the same day, add it new landing and trip
+        if (observedLocation) {
+          landing.observedLocationId = observedLocation.id;
+          trip.observedLocationId = observedLocation.id;
+          entity.observedLocationId = observedLocation.id;
+        } else {
+          observedLocation = new ObservedLocation();
+          observedLocation.location = location;
+          observedLocation.program = program;
+          observedLocation.startDateTime = entity.date;
+          observedLocation.endDateTime = entity.date;
+          observedLocation.landings.push(landing);
+
+          const savedObservedLocation = await this.saveLocally(observedLocation);
+          entity.observedLocationId = savedObservedLocation.id;
+          trip.observedLocationId = savedObservedLocation.id;
+          landing.observedLocationId = savedObservedLocation.id;
+        }
+
+        const savedTrip = await this.tripService.saveLocally(trip);
+        landing.tripId = savedTrip.id;
+
+        const savedLanding = await this.landingService.save(landing);
+        entity.landingId = savedLanding.id;
+        entity.tripId = savedTrip.id;
+
+      }
+      await this.aggregatedLandingService.saveLocally(parent);
+    }
+    return parent;
   }
 
   protected finishImport() {
