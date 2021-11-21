@@ -253,7 +253,7 @@
       <ion-col>
         <ion-grid class="ion-no-padding">
           <ion-row>
-            <ion-col size="12" size-lg="4">
+            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12">
               <mat-date-time-field formControlName="fishingEndDateTime"
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
@@ -310,7 +310,7 @@
       <ion-col >
         <ion-grid class="ion-no-padding">
           <ion-row>
-            <ion-col size="12" size-lg="4" *ngIf="form.controls.endDateTime as control">
+            <ion-col size="12" [sizeLg]="showPosition ? 4 : 12" *ngIf="form.controls.endDateTime as control">
               <mat-date-time-field [formControl]="control"
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"

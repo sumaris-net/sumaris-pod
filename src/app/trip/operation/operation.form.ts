@@ -4,7 +4,8 @@ import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
   AccountService,
-  AppForm, AppFormUtils,
+  AppForm,
+  AppFormUtils,
   DateFormatPipe,
   EntityUtils,
   fromDateISOString,
@@ -16,7 +17,8 @@ import {
   LocalSettingsService,
   PlatformService,
   ReferentialRef,
-  ReferentialUtils, removeDuplicatesFromArray,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
   SharedValidators,
   toBoolean,
   UsageMode,
@@ -35,7 +37,6 @@ import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/ope
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
-import { IPosition } from '@app/trip/services/model/position.model';
 
 const moment = momentImported;
 
@@ -66,6 +67,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _allowParentOperation = false;
   private _showPosition = true;
   private _requiredComment = false;
+  private _copyTripDates = false;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -134,6 +136,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       }
       commentControl.updateValueAndValidity({emitEvent: !this._loading, onlySelf: true});
     }
+  }
+
+  get isCommentRequired(): boolean {
+    return this._requiredComment;
+  }
+
+  get copyTripDates(): boolean {
+    return this._copyTripDates;
+  }
+
+  @Input() set copyTripDates(value: boolean) {
+    this._copyTripDates = value;
+    this.updateDates();
   }
 
   get trip(): Trip {
@@ -291,8 +306,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         if (physicalGear) physicalGearControl.patchValue(physicalGear);
       }
 
+      this.updateDates();
+
       // Update form group
       if (!this._loading) this.updateFormGroup();
+    }
+  }
+
+  private updateDates() {
+    // Copy dates from trip
+    if (this.copyTripDates && this.trip && !this.form.value.startDateTime && !this.form.value.endDateTime) {
+      this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: this.trip.returnDateTime});
     }
   }
 

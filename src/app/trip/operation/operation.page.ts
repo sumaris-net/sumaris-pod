@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   EntityServiceLoadOptions,
@@ -19,25 +19,26 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialUtils,
-  SharedValidators, toBoolean, toNumber,
+  SharedValidators,
+  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap} from 'rxjs/operators';
-import {FormGroup, Validators} from '@angular/forms';
+import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap } from 'rxjs/operators';
+import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
-import {IndividualMonitoringSubSamplesTable} from '../sample/individualmonitoring/individual-monitoring-samples.table';
-import {Program} from '@app/referential/services/model/program.model';
-import {SubSamplesTable} from '../sample/sub-samples.table';
-import {SamplesTable} from '../sample/samples.table';
-import {Operation, Trip} from '../services/model/trip.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
-import {BatchTreeComponent} from '../batch/batch-tree.component';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
-import {Measurement} from '@app/trip/services/model/measurement.model';
+import { IndividualMonitoringSubSamplesTable } from '../sample/individualmonitoring/individual-monitoring-samples.table';
+import { Program } from '@app/referential/services/model/program.model';
+import { SubSamplesTable } from '../sample/sub-samples.table';
+import { SamplesTable } from '../sample/samples.table';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { BatchTreeComponent } from '../batch/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { Measurement } from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 
@@ -436,6 +437,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
+    this.opeForm.copyTripDates = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);

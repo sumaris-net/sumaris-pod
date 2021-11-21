@@ -1,5 +1,5 @@
 import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelIds , UnitLabel } from '../model/model.enum';
+import { LocationLevelIds, UnitLabel } from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -118,6 +118,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.individual.taxonName.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE: <FormFieldDefinition>{ // not used but present by convention with other options
+    key: 'sumaris.trip.operation.batch.individual.taxonGroup.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.rankOrder.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE',
@@ -207,6 +219,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_DISTANCE_MAX_ERROR',
     defaultValue: '0',
     type: 'integer'
+  },
+  TRIP_APPLY_DATE_ON_NEW_OPERATION: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.copyTripDates',
+    label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
+    defaultValue: 'false',
+    type: 'boolean'
   },
 
   // Observed location
