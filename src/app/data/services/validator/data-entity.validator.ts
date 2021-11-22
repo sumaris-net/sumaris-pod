@@ -29,7 +29,7 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
 
     return this.formBuilder.group(
       this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data)
+      this.getFormGroupOptions(data, opts)
     );
   }
 
@@ -51,9 +51,9 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
     return null;
   }
 
-  updateFormGroup(formGroup: FormGroup, opts?: O) {
+  updateFormGroup(form: FormGroup, opts?: O) {
     // Must be override by subclasses
-    console.warn(`TODO: Please implement ${this.constructor.name}.updateFormGroup()`);
+    console.warn(`${this.constructor.name}.updateFormGroup() not implemented yet!`);
   }
 
 

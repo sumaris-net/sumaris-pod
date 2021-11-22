@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
-  AppForm,
+  AppForm, AppFormUtils,
   FormArrayHelper,
   IReferentialRef,
   isNotEmptyArray,
@@ -136,8 +136,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     if (!data) return;
 
     data.composition = data.composition && data.composition.length ? data.composition : [null];
-    this.compositionHelper.resize(Math.min(Math.max(1, data.composition.length), 6));
-
+    this.compositionHelper.resize(Math.max(1, data.composition.length));
 
     super.setValue(data, opts);
 
@@ -270,5 +269,5 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.cd.markForCheck();
   }
 
-  selectInputContent = selectInputContent;
+  selectInputContent = AppFormUtils.selectInputContent;
 }

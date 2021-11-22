@@ -19,12 +19,12 @@ import {
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
-  NetworkService,
+  NetworkService, ObjectMap,
   PlatformService,
   PromiseEvent,
   ReferentialRef,
   ReferentialUtils,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import {TripsPageSettingsEnum} from './trips.table';
 import {PhysicalGear, Trip} from '../services/model/trip.model';
@@ -37,6 +37,10 @@ import {debounceTime, filter, first} from 'rxjs/operators';
 import {TableElement} from '@e-is/ngx-material-table';
 import {Program} from '../../referential/services/model/program.model';
 import {environment} from '../../../environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { SamplingStrategiesPageSettingsEnum } from '@app/referential/strategy/sampling/sampling-strategies.table';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
 
 const moment = momentImported;
 
@@ -44,6 +48,10 @@ const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
   OPERATIONS: 2
+};
+export const TripPageSettingsEnum = {
+  PAGE_ID: "trip",
+  FEATURE_ID: TRIP_FEATURE_NAME
 };
 
 @Component({
@@ -64,6 +72,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
   showOperationTable = false;
   mobile = false;
   forceMeasurementAsOptional = false;
+  settingsId: string;
+  devAutoFillData = false;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
@@ -81,6 +91,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
+    protected programRef: ProgramRefService,
     public network: NetworkService
   ) {
     super(injector,
@@ -93,9 +104,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       });
     this.defaultBackHref = "/trips";
     this.mobile = platform.mobile;
+    this.settingsId = TripPageSettingsEnum.PAGE_ID;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+    this.devAutoFillData = this.debug && (this.settings.getPageSettings(this.settingsId, 'devAutoFillData') == true) || false;
   }
 
   ngAfterViewInit() {
@@ -130,6 +143,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     this.registerSubscription(
       this.physicalGearsTable.onConfirmEditCreateRow
         .subscribe((_) => this.showOperationTable = true));
+
+    // Auto fill form, in DEV mode
+    if (!environment.production) {
+      this.registerSubscription(
+        this.$program
+          .pipe(filter(() => this.isNewData && this.devAutoFillData))
+          .subscribe(program => this.setTestValue(program))
+      );
+    }
+
   }
 
   protected registerForms() {
@@ -146,19 +169,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     if (!program) return; // Skip
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
-    if (!this.tripForm.showObservers) {
+    if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
     }
     this.tripForm.showMetiers = program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE);
-    if (!this.tripForm.showMetiers) {
+    if (!this.tripForm.showMetiers && this.data?.metiers) {
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
     this.tripForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
 
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
+    this.operationsTable.showPosition = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
     //this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION));
@@ -303,20 +328,28 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
   }
 
   // For DEV only
-  devFillFakeTrip(event?: UIEvent) {
-    const trip = {
-      program: {id: 10, label: 'ADAP-MER', name: 'Application d’assistance à l’auto-échantillonnage en mer', __typename: 'ProgramVO'},
-      departureDateTime: fromDateISOString('2019-01-01T12:00:00.000Z'),
+  setTestValue(program: Program) {
+    const departureDate = moment();
+    const returnDate = departureDate.clone().add(15, 'day');
+    const trip = Trip.fromObject({
+      program,
+      departureDateTime: departureDate,
       departureLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
-      returnDateTime: fromDateISOString('2019-01-05T12:00:00.000Z'),
+      returnDateTime: returnDate,
       returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
       vesselSnapshot: {id: 1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
       measurements: [
-        { numericalValue: '1', pmfmId: 21}
+        { numericalValue: 1, pmfmId: 21}
       ]
-    };
+    });
 
+    this.measurementsForm.value = trip.measurements;
     this.form.patchValue(trip);
+  }
+
+  devToggleAutoFillData() {
+    this.devAutoFillData = !this.devAutoFillData;
+    this.settings.savePageSetting(this.settingsId, this.devAutoFillData, 'devAutoFillData');
   }
 
   devToggleOfflineMode() {

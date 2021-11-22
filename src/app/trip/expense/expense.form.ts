@@ -21,11 +21,11 @@ import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 import { Measurement, MeasurementUtils } from '../services/model/measurement.model';
 import { ExpenseValidatorService } from '../services/validator/expense.validator';
-import { getMaxRankOrder } from '../../data/services/model/model.utils';
+import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { TypedExpenseForm } from './typed-expense.form';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { IPmfm } from '../../referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -135,15 +135,12 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
         this.$fuelPmfms.next(removeAll(expensePmfms, this.isFuelPmfm));
         this.fuelTuple = this.getValidTuple(this.$fuelPmfms.getValue());
-        this.registerTupleSubscription(this.fuelTuple);
 
         this.$engineOilPmfms.next(removeAll(expensePmfms, this.isEngineOilPmfm));
         this.engineOilTuple = this.getValidTuple(this.$engineOilPmfms.getValue());
-        this.registerTupleSubscription(this.engineOilTuple);
 
         this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.isHydraulicPmfm));
         this.hydraulicOilTuple = this.getValidTuple(this.$hydraulicOilPmfms.getValue());
-        this.registerTupleSubscription(this.hydraulicOilTuple);
 
         // remaining pmfms go to miscellaneous part
         this.$miscPmfms.next(expensePmfms);
@@ -255,6 +252,9 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     this.calculateInitialTupleValues(this.fuelTuple);
     this.calculateInitialTupleValues(this.engineOilTuple);
     this.calculateInitialTupleValues(this.hydraulicOilTuple);
+    this.registerTupleSubscription(this.fuelTuple);
+    this.registerTupleSubscription(this.engineOilTuple);
+    this.registerTupleSubscription(this.hydraulicOilTuple);
 
     // compute total
     this.calculateTotal();

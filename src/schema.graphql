@@ -27,6 +27,7 @@ type AccountVO {
 
 type AggregatedLandingVO {
   id: Int
+  observedLocationId: Int
   vesselActivities: [VesselActivityVO]
   vesselDateTime: Date
   vesselSnapshot: VesselSnapshotVO
@@ -138,13 +139,16 @@ type DepartmentVO {
   comments: String
   creationDate: Date
   description: String
+  entityName: String
   hasLogo: Boolean
   id: Int
   label: String
   "Get the level from a referential entity"
   level: ReferentialVO
+  levelId: Int
   logo: String
   name: String
+  rankOrder: Int
   siteUrl: String
   statusId: Int
   updateDate: Date
@@ -887,7 +891,7 @@ type Query {
   "Get taxon name count"
   taxonNameCount(filter: TaxonNameFilterVOInput): Long
   "Search in taxon names"
-  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [TaxonNameVO]
+  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
   "Get trash content"
   trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
   "Get trash file content"
@@ -1055,7 +1059,7 @@ type StrategyVO {
 
 "Subscription root"
 type Subscription {
-  "Subscribe to an account update"
+  "Subscribe to any account update"
   updateAccount(
     "Minimum interval to find changes, in seconds."
     interval: Int = 30
@@ -1080,10 +1084,9 @@ type Subscription {
   ): OperationVO
   "Subscribe to changes on a program"
   updateProgram(
-    id: Int,
+    id: Int!,
     "Minimum interval to find changes, in seconds."
-    interval: Int = 30,
-    label: String
+    interval: Int = 30
   ): ProgramVO
   "Subscribe to changes on program's strategies"
   updateProgramStrategies(
@@ -1280,6 +1283,7 @@ type VesselFeaturesVO {
   startDate: Date
   updateDate: Date
   validationDate: Date
+  vessel: VesselVO
 }
 
 type VesselPositionVO {
@@ -1304,6 +1308,7 @@ type VesselRegistrationPeriodVO {
   registrationCode: String
   registrationLocation: LocationVO
   startDate: Date
+  vessel: VesselVO
 }
 
 type VesselSnapshotVO {
@@ -1407,6 +1412,7 @@ input AggregatedLandingFilterVOInput {
 
 input AggregatedLandingVOInput {
   id: Int
+  observedLocationId: Int
   vesselActivities: [VesselActivityVOInput]
   vesselSnapshot: VesselSnapshotVOInput
 }
@@ -1524,11 +1530,14 @@ input DepartmentVOInput {
   comments: String
   creationDate: Date
   description: String
+  entityName: String
   hasLogo: Boolean
   id: Int
   label: String
+  levelId: Int
   logo: String
   name: String
+  rankOrder: Int
   siteUrl: String
   statusId: Int
   updateDate: Date
@@ -2391,7 +2400,6 @@ input TripVOInput {
   departureLocation: LocationVOInput
   expectedSale: ExpectedSaleVOInput
   expectedSales: [ExpectedSaleVOInput]
-  fishingArea: FishingAreaVOInput
   fishingAreas: [FishingAreaVOInput]
   gears: [PhysicalGearVOInput]
   id: Int
@@ -2487,6 +2495,7 @@ input VesselFeaturesVOInput {
   startDate: Date
   updateDate: Date
   validationDate: Date
+  vessel: VesselVOInput
 }
 
 input VesselFilterVOInput {
@@ -2495,6 +2504,7 @@ input VesselFilterVOInput {
   date: Date
   endDate: Date
   locationId: Int
+  onlyWithRegistration: Boolean
   programLabel: String
   recorderDepartmentId: Int
   recorderPersonId: Int
@@ -2534,6 +2544,7 @@ input VesselRegistrationPeriodVOInput {
   registrationCode: String
   registrationLocation: LocationVOInput
   startDate: Date
+  vessel: VesselVOInput
 }
 
 input VesselSnapshotVOInput {

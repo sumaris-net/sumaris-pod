@@ -42,8 +42,10 @@
 
   <!-- DEV only -->
   <button mat-menu-item *ngIf="debug && isNewData"
-          (click)="devFillFakeTrip()">
-    <ion-label>Test data (#developer)
+          (click)="devToggleAutoFillData()">
+    <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
+    <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
+    <ion-label>Autofill test data ?(#developer)
     </ion-label>
   </button>
   <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0"
@@ -51,8 +53,10 @@
     <ion-label>Save locally (#developer)
     </ion-label>
   </button>
-  <button mat-menu-item *ngIf="debug && network.online"
+  <button mat-menu-item *ngIf="debug"
           (click)="devToggleOfflineMode()">
+    <mat-icon *ngIf="network.offline">check_box</mat-icon>
+    <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 </mat-menu>

@@ -82,6 +82,17 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
+
+  @Input() set showPosition(show: boolean) {
+    this.setShowColumn('startPosition', show);
+    this.setShowColumn('endPosition', show);
+  }
+
+  get showPosition(): boolean {
+    return this.getShowColumn('startPosition') &&
+      this.getShowColumn('endPosition');
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -240,6 +251,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
+      physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
     };
 

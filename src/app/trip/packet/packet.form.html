@@ -95,8 +95,7 @@
                  [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: {rankOrder: index + 1}"
                  [formControlName]="'sampledWeight'+index"
                  [tabIndex]="tabindex+10+(index+1)*100"
-                 (click)="selectInputContent($event)"
-                 required>
+                 (click)="selectInputContent($event)">
           <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
         </mat-form-field>
       </td>
@@ -131,7 +130,6 @@
                  [tabIndex]="tabindex+10+(packetIndex+1)*100+i"
                  [formControl]="control"
                  (click)="selectInputContent($event)"
-                 required
           >
           <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
           <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
