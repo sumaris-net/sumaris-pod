@@ -23,27 +23,27 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { FormGroup } from '@angular/forms';
-import { TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmUtils, UnitConversion} from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
 import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { isNilOrNaN } from '@app/shared/functions';
 
 const moment = momentImported;
 
@@ -111,8 +111,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultTaxonName: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
-  @Input() showDisplayColumn = true;
-  @Input() weightDisplayedUnit: string;
+  @Input() showDisplayColumnModal = true;
+  @Input() weightDisplayedUnit: WeightSymbol;
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
 
@@ -215,7 +215,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.onStartEditingRow
         .pipe(
           filter(row => row && row.validator && true),
-          map(row => ({form: row.validator, pmfms: this.$pmfms.getValue()})),
+          map(row => ({form: row.validator, pmfms: this.$pmfms.value})),
           // DEBUG
           //tap(() => console.debug('[samples-table] will sent onPrepareRowForm event:', event))
           tap(event => this.onPrepareRowForm.emit(event))
@@ -459,64 +459,30 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
     }
 
+    // Get the previous sample
+    const previousSample: Sample = await this.getPreviousSample();
+
     // server call for first sample and increment from server call value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel) {
-
-      // TODO BLA review the code
-      //  => à clarifier, en utilisant une variable 'tagId'
-
-      // skip first
-      if (data.rankOrder === 1) {
-        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
-        this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
-      } else if (data.rankOrder > 1 && !this.currentSample) {
-        data.measurementValues[PmfmIds.TAG_ID] = (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', 4)).slice(-4);
-        this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
-      } else if (this.currentSample) {
-        // TODO attention, récupérer auyssi plus tard
-        const previousSample = await this.findRowByEntity(this.currentSample);
-        if (previousSample) { // row exist
-          if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === '' || previousSample.currentData?.measurementValues[PmfmIds.TAG_ID] === null) { // no tag id
-            data.measurementValues[PmfmIds.TAG_ID] = '';
-          } else {
-            // increment latest tag_id or use latest if current is not only digit
-            if (previousSample.currentData?.measurementValues[PmfmIds.TAG_ID].match(/^\d{4}$/)) {
-              data.measurementValues[PmfmIds.TAG_ID] = parseInt(previousSample.currentData?.measurementValues[PmfmIds.TAG_ID]) + 1;
-            } else {
-              data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.latestCorrectTagId);
-            }
-          }
-        } else if (this.currentSample.measurementValues[PmfmIds.TAG_ID] !== null) { // row remove by user
-          data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.currentSample.measurementValues[PmfmIds.TAG_ID]);
-        } else { // no tag id
-          data.measurementValues[PmfmIds.TAG_ID] = parseInt(this.latestCorrectTagId + 1);
-        }
-
-        if (isNotNilOrBlank(data.measurementValues[PmfmIds.TAG_ID])) {
-          data.measurementValues[PmfmIds.TAG_ID] = data?.measurementValues[PmfmIds.TAG_ID].toString().padStart(4, "0");
-          this.latestCorrectTagId = data.measurementValues[PmfmIds.TAG_ID];
-        }
-      }
+    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
+      const existingTagId = this.latestCorrectTagId || previousSample?.measurementValues[PmfmIds.TAG_ID];
+      const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
+      const newTagId = isNilOrNaN(existingTagIdAsNumber)
+        ? (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength)
+        : (existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, "0");
+      data.measurementValues[PmfmIds.TAG_ID] = newTagId;
+      this.latestCorrectTagId = newTagId; // Remember, for next iteration
     }
 
     // Default presentation value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING)) {
-      // skip first
-      if (data.rankOrder > 1 && !this.currentSample) {
-        // TODO BLA: review this code
-        //  => à optimiser !! ici on récupère le sample précédent 2 fois : pour le TAG_ID et ici, mais pas avec la meme méthode.
-        const previousSample = this.value.find(s => s.rankOrder === data.rankOrder - 1);
-        data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
-      } else if (this.currentSample) {
-        const previousSample = await this.findRowByEntity(this.currentSample);
-        if (previousSample) {
-          data.measurementValues[PmfmIds.DRESSING] = previousSample.currentData?.measurementValues[PmfmIds.DRESSING];
-        } else {
-          data.measurementValues[PmfmIds.DRESSING] = this.currentSample.measurementValues[PmfmIds.DRESSING];
-        }
-      }
-      this.currentSample = data;
+    if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING) && previousSample) {
+      data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
     }
+  }
+
+  protected async getPreviousSample(): Promise<Sample> {
+    if (this.visibleRowCount === 0) return undefined;
+    const row = await this.dataSource.getRow(this.visibleRowCount - 1);
+    return row.currentData;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -655,27 +621,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             if (pmfm.id === PmfmIds.DRESSING) {
               pmfm.completeName = null;
             }
-            // Special case for weight: apply conversion
-            if (PmfmUtils.isWeight(pmfm)) {
-              const originalUnitLabel = pmfm.unitLabel || UnitLabel.KG;
-              if (originalUnitLabel !== this.weightDisplayedUnit) {
-                if (pmfm instanceof DenormalizedPmfmStrategy) {
-                  pmfm.unitLabel = this.weightDisplayedUnit;
-                }
-                else if ((pmfm instanceof Pmfm) && pmfm.unit) {
-                  pmfm.unit.label = this.weightDisplayedUnit;
-                  pmfm.unit.name = this.weightDisplayedUnit; // To upgrade with weightDisplayed (not computed yet)
-                }
-                pmfm.completeName = pmfm.completeName?.replace( `(${originalUnitLabel})`, `(${this.weightDisplayedUnit})`);
-                if (originalUnitLabel === UnitLabel.KG && this.weightDisplayedUnit === UnitLabel.GRAM) {
-                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-                }
-                else if (originalUnitLabel === UnitLabel.GRAM && this.weightDisplayedUnit === UnitLabel.KG) {
-                  pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
-                }
-              }
-            }
           }
+
+          PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit, {clone: false});
 
           // Add pmfm into the final list of ordered pmfms
           orderedPmfms.push(pmfm);
@@ -709,11 +657,16 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
         + (this.showCommentsColumn ? 1 : 0)
 
-      orderedPmfms.forEach(p => {
-        this.memoryDataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString());
-      });
-      return orderedPmfms;
+      pmfms  = orderedPmfms
     }
+    else {
+      // Apply weight conversion
+      pmfms = PmfmUtils.setUnitConversions(pmfms, this.weightDisplayedUnit);
+    }
+
+    // Add replacement map, for sort by
+    const dataService = this.memoryDataService;
+    pmfms.forEach(p => dataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString()));
 
     return pmfms;
   }

@@ -79,7 +79,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() floatLabel: FloatLabelType = "auto";
   @Input() tabindex: number;
   @Input() autofocus: boolean;
-  @Input() weightDisplayedUnit: string;
   @Input() style: PmfmFormFieldStyle;
   @Input() maxVisibleButtons: number;
   @Input() acquisitionNumber: number;
@@ -145,9 +144,9 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
         control.statusChanges.subscribe((_) => this.cd.markForCheck());
       }
       this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-      if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
+      /*if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
         this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
-      }
+      }*/
       this.required = toBoolean(this.required, this.pmfm.required);
 
       this.updateTabIndex();

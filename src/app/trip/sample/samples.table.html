@@ -57,8 +57,8 @@
 
   <mat-divider></mat-divider>
 
-  <!-- display columns -->
-  <button *ngIf="showDisplayColumn" mat-menu-item
+  <!-- display columns option -->
+  <button *ngIf="showDisplayColumnModal" mat-menu-item
           (click)="openSelectColumnsModal($event)">
     <mat-icon>view_column</mat-icon>
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
@@ -151,7 +151,7 @@
         <ion-text>
           {{ row.currentData?.rankOrder }}
           <!-- Show row errors (not from controls, but only from the form itself) -->
-          <mat-icon *ngIf="row.validator.touched && row.validator.invalid && getRowError(row, {recursive: false}); let error"
+          <mat-icon *ngIf="row.validator.invalid && getRowError(row, {recursive: false}); let error"
                     color="warn" [title]="error|translate">error</mat-icon>
         </ion-text>
 
@@ -259,7 +259,6 @@
             [pmfm]="pmfm"
             [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
             [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
-            [weightDisplayedUnit]="this.weightDisplayedUnit"
             [compact]="compactFields" floatLabel="never"></app-pmfm-field>
         </ng-template>
       </td>

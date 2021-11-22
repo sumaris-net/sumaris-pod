@@ -1,8 +1,9 @@
 import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
-import { MethodIds, PmfmIds, UnitLabel } from './model.enum';
+import { MethodIds, PmfmIds, UnitLabel, WeightSymbol } from './model.enum';
 import {Parameter, ParameterType} from './parameter.model';
 import {PmfmValue} from './pmfm-value.model';
 import { Moment } from 'moment';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -205,6 +206,8 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
 
 export abstract class PmfmUtils {
 
+  static NAME_WITH_WEIGHT_UNIT_REGEXP = /^(.* )\((t|kg|g|mg)\)( - .*)?$/;
+
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
     let qvPmfm = pmfms.find(p => p.type === 'qualitative_value'
       // exclude hidden pmfm (see batch modal)
@@ -296,6 +299,55 @@ export abstract class PmfmUtils {
       }
     }
     return name;
+  }
+
+  static setUnitConversions<P extends IPmfm>(pmfms: P[], expectedWeightSymbol: WeightSymbol, opts?: {
+    clone?: boolean;
+  }): P[] {
+    (pmfms || []).forEach((pmfm, i) => {
+      // Replace weight PMFM
+      if (PmfmUtils.isWeight(pmfm)) {
+        pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts);
+      }
+    });
+    return pmfms;
+  }
+
+  static setWeightUnitConversion<P extends IPmfm>(pmfm: P, expectedWeightSymbol: WeightSymbol, opts?: {
+    clone?: boolean;
+  }): P {
+    if (!PmfmUtils.isWeight(pmfm)) return pmfm;
+
+    const originalUnitLabel = pmfm.unitLabel || UnitLabel.KG;
+    if (originalUnitLabel === expectedWeightSymbol) return; // Conversion not need
+
+    // Clone, to keep existing pmfm unchanged
+    if (!opts || opts.clone !== false) {
+      pmfm = pmfm.clone() as P;
+    }
+
+    if (pmfm instanceof DenormalizedPmfmStrategy) {
+      pmfm.unitLabel = expectedWeightSymbol;
+    }
+    else if ((pmfm instanceof Pmfm) && pmfm.unit) {
+      pmfm.unit.label = expectedWeightSymbol;
+      // TODO BLA remove: not need
+      //pmfm.unit.name = expectedWeightSymbol; // To upgrade with weightDisplayed (not computed yet)
+    }
+    if (originalUnitLabel === UnitLabel.KG && expectedWeightSymbol === UnitLabel.GRAM) {
+      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+    }
+    else if (originalUnitLabel === UnitLabel.GRAM && expectedWeightSymbol === UnitLabel.KG) {
+      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
+    }
+
+    // Update the complete name (the unit part), if exists
+    if (PmfmUtils.isDenormalizedPmfm(pmfm) && pmfm.completeName) {
+      const matches = this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(pmfm.completeName);
+      if (matches) {
+        pmfm.completeName = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
+      }
+    }
   }
 }
 

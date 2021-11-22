@@ -274,12 +274,13 @@ export class MeasurementValuesUtils {
     onlyExistingPmfms?: boolean; // default to false
   }): MeasurementFormValues {
     opts = opts || {};
+    pmfms = pmfms || [];
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
-        const pmfm = pmfms && pmfms.find(p => p.id === +pmfmId);
-        return pmfm && res.concat(pmfm) || res;
+        const pmfm = pmfms.find(p => p.id === +pmfmId);
+        return pmfm ? res.concat(pmfm) : res;
       }, []);
     }
 
@@ -289,7 +290,7 @@ export class MeasurementValuesUtils {
       : {};
 
     // Normalize all pmfms from the list
-    (pmfms || []).forEach(pmfm => {
+    pmfms.forEach(pmfm => {
       const pmfmId = pmfm?.id;
       if (isNil(pmfmId)) {
         console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);

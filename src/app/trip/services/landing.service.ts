@@ -1031,15 +1031,14 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         target.landingId = savedLanding.id;
         // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing / #IMAGINE-569
         // Set the operation id (required by equals function)
-        // TODO BLA: review this code => bizarre d'aller cherche le operationIsur Landing ??
-        //target.operationId = savedLanding.samples[0]?.operationId;
+        target.operationId = savedLanding.samples[0]?.operationId;
 
         const source = sources.find(json => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
         DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
         // Copy parent Id (need for link to parent)
-        target.parentId = source.parentId;
+        target.parentId = source?.parentId;
         target.parent = null;
 
         // Apply to children

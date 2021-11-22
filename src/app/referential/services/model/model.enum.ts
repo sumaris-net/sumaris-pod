@@ -152,14 +152,18 @@ export const UnitLabelPatterns = {
   DATE_TIME: /^Date[ &]+Time$/
 };
 
+export declare type WeightSymbol = 'kg' | 'g' | 'mg' | 't';
+
 // TODO Should be override by config properties
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg',
-  GRAM: 'g',
-  TOM: 't'
+  KG: <WeightSymbol>'kg',
+  GRAM: <WeightSymbol>'g',
+  MG: <WeightSymbol>'mg',
+  TOM: <WeightSymbol>'t'
 };
+
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
   GOOD: 1,

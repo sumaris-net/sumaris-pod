@@ -1,7 +1,7 @@
 import {FormGroup} from "@angular/forms";
 import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
 import {Subscription} from "rxjs";
-import {isNotNil} from "@sumaris-net/ngx-components";
+import { isNilOrBlank, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import {ObjectMap} from "@sumaris-net/ngx-components";
 import {PmfmIds} from '../../../referential/services/model/model.enum';
 
@@ -21,31 +21,20 @@ export class BiologicalSamplingValidators {
     }
 
     form.setValidators( (control) => {
-      const formGroup = control as FormGroup;
-      const measValues = formGroup.get('measurementValues').value;
-      // ensure dressing pmfm exist
-      const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => pmfmId === PmfmIds.DRESSING);
-      let hasTagId
-      if (tagIdIndex !== -1) {
-        hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] && (measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "");
-      } else {
-        hasTagId = false;
-      }
-      const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
-      const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
-      let exactTagIdLength;
-      if (measValues[PmfmIds.TAG_ID]) {
-        exactTagIdLength = measValues[PmfmIds.TAG_ID]?.length === 0 || measValues[PmfmIds.TAG_ID]?.length === 4;
-      } else {
-        exactTagIdLength = true;
-      }
+      const measValues = form.controls.measurementValues.value;
 
-      if (!exactTagIdLength) {
-        return { tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH' };
-      }
-      if (!hasTagId) {
+      const dressing = measValues[PmfmIds.DRESSING.toString()];
+      if (isNilOrBlank(dressing)) {
         return { missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING' };
       }
+
+      const tagId = measValues[PmfmIds.TAG_ID];
+      if (isNotNilOrBlank(tagId) && tagId.length !== 4) {
+        return { tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH' };
+      }
+
+      const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
+      const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       if (!hasWeight && !hasLengthSize){
         return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
       }

@@ -337,8 +337,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
       };
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
-      this.samplesTable.programLabel = program.label;
       this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
+      this.samplesTable.programLabel = program.label;
     }
 
     if (this.strategyCard) {
