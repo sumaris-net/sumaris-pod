@@ -1390,6 +1390,7 @@
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
+      "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",

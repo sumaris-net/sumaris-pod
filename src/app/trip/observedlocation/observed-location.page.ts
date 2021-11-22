@@ -50,7 +50,7 @@ const ObservedLocationPageTabs = {
   LANDINGS: 1
 };
 
-type ObservedVesselsTableType = 'LANDINGS' | 'AGGREGATED_LANDINGS';
+type LandingTableType = 'legacy' | 'aggregated';
 
 @Component({
   selector: 'app-observed-location-page',
@@ -70,7 +70,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   mobile: boolean;
   showLandingTab = false;
-  observedVesselsTableType = new BehaviorSubject<ObservedVesselsTableType>(undefined);
+  $landingTableType = new BehaviorSubject<LandingTableType>(undefined);
   allowAddNewVessel: boolean;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
@@ -78,6 +78,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
   showRecorder = true;
+  showObservers = true;
   landingEditor: LandingEditor = undefined;
 
   get table(): AppTable<any> & { setParent(value: ObservedLocation | undefined) } {
@@ -304,8 +305,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
     this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+    this.observedLocationForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE);
+    if (!this.observedLocationForm.showObservers && this.data?.observers) {
+      this.data.observers = []; // make sure to reset data observers, if any
+    }
     const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-    this.observedVesselsTableType.next(aggregatedLandings ? 'AGGREGATED_LANDINGS' : 'LANDINGS')
+    this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
     if (aggregatedLandings) {
       // Force some date properties
       this.observedLocationForm.showEndDateTime = true;
@@ -358,12 +363,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
+      console.debug('[observed-location] New entity: set default values...');
+
       data.startDateTime = moment();
 
-      const user = this.accountService.account.asPerson();
-      data.observers.push(user);
-
-      console.debug('[observed-location] New entity: set default values...');
+      // Set current user as observers (if enable)
+      if (this.showObservers) {
+        const user = this.accountService.account.asPerson();
+        data.observers.push(user);
+      }
 
       // Fill defaults, using filter applied on trips table
       const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);

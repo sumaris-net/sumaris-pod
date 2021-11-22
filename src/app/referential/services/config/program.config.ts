@@ -246,6 +246,13 @@ export const ProgramProperties = Object.freeze({
     type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
+  OBSERVED_LOCATION_OBSERVERS_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.observers.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OBSERVERS_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
+
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE',
