@@ -41,6 +41,7 @@ import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
 import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
 import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
 import { A11yModule } from '@angular/cdk/a11y';
+import { VesselModule } from '@app/vessel/vessel.module';
 
 @NgModule({
   imports: [
@@ -52,6 +53,7 @@ import { A11yModule } from '@angular/cdk/a11y';
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
+    VesselModule,
     SocialModule,
     A11yModule
   ],
