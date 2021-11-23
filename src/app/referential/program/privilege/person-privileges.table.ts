@@ -1,11 +1,21 @@
-import { ChangeDetectionStrategy, Component, Injector, Input } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { AppInMemoryTable, InMemoryEntitiesService, PersonFilter, PersonService, PersonUtils, Referential, ReferentialUtils, RESERVED_START_COLUMNS, StatusIds } from '@sumaris-net/ngx-components';
-import { ReferentialFilter } from '@app/referential/services/filter/referential.filter';
-import { ProgramPersonValidatorService } from '@app/referential/program/privilege/program-person.validator';
-import { ProgramPerson } from '@app/referential/services/model/program.model';
-import { RESERVED_END_COLUMNS } from '../../../../../ngx-sumaris-components/src/app/core/table/table.class';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import {ChangeDetectionStrategy, Component, Injector, Input} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {
+  AppInMemoryTable,
+  InMemoryEntitiesService,
+  PersonFilter,
+  PersonService,
+  PersonUtils,
+  Referential,
+  ReferentialUtils,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  StatusIds
+} from '@sumaris-net/ngx-components';
+import {ReferentialFilter} from '@app/referential/services/filter/referential.filter';
+import {ProgramPersonValidatorService} from '@app/referential/program/privilege/program-person.validator';
+import {ProgramPerson} from '@app/referential/services/model/program.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 
 @Component({
   selector: 'app-person-privileges-table',
@@ -24,7 +34,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, PersonFilter>{
+export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, PersonFilter> {
 
   @Input() showToolbar = true;
   @Input() showError = true;
@@ -35,11 +45,12 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
   displayAttributes = {
     department: undefined
   };
+
   constructor(
     injector: Injector,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<ProgramPerson, PersonFilter>,
-    protected personService : PersonService,
+    protected personService: PersonService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
@@ -49,7 +60,7 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
         'privilege',
         'location'
       ]).concat(RESERVED_END_COLUMNS),
-       ProgramPerson,
+      ProgramPerson,
       memoryDataService,
       validatorService);
 
