@@ -248,6 +248,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+  },
 
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{

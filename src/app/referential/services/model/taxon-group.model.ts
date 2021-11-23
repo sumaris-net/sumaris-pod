@@ -24,6 +24,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
   statusId: number;
   rankOrder: number;
   taxonNames: TaxonNameRef[];
+  priority: number;
 
   constructor() {
     super(TaxonGroupRef.TYPENAME);
@@ -40,6 +41,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
     const target: any = super.asObject(options);
     if (options && options.keepEntityName !== true) delete target.entityName; // delete by default
     delete target.taxonNames; // Not need
+    delete target.priority;
     return target;
   }
 
@@ -50,6 +52,7 @@ export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsOb
     this.statusId = source.statusId;
     this.entityName = source.entityName || TaxonGroupRef.ENTITY_NAME;
     this.taxonNames = source.taxonNames && source.taxonNames.map(TaxonNameRef.fromObject) || [];
+    this.priority = source.priority;
   }
 }
 

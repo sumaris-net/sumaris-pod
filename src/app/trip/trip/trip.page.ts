@@ -1,46 +1,46 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild } from '@angular/core';
 
-import {TripService} from '../services/trip.service';
-import {TripForm} from './trip.form';
-import {SaleForm} from '../sale/sale.form';
-import {OperationsTable} from '../operation/operations.table';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
+import { TripService } from '../services/trip.service';
+import { TripForm } from './trip.form';
+import { SaleForm } from '../sale/sale.form';
+import { OperationsTable } from '../operation/operations.table';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
-import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
-import {FormGroup} from '@angular/forms';
+import { AcquisitionLevelCodes, PmfmIds } from '../../referential/services/model/model.enum';
+import { AppRootDataEditor } from '../../data/form/root-data-editor.class';
+import { FormGroup, Validators } from '@angular/forms';
 import {
   Alerts,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  fromDateISOString,
+  firstTruePromise,
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
-  NetworkService, ObjectMap,
+  isNotNil,
+  NetworkService,
   PlatformService,
   PromiseEvent,
   ReferentialRef,
   ReferentialUtils,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import {TripsPageSettingsEnum} from './trips.table';
-import {PhysicalGear, Trip} from '../services/model/trip.model';
-import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
-import {ModalController} from '@ionic/angular';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
-import {ProgramProperties} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
-import {debounceTime, filter, first} from 'rxjs/operators';
-import {TableElement} from '@e-is/ngx-material-table';
-import {Program} from '../../referential/services/model/program.model';
-import {environment} from '../../../environments/environment';
+import { TripsPageSettingsEnum } from './trips.table';
+import { PhysicalGear, Trip } from '../services/model/trip.model';
+import { SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
+import { ModalController } from '@ionic/angular';
+import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
+import { ProgramProperties } from '../../referential/services/config/program.config';
+import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith } from 'rxjs/operators';
+import { TableElement } from '@e-is/ngx-material-table';
+import { Program } from '../../referential/services/model/program.model';
+import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { SamplingStrategiesPageSettingsEnum } from '@app/referential/strategy/sampling/sampling-strategies.table';
-import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 const moment = momentImported;
 
@@ -64,7 +64,7 @@ export const TripPageSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppRootDataEditor<Trip, TripService> {
+export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -74,6 +74,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
   forceMeasurementAsOptional = false;
   settingsId: string;
   devAutoFillData = false;
+  $ready = new BehaviorSubject(false);
+  private _measurementSubscription: Subscription;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
@@ -144,6 +146,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       this.physicalGearsTable.onConfirmEditCreateRow
         .subscribe((_) => this.showOperationTable = true));
 
+    if (this.measurementsForm) {
+      this.registerSubscription(
+        this.measurementsForm.$pmfms
+          .pipe(
+            debounceTime(400),
+            filter(isNotNil),
+            mergeMap(_ => this.measurementsForm.ready())
+          )
+          .subscribe(_ => this.onMeasurementsFormReady())
+      );
+    }
+
     // Auto fill form, in DEV mode
     if (!environment.production) {
       this.registerSubscription(
@@ -153,6 +167,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       );
     }
 
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this._measurementSubscription?.unsubscribe();
   }
 
   protected registerForms() {
@@ -183,7 +202,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
 
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
-    this.operationsTable.showPosition = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    this.operationsTable.showPosition = positionEnabled;
+    this.operationsTable.showFishingArea = !positionEnabled;
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
     //this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION));
@@ -206,6 +227,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
       // BUT leave operation gear have been filled
       this.showOperationTable = false;
     }
+
+    this.$ready.next(true);
     this.markForCheck();
   }
 
@@ -470,6 +493,56 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> {
     const tab2Invalid = !tab1Invalid && this.operationsTable.invalid;
 
     return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+  }
+
+  /**
+   * Configure specific behavior
+   */
+  protected async onMeasurementsFormReady() {
+
+    // Wait program to be loaded
+    await this.ready();
+
+    // DEBUG
+    //console.debug('[operation-page] Measurement form is ready');
+
+    // Clean existing subscription (e.g. when acquisition level change, this function can= be called many times)
+    this._measurementSubscription?.unsubscribe();
+    this._measurementSubscription = new Subscription();
+
+    const formGroup = this.measurementsForm.form as FormGroup;
+
+    // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
+    const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];
+    if (isNotNil(isGPSUsed)) {
+      isGPSUsed.setValidators(Validators.required);
+      this._measurementSubscription.add(
+        isGPSUsed.valueChanges
+          .pipe(
+            debounceTime(400),
+            startWith<any, any>(isGPSUsed.value),
+            filter(isNotNil),
+            distinctUntilChanged()
+          )
+          .subscribe(isGPSUsed => {
+
+            if (this.debug) console.debug('[trip] Enable/Disable positions or fishing area, because GPS_USED=' + isGPSUsed);
+
+            // Enable positions, when has gps
+            this.operationsTable.showPosition = isGPSUsed;
+            // Enable fishing area, when has not gps
+            this.operationsTable.showFishingArea = !isGPSUsed;
+
+            this.markForCheck();
+          })
+      );
+    }
+
+  }
+
+  protected async ready() {
+    if (this.$ready.value === true) return;
+    await firstTruePromise(this.$ready);
   }
 
   protected markForCheck() {
