@@ -189,18 +189,10 @@ export class AppComponent {
   }
 
   protected addCustomSVGIcons() {
-    this.matIconRegistry.addSvgIcon(
-      "fish",
-      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/fish.svg")
-    );
-    this.matIconRegistry.addSvgIcon(
-      "down-arrow",
-      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/down-arrow.svg")
-    );
-    this.matIconRegistry.addSvgIcon(
-      "rollback-arrow",
-      this.domSanitizer.bypassSecurityTrustResourceUrl("../assets/icons/rollback-arrow.svg")
-    );
+    ['fish', 'fish-oblique', 'down-arrow', 'rollback-arrow']
+      .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
+        this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
+        ));
   }
 }
 

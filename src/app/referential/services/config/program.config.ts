@@ -1,5 +1,5 @@
 import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, UnitLabel } from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -82,12 +82,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
-  TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.sample.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',
-    defaultValue: 'false',
-    type: 'boolean'
-  },
   TRIP_BATCH_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE',
@@ -147,6 +141,28 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ENABLE',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_ACQUISITION_LEVEL: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.acquisitionLevel',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ACQUISITION_LEVEL',
+    defaultValue: AcquisitionLevelCodes.SAMPLE,
+    type: 'enum',
+    values: [
+      {
+        key: AcquisitionLevelCodes.SURVIVAL_TEST,
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
+      },
+      {
+        key: AcquisitionLevelCodes.SAMPLE,
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_LEGACY'
+      }
+    ]
   },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.taxonName.enable',
@@ -458,6 +474,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'SAMPLING.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SAMPLING'
+      },
+      {
+        key: 'SURVIVAL_TEST.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
       }
     ],
     defaultValue: 'legacy'

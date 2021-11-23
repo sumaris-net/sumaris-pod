@@ -79,7 +79,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
   mobile: boolean;
-  sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
+  sampleAcquisitionLevel: AcquisitionLevelType;
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
@@ -90,7 +90,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   // Sample tables
   @ViewChild('sampleTabGroup', {static: true}) sampleTabGroup: MatTabGroup;
   @ViewChild('samplesTable', {static: true}) samplesTable: SamplesTable;
-  @ViewChild('subSamplesTable', {static: true}) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
+  @ViewChild('individualMonitoringTable', {static: true}) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', {static: true}) individualReleaseTable: SubSamplesTable;
 
   get form(): FormGroup {
@@ -466,8 +466,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.allowSubBatches = hasBatchMeasure;
     this.batchTree.setProgram(program);
 
-    this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE)
-    this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE)
+    this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE);
+    this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE);
+    this.sampleAcquisitionLevel = program.getProperty(ProgramProperties.TRIP_SAMPLE_ACQUISITION_LEVEL);
+
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nContext.suffix = i18nSuffix;
 
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
@@ -475,6 +480,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Mask unused columns
     this.batchTree.batchGroupsTable.hideUnusedColumns();
+
+    this.cd.detectChanges();
 
     this.$ready.next(true);
   }
