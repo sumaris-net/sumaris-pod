@@ -101,7 +101,8 @@ public enum PmfmEnum implements Serializable {
 
     STRATEGY_LABEL(359, "STRATEGY_LABEL"),
 
-    REFUSED_SURVEY(266, "REFUSED_SURVEY")
+    REFUSED_SURVEY(266, "REFUSED_SURVEY"),
+    GPS_USED(188, "GPS_USED")
 
     ;
 
