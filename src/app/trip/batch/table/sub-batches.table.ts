@@ -5,7 +5,7 @@ import { FormGroup, Validators } from '@angular/forms';
 import {
   AppFormUtils,
   EntityFilter,
-  EntityUtils, ENVIRONMENT,
+  EntityUtils,
   FilterFn,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -19,14 +19,14 @@ import {
   selectInputContent,
   startsWithUpperCase,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import { SubBatchForm } from '../form/sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { ISubBatchModalOptions, SubBatchModal } from '../modal/sub-batch.modal';
+import { SubBatchModal } from '../modal/sub-batch.modal';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
@@ -35,7 +35,6 @@ import { BatchGroup } from '../../services/model/batch-group.model';
 import { PmfmValidators } from '../../../referential/services/validator/pmfm.validators';
 import { environment } from '../../../../environments/environment';
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
-import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -88,6 +87,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   private _qvPmfm: IPmfm;
   private _parentSubscription: Subscription;
   private _availableParents: BatchGroup[] = [];
+  private _showTaxonNameInParentAutocomplete = true;
   protected _availableSortedParents: BatchGroup[] = [];
 
   protected cd: ChangeDetectorRef;
@@ -152,6 +152,12 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   get showTaxonNameColumn(): boolean {
     return this.getShowColumn('taxonName');
+  }
+
+  @Input()
+  set showTaxonNameInParentAutocomplete(value: boolean) {
+    this._showTaxonNameInParentAutocomplete = value;
+    this.updateParentAutocomplete();
   }
 
   @Input()
@@ -414,13 +420,17 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       taxonGroupAttributes: taxonGroupAttributes,
       taxonNameAttributes: taxonNameAttributes
     };
-    if (this.showTaxonNameColumn) {
-      this.autocompleteFields.parentGroup.attributes = ['rankOrder']
+    if (this._showTaxonNameInParentAutocomplete) {
+      if (this.showTaxonNameColumn) {
+        this.autocompleteFields.parentGroup.attributes = ['rankOrder']
           .concat(taxonGroupAttributes.map(attr => 'taxonGroup.' + attr));
-    }
-    else {
-      this.autocompleteFields.parentGroup.attributes = ['taxonGroup.' + taxonGroupAttributes[0]]
+      } else {
+        this.autocompleteFields.parentGroup.attributes = ['taxonGroup.' + taxonGroupAttributes[0]]
           .concat(taxonNameAttributes.map(attr => 'taxonName.' + attr));
+      }
+    } else {
+      // show only taxon group
+      this.autocompleteFields.parentGroup.attributes = taxonGroupAttributes.map(attr => 'taxonGroup.' + attr);
     }
     this.autocompleteFields.parentGroup.displayWith = (value) => BatchUtils.parentToString(value, parentToStringOptions);
   }

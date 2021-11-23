@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {OperationValidatorService} from '../services/validator/operation.validator';
-import {AlertController, ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
-import {TranslateService} from '@ngx-translate/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { OperationValidatorService } from '../services/validator/operation.validator';
+import { AlertController, ModalController, Platform } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
+import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
@@ -18,12 +18,11 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { OperationsMapModalOptions, OperationsMap } from './map/operations.map';
-import {environment} from '@environments/environment';
-import {Operation} from '../services/model/trip.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import { BehaviorSubject, from, merge } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
+import { environment } from '@environments/environment';
+import { Operation } from '../services/model/trip.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { from, merge } from 'rxjs';
 
 
 @Component({
@@ -82,6 +81,25 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     }
   }
 
+
+  @Input() set showPosition(show: boolean) {
+    this.setShowColumn('startPosition', show);
+    this.setShowColumn('endPosition', show);
+  }
+
+  get showPosition(): boolean {
+    return this.getShowColumn('startPosition') &&
+      this.getShowColumn('endPosition');
+  }
+
+  @Input() set showFishingArea(show: boolean) {
+    this.setShowColumn('fishingArea', show);
+  }
+
+  get showFishingArea(): boolean {
+    return this.getShowColumn('fishingArea');
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -112,6 +130,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
               'startPosition',
               'endDateTime',
               'endPosition',
+              'fishingArea',
               'comments'])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
@@ -240,6 +259,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
+      physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
     };
 

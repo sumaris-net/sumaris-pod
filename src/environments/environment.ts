@@ -2,7 +2,7 @@
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import {Environment} from '@sumaris-net/ngx-components';
+import { Environment } from '@sumaris-net/ngx-components';
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
@@ -35,6 +35,10 @@ export const environment = Object.freeze(<Environment>{
   peerMinVersion: '1.15.0',
 
   defaultPeers: [
+    {
+      host: '192.168.8.146',
+      port: 8080
+    },
     {
       host: 'localhost',
       port: 8080

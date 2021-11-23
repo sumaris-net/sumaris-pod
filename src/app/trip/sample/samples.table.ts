@@ -23,25 +23,24 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { FormGroup } from '@angular/forms';
-import { TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample } from '../services/model/sample.model';
 import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, UnitLabel } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils, UnitConversion } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils, UnitConversion } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
 import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
@@ -726,7 +725,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   addRow(event?: Event, insertAt?: number): boolean {
-    this._focusColumn = this.firstUserColumn;
+    this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
   }
 
