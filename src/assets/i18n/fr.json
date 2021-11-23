@@ -622,6 +622,7 @@
         "FISHING_END_DATE_TIME": "Fin de pêche",
         "START_POSITION": "Position début",
         "END_POSITION": "Position de fin",
+        "FISHING_AREA": "Zone de pêche",
         "COMMENTS": "Commentaires",
         "QUALITY": "État"
       },

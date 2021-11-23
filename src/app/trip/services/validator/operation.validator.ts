@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { PositionValidatorService } from './position.validator';
-import { fromDateISOString, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { fromDateISOString, isNotNil, LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { MeasurementsValidatorService } from './measurement.validator';
 import { Operation, Trip } from '../model/trip.model';
-import { TRIP_CONFIG_OPTIONS } from '@app/trip/services/config/trip.config';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -17,6 +17,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   isChild?: boolean;
   isParent?: boolean;
   withPosition?: boolean;
+  withFishingAreas?: boolean;
   trip?: Trip;
 }
 
@@ -32,6 +33,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
+    private fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, settings);
@@ -60,6 +62,11 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     if (opts.withPosition) {
       form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
       form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
+    }
+
+    // Add fishing Ares
+    if (opts.withFishingAreas) {
+      form.addControl('fishingAreas', this.getFishingAreasArray(data));
     }
 
     return form;
@@ -240,12 +247,19 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add position
     if (opts.withPosition) {
-      if (!form.contains('startPosition')) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      if (!form.contains('endPosition')) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
+      if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
     }
     else {
-      if (form.contains('startPosition')) form.removeControl('startPosition');
-      if (form.contains('endPosition')) form.removeControl('endPosition');
+      if (!!form.controls.startPosition) form.removeControl('startPosition');
+      if (!!form.controls.endPosition) form.removeControl('endPosition');
+    }
+
+    // Add fishing areas
+    if (opts.withFishingAreas) {
+      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null));
+    } else {
+      if (!!form.controls.fishingAreas) form.removeControl('fishingAreas');
     }
 
     // Update form group validators
@@ -260,6 +274,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
     opts.withPosition = toBoolean(opts.withPosition, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE), true));
+    opts.withFishingAreas = toBoolean(opts.withFishingAreas, !opts.withPosition)
 
     // DEBUG
     //console.debug("[operation-validator] Ope Validator will use options:", opts);
@@ -300,4 +315,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       }
     }
   }
+
+  protected getFishingAreasArray(data?: Operation, opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.array(
+      (data && data.fishingAreas || []).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
+      required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+    );
+  }
+
 }

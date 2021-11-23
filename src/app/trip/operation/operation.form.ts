@@ -8,22 +8,28 @@ import {
   AppFormUtils,
   DateFormatPipe,
   EntityUtils,
+  FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
+  LoadResult,
   LocalSettingsService,
+  MatAutocompleteField,
   PlatformService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  SharedFormArrayValidators,
   SharedValidators,
+  StatusIds,
+  suggestFromArray,
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
 import { BehaviorSubject, merge } from 'rxjs';
@@ -37,9 +43,13 @@ import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/ope
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
+import { FishingArea } from '@app/trip/services/model/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 
+type FilterableFieldName = 'fishingArea';
 
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
@@ -66,6 +76,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _showMetierFilter = false;
   private _allowParentOperation = false;
   private _showPosition = true;
+  private _showFishingArea = false;
   private _requiredComment = false;
   private _copyTripDates = false;
 
@@ -82,6 +93,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   isParentOperationControl: FormControl;
   $parentOperationLabel = new BehaviorSubject<string>('');
+  fishingAreasHelper: FormArrayHelper<FishingArea>;
+  fishingAreaFocusIndex = -1;
+  autocompleteFilters = {
+    fishingArea: false
+  };
 
   @Input() usageMode: UsageMode;
   @Input() programLabel: string;
@@ -89,6 +105,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   @Input() showComment = true;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
+  @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
 
   @Input() set showMetierFilter(value: boolean) {
     this._showMetierFilter = value;
@@ -122,6 +139,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   get showPosition(): boolean {
     return this._showPosition;
+  }
+
+  @Input() set showFishingArea(value: boolean) {
+    if (this._showFishingArea !== value) {
+      this._showFishingArea = value;
+      if (!this._loading) this.updateFormGroup();
+    }
+  }
+
+  get showFishingArea(): boolean {
+    return this._showFishingArea;
+  }
+
+  @Input() set fishingAreaLocationLevelIds(ids: number[]) {
+    this.autocompleteFields.fishingAreaLocation.filter.levelIds = ids;
   }
 
   @Input() set requiredComment(value: boolean) {
@@ -163,6 +195,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return this.form.get('parentOperation') as FormControl;
   }
 
+  get fishingAreasForm(): FormArray {
+    return this.form?.controls.fishingAreas as FormArray;
+  }
+
   get isParentOperation(): boolean {
     return this.isParentOperationControl.value === true;
   }
@@ -199,6 +235,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected platform: PlatformService,
+    protected formBuilder: FormBuilder,
+    protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() protected geolocation: Geolocation
   ) {
@@ -224,6 +262,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       items: this._physicalGearsSubject,
       attributes: physicalGearAttributes,
       mobile: this.mobile
+    });
+
+    // Combo: fishingAreas
+    this.initFishingAreas(this.form);
+    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
+    this.registerAutocompleteField('fishingAreaLocation', {
+      showAllOnFocus: true,
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
+      // Default filter. An excludedIds will be add dynamically
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        levelIds: LocationLevelIds.LOCATIONS_AREA // should be overridden by program property
+      },
+      attributes: locationAttributes
     });
 
     // Taxon group combo
@@ -316,7 +369,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private updateDates() {
     // Copy dates from trip
     if (this.copyTripDates && this.trip && !this.form.value.startDateTime && !this.form.value.endDateTime) {
-      this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: this.trip.returnDateTime});
+      const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
+      endDateTime.subtract(1, 'second');
+      this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: endDateTime });
     }
   }
 
@@ -484,7 +539,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return operation;
   }
 
-
+  addFishingArea() {
+    this.fishingAreasHelper.add();
+    if (!this.mobile) {
+      this.fishingAreaFocusIndex = this.fishingAreasHelper.size() - 1;
+    }
+  }
 
   toggleMetierFilter($event) {
     if ($event) $event.preventDefault();
@@ -493,6 +553,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Refresh metiers
     if (physicalGear) this.loadMetiers(physicalGear);
+  }
+
+  toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
+    this.setFieldFilterEnable(fieldName, !this.isFieldFilterEnable(fieldName), field);
   }
 
   async updateParentOperation() {
@@ -725,14 +789,72 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   }
 
+  protected initFishingAreas(form: FormGroup) {
+    this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
+      (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
+      (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
+      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
+      {allowEmptyArray: true}
+    );
+    if (this.fishingAreasHelper.size() === 0) {
+      this.fishingAreasHelper.resize(1);
+    }
+    this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
+  }
+
+  protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.fishingAreasForm.value || [])
+      .map(fa => fa.location)
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
+    if (this.autocompleteFilters.fishingArea && isNotNil(this.filteredFishingAreaLocations)) {
+      return suggestFromArray(this.filteredFishingAreaLocations, value, {
+        ...filter,
+        excludedIds
+      });
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        excludedIds
+      });
+    }
+  }
+
+  protected isFieldFilterEnable(fieldName: FilterableFieldName) {
+    return this.autocompleteFilters[fieldName];
+  }
+
+  protected setFieldFilterEnable(fieldName: FilterableFieldName, value: boolean, field?: MatAutocompleteField, forceReload?: boolean) {
+    if (this.autocompleteFilters[fieldName] !== value || forceReload) {
+      this.autocompleteFilters[fieldName] = value;
+      this.markForCheck();
+      if (field) field.reloadItems();
+    }
+  }
+
   protected updateFormGroup() {
+
+    // Resize fishing areas array
+    if (this.showFishingArea) {
+      this.trip.fishingAreas = isNotEmptyArray(this.trip.fishingAreas) ? this.trip.fishingAreas : [null];
+      this.fishingAreasHelper.resize(Math.max(1, this.trip.fishingAreas.length));
+    } else {
+      this.fishingAreasHelper?.removeAllEmpty();
+    }
 
     this.validatorService.updateFormGroup(this.form, {
       isOnFieldMode: this.usageMode === 'FIELD',
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.isChildOperation,
-      withPosition: this.showPosition
+      withPosition: this.showPosition,
+      withFishingAreas: this.showFishingArea
     });
 
     this.form.updateValueAndValidity();

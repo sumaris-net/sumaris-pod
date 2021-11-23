@@ -97,7 +97,7 @@
     "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Duration:",
 
-    "YES": "yes",
+    "YES": "Yes",
     "NO": "No",
 
     "UPDATED_ON": "Last modification on",
@@ -620,6 +620,7 @@
         "FISHING_END_DATE_TIME": "Towing",
         "START_POSITION": "Shooting GPS Position",
         "END_POSITION": "Towing GPS Position",
+        "FISHING_AREA": "Fishing Area",
         "COMMENTS": "Comments",
         "QUALITY": "Status"
       },

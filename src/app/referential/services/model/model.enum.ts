@@ -79,7 +79,10 @@ export const PmfmIds = {
   REFUSED_SURVEY: 266,
 
   /* PIFIL pmfms */
-  HAS_ACCIDENTAL_CATCHES: 390
+  HAS_ACCIDENTAL_CATCHES: 390,
+
+  /* LOGBOOK-SEA-CUCUMBER (SFA)*/
+  GPS_USED: 188
 };
 
 export const QualitativeLabels = {
