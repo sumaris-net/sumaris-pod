@@ -17,6 +17,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   isChild?: boolean;
   isParent?: boolean;
   withPosition?: boolean;
+  withFishingArea?: boolean;
   trip?: Trip;
 }
 
@@ -246,6 +247,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     else {
       if (form.contains('startPosition')) form.removeControl('startPosition');
       if (form.contains('endPosition')) form.removeControl('endPosition');
+    }
+
+    // Add fishing area
+    if (opts.withFishingArea) {
+      //if (!form.contains('fishingArea')) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+      //if (!form.contains('endPosition')) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
+    }
+    else {
+      //if (form.contains('startPosition')) form.removeControl('startPosition');
+      //if (form.contains('endPosition')) form.removeControl('endPosition');
     }
 
     // Update form group validators

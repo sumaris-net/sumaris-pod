@@ -5,10 +5,11 @@
   --mat-column-small-count: calc(var(--packet-count) + 2);
   --mat-column-actions-width: 82px;
   --mat-cell-vertical-padding: 4px;
-  --mat-header-background-color: rgba(0,0,0, 0.17);
-  --mat-header-background-color-even: var(--ion-color-medium-tint, grey);
-  --mat-footer-background-color: rgba(0,0,0, 0.07);
-  --mat-footer-background-color-even: var(--ion-color-medium-tint, grey);
+  --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
+  --mat-header-background-color-even: var(--ion-color-light-shade, grey);
+  --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
+  --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
+
 
   &.mobile {
     --mat-column-actions-width: 41px;

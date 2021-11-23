@@ -76,9 +76,8 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <table mat-table [dataSource]="dataSource"
-         matSort
-         matSortDisableClear
+  <table mat-table  matSort matSortDisableClear
+         [dataSource]="dataSource"
          [matSortActive]="defaultSortBy"
          [matSortDirection]="defaultSortDirection"
          [trackBy]="trackByFn">

@@ -1,9 +1,8 @@
 import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { MethodIds, PmfmIds, UnitLabel, WeightSymbol } from './model.enum';
-import {Parameter, ParameterType} from './parameter.model';
-import {PmfmValue} from './pmfm-value.model';
+import { Parameter, ParameterType } from './parameter.model';
+import { PmfmValue } from './pmfm-value.model';
 import { Moment } from 'moment';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -316,38 +315,38 @@ export abstract class PmfmUtils {
   static setWeightUnitConversion<P extends IPmfm>(pmfm: P, expectedWeightSymbol: WeightSymbol, opts?: {
     clone?: boolean;
   }): P {
-    if (!PmfmUtils.isWeight(pmfm)) return pmfm;
+    if (!this.isWeight(pmfm)) return pmfm;
 
-    const originalUnitLabel = pmfm.unitLabel || UnitLabel.KG;
-    if (originalUnitLabel === expectedWeightSymbol) return; // Conversion not need
+    const actualWeightUnit = pmfm.unitLabel || UnitLabel.KG;
+    if (actualWeightUnit === expectedWeightSymbol) return; // Conversion not need
 
     // Clone, to keep existing pmfm unchanged
     if (!opts || opts.clone !== false) {
       pmfm = pmfm.clone() as P;
     }
 
-    if (pmfm instanceof DenormalizedPmfmStrategy) {
+    if (this.isDenormalizedPmfm(pmfm)) {
       pmfm.unitLabel = expectedWeightSymbol;
-    }
-    else if ((pmfm instanceof Pmfm) && pmfm.unit) {
-      pmfm.unit.label = expectedWeightSymbol;
-      // TODO BLA remove: not need
-      //pmfm.unit.name = expectedWeightSymbol; // To upgrade with weightDisplayed (not computed yet)
-    }
-    if (originalUnitLabel === UnitLabel.KG && expectedWeightSymbol === UnitLabel.GRAM) {
-      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-    }
-    else if (originalUnitLabel === UnitLabel.GRAM && expectedWeightSymbol === UnitLabel.KG) {
-      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
-    }
 
-    // Update the complete name (the unit part), if exists
-    if (PmfmUtils.isDenormalizedPmfm(pmfm) && pmfm.completeName) {
-      const matches = this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(pmfm.completeName);
+
+      // Update the complete name (the unit part), if exists
+      const matches = pmfm.completeName && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(pmfm.completeName);
       if (matches) {
         pmfm.completeName = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
       }
     }
+    else if ((pmfm instanceof Pmfm) && pmfm.unit) {
+      pmfm.unit.label = expectedWeightSymbol;
+      pmfm.unit.name = expectedWeightSymbol;
+    }
+    if (actualWeightUnit === UnitLabel.KG && expectedWeightSymbol === UnitLabel.GRAM) {
+      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
+    }
+    else if (actualWeightUnit === UnitLabel.GRAM && expectedWeightSymbol === UnitLabel.KG) {
+      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
+    }
+
+
   }
 }
 

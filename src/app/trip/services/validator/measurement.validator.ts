@@ -66,7 +66,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   updateFormGroup(form: FormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
-    const controlNamesToRemove = Object.keys(form.controls);
+    const controlNamesToRemove = Object.getOwnPropertyNames(form.controls);
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
 

@@ -82,6 +82,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
   TRIP_BATCH_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_NAME_ENABLE',

@@ -98,6 +98,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() showForm = false;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
+  @Input() useSticky = false;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
@@ -213,6 +214,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
+    this.defaultSortBy = 'rankOrder';
+    this.defaultSortDirection = 'asc';
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;

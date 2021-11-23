@@ -81,9 +81,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
   protected currentSample: Sample; // require to preset presentation on new row
-
-  // TODO BLA : rename
-  private latestCorrectTagId: string;
+  protected currentTagId: string;
 
   // Top group header
   groupHeaderStartColSpan: number;
@@ -261,9 +259,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.pmfmGroupColumns$.unsubscribe();
   }
 
-  openMenu() {
-  }
-
   /**
    * Use in ngFor, for trackBy
    * @param index
@@ -272,7 +267,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   trackColumnDef(index: number, column: GroupColumnDefinition) {
     return column.key;
   }
-
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
@@ -464,13 +458,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // server call for first sample and increment from server call value
     if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
-      const existingTagId = this.latestCorrectTagId || previousSample?.measurementValues[PmfmIds.TAG_ID];
+      const existingTagId = this.currentTagId || previousSample?.measurementValues[PmfmIds.TAG_ID];
       const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
       const newTagId = isNilOrNaN(existingTagIdAsNumber)
         ? (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength)
         : (existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, "0");
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
-      this.latestCorrectTagId = newTagId; // Remember, for next iteration
+      this.currentTagId = newTagId; // Remember, for next iteration
     }
 
     // Default presentation value
@@ -697,7 +691,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   addRow(event?: Event, insertAt?: number): boolean {
-    this._focusColumn = this.firstUserColumn;
+    this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
   }
 

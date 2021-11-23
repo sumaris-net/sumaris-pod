@@ -47,11 +47,11 @@
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
   <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
-                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
-                 dynamicHeight>
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">

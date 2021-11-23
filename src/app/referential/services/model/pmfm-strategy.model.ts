@@ -1,15 +1,8 @@
-import {
-  Entity,
-  EntityAsObjectOptions,
-  EntityClass,
-  IReferentialRef, isNil, isNotNil,
-  ReferentialRef, ReferentialUtils,
-  toNumber,
-} from '@sumaris-net/ngx-components';
-import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from "./pmfm.model";
-import { PmfmValue, PmfmValueUtils } from "./pmfm-value.model";
-import { MethodIds } from "./model.enum";
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.model";
+import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, ReferentialRef, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
+import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
+import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
+import { MethodIds } from './model.enum';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 
 @EntityClass({typename: "PmfmStrategyVO"})

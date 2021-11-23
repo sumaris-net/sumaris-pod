@@ -191,7 +191,7 @@
                                 [autofocus]="row.editing && focusColumn === 'taxonGroup'"
                                 [formControl]="row.validator.controls.taxonGroup"
                                 [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-                                [required]="showTaxonGroupColumn" [readonly]="!row.editing"
+                                [required]="showTaxonGroupColumn"
                                 [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
       </td>
@@ -208,8 +208,8 @@
                                 [autofocus]="row.editing && focusColumn === 'taxonName'"
                                 [formControl]="row.validator.controls.taxonName"
                                 [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
-                                [required]="true" [readonly]="!row.editing"
-                                [config]="autocompleteFields.taxonName">
+                                [config]="autocompleteFields.taxonName"
+                                [required]="showTaxonNameColumn">
         </mat-autocomplete-field>
       </td>
 
@@ -336,12 +336,13 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="second-header-row"></tr>
     <!-- data rows -->
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-        [class.mat-row-error]="row.validator?.invalid"
-        [class.mat-row-dirty]="row.validator?.dirty"
+        [class.mat-row-selected]="row.editing"
+        [class.mat-row-error]="row.validator.invalid"
+        [class.mat-row-dirty]="row.validator.dirty"
         [class.mat-row-disabled]="!row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="row.editing && row.validator.invalid">
+        [cdkTrapFocus]="row.validator.invalid">
     </tr>
     <!-- footer -->
     <ng-container *ngIf="showFooter">

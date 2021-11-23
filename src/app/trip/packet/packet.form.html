@@ -15,6 +15,7 @@
                                 [placeholder]="'TRIP.PRODUCT.LIST.PARENT'|translate"
                                 [tabindex]="tabindex"
                                 [config]="autocompleteFields.parent"
+                                (focusin)="compositionEditedIndex=null"
                                 required>
         </mat-autocomplete-field>
       </ion-col>
@@ -36,6 +37,7 @@
                  step="1"
                  [tabIndex]="tabindex+1"
                  (click)="selectInputContent($event)"
+                 (focusin)="compositionEditedIndex=null"
                  required>
         </mat-form-field>
       </ion-col>
@@ -58,7 +60,7 @@
   <table class="mat-table" [style.--packet-count]="packetCount" [class.mobile]="mobile">
 
     <!-- header row -->
-    <tr class="mat-header-row">
+    <tr class="mat-header-row ">
       <th class="mat-header-cell mat-column-taxonGroup ion-text-center" rowspan="2">
         <ion-label translate>PACKET.COMPOSITION.TAXON_GROUP</ion-label>
       </th>
@@ -79,7 +81,9 @@
     </tr>
 
     <!-- Row by taxon group -->
-    <tr class="mat-row mat-row-all-taxonGroup">
+    <tr class="mat-row mat-row-all-taxonGroup"
+        [class.mat-row-selected]="compositionEditedIndex===-1"
+        (focusin)="compositionEditedIndex=-1">
       <td class="mat-cell mat-column-taxonGroup ion-text-end">
         <ion-label color="primary" class="text-italic" translate>PACKET.COMPOSITION.PACKETS_WEIGHT_DOTS</ion-label>
       </td>

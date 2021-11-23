@@ -96,7 +96,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   @Input()
   set programLabel(value: string) {
-    this.$programLabel.next(value);
+    if (this.$programLabel.value !== value) {
+      this.$programLabel.next(value);
+    }
   }
 
   @Input()
@@ -134,6 +136,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
+
+  private _applyingProgram = false;
 
   constructor(
     protected route: ActivatedRoute,
@@ -244,8 +248,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this._subBatchesService?.ngOnDestroy();
   }
 
-  protected setProgram(program: Program) {
-    if (!program) return;
+  setProgram(program: Program) {
+    if (!program || this._applyingProgram) return;
+    this._applyingProgram = true;
     if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
 
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
@@ -263,6 +268,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
     }
+
+    // Propage to children components
+    this.programLabel = program.label;
+
+    this._applyingProgram = false;
   }
 
   async load(id?: number, options?: any): Promise<any> {

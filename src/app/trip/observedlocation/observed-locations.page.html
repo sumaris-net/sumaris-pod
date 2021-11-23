@@ -319,12 +319,13 @@
   </ion-list>
 
   <!-- table -->
-  <div class="table-container"
-       [class.has-offline-nav]="hasOfflineMode">
-    <table mat-table [dataSource]="dataSource" matSort
-               [matSortActive]="defaultSortBy"
-               [matSortDirection]="defaultSortDirection"
-               matSortDisableClear [trackBy]="trackByFn">
+  <div class="table-container" [class.has-offline-nav]="hasOfflineMode">
+
+    <table mat-table  matSort matSortDisableClear
+           [dataSource]="dataSource"
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           [trackBy]="trackByFn">
 
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
