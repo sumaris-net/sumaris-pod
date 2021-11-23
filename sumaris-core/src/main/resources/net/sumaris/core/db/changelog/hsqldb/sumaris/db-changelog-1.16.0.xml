@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-1.4.6.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS'"/>
+    <property name="sqlCheck.sumaris.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Add program property 'sumaris.trip.operation.sample.acquisitionLevel' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-300" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.sample.acquisitionLevel'
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'SUMARiS')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.sample.acquisitionLevel</column>
+            <column name="NAME">SURVIVAL_TEST</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'SUMARiS')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add program property 'sumaris.i18nSuffix' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.i18nSuffix'
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'SUMARiS')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.i18nSuffix</column>
+            <column name="NAME">SURVIVAL_TEST.</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'SUMARiS')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
