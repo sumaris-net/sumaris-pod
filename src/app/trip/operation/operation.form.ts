@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorService } from '../services/validator/operation.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output} from '@angular/core';
+import {OperationValidatorService} from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   AccountService,
   AppForm,
@@ -335,11 +335,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     const isChildOperation = isNotNil(data.parentOperation?.id);
     if (isChildOperation || this.allowParentOperation) {
-      this.allowParentOperation = true;
+      this._allowParentOperation = true; // do not use setter to not update form group
       this.setIsParentOperation(!isChildOperation, {emitEvent: false});
     }
 
     super.setValue(data, opts);
+
+    if (data.childOperation && data.childOperation.fishingEndDateTime){
+      this.setChildOperation(data.childOperation, {emitEvent:false});
+    }
 
     this.markAsLoaded();
   }
@@ -375,6 +379,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
+  setChildOperation(value: Operation, opts?: {emitEvent: boolean}) {
+    this.form.patchValue({
+      childOperation: value,
+      childOperationFishingEndDateTime: value.fishingEndDateTime
+    }, opts);
+
+    if (!opts || opts.emitEvent !== false){
+      this.updateFormGroup();
+    }
+  }
+
+  async setParentOperation(value: Operation) {
+    this.parentControl.setValue(value);
+    await this.onParentOperationChanged(value, {emitEvent: false});
+    this.updateFormGroup();
+  }
+
   /**
    * Get the position by GPS sensor
    * @param fieldName
@@ -399,7 +420,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.form.markAsDirty({onlySelf: true});
     this.form.updateValueAndValidity();
 
-    this.updateDistance({emitEvent: false /* done after */ });
+    this.updateDistance({emitEvent: false /* done after */});
 
     this.markForCheck();
   }
@@ -457,11 +478,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return (data instanceof Operation) ? data : undefined;
   }
 
-  async onParentOperationChanged(parentOperation?: Operation) {
+  async onParentOperationChanged(parentOperation?: Operation, opts?: { emitEvent: boolean }) {
     parentOperation = parentOperation || this.form.get('parentOperation').value;
     if (this.debug) console.debug('[operation-form] Parent operation changed: ', parentOperation);
 
-    this.onParentChanges.emit(parentOperation);
+    if (!opts || opts.emitEvent !== false) {
+      this.onParentChanges.emit(parentOperation);
+    }
 
     // Compute parent operation label
     let parentLabel = '';
@@ -514,8 +537,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         if (metier.length === 1) {
           metierControl.patchValue(metier[0]);
-        }
-        else {
+        } else {
           // TODO
         }
       } else if (physicalGear.length === 0) {
@@ -666,7 +688,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     if (this.debug) console.debug('[operation-form] Is parent operation ? ', isParent);
 
     if (this.isParentOperationControl.value !== isParent) {
-      this.isParentOperationControl.setValue(isParent);
+      this.isParentOperationControl.setValue(isParent, opts);
     }
 
     // Parent operation (= Filage) (or parent not used)
@@ -694,12 +716,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         // Clean parent fields (should be filled after parent selection)
         this.form.patchValue({
-            startDateTime: null,
-            fishingStartDateTime: null,
-            physicalGear: null,
-            metier: null,
-            childOperation: null
-          });
+          startDateTime: null,
+          fishingStartDateTime: null,
+          physicalGear: null,
+          metier: null,
+          childOperation: null
+        });
 
         this.updateFormGroup();
 
