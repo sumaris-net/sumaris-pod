@@ -280,7 +280,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             // Iterate over vessel's activities for the date
             activityByVesselId.keySet().forEach(vesselId -> {
                 Collection<VesselActivityVO> activities = activityByVesselId.get(vesselId);
-                List<LandingVO> landingsToSave = Beans.getList(landingsByVesselId.removeAll(vesselId));
+                List<LandingVO> landingsToSave = new ArrayList<>(landingsByVesselId.removeAll(vesselId));
                 List<Integer> landingIdsToRemove = Beans.collectIds(landingsToSave);
                 AtomicBoolean landingsDirty = new AtomicBoolean(false);
                 // Part 1 : Landings
