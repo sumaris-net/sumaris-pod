@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { DateAdapter } from '@angular/material/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from '@angular/forms';
+import {DateAdapter} from '@angular/material/core';
 import * as momentImported from 'moment';
-import { isMoment, Moment } from 'moment';
+import {isMoment, Moment} from 'moment';
 import {
   AppForm,
   AppFormUtils,
@@ -29,12 +29,12 @@ import {
   suggestFromArray,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
-import { Program } from '../../services/model/program.model';
-import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy } from '../../services/model/strategy.model';
-import { ReferentialRefService } from '../../services/referential-ref.service';
-import { StrategyService } from '../../services/strategy.service';
-import { StrategyValidatorService } from '../../services/validator/strategy.validator';
+import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
+import {Program} from '../../services/model/program.model';
+import {AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from '../../services/model/strategy.model';
+import {ReferentialRefService} from '../../services/referential-ref.service';
+import {StrategyService} from '../../services/strategy.service';
+import {StrategyValidatorService} from '../../services/validator/strategy.validator';
 import {
   AcquisitionLevelCodes,
   autoCompleteFractions,
@@ -45,19 +45,19 @@ import {
   ProgramPrivilegeIds,
   TaxonomicLevelIds,
 } from '../../services/model/model.enum';
-import { ProgramProperties } from '../../services/config/program.config';
-import { BehaviorSubject, merge } from 'rxjs';
-import { SamplingStrategyService } from '../../services/sampling-strategy.service';
-import { PmfmFilter, PmfmService } from '../../services/pmfm.service';
-import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
-import { TaxonName, TaxonNameRef, TaxonUtils } from '@app/referential/services/model/taxon-name.model';
-import { TaxonNameService } from '@app/referential/services/taxon-name.service';
-import { PmfmStrategyValidatorService } from '@app/referential/services/validator/pmfm-strategy.validator';
-import { Pmfm } from '@app/referential/services/model/pmfm.model';
-import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
-import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
-import { filter, map } from 'rxjs/operators';
-import { environment } from '@environments/environment';
+import {ProgramProperties} from '../../services/config/program.config';
+import {BehaviorSubject, merge} from 'rxjs';
+import {SamplingStrategyService} from '../../services/sampling-strategy.service';
+import {PmfmFilter, PmfmService} from '../../services/pmfm.service';
+import {SamplingStrategy, StrategyEffort} from '@app/referential/services/model/sampling-strategy.model';
+import {TaxonName, TaxonNameRef, TaxonUtils} from '@app/referential/services/model/taxon-name.model';
+import {TaxonNameService} from '@app/referential/services/taxon-name.service';
+import {PmfmStrategyValidatorService} from '@app/referential/services/validator/pmfm-strategy.validator';
+import {Pmfm} from '@app/referential/services/model/pmfm.model';
+import {TaxonNameRefFilter} from '@app/referential/services/filter/taxon-name-ref.filter';
+import {TaxonNameFilter} from '@app/referential/services/filter/taxon-name.filter';
+import {filter, map} from 'rxjs/operators';
+import {environment} from '@environments/environment';
 
 const moment = momentImported;
 
@@ -315,7 +315,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.appliedPeriodsForm.setAsyncValidators([
       async (control: FormArray) => {
-        if (this.untouched) return;
         const minLength = 1;
         const appliedPeriods = control.controls;
         if (!isEmptyArray(appliedPeriods)) {
