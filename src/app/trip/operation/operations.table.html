@@ -175,6 +175,15 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="fishingArea">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.OPERATION.LIST.FISHING_AREA</ion-label>
+      </th>
+      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        {{ row.currentData.fishingAreas | arrayFirst }}
+      </td>
+    </ng-container>
+
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef>

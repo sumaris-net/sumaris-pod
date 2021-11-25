@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
-import { ReferentialFragments } from './referential.fragments';
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {ReferentialFragments} from './referential.fragments';
 import {
   AccountService,
   ConfigService,
@@ -11,27 +11,29 @@ import {
   firstArrayValue,
   GraphqlService,
   isEmptyArray,
-  isNil, isNilOrBlank,
+  isNil,
+  isNilOrBlank,
   isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService, ReferentialRef
+  PlatformService,
+  ReferentialRef
 } from '@sumaris-net/ngx-components';
-import { CacheService } from 'ionic-cache';
-import { SortDirection } from '@angular/material/sort';
-import { StrategyFragments } from './strategy.fragments';
-import { StrategyService } from './strategy.service';
-import { Observable, of, timer } from 'rxjs';
-import { map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import { ParameterLabelGroups } from './model/model.enum';
-import { PmfmService } from './pmfm.service';
-import { ReferentialRefService } from './referential-ref.service';
-import { SamplingStrategy, StrategyEffort } from './model/sampling-strategy.model';
-import { BaseReferentialService } from './base-referential-service.class';
-import { Moment } from 'moment';
-import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ExtractionCacheDurationType } from '@app/extraction/services/model/extraction-type.model';
+import {CacheService} from 'ionic-cache';
+import {SortDirection} from '@angular/material/sort';
+import {StrategyFragments} from './strategy.fragments';
+import {StrategyService} from './strategy.service';
+import {Observable, timer} from 'rxjs';
+import {map, mergeMap, startWith, switchMap} from 'rxjs/operators';
+import {ParameterLabelGroups} from './model/model.enum';
+import {PmfmService} from './pmfm.service';
+import {ReferentialRefService} from './referential-ref.service';
+import {SamplingStrategy, StrategyEffort} from './model/sampling-strategy.model';
+import {BaseReferentialService} from './base-referential-service.class';
+import {Moment} from 'moment';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {ExtractionCacheDurationType} from '@app/extraction/services/model/extraction-type.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -378,12 +380,14 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
       // Clean realized efforts
       // /!\ BUT keep expected effort (comes from strategies table)
-      [1,2,3,4].map(quarter => s.effortByQuarter[quarter])
-        .filter(isNotNil)
-        .forEach(effort => {
-          effort.realizedEffort = 0;
-          effort.landingCount = 0;
-        })
+      if (s.effortByQuarter) {
+        [1, 2, 3, 4].map(quarter => s.effortByQuarter[quarter])
+          .filter(isNotNil)
+          .forEach(effort => {
+            effort.realizedEffort = 0;
+            effort.landingCount = 0;
+          })
+      }
     });
 
     // Add effort to entities

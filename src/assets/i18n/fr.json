@@ -565,12 +565,14 @@
         "TITLE": "Ope #{{rankOrder}} <small>du {{startDateTime}}</small>",
         "TITLE_NO_RANK": "Ope {{startDateTime}}",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
+        "BTN_EDIT_PARENT" : "Modifier le filage...",
+        "BTN_SELECT_PARENT" : "Sélectionner le filage...",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
         "TAB_CATCH_TOTAL": "Capture total",
-        "TAB_SURVIVAL_TEST": "Tests de survie",
-        "TAB_INDIVIDUAL_MONITORING": "Suivi individuel",
+        "TAB_SAMPLES": "Prélèvements",
+        "TAB_SUB_SAMPLES": "Sous-prélèvements",
         "TAB_INDIVIDUAL_RELEASES": "Relachés",
         "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
@@ -593,8 +595,10 @@
           "PARENT" : "Filage",
           "CHILD" : "Virage"
         },
-        "BTN_EDIT_PARENT" : "Modifier le filage...",
-        "BTN_SELECT_PARENT" : "Sélectionner le filage..."
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Tests de survie",
+          "TAB_SUB_SAMPLES": "Suivi individuel"
+        }
       },
       "PARENT": {
         "TITLE" : "Sélectionner filage",
@@ -622,6 +626,7 @@
         "FISHING_END_DATE_TIME": "Fin de pêche",
         "START_POSITION": "Position début",
         "END_POSITION": "Position de fin",
+        "FISHING_AREA": "Zone de pêche",
         "COMMENTS": "Commentaires",
         "QUALITY": "État"
       },
@@ -1355,6 +1360,7 @@
       "I18N_SUFFIX" : "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
+      "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",

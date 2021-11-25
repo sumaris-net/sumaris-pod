@@ -20,6 +20,7 @@ import {
   PlatformService,
   ReferentialUtils,
   SharedValidators,
+  toBoolean,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -38,7 +39,7 @@ import { BatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { Measurement } from '@app/trip/services/model/measurement.model';
+import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 
@@ -79,7 +80,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
   mobile: boolean;
-  sampleAcquisitionLevel: AcquisitionLevelType = AcquisitionLevelCodes.SURVIVAL_TEST;
+  sampleAcquisitionLevel: AcquisitionLevelType;
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
@@ -90,7 +91,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   // Sample tables
   @ViewChild('sampleTabGroup', {static: true}) sampleTabGroup: MatTabGroup;
   @ViewChild('samplesTable', {static: true}) samplesTable: SamplesTable;
-  @ViewChild('subSamplesTable', {static: true}) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
+  @ViewChild('individualMonitoringTable', {static: true}) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', {static: true}) individualReleaseTable: SubSamplesTable;
 
   get form(): FormGroup {
@@ -439,7 +440,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
-    this.opeForm.showPosition = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    if (this.opeForm.showPosition) {
+      // Activate position controls only if showPosition has default value (=true)
+      this.opeForm.showPosition = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    }
+    this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
     this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
@@ -466,8 +471,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.allowSubBatches = hasBatchMeasure;
     this.batchTree.setProgram(program);
 
-    this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE)
-    this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE)
+    this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE);
+    this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE);
+    this.sampleAcquisitionLevel = program.getProperty(ProgramProperties.TRIP_SAMPLE_ACQUISITION_LEVEL);
+
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nContext.suffix = i18nSuffix;
 
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
@@ -475,6 +485,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Mask unused columns
     this.batchTree.batchGroupsTable.hideUnusedColumns();
+
+    this.cd.detectChanges();
 
     this.$ready.next(true);
   }
@@ -493,9 +505,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.$tripId.next(+tripId);
 
     // Load parent trip
-    const trip = await this.tripService.load(tripId);
-    this.trip = trip;
-    this.saveOptions.trip = trip;
+    const trip = await this.loadTrip(tripId);
 
     // Use the default gear, if only one
     if (trip && trip.gears && trip.gears.length === 1) {
@@ -536,9 +546,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Update trip id (will cause last operations to be watched, if need)
     this.$tripId.next(+tripId);
 
-    const trip = await this.tripService.load(tripId);
-    this.trip = trip;
-    this.saveOptions.trip = trip;
+    const trip = await this.loadTrip(tripId);
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
@@ -737,6 +745,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   /* -- protected method -- */
 
+  protected async loadTrip(tripId: number): Promise<Trip> {
+    const trip = await this.tripService.load(tripId);
+    this.trip = trip;
+    this.saveOptions.trip = trip;
+
+    // Trip has gps in use, so active positions controls else active fishing area control
+    const isGPSUsed = toBoolean(MeasurementUtils.toMeasurementValues(trip.measurements)?.[PmfmIds.GPS_USED] === 1, true);
+    this.opeForm.showPosition = isGPSUsed;
+    this.opeForm.showFishingArea = !isGPSUsed;
+
+    return trip;
+  }
 
   /**
    * Open the first tab that is invalid

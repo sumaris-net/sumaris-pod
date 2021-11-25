@@ -1,37 +1,49 @@
-import {Injectable} from "@angular/core";
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {BehaviorSubject, defer, Observable, Subject, Subscription} from "rxjs";
-import {filter, finalize, map, tap} from "rxjs/operators";
-import {ErrorCodes} from "./errors";
-import {ReferentialFragments} from "./referential.fragments";
-import {BaseEntityGraphqlSubscriptions, GraphqlService} from '@sumaris-net/ngx-components';
-import {IEntitiesService, IEntityService, LoadResult} from "@sumaris-net/ngx-components";
-import {TaxonGroupRef, TaxonGroupTypeIds} from "./model/taxon-group.model";
-import {firstArrayValue, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, propertiesPathComparator, suggestFromArray} from "@sumaris-net/ngx-components";
-import {CacheService} from "ionic-cache";
-import {ReferentialRefService} from "./referential-ref.service";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {IReferentialRef, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {Program} from "./model/program.model";
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { BehaviorSubject, defer, Observable, Subject, Subscription } from 'rxjs';
+import { filter, finalize, map } from 'rxjs/operators';
+import { ErrorCodes } from './errors';
+import { ReferentialFragments } from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlSubscriptions,
+  ConfigService,
+  EntitiesStorage,
+  firstArrayValue,
+  firstNotNilPromise,
+  GraphqlService,
+  IEntitiesService,
+  IEntityService,
+  IReferentialRef,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  JobUtils,
+  LoadResult,
+  NetworkService,
+  PlatformService,
+  propertiesPathComparator,
+  ReferentialRef,
+  ReferentialUtils,
+  StatusIds,
+  suggestFromArray,
+} from '@sumaris-net/ngx-components';
+import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
+import { CacheService } from 'ionic-cache';
+import { ReferentialRefService } from './referential-ref.service';
+import { Program } from './model/program.model';
 
-import {DenormalizedPmfmStrategy} from "./model/pmfm-strategy.model";
-import {IWithProgramEntity} from '@app/data/services/model/model.utils';
+import { DenormalizedPmfmStrategy } from './model/pmfm-strategy.model';
+import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 
-import {StrategyFragments} from "./strategy.fragments";
-import {AcquisitionLevelCodes} from "./model/model.enum";
-import {JobUtils} from "@sumaris-net/ngx-components";
-import {ProgramFragments} from "./program.fragments";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {ConfigService}  from "@sumaris-net/ngx-components";
-import {PmfmService} from "./pmfm.service";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {ProgramFilter} from "./filter/program.filter";
-import {ReferentialRefFilter} from "./filter/referential-ref.filter";
-import {environment} from '@environments/environment';
+import { StrategyFragments } from './strategy.fragments';
+import { AcquisitionLevelCodes } from './model/model.enum';
+import { ProgramFragments } from './program.fragments';
+import { PmfmService } from './pmfm.service';
+import { BaseReferentialService } from './base-referential-service.class';
+import { ProgramFilter } from './filter/program.filter';
+import { ReferentialRefFilter } from './filter/referential-ref.filter';
+import { environment } from '@environments/environment';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 
@@ -454,7 +466,12 @@ export class ProgramRefService
                // Use default values, because priorityLevel can be null in the DB
                [1, 'ZZZ', 'ZZZ'])
              )
-            .map(v => v.taxonGroup);
+            .map(v => {
+              return {
+                ...v.taxonGroup,
+                priority: v.priorityLevel
+              }
+            });
           if (this._debug) console.debug(`[program-ref-service] Found ${data.length} taxon groups on program {${programLabel}}`);
 
           // Convert into entities
@@ -481,7 +498,7 @@ export class ProgramRefService
       const programItems = await this.loadTaxonGroups(filter.program, {toEntity: false});
       if (isNotEmptyArray(programItems)) {
         return suggestFromArray(programItems, value, {
-          searchAttribute: filter.searchAttribute
+          searchAttributes: filter.searchAttributes || ['priority', 'label', 'name']
         });
       }
     }
