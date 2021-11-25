@@ -166,6 +166,7 @@ public class PersonRepositoryImpl
     }
 
     protected Specification<Person> toSpecification(PersonFilterVO filter) {
+
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasUserProfileIds(filter))
@@ -173,16 +174,9 @@ public class PersonRepositoryImpl
             .and(hasEmail(filter.getEmail()))
             .and(hasFirstName(filter.getFirstName()))
             .and(hasLastName(filter.getLastName()))
-            .and(searchText(new String[]{
-                    Person.Fields.PUBKEY,
-                    Person.Fields.EMAIL,
-                    Person.Fields.FIRST_NAME,
-                    Person.Fields.LAST_NAME
-                },
-                Daos.getEscapedSearchText(filter.getSearchText(), true)))
+            .and(searchText(filter))
             .and(includedIds(filter.getIncludedIds()))
-            .and(excludedIds(filter.getExcludedIds()))
-        ;
+            .and(excludedIds(filter.getExcludedIds()));
     }
 
     @Override

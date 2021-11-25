@@ -56,6 +56,13 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     String LAST_NAME_PARAMETER = "lastName";
     String USERNAME_PARAMETER = "username";
 
+    String[] DEFAULT_SEARCH_ATTRIBUTES = new String[]{
+        Person.Fields.PUBKEY,
+            Person.Fields.EMAIL,
+            Person.Fields.FIRST_NAME,
+            Person.Fields.LAST_NAME
+    };
+
     default Specification<Person> hasUserProfileIds(PersonFilterVO filter) {
         // Prepare user profile ids
         Collection<Integer> userProfileIds = null;
@@ -127,6 +134,21 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, LAST_NAME_PARAMETER);
             return criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter);
         }).addBind(LAST_NAME_PARAMETER, lastName.toUpperCase());
+    }
+
+    default Specification<Person> searchText(PersonFilterVO filter) {
+        if (StringUtils.isBlank(filter.getSearchText())) return null;
+
+        String[] searchAttributes = StringUtils.isNotBlank(filter.getSearchAttribute())
+            ? ArrayUtils.toArray(filter.getSearchAttribute())
+            : filter.getSearchAttributes();
+
+        // No search attribute(s) define: use defaults
+        if (ArrayUtils.isEmpty(searchAttributes)) {
+            searchAttributes = DEFAULT_SEARCH_ATTRIBUTES;
+        }
+
+        return searchText(searchAttributes, filter.getSearchText(), true);
     }
 
     PersonVO get(int id);

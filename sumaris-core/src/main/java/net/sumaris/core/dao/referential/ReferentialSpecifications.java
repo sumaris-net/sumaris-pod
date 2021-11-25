@@ -128,6 +128,10 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> searchText(String[] searchAttributes, String searchText) {
+        return searchText(searchAttributes, searchText, false);
+    }
+
+    default Specification<E> searchText(String[] searchAttributes, String searchText, boolean searchAny) {
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
             if (ArrayUtils.isNotEmpty(searchAttributes)) {
@@ -152,7 +156,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam))
             );
         })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null));
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null, searchAny));
     }
 
     default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
