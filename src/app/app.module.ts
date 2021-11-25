@@ -1,18 +1,25 @@
 import './vendor';
 
-import {APP_BASE_HREF} from '@angular/common';
-import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from '@angular/platform-browser';
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
-import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
-import {MomentDateAdapter} from '@angular/material-moment-adapter';
-import {SplashScreen} from '@ionic-native/splash-screen/ngx';
-import {StatusBar} from '@ionic-native/status-bar/ngx';
-import {Keyboard} from '@ionic-native/keyboard/ngx';
-import {NativeAudio} from '@ionic-native/native-audio/ngx';
-import {Vibration} from '@ionic-native/vibration/ngx';
+import { APP_BASE_HREF } from '@angular/common';
+import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+
+// Ionic plugins
+import { SplashScreen } from '@ionic-native/splash-screen/ngx';
+import { StatusBar } from '@ionic-native/status-bar/ngx';
+import { Keyboard } from '@ionic-native/keyboard/ngx';
+import { NativeAudio } from '@ionic-native/native-audio/ngx';
+import { Vibration } from '@ionic-native/vibration/ngx';
+import { ImagePicker } from '@ionic-native/image-picker/ngx';
+import { MediaCapture } from '@ionic-native/media-capture/ngx';
+import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
+import { File } from '@ionic-native/file/ngx';
+
 // App modules
-import {AppComponent} from './app.component';
-import {AppRoutingModule} from './app-routing.module';
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
 import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
@@ -25,7 +32,7 @@ import {
   APP_LOCALES,
   APP_MENU_ITEMS,
   APP_TESTING_PAGES,
-  AppGestureConfig, ComponentDirtyGuard,
+  AppGestureConfig,
   CORE_CONFIG_OPTIONS,
   DATE_ISO_PATTERN,
   Department,
@@ -36,31 +43,31 @@ import {
   SocialModule,
   TestingPage,
 } from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
-import {Camera} from '@ionic-native/camera/ngx';
-import {Network} from '@ionic-native/network/ngx';
-import {AudioManagement} from '@ionic-native/audio-management/ngx';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from './trip/services/config/trip.config';
-import {IonicStorageModule} from '@ionic/storage';
-import {InAppBrowser} from '@ionic-native/in-app-browser/ngx';
-import {IonicModule} from '@ionic/angular';
-import {CacheModule} from 'ionic-cache';
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
-import {MarkdownModule, MarkedOptions} from 'ngx-markdown';
-import {TypePolicies} from '@apollo/client/core';
-import {TRIP_TESTING_PAGES} from './trip/trip.testing.module';
-import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from './extraction/services/config/extraction.config';
-import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from './referential/services/config/referential.config';
-import {DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES} from './data/services/config/data.config';
-import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from './vessel/services/config/vessel.config';
-import {JDENTICON_CONFIG} from 'ngx-jdenticon';
-import {REFERENTIAL_TESTING_PAGES} from './referential/referential.testing.module';
-import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {AppSharedModule} from '@app/shared/shared.module';
-import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
-import {AppCoreModule} from '@app/core/core.module';
+import { environment } from '@environments/environment';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Camera } from '@ionic-native/camera/ngx';
+import { Network } from '@ionic-native/network/ngx';
+import { AudioManagement } from '@ionic-native/audio-management/ngx';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/services/config/trip.config';
+import { IonicStorageModule } from '@ionic/storage';
+import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
+import { IonicModule } from '@ionic/angular';
+import { CacheModule } from 'ionic-cache';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
+import { TypePolicies } from '@apollo/client/core';
+import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
+import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/services/config/extraction.config';
+import { REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS } from './referential/services/config/referential.config';
+import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/services/config/data.config';
+import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
+import { JDENTICON_CONFIG } from 'ngx-jdenticon';
+import { REFERENTIAL_TESTING_PAGES } from './referential/referential.testing.module';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { AppSharedModule } from '@app/shared/shared.module';
+import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
+import { AppCoreModule } from '@app/core/core.module';
 
 
 @NgModule({
@@ -123,6 +130,10 @@ import {AppCoreModule} from '@app/core/core.module';
     Vibration,
     InAppBrowser,
     AudioManagement,
+    ImagePicker,
+    File,
+    MediaCapture,
+    PhotoViewer,
 
     {provide: APP_BASE_HREF, useFactory: function () {
         try {

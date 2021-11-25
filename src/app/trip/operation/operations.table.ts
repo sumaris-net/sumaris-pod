@@ -185,14 +185,17 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   setTripId(id: number, opts?: { emitEvent?: boolean; }) {
+    const emitEvent = (!opts || opts.emitEvent !== false);
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || new OperationFilter();
       filter.tripId = id;
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
-      this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
-    } else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)) {
+      this.setFilter(filter, {emitEvent: emitEvent && isNotNil(id)});
+    }
+    // Nothing change, but force to applying filter
+    else if (emitEvent && isNotNil(this.filter.tripId)) {
       this.onRefresh.emit();
     }
   }
