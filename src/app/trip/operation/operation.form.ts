@@ -296,7 +296,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     // Listen parent operation
     this.registerSubscription(
-      this.form.get('parentOperation').valueChanges
+      this.parentControl.valueChanges
         .subscribe(value => this.onParentOperationChanged(value))
     );
 

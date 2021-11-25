@@ -194,6 +194,14 @@ export class MeasurementUtils {
     }, {}) || undefined;
   }
 
+  static asBooleanValue(measurements: Measurement[], pmfmId: number): boolean{
+    const measurement = measurements.find(m => m.pmfmId === pmfmId);
+
+    return measurement
+      ? [measurement.alphanumericalValue, measurement.numericalValue, measurement.qualitativeValue && measurement.qualitativeValue.id].find(isNotNil) === 1
+      : undefined;
+  }
+
   static fromMeasurementValues(measurements: MeasurementFormValues): Measurement[] {
     return measurements && Object.getOwnPropertyNames(measurements).map(pmfmId => Measurement.fromObject({
       pmfmId,

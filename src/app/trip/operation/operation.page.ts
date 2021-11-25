@@ -731,7 +731,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.saveOptions.trip = trip;
 
     // Trip has gps in use, so active positions controls else active fishing area control
-    const isGPSUsed = toBoolean(MeasurementUtils.toMeasurementValues(trip.measurements)?.[PmfmIds.GPS_USED] === 1, true);
+    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(trip.measurements, PmfmIds.GPS_USED), true);
     this.opeForm.showPosition = isGPSUsed;
     this.opeForm.showFishingArea = !isGPSUsed;
 

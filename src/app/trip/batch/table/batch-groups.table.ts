@@ -181,7 +181,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (this._showSamplingBatchColumns !== value) {
       this._showSamplingBatchColumns = value;
       this.setModalOption('showSamplingBatch', value);
-      if (!this.loading) this.updateColumns();
+
+      if (!this.loading){
+        this.computeDynamicColumns(this.qvPmfm, {forceCompute: true});
+        this.updateColumns();
+      }
     }
   }
 
@@ -629,8 +633,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return fakePmfms;
   }
 
-  protected computeDynamicColumns(qvPmfm: IPmfm): ColumnDefinition[] {
-    if (this.dynamicColumns) return this.dynamicColumns; // Already init
+  protected computeDynamicColumns(qvPmfm: IPmfm, opts?: {forceCompute: boolean}): ColumnDefinition[] {
+    if ((!opts || opts.forceCompute !== true) && this.dynamicColumns) return this.dynamicColumns; // Already init
 
     if (this.qvPmfm && this.debug) console.debug('[batch-group-table] Using a qualitative PMFM, to group columns: ' + qvPmfm.label);
 
