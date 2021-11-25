@@ -4,14 +4,14 @@
   "newProjectRoot": "projects",
   "projects": {
     "app": {
+      "root": "",
+      "sourceRoot": "src",
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
           "style": "scss"
         }
       },
-      "root": "",
-      "sourceRoot": "src",
       "prefix": "app",
       "architect": {
         "build": {
@@ -262,6 +262,7 @@
   },
   "defaultProject": "app",
   "cli": {
-    "analytics": false
+    "analytics": false,
+    "defaultCollection": "@ionic/angular-toolkit"
   }
 }

@@ -17,6 +17,11 @@ module.exports = {
         /moment\//,
         /ngx-material-table\//
       ]
+    },
+    'apollo-link-queue': {
+      ignorableDeepImportMatchers: [
+        /@apollo\//
+      ]
     }
   }
 };

@@ -5,11 +5,15 @@ import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from '@angular/platf
 import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import {MomentDateAdapter} from '@angular/material-moment-adapter';
+
+// Ionic plugin
 import {SplashScreen} from '@ionic-native/splash-screen/ngx';
 import {StatusBar} from '@ionic-native/status-bar/ngx';
 import {Keyboard} from '@ionic-native/keyboard/ngx';
 import {NativeAudio} from '@ionic-native/native-audio/ngx';
 import {Vibration} from '@ionic-native/vibration/ngx';
+import {Downloader} from '@ionic-native/downloader/ngx';
+
 // App modules
 import {AppComponent} from './app.component';
 import {AppRoutingModule} from './app-routing.module';
@@ -123,6 +127,7 @@ import {AppCoreModule} from '@app/core/core.module';
     Vibration,
     InAppBrowser,
     AudioManagement,
+    Downloader,
 
     {provide: APP_BASE_HREF, useFactory: function () {
         try {

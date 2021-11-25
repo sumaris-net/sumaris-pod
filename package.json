@@ -33,7 +33,7 @@
     "@angular/platform-browser": "^11.2.14",
     "@angular/platform-browser-dynamic": "^11.2.14",
     "@angular/router": "^11.2.14",
-    "@apollo/client": "~3.4.10",
+    "@apollo/client": "^3.4.17",
     "@asymmetrik/ngx-leaflet": "^8.1.0",
     "@e-is/ngx-material-table": "^0.11.9",
     "@ionic-native/audio-management": "^5.36.0",
@@ -55,7 +55,7 @@
     "@ngtools/webpack": "^11.2.14",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@sumaris-net/ngx-components": "0.23.2",
+    "@sumaris-net/ngx-components": "0.25.4",
     "angular-split": "^5.0.0",
     "angular2-text-mask": "^9.0.0",
     "apollo-angular": "^2.6.0",
@@ -69,6 +69,7 @@
     "cordova-plugin-advanced-http": "3.2.0",
     "cordova-plugin-decimal-keyboard": "1.0.0",
     "cordova-plugin-file": "^6.0.2",
+    "cordova-plugin-file-transfer": "^1.7.1",
     "cordova-plugin-geolocation": "4.1.0",
     "cordova-plugin-inappbrowser": "^4.1.0",
     "cordova-plugin-nativeaudio": "^3.0.9",
@@ -125,7 +126,7 @@
     "@angular/compiler-cli": "^11.2.14",
     "@angular/language-service": "^11.2.14",
     "@ionic/angular-toolkit": "^3.1.1",
-    "@ionic/cli": "^6.18.0",
+    "@ionic/cli": "^6.18.1",
     "@schematics/angular": "^11.2.14",
     "@types/jasmine": "~3.7.8",
     "@types/jasminewd2": "~2.0.8",
@@ -192,7 +193,8 @@
       "cordova-plugin-nativeaudio": {},
       "cordova-plugin-vibration": {},
       "clovelced-plugin-audiomanagement": {},
-      "integrator-cordova-plugin-downloader": {}
+      "integrator-cordova-plugin-downloader": {},
+      "cordova-plugin-file-transfer": {}
     },
     "platforms": [
       "android"

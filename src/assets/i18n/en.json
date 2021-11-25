@@ -1333,6 +1333,7 @@
       "I18N_SUFFIX" : "Thematic dictionary",
       "I18N_SUFFIX_LEGACY" : "By default",
       "I18N_SUFFIX_SAMPLING" : "Biological parameter",
+      "I18N_SUFFIX_SURVIVAL_TEST" : "Survival test",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
@@ -1779,7 +1780,7 @@
       "SURVIVAL_TEST": {
         "TITLE": "Raw trips (SUMARiS v1.0)"
       },
-      "RJB": {
+      "RJB_TRIP": {
         "TITLE": "Raw RJB trips (RJB v{{version}})"
       },
       "PMFM_TRIP": {
@@ -1895,6 +1896,7 @@
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
     "DATA_NOT_FOUND": "Data not found",
+    "DOWNLOAD_FAILED": "Download failed: {{error}}",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_CONFIG_ERROR": "Error while loading configuration",
@@ -1952,6 +1954,7 @@
     "SEND_DEBUG_DATA": "Do you want to send this data to the administrator for help?"
   },
   "INFO": {
+    "ALERT_HEADER": "Information",
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
@@ -1961,6 +1964,7 @@
     "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
+    "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters"
   }
 }

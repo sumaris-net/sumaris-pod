@@ -1952,6 +1952,7 @@
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
+    "DOWNLOAD_FAILED": "Echec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",
@@ -2009,6 +2010,7 @@
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
   },
   "INFO": {
+    "ALERT_HEADER": "Information",
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
@@ -2018,6 +2020,7 @@
     "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
+    "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers téléchargés.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
   }
 }
