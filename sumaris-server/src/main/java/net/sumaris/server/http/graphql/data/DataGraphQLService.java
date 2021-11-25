@@ -841,7 +841,15 @@ public class DataGraphQLService {
         if (landing.getSamples() != null) return landing.getSamples();
         if (landing.getId() == null) return null;
 
-        List<SampleVO> samples = sampleService.getAllByLandingId(landing.getId());
+        // Get samples by operation if a main undefined operation group exists
+        List<SampleVO> samples;
+        Integer operationId = getMainUndefinedOperationGroupId(landing);
+        if (operationId != null) {
+            samples = sampleService.getAllByOperationId(operationId);
+        } else {
+            samples = sampleService.getAllByLandingId(landing.getId());
+        }
+
         landing.setSamples(samples);
         return samples;
     }
@@ -852,7 +860,15 @@ public class DataGraphQLService {
         if (landing.getSamplesCount() != null) return landing.getSamplesCount();
         if (landing.getId() == null) return 0l;
 
-        SampleFilterVO filter = SampleFilterVO.builder().landingId(landing.getId()).withTagId(true).build();
+        // Get samples by operation if a main undefined operation group exists
+        SampleFilterVO filter = SampleFilterVO.builder().withTagId(true).build();
+        Integer operationId = getMainUndefinedOperationGroupId(landing);
+        if (operationId != null) {
+            filter.setOperationId(operationId);
+        } else {
+            filter.setLandingId(landing.getId());
+        }
+
         return sampleService.countByFilter(filter);
     }
 
@@ -919,12 +935,13 @@ public class DataGraphQLService {
         return landingService.countByFilter(filter);
     }
 
-    @GraphQLQuery(name = "landing", description = "Get an observed location, by id")
+    @GraphQLQuery(name = "landing", description = "Get a landing, by id")
     @Transactional(readOnly = true)
     @IsUser
     public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
                                 @GraphQLEnvironment ResolutionEnvironment env) {
-        final LandingVO result = landingService.get(id);
+        // TODO: rename getTripFetchOptions -> getLandingFetchOptions ?
+        final LandingVO result = landingService.get(id, getTripFetchOptions(GraphQLUtils.fields(env)));
 
         // Add additional properties if needed
         fillLandingFields(result, GraphQLUtils.fields(env));
@@ -1375,6 +1392,13 @@ public class DataGraphQLService {
                 .build();
     }
 
+    protected DataFetchOptions getTripFetchOptions(Set<String> fields) {
+        return DataFetchOptions.builder()
+            .withExpectedSales(
+                fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID)))
+            .build();
+    }
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
         return OperationFetchOptions.builder()
@@ -1441,5 +1465,13 @@ public class DataGraphQLService {
         Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);
         log.warn(String.format("User {id: %s} used service {%s} that is deprecated since {appVersion: %s}.", userId, functionName, appVersion));
 
+    }
+
+    private Integer getMainUndefinedOperationGroupId(LandingVO landing) {
+        if (landing.getTripId() != null) {
+            OperationGroupVO mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(landing.getTripId());
+            return mainUndefinedOperation != null ? mainUndefinedOperation.getId() : null;
+        }
+        return null;
     }
 }

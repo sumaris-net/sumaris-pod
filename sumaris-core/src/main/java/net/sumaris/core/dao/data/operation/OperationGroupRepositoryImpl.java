@@ -234,6 +234,19 @@ public class OperationGroupRepositoryImpl
     }
 
     @Override
+    public OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
+        List<OperationGroupVO> operationGroups = findAll(
+                OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build()
+        );
+        // Get the first (main ?) undefined operation group
+        // todo maybe add is_main_operation and manage metier order in app
+        if (CollectionUtils.size(operationGroups) > 0) {
+            return operationGroups.get(0);
+        }
+        return null;
+    }
+
+    @Override
     public void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate) {
         int nbRowUpdated = getEntityManager()
             .createNamedQuery("Operation.updateUndefinedOperationDates")

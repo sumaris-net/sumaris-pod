@@ -54,6 +54,8 @@ public interface OperationGroupService {
 
     List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 
+    OperationGroupVO getMainUndefinedOperationGroup(int tripId);
+
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operations);

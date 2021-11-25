@@ -25,46 +25,26 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
+import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
-public class ProgramVO implements IReferentialVO {
+@EqualsAndHashCode
+public class ProgramPersonVO implements Serializable, IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
-    @EqualsAndHashCode.Include
     private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
     private Date updateDate;
-    private Date creationDate;
 
-    private Integer statusId;
-
-    private Map<String, String> properties;
-
-    private Integer taxonGroupTypeId;
-    private ReferentialVO taxonGroupType;
-
-    private Integer gearClassificationId;
-    private ReferentialVO gearClassification;
-
-    private List<Integer> locationClassificationIds;
-    private List<ReferentialVO> locationClassifications;
-
-    private List<Integer> locationIds;
-    private List<ReferentialVO> locations;
-
-    private List<StrategyVO> strategies;
-
-    private List<ProgramDepartmentVO> departments;
-    private List<ProgramPersonVO> persons;
+    private Integer programId;
+    private ReferentialVO location;
+    private ReferentialVO privilege;
+    private PersonVO person;
 
 }

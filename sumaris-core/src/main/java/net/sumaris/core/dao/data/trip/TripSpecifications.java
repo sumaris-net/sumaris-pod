@@ -43,28 +43,22 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
     String INCLUDED_IDS_PARAM = "includedIds";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
-        BindableSpecification<Trip> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (locationId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
             return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
                 criteriaBuilder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID), param),
                 criteriaBuilder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID), param)
             );
-        });
-        specification.addBind(LOCATION_ID_PARAM, locationId);
-        return specification;
+        }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     default Specification<Trip> hasVesselId(Integer vesselId) {
-        BindableSpecification<Trip> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (vesselId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(VESSEL_ID_PARAM, vesselId);
-        return specification;
+            return criteriaBuilder.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param);
+        }).addBind(VESSEL_ID_PARAM, vesselId);
     }
 
     default Specification<Trip> betweenDate(Date startDate, Date endDate) {

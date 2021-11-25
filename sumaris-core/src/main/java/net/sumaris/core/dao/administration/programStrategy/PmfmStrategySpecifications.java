@@ -23,20 +23,14 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Nonnull;
 import javax.persistence.criteria.ParameterExpression;
-import java.util.List;
 
 public interface PmfmStrategySpecifications {
 
@@ -45,39 +39,27 @@ public interface PmfmStrategySpecifications {
     String STRATEGY_ID_PARAM = "strategyId";
 
     default Specification<PmfmStrategy> hasProgramId(Integer programId) {
-        BindableSpecification<PmfmStrategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (programId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PROGRAM_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(PmfmStrategy.Fields.STRATEGY).get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), param)
-            );
-        });
-        specification.addBind(PROGRAM_ID_PARAM, programId);
-        return specification;
+            return criteriaBuilder.equal(root.get(PmfmStrategy.Fields.STRATEGY).get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), param);
+        }).addBind(PROGRAM_ID_PARAM, programId);
     }
 
     default Specification<PmfmStrategy> hasAcquisitionLevelId(Integer acquisitionLevelId) {
-        BindableSpecification<PmfmStrategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (acquisitionLevelId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, ACQUISITION_LEVEL_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), param)
-            );
-        });
-        specification.addBind(ACQUISITION_LEVEL_ID_PARAM, acquisitionLevelId);
-        return specification;
+            return criteriaBuilder.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), param);
+        }).addBind(ACQUISITION_LEVEL_ID_PARAM, acquisitionLevelId);
     }
 
     default Specification<PmfmStrategy> hasStrategyId(Integer strategyId) {
-        BindableSpecification<PmfmStrategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        if (strategyId == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, STRATEGY_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(PmfmStrategy.Fields.STRATEGY).get(Strategy.Fields.ID), param)
-            );
-        });
-        specification.addBind(STRATEGY_ID_PARAM, strategyId);
-        return specification;
+            return criteriaBuilder.equal(root.get(PmfmStrategy.Fields.STRATEGY).get(Strategy.Fields.ID), param);
+        }).addBind(STRATEGY_ID_PARAM, strategyId);
     }
 
     default Specification<PmfmStrategy> toSpecification(PmfmStrategyFilterVO filter) {

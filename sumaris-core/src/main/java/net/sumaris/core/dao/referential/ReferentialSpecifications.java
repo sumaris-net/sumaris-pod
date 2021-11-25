@@ -78,13 +78,11 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> hasLabel(String label) {
+        if (label == null) return null;
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(labelParam),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), labelParam)
-            );
-        }).addBind(LABEL_PARAMETER, label != null ? label.toUpperCase() : label);
+            return criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), labelParam);
+        }).addBind(LABEL_PARAMETER, label.toUpperCase());
     }
 
     default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {

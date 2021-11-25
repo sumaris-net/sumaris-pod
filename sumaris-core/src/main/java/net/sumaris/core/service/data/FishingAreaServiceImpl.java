@@ -29,7 +29,6 @@ import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.data.OperationGroupVO;
-import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,14 +54,14 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
     @Override
     public FishingAreaVO getByFishingTripId(int tripId) {
-        return Optional.ofNullable(getMainUndefinedOperationGroup(tripId))
+        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroup(tripId))
             .flatMap(operationGroup -> fishingAreaRepository.getAllByOperationId(operationGroup.getId()).stream().findFirst())
             .orElse(null);
     }
 
     @Override
     public FishingAreaVO saveByFishingTripId(int tripId, FishingAreaVO fishingArea) {
-        OperationGroupVO operationGroup = getMainUndefinedOperationGroup(tripId);
+        OperationGroupVO operationGroup = operationGroupRepository.getMainUndefinedOperationGroup(tripId);
         if (operationGroup == null) {
             if (fishingArea == null) {
                 return null; // Nothing to delete
@@ -81,14 +80,14 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
     @Override
     public List<FishingAreaVO> getAllByFishingTripId(int tripId) {
-        return Optional.ofNullable(getMainUndefinedOperationGroup(tripId))
+        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroup(tripId))
                 .map(operationGroup -> fishingAreaRepository.getAllByOperationId(operationGroup.getId()))
                 .orElse(null);
     }
 
     @Override
     public List<FishingAreaVO> saveAllByFishingTripId(int tripId, List<FishingAreaVO> fishingAreas) {
-        OperationGroupVO operationGroup = getMainUndefinedOperationGroup(tripId);
+        OperationGroupVO operationGroup = operationGroupRepository.getMainUndefinedOperationGroup(tripId);
         if (operationGroup == null) {
             if (fishingAreas == null || CollectionUtils.isEmpty(fishingAreas)) {
                 return null; // Nothing to delete
@@ -113,17 +112,5 @@ public class FishingAreaServiceImpl implements FishingAreaService {
     public List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas) {
         Preconditions.checkNotNull(fishingAreas);
         return fishingAreaRepository.saveAllByOperationId(operationId, fishingAreas);
-    }
-
-    private OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
-        List<OperationGroupVO> operationGroups = operationGroupRepository.findAll(
-            OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build()
-        );
-        // Get the first (main ?) undefined operation group
-        // todo maybe add is_main_operation and manage metier order in app
-        if (CollectionUtils.size(operationGroups) > 0) {
-            return operationGroups.get(0);
-        }
-        return null;
     }
 }

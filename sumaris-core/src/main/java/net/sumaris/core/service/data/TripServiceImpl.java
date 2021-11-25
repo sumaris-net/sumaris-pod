@@ -142,7 +142,9 @@ public class TripServiceImpl implements TripService {
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDepartureDateTime())));
             target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
             target.setSales(saleService.getAllByTripId(id, fetchOptions));
-            target.setExpectedSales(expectedSaleService.getAllByTripId(id));
+            if (fetchOptions.isWithExpectedSales()) {
+              target.setExpectedSales(expectedSaleService.getAllByTripId(id));
+            }
 
             // Fill link to landing, if any
             fillTripLandingLinks(target);
@@ -227,7 +229,8 @@ public class TripServiceImpl implements TripService {
 
         // Create a options clone (to be able to edit it)
         options = TripSaveOptions.defaultIfEmpty(options);
-        boolean withOperationGroup = options.getWithOperationGroup();
+        final boolean withOperationGroup = options.getWithOperationGroup();
+        final boolean withExpectedSales = options.getWithExpectedSales();
 
         // Reset control date
         source.setControlDate(null);
@@ -265,8 +268,8 @@ public class TripServiceImpl implements TripService {
             List<MetierVO> metiers = operationGroupService.saveMetiersByTripId(target.getId(), source.getMetiers());
             target.setMetiers(metiers);
         }
-        else {
-            // Remove all
+        // Remove all
+        else if (!isNew) {
             operationGroupService.saveMetiersByTripId(target.getId(), ImmutableList.of());
         }
 
@@ -274,8 +277,9 @@ public class TripServiceImpl implements TripService {
         if (CollectionUtils.isNotEmpty(source.getFishingAreas())) {
             List<FishingAreaVO> fishingAreas = fishingAreaService.saveAllByFishingTripId(target.getId(), source.getFishingAreas());
             target.setFishingAreas(fishingAreas);
-        } else {
-            // Remove all
+        }
+        // Remove all
+        else  if (!isNew) {
             fishingAreaService.saveAllByFishingTripId(target.getId(), ImmutableList.of());
         }
 
@@ -302,9 +306,9 @@ public class TripServiceImpl implements TripService {
             }
             target.setGears(gears);
         }
-        else {
-            // Remove all
-            physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
+        // Remove all
+        else if (!isNew) {
+          physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
 
         // Save operations (only if asked)
@@ -340,25 +344,29 @@ public class TripServiceImpl implements TripService {
             fillDefaultProperties(target, sale);
             List<SaleVO> sales = saleService.saveAllByTripId(target.getId(), ImmutableList.of(sale));
             target.setSale(sales.get(0));
-        } else {
-            // Remove all
+        }
+        // Remove all
+        else if (!isNew) {
             saleService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
 
-        // Save expected sales
-        if (CollectionUtils.isNotEmpty(source.getExpectedSales())) {
-            List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
-            expectedSales.forEach(expectedSale -> fillDefaultProperties(target, expectedSale));
-            expectedSales = expectedSaleService.saveAllByTripId(target.getId(), expectedSales);
-            target.setExpectedSales(expectedSales);
-        } else if (source.getExpectedSale() != null) {
-            ExpectedSaleVO expectedSale = source.getExpectedSale();
-            fillDefaultProperties(target, expectedSale);
-            List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
-            target.setExpectedSale(expectedSales.get(0));
-        } else {
+        // Save expected sales (only if asked)
+        if (withExpectedSales) {
+            if (CollectionUtils.isNotEmpty(source.getExpectedSales())) {
+                List<ExpectedSaleVO> expectedSales = Beans.getList(source.getExpectedSales());
+                expectedSales.forEach(expectedSale -> fillDefaultProperties(target, expectedSale));
+                expectedSales = expectedSaleService.saveAllByTripId(target.getId(), expectedSales);
+                target.setExpectedSales(expectedSales);
+            } else if (source.getExpectedSale() != null) {
+                ExpectedSaleVO expectedSale = source.getExpectedSale();
+                fillDefaultProperties(target, expectedSale);
+                List<ExpectedSaleVO> expectedSales = expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of(expectedSale));
+                target.setExpectedSale(expectedSales.get(0));
+            }
             // Remove all
-            expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
+            else if (!isNew) {
+                expectedSaleService.saveAllByTripId(target.getId(), ImmutableList.of());
+            }
         }
 
         if (physicalGearIdsToRemove.size() > 0){

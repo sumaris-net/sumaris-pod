@@ -46,6 +46,8 @@ public interface OperationGroupSpecifications
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);
 
+    OperationGroupVO getMainUndefinedOperationGroup(int tripId);
+
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 
     /**

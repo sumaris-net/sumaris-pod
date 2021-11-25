@@ -102,6 +102,11 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     @Override
+    public OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
+        return operationGroupRepository.getMainUndefinedOperationGroup(tripId);
+    }
+
+    @Override
     public void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate) {
 
         Preconditions.checkNotNull(startDate);

@@ -25,8 +25,8 @@
 
 <dataset>
 
-  <!-- PARAMBIO Programs -->
-  <PROGRAM ID="40" LABEL="PARAM-BIO" NAME="Programme d'observation des paramètres biologiques" DESCRIPTION="Programme d'observation des paramètres biologiques" STATUS_FK="1" CREATION_DATE="2020-09-29" UPDATE_DATE="2020-09-29" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <!-- SIH-OBSBIO Programs -->
+  <PROGRAM ID="40" LABEL="SIH-OBSBIO" NAME="Programme d'observation des paramètres biologiques" DESCRIPTION="Programme d'observation des paramètres biologiques" STATUS_FK="1" CREATION_DATE="2020-09-29" UPDATE_DATE="2020-09-29" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
 
   <PROGRAM_PROPERTY ID="60" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.program.strategy.editor" NAME="sampling"/>
   <PROGRAM_PROPERTY ID="61" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.observedLocation.endDateTime.enable" NAME="false"/>
@@ -41,6 +41,9 @@
   <PROGRAM_PROPERTY ID="70" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.landing.location.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="71" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.i18nSuffix" NAME="SAMPLING."/>
   <PROGRAM_PROPERTY ID="72" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.landing.samplesCount.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="73" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.program.strategy.predoc.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="74" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.landing.samples.weightUnit" NAME="g"/>
+
 
   <PROGRAM2PERSON ID="40" PROGRAM_FK="40" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2020-09-29"/>
   <PROGRAM2PERSON ID="41" PROGRAM_FK="40" PERSON_FK="2" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2020-09-29"/>

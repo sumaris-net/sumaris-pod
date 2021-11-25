@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.administration.programStrategy;
+package net.sumaris.core.dao.technical.hibernate.spatial.dialect;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Core shared
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,24 +22,21 @@ package net.sumaris.core.vo.administration.programStrategy;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
+import org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect;
 
-import java.io.Serializable;
-import java.util.List;
+/**
+ * @author peck7 on 16/10/2019.
+ */
+public class OracleSpatialDialect extends OracleSpatial10gDialect {
 
-@Data
-@FieldNameConstants
-@EqualsAndHashCode
-public class AppliedStrategyVO implements IValueObject<Integer> {
+    public OracleSpatialDialect() {
+        super();
 
-    private Integer id;
-
-    private Integer strategyId;
-    private ReferentialVO location;
-    private List<AppliedPeriodVO> appliedPeriods;
+        // Register additional functions
+        for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
+            registerFunction(function.name(), function.asRegisterFunction());
+        }
+    }
 
 }

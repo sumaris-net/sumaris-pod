@@ -225,7 +225,7 @@
                 <jdbc.password />
                 <jdbc.driver>org.hsqldb.jdbc.JDBCDriver</jdbc.driver>
                 <jdbc.schema>PUBLIC</jdbc.schema>
-                <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect</hibernate.dialect>
+                <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect</hibernate.dialect>
                 <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
             </properties>
 

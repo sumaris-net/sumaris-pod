@@ -81,6 +81,7 @@ build:
     only:
         - develop
         - feature/imagine
+        - feature/imagine-569
         - tags
 
 failsafe-build:
@@ -288,6 +289,14 @@ docker:imagine:
     only:
         - feature/imagine
 
+# to run specific feature
+docker:feature:
+    extends: .docker-build
+    variables:
+        IMAGE_TAG: 'feature'
+    only:
+        - feature/imagine-569
+
 docker:release:
     extends: .docker-build
     variables:
@@ -304,6 +313,7 @@ docker:production:
     only:
         - tags
         - feature/imagine
+        - feature/imagine-569
     when: manual
 
 # ---------------------------------------------------------------

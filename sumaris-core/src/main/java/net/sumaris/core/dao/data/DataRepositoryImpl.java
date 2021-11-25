@@ -29,6 +29,7 @@ import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Person;
@@ -313,7 +314,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     }
 
     protected Specification<E> toSpecification(F filter, O fetchOptions) {
-        return hasRecorderDepartmentId(filter.getRecorderDepartmentId());
+        return BindableSpecification
+                .where(hasRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
 
     /* -- protected methods -- */

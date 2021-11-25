@@ -25,41 +25,47 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.15.0.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.16.0.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876905-1">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-1">
 		<preConditions onFail="MARK_RAN">
-			<columnExists tableName="quantification_measurement_p" columnName="rank_order"/>
+			<not><sqlCheck expectedResult="0">select count(*) from PROGRAM_PROPERTY where label='sumaris.trip.operation.batch.has.individual.measurement'</sqlCheck></not>
 		</preConditions>
-		<dropColumn tableName="quantification_measurement_p" columnName="rank_order"/>
+		<sql endDelimiter=";">
+			update PROGRAM_PROPERTY set label='sumaris.trip.operation.batch.measure.enable' where label='sumaris.trip.operation.batch.has.individual.measurement';
+			commit;
+		</sql>
 	</changeSet>
 
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876905-2">
+
+	<!-- TODO: Change column RANK_ORDER to type SMALLINT
+		GearUseMeasurement, VesseUseMeasurement, SaleMeasurement
+	-->
+	<!--<changeSet author="benoit.lavenier@e-is.pro" id="1631698876905-3">
 		<preConditions onFail="MARK_RAN">
-			<columnExists tableName="quantification_measurement_b" columnName="rank_order"/>
+			<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
 		</preConditions>
-		<dropColumn tableName="quantification_measurement_b" columnName="rank_order"/>
+		<mergeColumns tableName="" column1Name="" joinString="" column2Name="" finalColumnName="" finalColumnType=""
 	</changeSet>
+-->
 
 	<!-- update SYSTEM_VERSION -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876905-200" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.15.0'</where>
+			<where>LABEL='1.16.0'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
 			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-			<column name="LABEL">1.15.0</column>
+			<column name="LABEL">1.16.0</column>
 			<column name="DESCRIPTION">
-				- Drop column RANK_ORDER on QUANTIFICATION_MEASUREMENT_* tables
+				- Rename a program property key
 			</column>
-			<column name="CREATION_DATE" valueComputed="sysdate"/>
+			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-			<column name="COMMENTS">
-				- Drop column RANK_ORDER on QUANTIFICATION_MEASUREMENT_* tables
-			</column>
+			<column name="COMMENTS"></column>
 		</insert>
 	</changeSet>
 </databaseChangeLog>
