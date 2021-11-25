@@ -160,8 +160,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       : (this.style === 'button' ? 'name' : attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
+    this._sortedQualitativeValues = (this.pmfm.id !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute) :
+      // sort(this._qualitativeValues, this.sortAttribute, {number:true, sensitivity: 'base' }) :
       this._qualitativeValues;
 
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
