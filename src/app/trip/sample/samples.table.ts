@@ -44,6 +44,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { isNilOrNaN } from '@app/shared/functions';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -647,11 +648,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         + (this.showLabelColumn ? 1 : 0)
         + (this.showTaxonGroupColumn ? 1 : 0)
         + (this.showTaxonNameColumn ? 1 : 0)
-        + (this.showDateTimeColumn ? 1 : 0)
+        + (this.showDateTimeColumn ? 1 : 0);
       this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
-        + (this.showCommentsColumn ? 1 : 0)
+        + (this.showCommentsColumn ? 1 : 0);
 
-      pmfms  = orderedPmfms
+    pmfms  = orderedPmfms;
     }
     else {
       // Apply weight conversion
