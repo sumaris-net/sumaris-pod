@@ -417,9 +417,18 @@ export const ProgramProperties = Object.freeze({
       {
         key: UnitLabel.GRAM,
         value: UnitLabel.GRAM
+      },
+      {
+        key: UnitLabel.MG,
+        value: UnitLabel.MG
+      },
+      {
+        key: UnitLabel.TON,
+        value: UnitLabel.TON
       }
     ],
-    defaultValue: UnitLabel.KG
+    // No default value (keep PMFM unit)
+    //defaultValue: UnitLabel.KG
   },
 
   /* -- Landed trip options -- */

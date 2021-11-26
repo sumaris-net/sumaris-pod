@@ -327,8 +327,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return null;
           }
         }
-        appliedPeriodsForm.markAllAsTouched();
-        appliedPeriodsForm.markAsDirty();
+        //appliedPeriodsForm.markAllAsTouched();
+        //appliedPeriodsForm.markAsDirty();
         return <ValidationErrors>{minLength: {minLength}};
       },
       // Check quarter acquisitionNumber is not

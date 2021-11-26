@@ -232,9 +232,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entityName,
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || filter.searchAttribute
-        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
-        || 'label',
+      sortBy: (sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes[0]) || 'label'),
       sortDirection: sortDirection || 'asc',
       filter: filter.asPodObject()
     };
