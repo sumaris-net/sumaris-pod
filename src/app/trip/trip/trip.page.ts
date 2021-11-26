@@ -34,7 +34,7 @@ import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 import { ProgramProperties } from '../../referential/services/config/program.config';
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '../../referential/services/model/program.model';
 import { environment } from '../../../environments/environment';
@@ -269,9 +269,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         this.tabGroup.selectedTabChange
           .pipe(
             filter(event => this.showOperationTable && event.index === TripPageTabs.OPERATIONS),
-            first()
+            // Save trip when opening the operation tab
+            mergeMap(_ => this.save()),
+            filter(saved => saved === true),
+            first(),
+            // If save succeed, propagate the tripId to the table
+            tap(_ => this.operationsTable.setTripId(this.data.id))
           )
-          .subscribe(event => this.save())
+          .subscribe()
         );
     }
 
