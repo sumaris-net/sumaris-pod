@@ -22,6 +22,12 @@
 
 package net.sumaris.server.http.rest;
 
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
+import net.sumaris.server.exception.InvalidPathException;
+
+import java.util.Optional;
+
 public interface RestPaths {
 
     String BASE_PATH = "/api";
@@ -36,8 +42,19 @@ public interface RestPaths {
 
     String DOWNLOAD_PATH = "/download";
 
+    String UPLOAD_PATH = "/upload";
+
     String FAVICON = BASE_PATH + "/favicon";
 
     String NODE_INFO_PATH = BASE_PATH + "/node/info";
 
+    static void checkSecuredPath(String path) throws InvalidPathException {
+        if (!isSecuredPath(path)) throw new InvalidPathException("Invalid path: " + path);
+    }
+
+    static boolean isSecuredPath(@NonNull String path) throws InvalidPathException {
+        Preconditions.checkArgument(path.trim().length() > 0);
+        // Check if the file's name contains invalid characters
+        return !path.contains("..");
+    }
 }

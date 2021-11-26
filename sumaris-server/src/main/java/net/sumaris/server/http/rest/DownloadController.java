@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.server.exception.InvalidPathException;
 import net.sumaris.server.http.MediaTypes;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.security.IDownloadController;
@@ -127,16 +128,16 @@ public class DownloadController implements IDownloadController {
                 targetFile.getName());
     }
 
-    /* protected method */
+    /* -- protected method -- */
 
     protected ResponseEntity<InputStreamResource> doDownloadFile(String filename) throws IOException {
         if (StringUtils.isBlank(filename)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-        // Avoid '../' in the filename
-        String securedFilename = asSecuredPath(filename);
-        if (!filename.equals(securedFilename)) {
-            log.warn(String.format("Reject download request: invalid path {%s}", filename));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        // Avoid '..' in the filename
+        if (!RestPaths.isSecuredPath(filename)) {
+            log.warn(String.format("Reject download request: invalid filename {}", filename));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .build();
         }
 
         MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
@@ -145,7 +146,7 @@ public class DownloadController implements IDownloadController {
         File file = new File(configuration.getDownloadDirectory(), filename);
         if (!file.exists()) {
             log.warn(String.format("Reject download request: file {%s} not found, or invalid path", filename));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.notFound().build();
         }
         if (!file.canRead()) {
             log.warn(String.format("Reject download request: file {%s} not readable", filename));
