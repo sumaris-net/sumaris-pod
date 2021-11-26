@@ -53,6 +53,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.List;
@@ -240,7 +241,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         }
         // Apply a find (and NOT a getReference)
         // because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
+        QualityFlag value = find(QualityFlag.class, qualityFlagId, LockModeType.NONE);
+        entity.setQualityFlag(value);
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history
