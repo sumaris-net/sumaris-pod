@@ -9,6 +9,7 @@ import {
   DEFAULT_PLACEHOLDER_CHAR,
   EntityUtils,
   firstArrayValue,
+  firstNotNilPromise,
   FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
@@ -315,6 +316,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.appliedPeriodsForm.setAsyncValidators([
       async (control: FormArray) => {
+        const appliedPeriodsForm = this.appliedPeriodsForm;
+        if (this.loading || appliedPeriodsForm.disabled) return;
         const minLength = 1;
         const appliedPeriods = control.controls;
         if (!isEmptyArray(appliedPeriods)) {
@@ -324,10 +327,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return null;
           }
         }
-        return <ValidationErrors>{ minLength: { minLength } };
+        appliedPeriodsForm.markAllAsTouched();
+        appliedPeriodsForm.markAsDirty();
+        return <ValidationErrors>{minLength: {minLength}};
       },
       // Check quarter acquisitionNumber is not
       async (control) => {
+        const appliedPeriodsForm = this.appliedPeriodsForm;
+        if (this.loading || appliedPeriodsForm.disabled) return;
         const appliedPeriods = (control.value as any[]);
         const invalidQuarters = (appliedPeriods || [])
           .map(AppliedPeriod.fromObject)
@@ -337,7 +344,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
             return quarterEffort && quarterEffort.hasRealizedEffort && (isNil(period.acquisitionNumber) || period.acquisitionNumber < 0);
           }).map(period => period.startDate.quarter());
         if (isNotEmptyArray(invalidQuarters)) {
-          return <ValidationErrors>{ hasRealizedEffort: { quarters: invalidQuarters } };
+          appliedPeriodsForm.markAllAsTouched();
+          appliedPeriodsForm.markAsDirty();
+          return <ValidationErrors>{hasRealizedEffort: {quarters: invalidQuarters}};
         }
         SharedValidators.clearError(control, 'hasRealizedEffort');
         return null;
@@ -925,7 +934,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         excludedIds
       });
     } else {
-      return suggestFromArray(this.$allFractions.getValue(), newValue, {
+      const items = await firstNotNilPromise(this.$allFractions);
+      return suggestFromArray(items, newValue, {
         ...filter,
         excludedIds
       });

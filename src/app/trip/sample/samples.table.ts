@@ -32,7 +32,7 @@ import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { FormGroup } from '@angular/forms';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
@@ -111,7 +111,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
-  @Input() weightDisplayedUnit: WeightSymbol;
+  @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
 
@@ -618,7 +618,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             }
           }
 
-          PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit, {clone: false});
+          if (this.weightDisplayedUnit) {
+            PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit, {clone: false});
+          }
 
           // Add pmfm into the final list of ordered pmfms
           orderedPmfms.push(pmfm);
@@ -654,9 +656,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     pmfms  = orderedPmfms;
     }
+
+    // No pmfm group (no table top headers)
     else {
-      // Apply weight conversion
-      pmfms = PmfmUtils.setUnitConversions(pmfms, this.weightDisplayedUnit);
+      // Apply weight conversion, if need
+      if (this.weightDisplayedUnit) {
+        pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit);
+      }
     }
 
     // Add replacement map, for sort by

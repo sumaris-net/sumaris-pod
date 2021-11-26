@@ -5,11 +5,13 @@ import { CoreModule } from '@sumaris-net/ngx-components';
 import { QualityFlagToColorPipe } from './services/pipes/quality-flag-to-color.pipe';
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { DataCommentModule } from './comment/comment.module';
+import { ImageModule } from '@app/image/image.module';
 
 @NgModule({
   imports: [
     CoreModule,
     AppReferentialModule,
+    ImageModule,
 
     // Sub modules
     DataCommentModule
@@ -26,6 +28,7 @@ import { DataCommentModule } from './comment/comment.module';
   exports: [
     // Sub modules
     DataCommentModule,
+    ImageModule,
 
     // Pipes
     QualityFlagToColorPipe,

@@ -1,5 +1,5 @@
 import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
-import { MethodIds, PmfmIds, UnitLabel, WeightSymbol } from './model.enum';
+import { MethodIds, PmfmIds, UnitLabel, WeightToKgCoefficientConversion, WeightUnitSymbol } from './model.enum';
 import { Parameter, ParameterType } from './parameter.model';
 import { PmfmValue } from './pmfm-value.model';
 import { Moment } from 'moment';
@@ -300,19 +300,22 @@ export abstract class PmfmUtils {
     return name;
   }
 
-  static setUnitConversions<P extends IPmfm>(pmfms: P[], expectedWeightSymbol: WeightSymbol, opts?: {
+  /**
+   * Add weight conversion to a list of pmfms
+   * @param pmfms
+   * @param expectedWeightSymbol
+   * @param opts
+   */
+  static setWeightUnitConversions<P extends IPmfm>(pmfms: P[], expectedWeightSymbol: WeightUnitSymbol, opts?: {
     clone?: boolean;
   }): P[] {
     (pmfms || []).forEach((pmfm, i) => {
-      // Replace weight PMFM
-      if (PmfmUtils.isWeight(pmfm)) {
-        pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts);
-      }
+      pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts);
     });
     return pmfms;
   }
 
-  static setWeightUnitConversion<P extends IPmfm>(pmfm: P, expectedWeightSymbol: WeightSymbol, opts?: {
+  static setWeightUnitConversion<P extends IPmfm>(pmfm: P, expectedWeightSymbol: WeightUnitSymbol, opts?: {
     clone?: boolean;
   }): P {
     if (!this.isWeight(pmfm)) return pmfm;
@@ -339,14 +342,9 @@ export abstract class PmfmUtils {
       pmfm.unit.label = expectedWeightSymbol;
       pmfm.unit.name = expectedWeightSymbol;
     }
-    if (actualWeightUnit === UnitLabel.KG && expectedWeightSymbol === UnitLabel.GRAM) {
-      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1000});
-    }
-    else if (actualWeightUnit === UnitLabel.GRAM && expectedWeightSymbol === UnitLabel.KG) {
-      pmfm.displayConversion = UnitConversion.fromObject({conversionCoefficient: 1/1000});
-    }
-
-
+    // actual -> kg -> expected
+    const conversionCoefficient = WeightToKgCoefficientConversion[actualWeightUnit] / WeightToKgCoefficientConversion[expectedWeightSymbol];
+    pmfm.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
   }
 }
 

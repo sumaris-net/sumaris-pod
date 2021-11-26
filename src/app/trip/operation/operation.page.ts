@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
-import { OperationSaveOptions, OperationService } from '../services/operation.service';
-import { OperationForm } from './operation.form';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {OperationQueries, OperationSaveOptions, OperationService} from '../services/operation.service';
+import {OperationForm} from './operation.form';
+import {TripService} from '../services/trip.service';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   EntityServiceLoadOptions,
@@ -553,28 +553,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
 
-    try {
-      // Load child operation (need by validator)
-      const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
-      if (isNotNil(childOperationId)) {
-        data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
-      }
+    this.loadLinkedOperation(data);
 
-      // Load parent operation
-      else {
-        const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
-        if (isNotNil(parentOperationId)) {
-          data.parentOperation = await this.dataService.load(parentOperationId, {fetchPolicy: 'cache-first'});
-
-          // Force copy
-
-        }
-      }
-    } catch (err) {
-      console.error("Cannot load child/parent operation", err);
-      data.childOperation = undefined;
-      data.parentOperation = undefined;
-    }
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -751,7 +731,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.saveOptions.trip = trip;
 
     // Trip has gps in use, so active positions controls else active fishing area control
-    const isGPSUsed = toBoolean(MeasurementUtils.toMeasurementValues(trip.measurements)?.[PmfmIds.GPS_USED] === 1, true);
+    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(trip.measurements, PmfmIds.GPS_USED), true);
     this.opeForm.showPosition = isGPSUsed;
     this.opeForm.showFishingArea = !isGPSUsed;
 
@@ -832,8 +812,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       if (!this.showBatchTables) {
         data.catchBatch.children = undefined;
       }
-    }
-    else {
+    } else {
       data.catchBatch = undefined;
     }
 
@@ -864,8 +843,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       data.childOperation.parentOperation = data;
 
       this.saveOptions.withChildOperation = true;
-    }
-    else {
+    } else {
       this.saveOptions.withChildOperation = false;
     }
 
@@ -944,19 +922,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.individualMonitoringTable.disabled) this.individualMonitoringTable.enable();
         if (this.individualReleaseTable.disabled) this.individualReleaseTable.enable();
         if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
-      }
-      else {
+      } else {
         this.selectedSampleTabIndex = 0;
       }
       if (this.enableCatchTab) {
         if (this.batchTree.disabled) this.batchTree.enable();
         if (this.showBatchTables) this.batchTree.realignInkBar();
-      }
-      else {
+      } else {
         this.selectedBatchTabIndex = 0;
       }
-    }
-    else {
+    } else {
       if (this.showSampleTables) {
         if (this.samplesTable.enabled) this.samplesTable.disable();
         if (this.individualMonitoringTable.enabled) this.individualMonitoringTable.disable();
@@ -965,6 +940,36 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       if (this.enableCatchTab && this.batchTree.enabled) {
         this.batchTree.disable();
       }
+    }
+  }
+
+  protected async loadLinkedOperation(data: Operation): Promise<void> {
+
+    try {
+      // Load child operation (need by validator)
+      const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
+      if (isNotNil(childOperationId)) {
+        console.debug(`[operation-page] Load child operation #${childOperationId} `);
+        // Full load is needed for saving if date need update
+        data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
+        this.opeForm.setChildOperation(data.childOperation);
+      }
+
+      // Load parent operation
+      else {
+        const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
+        if (isNotNil(parentOperationId)) {
+          console.debug(`[operation-page] Load parent operation #${parentOperationId}`);
+          // parent just needed for screen, light load is enough
+          data.parentOperation = await this.dataService.load(parentOperationId, {query: OperationQueries.loadLight, fetchPolicy: 'cache-first'});
+          await this.opeForm.setParentOperation(data.parentOperation);
+          // Force copy
+        }
+      }
+    } catch (err) {
+      console.error('Cannot load child/parent operation', err);
+      data.childOperation = undefined;
+      data.parentOperation = undefined;
     }
   }
 

@@ -971,7 +971,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         }
         // Convert KG to ton
         else if (unit === UnitLabel.KG) {
-          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TOM;
+          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TON;
         }
       }
     }
