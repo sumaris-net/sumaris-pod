@@ -404,7 +404,7 @@ public class Beans {
     }
 
     public static <T> Comparator<T> unsortedComparator() {
-        return (o1, o2) -> -1;
+        return (o1, o2) -> 0;
     }
 
     public static <T> T clone(T source, Class<T> sourceClass) {
