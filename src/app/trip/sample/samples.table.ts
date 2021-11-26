@@ -44,6 +44,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { isNilOrNaN } from '@app/shared/functions';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -540,10 +541,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Load each pmfms, by id
     const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))));
+    const dPmfms = pmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     this.pmfms = [
       ...this.$pmfms.getValue(),
-      ...pmfms
+      ...dPmfms
     ];
   }
 
@@ -604,7 +606,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         }
 
         const groupPmfmCount = groupPmfms.length;
-        const cssClass = (++groupIndex) % 2 === 0 ? 'even' : 'odd';
+        if(groupPmfmCount){
+          ++groupIndex;
+        }
+        const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
 
         groupPmfms.forEach(pmfm => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged

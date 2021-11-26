@@ -44,6 +44,7 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -385,7 +386,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     if (isNotEmptyArray(additionalPmfmIds)) {
 
       // Load additional pmfms, from ids
-      const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id)));
+      const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
+      const dAdditionalPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
       // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
       // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
@@ -394,7 +396,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Applying additional PMFMs
       this.samplesTable.pmfms = [
         ...strategyPmfms,
-        ...additionalPmfms
+        ...dAdditionalPmfms
       ];
     }
 
