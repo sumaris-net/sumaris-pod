@@ -9,6 +9,7 @@ import {
   DEFAULT_PLACEHOLDER_CHAR,
   EntityUtils,
   firstArrayValue,
+  firstNotNilPromise,
   FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
@@ -933,7 +934,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         excludedIds
       });
     } else {
-      return suggestFromArray(this.$allFractions.getValue(), newValue, {
+      const items = await firstNotNilPromise(this.$allFractions);
+      return suggestFromArray(items, newValue, {
         ...filter,
         excludedIds
       });
