@@ -27,7 +27,7 @@ import {
   removeDuplicatesFromArray,
   SharedValidators,
   StatusIds,
-  suggestFromArray,
+  suggestFromArray, toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
@@ -1107,9 +1107,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // PMFM + Fractions -------------------------------------------------------------------------------------------------
     let pmfmStrategies: Partial<PmfmStrategy>[] = [
       // Add tag id Pmfm
-      {pmfmId: PmfmIds.TAG_ID },
+      {pmfmId: PmfmIds.TAG_ID, isMandatory: true},
       // Add dressing Pmfm
-      {pmfmId: PmfmIds.DRESSING },
+      {pmfmId: PmfmIds.DRESSING, isMandatory: true},
       // Weight
       ...target.weightPmfms,
       // Length
@@ -1141,7 +1141,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         pmfmStrategy.strategyId = pmfmStrategy.id;
         pmfmStrategy.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
         pmfmStrategy.acquisitionNumber = 1;
-        pmfmStrategy.isMandatory = false;
+        pmfmStrategy.isMandatory = toBoolean(pmfmStrategy.isMandatory, false);
         pmfmStrategy.rankOrder = rankOrder++;
         return pmfmStrategy;
       })

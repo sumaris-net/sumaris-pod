@@ -23,11 +23,6 @@ export class BiologicalSamplingValidators {
     form.setValidators( (control) => {
       const measValues = form.controls.measurementValues.value;
 
-      const dressing = measValues[PmfmIds.DRESSING.toString()];
-      if (isNilOrBlank(dressing)) {
-        return { missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING' };
-      }
-
       const tagId = measValues[PmfmIds.TAG_ID];
       if (isNotNilOrBlank(tagId) && tagId.length !== 4) {
         return { tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH' };

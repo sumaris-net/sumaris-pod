@@ -342,7 +342,7 @@ export abstract class PmfmUtils {
       pmfm.unit.label = expectedWeightSymbol;
       pmfm.unit.name = expectedWeightSymbol;
     }
-    // actual -> kg -> expected
+    // actual -> kg (= pivot) -> expected
     const conversionCoefficient = WeightToKgCoefficientConversion[actualWeightUnit] / WeightToKgCoefficientConversion[expectedWeightSymbol];
     pmfm.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
   }

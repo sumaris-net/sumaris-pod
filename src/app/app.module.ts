@@ -68,6 +68,8 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
 import { AppCoreModule } from '@app/core/core.module';
+import { APP_FORM_ERROR_I18N_KEYS } from '../../ngx-sumaris-components/src/app/shared/validator/form-error-adapter.class';
+import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 
 
 @NgModule({
@@ -183,6 +185,10 @@ import { AppCoreModule } from '@app/core/core.module';
     },
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
+    {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
+      ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
+    }},
+
     /*{provide: ComponentDirtyGuard, useExisting: ComponentDirtyGuard},*/
 
     // Configure hammer gesture

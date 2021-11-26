@@ -1,18 +1,32 @@
-import {fromDateISOString, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions} from './data-entity.model';
-import {IWithProgramEntity, IWithRecorderPersonEntity, SynchronizationStatus} from './model.utils';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { fromDateISOString, IEntity, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { DataEntity, DataEntityAsObjectOptions } from './data-entity.model';
+import { IWithProgramEntity, IWithRecorderPersonEntity, SynchronizationStatus } from './model.utils';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { EntityAsObjectOptions } from '../../../../../ngx-sumaris-components/src/app/core/services/model/entity.model';
 
+
+export interface IRootDataEntity<T = any,
+  ID = number,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any
+  > extends IEntity<T, ID, AO, FO> {
+  controlDate: Moment;
+  validationDate: Moment;
+  qualificationDate: Moment;
+  qualityFlagId: number;
+  synchronizationStatus?: SynchronizationStatus;
+}
 
 export abstract class RootDataEntity<
-  T extends RootDataEntity<any, ID, O>,
+  T extends RootDataEntity<any, ID, AO>,
   ID = number,
-  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  AO extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
   FO = any>
-  extends DataEntity<T, ID, O, FO>
+  extends DataEntity<T, ID, AO, FO>
   implements IWithRecorderPersonEntity<T, ID>,
-    IWithProgramEntity<T, ID> {
+    IWithProgramEntity<T, ID>,
+    IRootDataEntity<T, ID, AO, FO> {
 
   creationDate: Moment = null;
   validationDate: Moment = null;
@@ -25,7 +39,7 @@ export abstract class RootDataEntity<
     super(__typename);
   }
 
-  asObject(options?: O): any {
+  asObject(options?: AO): any {
     const target = super.asObject(options);
     target.creationDate = toDateISOString(this.creationDate);
     target.validationDate = toDateISOString(this.validationDate);

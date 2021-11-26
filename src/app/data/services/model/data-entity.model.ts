@@ -1,6 +1,6 @@
 import {Moment} from "moment";
 import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {IWithRecorderDepartmentEntity} from "./model.utils";
+import { IWithRecorderDepartmentEntity, SynchronizationStatus } from './model.utils';
 import {Entity}  from "@sumaris-net/ngx-components";
 import {Department}  from "@sumaris-net/ngx-components";
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
@@ -46,6 +46,7 @@ export const CLONE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>
   ...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   minify: false
 });
+
 
 export abstract class DataEntity<
   T extends DataEntity<T, ID, O>,

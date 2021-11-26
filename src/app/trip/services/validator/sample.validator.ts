@@ -58,3 +58,10 @@ export class SampleValidatorService extends AppValidatorService implements Valid
   }
 
 }
+
+
+export const SAMPLE_VALIDATOR_I18N_ERROR_KEYS = {
+  missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH',
+  missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING',
+  tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH'
+}

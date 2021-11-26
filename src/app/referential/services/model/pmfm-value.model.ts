@@ -21,7 +21,7 @@ export const PMFM_VALUE_SEPARATOR = '|';
 
 export abstract class PmfmValueUtils {
 
-  static toModelValue(value: PmfmValue | PmfmValue[] | any, pmfm: IPmfm): string {
+  static toModelValue(value: PmfmValue | PmfmValue[] | any, pmfm: IPmfm, opts?: {applyConversion?: boolean}): string {
     if (isNil(value) || !pmfm) return undefined;
     if (Array.isArray(value)) {
       return value.map(v => this.toModelValue(v, pmfm)).join(PMFM_VALUE_SEPARATOR);
@@ -33,8 +33,13 @@ export abstract class PmfmValueUtils {
       case 'double':
         if (isNil(value) && !isNaN(+value)) return undefined;
         // Apply conversion
-        if (isNotNilOrNaN(pmfm.displayConversion?.conversionCoefficient)) {
+        if (isNotNilOrNaN(pmfm.displayConversion?.conversionCoefficient) && (!opts || opts.applyConversion !== false)) {
+
+          // DEBUG
+          console.debug(`[pmfm-value] Applying revert conversion: ${value} / ${pmfm.displayConversion.conversionCoefficient}`);
+
           value = (+value) / pmfm.displayConversion.conversionCoefficient;
+
         }
         return value.toString();
       case 'string':

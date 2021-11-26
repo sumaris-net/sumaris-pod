@@ -66,6 +66,7 @@ import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {DomUtil} from 'leaflet';
 import {Packet} from '@app/trip/services/model/packet.model';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 
 const moment = momentImported;
 
@@ -297,7 +298,7 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 };
 
 // Save a trip
-const TripMutations = {
+const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any; }>{
   save: gql`mutation saveTrip($trip:TripVOInput!, $options: TripSaveOptionsInput!){
     data: saveTrip(trip: $trip, options: $options){
       ...TripFragment

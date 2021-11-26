@@ -58,6 +58,7 @@ mat-form-field {
       white-space: normal;
       padding: 0 2px;
       height: 40px;
+      text-transform: capitalize; // Avoid uppercase text
     }
   }
 
@@ -67,5 +68,5 @@ mat-form-field {
 }
 
 .mat-toolbar {
-  background-color: $mat-toolbar-background-color;
+  background-color: #{$mat-toolbar-background-color};
 }

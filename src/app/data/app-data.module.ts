@@ -6,6 +6,7 @@ import { QualityFlagToColorPipe } from './services/pipes/quality-flag-to-color.p
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { DataCommentModule } from './comment/comment.module';
 import { ImageModule } from '@app/image/image.module';
+import { EntityQualityIconComponent } from '@app/data/quality/entity-quality-icon.component';
 
 @NgModule({
   imports: [
@@ -22,6 +23,7 @@ import { ImageModule } from '@app/image/image.module';
 
     // Components
     EntityQualityFormComponent,
+    EntityQualityIconComponent,
     StrategySummaryCardComponent
 
   ],
@@ -35,6 +37,7 @@ import { ImageModule } from '@app/image/image.module';
 
     // Components
     EntityQualityFormComponent,
+    EntityQualityIconComponent,
     StrategySummaryCardComponent
   ]
 })

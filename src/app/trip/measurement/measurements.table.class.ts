@@ -354,6 +354,45 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return pmfm && pmfm.id || null;
   }
 
+  translateControlPath(path: string): string {
+    if (path.startsWith('measurementValues.')) {
+      const pmfmId = parseInt(path.split('.')[1]);
+      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    return super.translateControlPath(path);
+  }
+
+  /**
+   * Convert (or clone) a row currentData, into <T> instance (that extends Entity)
+   * @param row
+   * @param clone
+   */
+  toEntity(row: TableElement<T>, clone?: boolean): T {
+    // If no validator, use currentData
+    const currentData = row.currentData;
+
+    // Already an entity (e.g. when no validator used): use it
+    if (currentData instanceof Entity) {
+      return (currentData && clone === true ? currentData.clone() : currentData) as T;
+    }
+
+    // If JSON object (e.g. when using validator): create a new entity
+    else {
+      const target = new this.dataType();
+      target.fromObject(currentData);
+      return target;
+    }
+  }
+
+  duplicateRow(event?: Event, row?: TableElement<T>, opts?: {
+    skipProperties?: string[];
+  }): Promise<boolean> {
+    const skipProperties = opts && opts.skipProperties
+      || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
+    return super.duplicateRow(event, row, {...opts, skipProperties});
+  }
+
   /* -- protected methods -- */
 
   protected updateColumns() {
@@ -376,29 +415,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected async existsRankOrder(rankOrder: number): Promise<boolean> {
     const rows = await this.dataSource.getRows();
     return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
-  }
-
-
-  /**
-   * Convert (or clone) a row currentData, into <T> instance (that extends Entity)
-   * @param row
-   * @param clone
-   */
-  toEntity(row: TableElement<T>, clone?: boolean): T {
-    // If no validator, use currentData
-    const currentData = row.currentData;
-
-    // Already an entity (e.g. when no validator used): use it
-    if (currentData instanceof Entity) {
-      return (currentData && clone === true ? currentData.clone() : currentData) as T;
-    }
-
-    // If JSON object (e.g. when using validator): create a new entity
-    else {
-      const target = new this.dataType();
-      target.fromObject(currentData);
-      return target;
-    }
   }
 
   private async onRowCreated(row: TableElement<T>): Promise<void> {
@@ -520,14 +536,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return row;
   }
 
-  duplicateRow(event?: Event, row?: TableElement<T>, opts?: {
-    skipProperties?: string[];
-  }): Promise<boolean> {
-    const skipProperties = opts && opts.skipProperties
-      || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
-    return super.duplicateRow(event, row, {...opts, skipProperties});
-  }
-
   protected getI18nColumnName(columnName: string): string {
 
     // Try to resolve PMFM column, using the cached pmfm list
@@ -540,22 +548,12 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return super.getI18nColumnName(columnName);
   }
 
-  protected getI18nFieldName(fieldName: string): string {
-    if (fieldName.startsWith('measurementValues.')) {
-      const pmfmId = parseInt(fieldName.split('.')[1]);
-      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
-      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
-    }
-    return super.getI18nFieldName(fieldName);
-  }
-
 
   protected normalizeEntityToRow(data: T, row: TableElement<T>) {
     if (!data) return; // skip
 
-    const pmfms = this.measurementsDataService.$pmfms.getValue() || [];
-
     // Adapt entity measurement values to reactive form
+    const pmfms = this.$pmfms.value || [];
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
   }
 }

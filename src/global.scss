@@ -31,11 +31,8 @@
   }
 
   // Extra small device
-  @media screen and (max-width: $screen-xs-max) {
+  @media screen and (max-width: #{$screen-xs-max}) {
     --mat-toolbar-height: #{$mat-toolbar-height-mobile};
   }
 }
 
-ion-button.mat-form-field-button.ion-color.md.button.button-solid {
-  text-transform: capitalize;
-}

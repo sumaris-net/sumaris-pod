@@ -42,7 +42,6 @@ export class PmfmValidators {
         validatorFns.push(SharedValidators.double({maxDecimals: pmfm.maximumNumberDecimals}));
       }
     } else if (pmfm.type === 'qualitative_value') {
-      console.debug("TODO: pmfm", pmfm);
       validatorFns.push(SharedValidators.entity);
     }
 

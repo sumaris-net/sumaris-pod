@@ -28,7 +28,7 @@
           <mat-icon>add</mat-icon>
         </button>
         <button mat-icon-button class="ion-float-start"
-                color="light" *ngIf="selection.hasValue() && enabled"
+                *ngIf="selection.hasValue() && enabled"
                 [title]="'COMMON.BTN_DELETE'|translate"
                 (click)="deleteSelection($event)">
           <mat-icon>delete</mat-icon>

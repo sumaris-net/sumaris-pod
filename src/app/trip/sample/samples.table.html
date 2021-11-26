@@ -51,7 +51,8 @@
   <button mat-menu-item *ngIf="canAddPmfm"
           [disabled]="disabled"
           (click)="openAddPmfmsModal($event)">
-    <mat-icon>add</mat-icon>
+    <mat-icon>view_column</mat-icon>
+    <mat-icon class="icon-secondary" style="top: 0; left: 0; font-size: 8pt;">add</mat-icon>
     <ion-label translate>TRIP.SAMPLE.TABLE.BTN_ADD_PMFM</ion-label>
   </button>
 
@@ -147,14 +148,15 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
-        <ion-text>
+      <td mat-cell *matCellDef="let row"
+          [title]="row.validator.invalid && getRowError(row, {separator: '\n'} )">
+        <ion-text matBadge="!"
+                  [matBadgeHidden]="!row.editing || row.validator.valid"
+                  matBadgeOverlap="false"
+                  matBadgeColor="accent"
+                  matBadgeSize="small">
           {{ row.currentData?.rankOrder }}
-          <!-- Show row errors (not from controls, but only from the form itself) -->
-          <mat-icon *ngIf="row.validator.invalid && getRowError(row, {recursive: false}); let error"
-                    color="warn" [title]="error|translate">error</mat-icon>
         </ion-text>
-
       </td>
 
     </ng-container>
@@ -247,19 +249,17 @@
           [class.mat-cell-computed]="pmfm|isComputedPmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
           [class.mat-cell-content-start-padding]="showGroupHeader"
-          (click)="focusColumn=(pmfm.id || index)">
+          (click)="focusColumn=(pmfm.id || index).toString()">
+
+        <app-pmfm-field *ngIf="row.editing; else readonlyPmfmField"
+                        [pmfm]="pmfm"
+                        [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+                        [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
+                        [compact]="compactFields" floatLabel="never"></app-pmfm-field>
 
         <!-- readonly value-->
-        <ion-label *ngIf="!row.editing; else writablePmfmField"
-        [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-label>
-
-        <ng-template #writablePmfmField>
-          <app-pmfm-field
-            [readonly]="!row.editing"
-            [pmfm]="pmfm"
-            [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
-            [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
-            [compact]="compactFields" floatLabel="never"></app-pmfm-field>
+        <ng-template #readonlyPmfmField>
+          <ion-label  [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-label>
         </ng-template>
       </td>
 

@@ -6,7 +6,7 @@ import {
   AppFormUtils,
   AppValidatorService,
   ColorName,
-  firstNotNilPromise,
+  firstNotNilPromise, FormErrorAdapterOptions,
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
@@ -93,6 +93,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
+  translateFormErrorOptions: FormErrorAdapterOptions = {
+    recursive: false,
+    pathTranslateService: this
+  };
 
   @Input() showGroupHeader = false;
   @Input() useSticky = false;
@@ -214,9 +218,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         .pipe(
           filter(row => row && row.validator && true),
           map(row => ({form: row.validator, pmfms: this.$pmfms.value})),
-          // DEBUG
-          //tap(() => console.debug('[samples-table] will sent onPrepareRowForm event:', event))
-          tap(event => this.onPrepareRowForm.emit(event))
+          tap(event => {
+            // DEBUG
+            //console.debug('[samples-table] will sent onPrepareRowForm event:', event)
+            this.onPrepareRowForm.emit(event);
+
+            // Force update of the form validity
+            event.form?.updateValueAndValidity({ emitEvent: true, onlySelf: false });
+          })
         )
         .subscribe());
   }
@@ -474,9 +483,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   protected async getPreviousSample(): Promise<Sample> {
-    if (this.visibleRowCount === 0) return undefined;
+    if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
     const row = await this.dataSource.getRow(this.visibleRowCount - 1);
-    return row.currentData;
+    return row && row.currentData;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -699,20 +708,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   addRow(event?: Event, insertAt?: number): boolean {
     this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
-  }
-
-  protected async addRowToTable(insertAt?: number): Promise<TableElement<Sample>> {
-    const editedRow = await super.addRowToTable(insertAt);
-    // TODO BLA: review this
-    editedRow.validator?.updateValueAndValidity({ emitEvent: true, onlySelf: false });
-    return editedRow;
-  }
-
-  /**
-   * Publish get row error, as public
-   */
-  getRowError(row?: TableElement<Sample>, opts?: { separator?: string; recursive?: boolean }): string {
-    return super.getRowError(row || this.editedRow, opts);
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {
