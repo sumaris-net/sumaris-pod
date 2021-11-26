@@ -71,6 +71,28 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   /* -- protected functions -- */
+  updateViewState(data: Landing, opts?: {onlySelf?: boolean; emitEvent?: boolean}) {
+    super.updateViewState(data);
+
+    // Update tabs state (show/hide)
+    this.updateTabsState(data);
+  }
+
+  updateTabsState(data: Landing) {
+    // Enable landings tab
+    this.showSamplesTable = this.showSamplesTable || (!this.isNewData || this.isOnFieldMode);
+
+    // INFO CLT : #IMAGINE-614 / Set form to dirty in creation in order to manager errors on silent save (as done for update)
+    if (this.isNewData && this.isOnFieldMode) {
+      this.markAsDirty();
+    }
+
+    // Move to second tab
+    if (this.showSamplesTable && !this.isNewData && !this.isOnFieldMode && this.selectedTabIndex === 0) {
+      this.selectedTabIndex = 1;
+      this.tabGroup.realignInkBar();
+    }
+  }
 
   protected async setStrategy(strategy: Strategy) {
     await super.setStrategy(strategy);
