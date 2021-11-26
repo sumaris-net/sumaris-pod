@@ -138,7 +138,7 @@ CORDOVA_RES_PATH=`which cordova-res`
 NATIVE_RUN_PATH=`which native-run`
 if [[ "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" || "_" == "_${CORDOVA_RES_PATH}" || "_" == "_${NATIVE_RUN_PATH}" ]]; then
   echo "Installing global dependencies..."
-  npm install -g cordova cordova-res @ionic/cli native-run
+  npm install -g cordova cordova-res @ionic/cli native-run yarn
   [[ $? -ne 0 ]] && exit 1
 fi
 
@@ -146,6 +146,6 @@ fi
 if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     echo "Installing project dependencies..."
     cd ${PROJECT_DIR}
-    npm install
+    yarn
 fi
 
