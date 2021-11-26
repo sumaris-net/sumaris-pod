@@ -4,8 +4,8 @@ import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from '@
 
 import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
 import {Measurement, MeasurementUtils, MeasurementValuesUtils} from '../model/measurement.model';
-import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
-import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 export interface MeasurementsValidatorOptions {
@@ -48,15 +48,18 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         onlyExistingPmfms: false
       }) || undefined;
 
-    return opts.pmfms.reduce((res, pmfm) => {
-      const validator = PmfmValidators.create(pmfm, null, opts);
-      if (validator) {
-        res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
-      } else {
-        res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
-      }
-      return res;
-    }, {});
+    return {
+      ...opts.pmfms.reduce((res, pmfm) => {
+        const validator = PmfmValidators.create(pmfm, null, opts);
+        if (validator) {
+          res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
+        } else {
+          res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
+        }
+        return res;
+      }, {}),
+      __typename: [measurementValues ? measurementValues.__typename : null]
+    };
   }
 
   getFormGroupOptions(data?: T[], opts?: O): AbstractControlOptions | null {
