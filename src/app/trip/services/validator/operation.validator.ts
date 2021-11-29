@@ -322,7 +322,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   protected getFishingAreasArray(data?: Operation, opts?: {required?: boolean}) {
     const required = !opts || opts.required !== false;
     return this.formBuilder.array(
-      (data && data.fishingAreas || []).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
+      (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
       required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
     );
   }

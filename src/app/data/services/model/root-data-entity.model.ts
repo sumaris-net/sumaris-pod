@@ -1,9 +1,8 @@
-import { fromDateISOString, IEntity, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import {EntityAsObjectOptions, fromDateISOString, IEntity, isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { DataEntity, DataEntityAsObjectOptions } from './data-entity.model';
 import { IWithProgramEntity, IWithRecorderPersonEntity, SynchronizationStatus } from './model.utils';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
-import { EntityAsObjectOptions } from '../../../../../ngx-sumaris-components/src/app/core/services/model/entity.model';
 
 
 export interface IRootDataEntity<T = any,

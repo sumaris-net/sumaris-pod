@@ -1354,6 +1354,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter individual number?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Catch > Individual measure: Commercial species?",
+      "TRIP_BATCH_WEIGHT_ENABLE": "Catch > Weight?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Catch > Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample: Scientific species?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Catch > Survival test: Scientific species?",
