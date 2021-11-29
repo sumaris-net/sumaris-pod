@@ -148,14 +148,13 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [title]="row.validator.invalid && getRowError(row, {separator: '\n'} )">
-        <ion-text matBadge="!"
-                  [matBadgeHidden]="!row.editing || row.validator.valid"
-                  matBadgeOverlap="false"
-                  matBadgeColor="accent"
-                  matBadgeSize="small">
+      <td mat-cell *matCellDef="let row">
+        <ion-text>
           {{ row.currentData?.rankOrder }}
+          <!-- Show row errors (not from controls, but only from the form itself) -->
+          <mat-icon *ngIf="row.validator.invalid && getRowError(row, {recursive: false}); let error"
+                    color="warn" [title]="error|translate">error
+          </mat-icon>
         </ion-text>
       </td>
 
