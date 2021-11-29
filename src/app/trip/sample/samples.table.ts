@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
-import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorService } from '../services/validator/sample.validator';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {SampleValidatorService} from '../services/validator/sample.validator';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
   ColorName,
-  firstNotNilPromise, FormErrorAdapterOptions,
+  firstNotNilPromise,
+  FormErrorAdapterOptions,
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
@@ -26,25 +27,25 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
-import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
-import { ISampleModalOptions, SampleModal } from './sample.modal';
-import { FormGroup } from '@angular/forms';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
-import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
-import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { MatMenu } from '@angular/material/menu';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { isNilOrNaN } from '@app/shared/functions';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import {Moment} from 'moment';
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
+import {ISampleModalOptions, SampleModal} from './sample.modal';
+import {FormGroup} from '@angular/forms';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {Sample} from '../services/model/sample.model';
+import {AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from '../services/filter/sample.filter';
+import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {MatMenu} from '@angular/material/menu';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {isNilOrNaN} from '@app/shared/functions';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -162,7 +163,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
+  getRowError(row, opts): string {
+    return super.getRowError(row, opts);
+  }
+
+  @Output() onPrepareRowForm = new EventEmitter<{ form: FormGroup, pmfms: IPmfm[] }>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
