@@ -201,7 +201,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * Reset all data to original value. Useful sometimes, to re init the component (e.g. physical gear form).
    * Note: Keep @Input() attributes unchanged
    */
-  public unload() {
+  unload() {
     this.data = null;
     this.applyingValue = false;
     this._measurementValuesForm = null;
@@ -374,7 +374,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         .filter(pmfm => {
           const control = measurementValuesForm.controls[pmfm.id];
           return control && (
-            // Dirty or disable
+              // Dirty or disable
               control.dirty || (this.options.skipDisabledPmfmControl === false && control.disabled))
             // Computed (skipped by default)
             || (this.options.skipComputedPmfmControl === false && pmfm.isComputed);
