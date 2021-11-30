@@ -207,6 +207,7 @@
         "PMFM_DRESSING": "Référentiel > PSFM > Présentation",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
+        "PARAMETER_GROUP_SURVEY_ID": "Référentiel > Groupe de paramètres > Caractéristiques d'enquêtes",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Référentiel > Méthode > Mesuré par un observateur",
         "METHOD_OBSERVED_BY_OBSERVER_ID": "Référentiel > Méthode > Observé par un observateur",
         "METHOD_ESTIMATED_BY_OBSERVER_ID": "Référentiel > Méthode > Estimé par un observateur",
