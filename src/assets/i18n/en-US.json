@@ -206,6 +206,7 @@
         "PMFM_DRESSING": "Référentiel > PSFM > Presentation",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
+        "PARAMETER_GROUP_SURVEY_ID": "Referential > Parameter group > Survey characteristics",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
         "METHOD_OBSERVED_BY_OBSERVER_ID": "Referential > Method > Observed by observer",
         "METHOD_ESTIMATED_BY_OBSERVER_ID": "Referential > Method > Estimated by observer",
