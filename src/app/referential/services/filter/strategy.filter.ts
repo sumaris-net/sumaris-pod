@@ -2,7 +2,7 @@ import {EntityAsObjectOptions, EntityClass, EntityUtils, FilterFn, fromDateISOSt
 import {BaseReferentialFilter} from '@app/referential/services/filter/referential.filter';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {Moment} from 'moment';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
 
 @EntityClass({typename: 'StrategyFilterVO'})
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
@@ -18,6 +18,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
   parameterIds?: number[];
   periods?: any[];
+  programId: number;
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -59,6 +60,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
   }
 
   buildFilter(): FilterFn<Strategy>[] {
+    this.levelId = this.programId || this.levelId;
     const filterFns = super.buildFilter();
 
     // Filter by reference taxon
@@ -68,6 +70,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     }*/
 
     // TODO: any other attributes
+
 
     return filterFns;
   }
