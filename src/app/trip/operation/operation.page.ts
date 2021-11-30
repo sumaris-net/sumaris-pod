@@ -43,6 +43,14 @@ import {Measurement, MeasurementUtils} from '@app/trip/services/model/measuremen
 
 const moment = momentImported;
 
+const OPERATION_TABS = {
+  GENERAL: 0,
+  CATCH: 1,
+  SAMPLE: 2,
+  SUB_SAMPLE: 3,
+  RELEASE: 4
+}
+
 @Component({
   selector: 'app-operation-page',
   templateUrl: './operation.page.html',
@@ -70,11 +78,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   rankOrder: number;
   selectedBatchTabIndex = 0;
-  selectedSampleTabIndex = 0;
+  copyTripDates = false;
 
   // All second tabs components are disabled, by default
   // (waiting PMFM measurements to decide that to show)
-  enableCatchTab = true;
+  showCatchTab = false;
   showSampleTables = false;
   showBatchTables = false;
   showBatchTablesByProgram = true;
@@ -89,7 +97,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   @ViewChild('batchTree', {static: true}) batchTree: BatchTreeComponent;
 
   // Sample tables
-  @ViewChild('sampleTabGroup', {static: true}) sampleTabGroup: MatTabGroup;
   @ViewChild('samplesTable', {static: true}) samplesTable: SamplesTable;
   @ViewChild('individualMonitoringTable', {static: true}) individualMonitoringTable: IndividualMonitoringSubSamplesTable;
   @ViewChild('individualReleaseTable', {static: true}) individualReleaseTable: SubSamplesTable;
@@ -107,7 +114,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
-      tabCount: 2,
+      tabCount: 5,
       autoUpdateRoute: !platform.mobile,
       autoOpenNextTab: !platform.mobile
     });
@@ -223,7 +230,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       const queryParams = this.route.snapshot.queryParams;
       const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
       this.selectedBatchTabIndex = subTabIndex;
-      this.selectedSampleTabIndex = subTabIndex;
     }
   }
 
@@ -254,7 +260,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const samplingTypeControl = formGroup?.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
     if (isNotNil(samplingTypeControl)) {
       defaultTableStates = false;
-      this.enableCatchTab = this.batchTree.showCatchForm;
+      this.showCatchTab = this.batchTree.showCatchForm;
       this._measurementSubscription.add(
         samplingTypeControl.valueChanges
           .pipe(
@@ -268,27 +274,27 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
             switch (qvLabel as string) {
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.SURVIVAL:
-                if (this.debug) console.debug('[operation] Enable survival test tables');
+                if (this.debug) console.debug('[operation] Enable samples tables');
                 this.showBatchTablesByProgram = false;
                 this.showSampleTablesByProgram = true;
                 break;
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.CATCH_HAUL:
-                if (this.debug) console.debug('[operation] Enable batch sampling tables');
+                if (this.debug) console.debug('[operation] Enable batches tables');
                 this.showBatchTablesByProgram = true;
                 this.showSampleTablesByProgram = false;
                 break;
               case QualitativeLabels.SURVIVAL_SAMPLING_TYPE.UNSAMPLED:
-                if (this.debug) console.debug('[operation] Disable survival test and batch sampling tables');
+                if (this.debug) console.debug('[operation] Disable samples and batches tables');
                 this.showBatchTablesByProgram = false;
                 this.showSampleTablesByProgram = false;
             }
 
             this.showBatchTables = this.showBatchTablesByProgram;
             this.showSampleTables = this.showSampleTablesByProgram;
+            this.tabCount = 2 + (this.showSampleTables ? 3 : 0);
 
             // Force first tab index
             this.selectedBatchTabIndex = 0;
-            this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
           })
@@ -315,12 +321,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             // Enable samples, when has accidental catches
             this.showSampleTablesByProgram = hasAccidentalCatches;
             this.showSampleTables = this.showSampleTablesByProgram;
-            this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
-            this.tabCount = this.enableCatchTab ? 2 : 1;
+            this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+            this.tabCount = 2 + (this.showSampleTables ? 3 : 0);
 
             // Force first tab index
             this.selectedBatchTabIndex = 0;
-            this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
           })
@@ -343,14 +348,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               if (this.debug) console.debug('[operation] Enable batch tables');
               this.showBatchTables = this.showBatchTablesByProgram;
               this.showSampleTables = this.showSampleTablesByProgram;
-              this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
-              this.tabCount = this.enableCatchTab ? 2 : 1;
+              this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+              this.tabCount = 2 + (this.showSampleTables ? 3 : 0);
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
               this.showBatchTables = false;
               this.showSampleTables = false;
-              this.enableCatchTab = false;
+              this.showCatchTab = false;
               this.tabCount = 1;
               acquisitionLevel = AcquisitionLevelCodes.OPERATION;
             }
@@ -363,7 +368,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
             // Force first tab index
             this.selectedBatchTabIndex = 0;
-            this.selectedSampleTabIndex = 0;
             this.updateTablesState();
             this.markForCheck();
           })
@@ -389,8 +393,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.batchTree.allowSubBatches = hasIndividualMeasures;
             if (!allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
-              this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
-              this.tabCount = this.enableCatchTab ? 2 : 1;
+              this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+              this.tabCount = 2 + (this.showSampleTables ? 3 : 0);
             }
           })
       );
@@ -401,8 +405,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
       this.showBatchTables = this.showBatchTablesByProgram;
       this.showSampleTables = this.showSampleTablesByProgram;
-      this.enableCatchTab = this.showBatchTables || this.showSampleTables || this.batchTree.showCatchForm;
-      this.tabCount = 2;
+      this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+      this.tabCount = 2 + (this.showSampleTables ? 3 : 0);
       this.updateTablesState();
       this.markForCheck();
     }
@@ -440,12 +444,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
-    if (this.opeForm.showPosition) {
-      // Activate position controls only if showPosition has default value (=true)
-      const showPosition = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
-      this.opeForm.showFishingArea = !showPosition;
-      this.opeForm.showPosition = showPosition;
-    }
+    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
+
+    this.opeForm.showPosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    this.opeForm.showFishingArea = !this.opeForm.showPosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
     this.opeForm.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
@@ -454,14 +456,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
-    this.opeForm.copyTripDates = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
-
-    // Load OperationForm options, from trip
-    // TODO LPT
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
-    this.saveOptions.withChildOperation = this.opeForm.allowParentOperation;
 
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
@@ -475,7 +472,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE);
     this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE);
-    this.sampleAcquisitionLevel = program.getProperty(ProgramProperties.TRIP_SAMPLE_ACQUISITION_LEVEL);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -495,6 +491,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // } else {
     //   this.batchTree.batchGroupsTable.showWeightColumns = false;
     // }
+
+    const autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
+    if (autoFillDatesFromTrip) {
+      this.opeForm.fillWithTripDates();
+    }
 
     this.cd.detectChanges();
 
@@ -563,22 +564,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
 
-    this.loadLinkedOperation(data);
+    await this.loadLinkedOperation(data);
 
   }
 
   onNewFabButtonClick(event: UIEvent) {
-    if (this.showBatchTables) {
+    if (this.showBatchTables && this.selectedTabIndex === 1) {
       this.batchTree.addRow(event);
     } else if (this.showSampleTables) {
-      switch (this.selectedSampleTabIndex) {
-        case 0:
+      switch (this.selectedTabIndex) {
+        case OPERATION_TABS.SAMPLE:
           this.samplesTable.addRow(event);
           break;
-        case 1:
+        case OPERATION_TABS.SUB_SAMPLE:
           this.individualMonitoringTable.addRow(event);
           break;
-        case 2:
+        case OPERATION_TABS.RELEASE:
           this.individualReleaseTable.addRow(event);
           break;
       }
@@ -627,22 +628,27 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
     const changed = super.onTabChange(event, queryParamName);
-    if (changed && this.selectedTabIndex === 1) {
-      if (this.showBatchTables && this.batchTree) this.batchTree.realignInkBar();
-      if (this.showSampleTables && this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
-      this.markForCheck();
+    if (changed) {
+      switch (this.selectedTabIndex) {
+        case OPERATION_TABS.CATCH:
+          if (this.showBatchTables && this.batchTree) this.batchTree.realignInkBar();
+          this.markForCheck();
+          break;
+        case OPERATION_TABS.SAMPLE:
+        case OPERATION_TABS.SUB_SAMPLE:
+        case OPERATION_TABS.RELEASE:
+          if (this.showSampleTables) {
+            if (this.tabGroup) this.tabGroup.realignInkBar();
+            if (!this.loading) {
+              this.samplesTable.confirmEditCreate();
+              this.individualMonitoringTable.confirmEditCreate();
+              this.individualReleaseTable.confirmEditCreate();
+            }
+          }
+          break;
+      }
     }
     return changed;
-  }
-
-  onSampleTabChange(event: MatTabChangeEvent) {
-    super.onSubTabChange(event);
-    if (!this.loading) {
-      // On each tables, confirm editing row
-      this.samplesTable.confirmEditCreate();
-      this.individualMonitoringTable.confirmEditCreate();
-      this.individualReleaseTable.confirmEditCreate();
-    }
   }
 
   async onLastOperationClick(event: UIEvent, id: number): Promise<any> {
@@ -724,8 +730,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + '#'));
 
-    // Applying program to tables (async)
-    if (programLabel) this.$programLabel.next(programLabel);
+    // Applying program to components (async)
+    if (programLabel && this.$programLabel.value !== programLabel) this.$programLabel.next(programLabel);
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -739,12 +745,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const trip = await this.tripService.load(tripId);
     this.trip = trip;
     this.saveOptions.trip = trip;
-
-    // Trip has gps in use, so active positions controls else active fishing area control
-    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(trip.measurements, PmfmIds.GPS_USED), true);
-    this.opeForm.showPosition = isGPSUsed;
-    this.opeForm.showFishingArea = !isGPSUsed;
-
     return trip;
   }
 
@@ -752,32 +752,21 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
    * Open the first tab that is invalid
    */
   protected getFirstInvalidTabIndex(): number {
-    // tab 0
-    const tab0Invalid = this.opeForm.invalid || this.measurementsForm.invalid;
-    // tab 1
-    const batchTreeInvalidSubTab = this.batchTree.getFirstInvalidTabIndex();
-    const subTab0Invalid = (batchTreeInvalidSubTab === 0) || (this.showSampleTables && this.samplesTable.invalid);
-    const subTab1Invalid = (batchTreeInvalidSubTab === 1) || (this.showSampleTables && this.individualMonitoringTable.invalid);
-    const subTab2Invalid = (batchTreeInvalidSubTab === 2) || (this.showSampleTables && this.individualReleaseTable.invalid);
-    const tab1Invalid = subTab0Invalid || subTab1Invalid || subTab2Invalid;
+    // find invalids tabs (keep order)
+    const invalidTabs = [
+      this.opeForm.invalid,
+      this.showCatchTab && this.batchTree.invalid,
+      this.showSampleTables && this.samplesTable.invalid,
+      this.showSampleTables && this.individualMonitoringTable.invalid,
+      this.showSampleTables && this.individualReleaseTable.invalid
+    ];
 
     // Open the first invalid tab
-    const invalidTabIndex = tab0Invalid ? 0 : (tab1Invalid ? 1 : -1);
+    const invalidTabIndex = invalidTabs.findIndex(invalid => invalid === true);
 
     // If tab 1, open the invalid sub tab
-    if (invalidTabIndex === 1 && this.enableCatchTab) {
-      if (this.showBatchTables) {
-        this.selectedBatchTabIndex = batchTreeInvalidSubTab;
-      } else if (this.showSampleTables) {
-        const invalidSubTabIndex = subTab0Invalid ? 0 : (subTab1Invalid ? 1 : (subTab2Invalid ? 2 : this.selectedSampleTabIndex));
-        if (this.selectedSampleTabIndex === 0 && !subTab0Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        } else if (this.selectedSampleTabIndex === 1 && !subTab1Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        } else if (this.selectedSampleTabIndex === 2 && !subTab2Invalid) {
-          this.selectedSampleTabIndex = invalidSubTabIndex;
-        }
-      }
+    if (invalidTabIndex === OPERATION_TABS.CATCH) {
+      this.selectedBatchTabIndex = this.batchTree.getFirstInvalidTabIndex();
       this.updateTablesState();
     }
     return invalidTabIndex;
@@ -812,7 +801,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const data = await super.getValue();
 
     // Batches
-    if (this.enableCatchTab) {
+    if (this.showCatchTab) {
       await this.batchTree.save();
 
       // Get batch tree,rom the batch tree component
@@ -845,32 +834,27 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       data.samples = undefined;
     }
 
-    // Apply updates on child operation if it exists
-    if (data.childOperation && (data.startDateTime !== data.childOperation.startDateTime || data.fishingStartDateTime !== data.childOperation.fishingStartDateTime)) {
-      data.childOperation.startDateTime = data.startDateTime;
-      data.childOperation.fishingStartDateTime = data.fishingStartDateTime;
-      data.childOperation.parentOperationId = data.id;
-      data.childOperation.parentOperation = data;
-
-      this.saveOptions.withChildOperation = true;
-    } else {
-      this.saveOptions.withChildOperation = false;
-    }
 
     return data;
   }
 
   protected getJsonValueToSave(): Promise<any> {
     const json = this.opeForm.value;
+    // Clean childOperation if empty
+    if (EntityUtils.isEmpty(json.childOperation, 'id')) {
+      delete json.childOperation;
+    }
     json.measurements = this.measurementsForm.value;
     json.tripId = this.trip.id;
     return json;
   }
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
+
     // Force to pass specific saved options to dataService.save()
     return await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
+      updateLinkedOperation: this.opeForm.isParentOperation, // Apply updates on child operation if it exists
       ...opts
     });
   }
@@ -931,11 +915,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.samplesTable.disabled) this.samplesTable.enable();
         if (this.individualMonitoringTable.disabled) this.individualMonitoringTable.enable();
         if (this.individualReleaseTable.disabled) this.individualReleaseTable.enable();
-        if (this.sampleTabGroup) this.sampleTabGroup.realignInkBar();
-      } else {
-        this.selectedSampleTabIndex = 0;
       }
-      if (this.enableCatchTab) {
+      if (this.showCatchTab) {
         if (this.batchTree.disabled) this.batchTree.enable();
         if (this.showBatchTables) this.batchTree.realignInkBar();
       } else {
@@ -947,7 +928,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (this.individualMonitoringTable.enabled) this.individualMonitoringTable.disable();
         if (this.individualReleaseTable.enabled) this.individualReleaseTable.disable();
       }
-      if (this.enableCatchTab && this.batchTree.enabled) {
+      if (this.showCatchTab && this.batchTree.enabled) {
         this.batchTree.disable();
       }
     }
@@ -956,24 +937,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async loadLinkedOperation(data: Operation): Promise<void> {
 
     try {
-      // Load child operation (need by validator)
+      // Load child operation
       const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
       if (isNotNil(childOperationId)) {
-        console.debug(`[operation-page] Load child operation #${childOperationId} `);
-        // Full load is needed for saving if date need update
         data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
-        this.opeForm.setChildOperation(data.childOperation);
       }
 
       // Load parent operation
       else {
         const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
         if (isNotNil(parentOperationId)) {
-          console.debug(`[operation-page] Load parent operation #${parentOperationId}`);
-          // parent just needed for screen, light load is enough
-          data.parentOperation = await this.dataService.load(parentOperationId, {query: OperationQueries.loadLight, fetchPolicy: 'cache-first'});
-          await this.opeForm.setParentOperation(data.parentOperation);
-          // Force copy
+          data.parentOperation = await this.dataService.load(parentOperationId, {fullLoad: false, fetchPolicy: 'cache-first'});
         }
       }
     } catch (err) {

@@ -272,7 +272,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
     // Make sure to have (at least) one observer
     value.observers = value.observers && value.observers.length ? value.observers : [null];
-
     // Resize observers array
     if (this._showObservers) {
       this.observersHelper.resize(Math.max(1, value.observers.length));
@@ -386,7 +385,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       // Create at least one metier
       if (this.metiersHelper.size() === 0) {
         this.metiersHelper.resize(1);
-
       }
     } else if (this.metiersHelper.size() > 0) {
       this.metiersHelper.resize(0);

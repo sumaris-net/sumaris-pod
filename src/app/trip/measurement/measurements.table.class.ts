@@ -275,7 +275,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       this._dataSource = null;
     }
 
-    console.debug('[landings-table] Settings validator service to: ', validatorService);
+    if (this.debug) console.debug('[measurement-table] Settings validator service to: ', validatorService);
     this.validatorService = validatorService;
 
     // Create the new datasource, BUT redirect to this

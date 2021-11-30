@@ -357,7 +357,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   // For DEV only
   setTestValue(program: Program) {
-    const departureDate = moment();
+    const departureDate = moment().startOf('minutes');
     const returnDate = departureDate.clone().add(15, 'day');
     const trip = Trip.fromObject({
       program,
@@ -367,7 +367,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
       vesselSnapshot: {id: 1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
       measurements: [
-        { numericalValue: 1, pmfmId: 21}
+        { numericalValue: 1, pmfmId: 21}, // NB fisherman
+        { numericalValue: 1, pmfmId: 188} // GPS_USED
       ]
     });
 

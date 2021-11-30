@@ -25,7 +25,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobUtils,
-  LoadResult,
+  LoadResult, MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
   QueryVariables,
@@ -286,7 +286,7 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   trip?: Trip;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
-  withChildOperation?: boolean;
+  updateLinkedOperation?: boolean;
 }
 
 export declare interface OperationMetierFilter {
@@ -306,6 +306,7 @@ export declare interface OperationServiceWatchOptions extends OperationFromObjec
 
 export declare interface OperationServiceLoadOptions extends EntityServiceLoadOptions {
   query?: any;
+  fullLoad?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
@@ -326,8 +327,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   ) {
     super(graphql, environment);
 
-    this._mutableWatchQueriesMaxCount = 2;
-    this._watchQueriesUpdatePolicy = 'refetch-queries';
+    this._mutableWatchQueriesMaxCount = 3;
+    this._watchQueriesUpdatePolicy = 'update-cache';
 
     // -- For DEV only
     this._debug = !environment.production;
@@ -408,7 +409,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return offline$ || online$;
   }
 
-  async load(id: number, options?: OperationServiceLoadOptions): Promise<Operation | null> {
+  async load(id: number, opts?: OperationServiceLoadOptions): Promise<Operation | null> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
     const now = this._debug && Date.now();
@@ -420,28 +421,26 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       // Load locally
       if (id < 0) {
-        json = await this.entities.load<Operation>(id, Operation.TYPENAME);
+        json = await this.entities.load<Operation>(id, Operation.TYPENAME, opts);
         if (!json) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
-        if (isNotNil(json.parentOperationId) && isNil(json.parentOperation)) {
-          json.parentOperation = await this.entities.load<Operation>(json.parentOperationId, Operation.TYPENAME);
-        } else if (isNotNil(json.childOperationId) && isNil(json.childOperation)) {
-          json.childOperation = await this.entities.load<Operation>(json.childOperationId, Operation.TYPENAME);
-        }
       }
 
       // Load from pod
       else {
+        const query = (opts && opts.query) || (opts && opts.fullLoad === false ? OperationQueries.loadLight: OperationQueries.load);
         const res = await this.graphql.query<{ data: Operation }>({
-          query: options && options.query || OperationQueries.load,
+          query,
           variables: {id},
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
-          fetchPolicy: options && options.fetchPolicy || undefined
+          fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         json = res && res.data;
       }
 
       // Transform to entity
-      const data = Operation.fromObject(json);
+      const data = (!opts || opts.toEntity !== false)
+        ? Operation.fromObject(json)
+        : json as Operation;
       if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
     } finally {
@@ -503,12 +502,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    */
   async save(entity: Operation, opts?: OperationSaveOptions): Promise<Operation> {
 
-    // Save child
-    if (opts?.withChildOperation && entity.childOperation) {
-      entity.childOperation = await this.save(entity.childOperation, {...opts, withChildOperation: false});
-      entity.childOperationId = entity.childOperation.id;
-    }
-
     // If parent is a local entity: force to save locally
     const tripId = toNumber(entity.tripId, opts && (opts.tripId || opts.trip?.id));
     if (tripId < 0) {
@@ -545,7 +538,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       },
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-      update: (cache, {data}) => {
+      update: async (cache, {data}) => {
         const savedEntity = data && data.data && data.data[0];
 
         // Local entity: save it
@@ -553,7 +546,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', savedEntity);
 
           // Save response locally
-          this.entities.save(savedEntity.asObject());
+          await this.entities.save(savedEntity.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE));
         }
 
         // Update the entity and update GraphQL cache
@@ -561,7 +554,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
           // Remove existing entity from the local storage
           if (entity.id < 0 && savedEntity.updateDate) {
-            this.entities.delete(entity);
+            await this.entities.delete(entity);
           }
 
           // Copy id and update Date
@@ -570,6 +563,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           // Copy gear
           if (savedEntity.metier && !savedEntity.metier.gear) {
             savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
+          }
+
+          // Update parent/child operation
+          if (opts?.updateLinkedOperation) {
+            await this.updateLinkedOperation(entity, opts);
           }
 
           if (isNew && this._watchQueriesUpdatePolicy === 'update-cache') {
@@ -981,29 +979,49 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Save response locally
     await this.entities.save(json);
 
+    // Update parent/child operation
+    if (opts?.updateLinkedOperation) {
+     await this.updateLinkedOperation(entity, opts);
+    }
+
+    return entity;
+  }
+
+  async updateLinkedOperation(entity: Operation, opts?: OperationSaveOptions) {
+
     // Update the child operation
-    if (isNotNil(entity.childOperationId) && entity.childOperationId < 0) {
-      const child = await this.load(entity.childOperationId);
+    if (isNotNil(entity.childOperationId)) {
+      const child = entity.childOperation || await this.load(entity.childOperationId);
       const needUpdateChild = !entity.startDateTime.isSame(child.startDateTime)
         || !entity.fishingStartDateTime.isSame(child.fishingStartDateTime);
-      console.warn('TODO: update child operation');
+
+      // Update the child operation, if need
       if (needUpdateChild) {
-        child.startDateTime = entity.startDateTime;
-        child.fishingStartDateTime = entity.fishingStartDateTime;
-        await this.entities.save(this.asObject(child, MINIFY_OPERATION_FOR_LOCAL_STORAGE));
+        const fullChild = !entity.childOperation ? child : await this.load(entity.childOperationId);
+        console.warn('[operation-service] Updating child operation...');
+        fullChild.startDateTime = entity.startDateTime;
+        fullChild.fishingStartDateTime = entity.fishingStartDateTime;
+        await this.save(fullChild, {...opts, updateLinkedOperation: false});
+        if (entity.childOperation) {
+          entity.childOperation.startDateTime = fullChild.startDateTime;
+          entity.childOperation.fishingStartDateTime = fullChild.fishingStartDateTime;
+          entity.childOperation.updateDate = fullChild.updateDate;
+        }
       }
-    } else {
-      // Update the parent operation
+    }
+
+    // Update the parent operation (only if parent is a local entity)
+    else {
       const parentOperationId = toNumber(entity.parentOperationId, entity.parentOperation?.id);
       if (isNotNil(parentOperationId) && parentOperationId < 0) {
         const parent = entity.parentOperation || await this.load(parentOperationId);
         if (parent.childOperationId !== entity.id) {
           parent.childOperationId = entity.id;
-          await this.entities.save(this.asObject(parent, MINIFY_OPERATION_FOR_LOCAL_STORAGE));
+          await this.save(parent, {...opts, updateLinkedOperation: false});
         }
       }
     }
-    return entity;
+
   }
 
   async sortByDistance(operations: Operation[], sortDirection: string, position: string): Promise<Operation[]> {

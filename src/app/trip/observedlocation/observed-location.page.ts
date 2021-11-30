@@ -108,6 +108,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+
   }
 
   ngOnInit() {

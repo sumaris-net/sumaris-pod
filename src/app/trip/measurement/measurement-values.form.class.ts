@@ -45,8 +45,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected options: MeasurementValuesFormOptions<T>;
   protected data: T;
   protected applyingValue = false;
-  protected keepDisabledPmfmControl = false;
-  protected keepComputedPmfmControl = false;
 
   get forceOptional(): boolean {
     return this._forceOptional;
@@ -374,8 +372,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         .filter(pmfm => {
           const control = measurementValuesForm.controls[pmfm.id];
           return control && (
-              // Dirty or disable
-              control.dirty || (this.options.skipDisabledPmfmControl === false && control.disabled))
+            // Dirty
+            control.dirty
+            // Disabled (skipped by default)
+            || (this.options.skipDisabledPmfmControl === false && control.disabled))
             // Computed (skipped by default)
             || (this.options.skipComputedPmfmControl === false && pmfm.isComputed);
         });

@@ -67,6 +67,7 @@ mat-form-field {
   }
 }
 
-.mat-toolbar {
+.mat-toolbar, .mat-toolbar-single-row {
   background-color: #{$mat-toolbar-background-color};
+  height: var(--mat-toolbar-height);
 }

@@ -4,7 +4,7 @@ import { DateAdapter } from '@angular/material/core';
 import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormBuilder } from '@angular/forms';
-import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, LoadResult, LocalSettingsService, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
@@ -48,14 +48,16 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     protected settings: LocalSettingsService,
   ) {
     super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
-      validatorService.getFormGroup()
+      validatorService.getFormGroup(),
+      {
+        skipDisabledPmfmControl: false,
+        skipComputedPmfmControl: false
+      }
     );
 
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
     this._enable = true;
-    this.keepDisabledPmfmControl = true;
-    this.keepComputedPmfmControl = true;
 
     // for DEV only
     this.debug = !environment.production;

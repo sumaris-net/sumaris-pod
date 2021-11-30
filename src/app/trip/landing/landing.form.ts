@@ -559,10 +559,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
-  notHiddenPmfm(pmfm: IPmfm): boolean {
-    return pmfm && pmfm.hidden !== true;
-  }
-
   /* -- protected method -- */
 
   protected isFieldFilterEnable(fieldName: FilterableFieldName) {
@@ -703,10 +699,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   /**
    * Make sure a pmfmStrategy exists to store the Strategy.label
    */
@@ -739,4 +731,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return pmfms;
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }

@@ -53,7 +53,7 @@ export class PmfmStrategyFilter extends EntityFilter<PmfmStrategyFilter, PmfmStr
     // Acquisition Level
     if (this.acquisitionLevel) {
       const acquisitionLevel = this.acquisitionLevel;
-      filterFns.push(t => ((EntityUtils.isNotEmpty(t.acquisitionLevel, 'label') ? t.acquisitionLevel['label'] : t.acquisitionLevel) === acquisitionLevel));
+      filterFns.push(t => ((EntityUtils.isNotEmpty(t.acquisitionLevel as any, 'label') ? t.acquisitionLevel['label'] : t.acquisitionLevel) === acquisitionLevel));
     }
 
     // Locations

@@ -6,7 +6,7 @@ import {
   AppFormUtils,
   AppValidatorService,
   ColorName,
-  firstNotNilPromise, FormErrorAdapterOptions,
+  firstNotNilPromise,
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
@@ -94,10 +94,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
-  translateFormErrorOptions: FormErrorAdapterOptions = {
-    recursive: false,
-    pathTranslateService: this
-  };
 
   @Input() showGroupHeader = false;
   @Input() useSticky = false;
@@ -309,13 +305,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         this.onPrepareRowForm.emit({form, pmfms});
       },
       onSaveAndNew: async (dataToSave) => {
-        if (isNew) {
-          await this.addEntityToTable(dataToSave);
+        if (!isNew) {
+          this.updateEntityToTable(dataToSave, row);
+          row = null; // Avoid updating twice (should never occur, because onSubmitAndNext always create a new entity)
+          isNew = true; // Next row should be new
         }
         else {
-          this.updateEntityToTable(dataToSave, row);
-          row = null; // Avoid to update twice (should never occur, because validateAndContinue always create a new entity)
-          isNew = true; // Next row should be new
+          await this.addEntityToTable(dataToSave);
         }
         // Prepare new sample
         const newData = new Sample();

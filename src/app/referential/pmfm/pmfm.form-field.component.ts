@@ -144,9 +144,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
         control.statusChanges.subscribe((_) => this.cd.markForCheck());
       }
       this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-      /*if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
-        this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
-      }*/
+      //console.log()
       this.required = toBoolean(this.required, this.pmfm.required);
 
       this.updateTabIndex();

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output} from '@angular/core';
-import {OperationValidatorService} from '../services/validator/operation.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
+import { OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
@@ -78,7 +78,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _showPosition = true;
   private _showFishingArea = false;
   private _requiredComment = false;
-  private _copyTripDates = false;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -174,15 +173,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     return this._requiredComment;
   }
 
-  get copyTripDates(): boolean {
-    return this._copyTripDates;
-  }
-
-  @Input() set copyTripDates(value: boolean) {
-    this._copyTripDates = value;
-    this.updateDates();
-  }
-
   get trip(): Trip {
     return this._trip;
   }
@@ -193,6 +183,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   get parentControl(): FormControl {
     return this.form.get('parentOperation') as FormControl;
+  }
+
+  get childControl(): FormControl {
+    return this.form.get('childOperation') as FormControl;
   }
 
   get fishingAreasForm(): FormArray {
@@ -316,6 +310,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     );
   }
 
+
   ngOnDestroy() {
     super.ngOnDestroy();
     this._physicalGearsSubject.complete();
@@ -334,16 +329,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
 
     const isChildOperation = isNotNil(data.parentOperation?.id);
-    if (isChildOperation || this.allowParentOperation) {
+    const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
+    if (isChildOperation || isParentOperation) {
       this._allowParentOperation = true; // do not use setter to not update form group
-      this.setIsParentOperation(!isChildOperation, {emitEvent: false});
+      this.setIsParentOperation(isParentOperation, {emitEvent: false});
     }
 
     super.setValue(data, opts);
-
-    if (data.childOperation && data.childOperation.fishingEndDateTime){
-      this.setChildOperation(data.childOperation, {emitEvent:false});
-    }
 
     this.markAsLoaded();
   }
@@ -363,37 +355,38 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         if (physicalGear) physicalGearControl.patchValue(physicalGear);
       }
 
-      this.updateDates();
-
       // Update form group
       if (!this._loading) this.updateFormGroup();
     }
   }
 
-  private updateDates() {
-    // Copy dates from trip
-    if (this.copyTripDates && this.trip && !this.form.value.startDateTime && !this.form.value.endDateTime) {
-      const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
-      endDateTime.subtract(1, 'second');
-      this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: endDateTime });
-    }
+  /**
+   * // Fill dates using the trip's dates
+   */
+  public fillWithTripDates() {
+    if (!this.trip) return;
+
+    const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
+    endDateTime.subtract(1, 'second');
+    this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: endDateTime });
   }
 
   setChildOperation(value: Operation, opts?: {emitEvent: boolean}) {
-    this.form.patchValue({
-      childOperation: value,
-      childOperationFishingEndDateTime: value.fishingEndDateTime
-    }, opts);
+    this.childControl.setValue(value, opts);
 
     if (!opts || opts.emitEvent !== false){
       this.updateFormGroup();
     }
   }
 
-  async setParentOperation(value: Operation) {
-    this.parentControl.setValue(value);
+  async setParentOperation(value: Operation, opts?: {emitEvent: boolean}) {
+    this.parentControl.setValue(value, opts);
+
     await this.onParentOperationChanged(value, {emitEvent: false});
-    this.updateFormGroup();
+
+    if (!opts || opts.emitEvent !== false){
+      this.updateFormGroup();
+    }
   }
 
   /**
@@ -479,7 +472,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   async onParentOperationChanged(parentOperation?: Operation, opts?: { emitEvent: boolean }) {
-    parentOperation = parentOperation || this.form.get('parentOperation').value;
+    parentOperation = parentOperation || this.parentControl.value;
     if (this.debug) console.debug('[operation-form] Parent operation changed: ', parentOperation);
 
     if (!opts || opts.emitEvent !== false) {
@@ -705,6 +698,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
         this.updateFormGroup();
       }
+      else if (!this.childControl) {
+        this.updateFormGroup(); // Create the child control
+      }
     }
 
     // Child operation (=Virage)
@@ -811,20 +807,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   }
 
-  protected initFishingAreas(form: FormGroup) {
-    this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
-      (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
-      (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
-      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
-      {allowEmptyArray: true}
-    );
-    if (this.fishingAreasHelper.size() === 0) {
-      this.fishingAreasHelper.resize(1);
-    }
-    this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
-  }
-
   protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
 
@@ -860,15 +842,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
-  protected updateFormGroup() {
-
-    // Resize fishing areas array
-    if (this.showFishingArea) {
-      this.trip.fishingAreas = isNotEmptyArray(this.trip.fishingAreas) ? this.trip.fishingAreas : [null];
-      this.fishingAreasHelper.resize(Math.max(1, this.trip.fishingAreas.length));
-    } else {
-      this.fishingAreasHelper?.removeAllEmpty();
+  protected initFishingAreas(form: FormGroup) {
+    this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
+      (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
+      (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
+      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
+      {allowEmptyArray: false}
+    );
+    if (this.fishingAreasHelper.size() === 0) {
+      this.fishingAreasHelper.resize(1);
     }
+    this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
+  }
+
+  protected updateFormGroup() {
 
     this.validatorService.updateFormGroup(this.form, {
       isOnFieldMode: this.usageMode === 'FIELD',

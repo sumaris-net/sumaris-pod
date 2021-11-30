@@ -75,8 +75,15 @@
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label translate>TRIP.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))"></ion-icon>
+        <ion-label
+          matBadge="*"
+          matBadgeColor="accent"
+          matBadgeSize="small"
+          [matBadgeHidden]="!tripForm.dirty"
+          translate>TRIP.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))">
+        </ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">

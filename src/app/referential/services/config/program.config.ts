@@ -155,22 +155,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_SAMPLE_ACQUISITION_LEVEL: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.sample.acquisitionLevel',
-    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ACQUISITION_LEVEL',
-    defaultValue: AcquisitionLevelCodes.SAMPLE,
-    type: 'enum',
-    values: [
-      {
-        key: AcquisitionLevelCodes.SURVIVAL_TEST,
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
-      },
-      {
-        key: AcquisitionLevelCodes.SAMPLE,
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_LEGACY'
-      }
-    ]
-  },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE',
@@ -506,6 +490,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'SURVIVAL_TEST.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
+      },
+      {
+        key: 'ACCIDENTAL_CATCH.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ACCIDENTAL_CATCH'
       }
     ],
     defaultValue: 'legacy'

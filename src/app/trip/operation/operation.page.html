@@ -143,7 +143,7 @@
   <ion-spinner class="ion-align-self-center" *ngIf="pending"></ion-spinner>
 
   <mat-tab-group #tabGroup
-                 class="mat-tab-fixed-content"
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
@@ -173,12 +173,12 @@
             <ion-col class="ion-padding">
               <!-- form -->
               <app-form-operation #opeForm
-                                  (onSubmit)="save($event)"
+                                  [programLabel]="$programLabel|async"
                                   [showError]="false"
+                                  (onSubmit)="save($event)"
                                   [usageMode]="usageMode"
                                   [tabindex]="1"
-                                  [debug]="debug"
-                                  [programLabel]="$programLabel|async">
+                                  [debug]="debug">
 
 
                 <!-- Other features (Measurements) -->
@@ -212,7 +212,7 @@
     </mat-tab>
 
     <!-- TAB: Catch -->
-    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH'|translate}}" [disabled]="!enableCatchTab">
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH'|translate}}" [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label translate>TRIP.OPERATION.EDIT.TAB_CATCH</ion-label>
@@ -226,84 +226,85 @@
                       [usageMode]="usageMode"
                       [debug]="debug">
       </app-batch-tree>
-
-      <!-- tab group for samples (e.g. survival test) -->
-      <mat-tab-group #sampleTabGroup
-                     class="mat-tab-disabled-hidden mat-tab-fixed-content"
-                     [class.cdk-visually-hidden]="!showSampleTables"
-                     [(selectedIndex)]="selectedSampleTabIndex"
-                     (selectedTabChange)="onSampleTabChange($event)"
-                     [disablePagination]="true"
-                     animationDuration="0s"
-                     [dynamicHeight]="false">
-
-        <!-- TAB: Samples  -->
-        <mat-tab #sampleTab
-                 [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix">
-          <ng-template mat-tab-label>
-            <mat-icon svgIcon="fish-oblique"></mat-icon>
-            <ion-label>{{sampleTab.textLabel}}</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
-          </ng-template>
-
-          <app-samples-table #samplesTable
-                             [debug]="debug"
-                             [acquisitionLevel]="sampleAcquisitionLevel"
-                             [programLabel]="$programLabel|async"
-                             [usageMode]="usageMode"
-                             [showToolbar]="!mobile"
-                             [useSticky]="false"
-                             [showLabelColumn]="false"
-                             [showDateTimeColumn]="true">
-          </app-samples-table>
-
-          <!-- final space-->
-          <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-        </mat-tab>
-
-        <!-- TAB: Individual monitoring  -->
-        <mat-tab #subSampleTab [label]="'TRIP.OPERATION.EDIT.TAB_SUB_SAMPLES'|translateContext: i18nContext.suffix"
-                 [disabled]="individualMonitoringTable.$pmfms|async|isEmptyArray">
-          <ng-template mat-tab-label>
-            <mat-icon>center_focus_strong</mat-icon>
-            <ion-label>{{subSampleTab.textLabel}}</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
-          </ng-template>
-
-          <app-individual-monitoring-table #individualMonitoringTable [debug]="debug"
-                                           [programLabel]="showSampleTablesByProgram && $programLabel|async"
-                                           [usageMode]="usageMode"
-                                           [useSticky]="!mobile">
-          </app-individual-monitoring-table>
-
-          <!-- final space-->
-          <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-        </mat-tab>
-
-        <!-- TAB: Individual releases  -->
-        <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}"
-          [disabled]="individualReleaseTable.$pmfms|async|isEmptyArray">
-          <ng-template mat-tab-label>
-            <mat-icon>room</mat-icon>
-            <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-            <ion-icon slot="end" name="alert-circle" color="danger"
-                      *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
-          </ng-template>
-
-          <app-sub-samples-table #individualReleaseTable [debug]="debug"
-                                 acquisitionLevel="INDIVIDUAL_RELEASE"
-                                 [programLabel]="showSampleTablesByProgram && $programLabel|async"
-                                 [showLabelColumn]="false">
-          </app-sub-samples-table>
-
-          <!-- final space-->
-          <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-        </mat-tab>
-      </mat-tab-group>
-
     </mat-tab>
 
+
+    <!-- TAB: Samples  -->
+    <mat-tab #sampleTab
+             [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
+             [disabled]="!showSampleTables">
+      <ng-template mat-tab-label>
+        <mat-icon svgIcon="fish-oblique"></mat-icon>
+        <ion-label
+          [matBadge]="samplesTable.visibleRowCount"
+          [matBadgeHidden]="!samplesTable.visibleRowCount"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after">{{sampleTab.textLabel}}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
+      </ng-template>
+
+      <app-samples-table #samplesTable
+                         [debug]="debug"
+                         acquisitionLevel="SAMPLE"
+                         [programLabel]="showSampleTablesByProgram && $programLabel|async"
+                         [usageMode]="usageMode"
+                         [showToolbar]="!mobile"
+                         [useSticky]="false"
+                         [showLabelColumn]="false"
+                         [showDateTimeColumn]="true">
+      </app-samples-table>
+    </mat-tab>
+
+    <!-- TAB: Individual monitoring  -->
+    <mat-tab #subSampleTab [label]="'TRIP.OPERATION.EDIT.TAB_SUB_SAMPLES'|translateContext: i18nContext.suffix"
+             [disabled]="!showSampleTables || (individualMonitoringTable.$pmfms|async|isEmptyArray)">
+      <ng-template mat-tab-label>
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label
+          [matBadge]="individualMonitoringTable.visibleRowCount"
+          [matBadgeHidden]="!individualMonitoringTable.visibleRowCount"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after">{{subSampleTab.textLabel}}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
+      </ng-template>
+
+      <app-individual-monitoring-table #individualMonitoringTable [debug]="debug"
+                                       [programLabel]="showSampleTablesByProgram && $programLabel|async"
+                                       [usageMode]="usageMode"
+                                       [useSticky]="!mobile">
+      </app-individual-monitoring-table>
+    </mat-tab>
+
+    <!-- TAB: Individual releases  -->
+    <mat-tab #realeseTab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}"
+             [disabled]="!showSampleTables || (individualReleaseTable.$pmfms|async|isEmptyArray)">
+      <ng-template mat-tab-label>
+        <mat-icon>room</mat-icon>
+        <ion-label
+          [matBadge]="individualReleaseTable.visibleRowCount"
+          [matBadgeHidden]="!individualReleaseTable.visibleRowCount"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after">{{realeseTab.textLabel}}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
+      </ng-template>
+
+      <app-sub-samples-table #individualReleaseTable [debug]="debug"
+                             acquisitionLevel="INDIVIDUAL_RELEASE"
+                             [programLabel]="showSampleTablesByProgram && $programLabel|async"
+                             [showLabelColumn]="false">
+      </app-sub-samples-table>
+    </mat-tab>
   </mat-tab-group>
 
 </ion-content>
@@ -326,7 +327,7 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="enabled && selectedTabIndex === 1" @fadeInOutAnimation
+         *ngIf="enabled && selectedTabIndex >= 1" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
 
   <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">

@@ -149,7 +149,7 @@
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row"
-          [title]="row.validator.invalid && getRowError(row, {separator: '\n'} )">
+          [title]="row.validator.invalid && getRowError(row, {separator: '\n'})">
         <ion-text matBadge="!"
                   [matBadgeHidden]="!row.editing || row.validator.valid"
                   matBadgeOverlap="false"

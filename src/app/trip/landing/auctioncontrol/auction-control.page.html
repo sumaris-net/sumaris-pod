@@ -102,7 +102,12 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="flag"></ion-icon>
         </mat-icon>
-        <ion-label translate>AUCTION_CONTROL.TAB_SAMPLES</ion-label>
+        <ion-label [matBadge]="samplesTable.visibleRowCount"
+                   [matBadgeHidden]="!samplesTable.visibleRowCount"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after" translate>AUCTION_CONTROL.TAB_SAMPLES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 

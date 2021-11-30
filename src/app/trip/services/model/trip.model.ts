@@ -42,10 +42,12 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
   batchAsTree: false,
   sampleAsTree: false,
   keepTrip: true // Trip is needed to apply filter on it
+
 });
 
 @EntityClass({typename: 'OperationVO'})
-export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
+export class Operation
+  extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
   static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
 
@@ -114,8 +116,8 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     delete target.endPosition;
 
     // Physical gear
-    target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    delete target.physicalGear.measurementValues;
+    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
+    if (target.physicalGear) delete target.physicalGear.measurementValues;
     target.physicalGearId = this.physicalGear && this.physicalGear.id;
     if (opts && opts.keepLocalId === false && target.physicalGearId < 0) {
       delete target.physicalGearId; // Remove local id

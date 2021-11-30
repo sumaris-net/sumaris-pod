@@ -17,7 +17,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LoadResult,
+  LoadResult, PlatformService,
   ReferentialUtils,
   SharedValidators,
   toNumber,
@@ -54,12 +54,13 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   constructor(
     injector: Injector,
+    protected platform: PlatformService,
     protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      autoOpenNextTab: false,
+      autoOpenNextTab: !platform.mobile,
       tabGroupAnimationDuration: '0s' // Disable tab animation
     });
 

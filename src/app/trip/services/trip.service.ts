@@ -950,15 +950,17 @@ export class TripService
         const operationLocalId = operation.id;
         operation.tripId = entity.id;
         const savedOperation = await this.operationService.save(operation, opts);
-        childOperations.forEach(o => {
-          if (o.parentOperationId === operationLocalId) {
+        childOperations
+          .filter(o => o.parentOperationId === operationLocalId)
+          .forEach(o => {
             o.tripId = entity.id;
+            o.vesselId = entity.vesselSnapshot.id;
             o.parentOperationId = savedOperation.id;
-            o.parentOperation = savedOperation;
-          }
         });
       }
-      await this.operationService.saveAll(childOperations, opts);
+      if (isNotEmptyArray(childOperations)) {
+        await this.operationService.saveAll(childOperations, opts);
+      }
 
       for (const operation of parentOperationsWithNoChild) {
         operation.tripId = entity.id;

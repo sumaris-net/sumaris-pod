@@ -598,6 +598,9 @@
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Tests de survie",
           "TAB_SUB_SAMPLES": "Suivi individuel"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Captures accidentelles"
         }
       },
       "PARENT": {
@@ -1361,6 +1364,7 @@
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
+      "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",

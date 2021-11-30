@@ -33,7 +33,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   $loadingControls = new BehaviorSubject<boolean>(true);
   protected applyingValue = false;
   protected keepRankOrder = false;
-  protected keepDisabledPmfmControl = false;
+  protected skipDisabledPmfmControl = true;
+  protected skipComputedPmfmControl = true;
 
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
@@ -210,7 +211,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     const form = this.form;
     const filteredPmfms = (this.$pmfms.value || []).filter(pmfm => {
       const control =  form.controls[pmfm.id];
-      return control && (control.dirty || (this.keepDisabledPmfmControl && control.disabled));
+      return control && (control.dirty
+        || (this.skipDisabledPmfmControl === false && control.disabled)
+        || (this.skipComputedPmfmControl === false && pmfm.isComputed)
+      );
     });
 
     if (filteredPmfms.length) {

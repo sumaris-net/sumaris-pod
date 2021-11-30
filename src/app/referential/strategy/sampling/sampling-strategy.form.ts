@@ -1056,7 +1056,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     target.name = target.label || target.name;
     target.label = target.label || target.name;
     target.description = target.label || target.description;
-    target.analyticReference = target.analyticReference && EntityUtils.isNotEmpty(target.analyticReference, 'label') ?
+    target.analyticReference = target.analyticReference && EntityUtils.isNotEmpty(target.analyticReference as any, 'label') ?
       target.analyticReference['label'] :
       EntityUtils.isNotEmpty(this.form.get('analyticReference').value, 'label') ?
         this.form.get('analyticReference').value.label :

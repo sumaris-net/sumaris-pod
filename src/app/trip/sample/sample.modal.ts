@@ -1,25 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../environments/environment";
-import {AlertController, IonContent, ModalController} from "@ionic/angular";
-import { BehaviorSubject, isObservable, Observable, of, Subscription, TeardownLogic } from 'rxjs';
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {isNil, isNotEmptyArray, toBoolean} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SampleForm} from "./sample.form";
-import {Sample} from "../services/model/sample.model";
-import {UsageMode}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from "../services/config/trip.config";
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import { debounceTime, filter, takeUntil } from 'rxjs/operators';
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import { until } from 'protractor';
+import { Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { environment } from '../../../environments/environment';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { SampleForm } from './sample.form';
+import { Sample } from '../services/model/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime, filter } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+
+export declare type SampleModalResultRole = 'validate' | 'cancel' | 'delete';
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 
@@ -221,7 +215,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       if (!data) return; // invalid
 
       this.loading = true;
-      await this.modalCtrl.dismiss(data);
+      await this.modalCtrl.dismiss(data, <SampleModalResultRole>'validate');
     }
   }
 
