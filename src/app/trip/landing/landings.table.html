@@ -23,7 +23,7 @@
   <ng-template #hasSelection>
 
     <!-- Delete -->
-    <button mat-icon-button *ngIf="enabled"
+    <button mat-icon-button *ngIf="enabled && canUserCancelOrDelete"
             [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
@@ -241,8 +241,8 @@
         <ion-spinner *ngIf="row.validator?.pending" name="dots"
                      [ngClass]="{'center':true}"></ion-spinner>
 
-        <!-- undo or delete  -->
-        <button mat-icon-button color="light" *ngIf="row.validator?.invalid"
+        <!-- undo or delete -->
+        <button mat-icon-button color="light" *ngIf="row.validator?.invalid && canCancelOrDelete"
                 [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
                 (click)="cancelOrDelete($event, row)">
           <mat-icon *ngIf="row.id !== -1">undo</mat-icon>

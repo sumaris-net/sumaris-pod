@@ -24,7 +24,7 @@
 
   <!-- delete -->
   <button mat-menu-item
-          [disabled]="isNewData || disabled"
+          [disabled]="isNewData || disabled || !canUserCancelOrDelete"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;

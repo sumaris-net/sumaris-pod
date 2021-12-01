@@ -1,22 +1,22 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
-import { isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { LandingService } from '../services/landing.service';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Moment } from 'moment';
-import { Trip } from '../services/model/trip.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { Landing } from '../services/model/landing.model';
-import { LandingEditor } from '@app/referential/services/config/program.config';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
-import { LandingFilter } from '../services/filter/landing.filter';
-import { LandingValidatorService } from '@app/trip/services/validator/landing.validator';
-import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import {AccountService, isNil, isNotNil} from '@sumaris-net/ngx-components';
+import {LandingService} from '../services/landing.service';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Moment} from 'moment';
+import {Trip} from '../services/model/trip.model';
+import {ObservedLocation} from '../services/model/observed-location.model';
+import {Landing} from '../services/model/landing.model';
+import {LandingEditor} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {LandingFilter} from '../services/filter/landing.filter';
+import {LandingValidatorService} from '@app/trip/services/validator/landing.validator';
+import {VesselSnapshotFilter} from '@app/referential/services/filter/vessel.filter';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -182,7 +182,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
   }
 
   constructor(
-    injector: Injector
+    injector: Injector,
+    protected accountService: AccountService
   ) {
     super(injector,
       Landing,
@@ -321,6 +322,28 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
+  get canUserCancelOrDelete(): boolean {
+    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+    if (this.accountService.isAdmin()) {
+      return true;
+    }
+
+    const row = !this.selection.isEmpty() && this.selection.selected[0];
+    const entity = this.toEntity(row);
+    const recorder = entity.recorderPerson;
+    const connectedPerson = this.accountService.person;
+    if (connectedPerson.id === recorder?.id) {
+      return true;
+    }
+
+    // When connected user is in observed location observers
+    for (const observer of entity.observers) {
+      if (connectedPerson.id === observer.id) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /* -- protected methods -- */
 
