@@ -82,13 +82,13 @@ export class SamplingLandingPage extends LandingPage {
     // Enable landings tab
     this.showSamplesTable = this.showSamplesTable || (!this.isNewData || this.isOnFieldMode);
 
-    // INFO CLT : #IMAGINE-614 / Set form to dirty in creation in order to manager errors on silent save (as done for update)
+    // confirmation pop-up on quite form if form not touch
     if (this.isNewData && this.isOnFieldMode) {
       this.markAsDirty();
     }
 
     // Move to second tab
-    if (this.showSamplesTable && !this.isNewData && !this.isOnFieldMode && this.selectedTabIndex === 0) {
+    if (this.showSamplesTable && !this.isNewData && this.selectedTabIndex === 0) {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
     }
