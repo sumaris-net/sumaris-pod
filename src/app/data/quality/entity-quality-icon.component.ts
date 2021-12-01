@@ -1,8 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@angular/core';
 import { IRootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { EntityUtils } from '@sumaris-net/ngx-components';
 import { PredefinedColors } from '@ionic/core';
 import { qualityFlagToColor } from '@app/data/services/model/model.utils';
+import { IDataEntity } from '@app/data/services/model/data-entity.model';
+
+export declare type QualityIonIcon = 'time'|'pencil'|'checkmark'|'checkmark-circle'|'flag'|'alert';
 
 @Component({
   selector: 'app-entity-quality-icon',
@@ -11,20 +14,24 @@ import { qualityFlagToColor } from '@app/data/services/model/model.utils';
 })
 export class EntityQualityIconComponent {
 
-  icon: string;
+  icon: QualityIonIcon;
   color: PredefinedColors;
   title: string;
 
-  @Input() set value(value: IRootDataEntity) {
+  @Input() set value(value: IDataEntity | IRootDataEntity) {
     this.setValue(value);
   }
 
-  private _value: IRootDataEntity;
+  get value(): IDataEntity | IRootDataEntity {
+    return this._value;
+  }
+
+  private _value: IDataEntity | IRootDataEntity;
 
   constructor(private cd: ChangeDetectorRef) {
   }
 
-  setValue(value: IRootDataEntity) {
+  setValue(value: IDataEntity | IRootDataEntity) {
     this._value = value;
 
     // DEBUG
@@ -32,7 +39,7 @@ export class EntityQualityIconComponent {
 
     // Local data
     if (EntityUtils.isLocal(value)) {
-      switch (value.synchronizationStatus) {
+      switch (value['synchronizationStatus']) {
         case 'READY_TO_SYNC':
           this.icon = 'time';
           this.title = 'QUALITY.READY_TO_SYNC';
@@ -57,7 +64,7 @@ export class EntityQualityIconComponent {
         this.icon = 'pencil';
         this.title = 'QUALITY.MODIFIED';
         this.color = 'secondary';
-      } else if (!value.validationDate) {
+      } else if (!value['validationDate']) {
         this.icon = 'checkmark';
         this.title = 'QUALITY.CONTROLLED';
         this.color = 'tertiary';

@@ -1,11 +1,7 @@
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {StatusList, Referential, IStatus, splitById} from '@sumaris-net/ngx-components';
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { AppForm, IStatus, Referential, splitById, StatusList } from '@sumaris-net/ngx-components';
+import { ValidatorService } from '@e-is/ngx-material-table';
 
 @Component({
   selector: 'app-referential-form',
@@ -20,8 +16,9 @@ import {AppForm}  from "@sumaris-net/ngx-components";
 })
 export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
-  private _statusList = StatusList;
   statusById: { [id: number]: IStatus; };
+  protected cd: ChangeDetectorRef;
+  private _statusList = StatusList;
 
   @Input() showError = true;
   @Input() showDescription = true;
@@ -41,13 +38,11 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
-    protected validatorService: ValidatorService,
-    protected settings?: LocalSettingsService,
-    protected cd?: ChangeDetectorRef
+    injector: Injector,
+    protected validatorService: ValidatorService
   ) {
-    super(dateAdapter, validatorService.getRowValidator(), settings);
-
+    super(injector, validatorService.getRowValidator());
+    this.cd = injector.get(ChangeDetectorRef);
   }
 
   ngOnInit() {
@@ -70,6 +65,6 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
   }
 
   protected markForCheck() {
-    if (this.cd) this.cd.markForCheck();
+    this.cd?.markForCheck();
   }
 }

@@ -1,8 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -15,7 +13,6 @@ import {
   isNil,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
   PlatformService,
   ReferentialUtils,
   SharedFormGroupValidators,
@@ -134,17 +131,15 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchValidatorService,
-    protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component

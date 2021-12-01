@@ -175,9 +175,9 @@
 
       <!-- Observers -->
       <ng-container *ngIf="showObservers">
-        <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
+        <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first">
           <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-            <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
+            <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
           </ion-col>
           <ion-col>
             <mat-autocomplete-field [formControl]="observersHelper.at(i)"
@@ -186,7 +186,7 @@
                                     [config]="autocompleteFields.person"
                                     [tabindex]="tabindex+10+i*3"
                                     [i18nPrefix]="'USER.'"
-                                    [required]="i === 0">
+                                    [required]="first">
               <ion-icon matPrefix name="person"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>

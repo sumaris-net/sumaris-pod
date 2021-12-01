@@ -26,7 +26,7 @@
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>COMMON.BTN_DELETE</span>
+      <span translate>TRIP.EDIT.BTN_DELETE</span>
     </ion-label>
   </button>
 
@@ -35,7 +35,7 @@
           [disabled]="!dirty"
           (click)="cancel($event)">
     <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
@@ -75,12 +75,7 @@
     <mat-tab label="{{'TRIP.TAB_GENERAL'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label
-          matBadge="*"
-          matBadgeColor="accent"
-          matBadgeSize="small"
-          [matBadgeHidden]="!tripForm.dirty"
-          translate>TRIP.TAB_GENERAL</ion-label>
+        <ion-label translate>TRIP.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
                   *ngIf="error || (submitted && (tripForm.invalid || (saleForm.invalid && saleForm.dirty) || measurementsForm.invalid))">
         </ion-icon>
@@ -104,8 +99,12 @@
                          [returnFieldsRequired]="usageMode|isNotOnField"
                          (onSubmit)="save($event)">
                 <!-- sale -->
-                <form-sale #saleForm [hidden]="!showSaleForm"
-                           [showVessel]="false" [showError]="false" [showComment]="false" [showEndDateTime]="false"
+                <form-sale #saleForm
+                           [class.cdk-visually-hidden]="!showSaleForm"
+                           [showVessel]="false"
+                           [showError]="false"
+                           [showComment]="false"
+                           [showEndDateTime]="false"
                            [required]="false"
                            [tabindex]="10">
                 </form-sale>
@@ -151,7 +150,13 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
-        <ion-label translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
+        <ion-label
+          [matBadge]="physicalGearsTable.visibleRowCount"
+          [matBadgeHidden]="!physicalGearsTable.visibleRowCount"
+          matBadgeColor="primary"
+          matBadgeOverlap="false"
+          matBadgeSize="small"
+          translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="physicalGearsTable.invalid"></ion-icon>
       </ng-template>
 
@@ -180,7 +185,12 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
-        <ion-label translate>TRIP.TAB_OPERATIONS</ion-label>
+        <ion-label [matBadge]="operationsTable.totalRowCount"
+                   [matBadgeHidden]="!operationsTable.totalRowCount"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>TRIP.TAB_OPERATIONS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.invalid && operationsTable.dirty"></ion-icon>
       </ng-template>
 

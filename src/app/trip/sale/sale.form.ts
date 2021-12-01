@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import {SaleValidatorService} from "../services/validator/sale.validator";
 import {Moment} from 'moment';
 import {DateAdapter} from "@angular/material/core";
@@ -40,14 +40,13 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected saleValidatorService: SaleValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, saleValidatorService.getFormGroup(), settings);
+    super(injector, saleValidatorService.getFormGroup());
   }
 
   ngOnInit() {

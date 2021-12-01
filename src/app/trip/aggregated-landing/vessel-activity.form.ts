@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit } from '@angular/core';
-import { DateAdapter } from '@angular/material/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
-import { FormArrayHelper, isNotNilOrBlank, LocalSettingsService, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { FormArrayHelper, isNotNilOrBlank, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { AggregatedLandingService } from '../services/aggregated-landing.service';
 import { VesselActivity } from '../services/model/aggregated-landing.model';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
@@ -42,7 +41,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
 
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected formBuilder: FormBuilder,
     protected dataService: AggregatedLandingService,
     protected programRefService: ProgramRefService,
@@ -50,11 +49,9 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     protected measurementValidatorService: MeasurementsValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
-    public network: NetworkService,
-    protected cd: ChangeDetectorRef
+    public network: NetworkService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, null,
+    super(injector, measurementValidatorService, formBuilder, programRefService, null,
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });

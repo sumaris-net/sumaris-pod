@@ -9,7 +9,7 @@ import {
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
-  firstTruePromise,
+  firstTruePromise, FormErrorAdapter,
   fromDateISOString,
   HistoryPageReference,
   IEntity,
@@ -79,6 +79,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   rankOrder: number;
   selectedBatchTabIndex = 0;
   copyTripDates = false;
+  allowParentOperation = false;
 
   // All second tabs components are disabled, by default
   // (waiting PMFM measurements to decide that to show)
@@ -110,7 +111,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     dataService: OperationService,
     protected tripService: TripService,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService
+    protected platform: PlatformService,
+    protected formErrorAdapter: FormErrorAdapter
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
@@ -332,8 +334,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       );
     }
 
-    const allowParentOperation = this.opeForm.allowParentOperation;
-    if (allowParentOperation) {
+    if (this.allowParentOperation) {
       defaultTableStates = false;
       this._measurementSubscription.add(
         this.opeForm.onParentChanges
@@ -376,7 +377,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     const hasIndividualMeasuresControl = formGroup?.controls[PmfmIds.HAS_INDIVIDUAL_MEASURES];
     if (isNotNil(hasIndividualMeasuresControl)) {
-      if (!allowParentOperation) {
+      if (!this.allowParentOperation) {
         defaultTableStates = true;
       }
       this._measurementSubscription.add(
@@ -391,7 +392,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.batchTree.allowSamplingBatches = hasIndividualMeasures;
             this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
             this.batchTree.allowSubBatches = hasIndividualMeasures;
-            if (!allowParentOperation) {
+            if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
               this.tabCount = 2 + (this.showSampleTables ? 3 : 0);
@@ -413,7 +414,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Abnormal trip => Change comments as required
     const tripProgressControl = formGroup?.controls[PmfmIds.TRIP_PROGRESS];
-    if (isNotNil(samplingTypeControl)) {
+    if (isNotNil(tripProgressControl)) {
       this._measurementSubscription.add(
         tripProgressControl.valueChanges
           .pipe(
@@ -425,6 +426,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           .subscribe(normalProgress => {
             if (!normalProgress) console.debug('[operation] Abnormal OPE: comment is now required');
             this.opeForm.requiredComment = !normalProgress;
+            this.markForCheck();
           })
       );
     }
@@ -445,6 +447,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
     const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
+    this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
 
     this.opeForm.showPosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.showFishingArea = !this.opeForm.showPosition; // Trip has gps in use, so active positions controls else active fishing area control
@@ -453,7 +456,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
-    this.opeForm.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+    this.opeForm.allowParentOperation = this.allowParentOperation;
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
 
@@ -481,8 +484,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);
 
-    const enableWeight = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
-    this.batchTree.batchGroupsTable.showWeightColumns = enableWeight;
+    this.batchTree.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
 
     // TODO CC : Check on tablet mode
     // if (enableWeight) {
@@ -493,11 +495,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // }
 
     const autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
-    if (autoFillDatesFromTrip) {
-      this.opeForm.fillWithTripDates();
-    }
+    if (autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
 
-    this.cd.detectChanges();
+    //this.cd.detectChanges();
 
     this.$ready.next(true);
   }
@@ -852,11 +852,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
 
     // Force to pass specific saved options to dataService.save()
-    return await super.save(event, <OperationSaveOptions>{
+    const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
       updateLinkedOperation: this.opeForm.isParentOperation, // Apply updates on child operation if it exists
       ...opts
     });
+    if (!saved && this.opeForm.invalid) {
+      this.setError(this.opeForm.formError);
+      this.scrollToTop();
+    }
+    return saved;
   }
 
   async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
@@ -867,7 +872,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return !!data && this.trip && isNil(this.trip.validationDate)
       && this.tripService.canUserWrite(this.trip);
   }
-
 
   protected async setDefaultTaxonGroups(enable: boolean) {
     if (!enable) {
@@ -969,6 +973,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   markAsLoaded(opts?: { emitEvent?: boolean }) {
     super.markAsLoaded(opts);
     this.children?.forEach(c => c.markAsLoaded(opts));
+  }
+
+  protected computeNextTabIndex(): number | undefined {
+    if (this.selectedTabIndex > 0) return undefined; // Already on the next tab
+
+    return this.showCatchTab ? OPERATION_TABS.CATCH :
+      (this.showSampleTables ? OPERATION_TABS.SAMPLE : undefined);
   }
 
 }

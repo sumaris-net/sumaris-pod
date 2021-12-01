@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { DateAdapter } from '@angular/material/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -8,7 +7,7 @@ import {
   AppForm,
   DateFormatPipe,
   DisplayFn,
-  fadeInAnimation, fadeInOutAnimation,
+  fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
   FormArrayHelper,
@@ -104,7 +103,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   dates: Observable<Moment[]> | Moment[];
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected dateFormatPipe: DateFormatPipe,
     protected formBuilder: FormBuilder,
     protected dataService: AggregatedLandingService,
@@ -115,7 +114,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     public network: NetworkService,
     protected cd: ChangeDetectorRef,
   ) {
-    super(dateAdapter, null, settings);
+    super(injector, null);
     this.mobile = this.settings.mobile;
 
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING; // default

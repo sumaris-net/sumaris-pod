@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { DateAdapter } from '@angular/material/core';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { ObservedLocationValidatorService } from '../services/validator/observed-location.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
@@ -13,7 +12,6 @@ import {
   isNil,
   isNotNil,
   LoadResult,
-  LocalSettingsService,
   Person,
   PersonService,
   PersonUtils,
@@ -28,7 +26,7 @@ import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/servic
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import {environment} from '@environments/environment';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-form-observed-location',
@@ -111,17 +109,15 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected personService: PersonService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected personService: PersonService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup());
     this._enable = false;
     this.mobile = this.settings.mobile;

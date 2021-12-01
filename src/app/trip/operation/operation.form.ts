@@ -1,12 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DoCheck, EventEmitter, Input, OnInit, Optional, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
-  AppFormUtils,
-  DateFormatPipe,
+  AppFormUtils, DateFormatPipe,
   EntityUtils,
   FormArrayHelper,
   fromDateISOString,
@@ -16,7 +15,6 @@ import {
   isNotNil,
   isNotNilOrNaN,
   LoadResult,
-  LocalSettingsService,
   MatAutocompleteField,
   PlatformService,
   ReferentialRef,
@@ -46,6 +44,7 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
 
 const moment = momentImported;
 
@@ -81,7 +80,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
-  latLongFormat: string;
+  latLongFormat: LatLongPattern;
   mobile: boolean;
   distance: number;
   maxDistanceWarning: number;
@@ -215,18 +214,22 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     super.enable(opts);
   }
 
+  get formError(): string {
+    return this.getFormError(this.form);
+  }
+
   @Output() onParentChanges = new EventEmitter<Operation>();
 
   constructor(
-    protected dateFormat: DateFormatPipe,
+    injector: Injector,
     protected router: Router,
+    protected dateFormat: DateFormatPipe,
     protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected operationService: OperationService,
     protected pmfmService: PmfmService,
-    protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected platform: PlatformService,
     protected formBuilder: FormBuilder,
@@ -234,8 +237,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected cd: ChangeDetectorRef,
     @Optional() protected geolocation: Geolocation
   ) {
-    super(dateFormat, validatorService.getFormGroup(), settings);
-    this.mobile = this.settings.mobile;
+    super(injector, validatorService.getFormGroup());
+    this.mobile = platform.mobile;
+    this.i18nFieldPrefix = 'TRIP.OPERATION.EDIT.';
 
     // A boolean control, to store if parent is a parent or child operation
     this.isParentOperationControl = new FormControl(true, Validators.required);

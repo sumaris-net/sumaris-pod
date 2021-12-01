@@ -13,8 +13,7 @@
 
   <ion-buttons slot="end">
     <!-- history -->
-    <ion-button [disabled]="loading"
-                *ngIf="mobile"
+    <ion-button *ngIf="mobile" [disabled]="loading"
                 [matMenuTriggerFor]="operationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>
     </ion-button>
@@ -44,11 +43,7 @@
                 tappable class="text-1x"
                 [color]="isCurrentData(item) ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
-        <mat-icon *ngIf="item.parentOperation?.id else parentIcon" matPrefix svgIcon="rollback-arrow"></mat-icon>
-        <ng-template #parentIcon>
-          <mat-icon matPrefix svgIcon="down-arrow"></mat-icon>
-          <!--<ion-icon *ngIf="!allowParentOperation else linkedOperation" slot="start" name="navigate"></ion-icon>-->
-        </ng-template>
+        <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
         <ion-grid>
           <ion-row>
             <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset -->
@@ -124,7 +119,7 @@
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>COMMON.BTN_DELETE</span>
+      <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
     </ion-label>
   </button>
 
@@ -132,7 +127,7 @@
   <button mat-menu-item (click)="cancel($event)"
     [disabled]="!dirty">
     <ion-label>
-      <mat-icon><ion-icon slot="start" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>

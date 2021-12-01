@@ -205,6 +205,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.operationsTable.showPosition = positionEnabled;
     this.operationsTable.showFishingArea = !positionEnabled;
+    this.operationsTable.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
     //this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION));
@@ -456,6 +457,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   protected computeUsageMode(data: Trip): UsageMode {
     return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
+  }
+
+  protected computeNextTabIndex(): number | undefined {
+    return super.computeNextTabIndex() || this.selectedTabIndex;
   }
 
   protected computeTitle(data: Trip): Promise<string> {

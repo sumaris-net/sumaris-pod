@@ -42,6 +42,7 @@ import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-b
 import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
 import { A11yModule } from '@angular/cdk/a11y';
 import { VesselModule } from '@app/vessel/vessel.module';
+import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
 
 @NgModule({
   imports: [
@@ -94,7 +95,8 @@ import { VesselModule } from '@app/vessel/vessel.module';
     SampleForm,
     SampleModal,
     SubSamplesTable,
-    IndividualMonitoringSubSamplesTable
+    IndividualMonitoringSubSamplesTable,
+    OperationIconComponent
   ],
   exports: [
     // Modules
@@ -127,7 +129,7 @@ import { VesselModule } from '@app/vessel/vessel.module';
     SampleForm,
     SamplesTable,
     SubSamplesTable,
-    BatchGroupForm,
+    BatchGroupForm
   ],
 })
 export class TripModule {

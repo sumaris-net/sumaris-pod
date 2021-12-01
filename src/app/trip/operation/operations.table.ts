@@ -48,6 +48,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() useSticky = true;
+  @Input() allowParentOperation = false;
 
   @Input() set showQualityColumn(value: boolean) {
     this.setShowColumn('quality', value);
@@ -80,7 +81,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       }
     }
   }
-
 
   @Input() set showPosition(show: boolean) {
     this.setShowColumn('startPosition', show);

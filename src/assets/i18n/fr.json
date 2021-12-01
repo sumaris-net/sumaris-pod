@@ -46,6 +46,7 @@
     "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
+    "BTN_SORT_BY_DOTS": "Trier par...",
     "BTN_SHOW": "Afficher",
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
@@ -463,7 +464,8 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
-      "OTHER_FEATURES": "Caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :",
+      "BTN_DELETE": "Supprimer toute la marée"
     },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
@@ -553,7 +555,6 @@
       "BTN_SHOW_ALL": "Voir tout",
       "BTN_HISTORY": "Historique",
       "BTN_SHOW_MAP": "Carte des opérations",
-      "COMMENTS": "Commentaires",
       "LAST_OPERATIONS": "Dernières opérations",
       "NO_LAST_OPERATION": "Aucune opération précédente",
       "OPE_PREFIX": "OPE",
@@ -564,9 +565,11 @@
       "EDIT": {
         "TITLE": "Ope #{{rankOrder}} <small>du {{startDateTime}}</small>",
         "TITLE_NO_RANK": "Ope {{startDateTime}}",
+        "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
         "BTN_EDIT_PARENT" : "Modifier le filage...",
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",
+        "COMMENTS": "Commentaires",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
@@ -619,6 +622,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
+        "ID": "Numéro",
         "TRIP_ID": "Marée",
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",

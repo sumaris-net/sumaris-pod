@@ -1,25 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {TranslateService} from "@ngx-translate/core";
-import {FormBuilder, Validators} from "@angular/forms";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import * as momentImported from "moment";
-import {Moment} from "moment";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {ProgramRefQueries, ProgramRefService} from "../../../referential/services/program-ref.service";
-import {referentialsToString, referentialToString}  from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {map} from "rxjs/operators";
-import {mergeMap} from "rxjs/internal/operators";
-import {ProgramProperties} from "../../../referential/services/config/program.config";
-import {Program} from "../../../referential/services/model/program.model";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
+import * as momentImported from 'moment';
+import { Moment } from 'moment';
+import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
+import { map } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/internal/operators';
+import { ProgramProperties } from '../../../referential/services/config/program.config';
+import { Program } from '../../../referential/services/model/program.model';
+import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import {ObservedLocationOfflineFilter} from "../../services/filter/observed-location.filter";
 
 const moment = momentImported;
 
@@ -67,7 +60,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
@@ -77,14 +70,13 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter,
+    super(injector,
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
         periodDuration: ['15day', Validators.required],
-      }),
-      settings);
+      }));
     this._enable = false; // Disable by default
     this.mobile = platform.mobile;
 

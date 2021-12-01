@@ -1,17 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {FloatLabelType} from '@angular/material/form-field';
-import {BehaviorSubject} from 'rxjs';
-import {filter, throttleTime} from 'rxjs/operators';
-import {FormBuilder} from '@angular/forms';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {AppForm, filterNotNil, firstFalsePromise, firstNotNilPromise, isNil, isNotNil, LocalSettingsService} from '@sumaris-net/ngx-components';
-import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} from '../services/model/measurement.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import {updateMetaProperty} from '@schematics/angular/third_party/github.com/Microsoft/TypeScript/lib/typescript';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { FloatLabelType } from '@angular/material/form-field';
+import { BehaviorSubject } from 'rxjs';
+import { filter, throttleTime } from 'rxjs/operators';
+import { FormBuilder } from '@angular/forms';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { AppForm, filterNotNil, firstFalsePromise, firstNotNilPromise, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-form-measurements',
@@ -29,13 +25,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   private _loadingPmfms = true; // Important, must be true
 
   protected data: Measurement[];
-
-  $loadingControls = new BehaviorSubject<boolean>(true);
   protected applyingValue = false;
   protected keepRankOrder = false;
   protected skipDisabledPmfmControl = true;
   protected skipComputedPmfmControl = true;
+  protected cd: ChangeDetectorRef
 
+  $loadingControls = new BehaviorSubject<boolean>(true);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
   get loading(): boolean {
@@ -110,14 +106,13 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return this._forceOptional;
   }
 
-  constructor(protected dateAdapter: DateAdapter<Moment>,
+  constructor(injector: Injector,
               protected measurementValidatorService: MeasurementsValidatorService,
               protected formBuilder: FormBuilder,
-              protected programRefService: ProgramRefService,
-              protected settings: LocalSettingsService,
-              protected cd: ChangeDetectorRef
+              protected programRefService: ProgramRefService
   ) {
-    super(dateAdapter, measurementValidatorService.getFormGroup([]), settings);
+    super(injector, measurementValidatorService.getFormGroup([]));
+    this.cd = injector.get(ChangeDetectorRef);
 
     // TODO: DEV only
     //this.debug = true;

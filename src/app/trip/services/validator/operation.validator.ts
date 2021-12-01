@@ -238,7 +238,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
       ];
       endDateTimeControl.setValidators(opts?.isOnFieldMode
-        ? endDateTimeValidators
+        ? Validators.compose(endDateTimeValidators)
         : Validators.compose([Validators.required, ...endDateTimeValidators]));
       endDateTimeControl.enable();
 

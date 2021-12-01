@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, merge, Observable, timer } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
@@ -45,6 +45,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected options: MeasurementValuesFormOptions<T>;
   protected data: T;
   protected applyingValue = false;
+  protected cd: ChangeDetectorRef = null;
 
   get forceOptional(): boolean {
     return this._forceOptional;
@@ -141,16 +142,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.form.get('program');
   }
 
-  protected constructor(protected dateAdapter: DateAdapter<Moment>,
+  protected constructor(injector: Injector,
                         protected measurementValidatorService: MeasurementsValidatorService,
                         protected formBuilder: FormBuilder,
                         protected programRefService: ProgramRefService,
-                        protected settings: LocalSettingsService,
-                        protected cd: ChangeDetectorRef,
                         form?: FormGroup,
                         options?: MeasurementValuesFormOptions<T>
   ) {
-    super(dateAdapter, form, settings);
+    super(injector, form);
+    this.cd = injector.get(ChangeDetectorRef);
     this.options = {
       skipComputedPmfmControl: true,
       skipDisabledPmfmControl: true,
@@ -601,7 +601,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
 
   protected markForCheck() {
-    this.cd.markForCheck();
+    this.cd?.markForCheck();
   }
 
 }

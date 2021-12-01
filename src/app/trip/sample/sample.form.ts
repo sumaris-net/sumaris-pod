@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormBuilder } from '@angular/forms';
@@ -36,18 +36,14 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
-  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
-
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef,
-    protected validatorService: SampleValidatorService,
-    protected settings: LocalSettingsService,
+    protected validatorService: SampleValidatorService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(),
       {
         skipDisabledPmfmControl: false,
@@ -62,6 +58,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     // for DEV only
     this.debug = !environment.production;
   }
+
+  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
 
   ngOnInit() {
     super.ngOnInit();

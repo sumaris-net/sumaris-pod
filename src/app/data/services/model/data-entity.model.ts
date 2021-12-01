@@ -1,5 +1,5 @@
 import {Moment} from "moment";
-import {ReferentialAsObjectOptions}  from "@sumaris-net/ngx-components";
+import { EntityAsObjectOptions, IEntity, ReferentialAsObjectOptions } from '@sumaris-net/ngx-components';
 import { IWithRecorderDepartmentEntity, SynchronizationStatus } from './model.utils';
 import {Entity}  from "@sumaris-net/ngx-components";
 import {Department}  from "@sumaris-net/ngx-components";
@@ -48,13 +48,24 @@ export const CLONE_AS_OBJECT_OPTIONS = Object.freeze(<DataEntityAsObjectOptions>
 });
 
 
-export abstract class DataEntity<
-  T extends DataEntity<T, ID, O>,
+export interface IDataEntity<T = any,
   ID = number,
-  O extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any
+  > extends IEntity<T, ID, AO, FO>, IWithRecorderDepartmentEntity<T, ID, AO, FO> {
+  recorderDepartment: Department;
+  controlDate: Moment;
+  qualificationDate: Moment;
+  qualityFlagId: number;
+}
+
+export abstract class DataEntity<
+  T extends DataEntity<T, ID, AO>,
+  ID = number,
+  AO extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
   FO = any>
-  extends Entity<T, ID, O>
-  implements IWithRecorderDepartmentEntity<T, ID> {
+  extends Entity<T, ID, AO>
+  implements IDataEntity<T, ID, AO, FO> {
 
   recorderDepartment: Department;
   controlDate: Moment;
@@ -67,7 +78,7 @@ export abstract class DataEntity<
     this.recorderDepartment = null;
   }
 
-  asObject(opts?: O): any {
+  asObject(opts?: AO): any {
     const target = super.asObject(opts);
     if (opts && opts.keepRemoteId === false && target.id >= 0) delete target.id;
     if (opts && opts.keepUpdateDate === false && target.id >= 0) delete target.updateDate;

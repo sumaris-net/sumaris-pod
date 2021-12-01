@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import {ModalController} from '@ionic/angular';
 import {TranslateService} from '@ngx-translate/core';
 import {FormBuilder, Validators} from '@angular/forms';
@@ -62,7 +62,7 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
@@ -70,16 +70,14 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter,
+    super(injector,
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         vesselSnapshot: [null, Validators.required],
         periodDuration: ['15day', Validators.required],
-      }),
-      settings);
+      }));
     this._enable = false; // Disable by default
     this.mobile = platform.mobile;
 
