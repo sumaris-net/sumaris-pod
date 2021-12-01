@@ -308,6 +308,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       // Default filter. An excludedIds will be add dynamically
       filter: {
+        entityName: 'Metier',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: metierAttributes
@@ -755,5 +756,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  notHiddenPmfm(pmfm: IPmfm) {
+    return !pmfm.hidden;
   }
 }
