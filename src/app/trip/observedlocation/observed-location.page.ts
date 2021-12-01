@@ -300,6 +300,32 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
+  get canUserCancelOrDelete(): boolean {
+    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+
+    // When connected user is an admin
+    if (this.accountService.isAdmin()) {
+      return true;
+    }
+
+    const entity = this.data;
+
+    // When observed location has been recorded by connected user
+    const recorder = entity.recorderPerson;
+    const connectedPerson = this.accountService.person;
+    if (connectedPerson.id === recorder?.id) {
+      return true;
+    }
+
+    // When connected user is in observed location observers
+    for (const observer of entity.observers) {
+      if (connectedPerson.id === observer.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -307,8 +333,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (!program) return; // Skip
 
     try {
-    this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
-    this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
+      this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
+      this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
     this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.observedLocationForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE);
     if (!this.observedLocationForm.showObservers && this.data?.observers) {
