@@ -11,7 +11,7 @@ import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-
 const noop = () => {
 };
 
-export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' | 'button' ;
+export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' ;
 
 @Component({
   selector: 'app-pmfm-field',
@@ -84,7 +84,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() acquisitionNumber: number;
 
   // When async validator (e.g. BatchForm), force update when error detected
-  @Input() listenStatusChanges: boolean;
+  @Input() listenStatusChanges = false;
 
   @Output('keyup.enter')
   onPressEnter = new EventEmitter<any>();
@@ -144,7 +144,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
         control.statusChanges.subscribe((_) => this.cd.markForCheck());
       }
       this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-      //console.log()
+
       this.required = toBoolean(this.required, this.pmfm.required);
 
       this.updateTabIndex();

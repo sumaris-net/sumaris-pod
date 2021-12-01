@@ -8,7 +8,7 @@ export declare type PmfmType = ParameterType | 'integer';
 
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/(]+)[/(]\s*(.*)$/);
+export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)((?:\s+\/\s+[^/]+)|(?:\([^\)]+\)))$/);
 
 export interface IPmfm<
   T extends Entity<T, ID> = Entity<any, any>,
@@ -266,7 +266,7 @@ export abstract class PmfmUtils {
 
     let name;
     if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
-      // Is complete name exists, use it
+      // If withDetails = true, use complete name if exists
       if (opts && opts.withDetails && pmfm.completeName) {
         if (opts.html) {
           const parts = pmfm.completeName.split(' - ')
@@ -275,8 +275,9 @@ export abstract class PmfmUtils {
         return pmfm.completeName;
       }
 
-      // Remove parenthesis content, if any
-      const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
+      // Remove parenthesis content (=unit), if any
+      // e.g. 'Longueur totale (LT)' should becomes 'Longueur totale'
+      const matches = PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP.exec(pmfm.name || '');
       name = matches && matches[1] || pmfm.name;
     } else if (PmfmUtils.isFullPmfm(pmfm)) {
       name = pmfm.parameter && pmfm.parameter.name;
