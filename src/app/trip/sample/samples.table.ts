@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
-import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorService } from '../services/validator/sample.validator';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {SampleValidatorService} from '../services/validator/sample.validator';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -26,25 +26,27 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
-import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
-import { ISampleModalOptions, SampleModal } from './sample.modal';
-import { FormGroup } from '@angular/forms';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
-import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
-import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { MatMenu } from '@angular/material/menu';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { isNilOrNaN } from '@app/shared/functions';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import {Moment} from 'moment';
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
+import {ISampleModalOptions, SampleModal} from './sample.modal';
+import {FormGroup} from '@angular/forms';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {Sample} from '../services/model/sample.model';
+import {AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from '../services/filter/sample.filter';
+import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
+import {BehaviorSubject, Subject, Subscription} from 'rxjs';
+import {MatMenu} from '@angular/material/menu';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {isNilOrNaN} from '@app/shared/functions';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {BatchGroup} from '@app/trip/services/model/batch-group.model';
+import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 
 const moment = momentImported;
 
@@ -78,6 +80,9 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   private _footerRowsSubscription: Subscription;
+  // TODO: BLA: revoir ceci ? Pourquoi ici
+  private _availableReleases: Sample[] = [];
+
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
@@ -100,6 +105,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() canAddPmfm = false;
   @Input() showError = true;
   @Input() showToolbar: boolean;
+  @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   @Input() showDateTimeColumn = true;
@@ -109,6 +115,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
+  @Input() individualReleaseModalOptions: Partial<ISubSampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
@@ -154,11 +161,23 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
+
+  @Input()
+  set availableReleases(children: Sample[]) {
+    if (this._availableReleases !== children) {
+
+      this._availableReleases = children;
+      this.linkReleasesToParent();
+    }
+  }
+
+
   get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<{form: FormGroup, pmfms: IPmfm[]}>();
+  @Output() onPrepareRowForm = new EventEmitter<{ form: FormGroup, pmfms: IPmfm[] }>();
+  @Output() onIndividualReleaseChanges = new EventEmitter<Sample>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -221,7 +240,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             this.onPrepareRowForm.emit(event);
 
             // Force update of the form validity
-            event.form?.updateValueAndValidity({ emitEvent: true, onlySelf: false });
+            event.form?.updateValueAndValidity({emitEvent: true, onlySelf: false});
           })
         )
         .subscribe());
@@ -274,6 +293,11 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return column.key;
   }
 
+  setIndividualReleaseModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
+    this.individualReleaseModalOptions = this.individualReleaseModalOptions || {};
+    this.individualReleaseModalOptions[key as any] = value;
+  }
+
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
     //const pmfms = await firstNotNilPromise(this.$pmfms);
@@ -305,13 +329,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         this.onPrepareRowForm.emit({form, pmfms});
       },
       onSaveAndNew: async (dataToSave) => {
-        if (!isNew) {
+        if (isNew) {
+          await this.addEntityToTable(dataToSave);
+        } else {
           this.updateEntityToTable(dataToSave, row);
           row = null; // Avoid updating twice (should never occur, because onSubmitAndNext always create a new entity)
           isNew = true; // Next row should be new
-        }
-        else {
-          await this.addEntityToTable(dataToSave);
         }
         // Prepare new sample
         const newData = new Sample();
@@ -320,6 +343,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       },
 
       onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
+      openIndividualReleaseModal: (subSample) => this.openIndividualReleaseModalFromParentModal(dataToOpen),
 
       // Override using given options
       ...this.modalOptions,
@@ -341,10 +365,109 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug("[samples-table] Modal result: ", data);
+    if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
     this.markAsLoaded();
 
     return data instanceof Sample ? data : undefined;
+  }
+
+  async onSubSampleClick(event: UIEvent,
+                         row: TableElement<Sample>) {
+    if (event) event.preventDefault();
+
+    // Loading spinner
+    this.markAsLoading();
+
+    try {
+
+      const selectedParent = this.toEntity(row);
+      const subSample = await this.openIndividualReleaseModal(selectedParent, {enableParent: false});
+
+      if (isNil(subSample)) return; // User cancelled
+
+      // Update the batch group, from subbatches (e.g. observed individual count)
+      this.onIndividualReleaseChanges.emit(subSample);
+
+    } finally {
+      this.markAsLoaded();
+    }
+  }
+
+  protected async openIndividualReleaseModalFromParentModal(parent: Sample): Promise<Sample> {
+
+    // Make sure the row exists
+    this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
+      || (await this.findRowByEntity(parent))
+      // Or add it to table, if new
+      || (await this.addEntityToTable(parent, {confirmCreate: false}));
+
+    parent.children = this._availableReleases.filter(r => r.parent.id === parent?.id);
+
+    const subSamples = await this.openIndividualReleaseModal(parent, {
+      enableParent: false // action triggered from the parent sample modal, so the parent field can be hidden
+    });
+
+    if (isNil(subSamples)) return; // User cancelled
+
+    // Return the updated parent
+    return parent;
+  }
+
+  protected async openIndividualReleaseModal(parentSample?: Sample, opts?: {
+    enableParent: boolean
+  }): Promise<Sample | undefined> {
+
+    const enableParent = !opts || opts.enableParent !== false; // True by default
+    const onModalDismiss = new Subject<any>();
+
+    const isNew = !parentSample || !parentSample.children || parentSample.children.length === 0;
+    let subSample: Sample;
+    if (isNew) {
+      subSample = new Sample();
+      subSample.parent = parentSample;
+    } else {
+      subSample = parentSample.children[0];
+    }
+
+    const hasTopModal = !!(await this.modalCtrl.getTop());
+    const modal = await this.modalCtrl.create({
+      component: SubSampleModal,
+      componentProps: <ISubSampleModalOptions>{
+        programLabel: this.programLabel,
+        usageMode: this.usageMode,
+        isNew,
+        enableParent,
+        data: subSample,
+        showLabel: false,
+        disabled: this.disabled,
+        maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
+        mobile: this.mobile,
+        ...this.individualReleaseModalOptions
+      },
+      backdropDismiss: false,
+      keyboardClose: true,
+      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+
+    onModalDismiss.next(); // disconnect observables
+
+    // User cancelled
+    if (isNil(data)) {
+      if (this.debug) console.debug('[sample-table] Sub-sample modal: user cancelled');
+    } else {
+      // DEBUG
+      if (this.debug) console.debug('[sample-table] Sub-sample modal result: ', data);
+
+      this.onIndividualReleaseChanges.emit(data);
+    }
+
+    return data;
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
@@ -408,6 +531,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   /* -- protected methods -- */
 
+  protected async linkReleasesToParent() {
+
+    const rows = await this.dataSource.getRows();
+
+    // Check if need to delete some rows
+    const data = rows.filter(row => {
+      const item = row.currentData;
+      item.children = this._availableReleases.filter(r => r.parent.id === item.id);
+      return true;
+    }).map(r => r.currentData);
+
+    this.value = data;
+  }
+
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
@@ -433,7 +570,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug('[sample-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 
@@ -468,7 +605,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
       const newTagId = isNilOrNaN(existingTagIdAsNumber)
         ? (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength)
-        : (existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, "0");
+        : (existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, '0');
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
       this.currentTagId = newTagId; // Remember, for next iteration
     }
@@ -511,8 +648,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     const updatedData = await this.openDetailModal(data, row);
     if (updatedData) {
       await this.updateEntityToTable(updatedData, row);
-    }
-    else {
+    } else {
       this.editedRow = null;
     }
     return true;
@@ -523,7 +659,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
-    if (!data || isNil(data.rankOrder)) throw new Error("Missing argument data or data.rankOrder");
+    if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
     return (await this.dataSource.getRows())
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
@@ -589,7 +725,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (isEmptyArray(pmfms)) return pmfms; // Nothing to map
 
     if (this.showGroupHeader) {
-      console.debug("[samples-table] Computing Pmfm group header...");
+      console.debug('[samples-table] Computing Pmfm group header...');
 
       // Wait until map is loaded
       const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
@@ -611,7 +747,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         }
 
         const groupPmfmCount = groupPmfms.length;
-        if(groupPmfmCount){
+        if (groupPmfmCount) {
           ++groupIndex;
         }
         const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
@@ -663,7 +799,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
         + (this.showCommentsColumn ? 1 : 0);
 
-      pmfms  = orderedPmfms;
+      pmfms = orderedPmfms;
     }
 
     // No pmfm group (no table top headers)
@@ -676,7 +812,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Add replacement map, for sort by
     const dataService = this.memoryDataService;
-    pmfms.forEach(p => dataService.addSortByReplacement(p.id.toString(), "measurementValues." + p.id.toString()));
+    pmfms.forEach(p => dataService.addSortByReplacement(p.id.toString(), 'measurementValues.' + p.id.toString()));
 
     return pmfms;
   }
@@ -691,8 +827,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       case PmfmIds.OUT_OF_SIZE_PCT:
         if (pmfmValue && pmfmValue > 50) {
           color = 'danger';
-        }
-        else {
+        } else {
           color = 'success';
         }
         break;
@@ -731,16 +866,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.showFooter = this.footerColumns.length > 1;
 
     // DEBUG
-    console.debug('[samples-table] Show footer ?', this.showFooter)
+    console.debug('[samples-table] Show footer ?', this.showFooter);
 
     // Remove previous rows listener
     if (!this.showFooter && this._footerRowsSubscription) {
       this.unregisterSubscription(this._footerRowsSubscription);
-      this._footerRowsSubscription.unsubscribe()
+      this._footerRowsSubscription.unsubscribe();
       this._footerRowsSubscription = null;
-    }
-
-    else if (this.showFooter && !this._footerRowsSubscription) {
+    } else if (this.showFooter && !this._footerRowsSubscription) {
       this._footerRowsSubscription = this.dataSource.connect(null)
         .pipe(
           debounceTime(500)
@@ -752,7 +885,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Update tag count
     const tagCount = (rows || []).map(row => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string)
       .filter(isNotNilOrBlank)
-      .length
+      .length;
     this.tagCount$.next(tagCount);
   }
 }

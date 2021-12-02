@@ -19,7 +19,6 @@ import {
   isNotNilOrBlank,
   PlatformService,
   ReferentialUtils,
-  SharedValidators,
   toBoolean,
   toNumber,
   UsageMode,
@@ -40,6 +39,7 @@ import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
+import {Sample} from '@app/trip/services/model/sample.model';
 
 const moment = momentImported;
 
@@ -213,6 +213,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           // Will refresh the tables (inside the setter):
           this.individualMonitoringTable.availableParents = availableParents;
           this.individualReleaseTable.availableParents = availableParents;
+          this.samplesTable.setIndividualReleaseModalOption('availableParents', availableParents);
+        }));
+
+    // Update available releases on sample table, when sub-samples changes
+    this.registerSubscription(
+      this.individualReleaseTable.dataSource.datasourceSubject
+        .pipe(
+          debounceTime(500),
+          // skip if loading
+          filter(() => !this.loading)
+        )
+        .subscribe(samples => {
+          if (this.loading) return; // skip during loading
+
+          this.samplesTable.availableReleases = (samples || [])
+            .filter(s => isNotNil(s.parent));
         }));
 
     if (this.measurementsForm) {
@@ -961,6 +977,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       data.parentOperation = undefined;
     }
   }
+
+
+  async onIndividualReleaseChanges(subSamples: Sample) {
+    if (isNil(subSamples)) return; // user cancelled
+
+    if (this.individualReleaseTable) {
+      await this.individualReleaseTable.addRowFromValue(subSamples);
+    }
+  }
+
 
   protected computePageUrl(id: number | 'new'): string | any[] {
     const parentUrl = this.getParentPageUrl();

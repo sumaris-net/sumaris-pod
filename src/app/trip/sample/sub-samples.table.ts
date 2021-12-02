@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
 import {SubSampleValidatorService} from '../services/validator/sub-sample.validator';
 import {EntityUtils, filterNotNil, firstFalsePromise, InMemoryEntitiesService, isNil, isNotNil, joinPropertiesPath, toNumber, UsageMode} from '@sumaris-net/ngx-components';
@@ -10,6 +10,8 @@ import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 import {environment} from '@environments/environment';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
+import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
+import {SAMPLE_TABLE_DEFAULT_I18N_PREFIX} from '@app/trip/sample/samples.table';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -68,7 +70,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   @Input() showLabelColumn = false;
-
+  @Input() modalOptions: Partial<ISubSampleModalOptions>;
+  @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() useSticky: true;
 
@@ -94,9 +97,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-    // TODO: override openDetailModal(), then uncomment :
-    // this.inlineEdition = !this.mobile;
-    this.inlineEdition = true;
+
+    this.inlineEdition = !this.mobile;
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -193,7 +195,113 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService.value = data;
   }
 
+  async addRowFromValue(subSample: Sample){
+    if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)){
+      await this.onNewEntity(subSample);
+      await this.addEntityToTable(subSample);
+    }
+    else {
+      const row = await this.findRowByEntity(subSample);
+      await this.updateEntityToTable(subSample, row);
+    }
+  }
+
+  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+    console.debug('[sub-samples-table] Opening detail modal...');
+
+    let isNew = !dataToOpen && true;
+    if (isNew) {
+      dataToOpen = new Sample();
+      await this.onNewEntity(dataToOpen);
+    }
+
+    this.markAsLoading();
+
+    const options: Partial<ISubSampleModalOptions> = {
+      // Default options:
+      programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
+      pmfms: this.$pmfms,
+      acquisitionLevel: this.acquisitionLevel,
+      disabled: this.disabled,
+      i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
+      usageMode: this.usageMode,
+      mobile: this.mobile,
+      availableParents: this._availableSortedParents,
+      onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
+
+      // Override using given options
+      ...this.modalOptions,
+
+      // Data to open
+      isNew,
+      data: dataToOpen
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: SubSampleModal,
+      componentProps: options,
+      keyboardClose: true,
+      backdropDismiss: false
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug('[sub-samples-table] Modal result: ', data);
+    this.markAsLoaded();
+
+    return data instanceof Sample ? data : undefined;
+  }
+
+
+  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
+  }
+
   /* -- protected methods -- */
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
+    }
+    return true;
+  }
+
+  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    const data = this.toEntity(row, true);
+
+    // Prepare entity measurement values
+    this.prepareEntityToSave(data);
+
+    const updatedData = await this.openDetailModal(data, row);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
+    } else {
+      this.editedRow = null;
+    }
+    return true;
+  }
 
   protected getValue(): Sample[] {
     return this.memoryDataService.value;
@@ -203,8 +311,14 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Override by subclasses
   }
 
+  protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
+    if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
+    return (await this.dataSource.getRows())
+      .find(r => r.currentData.rankOrder === data.rankOrder);
+  }
+
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug("[sub-samples-table] Initializing new row data...");
 
     await super.onNewEntity(data);
 

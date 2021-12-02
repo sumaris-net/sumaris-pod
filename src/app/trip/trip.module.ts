@@ -40,8 +40,10 @@ import {AppCoreModule} from '@app/core/core.module';
 import {SelectOperationModal} from '@app/trip/operation/select-operation.modal';
 import {SelectOperationByTripTable} from '@app/trip/operation/select-operation-by-trip.table';
 import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
-import { A11yModule } from '@angular/cdk/a11y';
-import { VesselModule } from '@app/vessel/vessel.module';
+import {A11yModule} from '@angular/cdk/a11y';
+import {VesselModule} from '@app/vessel/vessel.module';
+import {SubSampleForm} from '@app/trip/sample/sub-sample.form';
+import {SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
 
 @NgModule({
@@ -95,6 +97,8 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
     SampleForm,
     SampleModal,
     SubSamplesTable,
+    SubSampleForm,
+    SubSampleModal,
     IndividualMonitoringSubSamplesTable,
     OperationIconComponent
   ],

@@ -756,7 +756,8 @@
         "LABEL_PLACEHOLDER": "Batch",
         "DATE_TIME_PLACEHOLDER": "Sample date",
         "TAXON_GROUP_PLACEHOLDER": "Commercial species (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)"
+        "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)",
+        "BTN_INDIVIDUAL_RELEASE": "Fill release"
       },
       "TABLE": {
         "LABEL": "Batch",
@@ -786,6 +787,16 @@
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Sample: enable burst mode?"
+      }
+    },
+    "INDIVIDUAL_RELEASE" : {
+      "NEW": {
+        "TITLE": "New release"
+      },
+      "EDIT": {
+        "TITLE": "Release {{label}}",
+        "LABEL_PLACEHOLDER": "Batch",
+        "PARENT": "Parent sample"
       }
     }
   },

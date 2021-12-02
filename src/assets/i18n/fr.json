@@ -769,7 +769,8 @@
         "LABEL_PLACEHOLDER": "Lot",
         "DATE_TIME_PLACEHOLDER": "Date échantillon",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)"
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
+        "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché"
       },
       "TABLE": {
         "LABEL": "Lot",
@@ -820,6 +821,16 @@
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
+      }
+    },
+    "INDIVIDUAL_RELEASE" : {
+      "NEW": {
+        "TITLE": "Nouveau relâché"
+      },
+      "EDIT": {
+        "TITLE": "Relâché {{label}}",
+        "LABEL_PLACEHOLDER": "Libellé",
+        "PARENT": "Echantillon parent"
       }
     }
   },
