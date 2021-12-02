@@ -435,6 +435,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       componentProps: <ISubSampleModalOptions>{
         programLabel: this.programLabel,
         usageMode: this.usageMode,
+        acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_RELEASE,
         isNew,
         enableParent,
         data: subSample,

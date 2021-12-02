@@ -978,7 +978,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
-
   async onIndividualReleaseChanges(subSamples: Sample) {
     if (isNil(subSamples)) return; // user cancelled
 
@@ -986,7 +985,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       await this.individualReleaseTable.addRowFromValue(subSamples);
     }
   }
-
 
   protected computePageUrl(id: number | 'new'): string | any[] {
     const parentUrl = this.getParentPageUrl();

@@ -242,18 +242,18 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && samplesTable.invalid"></ion-icon>
       </ng-template>
 
-          <app-samples-table #samplesTable
-                             [debug]="debug"
-                             acquisitionLevel="SAMPLE"
-                             [usageMode]="usageMode"
-                             [showToolbar]="!mobile"
-                             [mobile]="mobile"
-                             [useSticky]="mobile"
-                             [showLabelColumn]="false"
-                             [showDateTimeColumn]="true"
-                             (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)">
-          </app-samples-table>
-        </mat-tab>
+      <app-samples-table #samplesTable
+                         [debug]="debug"
+                         acquisitionLevel="SAMPLE"
+                         [usageMode]="usageMode"
+                         [showToolbar]="!mobile"
+                         [mobile]="mobile"
+                         [useSticky]="mobile"
+                         [showLabelColumn]="false"
+                         [showDateTimeColumn]="true"
+                         (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)">
+      </app-samples-table>
+    </mat-tab>
 
     <!-- TAB: Individual monitoring  -->
     <mat-tab #subSampleTab [label]="'TRIP.OPERATION.EDIT.TAB_SUB_SAMPLES'|translateContext: i18nContext.suffix"
@@ -296,17 +296,14 @@
                   *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
       </ng-template>
 
-          <app-sub-samples-table #individualReleaseTable
-                                 acquisitionLevel="INDIVIDUAL_RELEASE"
-                                 [programLabel]="showSampleTablesByProgram && $programLabel|async"
-                                 [usageMode]="usageMode"
-                                 [mobile]="mobile"
-                                 [showLabelColumn]="false"
-                                 [debug]="debug">
-          </app-sub-samples-table>
-        </mat-tab>
-      </mat-tab-group>
-
+      <app-sub-samples-table #individualReleaseTable
+                             acquisitionLevel="INDIVIDUAL_RELEASE"
+                             [programLabel]="showSampleTablesByProgram && $programLabel|async"
+                             [usageMode]="usageMode"
+                             [mobile]="mobile"
+                             [showLabelColumn]="false"
+                             [debug]="debug">
+      </app-sub-samples-table>
     </mat-tab>
   </mat-tab-group>
 

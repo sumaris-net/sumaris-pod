@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {DateAdapter} from '@angular/material/core';
 import {Moment} from 'moment';
@@ -42,7 +42,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   @Input() displayParentPmfm: IPmfm;
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    protected injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
@@ -50,7 +50,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     protected validatorService: SubSampleValidatorService,
     protected settings: LocalSettingsService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)

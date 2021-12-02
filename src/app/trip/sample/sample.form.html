@@ -82,7 +82,7 @@
       </ion-col>
     </ion-row>
 
-    <ng-content select="[showCommentButton]"></ng-content>
+    <ng-content select="[beforeComment]"></ng-content>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
@@ -99,7 +99,7 @@
       </ion-col>
     </ion-row>
 
-    <ng-content select="[ionButtons]"></ng-content>
+    <ng-content select="[afterComment]"></ng-content>
   </ion-grid>
 
 

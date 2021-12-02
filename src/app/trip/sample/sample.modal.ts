@@ -213,7 +213,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       if (!data) return; // invalid
 
       this.loading = true;
-      await this.modalCtrl.dismiss(data, <SampleModalResultRole>'validate');
+      await this.modalCtrl.dismiss(data);
     }
   }
 
@@ -229,7 +229,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  async onShowSubSampleButtonClick(event?: UIEvent) {
+  async showIndividualReleaseModal(event?: UIEvent) {
     if (!this.openIndividualReleaseModal) return; // Skip
 
     // Save

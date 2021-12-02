@@ -770,7 +770,8 @@
         "DATE_TIME_PLACEHOLDER": "Date échantillon",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
-        "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché"
+        "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi",
+        "BTN_INDIVIDUAL_RELEASE": "Saisir un relâché"
       },
       "TABLE": {
         "LABEL": "Lot",
