@@ -5,8 +5,10 @@ import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
-  AppFormUtils, DateFormatPipe,
-  EntityUtils, firstTruePromise,
+  AppFormUtils,
+  DateFormatPipe,
+  EntityUtils,
+  firstTruePromise,
   FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
@@ -43,9 +45,8 @@ import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
-import { waitFor } from '../../../../ngx-sumaris-components/src/app/shared/observables';
 
 const moment = momentImported;
 
@@ -183,15 +184,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   get parentControl(): FormControl {
-    return this.form.get('parentOperation') as FormControl;
+    return this.form?.controls.parentOperation as FormControl;
   }
 
   get childControl(): FormControl {
-    return this.form.get('childOperation') as FormControl;
+    return this.form?.controls.childOperation as FormControl;
   }
 
   get fishingAreasForm(): FormArray {
     return this.form?.controls.fishingAreas as FormArray;
+  }
+
+  get qualityFlagControl(): FormControl {
+    return this.form?.controls.qualityFlagId as FormControl;
   }
 
   get isParentOperation(): boolean {
@@ -364,9 +369,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.setIsParentOperation(isParentOperation, {emitEvent: false});
     }
 
-    super.setValue(data, opts);
+    if (isParentOperation && isNil(data.qualityFlagId)) {
+      data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
+    }
 
-    this.markAsLoaded();
+    super.setValue(data, opts);
   }
 
   setTrip(trip: Trip) {
@@ -650,7 +657,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
-  protected async onPhysicalGearChanged(physicalGear) {
+  protected async onPhysicalGearChanged(physicalGear: PhysicalGear) {
     const metierControl = this.form.get('metier');
     const physicalGearControl = this.form.get('physicalGear');
 
@@ -678,6 +685,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   protected async loadMetiers(physicalGear?: PhysicalGear | any): Promise<ReferentialRef[]> {
 
+    console.log('TODO loadMetiers');
     // No gears selected: skip
     if (EntityUtils.isEmpty(physicalGear, 'id')) return undefined;
 
@@ -749,52 +757,70 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     if (this.isParentOperationControl.value !== isParent) {
       this.isParentOperationControl.setValue(isParent, opts);
     }
+    const emitEvent = (!opts || opts.emitEvent !== false);
 
     // Parent operation (= Filage) (or parent not used)
     if (isParent) {
-      if (!opts || opts.emitEvent !== false) {
+      if (emitEvent) {
         // Clean child fields
         this.form.patchValue({
           fishingEndDateTime: null,
           endDateTime: null,
           physicalGear: null,
           metier: null,
-          parentOperation: null
+          parentOperation: null,
+          qualityFlagId: QualityFlagIds.NOT_COMPLETED
         });
 
         this.updateFormGroup();
       }
-      else if (!this.childControl) {
-        this.updateFormGroup(); // Create the child control
+
+      // Silent mode
+      else {
+        if (!this.childControl) this.updateFormGroup({ emitEvent: false }); // Create the child control
+
+        // Make sure qualityFlag has been set
+        this.qualityFlagControl.reset(QualityFlagIds.NOT_COMPLETED, { emitEvent: false });
       }
     }
 
     // Child operation (=Virage)
     else {
-      if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
-        // Copy parent fields -> child fields
-        this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
-        this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
-        if (this.showFishingArea) this.form.get('fishingAreas')?.patchValue(this.form.get('fishingAreas').value);
+      if (emitEvent) {
+        if (!this.parentControl.value) {
+          // Copy parent fields -> child fields
+          this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
+          this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
+          if (this.showFishingArea) this.form.get('fishingAreas')?.patchValue(this.form.get('fishingAreas').value);
 
-        // Clean parent fields (should be filled after parent selection)
-        this.form.patchValue({
-          startDateTime: null,
-          fishingStartDateTime: null,
-          physicalGear: null,
-          metier: null,
-          childOperation: null
-        });
+          // Clean parent fields (should be filled after parent selection)
+          this.form.patchValue({
+            startDateTime: null,
+            fishingStartDateTime: null,
+            physicalGear: null,
+            metier: null,
+            childOperation: null,
+            qualityFLagId: null
+          });
 
-        this.updateFormGroup();
+          this.updateFormGroup();
 
-        // Propage to page, that there is an operation
-        //setTimeout(() => this.onParentChanges.next(new Operation()), 600);
+          // Select a parent (or same if user cancelled)
+          this.addParentOperation();
 
-        // Select a parent (or same if user cancelled)
-        this.addParentOperation();
+        }
+      }
+      // Silent mode
+      else {
+        // Reset qualityFlag
+        this.qualityFlagControl.reset(null, { emitEvent: false });
       }
     }
+  }
+
+  protected getFieldName(path: string): string {
+    if (path === 'metier') return super.getFieldName('targetSpecies');
+    return super.getFieldName(path);
   }
 
   protected setPosition(positionControl: AbstractControl, position?: VesselPosition) {

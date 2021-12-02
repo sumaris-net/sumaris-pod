@@ -20,7 +20,7 @@
                                 [mobile]="mobile"
                                 [tabindex]="tabindex"
                                 (keydown.tab)="focusNextInput($event)"
-                                (keydown.enter)="focusNextInput($event)">
+                                (keyup.enter)="focusNextInput($event)">
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" class="ion-no-padding" *ngIf="onNewParentClick">
@@ -35,20 +35,18 @@
 
   <form [formGroup]="measurementValuesForm">
     <!-- QV pmfm -->
-    <app-pmfm-qv-field #inputField
+    <app-pmfm-field #inputField
                        *ngIf="!loading && qvPmfm as pmfm"
                        [pmfm]="pmfm"
-                       [formControlName]="pmfm.id|toString"
                        [style]="mobile && 'button'"
                        [required]="true"
                        [floatLabel]="floatLabel"
                        [compact]="compact"
                        [tabindex]="tabindex+1"
-                       (keydown.tab)="focusNextInput($event)"
-                       (keydown.enter)="focusNextInput($event)"
-                       [buttonsColCount]="pmfm.qualitativeValues.length">
+                       (keyup.enter)="focusNextInput($event)"
+                       [maxVisibleButtons]="pmfm.qualitativeValues.length">
       <!-- checkbox to freeze -->
-      <mat-checkbox  matAfter
+      <mat-checkbox  matSuffix
                      *ngIf="!mobile"
                      [formControl]="freezeQvPmfmControl"
                      [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
@@ -56,7 +54,7 @@
                      tabindex="-1">
         <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
       </mat-checkbox>
-    </app-pmfm-qv-field>
+    </app-pmfm-field>
   </form>
 
   <!-- Taxon name -->
@@ -70,8 +68,7 @@
                             [config]="autocompleteFields.taxonName"
                             [required]="true"
                             [tabindex]="tabindex+2"
-                            (keydown.tab)="focusNextInput($event)"
-                            (keydown.enter)="focusNextInput($event)">
+                            (keyup.enter)="focusNextInput($event)">
       <!-- checkbox to freeze value -->
       <mat-checkbox  matSuffix
                      [formControl]="freezeTaxonNameControl"

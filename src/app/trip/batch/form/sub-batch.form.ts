@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDest
 import { Batch } from '../../services/model/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import {
@@ -56,9 +56,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
 
   mobile: boolean;
-  enableIndividualCountControl: AbstractControl;
-  freezeTaxonNameControl: AbstractControl;
-  freezeQvPmfmControl: AbstractControl;
+  enableIndividualCountControl: FormControl;
+  freezeTaxonNameControl: FormControl;
+  freezeQvPmfmControl: FormControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
 

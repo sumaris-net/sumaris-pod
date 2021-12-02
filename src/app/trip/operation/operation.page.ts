@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, ViewChild } from '@angular/core';
 import {OperationQueries, OperationSaveOptions, OperationService} from '../services/operation.service';
 import {OperationForm} from './operation.form';
 import {TripService} from '../services/trip.service';
@@ -11,7 +11,7 @@ import {
   firstNotNilPromise,
   firstTruePromise, FormErrorAdapter,
   fromDateISOString,
-  HistoryPageReference,
+  HistoryPageReference, Hotkeys,
   IEntity,
   isNil,
   isNotEmptyArray,
@@ -40,6 +40,11 @@ import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
 import {Sample} from '@app/trip/services/model/sample.model';
+import { DOCUMENT } from '@angular/common';
+import { modalController } from '@ionic/core';
+import { AppHelpModal } from '../../../../ngx-sumaris-components/src/app/shared/help/help.modal';
+import { RegisterModal } from '../../../../ngx-sumaris-components/src/app/core/register/modal/modal-register';
+import { ModalController } from '@ionic/angular';
 
 const moment = momentImported;
 
@@ -83,7 +88,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
   $programLabel = new BehaviorSubject<string>(null);
-  $program = new Subject<Program>();
   $tripId = new BehaviorSubject<number>(null);
   $lastOperations = new BehaviorSubject<Operation[]>(null);
   $ready = new BehaviorSubject(false);
@@ -103,13 +107,30 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return this.opeForm.form;
   }
 
+  get showFabButton(): boolean {
+    if (!this._enabled) return false;
+    switch (this._selectedTabIndex) {
+      case OPERATION_TABS.CATCH:
+        return this.showBatchTables;
+      case OPERATION_TABS.SAMPLE:
+      case OPERATION_TABS.SUB_SAMPLE:
+      case OPERATION_TABS.RELEASE:
+        return this.showSampleTables;
+      default:
+        return false;
+    }
+  }
+
   constructor(
     injector: Injector,
+    hotkeys: Hotkeys,
     dataService: OperationService,
     protected tripService: TripService,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
-    protected formErrorAdapter: FormErrorAdapter
+    protected formErrorAdapter: FormErrorAdapter,
+    protected modalCtrl: ModalController,
+    @Inject(DOCUMENT) private document: any,
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
@@ -124,8 +145,29 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.mobile = platform.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
+
+    this.registerSubscription(
+      hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
+        .subscribe((event) => this.openHelpModal(event))
+    )
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+  }
+
+  async openHelpModal(event) {
+    if (event) event.preventDefault();
+
+    console.debug('[operation-page] Open help page...');
+    const modal = await this.modalCtrl.create({
+      component: AppHelpModal,
+      componentProps: {
+        title: 'COMMON.BTN_SHOW_HELP',
+        docUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/blob/master/user-manual/index_fr.md'
+      },
+      backdropDismiss: true
+    });
+    return modal.present();
   }
 
   ngOnInit() {
@@ -139,7 +181,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           distinctUntilChanged(),
           switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
         )
-        .subscribe(program => this.$program.next(program)));
+        .subscribe(program => this.setProgram(program)));
 
 
     // Watch trip
@@ -242,11 +284,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           .subscribe(_ => this.onMeasurementsFormReady())
       );
     }
-
-    // Configure page, from Program's properties
-    this.registerSubscription(
-      this.$program
-        .subscribe(program => this.setProgram(program)));
 
     // Manage tab group
     {
@@ -458,7 +495,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this._measurementSubscription?.unsubscribe();
     this.$acquisitionLevel.complete();
     this.$programLabel.complete();
-    this.$program.complete();
     this.$lastOperations.complete();
     this.$tripId.complete();
     this.$ready.complete();
@@ -687,7 +723,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
-  async onNewOperationClick(event: UIEvent): Promise<any> {
+  async saveAndNew(event: UIEvent): Promise<any> {
     if (event && event.defaultPrevented) return Promise.resolve(); // Skip
     if (event) event.preventDefault(); // Avoid propagation to <ion-item>
 
@@ -700,13 +736,21 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       });
     const canContinue = await savePromise;
     if (canContinue) {
-      return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
+      if (this.mobile) {
+        return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
+      }
+      else {
+        return this.router.navigate(['..', 'new'], {
+          relativeTo: this.route,
+          replaceUrl: true,
+          queryParams: {tab: 0}
+        });
+      }
     }
   }
 
   async setValue(data: Operation) {
-
-    this.opeForm.value = data;
+    const formReady = this.opeForm.applyValue(data);
 
     // set parent trip
     if (this.trip) {
@@ -714,6 +758,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     const programLabel = data.programLabel || this.trip?.program && this.trip.program?.label;
+
 
     // Get gear, from the physical gear
     const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
@@ -747,7 +792,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + '#'));
 
     // Applying program to components (async)
+    // Will watch program, then call setProgram()
     if (programLabel && this.$programLabel.value !== programLabel) this.$programLabel.next(programLabel);
+
+    await formReady;
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -1006,5 +1054,4 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return this.showCatchTab ? OPERATION_TABS.CATCH :
       (this.showSampleTables ? OPERATION_TABS.SAMPLE : undefined);
   }
-
 }

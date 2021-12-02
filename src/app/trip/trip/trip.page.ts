@@ -205,7 +205,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.operationsTable.showPosition = positionEnabled;
     this.operationsTable.showFishingArea = !positionEnabled;
-    this.operationsTable.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+    const allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+    this.operationsTable.allowParentOperation = allowParentOperation;
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
 
     //this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION));
@@ -222,12 +223,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.registerSubscription(subscription);
     }
 
+    // If new data, enable gears tab
     if (this.isNewData) {
-      // If new data, enable gears tab
       this.showGearTable = true;
-      // BUT leave operation gear have been filled
-      this.showOperationTable = false;
     }
+
+    // Disabled operations tab, while no gear
+    // But enable anyway, when parent operation allowed
+    this.showOperationTable = this.showOperationTable || allowParentOperation;
+
 
     this.$ready.next(true);
     this.markForCheck();

@@ -73,6 +73,7 @@
     </ion-row>
     <ion-buttons afterComment class="ion-justify-content-end" *ngIf="mobile">
       <ion-button mat-button
+                  *ngIf="showIndividualReleaseButton"
                   fill="clear" color="tertiary"
                   [title]="'TRIP.SAMPLE.EDIT.BTN_INDIVIDUAL_RELEASE'|translate"
                   (click)="showIndividualReleaseModal($event)">

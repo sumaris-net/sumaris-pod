@@ -80,7 +80,6 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   private _footerRowsSubscription: Subscription;
-  // TODO: BLA: revoir ceci ? Pourquoi ici
   private _availableReleases: Sample[] = [];
 
   protected cd: ChangeDetectorRef;
@@ -111,6 +110,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() showDateTimeColumn = true;
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
+  @Input() showIndividualReleaseButton = false;
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
@@ -322,6 +322,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       showDateTime: this.showDateTimeColumn,
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
+      showIndividualReleaseButton: this.showIndividualReleaseButton,
 
       onReady: async (modal) => {
         const form = modal.form.form;
@@ -371,8 +372,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return data instanceof Sample ? data : undefined;
   }
 
-  async onSubSampleClick(event: UIEvent,
-                         row: TableElement<Sample>) {
+  async onIndividualReleaseClick(event: UIEvent,
+                                 row: TableElement<Sample>) {
     if (event) event.preventDefault();
 
     // Loading spinner

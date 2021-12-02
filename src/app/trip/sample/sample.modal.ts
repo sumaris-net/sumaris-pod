@@ -20,6 +20,7 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
   showDateTime: boolean;
   showTaxonGroup: boolean;
   showTaxonName: boolean;
+  showIndividualReleaseButton: boolean;
 
   // UI Options
   maxVisibleButtons: number;
@@ -59,6 +60,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showComment: boolean;
+  @Input() showIndividualReleaseButton: boolean;
   @Input() set pmfms(value: Observable<IPmfm[]> | IPmfm[]) {
     this.setPmfms(value);
   }

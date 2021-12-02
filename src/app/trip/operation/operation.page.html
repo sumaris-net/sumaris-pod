@@ -12,9 +12,11 @@
   <ion-title [innerHTML]="$title|async"></ion-title>
 
   <ion-buttons slot="end">
+
     <!-- last operation (history) -->
     <ion-button *ngIf="showLastOperations"
                 [disabled]="loading"
+                [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
                 [matMenuTriggerFor]="lastOperationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>
     </ion-button>
@@ -91,7 +93,7 @@
                   size="small"
                   class="visible-mobile visible-sm visible-xs"
                   style="margin-left: calc(100% - 50px); margin-top: -46px;"
-                  (click)="onNewOperationClick($event)">
+                  (click)="saveAndNew($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 
@@ -106,7 +108,7 @@
 
         <!-- New operation button -->
         <ion-button color="tertiary" fill="solid"
-                    (click)="onNewOperationClick($event)" translate>COMMON.BTN_ADD</ion-button>
+                    (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
       </div>
     </ion-toolbar>
   </ion-footer>
@@ -114,6 +116,15 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- reset -->
+  <button mat-menu-item (click)="cancel($event)"
+          [disabled]="!dirty">
+    <ion-label>
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
 
   <!-- delete -->
   <button mat-menu-item [disabled]="isNewData || disabled"
@@ -124,14 +135,6 @@
     </ion-label>
   </button>
 
-  <!-- reset -->
-  <button mat-menu-item (click)="cancel($event)"
-    [disabled]="!dirty">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
-  </button>
 </mat-menu>
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
@@ -251,6 +254,7 @@
                          [useSticky]="mobile"
                          [showLabelColumn]="false"
                          [showDateTimeColumn]="true"
+                         [showIndividualReleaseButton]="individualReleaseTable.$pmfms|async|isNotEmptyArray"
                          (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)">
       </app-samples-table>
     </mat-tab>
@@ -327,15 +331,11 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="enabled && selectedTabIndex >= 1" @fadeInOutAnimation
+         *ngIf="mobile && showFabButton" @fadeInOutAnimation
          visible-xs visible-sm visible-mobile>
 
   <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
-    <ion-icon name="add" ></ion-icon>
+    <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 
 </ion-fab>
-
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-</ng-template>
