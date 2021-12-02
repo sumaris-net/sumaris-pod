@@ -35,6 +35,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
 export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
 
   private _parentDateTime;
+  private _parentObservers;
   private _detailEditor: LandingEditor;
   private _strategyPmfmId: number;
 
@@ -260,6 +261,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
       this.setFilter(LandingFilter.fromObject({}));
     } else if (data instanceof ObservedLocation) {
       this._parentDateTime = data.startDateTime;
+      this._parentObservers = data.observers;
       this.setFilter(LandingFilter.fromObject({observedLocationId: data.id}), {emitEvent: true/*refresh*/});
     } else if (data instanceof Trip) {
       this._parentDateTime = data.departureDateTime;
@@ -322,7 +324,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
-  canUserCancelOrDelete(): boolean {
+  get canUserCancelOrDelete(): boolean {
     // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
     if (this.accountService.isAdmin()) {
       return true;
@@ -337,7 +339,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
 
     // When connected user is in observed location observers
-    for (const observer of entity.observers) {
+    for (const observer of this._parentObservers) {
       if (connectedPerson.id === observer.id) {
         return true;
       }

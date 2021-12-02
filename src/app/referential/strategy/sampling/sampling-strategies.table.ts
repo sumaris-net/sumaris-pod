@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
 import {
-  AccountService,
   Alerts,
   AppFormUtils,
   AppTable,
@@ -110,7 +109,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected parameterService: ParameterService,
-    protected accountService: AccountService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -341,22 +339,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   toggleFilterPanelFloating() {
     this.filterPanelFloating = !this.filterPanelFloating;
     this.markForCheck();
-  }
-
-  canUserCancelOrDelete(): boolean {
-    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
-    if (this.accountService.isAdmin()) {
-      // en commentaire pour tester les autres cas return true;
-    }
-    const row = !this.selection.isEmpty() && this.selection.selected[0];
-    const entity = row.currentData;
-    const name = entity.name;
-    // const recorder = entity.recorderPerson;
-    // const connectedPerson = this.accountService.person;
-    // if (connectedPerson.id === recorder?.id) {
-    //    return true;
-    //  }
-    return false;
   }
 
   /* -- protected methods -- */

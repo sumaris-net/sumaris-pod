@@ -151,10 +151,6 @@ export class StrategiesPage implements OnInit {
     await this.samplingTable?.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
   }
 
-  get canUserCancelOrDelete(): boolean {
-    return this.samplingTable?.canUserCancelOrDelete();
-  }
-
   protected canUserWrite(data: Program): boolean {
     return this.programService.canUserWrite(data);
   }
