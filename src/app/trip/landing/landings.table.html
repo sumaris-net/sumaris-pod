@@ -242,7 +242,7 @@
                      [ngClass]="{'center':true}"></ion-spinner>
 
         <!-- undo or delete -->
-        <button mat-icon-button color="light" *ngIf="row.validator?.invalid && canCancelOrDelete"
+        <button mat-icon-button color="light" *ngIf="row.validator?.invalid && canUserCancelOrDelete"
                 [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
                 (click)="cancelOrDelete($event, row)">
           <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
