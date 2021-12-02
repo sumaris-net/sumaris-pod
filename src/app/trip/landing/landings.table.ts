@@ -322,7 +322,7 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     }
   }
 
-  get canUserCancelOrDelete(): boolean {
+  canUserCancelOrDelete(): boolean {
     // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
     if (this.accountService.isAdmin()) {
       return true;
