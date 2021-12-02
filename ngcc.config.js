@@ -9,10 +9,10 @@ module.exports = {
       ignorableDeepImportMatchers: [
         /@ionic-native\//,
         /ionic-cache\//,
+        /@apollo\//,
         /uuid\//,
         /zone.js\//,
         /zone-error\//,
-        /@apollo\//,
         /apollo-angular\//,
         /moment\//,
         /ngx-material-table\//
