@@ -25,7 +25,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import {FormGroup, Validators} from '@angular/forms';
 import * as momentImported from 'moment';
 import {IndividualMonitoringSubSamplesTable} from '../sample/individualmonitoring/individual-monitoring-samples.table';
@@ -63,33 +63,30 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   private _lastOperationsTripId: number;
   private _measurementSubscription: Subscription;
 
-  $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
-  $ready = new BehaviorSubject(false);
-
-  measurements: Measurement[];
-  trip: Trip;
-  $programLabel = new BehaviorSubject<string>(null);
-  $program = new Subject<Program>();
-  saveOptions: OperationSaveOptions = {};
   readonly dateTimePattern: string;
-
-  $tripId = new BehaviorSubject<number>(null);
-  $lastOperations = new BehaviorSubject<Operation[]>(null);
-
+  readonly showLastOperations: boolean;
+  readonly mobile: boolean;
+  trip: Trip;
+  measurements: Measurement[];
+  saveOptions: OperationSaveOptions = {};
   rankOrder: number;
   selectedBatchTabIndex = 0;
   copyTripDates = false;
   allowParentOperation = false;
 
-  // All second tabs components are disabled, by default
-  // (waiting PMFM measurements to decide that to show)
+  // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
   showSampleTables = false;
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
-  mobile: boolean;
-  sampleAcquisitionLevel: AcquisitionLevelType;
+
+  $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+  $programLabel = new BehaviorSubject<string>(null);
+  $program = new Subject<Program>();
+  $tripId = new BehaviorSubject<number>(null);
+  $lastOperations = new BehaviorSubject<Operation[]>(null);
+  $ready = new BehaviorSubject(false);
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
@@ -124,7 +121,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
     // Init mobile
-    this.mobile = this.settings.mobile;
+    this.mobile = platform.mobile;
+    this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -143,21 +141,28 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         )
         .subscribe(program => this.$program.next(program)));
 
-    // Watch trip, to load last operations
+
+    // Watch trip
     this.registerSubscription(
       this.$tripId
         .pipe(
-          // Filter on tripId changes
+          // Only if tripId changes
           filter(tripId => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
-          // Load last operations
-          switchMap(tripId => {
+
+          // Update default back Href
+          tap(tripId => {
             this._lastOperationsTripId = tripId; // Remember new trip id
-
             // Update back href
-            this.defaultBackHref = `/trips/${tripId}?tab=2`;
-            this.markForCheck();
+            const tripHref = `/trips/${tripId}?tab=2`;
+            if (this.defaultBackHref !== tripHref) {
+              this.defaultBackHref = tripHref;
+              this.markForCheck();
+            }
+          }),
 
-            return this.dataService.watchAll(
+          // Load last operations (if enabled)
+          //filter(_ => this.showLastOperations),
+          switchMap(tripId => this.dataService.watchAll(
               0, 5,
               'startDateTime', 'desc',
               {tripId}, {
@@ -166,11 +171,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
                 computeRankOrder: false,
                 fetchPolicy: 'cache-and-network',
                 withTotal: true
-              });
-          }),
-          map(res => res && res.data || [])
+              })),
+          map(res => res && res.data || []),
+          tap(data => this.$lastOperations.next(data))
         )
-        .subscribe(data => this.$lastOperations.next(data))
+        .subscribe()
     );
 
   }
@@ -224,8 +229,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Configure page, from Program's properties
     this.registerSubscription(
-      this.$program.subscribe(program => this.setProgram(program))
-    );
+      this.$program
+        .subscribe(program => this.setProgram(program)));
 
     // Manage tab group
     {
@@ -435,20 +440,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   ngOnDestroy() {
     super.ngOnDestroy();
     this._measurementSubscription?.unsubscribe();
-    this.$lastOperations.complete();
-    this.$program.complete();
+    this.$acquisitionLevel.complete();
     this.$programLabel.complete();
+    this.$program.complete();
+    this.$lastOperations.complete();
     this.$tripId.complete();
-    this.$tripId.complete();
+    this.$ready.complete();
   }
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
-    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
     this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
 
+    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
+    this.opeForm.trip = this.trip;
     this.opeForm.showPosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.showFishingArea = !this.opeForm.showPosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
@@ -459,6 +466,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.allowParentOperation = this.allowParentOperation;
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
+    this.opeForm.programLabel = program.label;
+    this.opeForm.markAsReady();
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
@@ -471,10 +480,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
     this.batchTree.allowSamplingBatches = hasBatchMeasure;
     this.batchTree.allowSubBatches = hasBatchMeasure;
-    this.batchTree.setProgram(program);
+    this.batchTree.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
+    this.batchTree.program = program;
 
     this.samplesTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE);
     this.samplesTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE);
+    this.samplesTable.programLabel = program.label;
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -483,16 +494,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Autofill batch group table (e.g. with taxon groups found in strategies)
     const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     await this.setDefaultTaxonGroups(autoFillBatch);
-
-    this.batchTree.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
-
-    // TODO CC : Check on tablet mode
-    // if (enableWeight) {
-    //   // Mask unused columns
-    //   this.batchTree.batchGroupsTable.hideUnusedColumns();
-    // } else {
-    //   this.batchTree.batchGroupsTable.showWeightColumns = false;
-    // }
 
     const autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
     if (autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
@@ -694,7 +695,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // set parent trip
     if (this.trip) {
       this.saveOptions.trip = this.trip;
-      this.opeForm.trip = this.trip;
     }
 
     const programLabel = data.programLabel || this.trip?.program && this.trip.program?.label;
@@ -840,6 +840,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected getJsonValueToSave(): Promise<any> {
     const json = this.opeForm.value;
+
     // Clean childOperation if empty
     if (EntityUtils.isEmpty(json.childOperation, 'id')) {
       delete json.childOperation;

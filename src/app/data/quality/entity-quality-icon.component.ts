@@ -5,7 +5,8 @@ import { PredefinedColors } from '@ionic/core';
 import { qualityFlagToColor } from '@app/data/services/model/model.utils';
 import { IDataEntity } from '@app/data/services/model/data-entity.model';
 
-export declare type QualityIonIcon = 'time'|'pencil'|'checkmark'|'checkmark-circle'|'flag'|'alert';
+export declare type SynchronizationIonIcon = 'time-outline'|'hourglass-outline'|'pencil';
+export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert';
 
 @Component({
   selector: 'app-entity-quality-icon',
@@ -41,7 +42,7 @@ export class EntityQualityIconComponent {
     if (EntityUtils.isLocal(value)) {
       switch (value['synchronizationStatus']) {
         case 'READY_TO_SYNC':
-          this.icon = 'time';
+          this.icon = 'time-outline';
           this.title = 'QUALITY.READY_TO_SYNC';
           this.color = 'danger';
           break;

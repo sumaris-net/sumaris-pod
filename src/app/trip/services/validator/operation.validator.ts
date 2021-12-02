@@ -306,7 +306,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
     opts.withPosition = toBoolean(opts.withPosition, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE), true));
-    opts.withFishingAreas = toBoolean(opts.withFishingAreas, !opts.withPosition)
+    opts.withFishingAreas = toBoolean(opts.withFishingAreas, true)
     opts.withChildOperation = toBoolean(opts.withChildOperation, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION), false))
 
     // DEBUG

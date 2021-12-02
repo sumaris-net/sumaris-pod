@@ -6,7 +6,7 @@ import {
   AccountService,
   AppForm,
   AppFormUtils, DateFormatPipe,
-  EntityUtils,
+  EntityUtils, firstTruePromise,
   FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
@@ -45,6 +45,7 @@ import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import { waitFor } from '../../../../ngx-sumaris-components/src/app/shared/observables';
 
 const moment = momentImported;
 
@@ -77,6 +78,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _showPosition = true;
   private _showFishingArea = false;
   private _requiredComment = false;
+  private _$ready = new BehaviorSubject<boolean>(false);
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -314,7 +316,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     );
   }
 
-
   ngOnDestroy() {
     super.ngOnDestroy();
     this._physicalGearsSubject.complete();
@@ -323,6 +324,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   setValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+    this.applyValue(data, opts);
+  }
+
+  reset(data?: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    this.applyValue(data || new Operation(), opts);
+  }
+
+  async ready() {
+    if (!this._$ready.value)
+      await firstTruePromise(this._$ready);
+  }
+
+  async applyValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+
+    // Wait ready (= form group updated, by the parent page)
+    await this.ready();
+
     const isNew = isNil(data?.id);
 
     // Use label and name from metier.taxonGroup
@@ -331,6 +349,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
+
+    /*if (!isNew && !this._showPosition) {
+      data.positions = [];
+      data.startPosition = null;
+      data.endPosition = null;
+    }
+    if (!isNew && !this._showFishingArea) data.fishingAreas = [];*/
 
     const isChildOperation = isNotNil(data.parentOperation?.id);
     const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
@@ -505,12 +530,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       return;
     }
 
-    const metierControl = this.form.get('metier');
-    const physicalGearControl = this.form.get('physicalGear');
-    const startPositionControl = this.form.get('startPosition');
-    const endPositionControl = this.form.get('endPosition');
-    const startDateTimeControl = this.form.get('startDateTime');
-    const fishingStartDateTimeControl = this.form.get('fishingStartDateTime');
+    const form = this.form;
+    const metierControl = form.get('metier');
+    const physicalGearControl = form.get('physicalGear');
+    const startPositionControl = form.get('startPosition');
+    const endPositionControl = form.get('endPosition');
+    const startDateTimeControl = form.get('startDateTime');
+    const fishingStartDateTimeControl = form.get('fishingStartDateTime');
+    const qualityFlagIdControl = form.get('qualityFlagId');
+    const fishingAreasControl = this._showFishingArea && form.get('fishingAreas');
 
     this.parentControl.setValue(operation);
 
@@ -548,10 +576,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       this.setPosition(startPositionControl, operation.startPosition);
       this.setPosition(endPositionControl, operation.endPosition);
     }
+    if (this._showFishingArea && isNotEmptyArray(operation.fishingAreas)) {
+      const fishingAreasCopy = operation.fishingAreas
+        .filter(fa => ReferentialUtils.isNotEmpty(fa.location))
+        .map(fa => <FishingArea>{location: fa.location});
+      if (isNotEmptyArray(fishingAreasCopy) && this.fishingAreasHelper.size() <= 1) {
+        this.fishingAreasHelper.resize(fishingAreasCopy.length);
+        fishingAreasControl.patchValue(fishingAreasCopy);
+      }
+    }
 
     startDateTimeControl.patchValue(operation.startDateTime);
     fishingStartDateTimeControl.patchValue(operation.fishingStartDateTime);
-    this.form.get('qualityFlagId').patchValue(null);
+    qualityFlagIdControl.patchValue(null); // Reset quality flag, on a child operation
+
 
     this.markAsDirty();
 
@@ -586,7 +624,31 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
+  markAsReady() {
+    if (!this._$ready.value) {
+      this.updateFormGroup({emitEvent: false});
+      this._$ready.next(true);
+    }
+  }
+
   /* -- protected methods -- */
+
+  protected updateFormGroup(opts?: {emitEvent?: boolean}) {
+
+    this.validatorService.updateFormGroup(this.form, {
+      isOnFieldMode: this.usageMode === 'FIELD',
+      trip: this.trip,
+      isParent: this.allowParentOperation && this.isParentOperation,
+      isChild: this.isChildOperation,
+      withPosition: this.showPosition,
+      withFishingAreas: this.showFishingArea
+    });
+
+    if (!opts || opts.emitEvent !== false) {
+      this.form.updateValueAndValidity();
+      this.markForCheck();
+    }
+  }
 
   protected async onPhysicalGearChanged(physicalGear) {
     const metierControl = this.form.get('metier');
@@ -710,9 +772,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     // Child operation (=Virage)
     else {
       if ((!opts || opts.emitEvent !== false) && !this.parentControl.value) {
-        // Copy parent fields, to child fields
+        // Copy parent fields -> child fields
         this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
         this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
+        if (this.showFishingArea) this.form.get('fishingAreas')?.patchValue(this.form.get('fishingAreas').value);
 
         // Clean parent fields (should be filled after parent selection)
         this.form.patchValue({
@@ -860,20 +923,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
-  protected updateFormGroup() {
-
-    this.validatorService.updateFormGroup(this.form, {
-      isOnFieldMode: this.usageMode === 'FIELD',
-      trip: this.trip,
-      isParent: this.allowParentOperation && this.isParentOperation,
-      isChild: this.isChildOperation,
-      withPosition: this.showPosition,
-      withFishingAreas: this.showFishingArea
-    });
-
-    this.form.updateValueAndValidity();
-    this.markForCheck();
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -17,7 +17,7 @@ import { AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, defer } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { OperationService } from '../services/operation.service';
-import { debounceTime, filter, map, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { TripService } from '../services/trip.service';
 import { Batch, BatchUtils } from '../services/model/batch.model';
 import { BatchGroup, BatchGroupUtils } from '../services/model/batch-group.model';
@@ -45,8 +45,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
-  $programLabel = new BehaviorSubject<string>(undefined);
+  $programLabel = new BehaviorSubject<string>(null);
+  $program = new BehaviorSubject<Program>(null);
   showSubBatchesTable = false;
+  listenProgramChanges = true;
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -99,6 +101,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this.$programLabel.value !== value) {
       this.$programLabel.next(value);
     }
+  }
+
+  get programLabel(): string {
+    return this.$programLabel.value;
+  }
+
+  @Input()
+  set program(value: Program) {
+    this.listenProgramChanges = false; // Avoid to watch program changes, when program is given by parent component
+    this.$program.next(value);
   }
 
   @Input()
@@ -207,8 +219,20 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.registerSubscription(
       this.$programLabel
         .pipe(
+          filter(() => this.listenProgramChanges), // Avoid to watch program, if was already set
           filter(isNotNilOrBlank),
+          distinctUntilChanged(),
           switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
+        )
+        .subscribe(program => this.$program.next(program))
+    );
+
+    // Watch program, to configure tables from program properties
+    this.registerSubscription(
+      this.$program
+        .pipe(
+          distinctUntilChanged((p1, p2) => p1 && p2 && p1.label === p2.label && p1.updateDate.isSame(p2.updateDate)),
+          filter(isNotNil)
         )
         .subscribe(program => this.setProgram(program))
     );
@@ -246,33 +270,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     super.ngOnDestroy();
 
     this._subBatchesService?.ngOnDestroy();
-  }
 
-  setProgram(program: Program) {
-    if (!program || this._applyingProgram) return;
-    this._applyingProgram = true;
-    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
-
-    this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-    this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-
-    // Some specific taxon groups have no weight collected
-    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
-      .map(label => label.trim().toUpperCase())
-      .filter(isNotNilOrBlank) || undefined;
-
-    // Force taxon name in sub batches, if not filled in root batch
-    if (this.subBatchesTable) {
-      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
-      this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
-      this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
-    }
-
-    // Propage to children components
-    this.programLabel = program.label;
-
-    this._applyingProgram = false;
+    this.$programLabel.complete();
+    this.$program.complete();
   }
 
   async load(id?: number, options?: any): Promise<any> {
@@ -394,6 +394,28 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     ]);
   }
 
+  protected async setProgram(program: Program) {
+    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
+
+    this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+    this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+
+    // Some specific taxon groups have no weight collected
+    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank) || undefined;
+
+    // Force taxon name in sub batches, if not filled in root batch
+    if (this.subBatchesTable) {
+      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
+      this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
+      this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
+    }
+
+    // Propagate to observables
+    if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
+  }
 
   async onSubBatchesChanges(subbatches: SubBatch[]) {
     if (isNil(subbatches)) return; // user cancelled

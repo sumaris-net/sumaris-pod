@@ -87,13 +87,19 @@ export const OperationFragments = {
     positions {
       ...PositionFragment
     }
+    fishingAreas {
+      location {
+        ...LocationFragment
+      }
+    }
     parentOperationId
     childOperationId
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
   ${ReferentialFragments.referential}
-  ${DataCommonFragments.position}`,
+  ${DataCommonFragments.position},
+  ${DataCommonFragments.location}`,
 
   operation: gql`fragment OperationFragment on OperationVO {
     id

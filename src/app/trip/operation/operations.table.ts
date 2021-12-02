@@ -67,6 +67,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
           return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
           return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        case 'fishingArea':
+          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         default:
           return sortActive;
       }
@@ -76,6 +78,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       switch (sortActive) {
         case 'targetSpecies':
           return 'metier';
+        case 'fishingArea':
+          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         default:
           return sortActive;
       }
@@ -264,6 +268,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       gear: this.settings.getFieldDisplayAttributes('gear'),
       physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+      fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label'])
     };
 
     this.markForCheck();

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
 import { isNil, isNotNil } from '@sumaris-net/ngx-components';
 import { qualityFlagToColor } from '@app/data/services/model/model.utils';
 import { Operation } from '@app/trip/services/model/trip.model';
@@ -15,10 +15,10 @@ export declare type OperationIonIcon = 'navigate';
   selector: 'app-operation-icon',
   templateUrl: 'operation-icon.component.html',
   styleUrls: ['./operation-icon.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class OperationIconComponent {
-
 
   icon: OperationIonIcon = null;
   svgIcon: OperationMatSvgIcons = null;
@@ -73,9 +73,8 @@ export class OperationIconComponent {
       this.svgIcon = 'down-arrow';
       this.icon = undefined;
       if (isNil(value.childOperationId)) {
-        this.badgeIcon = isNil(value.childOperationId) ? 'time' : undefined;
+        this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : undefined;
         this.badgeColor = 'accent';
-        this.badgeFill = 'clear';
       }
     }
     // Other
