@@ -577,7 +577,7 @@
         "TAB_CATCH_TOTAL": "Capture total",
         "TAB_SAMPLES": "Prélèvements",
         "TAB_SUB_SAMPLES": "Sous-prélèvements",
-        "TAB_INDIVIDUAL_RELEASES": "Relachés",
+        "TAB_INDIVIDUAL_RELEASES": "Relâché",
         "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
         "TARGET_SPECIES": "Espèce cible",
@@ -773,7 +773,7 @@
         "DATE_TIME_PLACEHOLDER": "Date échantillon",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
-        "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi",
+        "BTN_SUB_SAMPLE": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir un relâché"
       },
       "TABLE": {
@@ -1821,7 +1821,7 @@
       "CL": "Débarquements",
       "CE": "Efforts",
       "ST": "Tests de survie",
-      "RL": "Relachés"
+      "RL": "Relâché"
     },
     "OPTIONS": {
       "ENABLE": "Extraction > Activer ?",

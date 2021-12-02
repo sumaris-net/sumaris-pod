@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, ViewChild } from '@angular/core';
-import {OperationQueries, OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
-  firstTruePromise, FormErrorAdapter,
+  firstTruePromise,
   fromDateISOString,
-  HistoryPageReference, Hotkeys,
+  HistoryPageReference,
+  Hotkeys,
   IEntity,
   isNil,
   isNotEmptyArray,
@@ -23,27 +24,25 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import {FormGroup, Validators} from '@angular/forms';
+import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
-import {IndividualMonitoringSubSamplesTable} from '../sample/individualmonitoring/individual-monitoring-samples.table';
-import {Program} from '@app/referential/services/model/program.model';
-import {SubSamplesTable} from '../sample/sub-samples.table';
-import {SamplesTable} from '../sample/samples.table';
-import {Operation, Trip} from '../services/model/trip.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
-import {BatchTreeComponent} from '../batch/batch-tree.component';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
-import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
-import {Sample} from '@app/trip/services/model/sample.model';
+import { IndividualMonitoringSubSamplesTable } from '../sample/individualmonitoring/individual-monitoring-samples.table';
+import { Program } from '@app/referential/services/model/program.model';
+import { SubSamplesTable } from '../sample/sub-samples.table';
+import { SamplesTable } from '../sample/samples.table';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { BatchTreeComponent } from '../batch/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
+import { Sample } from '@app/trip/services/model/sample.model';
 import { DOCUMENT } from '@angular/common';
-import { modalController } from '@ionic/core';
 import { AppHelpModal } from '../../../../ngx-sumaris-components/src/app/shared/help/help.modal';
-import { RegisterModal } from '../../../../ngx-sumaris-components/src/app/core/register/modal/modal-register';
 import { ModalController } from '@ionic/angular';
 
 const moment = momentImported;
@@ -128,7 +127,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     protected tripService: TripService,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
-    protected formErrorAdapter: FormErrorAdapter,
     protected modalCtrl: ModalController,
     @Inject(DOCUMENT) private document: any,
   ) {
