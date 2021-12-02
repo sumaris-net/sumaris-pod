@@ -6,6 +6,8 @@ import {ErrorCodes} from './errors';
 import {ReferentialFragments} from './referential.fragments';
 import {
   AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
   EntitiesStorage,
   EntityUtils,
   GraphqlService,
@@ -16,21 +18,27 @@ import {
   LoadResult,
   NetworkService,
   PlatformService,
-  ReferentialAsObjectOptions, ReferentialUtils,
+  ReferentialAsObjectOptions,
+  ReferentialUtils,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
 import {ReferentialRefService} from './referential-ref.service';
-import { Program, ProgramPerson } from './model/program.model';
+import {Program, ProgramPerson} from './model/program.model';
 import {SortDirection} from '@angular/material/sort';
 import {ReferentialService} from './referential.service';
 import {ProgramFragments} from './program.fragments';
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
 import {ProgramRefService} from './program-ref.service';
 import {BaseReferentialService} from './base-referential-service.class';
 import {StrategyRefService} from './strategy-ref.service';
 import {ProgramFilter} from './filter/program.filter';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {EntitySaveOptions} from '../../../../ngx-sumaris-components/src/app/core/services/base-entity-service.class';
+
+export interface ProgramSaveOptions extends EntitySaveOptions {
+  withStrategies?: boolean; // False by default
+  withDepartmentsAndPersons?: boolean; // True by default
+}
 
 const ProgramQueries: BaseEntityGraphqlQueries = {
   // Load by id
@@ -62,8 +70,8 @@ const ProgramQueries: BaseEntityGraphqlQueries = {
 };
 
 const ProgramMutations: BaseEntityGraphqlMutations = {
-  save: gql`mutation SaveProgram($data: ProgramVOInput!){
-    data: saveProgram(program: $data){
+  save: gql`mutation SaveProgram($data: ProgramVOInput!, $options: ProgramSaveOptionsInput!){
+    data: saveProgram(program: $data, options: $options){
       ...ProgramFragment
     }
   }
@@ -234,11 +242,17 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Pmfm' });
   }
 
-  async save(entity: Program, options?: any): Promise<Program> {
+  async save(entity: Program, options?: ProgramSaveOptions): Promise<Program> {
     if (!entity) return entity;
 
     // Clean cache
     await this.clearCache();
+
+    options = {
+      withStrategies: false,
+      withDepartmentsAndPersons: true,
+      ...options
+    };
 
     return super.save(entity, options);
   }
