@@ -18,24 +18,22 @@
         </or>
     </preConditions>
 
-    <!-- Add program property 'sumaris.trip.operation.sample.acquisitionLevel' -->
+    <!-- Change PMFM_STRATEGY acquisition level, to SAMPLE -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-300" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.sample.acquisitionLevel'
-                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'SUMARiS')</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM_STRATEGY WHERE ACQUISITION_LEVEL_FK IN (SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SURVIVAL_TEST')</sqlCheck>
             </and>
         </preConditions>
-        <insert tableName="PROGRAM_PROPERTY">
-            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
-            <column name="LABEL">sumaris.trip.operation.sample.acquisitionLevel</column>
-            <column name="NAME">SURVIVAL_TEST</column>
-            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'SUMARiS')"/>
-            <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="sysdate"/>
-            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-        </insert>
+        <sql endDelimiter=";">
+            update PMFM_STRATEGY set ACQUISITION_LEVEL_FK=(SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SAMPLE') where ACQUISITION_LEVEL_FK = (SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SURVIVAL_TEST');
+            update SAMPLE S set LABEL=CONCAT('SAMPLE#', S.RANK_ORDER) where UPPER(LABEL) like 'SURVIVAL_TEST#%';
+            update ACQUISITION_LEVEL set STATUS_FK=0 where id = (SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SURVIVAL_TEST');
+            update program set update_date = current_timestamp;
+            update strategy set update_date = current_timestamp;
+            commit;
+        </sql>
     </changeSet>
 
     <!-- Add program property 'sumaris.i18nSuffix' -->
