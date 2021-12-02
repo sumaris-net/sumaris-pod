@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PmfmIds} from '@app/referential/services/model/model.enum';
 import {SubSampleValidatorService} from '../services/validator/sub-sample.validator';
-import {EntityUtils, filterNotNil, firstFalsePromise, InMemoryEntitiesService, isNil, isNotNil, joinPropertiesPath, toNumber, UsageMode} from '@sumaris-net/ngx-components';
+import {EntityUtils, filterNotNil, firstFalsePromise, InMemoryEntitiesService, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, toNumber, UsageMode} from '@sumaris-net/ngx-components';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {Sample} from '../services/model/sample.model';
 import {SortDirection} from '@angular/material/sort';
@@ -70,6 +70,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   @Input() showLabelColumn = false;
+  @Input() showToolbar = true;
   @Input() modalOptions: Partial<ISubSampleModalOptions>;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
@@ -97,7 +98,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-
+    this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
 
     //this.debug = false;
@@ -112,6 +113,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Always hide parent tag_id (if present)
     this.setShowColumn(PmfmIds.TAG_ID.toString(), false);
     this.setShowColumn(PmfmIds.DRESSING.toString(), false);
+
+    this.setShowColumn('comments', !this.mobile);
 
     // Parent combo
     this.registerAutocompleteField('parent', {
@@ -143,6 +146,11 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
           }
           this.markForCheck();
         }));
+  }
+
+  setModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
   }
 
   async autoFillTable() {

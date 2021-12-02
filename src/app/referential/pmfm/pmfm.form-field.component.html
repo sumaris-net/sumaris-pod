@@ -140,14 +140,14 @@
 
   <!-- date -->
   <mat-date-field *ngSwitchCase="'date'" #matInput
-                   [formControl]="formControl"
-                   [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-                   [floatLabel]="floatLabel"
-                   [required]="required"
-                   [readonly]="readonly"
-                   [compact]="compact"
-                   [tabindex]="tabindex"
-                   [autofocus]="autofocus">
+                  [formControl]="formControl"
+                  [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                  [floatLabel]="floatLabel"
+                  [required]="required"
+                  [readonly]="readonly"
+                  [compact]="compact"
+                  [tabindex]="tabindex"
+                  [autofocus]="autofocus">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -212,13 +212,14 @@
 
   <!-- latitude -->
   <mat-latlong-field *ngSwitchCase="'latitude'"
-               [floatLabel]="floatLabel"
-               [formControl]="formControl"
-               type="latitude"
-               [placeholder]="placeholder"
-               [required]="required"
-               [tabindex]="tabindex"
-               [latLongPattern]="latLongFormat">
+                     [floatLabel]="floatLabel"
+                     [formControl]="formControl"
+                     type="latitude"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [tabindex]="tabindex"
+                     [latLongPattern]="latLongFormat"
+                     [defaultSign]="defaultLatitudeSign">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -226,13 +227,14 @@
 
   <!-- longitude -->
   <mat-latlong-field *ngSwitchCase="'longitude'"
-               [floatLabel]="floatLabel"
-               [formControl]="formControl"
-               type="longitude"
-               [placeholder]="placeholder"
-               [required]="required"
-               [tabindex]="tabindex"
-               [latLongPattern]="latLongFormat">
+                     [floatLabel]="floatLabel"
+                     [formControl]="formControl"
+                     type="longitude"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [tabindex]="tabindex"
+                     [latLongPattern]="latLongFormat"
+                     [defaultSign]="defaultLongitudeSign">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

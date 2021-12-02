@@ -216,7 +216,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.confirmBeforeDelete = false;
     this.confirmBeforeCancel = false;
     this.undoableDeletion = false;
-    this.saveBeforeDelete = false;
+    this.saveBeforeDelete = this.mobile;
 
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;

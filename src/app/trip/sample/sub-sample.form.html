@@ -53,7 +53,9 @@
                         [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                         [maxVisibleButtons]="maxVisibleButtons"
                         [compact]="compact"
-                        [tabindex]="tabindex+2 + i*maxVisibleButtons">
+                        [tabindex]="tabindex+2 + i*maxVisibleButtons"
+                        [defaultLatitudeSign]="defaultLatitudeSign"
+                        [defaultLongitudeSign]="defaultLongitudeSign">
           <!-- TODO (keyup.enter)="last && onSubmit($event)" -->
         </app-pmfm-field>
       </ion-col>

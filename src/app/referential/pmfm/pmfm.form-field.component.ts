@@ -82,6 +82,8 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() style: PmfmFormFieldStyle;
   @Input() maxVisibleButtons: number;
   @Input() acquisitionNumber: number;
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges = false;
