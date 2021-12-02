@@ -252,9 +252,11 @@
                              [programLabel]="$programLabel|async"
                              [usageMode]="usageMode"
                              [showToolbar]="!mobile"
-                             [useSticky]="false"
+                             [mobile]="mobile"
+                             [useSticky]="mobile"
                              [showLabelColumn]="false"
-                             [showDateTimeColumn]="true">
+                             [showDateTimeColumn]="true"
+                             (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)">
           </app-samples-table>
 
           <!-- final space-->
@@ -294,6 +296,8 @@
           <app-sub-samples-table #individualReleaseTable [debug]="debug"
                                  acquisitionLevel="INDIVIDUAL_RELEASE"
                                  [programLabel]="showSampleTablesByProgram && $programLabel|async"
+                                 [usageMode]="usageMode"
+                                 [mobile]="mobile"
                                  [showLabelColumn]="false">
           </app-sub-samples-table>
 

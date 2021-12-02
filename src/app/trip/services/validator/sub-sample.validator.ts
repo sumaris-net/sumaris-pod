@@ -21,7 +21,7 @@ export class SubSampleValidatorService implements ValidatorService {
       id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [data && data.label || null, Validators.required],
+      label: [data && data.label || null],
       parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.object])],
       comments: [data && data.comments || null]
     });

@@ -364,7 +364,7 @@
     <!-- Fishing areas -->
     <ng-container *ngIf='showFishingArea'>
       <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i=index; first as first">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-col size="12" size-md="3" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
         </ion-col>
         <ion-col [formGroup]="fishingAreaForm">
