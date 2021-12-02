@@ -24,6 +24,8 @@ export interface ISubSampleModalOptions extends IDataEntityModalOptions<Sample> 
   maxVisibleButtons: number;
   mobile: boolean;
   i18nPrefix?: string;
+  defaultLatitudeSign: '+' | '-';
+  defaultLongitudeSign: '+' | '-';
 
 }
 
@@ -61,6 +63,8 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
   @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
   @Input() maxVisibleButtons: number;
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
 
 
   @ViewChild('form', { static: true }) form: SubSampleForm;
