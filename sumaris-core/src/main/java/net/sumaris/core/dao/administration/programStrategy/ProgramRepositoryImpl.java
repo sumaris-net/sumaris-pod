@@ -49,8 +49,10 @@ import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.administration.programStrategy.ProgramDepartmentVO;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramPersonVO;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
@@ -396,25 +398,38 @@ public class ProgramRepositoryImpl
         // Save properties
         saveProperties(vo.getProperties(), savedEntity, savedEntity.getUpdateDate());
 
-        // Save departments
-        saveChildren(vo.getDepartments(),
-            savedEntity.getDepartments(),
-            ProgramDepartment.class,
-            (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, savedEntity, copyIfNull),
-            savedEntity);
-
-        // Save persons
-        saveChildren(vo.getPersons(),
-            savedEntity.getPersons(),
-            ProgramPerson.class,
-            (source, target, copyIfNull) -> this.toPersonEntity(source, target, savedEntity, copyIfNull),
-            savedEntity);
-
         // Flush
         em.flush();
         em.clear();
     }
 
+    @Override
+    public List<ProgramDepartmentVO> saveDepartmentsByProgramId(int programId, List<ProgramDepartmentVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        final Program parent = getById(Program.class, programId);
+
+        return saveChildren(
+                sources,
+                parent.getDepartments(),
+                ProgramDepartment.class,
+                (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, parent, copyIfNull),
+                parent);
+    }
+
+    @Override
+    public List<ProgramPersonVO> savePersonsByProgramId(int programId, List<ProgramPersonVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        final Program parent = getById(Program.class, programId);
+
+        return saveChildren(
+                sources,
+                parent.getPersons(),
+                ProgramPerson.class,
+                (source, target, copyIfNull) -> this.toPersonEntity(source, target, parent, copyIfNull),
+                parent);
+    }
 
     protected void saveProperties(Map<String, String> source, Program parent, Date updateDate) {
         final EntityManager em = getEntityManager();

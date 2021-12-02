@@ -28,10 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -95,6 +93,17 @@ public class ProgramServiceImpl implements ProgramService {
 		options = ProgramSaveOptions.defaultIfEmpty(options);
 
 		ProgramVO result = programRepository.save(source);
+
+		if (options.getWithDepartmentsAndPersons()) {
+
+			// Save departments
+			List<ProgramDepartmentVO> savedDepartments = programRepository.saveDepartmentsByProgramId(source.getId(), Beans.getList(source.getDepartments()));
+			result.setDepartments(savedDepartments);
+
+			// Save persons
+			List<ProgramPersonVO> savedPersons = programRepository.savePersonsByProgramId(source.getId(), Beans.getList(source.getPersons()));
+			result.setPersons(savedPersons);
+		}
 
 		// Save strategies
 		if (options.getWithStrategies()) {
