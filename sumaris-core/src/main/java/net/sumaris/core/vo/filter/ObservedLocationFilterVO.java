@@ -53,4 +53,5 @@ public class ObservedLocationFilterVO implements IRootDataFilter {
 
     private DataQualityStatusEnum[] dataQualityStatus;
 
+    private Integer[] programIds;
 }

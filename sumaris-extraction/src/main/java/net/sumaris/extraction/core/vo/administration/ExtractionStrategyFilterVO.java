@@ -60,6 +60,8 @@ public class ExtractionStrategyFilterVO implements IRootDataFilter {
 
     private DataQualityStatusEnum[] dataQualityStatus; // Not used yet
 
+    private Integer[] programIds;
+
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();

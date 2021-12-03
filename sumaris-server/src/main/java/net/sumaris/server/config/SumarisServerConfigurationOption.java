@@ -144,6 +144,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
         Integer.class,
         false),
 
+    ACCESS_DATA_PROGRAM_IDS(
+            "sumaris.data.program.ids",
+            n("sumaris.config.option.data.program.ids.description"),
+            null,
+            Integer.class,
+            false),
+
     ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE),
 
     SECURITY_AUTHENTICATION_TOKEN_ENABLED(

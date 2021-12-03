@@ -68,4 +68,6 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
 
     // Quality
     private DataQualityStatusEnum[] dataQualityStatus;
+
+    private Integer[] programIds;
 }
