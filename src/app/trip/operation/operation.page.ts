@@ -23,6 +23,7 @@ import {
   toBoolean,
   toNumber,
   UsageMode,
+  AppHelpModal,
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
@@ -42,7 +43,6 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { Sample } from '@app/trip/services/model/sample.model';
 import { DOCUMENT } from '@angular/common';
-import { AppHelpModal } from '../../../../ngx-sumaris-components/src/app/shared/help/help.modal';
 import { ModalController } from '@ionic/angular';
 
 const moment = momentImported;
@@ -53,7 +53,7 @@ const OPERATION_TABS = {
   SAMPLE: 2,
   SUB_SAMPLE: 3,
   RELEASE: 4
-}
+};
 
 @Component({
   selector: 'app-operation-page',
@@ -203,15 +203,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           // Load last operations (if enabled)
           //filter(_ => this.showLastOperations),
           switchMap(tripId => this.dataService.watchAll(
-              0, 5,
-              'startDateTime', 'desc',
-              {tripId}, {
-                withBatchTree: false,
-                withSamples: false,
-                computeRankOrder: false,
-                fetchPolicy: 'cache-and-network',
-                withTotal: true
-              })),
+            0, 5,
+            'startDateTime', 'desc',
+            {tripId}, {
+              withBatchTree: false,
+              withSamples: false,
+              computeRankOrder: false,
+              fetchPolicy: 'cache-and-network',
+              withTotal: true
+            })),
           map(res => res && res.data || []),
           tap(data => this.$lastOperations.next(data))
         )
@@ -252,8 +252,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
           // Will refresh the tables (inside the setter):
           this.individualMonitoringTable.availableParents = availableParents;
-          this.individualReleaseTable.availableParents = availableParents;
-          this.samplesTable.setIndividualReleaseModalOption('availableParents', availableParents);
+          this.individualReleaseTable.availableParents = samples;
+          this.samplesTable.setIndividualReleaseModalOption('availableParents', samples);
         }));
 
     // Update available releases on sample table, when sub-samples changes
@@ -794,7 +794,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.individualMonitoringTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualMonitoringTable.acquisitionLevel + '#'));
 
     // Set sub-samples (individual release)
-    this.individualReleaseTable.availableParents = this.individualMonitoringTable.availableParents;
+    this.individualReleaseTable.availableParents = this.samplesTable.value;
     this.individualReleaseTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleaseTable.acquisitionLevel + '#'));
 
     // Applying program to components (async)
@@ -1032,12 +1032,20 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
-  async onIndividualReleaseChanges(subSamples: Sample) {
-    if (isNil(subSamples)) return; // user cancelled
+  async onIndividualReleaseChanges(subSample: Sample) {
+    if (isNil(subSample)) return; // user cancelled
 
     if (this.individualReleaseTable) {
-      await this.individualReleaseTable.addRowFromValue(subSamples);
+      await this.individualReleaseTable.addRowFromValue(subSample);
     }
+  }
+  async onIndividualReleaseDelete(subSample: Sample) {
+    if (isNil(subSample)) return; // user cancelled
+
+    if (this.individualReleaseTable) {
+      await this.individualReleaseTable.deleteEntity(null, subSample);
+    }
+
   }
 
   protected computePageUrl(id: number | 'new'): string | any[] {

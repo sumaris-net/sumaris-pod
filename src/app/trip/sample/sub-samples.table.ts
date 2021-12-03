@@ -36,10 +36,13 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
+  linkToParentWithTagId: boolean = false; // Should be false to not delete row before mapPmfms (where correct value will be set)
   displayParentPmfm: IPmfm;
 
   @Input()
   set availableParents(parents: Sample[]) {
+    parents = this.linkToParentWithTagId ? (parents || []).filter(s => isNotNil(s.measurementValues[PmfmIds.TAG_ID.toString()])) : parents;
+
     if (this._availableParents !== parents) {
 
       this._availableParents = parents;
@@ -127,6 +130,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       filterNotNil(this.$pmfms)
         .subscribe((pmfms) => {
           this.displayParentPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
+          this.linkToParentWithTagId = this.displayParentPmfm && this.displayParentPmfm.required;
+
           const displayAttributes = this.settings.getFieldDisplayAttributes('taxonName')
             .map(key => 'taxonName.' + key);
           if (this.displayParentPmfm) {
@@ -367,6 +372,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     const rows = await this.dataSource.getRows();
 
+    //console.debug("[sub-samples-table] Calling linkDataToParentAndDeleteOrphan()", rows);
+    
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows

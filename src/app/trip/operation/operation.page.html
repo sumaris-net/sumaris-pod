@@ -255,7 +255,8 @@
                          [showLabelColumn]="false"
                          [showDateTimeColumn]="true"
                          [showIndividualReleaseButton]="individualReleaseTable.$pmfms|async|isNotEmptyArray"
-                         (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)">
+                         (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)"
+                         (onIndividualReleaseDelete)="onIndividualReleaseDelete($event)">
       </app-samples-table>
     </mat-tab>
 

@@ -25,8 +25,11 @@ const SAMPLE_FORM_DEFAULT_I18N_PREFIX = 'TRIP.INDIVIDUAL_RELEASE.EDIT.';
 export class SubSampleForm extends MeasurementValuesForm<Sample>
   implements OnInit, OnDestroy {
 
+  private _availableParents: Sample[] = [];
   focusFieldName: string;
   displayAttributes: string[];
+  linkToParentWithTagId: boolean = true;
+
   @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
 
   @Input() mobile: boolean;
@@ -37,7 +40,18 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
-  @Input() availableParents: Sample[];
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
+
+  @Input()
+  set availableParents(parents: Sample[]) {
+    this._availableParents = this.linkToParentWithTagId ? (parents || []).filter(s => isNotNil(s.measurementValues[PmfmIds.TAG_ID.toString()])) : parents;
+  }
+
+  get availableParents(): Sample[] {
+    return this._availableParents;
+  }
+
   @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
   @Input() displayParentPmfm: IPmfm;
 
@@ -104,6 +118,9 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     //       }
     //     }));
 
+    this.form.valueChanges.subscribe(value =>{
+      console.log(value);
+    })
     this.focusFieldName = !this.mobile && this.showLabel && 'label';
 
     if (!this.enableParent) {
@@ -113,16 +130,19 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
 
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
+    this.displayParentPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
+
+    this.linkToParentWithTagId = this.displayParentPmfm && this.displayParentPmfm.required;
+
     this.displayAttributes = this.settings.getFieldDisplayAttributes('taxonName')
       .map(key => 'taxonName.' + key);
 
     this.registerAutocompleteField('parent', {
-      suggestFn: (value: any, options?: any) => this.suggestParent(value),
+      suggestFn: this.enableParent ? (value: any, options?: any) => this.suggestParent(value) : undefined,
       showAllOnFocus: true,
       mobile: this.mobile
     });
 
-    this.displayParentPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
     if (this.displayParentPmfm) {
       this.autocompleteFields.parent.attributes = [`measurementValues.${this.displayParentPmfm.id}`].concat(this.displayAttributes);
       this.autocompleteFields.parent.columnSizes = [4].concat(this.displayAttributes.map(attr =>

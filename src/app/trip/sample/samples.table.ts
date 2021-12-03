@@ -178,6 +178,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   @Output() onPrepareRowForm = new EventEmitter<{ form: FormGroup, pmfms: IPmfm[] }>();
   @Output() onIndividualReleaseChanges = new EventEmitter<Sample>();
+  @Output() onIndividualReleaseDelete = new EventEmitter<Sample>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -444,6 +445,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         disabled: this.disabled,
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
         mobile: this.mobile,
+        onDelete:  (event, dataToDelete)  => {
+          this.onIndividualReleaseDelete.emit(dataToDelete);
+          return true;
+        },
         ...this.individualReleaseModalOptions
       },
       backdropDismiss: false,
