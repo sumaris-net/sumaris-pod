@@ -9,6 +9,7 @@ import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   EntitiesStorage,
+  EntitySaveOptions,
   EntityUtils,
   GraphqlService,
   IEntitiesService,
@@ -33,7 +34,6 @@ import {BaseReferentialService} from './base-referential-service.class';
 import {StrategyRefService} from './strategy-ref.service';
 import {ProgramFilter} from './filter/program.filter';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {EntitySaveOptions} from '../../../../ngx-sumaris-components/src/app/core/services/base-entity-service.class';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
@@ -253,9 +253,16 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
       ...opts
     };
 
+    const options: EntitySaveOptions = {
+      awaitRefetchQueries: opts.awaitRefetchQueries,
+      refetchQueries: opts.refetchQueries,
+      update: opts.update
+    };
+
     if (!this.mutations.save) {
       if (!this.mutations.saveAll) throw new Error('Not implemented');
-      const data = await this.saveAll([entity], opts);
+
+      const data = await this.saveAll([entity], options);
       return data && data[0];
     }
 
@@ -272,8 +279,8 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
     await this.graphql.mutate<{ data: any }>({
       mutation: this.mutations.save,
-      refetchQueries: this.getRefetchQueriesForMutation(opts),
-      awaitRefetchQueries: opts && opts.awaitRefetchQueries,
+      refetchQueries: this.getRefetchQueriesForMutation(options),
+      awaitRefetchQueries: options && options.awaitRefetchQueries,
       variables: {
         data: json,
         options: {
@@ -295,8 +302,8 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
           });
         }
 
-        if (opts && opts.update) {
-          opts.update(cache, {data});
+        if (options && options.update) {
+          options.update(cache, {data});
         }
 
         if (this._debug) console.debug(this._logPrefix + `${entity.__typename} saved in ${Date.now() - now}ms`, entity);
