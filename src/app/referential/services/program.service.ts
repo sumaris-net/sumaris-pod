@@ -34,6 +34,7 @@ import {StrategyRefService} from './strategy-ref.service';
 import {ProgramFilter} from './filter/program.filter';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {EntitySaveOptions} from '../../../../ngx-sumaris-components/src/app/core/services/base-entity-service.class';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default
@@ -242,19 +243,67 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Pmfm' });
   }
 
-  async save(entity: Program, options?: ProgramSaveOptions): Promise<Program> {
-    if (!entity) return entity;
 
-    // Clean cache
-    await this.clearCache();
+  async save(entity: Program, opts?: ProgramSaveOptions): Promise<Program> {
 
-    options = {
+    const isSamplingStrategyEditor = 'sampling' === entity?.properties[ProgramProperties.STRATEGY_EDITOR.key];
+    opts = {
       withStrategies: false,
-      withDepartmentsAndPersons: true,
-      ...options
+      withDepartmentsAndPersons: isSamplingStrategyEditor ? false : true,
+      ...opts
     };
 
-    return super.save(entity, options);
+    if (!this.mutations.save) {
+      if (!this.mutations.saveAll) throw new Error('Not implemented');
+      const data = await this.saveAll([entity], opts);
+      return data && data[0];
+    }
+
+    // Fill default properties
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const isNew = this.isNewFn(json);
+
+    const now = Date.now();
+    if (this._debug) console.debug(this._logPrefix + `Saving ${this._logTypeName}...`, json);
+
+    await this.graphql.mutate<{ data: any }>({
+      mutation: this.mutations.save,
+      refetchQueries: this.getRefetchQueriesForMutation(opts),
+      awaitRefetchQueries: opts && opts.awaitRefetchQueries,
+      variables: {
+        data: json,
+        options: {
+          withStrategies: opts.withStrategies,
+          withDepartmentsAndPersons: opts.withDepartmentsAndPersons
+        }
+      },
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: 'ERROR.SAVE_PROGRAM_ERROR'},
+      update: (cache, {data}) => {
+        // Update entity
+        const savedEntity = data && data.data;
+        this.copyIdAndUpdateDate(savedEntity, entity);
+
+        // Insert into the cache
+        if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
+          this.insertIntoMutableCachedQueries(cache, {
+            queries: this.getLoadQueries(),
+            data: savedEntity
+          });
+        }
+
+        if (opts && opts.update) {
+          opts.update(cache, {data});
+        }
+
+        if (this._debug) console.debug(this._logPrefix + `${entity.__typename} saved in ${Date.now() - now}ms`, entity);
+      }
+    });
+
+    return entity;
   }
 
   async clearCache() {
