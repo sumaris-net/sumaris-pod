@@ -948,6 +948,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Override using given options
         ...this.modalOptions
       },
+      cssClass: 'modal-large',
       keyboardClose: true
     });
 

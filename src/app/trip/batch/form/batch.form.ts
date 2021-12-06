@@ -1,9 +1,9 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
-import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {Batch, BatchUtils} from '../../services/model/batch.model';
+import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {
   AppFormUtils,
   EntityUtils,
@@ -20,13 +20,13 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 
-import { debounceTime, filter } from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { BatchValidatorService } from '../../services/validator/batch.validator';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import {debounceTime, filter} from 'rxjs/operators';
+import {AcquisitionLevelCodes, MethodIds, PmfmIds, PmfmLabelPatterns, QualitativeLabels} from '@app/referential/services/model/model.enum';
+import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {BatchValidatorService} from '../../services/validator/batch.validator';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-batch-form',
@@ -280,6 +280,32 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       // Always skip normalization (already done)
       normalizeEntityToForm: false
     });
+  }
+
+  async setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {
+    super.setValue(data, opts);
+
+    await this.waitIdle();
+
+    const discardOrLandingControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_OR_LANDING);
+    const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);
+
+    // Manage DISCARD_REASON validator
+    if (discardOrLandingControl && discardReasonControl) {
+
+      if (discardOrLandingControl.value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+        if (this.form.enabled) {
+          discardReasonControl.enable();
+        }
+        discardReasonControl.setValidators(Validators.required);
+        discardReasonControl.updateValueAndValidity({onlySelf: true});
+        this.form.updateValueAndValidity({onlySelf: true});
+      } else {
+        discardReasonControl.setValue(null);
+        discardReasonControl.setValidators(null);
+        discardReasonControl.disable();
+      }
+    }
   }
 
   protected getValue(): T {
