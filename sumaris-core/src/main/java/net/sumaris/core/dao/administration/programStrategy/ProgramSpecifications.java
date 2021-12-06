@@ -81,4 +81,8 @@ public interface ProgramSpecifications {
     List<ProgramDepartmentVO> getDepartmentsById(int id);
 
     List<ProgramPersonVO> getPersonsById(int id);
+
+    List<ProgramDepartmentVO> saveDepartmentsByProgramId(int programId, List<ProgramDepartmentVO> sources);
+
+    List<ProgramPersonVO> savePersonsByProgramId(int programId, List<ProgramPersonVO> sources);
 }
