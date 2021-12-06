@@ -1,5 +1,5 @@
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
 import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import {isMoment} from 'moment';
@@ -13,14 +13,21 @@ import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
+export const MeasurementValuesTypes = {
+  MeasurementModelValues: 'MeasurementModelValues',
+  MeasurementFormValue: 'MeasurementFormValue'
+};
+
 
 export declare interface MeasurementModelValues {
+  __typename?: string;
   [key: number]: string;
 }
 
 export declare type MeasurementFormValue = PmfmValue | PmfmValue[];
 
 export declare interface MeasurementFormValues {
+  __typename?: string;
   [key: string]: PmfmValue | PmfmValue[];
 }
 
@@ -166,7 +173,7 @@ export class MeasurementUtils {
     }
   }
 
-  static toModelValue(value: any, pmfm: DenormalizedPmfmStrategy | Pmfm): string | string[]{
+  static toModelValue(value: any, pmfm: DenormalizedPmfmStrategy | Pmfm): string | string[] {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
@@ -251,17 +258,26 @@ export class MeasurementValuesUtils {
     return PmfmValueUtils.valueToString(value, opts);
   }
 
-  static normalizeValueToModel(value: PmfmValue | PmfmValue[], pmfm: IPmfm): string  {
+  static normalizeValueToModel(value: PmfmValue | PmfmValue[], pmfm: IPmfm): string {
     return PmfmValueUtils.toModelValue(value, pmfm);
+  }
+
+  static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues): value is MeasurementFormValues {
+    return value.__typename === MeasurementValuesTypes.MeasurementFormValue;
   }
 
   static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
     keepSourceObject?: boolean;
   }): MeasurementModelValues {
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
-    (pmfms || []).forEach(pmfm => {
+
+    if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
+      (pmfms || []).forEach(pmfm => {
         target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
-    });
+      });
+      delete source.__typename;
+    }
+
     return target;
   }
 
@@ -297,15 +313,18 @@ export class MeasurementValuesUtils {
       ? {...source as MeasurementFormValues}
       : {};
 
-    // Normalize all pmfms from the list
-    pmfms.forEach(pmfm => {
-      const pmfmId = pmfm?.id;
-      if (isNil(pmfmId)) {
-        console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
-        return;
-      }
-      target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
-    });
+    if (!MeasurementValuesUtils.isMeasurementFormValues(source)) {
+      // Normalize all pmfms from the list
+      pmfms.forEach(pmfm => {
+        const pmfmId = pmfm?.id;
+        if (isNil(pmfmId)) {
+          console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
+          return;
+        }
+        target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
+      });
+      target.__typename = MeasurementValuesTypes.MeasurementFormValue;
+    }
     return target;
   }
 
@@ -323,7 +342,7 @@ export class MeasurementValuesUtils {
       const measFormGroup = form.get('measurementValues');
 
       if (measFormGroup instanceof FormGroup) {
-       // Remove extra PMFMS values (before adapt to form)
+        // Remove extra PMFMS values (before adapt to form)
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
 
         // Adapt to form (e.g. transform a QV_ID into a an object)
@@ -384,7 +403,7 @@ export class MeasurementValuesUtils {
     return undefined;
   }
 
-  static setValue(measurements: MeasurementFormValues|MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
+  static setValue(measurements: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
     if (!measurements || !pmfms || !pmfmId)
       return undefined;
 
