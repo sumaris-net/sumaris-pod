@@ -54,11 +54,10 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
         // Insert geometry
         service.insertOrUpdateRectangleAndSquareAreas();
 
-        //service.updateLocationHierarchy();
     }
 
     @Test
-    public void updateLocationHierarchy() throws FileNotFoundException {
+    public void b_updateLocationHierarchy() throws FileNotFoundException {
         service.updateLocationHierarchy();
 
         PrintStream ps = new PrintStream(new File("target/location_ports_tree-"+System.nanoTime()+".txt"));

@@ -176,8 +176,8 @@ public class TaxonGroupRepositoryImpl
             });
         }
 
-        log.info(String.format("Technical table TAXON_GROUP_HISTORY successfully updated. (inserts: %s, deletes: %s)",
-            insertCounter.getValue(), deleteCounter.getValue()));
+        log.info("Technical table TAXON_GROUP_HISTORY successfully updated. (inserts: {}, deletes: {})",
+            insertCounter.getValue(), deleteCounter.getValue());
     }
 
     @Override
