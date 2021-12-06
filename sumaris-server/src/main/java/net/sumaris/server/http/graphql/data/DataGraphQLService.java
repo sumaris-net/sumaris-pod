@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -146,6 +147,9 @@ public class DataGraphQLService {
 
     @Autowired
     private VesselGraphQLService vesselGraphQLService;
+
+    @Autowired
+    private ProgramRepository programRepository;
 
     /* -- Trip -- */
 
@@ -654,11 +658,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<OperationVO> findOperationsByFilter(@GraphQLArgument(name = "filter") OperationFilterVO filter,
-                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                          @GraphQLArgument(name = "sortBy") String sort,
-                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
-                                          @GraphQLEnvironment() ResolutionEnvironment env
+                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                    @GraphQLArgument(name = "sortBy") String sort,
+                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                                    @GraphQLEnvironment() ResolutionEnvironment env
     ) {
 
         Preconditions.checkNotNull(filter, "Missing filter");
@@ -748,12 +752,12 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
         return operationGroupService.findAllByTripId(filter.getTripId(),
-            Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(), null);
+                Page.builder()
+                        .offset(offset)
+                        .size(size)
+                        .sortBy(sort)
+                        .sortDirection(SortDirection.fromString(direction))
+                        .build(), null);
     }
 
     /* -- Products -- */
@@ -913,14 +917,14 @@ public class DataGraphQLService {
         Set<String> fields = GraphQLUtils.fields(env);
 
         final List<LandingVO> result = landingService.findAll(
-            filter,
-            Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(),
-            getFetchOptions(fields));
+                filter,
+                Page.builder()
+                        .offset(offset)
+                        .size(size)
+                        .sortBy(sort)
+                        .sortDirection(SortDirection.fromString(direction))
+                        .build(),
+                getFetchOptions(fields));
 
         // Add additional properties if needed
         fillLandingsFields(result, fields);
@@ -1033,8 +1037,8 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
     public void deleteAggregatedLandings(
-        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-        @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
+            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+            @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
     ) {
         aggregatedLandingService.deleteAll(filter, vesselSnapshotIds);
     }
@@ -1302,8 +1306,8 @@ public class DataGraphQLService {
         vesselGraphQLService.fillVesselSnapshot(trip, fields);
 
         if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID))
-            || fields.contains(TripVO.Fields.LANDING_ID)
-            || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+                || fields.contains(TripVO.Fields.LANDING_ID)
+                || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
     }
@@ -1394,10 +1398,10 @@ public class DataGraphQLService {
 
     protected DataFetchOptions getTripFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
-            .withExpectedSales(
-                fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
-                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID)))
-            .build();
+                .withExpectedSales(
+                        fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+                                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID)))
+                .build();
     }
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
@@ -1413,13 +1417,13 @@ public class DataGraphQLService {
 
     /**
      * Restrict to self data and/or department data
+     *
      * @param filter
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
         try {
             filter = filter != null ? filter : filterClass.newInstance();
-        }
-        catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             log.error("Cannot create filter instance: {}", e.getMessage(), e);
         }
 
@@ -1429,14 +1433,15 @@ public class DataGraphQLService {
             if (!canUserAccessNotSelfData()) {
                 // Limit data access to self data
                 filter.setRecorderPersonId(user.getId());
-            }
-            else {
+            } else {
                 Integer depId = user.getDepartment().getId();
                 if (!canDepartmentAccessNotSelfData(depId)) {
                     // Limit data access to user's department
                     filter.setRecorderDepartmentId(depId);
                 }
             }
+            List<Integer> programIds = filter.getProgramIds() != null ? Arrays.asList(filter.getProgramIds()) : new ArrayList<>();
+            filter.setProgramIds(getCanAccessProgramIds(user, programIds));
         } else {
             filter.setRecorderPersonId(-999); // Hide all. Should never occur
         }
@@ -1452,6 +1457,35 @@ public class DataGraphQLService {
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
         List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
+    }
+
+    protected Integer[] getCanAccessProgramIds(PersonVO user, List<Integer> programIds) {
+
+        if (!authService.isAdmin()) {
+            List<Integer> programIdsBySoftwareOption = configuration.getProgramIds();
+            List<Integer> programIdsByUser = programRepository.getProgramIdsByUserId(user.getId());
+
+            // To get allowed program ids, we made intersection with not empty lists.
+            // If all list are empty => All programs allowed
+            if (programIds.size() > 0) {
+                if (programIdsBySoftwareOption.size() > 0) {
+                    programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsBySoftwareOption);
+                }
+
+                if (programIdsByUser.size() > 0) {
+                    programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
+                }
+            } else if (programIdsBySoftwareOption.size() > 0) {
+                programIds = programIdsBySoftwareOption;
+
+                if (programIdsByUser.size() > 0) {
+                    programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
+                }
+            } else {
+                programIds = programIdsByUser;
+            }
+        }
+        return programIds.toArray(new Integer[0]);
     }
 
     /**

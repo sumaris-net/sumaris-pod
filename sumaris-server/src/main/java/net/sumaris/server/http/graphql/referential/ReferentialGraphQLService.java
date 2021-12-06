@@ -24,35 +24,42 @@ package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.ChangesPublisherService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @GraphQLApi
 @Transactional
 public class ReferentialGraphQLService {
+
+    @Autowired
+    private SumarisServerConfiguration configuration;
 
     @Autowired
     private ReferentialService referentialService;
@@ -64,7 +71,13 @@ public class ReferentialGraphQLService {
     private MetierRepository metierRepository;
 
     @Autowired
+    private ProgramRepository programRepository;
+
+    @Autowired
     private ChangesPublisherService changesPublisherService;
+
+    @Autowired
+    private AuthService authService;
 
     /* -- Referential queries -- */
 
@@ -98,6 +111,11 @@ public class ReferentialGraphQLService {
                     SortDirection.valueOf(direction.toUpperCase()));
         }
 
+        if (Program.class.getSimpleName().equals(entityName)) {
+            List<Integer> includedIds = filter.getIncludedIds() != null ? Arrays.asList(filter.getIncludedIds()) : new ArrayList<>();
+            filter.setIncludedIds(getCanAccessProgramIds(includedIds));
+        }
+
         return referentialService.findByFilter(entityName,
                 ReferentialFilterVO.nullToEmpty(filter),
                 offset == null ? 0 : offset,
@@ -110,6 +128,12 @@ public class ReferentialGraphQLService {
     @Transactional(readOnly = true)
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
                                      @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+
+        if (Program.class.getSimpleName().equals(entityName)) {
+            List<Integer> includedIds = filter.getIncludedIds() != null ? Arrays.asList(filter.getIncludedIds()) : new ArrayList<>();
+            filter.setIncludedIds(getCanAccessProgramIds(includedIds));
+        }
+
         return referentialService.countByFilter(entityName, filter);
     }
 
@@ -117,15 +141,15 @@ public class ReferentialGraphQLService {
     @GraphQLQuery(name = "metiers", description = "Search in metiers")
     @Transactional(readOnly = true)
     public List<MetierVO> findMetiersByFilter(
-        @GraphQLArgument(name = "filter") MetierFilterVO filter,
-        @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-        @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-        @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
-        @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+            @GraphQLArgument(name = "filter") MetierFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         return metierRepository.findByFilter(
-            MetierFilterVO.nullToEmpty(filter),
-            offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
+                MetierFilterVO.nullToEmpty(filter),
+                offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
     @GraphQLQuery(name = "metiersCount", description = "Count metiers")
@@ -210,11 +234,11 @@ public class ReferentialGraphQLService {
     }
 
     @GraphQLQuery(name = "taxonGroups", description = "Get taxon groups from a taxon name")
-    public List<TaxonGroupVO> getTaxonGroupByFilter  (@GraphQLArgument(name = "filter") ReferentialFilterVO filter,
-                                                      @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                      @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                      @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
-                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+    public List<TaxonGroupVO> getTaxonGroupByFilter(@GraphQLArgument(name = "filter") ReferentialFilterVO filter,
+                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                    @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
+                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         return taxonGroupService.findTargetSpeciesByFilter(
                 ReferentialFilterVO.nullToEmpty(filter),
                 offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
@@ -230,8 +254,44 @@ public class ReferentialGraphQLService {
 
     protected TaxonNameFetchOptions getFetchOptions(Set<String> fields) {
         return TaxonNameFetchOptions.builder()
-            .withParentTaxonName(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.PARENT_TAXON_NAME, IEntity.Fields.ID)))
-            .withTaxonomicLevel(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.TAXONOMIC_LEVEL, IEntity.Fields.ID)))
-            .build();
+                .withParentTaxonName(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.PARENT_TAXON_NAME, IEntity.Fields.ID)))
+                .withTaxonomicLevel(fields.contains(StringUtils.slashing(TaxonNameVO.Fields.TAXONOMIC_LEVEL, IEntity.Fields.ID)))
+                .build();
+    }
+
+
+    protected Integer[] getCanAccessProgramIds(List<Integer> programIds) {
+
+        if (!authService.isAdmin()) {
+            PersonVO user = authService.getAuthenticatedUser().orElse(null);
+
+            if (user != null) {
+                List<Integer> programIdsBySoftwareOption = configuration.getProgramIds();
+                List<Integer> programIdsByUser = programRepository.getProgramIdsByUserId(user.getId());
+
+                // To get allowed program ids, we made intersection with not empty lists.
+                // If all list are empty => All programs allowed
+                if (programIds.size() > 0) {
+                    if (programIdsBySoftwareOption.size() > 0) {
+                        programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsBySoftwareOption);
+                    }
+
+                    if (programIdsByUser.size() > 0) {
+                        programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
+                    }
+                } else if (programIdsBySoftwareOption.size() > 0) {
+                    programIds = programIdsBySoftwareOption;
+
+                    if (programIdsByUser.size() > 0) {
+                        programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
+                    }
+                } else {
+                    programIds = programIdsByUser;
+                }
+            } else {
+                programIds = Collections.singletonList(-999); // Hide all. Should never occur
+            }
+        }
+        return programIds.toArray(new Integer[0]);
     }
 }

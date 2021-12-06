@@ -54,4 +54,8 @@ public interface IRootDataFilter extends IDataFilter {
     DataQualityStatusEnum[] getDataQualityStatus();
 
     void setDataQualityStatus(DataQualityStatusEnum[] dataQualityStatus);
+
+    Integer[] getProgramIds();
+
+    void setProgramIds(Integer[] programIds);
 }

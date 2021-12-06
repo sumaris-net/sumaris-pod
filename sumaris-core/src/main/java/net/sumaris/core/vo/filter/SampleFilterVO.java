@@ -59,4 +59,6 @@ public class SampleFilterVO implements IRootDataFilter {
     private Boolean withTagId;
 
     private DataQualityStatusEnum[] dataQualityStatus;
+
+    private Integer[] programIds;
 }

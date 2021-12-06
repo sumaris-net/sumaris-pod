@@ -22,11 +22,17 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -34,5 +40,19 @@ import net.sumaris.core.vo.filter.ProgramFilterVO;
 public interface ProgramRepository
     extends ReferentialRepository<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
     ProgramSpecifications {
+
+    String findQuery = "select distinct(PROGRAM.id) from PROGRAM" +
+            "               left join PROGRAM2DEPARTMENT P2D on PROGRAM.ID = P2D.PROGRAM_FK" +
+            "               left join PROGRAM2PERSON P2P on PROGRAM.ID = P2P.PROGRAM_FK" +
+            "               where PERSON_FK = :id" +
+            "           union" +
+            "           select PROGRAM_FK from STRATEGY" +
+            "               left join STRATEGY2DEPARTMENT S2D on STRATEGY.ID = S2D.STRATEGY_FK" +
+            "               left join DEPARTMENT D on S2D.DEPARTMENT_FK = D.ID" +
+            "               join PERSON P on D.ID = P.DEPARTMENT_FK" +
+            "               where p.ID = :id";
+    @Query(value = findQuery, nativeQuery = true)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_USER_ID, unless="#result==null")
+    List<Integer> getProgramIdsByUserId(@Param("id") int id);
 
 }

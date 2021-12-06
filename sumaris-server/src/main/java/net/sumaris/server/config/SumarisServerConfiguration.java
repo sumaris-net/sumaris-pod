@@ -90,21 +90,22 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>Constructor for SumarisServerConfiguration.</p>
      *
-     * @param env a {@link ConfigurableEnvironment} object.
+     * @param env  a {@link ConfigurableEnvironment} object.
      * @param args a {@link String} object.
      */
     public SumarisServerConfiguration(ConfigurableEnvironment env, String... args) {
         super(env, args);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void overrideExternalModulesDefaultOptions(ApplicationConfig applicationConfig) {
         super.overrideExternalModulesDefaultOptions(applicationConfig);
     }
 
-    public List<Integer> getAccessNotSelfDataDepartmentIds() {
-        final String optionKey = SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey();
+    public List<Integer> getConfigurationOptionAsNumbers(String optionKey) {
         List<Integer> result = (List<Integer>) complexOptionsCache.getIfPresent(optionKey);
 
         // Not exists in cache
@@ -112,23 +113,21 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             String depIds = applicationConfig.getOption(optionKey);
             if (StringUtils.isBlank(depIds)) {
                 result = ImmutableList.of();
-            }
-            else {
+            } else {
                 final List<String> invalidIds = Lists.newArrayList();
                 result = Splitter.on(",").omitEmptyStrings().trimResults()
-                    .splitToList(depIds)
-                    .stream()
-                    .map(depId -> {
-                        try {
-                            return Integer.parseInt(depId);
-                        }
-                        catch (Exception e) {
-                            invalidIds.add(depId);
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                        .splitToList(depIds)
+                        .stream()
+                        .map(depId -> {
+                            try {
+                                return Integer.parseInt(depId);
+                            } catch (Exception e) {
+                                invalidIds.add(depId);
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
                 if (CollectionUtils.isNotEmpty(invalidIds)) {
                     log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);
@@ -139,6 +138,16 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             complexOptionsCache.put(optionKey, result);
         }
         return result;
+    }
+
+    public List<Integer> getAccessNotSelfDataDepartmentIds() {
+        final String optionKey = SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey();
+        return getConfigurationOptionAsNumbers(optionKey);
+    }
+
+    public List<Integer> getProgramIds() {
+        final String optionKey = SumarisServerConfigurationOption.ACCESS_DATA_PROGRAM_IDS.getKey();
+        return getConfigurationOptionAsNumbers(optionKey);
     }
 
     public String getAccessNotSelfDataMinRole() {
@@ -155,7 +164,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     public boolean enableAuthBasic() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_LDAP_ENABLED.getKey())
-            || applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_AD_ENABLED.getKey());
+                || applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_AD_ENABLED.getKey());
     }
 
     /**
@@ -187,6 +196,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     /**
      * <p>getDownloadDirectory</p>
+     *
      * @return a {@link File} object.
      */
     public File getDownloadDirectory() {
@@ -195,6 +205,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     /**
      * <p>getUploadDirectory</p>
+     *
      * @return a {@link File} object.
      */
     public File getUploadDirectory() {
@@ -307,8 +318,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
         try {
             return VersionBuilder.create(versionStr).build();
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             logger.error(String.format("Unable to parse value '%s' for config option '%s': %s",
                     versionStr, SumarisServerConfigurationOption.APP_MIN_VERSION.getKey(), e.getMessage()));
             return null;
@@ -325,8 +335,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /* -- Internal methods -- */
-
-
 
 
     /**
