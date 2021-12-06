@@ -206,11 +206,11 @@ public class ExtractionServiceImpl implements ExtractionService {
             this.enableProduct);
 
         // Update technical tables (if option changed)
-        if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
-            enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
-            if (enableTechnicalTablesUpdate) {
-                initRectangleLocations();
-            }
+        if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
+            this.enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
+
+            // Init rectangles
+            if (this.enableTechnicalTablesUpdate) initRectangleLocations();
         }
 
     }
@@ -762,7 +762,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
             if (statisticalRectanglesCount == 0 || square10minCount == 0) {
                 // Update area
-                // FIXME: no stored procedure fillLocationHierarchy on HSQLDB
                 locationService.insertOrUpdateRectangleAndSquareAreas();
 
                 // Update location hierarchy

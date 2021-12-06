@@ -65,11 +65,19 @@ public interface OperationSpecifications
     String TAXON_GROUP_LABELS_PARAMETER = "targetSpecieIds";
     String QUALITY_FLAG_ID_PARAMETER = "qualityFlagId";
 
+    default Specification<Operation> excludeOperationGroup() {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            Join<Operation, Trip> tripJoin = Daos.composeJoin(root, Operation.Fields.TRIP, JoinType.INNER);
+            return criteriaBuilder.notEqual(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME));
+        });
+    }
+
     default Specification<Operation> hasTripId(Integer tripId) {
         if (tripId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            Join<Operation, Trip> tripJoin = Daos.composeJoin(root, Operation.Fields.TRIP, JoinType.INNER);
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param);
+            return criteriaBuilder.equal(tripJoin.get(IEntity.Fields.ID), param);
         }).addBind(TRIP_ID_PARAM, tripId);
     }
 

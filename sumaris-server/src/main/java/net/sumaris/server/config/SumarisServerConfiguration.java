@@ -32,12 +32,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
-import org.nuiton.version.VersionBuilder;
 import org.nuiton.version.Version;
+import org.nuiton.version.VersionBuilder;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 /**
