@@ -23,6 +23,7 @@
 package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.*;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.ReferentialEntities;
@@ -33,6 +34,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.MetierFilterVO;
@@ -111,9 +113,10 @@ public class ReferentialGraphQLService {
                     SortDirection.valueOf(direction.toUpperCase()));
         }
 
-        if (Program.class.getSimpleName().equals(entityName)) {
-            List<Integer> includedIds = filter.getIncludedIds() != null ? Arrays.asList(filter.getIncludedIds()) : new ArrayList<>();
-            filter.setIncludedIds(getCanAccessProgramIds(includedIds));
+        // Limit access to program
+        if (Program.class.getSimpleName().equals(entityName) && !authService.isAdmin()) {
+            Collection<Integer> programIds = limitProgramIdsForUser(Beans.getList(filter.getIncludedIds()));
+            filter.setIncludedIds(programIds.toArray(new Integer[0]));
         }
 
         return referentialService.findByFilter(entityName,
@@ -129,9 +132,10 @@ public class ReferentialGraphQLService {
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
                                      @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
 
-        if (Program.class.getSimpleName().equals(entityName)) {
-            List<Integer> includedIds = filter.getIncludedIds() != null ? Arrays.asList(filter.getIncludedIds()) : new ArrayList<>();
-            filter.setIncludedIds(getCanAccessProgramIds(includedIds));
+        // Limit access to program
+        if (Program.class.getSimpleName().equals(entityName) && !authService.isAdmin()) {
+            Collection<Integer> programIds = limitProgramIdsForUser(Beans.getList(filter.getIncludedIds()));
+            filter.setIncludedIds(programIds.toArray(new Integer[0]));
         }
 
         return referentialService.countByFilter(entityName, filter);
@@ -260,38 +264,24 @@ public class ReferentialGraphQLService {
     }
 
 
-    protected Integer[] getCanAccessProgramIds(List<Integer> programIds) {
+    protected Collection<Integer> limitProgramIdsForUser(Collection<Integer> programIds) {
 
-        if (!authService.isAdmin()) {
-            PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        if (user != null) {
+            // To get allowed program ids, we made intersection with not empty lists.
+            // If all list are empty => All programs allowed
+            programIds = Beans.intersectionIfNotEmpty(programIds,
+                configuration.getProgramIds(),
+                programRepository.getProgramIdsByUserId(user.getId())
+            );
 
-            if (user != null) {
-                List<Integer> programIdsBySoftwareOption = configuration.getProgramIds();
-                List<Integer> programIdsByUser = programRepository.getProgramIdsByUserId(user.getId());
-
-                // To get allowed program ids, we made intersection with not empty lists.
-                // If all list are empty => All programs allowed
-                if (programIds.size() > 0) {
-                    if (programIdsBySoftwareOption.size() > 0) {
-                        programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsBySoftwareOption);
-                    }
-
-                    if (programIdsByUser.size() > 0) {
-                        programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
-                    }
-                } else if (programIdsBySoftwareOption.size() > 0) {
-                    programIds = programIdsBySoftwareOption;
-
-                    if (programIdsByUser.size() > 0) {
-                        programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
-                    }
-                } else {
-                    programIds = programIdsByUser;
-                }
-            } else {
-                programIds = Collections.singletonList(-999); // Hide all. Should never occur
-            }
+            return CollectionUtils.isNotEmpty(programIds)
+                ? programIds
+                : ImmutableList.of(-999); // No
         }
-        return programIds.toArray(new Integer[0]);
+        else {
+            return ImmutableList.of(-999); // No access
+        }
     }
+
 }

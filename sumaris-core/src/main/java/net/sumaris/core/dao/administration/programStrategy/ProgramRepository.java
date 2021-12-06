@@ -41,18 +41,21 @@ public interface ProgramRepository
     extends ReferentialRepository<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
     ProgramSpecifications {
 
-    String findQuery = "select distinct(PROGRAM.id) from PROGRAM" +
-            "               left join PROGRAM2DEPARTMENT P2D on PROGRAM.ID = P2D.PROGRAM_FK" +
-            "               left join PROGRAM2PERSON P2P on PROGRAM.ID = P2P.PROGRAM_FK" +
-            "               where PERSON_FK = :id" +
-            "           union" +
-            "           select PROGRAM_FK from STRATEGY" +
-            "               left join STRATEGY2DEPARTMENT S2D on STRATEGY.ID = S2D.STRATEGY_FK" +
-            "               left join DEPARTMENT D on S2D.DEPARTMENT_FK = D.ID" +
-            "               join PERSON P on D.ID = P.DEPARTMENT_FK" +
-            "               where p.ID = :id";
+    String findQuery = "select distinct(PROGRAM.id) " +
+            "           from PERSON P," +
+            "                PROGRAM" +
+            "                   left join PROGRAM2DEPARTMENT P2D on PROGRAM.ID = P2D.PROGRAM_FK" +
+            "                   left join PROGRAM2PERSON P2P on PROGRAM.ID = P2P.PROGRAM_FK" +
+            "           where P.ID = :id " +
+            "               AND (P2D.DEPARTMENT_FK = P.DEPARTMENT_FK OR P2P.PERSON_FK = :id)" +
+            "       union" +
+            "           select PROGRAM_FK" +
+            "           from STRATEGY" +
+            "               inner join STRATEGY2DEPARTMENT S2D on STRATEGY.ID = S2D.STRATEGY_FK" +
+            "               inner join PERSON P on S2D.DEPARTMENT_FK = P.DEPARTMENT_FK" +
+            "           where p.ID = :id";
     @Query(value = findQuery, nativeQuery = true)
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_USER_ID, unless="#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, unless="#result==null")
     List<Integer> getProgramIdsByUserId(@Param("id") int id);
 
 }

@@ -23,6 +23,7 @@
 package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
@@ -36,6 +37,7 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -1440,8 +1442,12 @@ public class DataGraphQLService {
                     filter.setRecorderDepartmentId(depId);
                 }
             }
-            List<Integer> programIds = filter.getProgramIds() != null ? Arrays.asList(filter.getProgramIds()) : new ArrayList<>();
-            filter.setProgramIds(getCanAccessProgramIds(user, programIds));
+
+            // Limit program access, when not admin
+            if (!authService.isAdmin()) {
+                Collection<Integer> programIds = limitProgramIdsForUser(user.getId(), Beans.getList(filter.getProgramIds()));
+                filter.setProgramIds(programIds.toArray(new Integer[0]));
+            }
         } else {
             filter.setRecorderPersonId(-999); // Hide all. Should never occur
         }
@@ -1459,33 +1465,17 @@ public class DataGraphQLService {
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 
-    protected Integer[] getCanAccessProgramIds(PersonVO user, List<Integer> programIds) {
+    protected Collection<Integer> limitProgramIdsForUser(int userId, Collection<Integer> programIds) {
+        // To get allowed program ids, we made intersection with not empty lists.
+        // If all list are empty => All programs allowed
+        programIds = Beans.intersectionIfNotEmpty(programIds,
+            configuration.getProgramIds(),
+            programRepository.getProgramIdsByUserId(userId)
+            );
 
-        if (!authService.isAdmin()) {
-            List<Integer> programIdsBySoftwareOption = configuration.getProgramIds();
-            List<Integer> programIdsByUser = programRepository.getProgramIdsByUserId(user.getId());
-
-            // To get allowed program ids, we made intersection with not empty lists.
-            // If all list are empty => All programs allowed
-            if (programIds.size() > 0) {
-                if (programIdsBySoftwareOption.size() > 0) {
-                    programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsBySoftwareOption);
-                }
-
-                if (programIdsByUser.size() > 0) {
-                    programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
-                }
-            } else if (programIdsBySoftwareOption.size() > 0) {
-                programIds = programIdsBySoftwareOption;
-
-                if (programIdsByUser.size() > 0) {
-                    programIds = (List<Integer>) CollectionUtils.intersection(programIds, programIdsByUser);
-                }
-            } else {
-                programIds = programIdsByUser;
-            }
-        }
-        return programIds.toArray(new Integer[0]);
+        return CollectionUtils.isNotEmpty(programIds)
+            ? programIds
+            : ImmutableList.of(-999); // No access
     }
 
     /**

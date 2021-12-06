@@ -213,6 +213,7 @@ public class ProgramRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         },
         put = {
             @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#vo.id", condition = " #vo.id != null"),
@@ -283,7 +284,8 @@ public class ProgramRepositoryImpl
     @Caching(
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
     public void deleteById(Integer id) {

@@ -131,7 +131,8 @@ public class StrategyRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
     public StrategyVO save(StrategyVO vo) {
@@ -154,7 +155,8 @@ public class StrategyRepositoryImpl
                 @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
-                @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
+                @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
     public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
@@ -177,10 +179,27 @@ public class StrategyRepositoryImpl
 
         // Remove unused entities
         if (CollectionUtils.isNotEmpty(sourcesIdsToRemove)) {
-            sourcesIdsToRemove.forEach(this::deleteById);
+            // Warn: avoid to call this.deleteById() to avoid unnecessary cache evictions
+            // => super.deleteById() is better in this case
+            sourcesIdsToRemove.forEach(super::deleteById);
         }
 
         return result;
+    }
+
+    @Override
+    @Caching(
+        evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
+        }
+    )
+    public void deleteById(Integer integer) {
+        super.deleteById(integer);
     }
 
     @Override

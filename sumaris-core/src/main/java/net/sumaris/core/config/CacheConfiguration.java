@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Configuration
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
@@ -80,7 +81,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
         String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
-        String PROGRAM_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.getProgramIdsByUserId";
+        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.getProgramIdsByUserId";
 
 
         // Strategy
@@ -158,7 +159,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL, String.class, ProgramVO.class, 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
-            Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_USER_ID, Integer.class, ArrayList.class, 100);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_USER_ID, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
 
             // Strategy
             Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheTTL.DEFAULT.asDuration(), 100);

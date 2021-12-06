@@ -112,45 +112,6 @@
 		<addForeignKeyConstraint baseColumnNames="order_type_fk" baseTableName="order_item" constraintName="FK4vp8qpet2cnret34iohgjulik" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="order_type" validate="true"/>
 	</changeSet>
 
-	<!-- Insert OBJECT_TYPE Location  -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-9" runOnChange="true">
-		<preConditions onFail="MARK_RAN">
-			<sqlCheck expectedResult="0">SELECT count(*) FROM object_type where label='LOCATION'</sqlCheck>
-		</preConditions>
-		<!-- increment the sequence -->
-		<sql endDelimiter=";">
-			SELECT setval('object_type_seq', max(id), true) from object_type;
-		</sql>
-		<insert tableName="object_type">
-			<column name="ID" valueComputed="nextval('object_type_seq')"/>
-			<column name="LABEL">LOCATION</column>
-			<column name="NAME">Lieux</column>
-			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="current_timestamp" />
-			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-		</insert>
-	</changeSet>
-
-	<!-- Insert ORDER_TYPE : North to south order -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-10" runOnChange="true">
-		<preConditions onFail="MARK_RAN">
-			<sqlCheck expectedResult="0">SELECT count(*) FROM order_type where label='NORTH_TO_SOUTH_LOCATION' or id=1</sqlCheck>
-		</preConditions>
-		<insert tableName="order_type">
-			<column name="ID" valueNumeric="1"/>
-			<column name="LABEL">NORTH_TO_SOUTH_LOCATION</column>
-			<column name="NAME">Tri géographique nord/sud</column>
-			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="OBJECT_TYPE_FK" valueComputed="(select ID from OBJECT_TYPE where label='LOCATION')"/>
-			<column name="CREATION_DATE" valueComputed="current_timestamp" />
-			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-		</insert>
-		<!-- increment the sequence -->
-		<sql endDelimiter=";">
-			SELECT setval('order_type_seq', max(id), true) from order_type;
-		</sql>
-	</changeSet>
-
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
