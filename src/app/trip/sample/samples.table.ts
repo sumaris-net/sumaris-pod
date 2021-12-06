@@ -473,13 +473,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // server call for first sample and increment from server call value
     if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
-      const existingTagId = this.currentTagId || previousSample?.measurementValues[PmfmIds.TAG_ID];
+      const existingTagId = /*this.currentTagId ||*/ previousSample?.measurementValues[PmfmIds.TAG_ID];
       const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
+      const nextAvailableTagId = Number((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
       const newTagId = isNilOrNaN(existingTagIdAsNumber)
-        ? (await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength)
-        : (existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, "0");
+        ? nextAvailableTagId
+        : Math.max(nextAvailableTagId, existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, '0');
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
-      this.currentTagId = newTagId; // Remember, for next iteration
+      //this.currentTagId = newTagId; // Remember, for next iteration
     }
 
     // Default presentation value
