@@ -23,7 +23,10 @@
 package net.sumaris.core.dao.technical.hibernate.spatial.dialect;
 
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.StandardSQLFunction;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.Type;
 
 public class PostgisPG10Dialect extends org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect {
 
@@ -32,9 +35,9 @@ public class PostgisPG10Dialect extends org.hibernate.spatial.dialect.postgis.Po
 
         // Register additional functions
         for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
-            if (function == AdditionalSQLFunctions.nvl) {
+            if (function != AdditionalSQLFunctions.nvl_end_date) {
                 // Register 'nvl' to use 'coalesce' function
-                registerFunction(function.name(), new StandardSQLFunction("coalesce"));
+                registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
             }
             else {
                 registerFunction(function.name(), function.asRegisterFunction());

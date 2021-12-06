@@ -22,9 +22,13 @@
 
 package net.sumaris.core.dao.technical.hibernate;
 
+import org.hibernate.dialect.function.SQLFunction;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
+
+import java.sql.Date;
 
 public enum AdditionalSQLFunctions {
 
@@ -32,9 +36,9 @@ public enum AdditionalSQLFunctions {
     lpad("lpad", StandardBasicTypes.STRING),
 
     // nvl (need by VesselRepository and Vessel entity)
-    nvl("nvl");
+    nvl_end_date("nvl", new SQLFunctionTemplate(StandardBasicTypes.DATE, "nvl(?1, date'2100-01-01')"));
 
-    private StandardSQLFunction function;
+    private SQLFunction function;
 
     AdditionalSQLFunctions(String sqlName, Type type) {
         this.function = new StandardSQLFunction(sqlName, type);
@@ -44,7 +48,11 @@ public enum AdditionalSQLFunctions {
         this.function = new StandardSQLFunction(sqlName);
     }
 
-    public StandardSQLFunction asRegisterFunction() {
+    AdditionalSQLFunctions(String sqlName, SQLFunction function) {
+        this.function = function;
+    }
+
+    public SQLFunction asRegisterFunction() {
         return function;
     }
 

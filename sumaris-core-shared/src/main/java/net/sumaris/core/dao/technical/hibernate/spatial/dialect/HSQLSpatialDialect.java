@@ -26,12 +26,14 @@ import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.hibernate.types.IntegerArrayUserType;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.HSQLDialect;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.GeolatteGeometryType;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.JTSGeometryType;
+import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor;
 
 import java.sql.Types;
@@ -49,9 +51,9 @@ public class HSQLSpatialDialect extends HSQLDialect {
 
         // Register additional functions
         for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
-            if (function == AdditionalSQLFunctions.nvl) {
+            if (function == AdditionalSQLFunctions.nvl_end_date) {
                 // Register 'nvl' to use 'coalesce' function
-                registerFunction(function.name(), new StandardSQLFunction("coalesce"));
+                registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
             }
             else {
                 registerFunction(function.name(), function.asRegisterFunction());

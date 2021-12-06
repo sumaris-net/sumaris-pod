@@ -40,6 +40,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
