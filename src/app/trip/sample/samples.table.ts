@@ -476,9 +476,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       const existingTagId = /*this.currentTagId ||*/ previousSample?.measurementValues[PmfmIds.TAG_ID];
       const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
       const nextAvailableTagId = Number((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
-      const newTagId = isNilOrNaN(existingTagIdAsNumber)
+      const newTagId = (isNilOrNaN(existingTagIdAsNumber)
         ? nextAvailableTagId
-        : Math.max(nextAvailableTagId, existingTagIdAsNumber + 1).toString().padStart(this.tagIdMinLength, '0');
+        : Math.max(nextAvailableTagId, existingTagIdAsNumber + 1)).toString().padStart(this.tagIdMinLength, '0');
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
       //this.currentTagId = newTagId; // Remember, for next iteration
     }
