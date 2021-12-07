@@ -469,18 +469,17 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
 
     // Get the previous sample
-    const previousSample: Sample = await this.getPreviousSample();
+    const previousSample: Sample = await this.getPreviousSampleWithNumericalTagId();
 
     // server call for first sample and increment from server call value
     if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
-      const existingTagId = /*this.currentTagId ||*/ previousSample?.measurementValues[PmfmIds.TAG_ID];
+      const existingTagId = previousSample?.measurementValues[PmfmIds.TAG_ID];
       const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
       const nextAvailableTagId = Number((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
       const newTagId = (isNilOrNaN(existingTagIdAsNumber)
         ? nextAvailableTagId
         : Math.max(nextAvailableTagId, existingTagIdAsNumber + 1)).toString().padStart(this.tagIdMinLength, '0');
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
-      //this.currentTagId = newTagId; // Remember, for next iteration
     }
 
     // Default presentation value
@@ -489,10 +488,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
   }
 
-  protected async getPreviousSample(): Promise<Sample> {
+  protected async getPreviousSampleWithNumericalTagId(): Promise<Sample> {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
-    const row = await this.dataSource.getRow(this.visibleRowCount - 1);
-    return row && row.currentData;
+    for (var i = this.visibleRowCount - 1; i >= 0; i--) {
+      const row = await this.dataSource.getRow(i);
+      if (row) {
+        const rowData = row.currentData;
+        const existingTagId = rowData?.measurementValues[PmfmIds.TAG_ID];
+        const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
+        if (existingTagIdAsNumber) {
+          return rowData;
+        }
+
+      }
+    }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
