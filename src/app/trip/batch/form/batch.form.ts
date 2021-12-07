@@ -319,7 +319,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       const weightPmfm = this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
       json.measurementValues[weightPmfm.id.toString()] = totalWeight;
     }
-    json.weight = undefined;
 
     // Convert measurements
     json.measurementValues = {
@@ -343,8 +342,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
           const childWeightPmfm = childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
           childJson.measurementValues[childWeightPmfm.id.toString()] = childJson.weight.value;
         }
-
-        childJson.weight = undefined;
 
         // Convert measurements
         childJson.measurementValues = Object.assign({},
