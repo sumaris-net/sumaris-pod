@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {ActivatedRoute} from '@angular/router';
 import * as momentImported from 'moment';
 import {
   AccountService,
@@ -16,17 +16,17 @@ import {
   StatusIds,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { ProgramProperties } from '../../services/config/program.config';
-import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
-import { Strategy } from '../../services/model/strategy.model';
-import { PmfmService } from '../../services/pmfm.service';
-import { SamplingStrategyForm } from './sampling-strategy.form';
-import { BehaviorSubject } from 'rxjs';
-import { Program } from '../../services/model/program.model';
-import { ProgramService } from '../../services/program.service';
-import { AcquisitionLevelCodes, PmfmIds } from '../../services/model/model.enum';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
-import { SamplingStrategy } from '@app/referential/services/model/sampling-strategy.model';
+import {ProgramProperties} from '../../services/config/program.config';
+import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
+import {Strategy} from '../../services/model/strategy.model';
+import {PmfmService} from '../../services/pmfm.service';
+import {SamplingStrategyForm} from './sampling-strategy.form';
+import {BehaviorSubject} from 'rxjs';
+import {Program} from '../../services/model/program.model';
+import {ProgramService} from '../../services/program.service';
+import {AcquisitionLevelCodes, PmfmIds} from '../../services/model/model.enum';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {SamplingStrategy} from '@app/referential/services/model/sampling-strategy.model';
 
 const moment = momentImported;
 
@@ -252,8 +252,8 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
       target.pmfms.push(PmfmStrategy.fromObject({
         pmfm: {id: PmfmIds.TAG_ID},
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-        isMandatory: true,
-        acquisitionNumber : 1,
+        isMandatory: false,
+        acquisitionNumber: 1,
         rankOrder: 1 // Should be the only one PmfmStrategy on Landing
       }));
     }
