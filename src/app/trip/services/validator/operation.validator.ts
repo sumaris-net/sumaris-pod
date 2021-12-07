@@ -67,7 +67,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      form.addControl('fishingAreas', this.getFishingAreasArray(data));
+      form.addControl('fishingAreas', this.getFishingAreasArray(data,  {required: true}));
     }
 
     // Add position
@@ -289,7 +289,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing areas
     if (opts.withFishingAreas) {
-      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null));
+      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
     } else {
       if (!!form.controls.fishingAreas) form.removeControl('fishingAreas');
     }
@@ -352,7 +352,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   protected getFishingAreasArray(data?: Operation, opts?: {required?: boolean}) {
     const required = !opts || opts.required !== false;
     return this.formBuilder.array(
-      (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
+      (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa, { required })),
       required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
     );
   }

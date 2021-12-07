@@ -81,6 +81,12 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     // Force the label
      data.label = this._acquisitionLevel;
   }
+
+  protected getValue(): Batch {
+    const batch = super.getValue();
+    console.log('TODO', batch);
+    return batch;
+  }
 }
 
 

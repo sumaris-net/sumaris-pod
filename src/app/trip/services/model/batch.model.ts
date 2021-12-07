@@ -155,6 +155,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
       delete target.parentId;
       // Remove computed properties
       delete target.weight;
+      if (target.measurementValues) delete target.measurementValues.__typename
     }
 
     return target;

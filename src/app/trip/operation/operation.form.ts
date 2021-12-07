@@ -1,14 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from '@angular/core';
-import {OperationValidatorService} from '../services/validator/operation.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
+import { OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
   AppFormUtils,
   DateFormatPipe,
   EntityUtils,
-  firstTruePromise,
   FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
@@ -18,6 +17,7 @@ import {
   isNotNilOrNaN,
   LoadResult,
   MatAutocompleteField,
+  OnReady,
   PlatformService,
   ReferentialRef,
   ReferentialUtils,
@@ -27,10 +27,9 @@ import {
   StatusIds,
   suggestFromArray,
   toBoolean,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
 import { BehaviorSubject, merge } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -69,7 +68,7 @@ export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   styleUrls: ['./operation.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationForm extends AppForm<Operation> implements OnInit {
+export class OperationForm extends AppForm<Operation> implements OnInit, OnReady {
 
   private _trip: Trip;
   private _physicalGearsSubject = new BehaviorSubject<PhysicalGear[]>(undefined);
@@ -79,7 +78,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   private _showPosition = true;
   private _showFishingArea = false;
   private _requiredComment = false;
-  private _$ready = new BehaviorSubject<boolean>(false);
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -237,7 +235,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected accountService: AccountService,
     protected operationService: OperationService,
     protected pmfmService: PmfmService,
-    protected translate: TranslateService,
     protected platform: PlatformService,
     protected formBuilder: FormBuilder,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
@@ -245,6 +242,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     @Optional() protected geolocation: Geolocation
   ) {
     super(injector, validatorService.getFormGroup());
+    this._$ready.next(false);
     this.mobile = platform.mobile;
     this.i18nFieldPrefix = 'TRIP.OPERATION.EDIT.';
 
@@ -321,6 +319,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     );
   }
 
+  ngOnReady() {
+    this.updateFormGroup();
+  }
+
   ngOnDestroy() {
     super.ngOnDestroy();
     this._physicalGearsSubject.complete();
@@ -328,25 +330,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     this.$parentOperationLabel.complete();
   }
 
-  setValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
-    this.applyValue(data, opts);
-  }
-
   reset(data?: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    this.applyValue(data || new Operation(), opts);
+    this.setValue(data || new Operation(), opts);
   }
 
-  async ready() {
-    if (!this._$ready.value)
-      await firstTruePromise(this._$ready);
-  }
-
-  async applyValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+  async setValue(data: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean; }): Promise<void> {
 
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
-    const isNew = isNil(data?.id);
+    const isNew = isNil(data.id);
 
     // Use label and name from metier.taxonGroup
     if (!isNew && data.metier) {
@@ -355,12 +348,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
 
-    /*if (!isNew && !this._showPosition) {
+    if (!isNew && !this._showPosition) {
       data.positions = [];
       data.startPosition = null;
       data.endPosition = null;
     }
-    if (!isNew && !this._showFishingArea) data.fishingAreas = [];*/
+    if (!isNew && !this._showFishingArea) data.fishingAreas = [];
 
     const isChildOperation = isNotNil(data.parentOperation?.id);
     const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
@@ -631,14 +624,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
-  markAsReady() {
-    if (!this._$ready.value) {
-      this.updateFormGroup({emitEvent: false});
-      this._$ready.next(true);
-    }
-  }
-
   /* -- protected methods -- */
+
+  translateControlPath(path: string): string {
+    console.log('TODO translating path=' + path);
+    return super.translateControlPath(path);
+  }
 
   protected updateFormGroup(opts?: {emitEvent?: boolean}) {
 
@@ -818,9 +809,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     }
   }
 
-  protected getFieldName(path: string): string {
-    if (path === 'metier') return super.getFieldName('targetSpecies');
-    return super.getFieldName(path);
+  protected getI18nFieldName(path: string): string {
+    // Replace 'metier' control name, by the UI field name
+    if (path === 'metier') path = 'targetSpecies';
+
+    return super.getI18nFieldName(path);
   }
 
   protected setPosition(positionControl: AbstractControl, position?: VesselPosition) {

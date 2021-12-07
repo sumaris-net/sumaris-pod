@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import * as momentImported from 'moment';
-import {ObservedLocationForm} from './observed-location.form';
-import {ObservedLocationService} from '../services/observed-location.service';
-import {LandingsTable} from '../landing/landings.table';
-import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
-import {FormGroup} from '@angular/forms';
+import { ObservedLocationForm } from './observed-location.form';
+import { ObservedLocationService } from '../services/observed-location.service';
+import { LandingsTable } from '../landing/landings.table';
+import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { FormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -12,7 +12,6 @@ import {
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  firstTruePromise,
   HistoryPageReference,
   isNil,
   isNotNil,
@@ -22,23 +21,24 @@ import {
   StatusIds,
   toBoolean,
   UsageMode,
+  waitFor,
 } from '@sumaris-net/ngx-components';
-import {ModalController} from '@ionic/angular';
-import {SelectVesselsModal, SelectVesselsModalOptions} from './vessels/select-vessel.modal';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {Landing} from '../services/model/landing.model';
-import {LandingEditor, ProgramProperties} from '@app/referential/services/config/program.config';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {BehaviorSubject} from 'rxjs';
-import {filter, first, tap} from 'rxjs/operators';
-import {AggregatedLandingsTable} from '../aggregated-landing/aggregated-landings.table';
-import {Program} from '@app/referential/services/model/program.model';
-import {ObservedLocationsPageSettingsEnum} from './observed-locations.page';
-import {environment} from '@environments/environment';
-import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
-import {LandingFilter} from '../services/filter/landing.filter';
-import {ContextService} from '@app/shared/context.service';
-import {VesselFilter} from '@app/vessel/services/filter/vessel.filter';
+import { ModalController } from '@ionic/angular';
+import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { Landing } from '../services/model/landing.model';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { BehaviorSubject } from 'rxjs';
+import { filter, first, tap } from 'rxjs/operators';
+import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
+import { Program } from '@app/referential/services/model/program.model';
+import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
+import { environment } from '@environments/environment';
+import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
+import { LandingFilter } from '../services/filter/landing.filter';
+import { ContextService } from '@app/shared/context.service';
+import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 
 const moment = momentImported;
 
@@ -75,7 +75,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
-  $ready = new BehaviorSubject<boolean>(false);
   showQualityForm = false;
   showRecorder = true;
   showObservers = true;
@@ -301,6 +300,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
+  async ready(): Promise<void> {
+    await Promise.all([
+      // Wait child loaded
+      super.ready(),
+
+      // Wait table
+      waitFor(() => !!this.table)
+    ]);
+  }
+
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -308,58 +317,58 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (!program) return; // Skip
 
     try {
-    this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
-    this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
-    this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-    this.observedLocationForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE);
-    if (!this.observedLocationForm.showObservers && this.data?.observers) {
-      this.data.observers = []; // make sure to reset data observers, if any
-    }
-    const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-    this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
-    if (aggregatedLandings) {
-      // Force some date properties
-      this.observedLocationForm.showEndDateTime = true;
-      this.observedLocationForm.showStartTime = false;
-      this.observedLocationForm.showEndTime = false;
-      this.observedLocationForm.filterStartDateDay = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY));
-      this.observedLocationForm.forceDurationDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
-    }
-    this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
+      this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
+      this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
+      this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+      this.observedLocationForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE);
+      if (!this.observedLocationForm.showObservers && this.data?.observers) {
+        this.data.observers = []; // make sure to reset data observers, if any
+      }
+      const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+      this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
+      if (aggregatedLandings) {
+        // Force some date properties
+        this.observedLocationForm.showEndDateTime = true;
+        this.observedLocationForm.showStartTime = false;
+        this.observedLocationForm.showEndTime = false;
+        this.observedLocationForm.filterStartDateDay = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY));
+        this.observedLocationForm.forceDurationDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+      }
+      this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
+      this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
 
-    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
-    this.i18nContext.suffix = i18nSuffix;
+      let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+      i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+      this.i18nContext.suffix = i18nSuffix;
 
-    this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
-    this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
-    this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
+      this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
+      this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+      this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
 
-    this.cd.detectChanges();
-    if (this.landingsTable) {
-      const landingsTable = this.landingsTable;
-      landingsTable.i18nColumnSuffix = i18nSuffix;
-      landingsTable.detailEditor = this.landingEditor;
+      this.cd.detectChanges();
+      if (this.landingsTable) {
+        const landingsTable = this.landingsTable;
+        landingsTable.i18nColumnSuffix = i18nSuffix;
+        landingsTable.detailEditor = this.landingEditor;
 
-      landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
-      landingsTable.showVesselTypeColumn = this.showVesselType;
-      landingsTable.showVesselBasePortLocationColumn = this.showVesselBasePortLocation;
-      landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
-      landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
-      landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
-      landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
-      landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-    } else if (this.aggregatedLandingsTable) {
-      const aggregatedLandingsTable = this.aggregatedLandingsTable;
-      aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
-      aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
-    }
+        landingsTable.showDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
+        landingsTable.showVesselTypeColumn = this.showVesselType;
+        landingsTable.showVesselBasePortLocationColumn = this.showVesselBasePortLocation;
+        landingsTable.showObserversColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
+        landingsTable.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
+        landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
+        landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+        landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
+      } else if (this.aggregatedLandingsTable) {
+        const aggregatedLandingsTable = this.aggregatedLandingsTable;
+        aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+        aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+      }
 
-    this.$ready.next(true);
+      this.markAsReady();
 
-    // Listen program, to reload if changes
-    this.startListenProgramRemoteChanges(program);
+      // Listen program, to reload if changes
+      this.startListenProgramRemoteChanges(program);
     }
     catch (err) {
       this.setError(err);
@@ -417,7 +426,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     {
       const contextualProgram = this.context.getValue('program') as Program;
       if (contextualProgram?.label) {
-        data.program = ReferentialRef.fromObject(contextualProgram);;
+        data.program = ReferentialRef.fromObject(contextualProgram);
         this.$programLabel.next(data.program.label);
       }
     }
@@ -443,21 +452,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     if (!this.isNewData) {
       // Propagate to table parent
       this.table?.setParent(data)
-    }
-  }
-
-  protected async ready(): Promise<any> {
-    // Wait child loaded
-    if (this.$ready.value !== true) {
-      if (this.debug) console.debug('[observed-location] waiting program to be loaded...');
-      await firstTruePromise(this.$ready);
-    }
-
-    if (!this.table) {
-      if (this.debug) console.debug('[observed-location] waiting page (table) to be set...');
-      return setTimeout(() => {
-        return !!this.table;
-      }, 200);
     }
   }
 

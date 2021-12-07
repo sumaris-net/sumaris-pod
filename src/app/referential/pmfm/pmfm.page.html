@@ -52,12 +52,12 @@
                                 (click)="addNewParameter()">
                           <mat-icon>add</mat-icon>
                         </button>
-                        <!--TODO <button type="button" mat-icon-button tabindex="-1"
-                                *ngIf="!!($parameter|async)"
+                        <button type="button" mat-icon-button tabindex="-1"
+                                *ngIf="$parameter|async; let parameter"
                                 [title]="'REFERENTIAL.PMFM.BTN_OPEN_PARAMETER'|translate"
-                                (click)="openParameter()">
-                          <mat-icon>open</mat-icon>
-                        </button>-->
+                                (click)="openParameter(parameter)">
+                          <mat-icon>open_in_new</mat-icon>
+                        </button>
                       </ion-col>
                       <ion-col size="4" *ngIf="!($parameter | async)?.isQualitative">
                         <app-form-field [definition]="fieldDefinitions.unit"

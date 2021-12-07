@@ -92,6 +92,11 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
       data.vesselFeatures.startDate = moment();
       data.vesselRegistrationPeriod.startDate = moment();
     }
+    this.markAsReady();
+  }
+
+  protected async onEntityLoaded(data: Vessel, options?: EntityServiceLoadOptions): Promise<void> {
+    this.markAsReady();
   }
 
   updateViewState(data: Vessel, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

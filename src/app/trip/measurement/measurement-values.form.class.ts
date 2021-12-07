@@ -177,7 +177,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.loading && !this.applyingValue)
+          filter(() => !this.loading && !this.applyingValue && this.valueChanges.observers.length > 0)
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
@@ -226,38 +226,25 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  waitIdle(opts?: WaitForOptions): Promise<boolean> {
-    let idle$ = this.$loadingStep
-      .pipe(
-        // DEBUG
-        //tap(_ => console.debug(this.logPrefix + 'waiting idle...')),
+  async ready(): Promise<void> {
+    await super.ready();
 
+    if (this.$loadingStep.value >= MeasurementFormLoadingSteps.FORM_GROUP_READY) return;
+
+    await firstNotNilPromise(this.$loadingStep
+      .pipe(
         filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY),
         map(_ => true)
-      );
-
-    // Add timeout
-    if (opts && opts.timeout) {
-      idle$ = merge(
-        idle$,
-        timer(opts.timeout)
-          .pipe(
-            map(_ => {
-              throw new Error(`waitIdle Timeout (after ${opts.timeout}ms)`);
-            }))
-      );
-    }
-
-    return firstNotNilPromise(idle$);
+      ));
   }
 
 
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
-    this.applyValue(data, opts);
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void {
+    return this.applyValue(data, opts);
   }
 
   reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
-    this.applyValue(data, opts);
+    this.setValue(data, opts);
   }
 
   /* -- protected methods -- */
@@ -267,7 +254,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * @param data
    * @param opts
    */
-  protected async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+  async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any}) {
     this.applyingValue = true;
 
     try {
@@ -275,8 +262,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       this.onApplyingEntity(data, opts);
 
       // Wait form is ready, before applying the data
-      const waitIdle = (!opts || opts.waitIdle !== false);
-      if (waitIdle) await this.waitIdle();
+      await this.ready();
 
       // Applying value to form (that should be ready).
       await this.updateView(this.data, opts);
@@ -293,7 +279,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
     if (data.program?.label) {
-      // Propage program
+      // Propagate program
       this.setProgramLabel(data.program?.label);
     }
   }

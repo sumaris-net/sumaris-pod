@@ -104,12 +104,20 @@
             <string>need to store photos to your library</string>
         </edit-config>
     </platform>
-    <plugin name="cordova-plugin-whitelist" spec="1.3.3" />
-    <plugin name="cordova-plugin-statusbar" spec="2.4.2" />
-    <plugin name="cordova-plugin-device" spec="2.0.2" />
-    <plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
-    <plugin name="cordova-plugin-ionic-webview" spec="^4.0.1" />
-    <plugin name="cordova-plugin-ionic-keyboard" spec="^2.1.3" />
-    <plugin name="cordova-plugin-camera" spec="^4.0.3" />
-    <plugin name="cordova-sqlite-storage" spec="^3.2.0" />
+    <plugin name="cordova-plugin-whitelist" spec="1.3.5" />
+    <plugin name="cordova-plugin-statusbar" spec="2.4.3" />
+    <plugin name="cordova-plugin-device" spec="2.0.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="6.0.0" />
+    <plugin name="cordova-plugin-nativeaudio" spec="3.0.9" />
+    <plugin name="clovelced-plugin-audiomanagement" spec="1.0.2" />
+    <plugin name="cordova-plugin-vibration" spec="3.1.1" />
+    <plugin name="cordova-plugin-decimal-keyboard" spec="1.0.0" />
+    <plugin name="cordova-plugin-file-transfer" spec="1.7.1" />
+    <plugin name="cordova-plugin-ionic-webview" spec="5.0.0" />
+    <plugin name="cordova-plugin-ionic-keyboard" spec="2.2.0" />
+    <plugin name="cordova-plugin-network-information" spec="2.0.2" />
+    <plugin name="cordova-plugin-geolocation" spec="4.1.0" />
+    <plugin name="cordova-plugin-camera" spec="5.0.3" />
+    <plugin name="cordova-sqlite-storage" spec="6.0.0" />
+    <plugin name="integrator-cordova-plugin-downloader" spec="1.1.0" />
 </widget>

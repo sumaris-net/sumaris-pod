@@ -266,6 +266,10 @@ export class MeasurementValuesUtils {
     return value.__typename === MeasurementValuesTypes.MeasurementFormValue;
   }
 
+  static isMeasurementModelValues(value: MeasurementFormValues | MeasurementModelValues): value is MeasurementModelValues {
+    return value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
+  }
+
   static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
     keepSourceObject?: boolean;
   }): MeasurementModelValues {
@@ -275,7 +279,7 @@ export class MeasurementValuesUtils {
       (pmfms || []).forEach(pmfm => {
         target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
       });
-      delete source.__typename;
+      delete target.__typename;
     }
 
     return target;
@@ -302,18 +306,19 @@ export class MeasurementValuesUtils {
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
-      pmfms = Object.getOwnPropertyNames(source).reduce((res, pmfmId) => {
+      pmfms = Object.getOwnPropertyNames(source)
+        .filter(controlName => controlName !== '__typename')
+        .reduce((res, pmfmId) => {
         const pmfm = pmfms.find(p => p.id === +pmfmId);
         return pmfm ? res.concat(pmfm) : res;
       }, []);
     }
 
     // Create target, or copy existing (e.g. useful to keep extra pmfms)
-    const target: MeasurementFormValues = opts.keepSourceObject
-      ? {...source as MeasurementFormValues}
-      : {};
+    const target: MeasurementFormValues | MeasurementModelValues = opts.keepSourceObject
+      ? {...source} : {};
 
-    if (!MeasurementValuesUtils.isMeasurementFormValues(source)) {
+    if (MeasurementValuesUtils.isMeasurementModelValues(target)) {
       // Normalize all pmfms from the list
       pmfms.forEach(pmfm => {
         const pmfmId = pmfm?.id;
@@ -325,6 +330,7 @@ export class MeasurementValuesUtils {
       });
       target.__typename = MeasurementValuesTypes.MeasurementFormValue;
     }
+
     return target;
   }
 
@@ -366,7 +372,9 @@ export class MeasurementValuesUtils {
 
   static asObject(source: MeasurementModelValues | MeasurementFormValues, opts?: DataEntityAsObjectOptions): MeasurementModelValues | MeasurementFormValues {
     if (!opts || opts.minify !== true || !source) return source;
+
     return source && Object.getOwnPropertyNames(source)
+      .filter(controlName => controlName !== '__typename') // Ignore __typename
       .reduce((map, pmfmId) => {
         const value = notNilOrDefault(source[pmfmId] && source[pmfmId].id, source[pmfmId]);
         if (isNotNil(value)) {

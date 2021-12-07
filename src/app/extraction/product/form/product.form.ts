@@ -29,7 +29,6 @@ const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFreque
 })
 export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
-
   data: ExtractionProduct;
   frequenciesById = FrequenciesById;
   frequencyItems = ProcessingFrequencyItems;
@@ -216,6 +215,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     );
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$sheetNames.complete();
+    this.$timeColumns.complete();
+    this.$spatialColumns.complete();
+    this.$aggColumns.complete();
+    this.$techColumns.complete();
+  }
+
   toggleDocPreview() {
     this.showMarkdownPreview = !this.showMarkdownPreview;
     if (this.showMarkdownPreview) {
@@ -223,9 +231,13 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     }
   }
 
-  /* -- protected -- */
+  reset(data?: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    super.setValue(data || new ExtractionProduct(), opts);
+  }
 
-  setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  async setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+
+    await this.ready();
 
     console.debug('[product-form] Setting value: ', data);
 
@@ -270,6 +282,9 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     super.setValue(data, opts);
 
   }
+
+
+  /* -- protected -- */
 
   protected markForCheck() {
     this.cd.markForCheck();

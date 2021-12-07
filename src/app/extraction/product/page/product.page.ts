@@ -35,7 +35,6 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     return this.productForm.form;
   }
 
-
   constructor(protected injector: Injector,
               protected router: Router,
               protected formBuilder: FormBuilder,
@@ -117,9 +116,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
 
   /* -- protected -- */
 
-  protected setValue(data: ExtractionProduct) {
+  protected async setValue(data: ExtractionProduct) {
     // Apply data to form
-    this.productForm.value = data.asObject();
+    await this.productForm.setValue(data.asObject());
   }
 
   protected async getValue(): Promise<ExtractionProduct> {
@@ -170,11 +169,21 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
       || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
   }
 
+
+  protected async onNewEntity(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {
+    await super.onNewEntity(data, options);
+    this.markAsReady();
+  }
+
   protected async onEntityLoaded(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {
+    await super.onEntityLoaded(data, options);
+
     await this.productForm.updateLists(data);
 
     // Define default back link
     this.defaultBackHref = `̀/extraction/data?category=${ExtractionCategories.PRODUCT}&label=${data.label}`;
+
+    this.markAsReady();
   }
 
   protected async onEntityDeleted(data: ExtractionProduct): Promise<void> {

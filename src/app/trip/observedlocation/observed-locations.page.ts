@@ -36,6 +36,7 @@ import {filter, tap} from 'rxjs/operators';
 import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ContextService } from '@app/shared/context.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -61,7 +62,6 @@ export class ObservedLocationsPage extends
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
-
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -135,7 +135,7 @@ export class ObservedLocationsPage extends
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
-      filter: {
+      filter: <ReferentialRefFilter>{
         entityName: 'Program'
       },
       mobile: this.mobile

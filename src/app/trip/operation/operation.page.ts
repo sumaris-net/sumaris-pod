@@ -43,7 +43,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { Sample } from '@app/trip/services/model/sample.model';
 import { DOCUMENT } from '@angular/common';
-import { ModalController } from '@ionic/angular';
+import { IonRouterOutlet, ModalController } from '@ionic/angular';
 
 const moment = momentImported;
 
@@ -60,6 +60,16 @@ const OPERATION_TABS = {
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
+  providers: [
+    {
+      provide: IonRouterOutlet,
+      useValue: {
+        // Tweak the IonRouterOutlet if this component shown in a modal
+        canGoBack: () => false,
+        nativeEl: '',
+      },
+    },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationPage extends AppEntityEditor<Operation, OperationService> {
@@ -89,7 +99,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   $programLabel = new BehaviorSubject<string>(null);
   $tripId = new BehaviorSubject<number>(null);
   $lastOperations = new BehaviorSubject<Operation[]>(null);
-  $ready = new BehaviorSubject(false);
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
@@ -127,8 +136,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     protected tripService: TripService,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
-    protected modalCtrl: ModalController,
-    @Inject(DOCUMENT) private document: any,
+    protected modalCtrl: ModalController
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
@@ -291,11 +299,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
-  protected async ready() {
-    if (this.$ready.value === true) return;
-    await firstTruePromise(this.$ready);
-  }
-
   /**
    * Configure specific behavior
    */
@@ -305,7 +308,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     await this.ready();
 
     // DEBUG
-    //console.debug('[operation-page] Measurement form is ready');
+    console.debug('[operation-page] Measurement form is ready');
 
     // Clean existing subscription (e.g. when acquisition level change, this function can= be called many times)
     this._measurementSubscription?.unsubscribe();
@@ -495,7 +498,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.$programLabel.complete();
     this.$lastOperations.complete();
     this.$tripId.complete();
-    this.$ready.complete();
   }
 
   protected async setProgram(program: Program) {
@@ -519,7 +521,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
     this.opeForm.programLabel = program.label;
-    this.opeForm.markAsReady();
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
@@ -557,8 +558,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
 
     //this.cd.detectChanges();
-
-    this.$ready.next(true);
+    this.markAsReady();
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -570,9 +570,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error('Missing argument \'options.tripId\'!');
     data.tripId = tripId;
-
-    // Update trip id
-    this.$tripId.next(+tripId);
 
     // Load parent trip
     const trip = await this.loadTrip(tripId);
@@ -605,6 +602,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       }
     }
 
+    if (data.programLabel) this.$programLabel.next(data.programLabel)
   }
 
   async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -612,9 +610,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       isNotNil(this.trip && this.trip.id) ? this.trip.id : (data && data.tripId);
     if (isNil(tripId)) throw new Error('Missing argument \'options.tripId\'!');
     data.tripId = tripId;
-
-    // Update trip id (will cause last operations to be watched, if need)
-    this.$tripId.next(+tripId);
 
     const trip = await this.loadTrip(tripId);
 
@@ -625,6 +620,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     await this.loadLinkedOperation(data);
 
+    if (data.programLabel) this.$programLabel.next(data.programLabel)
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -756,14 +752,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   }
 
   async setValue(data: Operation) {
-    const formReady = this.opeForm.applyValue(data);
-
-    // set parent trip
-    if (this.trip) {
-      this.saveOptions.trip = this.trip;
-    }
-
-    const programLabel = data.programLabel || this.trip?.program && this.trip.program?.label;
+    await this.opeForm.setValue(data);
 
 
     // Get gear, from the physical gear
@@ -771,7 +760,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
-    this.measurementsForm.programLabel = programLabel;
+    this.measurementsForm.programLabel = this.$programLabel.value;
     if (isNotNil(data.parentOperationId)) {
       await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
       this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
@@ -799,9 +788,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     // Applying program to components (async)
     // Will watch program, then call setProgram()
-    if (programLabel && this.$programLabel.value !== programLabel) this.$programLabel.next(programLabel);
+    //if (programLabel && this.$programLabel.value !== programLabel) this.$programLabel.next(programLabel);
 
-    await formReady;
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -812,6 +800,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   /* -- protected method -- */
 
   protected async loadTrip(tripId: number): Promise<Trip> {
+
+    // Update trip id (will cause last operations to be watched, if need)
+    this.$tripId.next(+tripId);
+
     const trip = await this.tripService.load(tripId);
     this.trip = trip;
     this.saveOptions.trip = trip;
@@ -862,7 +854,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     ]);
   }
 
-  protected async waitWhilePending(): Promise<boolean> {
+  protected waitWhilePending(): Promise<void> {
     this.form.updateValueAndValidity();
     return super.waitWhilePending();
   }
@@ -929,6 +921,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       ...opts
     });
     if (!saved && this.opeForm.invalid) {
+      console.log('TODO computing form error');
       this.setError(this.opeForm.formError);
       this.scrollToTop();
     }

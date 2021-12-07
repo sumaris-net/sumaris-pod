@@ -74,8 +74,9 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       this.$program.subscribe(program => {
         if (program && isNotNil(program.id)) {
           this.defaultBackHref = `/referential/programs/${program.id}?tab=1`;
-          this.markForCheck();
         }
+        this.markAsReady();
+        this.markForCheck();
       }));
 
     this.registerSubscription(
@@ -130,16 +131,14 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
+    data.programId = options.programId;
 
-    const program = await this.programRefService.load(options.programId);
+    const program = await this.programRefService.load(data.programId);
     this.$program.next(program);
-
-    data.programId = program.id;
   }
 
   protected async onEntityLoaded(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
-
     const program = await this.programRefService.load(data.programId);
     this.$program.next(program);
   }

@@ -101,6 +101,7 @@
                 <!-- sale -->
                 <form-sale #saleForm
                            [class.cdk-visually-hidden]="!showSaleForm"
+                           [minDate]="tripForm.maxDateChanges|async"
                            [showVessel]="false"
                            [showError]="false"
                            [showComment]="false"

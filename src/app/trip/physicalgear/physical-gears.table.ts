@@ -9,6 +9,7 @@ import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
 import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
 import {environment} from '../../../environments/environment';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import { Subscription } from 'rxjs';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -144,6 +145,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
       gear = new PhysicalGear();
       await this.onNewEntity(gear);
     }
+    const modalSubscription = new Subscription();
 
     const modal = await this.modalCtrl.create({
       component: PhysicalGearModal,
@@ -154,10 +156,10 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         value: gear.clone(), // Do a copy, because edition can be cancelled
         isNew,
         canEditRankOrder: this.canEditRankOrder,
-        onInit: (inst: PhysicalGearModal) => {
+        onInit: (modalComponent: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
-          this.registerSubscription(
-            inst.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event))
+          modalSubscription.add(
+            modalComponent.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event))
           );
         },
         onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear)
@@ -172,6 +174,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
+
+    modalSubscription.unsubscribe();
 
     return (data instanceof PhysicalGear) ? data : undefined;
   }

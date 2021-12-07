@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
 import {Measurement, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils} from '../model/measurement.model';
@@ -58,7 +58,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         }
         return res;
       }, {}),
-      __typename: [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue]
+      __typename: [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue, Validators.required]
     };
   }
 
@@ -69,7 +69,10 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   updateFormGroup(form: FormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
-    const controlNamesToRemove = Object.getOwnPropertyNames(form.controls);
+    const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
+      // Excluded protected attributes
+      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName) || controlName !== '__typename');
+
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
 
@@ -97,11 +100,15 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       if (index !== -1) controlNamesToRemove.splice(index, 1);
     });
 
+
     // Remove unused controls
-    controlNamesToRemove
-      // Excluded protected attributes
-      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName))
-      .forEach(controlName => form.removeControl(controlName));
+    controlNamesToRemove.forEach(controlName => form.removeControl(controlName));
+
+    // Create control for '__typename' (required)
+    if (!form.get('__typename')) {
+      console.warn('[measurement-validator] Re add control \'__typename\' to measurement values form group');
+      form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
+    }
   }
 
   /* -- protected functions -- */
@@ -113,7 +120,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     opts.forceOptional = toBoolean(opts.forceOptional, false);
 
-    opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate'];
+    opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate', '__typename'];
 
     return opts;
   }

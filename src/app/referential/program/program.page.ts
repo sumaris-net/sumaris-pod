@@ -36,6 +36,7 @@ import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
+import { Pmfm } from '@app/referential/services/model/pmfm.model';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -152,21 +153,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
         }
       }
     });
-
   }
 
 
-  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
+  load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
-  }
-
-  updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
-
-    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
-    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
-
-    return super.updateView(data, opts);
   }
 
 
@@ -201,9 +193,20 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.fieldDefinitions[fieldName] = definition;
   }
 
+  protected async onNewEntity(data: Program, options?: EntityServiceLoadOptions): Promise<void> {
+    await super.onNewEntity(data, options);
+    this.markAsReady();
+  }
+
   protected async onEntityLoaded(data: Program, options?: EntityServiceLoadOptions): Promise<void> {
     await this.loadEntityProperties(data);
     await super.onEntityLoaded(data, options);
+
+    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
+
+    this.cd.detectChanges();
+    this.markAsReady();
   }
 
   protected async onEntitySaved(data: Program): Promise<void> {

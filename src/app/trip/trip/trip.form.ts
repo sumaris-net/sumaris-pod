@@ -9,7 +9,8 @@ import {
   FormArrayHelper,
   fromDateISOString,
   isEmptyArray,
-  isNil, isNotEmptyArray,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
@@ -20,10 +21,11 @@ import {
   PersonUtils,
   ReferentialRef,
   referentialToString,
-  ReferentialUtils, SharedFormArrayValidators,
+  ReferentialUtils,
   StatusIds,
   toBoolean,
   UserProfileLabel,
+  OnReady
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { FormArray, FormBuilder } from '@angular/forms';
@@ -32,12 +34,15 @@ import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
 import { Trip } from '../services/model/trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
+import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { Moment } from 'moment';
+import { DateUtils } from '../../../../ngx-sumaris-components/src/app/shared/dates';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -48,11 +53,12 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   styleUrls: ['./trip.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripForm extends AppForm<Trip> implements OnInit {
+export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
+  private _$maxDate = new BehaviorSubject<Moment>(null);
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -116,7 +122,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   @Input() set returnFieldsRequired(value: boolean){
     this._returnFieldsRequired = value;
-    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
+    if (!this._loading) this.updateFormGroup();
   };
 
   get returnFieldsRequired(): boolean {
@@ -153,6 +159,14 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   get loading(): boolean {
     return this._loading;
+  }
+
+  get maxDate(): Moment {
+    return this._$maxDate.value
+  }
+
+  get maxDateChanges(): Observable<Moment> {
+    return this._$maxDate.asObservable();
   }
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
@@ -247,6 +261,22 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         )
         .subscribe((value) => this.updateMetierFilter(value))
     );
+
+    this.registerSubscription(
+      merge(
+          this.form.get('departureDateTime').valueChanges,
+          this.form.get('returnDateTime').valueChanges
+        )
+      .pipe(
+        tap(() => console.log('TODO date changes')),
+        filter(() => !this._loading),
+        map(fromDateISOString),
+        map(date => DateUtils.max(this._$maxDate.value, date))
+      ).subscribe(maxDate => this._$maxDate.next(maxDate)));
+  }
+
+  ngOnReady() {
+    this.updateFormGroup();
   }
 
   toggleFilteredMetier() {
@@ -264,33 +294,40 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.updateMetierFilter();
   }
 
-  setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  reset(data?: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    this.setValue(data || new Trip(), opts);
+  }
 
-    if (!value) return;
+  async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+
+    // Wait ready (= form group updated, by the parent page)
+    await this.ready();
 
     // Make sure to have (at least) one observer
     // Resize observers array
     if (this._showObservers) {
-      value.observers = value.observers && value.observers.length ? value.observers : [null];
-      this.observersHelper.resize(Math.max(1, value.observers.length));
+      data.observers = data.observers && data.observers.length ? data.observers : [null];
+      this.observersHelper.resize(Math.max(1, data.observers.length));
     }
     else {
-      value.observers = [];
+      data.observers = [];
       this.observersHelper?.resize(0);
     }
 
     // Make sure to have (at least) one metier
-    this._showMetiers = this._showMetiers || isNotEmptyArray(value?.metiers);
+    this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
-      value.metiers = value.metiers && value.metiers.length ? value.metiers : [null];
-      this.metiersHelper.resize(Math.max(1, value.metiers.length));
+      data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
+      this.metiersHelper.resize(Math.max(1, data.metiers.length));
     } else {
-      value.metiers = [];
+      data.metiers = [];
       this.metiersHelper?.resize(0);
     }
 
+    this._$maxDate.next(DateUtils.max(data.departureDateTime, data.returnDateTime));
+
     // Send value for form
-    super.setValue(value, opts);
+    super.setValue(data, opts);
   }
 
   async addVesselModal(): Promise<any> {
@@ -458,6 +495,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     else if (this.metiersHelper.size() > 0) {
       this.metiersHelper.resize(0);
     }
+  }
+
+  protected updateFormGroup() {
+    console.info('[trip-form] Updating form group...');
+    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
   }
 
   protected markForCheck() {

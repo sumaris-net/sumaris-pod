@@ -63,7 +63,7 @@
     "@ngtools/webpack": "^11.2.14",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@sumaris-net/ngx-components": "0.26.7",
+    "@sumaris-net/ngx-components": "0.27.9",
     "angular-split": "^5.0.0",
     "angular2-text-mask": "^9.0.0",
     "apollo-angular": "^2.6.0",
@@ -79,18 +79,18 @@
     "cordova-plugin-decimal-keyboard": "1.0.0",
     "cordova-plugin-file": "^6.0.2",
     "cordova-plugin-geolocation": "4.1.0",
-    "cordova-plugin-inappbrowser": "^4.1.0",
     "cordova-plugin-nativeaudio": "^3.0.9",
     "cordova-plugin-network-information": "^2.0.2",
     "cordova-plugin-vibration": "^3.1.1",
-    "cordova-sqlite-storage": "^6.0.0",
     "cordova-plugin-camera": "^5.0.3",
     "cordova-plugin-device": "^2.0.3",
+    "cordova-plugin-file-transfer": "^1.7.1",
     "cordova-plugin-ionic-keyboard": "^2.2.0",
     "cordova-plugin-ionic-webview": "^5.0.0",
     "cordova-plugin-splashscreen": "^6.0.0",
     "cordova-plugin-statusbar": "^2.4.3",
     "cordova-plugin-whitelist": "^1.3.5",
+    "cordova-sqlite-storage": "^6.0.0",
     "cordova-res": "^0.15.3",
     "integrator-cordova-plugin-downloader": "^1.1.0",
     "core-js": "^3.19.1",
@@ -189,7 +189,9 @@
       "cordova-sqlite-storage": {},
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-decimal-keyboard": {},
-      "cordova-plugin-advanced-http": {},
+      "cordova-plugin-advanced-http": {
+        "ANDROIDBLACKLISTSECURESOCKETPROTOCOLS": "SSLv3,TLSv1"
+      },
       "cordova-plugin-geolocation": {
         "GPS_REQUIRED": "true"
       },
@@ -201,7 +203,8 @@
       "cordova-plugin-vibration": {},
       "clovelced-plugin-audiomanagement": {},
       "integrator-cordova-plugin-downloader": {},
-      "cordova-plugin-file": {}
+      "cordova-plugin-file": {},
+      "cordova-plugin-file-transfer": {}
     },
     "platforms": [
       "android"

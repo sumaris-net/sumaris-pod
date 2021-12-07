@@ -95,6 +95,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
           {unique: true} : null;
       });
 
+    this.markAsReady();
   }
 
   /* -- protected methods -- */
