@@ -6,9 +6,9 @@ import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, LoadResult, toNumbe
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
-import { DenormalizedPmfmStrategy } from '../../referential/services/model/pmfm-strategy.model';
 import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
+import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
 
@@ -34,6 +34,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
+
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -56,8 +57,6 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     // for DEV only
     this.debug = !environment.production;
   }
-
-  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
 
   ngOnInit() {
     super.ngOnInit();
@@ -111,9 +110,10 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       });
   }
 
-  selectInputContent = AppFormUtils.selectInputContent;
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  isNotHiddenPmfm = PmfmUtils.isNotHidden;
+  selectInputContent = AppFormUtils.selectInputContent;
 }

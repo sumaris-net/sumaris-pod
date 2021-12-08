@@ -31,9 +31,9 @@
       <ion-col size="6" size-md="">
           <mat-autocomplete-field formControlName="parent"
                                   [autofocus]="enabled && focusFieldName === 'parent'"
-                                  [placeholder]="'TRIP.SAMPLE.TABLE.PARENT' | translate"
+                                  [placeholder]="(displayParentPmfm | pmfmName) || ('TRIP.SAMPLE.TABLE.PARENT' | translate)"
                                   [config]="autocompleteFields.parent"
-                                  [tabindex]="showLabel ? tabindex +1 : tabindex"
+                                  [tabindex]="(showLabel ? 1 : 0) + tabindex"
                                   [readonly]="!enableParent"
                                   required>
           </mat-autocomplete-field>
@@ -41,7 +41,7 @@
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row *ngIf="$pmfms | async; let pmfms"
+    <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
              [formGroup]="measurementValuesForm"
              class="ion-no-padding">
       <ion-col *ngFor="let pmfm of pmfms; index as i; last as last"

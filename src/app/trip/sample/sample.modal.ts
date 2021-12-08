@@ -14,7 +14,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Moment } from 'moment';
 
 
-export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
+export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
 
   // UI Fields show/hide
   showLabel: boolean;
@@ -28,11 +28,11 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
   // UI Options
   maxVisibleButtons: number;
   enableBurstMode: boolean;
-  i18nPrefix?: string;
+  i18nSuffix?: string;
 
   // Callback actions
   onSaveAndNew: (data: Sample) => Promise<Sample>;
-  onReady: (modal: SampleModal) => Promise<void> | void;
+  onReady: (modal: M) => Promise<void> | void;
   openIndividualReleaseModal: (subSample: Sample) => Promise<Sample>;
 }
 
@@ -56,21 +56,22 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;
   @Input() usageMode: UsageMode;
+  @Input() pmfms: IPmfm[];
 
-  @Input() i18nPrefix: string;
+  // UI options
+  @Input() i18nSuffix: string;
   @Input() showLabel = true;
   @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
-  @Input() pmfms: IPmfm[];
+  @Input() maxVisibleButtons: number;
+  @Input() enableBurstMode: boolean;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
   @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
-  @Input() maxVisibleButtons: number;
-  @Input() enableBurstMode: boolean;
   @Input() openIndividualReleaseModal: (subSample: Sample) => Promise<Sample>;
 
   @ViewChild('form', {static: true}) form: SampleForm;
@@ -90,16 +91,16 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   constructor(
     protected injector: Injector,
+    protected platform: PlatformService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
-    protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
     this.mobile = platform.mobile;
+    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
 
     // TODO: for DEV only
     this.debug = !environment.production;
@@ -292,7 +293,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  protected getDataToSave(opts?: { markAsLoading?: boolean; }): Sample {
+  protected getDataToSave(): Sample {
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
@@ -304,7 +305,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     this.loading = true;
 
-    // To force to get computed values
+    // To force enable, to get computed values
     this.form.form.enable();
 
     try {

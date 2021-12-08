@@ -327,7 +327,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       pmfms,
       acquisitionLevel: this.acquisitionLevel,
       disabled: this.disabled,
-      i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
+      i18nSuffix: this.i18nColumnSuffix,
       usageMode: this.usageMode,
       showLabel: this.showLabelColumn,
       defaultSampleDate: this.defaultSampleDate,

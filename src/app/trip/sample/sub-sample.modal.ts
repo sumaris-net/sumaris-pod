@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Alerts, AppFormUtils, isNil, isNotEmptyArray, LocalSettingsService, toBoolean, UsageMode} from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import {environment} from '../../../environments/environment';
 import {AlertController, IonContent, ModalController} from '@ionic/angular';
 import {BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic} from 'rxjs';
@@ -11,8 +11,9 @@ import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
 import {debounceTime, filter} from 'rxjs/operators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {SubSampleForm} from '@app/trip/sample/sub-sample.form';
+import { SampleModal } from '@app/trip/sample/sample.modal';
 
-export interface ISubSampleModalOptions extends IDataEntityModalOptions<Sample> {
+export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityModalOptions<Sample> {
 
   //Data
   availableParents: Sample[];
@@ -22,11 +23,11 @@ export interface ISubSampleModalOptions extends IDataEntityModalOptions<Sample> 
 
   // UI Options
   maxVisibleButtons: number;
-  mobile: boolean;
-  i18nPrefix?: string;
+  i18nSuffix?: string;
   defaultLatitudeSign: '+' | '-';
   defaultLongitudeSign: '+' | '-';
 
+  onReady: (modal: M) => Promise<void> | void;
 }
 
 @Component({
@@ -37,10 +38,10 @@ export interface ISubSampleModalOptions extends IDataEntityModalOptions<Sample> 
 export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions {
 
   private _subscription = new Subscription();
-  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
+  readonly mobile: boolean;
 
   @Input() isNew: boolean;
   @Input() data: Sample;
@@ -48,24 +49,21 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;
   @Input() usageMode: UsageMode;
-  @Input() mobile: boolean;
+  @Input() pmfms: IPmfm[];
 
   @Input() availableParents: Sample[];
 
-  @Input() i18nPrefix: string;
+  // UI options
+  @Input() i18nSuffix: string;
   @Input() showLabel = false;
   @Input() enableParent = true;
   @Input() showComment: boolean;
-  @Input() set pmfms(value: Observable<IPmfm[]> | IPmfm[]) {
-    this.setPmfms(value);
-  }
-
-  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
-  @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
   @Input() maxVisibleButtons: number;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
 
+  @Input() onReady: (modal: SubSampleModal) => Promise<void> | void;
+  @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: SubSampleForm;
   @ViewChild(IonContent) content: IonContent;
@@ -85,6 +83,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   constructor(
     protected injector: Injector,
+    protected platform: PlatformService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
@@ -92,7 +91,8 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     protected cd: ChangeDetectorRef
   ) {
     // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+    this.mobile = platform.mobile;
+    this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
 
     // TODO: for DEV only
     this.debug = !environment.production;
@@ -215,20 +215,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   /* -- protected methods -- */
 
-  private setPmfms(value: Observable<IPmfm[]> | IPmfm[]) {
-    if (isObservable(value)) {
-      this.registerSubscription(
-        value
-          .pipe(filter(pmfms => pmfms !== this.$pmfms.value))
-          .subscribe(pmfms => this.$pmfms.next(pmfms))
-      );
-    }
-    else if (value !== this.$pmfms.value){
-      this.$pmfms.next(value);
-    }
-  }
-
-  protected getDataToSave(opts?: { markAsLoading?: boolean; }): Sample {
+  protected getDataToSave(): Sample {
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-sample-modal] ");
@@ -240,7 +227,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
     this.loading = true;
 
-    // To force to get computed values
+    // To force enable, to get computed values
     this.form.form.enable();
 
     try {

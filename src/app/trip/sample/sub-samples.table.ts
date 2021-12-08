@@ -2,7 +2,19 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { SubSampleValidatorService } from '../services/validator/sub-sample.validator';
-import { EntityUtils, firstFalsePromise, InMemoryEntitiesService, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, OnReady, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  EntityUtils,
+  firstFalsePromise,
+  firstNotNilPromise,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  joinPropertiesPath,
+  OnReady,
+  toNumber,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable } from '../measurement/measurements.table.class';
 import { Sample } from '../services/model/sample.model';
 import { SortDirection } from '@angular/material/sort';
@@ -11,7 +23,6 @@ import { environment } from '@environments/environment';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
-import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/sample/samples.table';
 import { merge, Subject } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { mergeMap } from 'rxjs/internal/operators';
@@ -39,7 +50,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
-  _$refreshParents = new Subject();
+  onParentChanges = new Subject();
   displayParentPmfm: IPmfm;
 
   @Input() showError = true;
@@ -48,10 +59,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   @Input()
   set availableParents(parents: Sample[]) {
-    let sortAttribute: string;
     if (this._availableParents !== parents) {
       this._availableParents = parents;
-      if (!this.loading) this._$refreshParents.next();
+      if (!this.loading) this.onParentChanges.next();
     }
   }
 
@@ -122,7 +132,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     this.registerSubscription(
       merge(
-        this._$refreshParents.pipe(mergeMap(() => this.$pmfms)),
+        this.onParentChanges.pipe(mergeMap(() => this.$pmfms)),
         this.$pmfms.pipe(distinctUntilChanged())
       )
         .pipe(
@@ -214,6 +224,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[sub-samples-table] Opening detail modal...');
+    const pmfms = await firstNotNilPromise(this.$pmfms);
 
     let isNew = !dataToOpen && true;
     if (isNew) {
@@ -223,29 +234,26 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     this.markAsLoading();
 
-    const options: Partial<ISubSampleModalOptions> = {
-      // Default options:
-      programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
-      pmfms: this.$pmfms,
-      acquisitionLevel: this.acquisitionLevel,
-      disabled: this.disabled,
-      i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
-      usageMode: this.usageMode,
-      mobile: this.mobile,
-      availableParents: this._availableSortedParents,
-      onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
-
-      // Override using given options
-      ...this.modalOptions,
-
-      // Data to open
-      isNew,
-      data: dataToOpen
-    };
-
     const modal = await this.modalCtrl.create({
       component: SubSampleModal,
-      componentProps: options,
+      componentProps: <ISubSampleModalOptions>{
+        // Default options:
+        programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
+        pmfms,
+        acquisitionLevel: this.acquisitionLevel,
+        disabled: this.disabled,
+        i18nSuffix: this.i18nColumnSuffix,
+        usageMode: this.usageMode,
+        availableParents: this._availableSortedParents,
+        onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
+
+        // Override using given options
+        ...this.modalOptions,
+
+        // Data to open
+        isNew,
+        data: dataToOpen
+      },
       keyboardClose: true,
       backdropDismiss: false
     });
@@ -279,7 +287,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected async updateParents(pmfms: IPmfm[]) {
     // DEBUG
-    console.debug('[sub-samples-table] Update parents...');
+    console.debug('[sub-samples-table] Update parents...', pmfms);
 
     const parents = this._availableParents || [];
     const hasTaxonName = parents.some(s => isNotNil(s.taxonName?.id));
@@ -292,18 +300,19 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // If display parent using by a pmfm
     if (this.displayParentPmfm) {
-      const pmfmIdStr = this.displayParentPmfm.id.toString();
+      const parentDisplayPmfmIdStr = this.displayParentPmfm.id.toString();
+      const parentDisplayPmfmPath = `measurementValues.${parentDisplayPmfmIdStr}`;
       // Keep parents without this pmfms
-      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[pmfmIdStr]));
-      this._availableSortedParents = this.sortData(filteredParents, pmfmIdStr);
+      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[parentDisplayPmfmIdStr]));
+      this._availableSortedParents = EntityUtils.sort(filteredParents, parentDisplayPmfmPath);
 
-      this.autocompleteFields.parent.attributes = [`measurementValues.${pmfmIdStr}`].concat(baseDisplayAttributes);
+      this.autocompleteFields.parent.attributes = [parentDisplayPmfmPath].concat(baseDisplayAttributes);
       this.autocompleteFields.parent.columnSizes = [4].concat(baseDisplayAttributes.map(attr =>
         // If label then col size = 2
         attr.endsWith('label') ? 2 : undefined));
       this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
       this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
-        && PmfmValueUtils.valueToString(obj.measurementValues[pmfmIdStr], {pmfm: this.displayParentPmfm})
+        && PmfmValueUtils.valueToString(obj.measurementValues[parentDisplayPmfmIdStr], {pmfm: this.displayParentPmfm})
         || undefined;
 
 
@@ -413,6 +422,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     //console.debug("[sub-samples-table] Calling linkDataToParentAndDeleteOrphan()", rows);
 
+    const parentDisplayPmfmId = this.displayParentPmfm?.id;
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
@@ -425,15 +435,15 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
           // Update the parent, by id
           parent = this._availableParents.find(p => p.id === parentId);
         }
-        // No parent, search from tag ID
-        else {
-          const parentTagId = item.parent && item.parent.measurementValues && item.parent.measurementValues[PmfmIds.TAG_ID];
-          if (isNil(parentTagId)) {
+        // No parent, search from parent Pmfm
+        else if (isNotNil(parentDisplayPmfmId)){
+          const parentPmfmValue = item.parent && item.parent.measurementValues && item.parent.measurementValues[parentDisplayPmfmId];
+          if (isNil(parentPmfmValue)) {
             parent = undefined; // remove link to parent
           }
           else {
             // Update the parent, by tagId
-            parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
+            parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[parentDisplayPmfmId]) === parentPmfmValue);
           }
         }
 

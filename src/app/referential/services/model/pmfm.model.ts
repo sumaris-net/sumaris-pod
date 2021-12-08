@@ -252,6 +252,10 @@ export abstract class PmfmUtils {
     return pmfm['parameter'] && true;
   }
 
+  static isNotHidden(pmfm: IPmfm): boolean {
+    return !pmfm.hidden;
+  }
+
   /**
    * Compute a PMFM.NAME, with the last part of the name
    * @param pmfm
