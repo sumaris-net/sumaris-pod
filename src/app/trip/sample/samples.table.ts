@@ -107,7 +107,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
-  @Input() showDateTimeColumn = true;
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
   @Input() showIndividualReleaseButton = false;
@@ -144,6 +143,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   @Input()
+  set showSampleDateColumn(value: boolean) {
+    this.setShowColumn('sampleDate', value);
+  }
+
+  get showSampleDateColumn(): boolean {
+    return this.getShowColumn('sampleDate');
+  }
+
+  @Input()
   set showTaxonGroupColumn(value: boolean) {
     this.setShowColumn('taxonGroup', value);
   }
@@ -161,7 +169,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
-
   @Input()
   set availableReleases(children: Sample[]) {
     if (this._availableReleases !== children) {
@@ -170,7 +177,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.linkReleasesToParent();
     }
   }
-
 
   get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
@@ -259,7 +265,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     super.ngAfterViewInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-    this.setShowColumn('sampleDate', this.showDateTimeColumn);
     this.setShowColumn('comments', this.showCommentsColumn);
 
     // Taxon group combo
@@ -301,7 +306,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[samples-table] Opening detail modal...');
-    //const pmfms = await firstNotNilPromise(this.$pmfms);
+    const pmfms = await firstNotNilPromise(this.$pmfms);
 
     let isNew = !dataToOpen && true;
     if (isNew) {
@@ -309,27 +314,28 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       await this.onNewEntity(dataToOpen);
     }
 
+    const onModalReady = (modal) => {
+      const form = modal.form.form;
+      this.onPrepareRowForm.emit({form, pmfms});
+    };
+
     this.markAsLoading();
 
     const options: Partial<ISampleModalOptions> = {
       // Default options:
       programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
-      pmfms: this.$pmfms,
+      pmfms,
       acquisitionLevel: this.acquisitionLevel,
       disabled: this.disabled,
       i18nPrefix: SAMPLE_TABLE_DEFAULT_I18N_PREFIX,
       usageMode: this.usageMode,
       showLabel: this.showLabelColumn,
-      showDateTime: this.showDateTimeColumn,
+      defaultSampleDate: this.defaultSampleDate,
+      showSampleDate: this.showSampleDateColumn,
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
       showIndividualReleaseButton: this.showIndividualReleaseButton,
-
-      onReady: async (modal) => {
-        const form = modal.form.form;
-        const pmfms = await firstNotNilPromise(modal.$pmfms);
-        this.onPrepareRowForm.emit({form, pmfms});
-      },
+      onReady: onModalReady,
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {
           await this.addEntityToTable(dataToSave);
@@ -589,8 +595,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Default date
     if (isNotNil(this.defaultSampleDate)) {
       data.sampleDate = this.defaultSampleDate;
-    } else if (this.settings.isOnFieldMode(this.usageMode)) {
-      data.sampleDate = moment();
+    } else {
+      if (this.settings.isOnFieldMode(this.usageMode)) {
+        data.sampleDate = moment();
+      }
     }
 
     // Default taxon name
@@ -802,7 +810,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         + (this.showLabelColumn ? 1 : 0)
         + (this.showTaxonGroupColumn ? 1 : 0)
         + (this.showTaxonNameColumn ? 1 : 0)
-        + (this.showDateTimeColumn ? 1 : 0);
+        + (this.showSampleDateColumn ? 1 : 0);
       this.groupHeaderEndColSpan = RESERVED_END_COLUMNS.length
         + (this.showCommentsColumn ? 1 : 0);
 
@@ -819,7 +827,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Add replacement map, for sort by
     const dataService = this.memoryDataService;
-    pmfms.forEach(p => dataService.addSortByReplacement(p.id.toString(), 'measurementValues.' + p.id.toString()));
+    pmfms
+      .forEach(p => dataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
 
     return pmfms;
   }

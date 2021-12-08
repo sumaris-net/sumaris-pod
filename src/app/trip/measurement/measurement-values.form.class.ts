@@ -183,8 +183,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     );
 
     // Try to load pmfms
-    this.setLoadingProgression(MeasurementFormLoadingSteps.LOADING_PMFMS);
-    this.loadPmfms();
+    if (this.starting) {
+      this.setLoadingProgression(MeasurementFormLoadingSteps.LOADING_PMFMS);
+      this.loadPmfms();
+    }
   }
 
   ngOnDestroy() {

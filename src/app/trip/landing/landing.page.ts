@@ -15,7 +15,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   PlatformService,
-  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   UsageMode,
@@ -113,7 +112,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.platform = injector.get(PlatformService);
     this.contextService = injector.get(ContextService);
 
-
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -135,6 +133,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.registerSubscription(
       this.landingForm.$strategyLabel
         .pipe(
+          filter(value => this.$strategyLabel.value !== value),
           tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),
           tap(strategyLabel => this.$strategyLabel.next(strategyLabel))
         )
@@ -165,7 +164,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     // DEBUG
-    // console.debug(' Creating new landing entity');
+    console.debug(' Creating new landing entity');
 
     if (this.isOnFieldMode) {
       data.dateTime = moment();
@@ -177,6 +176,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Load parent
     this.parent = await this.loadParent(data);
+    const programLabel = this.parent.program?.label;
 
     // Copy from parent into the new object
     if (this.parent) {
@@ -222,22 +222,27 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Specific conf
     }
 
-    // Set contextual strategy
-    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
-    if (contextualStrategy) {
-      data.measurementValues = data.measurementValues || {};
-      data.measurementValues[PmfmIds.STRATEGY_LABEL] = contextualStrategy.label;
-      this.$strategyLabel.next(contextualStrategy.label);
-    }
-
     this.showEntityMetadata = false;
     this.showQualityForm = false;
+
+    // Set contextual strategy
+    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
+    const strategyLabel = contextualStrategy?.label;
+    if (strategyLabel) {
+      data.measurementValues = data.measurementValues || {};
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+    }
+
+    // Emit program, strategy
+    if (programLabel) this.$programLabel.next(programLabel);
+    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
 
   }
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.parent = await this.loadParent(data);
+    const programLabel = this.parent.program?.label;
 
     // Copy not fetched data
     if (this.parent) {
@@ -270,6 +275,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.showEntityMetadata = EntityUtils.isRemote(data);
       this.showQualityForm = this.showEntityMetadata;
     }
+
+
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
+
+    // Emit program, strategy
+    if (programLabel) this.$programLabel.next(programLabel);
+    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
   }
 
   onPrepareSampleForm({form, pmfms}) {
@@ -346,6 +359,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
 
+    if (!this.landingForm.requiredStrategy) this.markAsReady();
+
     // Listen program's strategies change (will reload strategy if need)
     this.startListenProgramRemoteChanges(program);
     this.startListenStrategyRemoteChanges(program);
@@ -387,7 +402,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       // Load additional pmfms, from ids
       const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
-      const dAdditionalPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+      const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
       // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
       // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
@@ -396,11 +411,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Applying additional PMFMs
       this.samplesTable.pmfms = [
         ...strategyPmfms,
-        ...dAdditionalPmfms
+        ...additionalFullPmfms
       ];
     }
 
     this.markForCheck();
+    this.markAsReady();
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
@@ -420,24 +436,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       throw new Error('No parent found in path. Landing without parent not implemented yet !');
     }
 
-    // Emit program
-    if (parent.program && parent.program.label) {
-      this.$programLabel.next(parent.program.label);
-    }
-
     return parent;
   }
 
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
-
-    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
-    if (strategyLabel) {
-      this.landingForm.$strategyLabel.next(strategyLabel);
-    }
-
-    this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
-    this.landingForm.value = data;
+    await this.landingForm.setValue(data);
 
     // Set samples to table
     this.samplesTable.value = data.samples || [];
@@ -499,8 +503,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues?.value || {};
-    if (isNotNilOrBlank(this.$strategyLabel.getValue())) {
-      data.measurementValues[PmfmIds.STRATEGY_LABEL] = this.$strategyLabel.getValue();
+    const strategyLabel = this.$strategyLabel.value;
+    if (isNotNilOrBlank(strategyLabel)) {
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
     }
 
     // Save samples table

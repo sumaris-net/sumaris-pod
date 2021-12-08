@@ -324,22 +324,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   setShowColumn(columnName: string, show: boolean) {
     super.setShowColumn(columnName, show, {emitEvent: false});
 
-    if (!this.loading) {
-      this.updateColumns();
-    }
-  }
-
-  async waitIdle(): Promise<any> {
-    if (isNotNil(this.$pmfms.value)) return AppTableUtils.waitIdle(this);
-
-    // Wait pmfms load, and controls load
-    await firstNotNilPromise(this.$pmfms);
-
-    return AppTableUtils.waitIdle(this);
+    if (!this.loading) this.updateColumns();
   }
 
   async ready() {
-    if (isNotNil(this.$pmfms.value)) return;
+    await super.ready();
 
     // Wait pmfms load, and controls load
     await firstNotNilPromise(this.$pmfms);

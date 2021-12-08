@@ -227,14 +227,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     this.$taxonGroupTypeId.next(program && program.taxonGroupType ? program.taxonGroupType.id : null);
   }
 
-  protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
-    await super.onNewEntity(data, options);
-
-    // Define default back link
-    const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
-    this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
-  }
-
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
@@ -244,10 +236,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Always open the second tab, when existing entity
     this.selectedTabIndex = 1;
     this.tabGroup.realignInkBar();
-
-    // Define default back link
-    const observedLocationId = this.parent && this.parent.id || data && data.observedLocationId;
-    this.defaultBackHref = `/observations/${observedLocationId}?tab=1`;
 
     this.markForCheck();
   }

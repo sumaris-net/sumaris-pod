@@ -155,6 +155,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_SAMPLE_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.dateTime.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_DATE_TIME_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE',

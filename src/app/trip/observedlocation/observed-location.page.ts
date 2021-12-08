@@ -29,7 +29,7 @@ import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { filter, first, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
@@ -82,6 +82,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   get table(): AppTable<any> & { setParent(value: ObservedLocation | undefined) } {
     return this.landingsTable || this.aggregatedLandingsTable;
+  }
+
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
   }
 
   constructor(
@@ -399,7 +403,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         // program
         if (searchFilter.program && searchFilter.program.label) {
           data.program = ReferentialRef.fromObject(searchFilter.program);
-          this.$programLabel.next(data.program.label);
         }
 
         // Location
@@ -423,17 +426,20 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
 
     // Set contextual program, if any
-    {
+    if (!data.program) {
       const contextualProgram = this.context.getValue('program') as Program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
-        this.$programLabel.next(data.program.label);
       }
     }
+
+    // Propagate program
+    const programLabel = data.program && data.program.label;
+    this.$programLabel.next(programLabel);
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
-
+    // Propagate program
     const programLabel = data.program && data.program.label;
     this.$programLabel.next(programLabel);
   }

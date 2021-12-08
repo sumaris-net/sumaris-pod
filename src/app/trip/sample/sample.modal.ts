@@ -1,26 +1,29 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode} from '@sumaris-net/ngx-components';
-import {environment} from '../../../environments/environment';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {SampleForm} from './sample.form';
-import {Sample} from '../services/model/sample.model';
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from '../services/config/trip.config';
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime, filter} from 'rxjs/operators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { environment } from '../../../environments/environment';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { SampleForm } from './sample.form';
+import { Sample } from '../services/model/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime, filter } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { Moment } from 'moment';
+
 
 export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 
   // UI Fields show/hide
   showLabel: boolean;
-  showDateTime: boolean;
+  showSampleDate: boolean;
   showTaxonGroup: boolean;
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
+
+  defaultSampleDate?: Moment;
 
   // UI Options
   maxVisibleButtons: number;
@@ -29,7 +32,7 @@ export interface ISampleModalOptions extends IDataEntityModalOptions<Sample> {
 
   // Callback actions
   onSaveAndNew: (data: Sample) => Promise<Sample>;
-  onReady: (modal: SampleModal) => void;
+  onReady: (modal: SampleModal) => Promise<void> | void;
   openIndividualReleaseModal: (subSample: Sample) => Promise<Sample>;
 }
 
@@ -56,17 +59,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   @Input() i18nPrefix: string;
   @Input() showLabel = true;
-  @Input() showDateTime = true;
+  @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
-  @Input() set pmfms(value: Observable<IPmfm[]> | IPmfm[]) {
-    this.setPmfms(value);
-  }
+  @Input() pmfms: IPmfm[];
 
-  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[]; // If PMFM are load from program: allow to override the list
-  @Input() onReady: (modal: SampleModal) => void;
+  @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
   @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
   @Input() maxVisibleButtons: number;
@@ -87,7 +87,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   get valid(): boolean {
     return this.form.valid;
   }
-
 
   constructor(
     protected injector: Injector,
@@ -124,13 +123,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       this.form.form.get('rankOrder').setValidators(null);
     }
 
-    this.form.value = this.data || new Sample();
 
     // Compute the title
     this.computeTitle();
 
+    // Update title each time value changes
     if (!this.isNew) {
-      // Update title each time value changes
       this._subscription.add(
         this.form.valueChanges
           .pipe(debounceTime(250))
@@ -138,15 +136,35 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       );
     }
 
-    // Add callback
-    this.ready().then(() => {
-      if (this.onReady) this.onReady(this);
-      this.markForCheck();
-    });
+    this.applyValue();
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
+  }
+
+  async applyValue() {
+    console.debug('[sample-modal] Applying data to form')
+
+    this.form.markAsReady();
+
+    try {
+      // Set form value
+      this.data = this.data || new Sample();
+      let promiseOrVoid = this.form.setValue(this.data);
+      if (promiseOrVoid) await promiseOrVoid;
+
+      // Call ready callback
+      if (this.onReady) {
+        promiseOrVoid = this.onReady(this);
+        if (promiseOrVoid) await promiseOrVoid;
+      }
+    }
+    finally {
+      this.form.markAsUntouched();
+      this.form.markAsPristine();
+      this.markForCheck();
+    }
   }
 
   async close(event?: UIEvent) {
@@ -167,10 +185,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
 
     await this.modalCtrl.dismiss();
-  }
-
-  async ready(): Promise<void> {
-    await this.form.waitIdle();
   }
 
   /**

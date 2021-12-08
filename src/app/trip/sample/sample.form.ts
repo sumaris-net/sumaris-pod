@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { Injector } from '@angular/core';
-import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormBuilder } from '@angular/forms';
-import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, LoadResult, LocalSettingsService, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';

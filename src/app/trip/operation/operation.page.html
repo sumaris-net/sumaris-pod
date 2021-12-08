@@ -253,7 +253,7 @@
                          [mobile]="mobile"
                          [useSticky]="mobile"
                          [showLabelColumn]="false"
-                         [showDateTimeColumn]="true"
+                         [defaultSampleDate]="form.get('endDateTime').valueChanges|async"
                          [showIndividualReleaseButton]="individualReleaseTable.$pmfms|async|isNotEmptyArray"
                          (onIndividualReleaseChanges)="onIndividualReleaseChanges($event)"
                          (onIndividualReleaseDelete)="onIndividualReleaseDelete($event)">
@@ -279,8 +279,9 @@
 
       <app-individual-monitoring-table #individualMonitoringTable [debug]="debug"
                                        [programLabel]="showSampleTablesByProgram && $programLabel|async"
+                                       [showToolbar]="!mobile"
                                        [usageMode]="usageMode"
-                                       [useSticky]="!mobile">
+                                       [useSticky]="mobile">
       </app-individual-monitoring-table>
     </mat-tab>
 
@@ -306,6 +307,7 @@
                              [programLabel]="showSampleTablesByProgram && $programLabel|async"
                              [usageMode]="usageMode"
                              [mobile]="mobile"
+                             [useSticky]="mobile"
                              [showLabelColumn]="false"
                              [showToolbar]="!mobile"
                              [debug]="debug">

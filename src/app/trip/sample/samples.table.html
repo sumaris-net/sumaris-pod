@@ -240,8 +240,7 @@
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
           [class.mat-cell-content-start-padding]="showGroupHeader">
-        <ion-label
-          [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
       </th>
       <td mat-cell *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -460,15 +459,17 @@
       <!-- Pmfms columns -->
       <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="(pmfm.id || index)|toString">
         <th mat-header-cell *matHeaderCellDef mat-sort-header
-            class="mat-column-pmfm"
+            class="mat-column-pmfm mat-column-{{pmfm.label}}"
+            [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0">
           <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails}"></ion-label>
         </th>
         <td mat-cell *matCellDef="let row"
-            class="mat-column-pmfm mat-cell-content-start-padding"
+            class="mat-column-pmfm mat-column-{{pmfm.label}}"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
             [class.mat-cell-computed]="pmfm|isComputedPmfm"
+            [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
             [style.background-color]="getPmfmValueColor(row.currentData.measurementValues[pmfm.id], pmfm)">
           <!-- TODO BLA: manage color -->
@@ -478,7 +479,7 @@
 
       <!-- Comment column -->
       <ng-container matColumnDef="comments">
-        <th mat-header-cell *matHeaderCellDef >
+        <th mat-header-cell *matHeaderCellDef>
         </th>
         <td mat-cell *matCellDef="let row">
           <mat-icon class="comment"
@@ -490,6 +491,12 @@
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
         <th mat-header-cell *matHeaderCellDef>
+          <!-- display columns -->
+          <button mat-icon-button matHeader
+                  [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+                  [matMenuTriggerFor]="optionsMenu">
+            <mat-icon>more_vert</mat-icon>
+          </button>
         </th>
         <td mat-cell *matCellDef="let row">
           <!-- open individual release -->

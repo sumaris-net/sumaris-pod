@@ -112,23 +112,47 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
       this.form.form.get('rankOrder').setValidators(null);
     }
 
-    this.form.value = this.data || new Sample();
-
     // Compute the title
     this.computeTitle();
 
+    // Update title each time value changes
     if (!this.isNew) {
-      // Update title each time value changes
       this._subscription.add(
         this.form.valueChanges
           .pipe(debounceTime(250))
           .subscribe(json => this.computeTitle(json))
       );
     }
+
+    this.applyValue();
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
+  }
+
+  async applyValue() {
+    console.debug('[sub-sample-modal] Applying data to form')
+
+    this.form.markAsReady();
+
+    try {
+      // Set form value
+      this.data = this.data || new Sample();
+      let promiseOrVoid = this.form.setValue(this.data);
+      if (promiseOrVoid) await promiseOrVoid;
+
+      // Call ready callback
+      /*if (this.onReady) {
+        promiseOrVoid = this.onReady(this);
+        if (promiseOrVoid) await promiseOrVoid;
+      }*/
+    }
+    finally {
+      this.form.markAsUntouched();
+      this.form.markAsPristine();
+      this.markForCheck();
+    }
   }
 
   async close(event?: UIEvent) {
@@ -207,7 +231,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   protected getDataToSave(opts?: { markAsLoading?: boolean; }): Sample {
 
     if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sample-modal] ");
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-sample-modal] ");
       this.form.error = "COMMON.FORM.HAS_ERROR";
       this.form.markAllAsTouched();
       this.scrollToTop();
