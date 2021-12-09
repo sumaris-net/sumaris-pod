@@ -53,4 +53,10 @@ public interface PhysicalGearService {
 	void delete(List<Integer> ids);
 
 	void delete(int id);
+
+	@Transactional(readOnly = true)
+	PhysicalGearVO get(int id);
+
+	@Transactional(readOnly = true)
+	PhysicalGearVO get(int id, DataFetchOptions o);
 }

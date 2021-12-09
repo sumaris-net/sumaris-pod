@@ -406,6 +406,16 @@ public class DataGraphQLService {
         return tripService.get(physicalGear.getTripId());
     }
 
+
+    @GraphQLQuery(name = "physicalGear", description = "Get a physical gear")
+    @Transactional(readOnly = true)
+    @IsUser
+    public PhysicalGearVO getPhysicalGear(@GraphQLArgument(name = "id") int id,
+                                    @GraphQLEnvironment() ResolutionEnvironment env) {
+        Set<String> fields = GraphQLUtils.fields(env);
+        return physicalGearService.get(id, getFetchOptions(fields));
+    }
+
     /* -- Metier -- */
 
     @GraphQLQuery(name = "metier", description = "Get operation's metier")
