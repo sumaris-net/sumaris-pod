@@ -1153,9 +1153,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Load trip, if need
     const trip = opts?.trip || (isNotNil(entity.tripId) && await this.entities.load<Trip>(entity.tripId, Trip.TYPENAME, {fullLoad: false}));
 
-    // Copy some properties from trip - see OperationFilter
+    //Copy some properties from trip - see OperationFilter
+    //Keep entity.tripId if exist because entity.tripId and trip.id can be different when linked operation is updated (opts.trip come from child operation)
+    //In any case, program and vessel are same for child and parent so we can keep opts.trip values.
     if (trip) {
-      entity.tripId = trip.id;
+      entity.tripId = entity.tripId || trip.id;
       entity.programLabel = trip.program?.label;
       entity.vesselId = trip.vesselSnapshot?.id;
     }

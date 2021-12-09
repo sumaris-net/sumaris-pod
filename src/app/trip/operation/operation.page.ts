@@ -925,7 +925,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
-      updateLinkedOperation: this.opeForm.isParentOperation, // Apply updates on child operation if it exists
+      updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts
     });
     if (!saved && this.opeForm.invalid) {
