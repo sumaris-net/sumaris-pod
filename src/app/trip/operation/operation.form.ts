@@ -29,24 +29,26 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
-import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
-import { BehaviorSubject, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
-import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Router } from '@angular/router';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { FishingArea } from '@app/trip/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {TranslateService} from '@ngx-translate/core';
+import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {BehaviorSubject, merge} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ModalController} from '@ionic/angular';
+import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/operation/select-operation.modal';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {PositionUtils} from '@app/trip/services/position.utils';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {LocationLevelIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {LatLongPattern} from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import {TripService} from '@app/trip/services/trip.service';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
@@ -226,6 +228,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
   }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
+  @Output() onNewPhysicalGear = new EventEmitter<PhysicalGear>();
 
   constructor(
     injector: Injector,
@@ -236,6 +239,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected operationService: OperationService,
+    protected physicalGearService: PhysicalGearService,
+    protected tripService: TripService,
     protected pmfmService: PmfmService,
     protected translate: TranslateService,
     protected platform: PlatformService,
@@ -404,23 +409,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
     const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
     endDateTime.subtract(1, 'second');
-    this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: endDateTime });
+    this.form.patchValue({startDateTime: this.trip.departureDateTime, endDateTime: endDateTime});
   }
 
-  setChildOperation(value: Operation, opts?: {emitEvent: boolean}) {
+  setChildOperation(value: Operation, opts?: { emitEvent: boolean }) {
     this.childControl.setValue(value, opts);
 
-    if (!opts || opts.emitEvent !== false){
+    if (!opts || opts.emitEvent !== false) {
       this.updateFormGroup();
     }
   }
 
-  async setParentOperation(value: Operation, opts?: {emitEvent: boolean}) {
+  async setParentOperation(value: Operation, opts?: { emitEvent: boolean }) {
     this.parentControl.setValue(value, opts);
 
     await this.onParentOperationChanged(value, {emitEvent: false});
 
-    if (!opts || opts.emitEvent !== false){
+    if (!opts || opts.emitEvent !== false) {
       this.updateFormGroup();
     }
   }
@@ -553,29 +558,37 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       physicalGearControl.patchValue(operation.physicalGear);
       metierControl.patchValue(operation.metier);
     } else {
-      const physicalGear = this._physicalGearsSubject.getValue().filter((value) => {
+      const physicalGears = this._physicalGearsSubject.getValue().filter((value) => {
         // TODO: voir comment sélectionner l'engin par rankOrder, label, etc.
         // Ou alors proposer à l'utilisateur de la choisir
         return value.gear.id === operation.physicalGear.gear.id;
       });
 
-      if (physicalGear.length === 1) {
-        physicalGearControl.setValue(physicalGear[0]);
-        const metiers = await this.loadMetiers(operation.physicalGear);
-
-        const metier = metiers.filter((value) => {
-          return value.id === operation.metier.id;
-        });
-
-        if (metier.length === 1) {
-          metierControl.patchValue(metier[0]);
-        } else {
-          // TODO
-        }
-      } else if (physicalGear.length === 0) {
-        console.warn('[operation-form] no matching physical gear on trip');
-      } else {
+      if (physicalGears.length > 1) {
         console.warn('[operation-form] several matching physical gear on trip');
+      } else if (physicalGears.length === 0) {
+        // Make a copy of parent operation physical gear's on current trip
+        const physicalGear = await this.physicalGearService.load(operation.physicalGear.id, operation.tripId);
+        physicalGear.id = undefined;
+        physicalGear.trip = undefined;
+        physicalGear.tripId = this.trip.id;
+
+        physicalGears.push(physicalGear);
+        this._physicalGearsSubject.next(physicalGears);
+        this.onNewPhysicalGear.emit(physicalGear);
+      }
+
+      physicalGearControl.setValue(physicalGears[0]);
+      const metiers = await this.loadMetiers(operation.physicalGear);
+
+      const metier = metiers.filter((value) => {
+        return value.id === operation.metier.id;
+      });
+
+      if (metier.length === 1) {
+        metierControl.patchValue(metier[0]);
+      } else {
+        // TODO
       }
     }
 
@@ -640,7 +653,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
   /* -- protected methods -- */
 
-  protected updateFormGroup(opts?: {emitEvent?: boolean}) {
+  protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
     this.validatorService.updateFormGroup(this.form, {
       isOnFieldMode: this.usageMode === 'FIELD',
@@ -777,10 +790,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
 
       // Silent mode
       else {
-        if (!this.childControl) this.updateFormGroup({ emitEvent: false }); // Create the child control
+        if (!this.childControl) this.updateFormGroup({emitEvent: false}); // Create the child control
 
         // Make sure qualityFlag has been set
-        this.qualityFlagControl.reset(QualityFlagIds.NOT_COMPLETED, { emitEvent: false });
+        this.qualityFlagControl.reset(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
       }
     }
 
@@ -813,7 +826,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
       // Silent mode
       else {
         // Reset qualityFlag
-        this.qualityFlagControl.reset(null, { emitEvent: false });
+        this.qualityFlagControl.reset(null, {emitEvent: false});
       }
     }
   }
@@ -835,7 +848,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     longitudeControl.patchValue(position && position.longitude || null);
   }
 
-  protected updateDistance(opts?: {emitEvent?: boolean}) {
+  protected updateDistance(opts?: { emitEvent?: boolean }) {
     if (!this._showPosition) return; // Skip
 
     const startPosition = this.form.get('startPosition').value;
@@ -849,7 +862,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
     if (!opts || opts.emitEvent !== false) this.markForCheck();
   }
 
-  protected updateDistanceValidity(distance?: number, opts?: {emitEvent?: boolean}) {
+  protected updateDistanceValidity(distance?: number, opts?: { emitEvent?: boolean }) {
     distance = distance || this.distance;
     if (isNotNilOrNaN(distance)) {
       // Distance > max error distance

@@ -15,10 +15,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import {PhysicalGear, Trip} from './model/trip.model';
 import {environment} from '@environments/environment';
-import {BehaviorSubject, EMPTY, Observable} from 'rxjs';
+import {BehaviorSubject, combineLatest, EMPTY, Observable} from 'rxjs';
 import {filter, map, throttleTime} from 'rxjs/operators';
-
-import {TripErrorCodes} from './trip.errors';
 import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {PhysicalGearFragments} from './trip.queries';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
@@ -26,7 +24,9 @@ import {SortDirection} from '@angular/material/sort';
 import {PhysicalGearFilter} from './filter/physical-gear.filter';
 import moment from 'moment';
 import {TripFilter} from '@app/trip/services/filter/trip.filter';
-import { ErrorCodes } from '@app/data/services/errors';
+import {ErrorCodes} from '@app/data/services/errors';
+import {mergeLoadResult} from '@app/shared/functions';
+import {mergeMap} from 'rxjs/internal/operators';
 
 
 const LoadAllQuery: any = gql`
@@ -40,6 +40,18 @@ const LoadAllQuery: any = gql`
           id
         }
       }
+    }
+  }
+  ${PhysicalGearFragments.physicalGear}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightDepartment}
+`;
+
+
+const LoadQuery: any = gql`
+  query PhysicalGear($id: Int!){
+    data: physicalGear(id: $id){
+      ...PhysicalGearFragment
     }
   }
   ${PhysicalGearFragments.physicalGear}
@@ -85,14 +97,13 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       distinctByRankOrder?: boolean;
       fetchPolicy?: WatchQueryFetchPolicy;
       toEntity?: boolean;
-      searchOnTripLocally?: boolean;
     }
   ): Observable<LoadResult<PhysicalGear>> {
 
     // If offline, load locally
     const offlineData = this.network.offline || (dataFilter && dataFilter.tripId < 0) || false;
     if (offlineData) {
-      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, {searchOnTripLocally: true, ...opts});
+      return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
     if (!dataFilter || (isNil(dataFilter.vesselId) && isNil(dataFilter.startDate))) {
@@ -168,7 +179,6 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       distinctByRankOrder?: boolean;
       toEntity?: boolean;
       fullLoad?: boolean;
-      searchOnTripLocally?: boolean;
     }
   ): Observable<LoadResult<PhysicalGear>> {
     if (!filter || isNil(filter.vesselId)) {
@@ -187,68 +197,130 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'rankOrder',
       sortDirection: sortDirection || 'desc',
-      filter: filter.asFilterFn()
+      filter: tripFilter.asFilterFn()
     };
 
     if (this._debug) console.debug('[physical-gear-service] Loading physical gears locally... using options:', variables);
 
-    if (opts && !opts.searchOnTripLocally) {
+    // First, search on trips
+    const fromTrip$ = this.entities.watchAll<Trip>(Trip.TYPENAME, variables, {fullLoad: true}) // FullLoad is needed to load gears
+      .pipe(
+        // Get trips array
+        map(res => res && res.data || []),
+        // Extract physical gears
+        // TODO: group by unique gear (from a hash (GEAR.LABEL + measurements))
+        map(trips => {
+          let data: PhysicalGear[] = trips.reduce((res, trip) => {
+            // Exclude if no gears
+            const tripDate = fromDateISOString(trip.returnDateTime || trip.departureDateTime);
+            if (!trip.gears || !tripDate
+              // Or if endDate <= trip date
+              || (filter.startDate && tripDate.isBefore(filter.startDate))
+              || (filter.endDate && tripDate.isSameOrAfter(filter.endDate))
+              // Or excluded trip id (e.g to ignore current trip gears)
+              || (filter.excludeTripId && trip.id === filter.excludeTripId)) {
+              return res;
+            }
 
-      return this.entities.watchAll<PhysicalGear>(PhysicalGear.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
-        .pipe(map(({data, total}) => {
-          const entities = (!opts || opts.toEntity !== false) ?
+            return res.concat(trip.gears
+              .map(gear => {
+                return {
+                  ...gear,
+                  trip: {
+                    departureDateTime: trip.departureDateTime,
+                    returnDateTime: trip.returnDateTime
+                  }
+                };
+              }));
+          }, []);
+
+          let entities = (!opts || opts.toEntity !== false) ?
             (data || []).map(source => PhysicalGear.fromObject(source, opts))
             : (data || []) as PhysicalGear[];
 
-          return {data: entities, total};
+          return {data: entities, total: data.length};
+        })
+      );
 
-        }));
-    } else {
-      variables.filter = tripFilter.asFilterFn();
+    variables.filter = filter.asFilterFn();
 
-      // First, search on trips
-      return this.entities.watchAll<Trip>(Trip.TYPENAME, variables)
+    const fromStorage$ = this.entities.watchAll<PhysicalGear>(PhysicalGear.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
+      .pipe(map(({data, total}) => {
+        const entities = (!opts || opts.toEntity !== false) ?
+          (data || []).map(source => PhysicalGear.fromObject(source, opts))
+          : (data || []) as PhysicalGear[];
+
+        return {data: entities, total};
+
+      }));
+
+    // Merge local and remote
+    if (fromTrip$ && fromStorage$) {
+      return combineLatest([fromTrip$, fromStorage$])
         .pipe(
-          // Get trips array
-          map(res => res && res.data || []),
-          // Extract physical gears
-          // TODO: group by unique gear (from a hash (GEAR.LABEL + measurements))
-          map(trips => {
-            let data: PhysicalGear[] = trips.reduce((res, trip) => {
-              // Exclude if no gears
-              const tripDate = fromDateISOString(trip.returnDateTime || trip.departureDateTime);
-              if (!trip.gears || !tripDate
-                // Or if endDate <= trip date
-                || (filter.startDate && tripDate.isBefore(filter.startDate))
-                || (filter.endDate && tripDate.isSameOrAfter(filter.endDate))
-                // Or excluded trip id (e.g to ignore current trip gears)
-                || (filter.excludeTripId && trip.id === filter.excludeTripId)) {
-                return res;
-              }
-
-              return res.concat(trip.gears
-                .map(gear => {
-                  return {
-                    ...gear,
-                    trip: {
-                      departureDateTime: trip.departureDateTime,
-                      returnDateTime: trip.returnDateTime
-                    }
-                  };
-                }));
-            }, []);
-
-            // Sort by trip date
+          map(([res1, res2]) => mergeLoadResult(res1, res2)),
+          mergeMap(async ({data, total}) => {
             if (filter && filter.vesselId && isNil(filter.tripId)) {
               data.sort(sortByTripDateFn);
             }
-
             if (opts && opts.distinctByRankOrder === true) {
               data = arrayDistinct(data, ['gear.id', 'rankOrder', 'measurementValues']);
             }
-            return {data, total: data.length};
+            return {data, total};
           })
         );
+    }
+    return fromStorage$;
+  }
+
+  async load(id: number, tripId?: number, opts?: {
+    distinctByRankOrder?: boolean;
+    toEntity?: boolean;
+    fullLoad?: boolean;
+  }): Promise<PhysicalGear | null> {
+    if (isNil(id)) throw new Error('Missing argument \'id\' ');
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[physical-gear-service] Loading physical gear #${id}...`);
+    this.loading = true;
+
+    try {
+      let json: any;
+      const offline = this.network.offline || id < 0;
+
+      // Load locally
+      if (offline) {
+        // Watch on storage
+        json = await this.entities.load<PhysicalGear>(id, PhysicalGear.TYPENAME);
+
+        if (!json) {
+          // If not on storage, watch on trip
+          const trip = await this.entities.load<Trip>(tripId, Trip.TYPENAME);
+          if (trip && trip.gears) {
+            json = trip.gears.find(g => g.id === id);
+          }
+        }
+        if (!json) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
+      }
+
+      // Load from pod
+      else {
+        const res = await this.graphql.query<{ data: PhysicalGear }>({
+          query: LoadQuery,
+          variables: {id},
+          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'}
+        });
+        json = res && res.data;
+      }
+
+      // Transform to entity
+      const data = (!opts || opts.toEntity !== false)
+        ? PhysicalGear.fromObject(json)
+        : json as PhysicalGear;
+      if (data && this._debug) console.debug(`[physical-gear-service] Physical gear #${id} loaded in ${Date.now() - now}ms`, data);
+      return data;
+    } finally {
+      this.loading = false;
     }
   }
 

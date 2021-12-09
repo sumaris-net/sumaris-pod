@@ -96,7 +96,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         endDateTime: [data && data.endDateTime || null, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])],
         rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        // Use object validator instead of entity because physical gear may have no id when it's adding from parent operation and doesn't exist yet on trip
+        physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.object])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
 
         // TODO: move into update form group

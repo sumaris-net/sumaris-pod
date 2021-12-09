@@ -1,34 +1,37 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { OperationValidatorService } from '../services/validator/operation.validator';
-import { AlertController, ModalController, Platform } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
-import { TranslateService } from '@ngx-translate/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import {AlertController, ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
+import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
+import {TranslateService} from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
-  EntitiesTableDataSource, isEmptyArray, isNil, isNotEmptyArray,
-  LatLongPattern, LocalSettings,
+  EntitiesTableDataSource,
+  isEmptyArray,
+  isNotEmptyArray,
+  LatLongPattern,
+  LocalSettings,
   LocalSettingsService,
   NetworkService,
-  ReferentialRef, removeDuplicatesFromArray,
+  ReferentialRef,
+  removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, StatusIds,
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
-import { environment } from '@environments/environment';
-import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { TripService } from '@app/trip/services/trip.service';
-import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import {environment} from '@environments/environment';
+import {Operation, Trip} from '../services/model/trip.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {TripService} from '@app/trip/services/trip.service';
+import {debounceTime, filter} from 'rxjs/operators';
+import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
 import moment from 'moment/moment';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { BehaviorSubject, from, merge, of } from 'rxjs';
-import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
-import { mergeLoadResult } from '@app/shared/functions';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {BehaviorSubject, from, merge} from 'rxjs';
+import {mergeLoadResult} from '@app/shared/functions';
 
 class OperationDivider extends Operation {
   trip: Trip;
@@ -285,6 +288,8 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   protected async mapOperations(data: Operation[]): Promise<Operation[]> {
+
+    data = removeDuplicatesFromArray(data, 'id');
 
     // Add existing parent operation
     if (this.parent && data.findIndex(o => o.id === this.parent.id) === -1){
