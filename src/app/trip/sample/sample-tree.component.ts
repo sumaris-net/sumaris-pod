@@ -1,19 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
-import {
-  AppTabEditor,
-  AppTable,
-  Entity, firstTruePromise,
-  IconRef,
-  InMemoryEntitiesService,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  PlatformService,
-  toBoolean,
-  UsageMode,
-  WaitForOptions,
-} from '@sumaris-net/ngx-components';
+import { AppTabEditor, AppTable, Entity, IconRef, InMemoryEntitiesService, isNil, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -27,10 +13,9 @@ import { Program } from '@app/referential/services/model/program.model';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { BatchUtils } from '@app/trip/services/model/batch.model';
 import { EntityUtils } from '../../../../ngx-sumaris-components/src/app/core/services/model/entity.model';
 
 export interface SampleTabDefinition {
@@ -46,7 +31,6 @@ export interface SampleTabDefinition {
 export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
   private _subSamplesService: InMemoryEntitiesService<Sample, SampleFilter>;
-
 
   data: Sample[];
   $programLabel = new BehaviorSubject<string>(null);
@@ -94,10 +78,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
   get dirty(): boolean {
     return super.dirty || (this._subSamplesService?.dirty) || false;
-  }
-
-  set selectedSubTabIndex(value: number) {
-    this.setSelectedTabIndex(value);
   }
 
   @ViewChild('samplesTable', {static: true}) samplesTable: SamplesTable;
@@ -156,7 +136,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
         .pipe(debounceTime(100))
         .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
           this.showIndividualMonitoringTable = hasMonitoringPmfms;
-          this.showIndividualMonitoringTable = hasReleasePmfms;
+          this.showIndividualReleaseTable = hasReleasePmfms;
+          this.tabCount = hasReleasePmfms ? 3 : (hasMonitoringPmfms ? 2 : 1);
+          this.markForCheck();
         })
       );
 
@@ -230,16 +212,17 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
     await this.ready();
 
-    // Get all samples, as array (even when data is a list of parent/child tree)
-    const samples = EntityUtils.listOfTreeToArray(data || []);
-    //(data || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
-
-    // Set root samples
     const rootAcquisitionLevel = this.samplesTable.acquisitionLevel;
-    const rootSamples = samples.filter(s => s.label && s.label.startsWith(rootAcquisitionLevel + '#'));
-    this.samplesTable.value = rootSamples;
 
-    if (this.individualMonitoringTable && this.individualReleasesTable) {
+    if (!this.mobile) {
+
+      // Get all samples, as array (even when data is a list of parent/child tree)
+      const samples = EntityUtils.listOfTreeToArray(data) || [];
+
+      // Set root samples
+      const rootSamples = samples.filter(s => s.label && s.label.startsWith(rootAcquisitionLevel + '#'));
+      this.samplesTable.value = rootSamples;
+
       // Set sub-samples (individual monitoring)
       const individualMonitoringAcquisitionLevel = this.individualMonitoringTable.acquisitionLevel;
       this.individualMonitoringTable.availableParents = rootSamples;
@@ -251,13 +234,12 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
       this.individualReleasesTable.value = samples.filter(s => s.label && s.label.startsWith(individualReleaseAcquisitionLevel + '#'));
     }
     else {
-      const subSamples = samples.filter(s => s.label && !s.label.startsWith(rootAcquisitionLevel + '#'));
+      const rootSamples = (data || []).filter(s => s.label && s.label.startsWith(rootAcquisitionLevel + '#'));
+      this.samplesTable.value = rootSamples;
+
+      const subSamples = data || [].filter(s => s.label && !s.label.startsWith(rootAcquisitionLevel + '#'));
       this._subSamplesService.value = subSamples;
     }
-  }
-
-  getValue(): Sample[] {
-    return this.data;
   }
 
 
@@ -280,7 +262,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     // DEBUG
     if (this.debug) SampleUtils.logTree(target);
 
-    this.data = target;
+    this.data = target.map(s => Sample.fromObject(s, {withChildren: true}));
 
     return true;
   }
@@ -304,6 +286,17 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
         this.individualReleasesTable.addRow(event);
         break;
     }
+  }
+
+  getFirstInvalidTabIndex(): number {
+    if (this.samplesTable.invalid) return 0;
+    if (this.showIndividualMonitoringTable && this.individualMonitoringTable.invalid) return 1;
+    if (this.showIndividualReleaseTable && this.individualReleasesTable.invalid) return 2;
+    return -1;
+  }
+
+  getValue(): Sample[] {
+    return this.data;
   }
 
   load(id?: number, options?: any): Promise<void> {

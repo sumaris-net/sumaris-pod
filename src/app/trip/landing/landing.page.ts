@@ -6,7 +6,7 @@ import {
   EntityUtils,
   fadeInOutAnimation,
   firstArrayValue,
-  firstNotNilPromise,
+  firstNotNilPromise, firstTruePromise,
   fromDateISOString,
   HistoryPageReference,
   isEmptyArray,
@@ -82,6 +82,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showEntityMetadata = false;
   showQualityForm = false;
   contextService: ContextService;
+  showSamplesTable = false;
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -119,6 +120,13 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
+
+    // Enable samples tab, when has pmfms
+    firstTruePromise(this.samplesTable.$hasPmfms)
+      .then(() => {
+        this.showSamplesTable = true;
+        this.markForCheck()
+      });
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
@@ -327,14 +335,15 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async setProgram(program: Program) {
-    await super.setProgram(program);
     if (!program) return; // Skip
+    await super.setProgram(program);
 
     // Customize the UI, using program options
+    const requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
-    this.landingForm.showStrategy = this.landingForm.requiredStrategy;
+    this.landingForm.requiredStrategy = requiredStrategy;
+    this.landingForm.showStrategy = requiredStrategy;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
@@ -352,21 +361,28 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       };
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
       this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
-      this.samplesTable.programLabel = program.label;
+
+      // Send programLabel to samples tables: will start loading pmfms
+      // If strategy is required, pmfms will be loaded by setStrategy()
+      if (!requiredStrategy) {
+        this.samplesTable.programLabel = program.label;
+      }
     }
 
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
 
-    if (!this.landingForm.requiredStrategy) this.markAsReady();
+    // Emit ready event (should allow children forms to apply value)
+    // If strategy is required, markAsReady() will be called in setStrategy()
+    this.markAsReady();
 
     // Listen program's strategies change (will reload strategy if need)
     this.startListenProgramRemoteChanges(program);
     this.startListenStrategyRemoteChanges(program);
   }
 
-  protected async setStrategy(strategy: Strategy) {
+  protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean; }) {
     await super.setStrategy(strategy);
 
     if (!strategy) return; // Skip if empty
@@ -380,43 +396,48 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
     this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
-    // Propagate to table
-    this.samplesTable.strategyLabel = strategy.label;
-    const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
-    this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
-    this.samplesTable.showTaxonGroupColumn = false;
+    // Configure samples table
+    if (this.samplesTable) {
+      this.samplesTable.strategyLabel = strategy.label;
+      const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
+      this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
+      this.samplesTable.showTaxonGroupColumn = false;
 
-    // We use pmfms from strategy and from sampling data. Some pmfms are only stored in data.
-    const strategyPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
-    const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
+      // Load strategy's pmfms
+      const samplesStrategyPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(this.$program.value.label,
+        {
+          strategyLabel: strategy.label,
+          acquisitionLevel: this.samplesTable.acquisitionLevel
+        });
+      const strategyPmfmIds = samplesStrategyPmfms.map(pmfm => pmfm.id);
 
-    // Retrieve additional pmfms, from data (= PMFMs NOT in the strategy)
-    const additionalPmfmIds = (this.data?.samples || []).reduce((res, sample) => {
-      const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
-      const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
-      return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
-    }, []);
+      // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
+      const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
+        const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
+        const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
+        return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
+      }, []);
 
-    // Override samples table pmfm, if need
-    if (isNotEmptyArray(additionalPmfmIds)) {
+      // Override samples table pmfm, if need
+      if (isNotEmptyArray(additionalPmfmIds)) {
 
-      // Load additional pmfms, from ids
-      const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
-      const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+        // Load additional pmfms, from ids
+        const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
+        const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
-      // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
-      // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
-      await this.samplesTable.ready();
-
-      // Applying additional PMFMs
-      this.samplesTable.pmfms = [
-        ...strategyPmfms,
-        ...additionalFullPmfms
-      ];
+        // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
+        // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
+        this.samplesTable.pmfms = [
+          ...samplesStrategyPmfms,
+          ...additionalFullPmfms
+        ];
+      } else {
+        this.samplesTable.pmfms = samplesStrategyPmfms;
+      }
     }
 
     this.markForCheck();
-    this.markAsReady();
+
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {

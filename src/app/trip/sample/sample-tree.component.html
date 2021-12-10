@@ -3,14 +3,13 @@
                [class.mat-tab-group-header-hidden]="mobile"
                [(selectedIndex)]="selectedTabIndex"
                (selectedTabChange)="onTabChange($event)"
-               animationDuration="0s"
-               [dynamicHeight]="false">
+               [dynamicHeight]="false"
+               animationDuration="0s">
   <!-- TAB: Samples  -->
   <mat-tab #sampleTab
            [label]="'TRIP.SAMPLE.TABLE.TAB_SAMPLES'|translateContext: i18nContext.suffix">
     <ng-template mat-tab-label>
-      <mat-icon>set_meal</mat-icon>
-      <!--<app-icon [ref]="sampleTabDef.iconRef"></app-icon>-->
+      <mat-icon svgIcon="fish-oblique"></mat-icon>
       <ion-label
         [matBadge]="samplesTable.visibleRowCount"
         [matBadgeHidden]="!samplesTable.visibleRowCount"
@@ -41,14 +40,15 @@
   </mat-tab>
 
   <!-- TAB: Individual monitoring  -->
-  <mat-tab #individualMonitoringTab *ngIf="!mobile"
+  <mat-tab #individualMonitoringTab
+           *ngIf="!mobile"
            [label]="'TRIP.SAMPLE.TABLE.TAB_SUB_SAMPLES'|translateContext: i18nContext.suffix"
            [disabled]="!showIndividualMonitoringTable">
     <ng-template mat-tab-label>
       <mat-icon>center_focus_strong</mat-icon>
       <ion-label
-        [matBadge]="individualMonitoringTable?.visibleRowCount"
-        [matBadgeHidden]="!individualMonitoringTable?.visibleRowCount"
+        [matBadge]="individualMonitoringTable.visibleRowCount"
+        [matBadgeHidden]="individualMonitoringTable.invalid || !individualMonitoringTable.visibleRowCount"
         matBadgeOverlap="false"
         matBadgeColor="primary"
         matBadgeSize="small"
@@ -66,19 +66,20 @@
                                      [useSticky]="mobile"
                                      [showToolbar]="!mobile"
                                      [showLabelColumn]="showLabelColumn"
-                                     [mobile]="mobile">
+                                     [mobile]="false">
     </app-individual-monitoring-table>
   </mat-tab>
 
   <!-- TAB: Individual releases  -->
-  <mat-tab #individualReleaseTab *ngIf="!mobile"
+  <mat-tab #individualReleaseTab
+           *ngIf="!mobile"
            label="{{'TRIP.SAMPLE.TABLE.TAB_INDIVIDUAL_RELEASES'|translate}}"
            [disabled]="!showIndividualReleaseTable">
     <ng-template mat-tab-label>
       <mat-icon>room</mat-icon>
       <ion-label
-        [matBadge]="individualReleaseTable?.visibleRowCount"
-        [matBadgeHidden]="!individualReleaseTable?.visibleRowCount"
+        [matBadge]="individualReleaseTable.visibleRowCount"
+        [matBadgeHidden]="individualReleaseTable.invalid || !individualReleaseTable.visibleRowCount"
         matBadgeOverlap="false"
         matBadgeColor="primary"
         matBadgeSize="small"
@@ -94,7 +95,7 @@
                                    [useSticky]="mobile"
                                    [showToolbar]="!mobile"
                                    [showLabelColumn]="showLabelColumn"
-                                   [mobile]="mobile">
+                                   [mobile]="false">
     </app-individual-releases-table>
   </mat-tab>
 </mat-tab-group>

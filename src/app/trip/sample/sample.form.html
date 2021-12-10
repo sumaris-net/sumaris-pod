@@ -1,6 +1,6 @@
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
-  <!--<ion-text>TOTO {{i18nSuffix}}</ion-text>-->
+  <ion-text *ngIf="debug">I18n Suffix: {{i18nSuffix}}</ion-text>
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">

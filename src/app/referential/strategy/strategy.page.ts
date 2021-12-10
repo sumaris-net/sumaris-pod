@@ -213,7 +213,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.strategyForm.invalid) return 1;
-    return 0;
+    return -1;
   }
 
   protected markForCheck() {

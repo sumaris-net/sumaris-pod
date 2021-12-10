@@ -211,12 +211,14 @@
     </mat-tab>
 
     <!-- TAB: Catch -->
-    <mat-tab #catchTab label="{{'TRIP.OPERATION.EDIT.TAB_CATCH'|translate}}" [disabled]="!showCatchTab">
+    <mat-tab #catchTab
+             [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
+             [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label
           [matBadge]="batchTree.batchGroupsTable.visibleRowCount"
-          [matBadgeHidden]="!batchTree.batchGroupsTable.visibleRowCount"
+          [matBadgeHidden]="batchTree.invalid || !batchTree.batchGroupsTable.visibleRowCount"
           matBadgeOverlap="false"
           matBadgeColor="primary"
           matBadgeSize="small"
@@ -230,6 +232,7 @@
                       [showBatchTables]="showBatchTables"
                       [selectedTabIndex]="selectedSubTabIndex"
                       [usageMode]="usageMode"
+                      [mobile]="mobile"
                       [debug]="debug">
       </app-batch-tree>
     </mat-tab>
@@ -254,7 +257,9 @@
                        [selectedTabIndex]="selectedSubTabIndex"
                        [defaultSampleDate]="form.get('endDateTime').valueChanges|async"
                        [usageMode]="usageMode"
-                       [debug]="debug"></app-sample-tree>
+                       [mobile]="mobile"
+                       [debug]="debug">
+      </app-sample-tree>
     </mat-tab>
 
   </mat-tab-group>

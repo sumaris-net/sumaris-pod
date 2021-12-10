@@ -34,7 +34,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 })
 export class SamplingLandingPage extends LandingPage {
 
-  showSamplesTable = false;
+
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
@@ -75,7 +75,7 @@ export class SamplingLandingPage extends LandingPage {
 
   updateTabsState(data: Landing) {
     // Enable landings tab
-    this.showSamplesTable = this.showSamplesTable || (!this.isNewData || this.isOnFieldMode);
+    this.showSamplesTable = this.showSamplesTable || !this.isNewData || this.isOnFieldMode;
 
     // INFO CLT : #IMAGINE-614 / Set form to dirty in creation in order to manager errors on silent save (as done for update)
     if (this.isNewData && this.isOnFieldMode) {
@@ -84,8 +84,7 @@ export class SamplingLandingPage extends LandingPage {
 
     // Move to second tab
     if (this.showSamplesTable && !this.isNewData && !this.isOnFieldMode && this.selectedTabIndex === 0) {
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
+      setTimeout(() => this.selectedTabIndex = 1, 650);
     }
   }
 

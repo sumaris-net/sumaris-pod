@@ -74,7 +74,7 @@
             <!-- landing form-->
             <app-landing-form #landingForm
                               [programLabel]="$programLabel|async"
-                              [i18nPrefix]="i18nPrefix"
+                              [i18nSuffix]="i18nContext.suffix"
                               [showError]="false"
                               [showMeasurements]="false"
                               (onSubmit)="save($event)"
@@ -91,32 +91,30 @@
           </ion-col>
         </ion-row>
       </ion-grid>
-
-      <div #firstTabInjection></div>
-
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab label="{{'AUCTION_CONTROL.TAB_SAMPLES'|translate}}">
+    <mat-tab #samplesTab
+             [label]="'AUCTION_CONTROL.TAB_SAMPLES'|translate">
       <ng-template mat-tab-label>
         <mat-icon>
-          <ion-icon matPrefix slot="start" name="flag"></ion-icon>
+          <ion-icon matPrefix slot="icon-only" name="flag"></ion-icon>
         </mat-icon>
         <ion-label [matBadge]="samplesTable.visibleRowCount"
-                   [matBadgeHidden]="!samplesTable.visibleRowCount"
+                   [matBadgeHidden]="samplesTable.invalid || !samplesTable.visibleRowCount"
                    matBadgeOverlap="false"
                    matBadgeColor="primary"
                    matBadgeSize="small"
-                   matBadgePosition="above after" translate>AUCTION_CONTROL.TAB_SAMPLES</ion-label>
+                   matBadgePosition="above after">{{samplesTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
       <div>
 
         <!-- error -->
-        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="samplesTable.error || (landingForm.measurementValuesForm|translateFormError); let error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
         </ion-item>
 
         <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
@@ -158,6 +156,7 @@
                            [showTaxonGroupColumn]="false"
                            [showToolbar]="!mobile"
                            [showGroupHeader]="false"
+                           [i18nColumnSuffix]="i18nContext.suffix"
                            [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"

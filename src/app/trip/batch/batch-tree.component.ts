@@ -143,10 +143,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
-  set selectedSubTabIndex(value: number) {
-    this.setSelectedTabIndex(value);
-  }
-
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;

@@ -170,7 +170,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   protected getFirstInvalidTabIndex(): number {
     if (this.strategyForm.invalid) return 0;
-    return 0;
+    return -1;
   }
 
   protected loadFromRoute(): Promise<void> {

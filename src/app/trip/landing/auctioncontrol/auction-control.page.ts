@@ -172,11 +172,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
-        mergeMap(taxonGroup => this.programRefService.watchProgramPmfms(this.$programLabel.getValue(), {
+        mergeMap(taxonGroup => this.programRefService.watchProgramPmfms(this.$programLabel.value, {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
-        })),
-        tap(async (pmfms) => {
+        }))
+      )
+      .subscribe(async (pmfms) => {
           // Save existing samples
           if (this.samplesTable.dirty) {
             await this.samplesTable.save();
@@ -186,7 +187,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           console.debug('[control] Applying taxon group PMFMs:', pmfms);
           this.samplesTable.pmfms = pmfms;
         })
-      ).subscribe());
+      );
 
     // Update sample tables
     this.registerSubscription(
@@ -220,8 +221,13 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected async setProgram(program: Program) {
-    await super.setProgram(program);
     if (!program) return; // Skip
+    await super.setProgram(program);
+
+    // Configure landing form
+    this.landingForm.showLocation = false;
+    this.landingForm.showDateTime = false;
+    this.landingForm.showObservers = false;
 
     this.$taxonGroupTypeId.next(program && program.taxonGroupType ? program.taxonGroupType.id : null);
   }
@@ -251,11 +257,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     }
 
     await super.updateView(data, opts);
-
-    // Configure landing form
-    this.landingForm.showLocation = false;
-    this.landingForm.showDateTime = false;
-    this.landingForm.showObservers = false;
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {

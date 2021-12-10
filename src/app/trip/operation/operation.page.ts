@@ -308,8 +308,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
 
-            // Force first tab index
-            this.selectedSubTabIndex = 0;
+            // Force first sub tab index, if modification was done from the form
+            // This condition avoid to change subtab, when reloading the page
+            if (this.selectedTabIndex == OPERATION_TABS.GENERAL) {
+              this.selectedSubTabIndex = 0;
+            }
             this.updateTablesState();
             this.markForCheck();
           })
@@ -340,7 +343,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
 
             // Force first tab index
-            this.selectedSubTabIndex = 0;
+            if (this.selectedTabIndex == OPERATION_TABS.GENERAL) {
+              this.selectedSubTabIndex = 0;
+            }
             this.updateTablesState();
             this.markForCheck();
           })
@@ -381,7 +386,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             }
 
             // Force first tab index
-            this.selectedSubTabIndex = 0;
+            if (this.selectedTabIndex == OPERATION_TABS.GENERAL) {
+              this.selectedSubTabIndex = 0;
+            }
             this.updateTablesState();
             this.markForCheck();
           })
@@ -724,17 +731,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected getFirstInvalidTabIndex(): number {
     // find invalids tabs (keep order)
     const invalidTabs = [
-      this.opeForm.invalid,
+      this.opeForm.invalid || this.measurementsForm.invalid,
       this.showCatchTab && this.batchTree.invalid,
       this.showSamplesTab && this.sampleTree.invalid
     ];
 
     // Open the first invalid tab
-    const invalidTabIndex = invalidTabs.findIndex(invalid => invalid === true);
+    const invalidTabIndex = invalidTabs.indexOf(true);
 
-    // If tab 1, open the invalid sub tab
+    // If catch tab, open the invalid sub tab
     if (invalidTabIndex === OPERATION_TABS.CATCH) {
       this.selectedSubTabIndex = this.batchTree.getFirstInvalidTabIndex();
+      this.updateTablesState();
+    }
+    // If sample tab, open the invalid sub tab
+    else if (invalidTabIndex === OPERATION_TABS.SAMPLE) {
+      this.selectedSubTabIndex = this.sampleTree.getFirstInvalidTabIndex();
       this.updateTablesState();
     }
     return invalidTabIndex;
@@ -891,6 +903,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         this.sampleTree.disable();
       }
     }
+    // Force expected sub tab index
+    if (this.showBatchTables && this.batchTree.selectedTabIndex !== this.selectedSubTabIndex) {
+      this.batchTree.setSelectedTabIndex(this.selectedSubTabIndex);
+    }
+    else if (this.showSamplesTab && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
+      this.sampleTree.setSelectedTabIndex(this.selectedSubTabIndex);
+    }
+
   }
 
   protected async loadLinkedOperation(data: Operation): Promise<void> {

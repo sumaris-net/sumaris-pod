@@ -10,9 +10,9 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  joinPropertiesPath,
+  joinPropertiesPath, LoadResult,
   OnReady,
-  PlatformService,
+  PlatformService, suggestFromArray,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -121,8 +121,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.setShowColumn('comments', !this.mobile);
 
     // Parent combo
+    // the exact list of attributes to display will be set when receiving the pmfms and parents
     this.registerAutocompleteField('parent', {
-      suggestFn: (value: any, options?: any) => this.suggestParent(value),
+      suggestFn: (value: any, opts?: any) => this.suggestParent(value, opts),
       showAllOnFocus: true
     });
 
@@ -297,10 +298,12 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
     this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
 
-    // Force the parent PMFM to be hidden
+    // Force the parent PMFM to be hidden, and NOT required
     if (this.displayParentPmfm && !this.displayParentPmfm.hidden) {
-      pmfms[tagIdPmfmIndex] = this.displayParentPmfm.clone();
-      pmfms[tagIdPmfmIndex].hidden = true;
+      const cloneParentPmfm = this.displayParentPmfm.clone();
+      cloneParentPmfm.hidden = true;
+      cloneParentPmfm.required = false;
+      pmfms[tagIdPmfmIndex] = cloneParentPmfm;
     }
 
     return pmfms;
@@ -336,8 +339,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
         && PmfmValueUtils.valueToString(obj.measurementValues[parentDisplayPmfmIdStr], {pmfm: this.displayParentPmfm})
         || undefined;
-
-
     }
     else {
       const displayAttributes = ['rankOrder'].concat(baseDisplayAttributes);
@@ -347,6 +348,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       this.autocompleteFields.parent.columnNames = undefined; // use defaults
       this.autocompleteFields.parent.displayWith = (obj) => obj && joinPropertiesPath(obj, displayAttributes) || undefined;
     }
+
+    // Configure the filter for suggestParent()
+    this.autocompleteFields.parent.filter = this.autocompleteFields.parent.filter || {};
+    this.autocompleteFields.parent.filter.searchAttributes = this.autocompleteFields.parent.attributes;
 
     // Link samples to parent, and delete orphan
     await this.linkDataToParentAndDeleteOrphan();
@@ -499,19 +504,17 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return data;
   }
 
-  protected async suggestParent(value: any): Promise<any[]> {
-    if (EntityUtils.isNotEmpty(value, 'label')) {
-      return [value];
-    }
+  protected async suggestParent(value: any, opts?: any): Promise<LoadResult<Sample>> {
+    if (EntityUtils.isNotEmpty(value, 'label')) return {data: [value]};
     value = (typeof value === "string" && value !== "*") && value || undefined;
-    if (isNil(value)) return this._availableSortedParents; // All
 
-    if (this.debug) console.debug(`[sub-sample-table] Searching parent {${value || '*'}}...`);
-    if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-      return this._availableSortedParents.filter(p => this.startsWithUpperCase(p.measurementValues[this.displayParentPmfm.id], value));
-    }
-    // Search on rankOrder
-    return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));
+    // All
+    if (isNil(value)) return {data: this._availableSortedParents, total: this._availableSortedParents.length};
+
+    console.log('TODO: suggest parent: ', value, opts);
+    return suggestFromArray(this._availableSortedParents, value, {
+      ...opts
+    });
   }
 
 

@@ -93,16 +93,14 @@
           </th>
           <td mat-cell *matCellDef="let row"
               (click)="focusColumn='parentGroup'">
-
             <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                     [autofocus]="row.editing && focusColumn === 'parentGroup'"
                                     [formControl]="row.validator.controls.parentGroup"
                                     [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP'|translate"
-                                    [required]="true"
-                                    [config]="autocompleteFields.parentGroup">
+                                    [config]="autocompleteFields.parentGroup"
+                                    required>
             </mat-autocomplete-field>
           </td>
-
         </ng-container>
 
         <!-- taxon name (scientific species) -->
@@ -133,7 +131,7 @@
               (click)="focusColumn=pmfm.id.toString()">
             <app-pmfm-field floatLabel="never"
                             [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
-                            [autofocus]="row.editing && focusColumn === pmfm.id.toString()"
+                            [autofocus]="row.editing && focusColumn == pmfm.id"
                             [pmfm]="pmfm"
                             [readonly]="!row.editing"
                             [compact]="true">
