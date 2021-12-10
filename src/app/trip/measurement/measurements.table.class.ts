@@ -15,7 +15,7 @@ import {
   filterNotNil,
   firstNotNilPromise,
   IEntitiesService,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
@@ -28,6 +28,7 @@ import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '../../referential/services/model
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {ProgramRefService} from '../../referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 
 
 export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
@@ -121,13 +122,34 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return this.getShowColumn('comments');
   }
 
-  get $pmfms(): BehaviorSubject<IPmfm[]> {
-    return this.measurementsDataService.$pmfms;
+  @Input() set $pmfms(pmfms$: Observable<IPmfm[]>) {
+    this.markAsLoading();
+    this.measurementsDataService.pmfms = pmfms$;
   }
 
-  @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
+  get $pmfms(): Observable<IPmfm[]> {
+    return this.measurementsDataService.$pmfms.asObservable();
+  }
+
+  get $hasPmfms(): Observable<boolean> {
+    return this.$pmfms.pipe(
+      filter(isNotNil),
+      map(isNotEmptyArray),
+      distinctUntilChanged()
+    );
+  }
+
+  get pmfms(): IPmfm[] {
+    return this.measurementsDataService.$pmfms.value;
+  }
+
+  @Input() set pmfms(pmfms: IPmfm[]) {
     this.markAsLoading();
     this.measurementsDataService.pmfms = pmfms;
+  }
+
+  get hasPmfms(): boolean {
+    return isNotEmptyArray(this.pmfms);
   }
 
   @Input() set dataService(value: IEntitiesService<T, F>) {
@@ -142,7 +164,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   get loading(): boolean {
-    return this.measurementsDataService.loadingPmfms && isNotNil(this.$pmfms.value);
+    return this.measurementsDataService.loadingPmfms && isNotNil(this.pmfms);
   }
 
   protected constructor(
@@ -299,7 +321,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   protected getDisplayColumns(): string[] {
 
-    const pmfms = this.$pmfms.value;
+    const pmfms = this.pmfms;
     if (!pmfms) return this.columns;
 
     const userColumns = this.getUserColumns();
@@ -321,7 +343,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       .filter(column => !this.excludesColumns.includes(column));
 
     // DEBUG
-    console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
+    //console.debug("[measurement-table] Updating columns: ", this.displayedColumns)
     //if (!this.loading) this.markForCheck();
   }
 
@@ -351,7 +373,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   translateControlPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const pmfmId = parseInt(path.split('.')[1]);
-      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      const pmfm = (this.pmfms || []).find(p => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
     return super.translateControlPath(path);
@@ -390,7 +412,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   /* -- protected methods -- */
 
   protected updateColumns() {
-    if (!this.$pmfms.value) return; // skip
+    if (!this.pmfms) return; // skip
     super.updateColumns();
   }
 
@@ -535,7 +557,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Try to resolve PMFM column, using the cached pmfm list
     if (PMFM_ID_REGEXP.test(columnName)) {
       const pmfmId = parseInt(columnName);
-      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      const pmfm = (this.pmfms || []).find(p => p.id === pmfmId);
       if (pmfm) return this.getI18nPmfmName(pmfm);
     }
 
@@ -553,7 +575,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!data) return; // skip
 
     // Adapt entity measurement values to reactive form
-    const pmfms = this.$pmfms.value || [];
+    const pmfms = this.pmfms || [];
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
   }
 }

@@ -4,7 +4,17 @@ import { Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
+import {
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  firstTruePromise,
+  HistoryPageReference,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  SharedValidators,
+} from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
 import { LandingPage } from '../landing.page';
 import { Landing } from '../../services/model/landing.model';
@@ -44,17 +54,11 @@ export class SamplingLandingPage extends LandingPage {
     super.ngAfterViewInit();
 
     // Show table, if there is some pmfms
-    this.registerSubscription(
-      this.samplesTable.$pmfms
-        .pipe(
-          filter(pmfms => !this.showSamplesTable && isNotEmptyArray(pmfms)),
-          first()
-        )
-        .subscribe(_ => {
-          this.showSamplesTable = true;
-          this.markForCheck();
-        })
-    );
+    firstTruePromise(this.samplesTable.$hasPmfms)
+      .then(() => {
+        this.showSamplesTable = true;
+        this.markForCheck();
+      });
 
     // Load Pmfm IDs
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)

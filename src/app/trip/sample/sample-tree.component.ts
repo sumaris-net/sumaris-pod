@@ -1,5 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
-import { AppTabEditor, AppTable, Entity, IconRef, InMemoryEntitiesService, isNil, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import {
+  AppTabEditor,
+  AppTable,
+  Entity, firstTruePromise,
+  IconRef,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  PlatformService,
+  toBoolean,
+  UsageMode,
+  WaitForOptions,
+} from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
@@ -8,15 +22,16 @@ import { SamplesTable } from '@app/trip/sample/samples.table';
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
 import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { BatchUtils } from '@app/trip/services/model/batch.model';
+import { EntityUtils } from '../../../../ngx-sumaris-components/src/app/core/services/model/entity.model';
 
 export interface SampleTabDefinition {
   iconRef: IconRef;
@@ -37,6 +52,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   $programLabel = new BehaviorSubject<string>(null);
   $program = new BehaviorSubject<Program>(null);
   listenProgramChanges = true;
+  showIndividualMonitoringTable = false;
+  showIndividualReleaseTable = false
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -128,6 +145,54 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   }
 
   ngAfterViewInit() {
+
+    if (this.individualMonitoringTable && this.individualReleasesTable) {
+      // Enable sub tables, only when has some pmfms
+      this.registerSubscription(
+        combineLatest([
+          this.individualMonitoringTable.$hasPmfms,
+          this.individualReleasesTable.$hasPmfms
+        ])
+        .pipe(debounceTime(100))
+        .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
+          this.showIndividualMonitoringTable = hasMonitoringPmfms;
+          this.showIndividualMonitoringTable = hasReleasePmfms;
+        })
+      );
+
+      // Update available parent on sub-sample table, when samples changes
+      this.registerSubscription(
+        this.samplesTable.dataSource.datasourceSubject
+          .pipe(
+            debounceTime(500),
+            filter(() => !this.loading) // skip if loading
+          )
+          .subscribe(samples => {
+            // Will refresh the tables (inside the setter):
+            this.individualMonitoringTable.availableParents = samples;
+            this.individualReleasesTable.availableParents = samples;
+
+            // TODO: remove this
+            this.samplesTable.setIndividualReleaseModalOption('availableParents', samples);
+          }));
+
+      // TODO: remove this
+      // Update available releases on sample table, when sub-samples changes
+      this.registerSubscription(
+        this.individualReleasesTable.dataSource.datasourceSubject
+          .pipe(
+            debounceTime(500),
+            // skip if loading
+            filter(() => !this.loading)
+          )
+          .subscribe(samples => {
+            if (this.loading) return; // skip during loading
+
+            this.samplesTable.availableReleases = (samples || [])
+              .filter(s => isNotNil(s.parent));
+          }));
+    }
+
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.$programLabel
@@ -150,37 +215,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
         .subscribe(program => this.setProgram(program))
     );
 
-    // Update available parent on sub-sample table, when samples changes
-    this.registerSubscription(
-      this.samplesTable.dataSource.datasourceSubject
-        .pipe(
-          debounceTime(500),
-          filter(() => !this.loading) // skip if loading
-        )
-        .subscribe(samples => {
-          // Will refresh the tables (inside the setter):
-          this.individualMonitoringTable.availableParents = samples;
-          this.individualReleasesTable.availableParents = samples;
-
-          // TODO: remove this
-          this.samplesTable.setIndividualReleaseModalOption('availableParents', samples);
-        }));
-
-    // TODO: remove this
-    // Update available releases on sample table, when sub-samples changes
-    this.registerSubscription(
-      this.individualReleasesTable.dataSource.datasourceSubject
-        .pipe(
-          debounceTime(500),
-          // skip if loading
-          filter(() => !this.loading)
-        )
-        .subscribe(samples => {
-          if (this.loading) return; // skip during loading
-
-          this.samplesTable.availableReleases = (samples || [])
-            .filter(s => isNotNil(s.parent));
-        }));
   }
 
   get isNewData(): boolean {
@@ -196,21 +230,30 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
     await this.ready();
 
-    // Get all samples
-    const samples = (data || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
+    // Get all samples, as array (even when data is a list of parent/child tree)
+    const samples = EntityUtils.listOfTreeToArray(data || []);
+    //(data || []).reduce((res, sample) => !sample.children ? res.concat(sample) : res.concat(sample).concat(sample.children), []);
 
     // Set root samples
-    const rootSamples = samples.filter(s => s.label && s.label.startsWith(this.samplesTable.acquisitionLevel + '#'));
+    const rootAcquisitionLevel = this.samplesTable.acquisitionLevel;
+    const rootSamples = samples.filter(s => s.label && s.label.startsWith(rootAcquisitionLevel + '#'));
     this.samplesTable.value = rootSamples;
 
-    // Set sub-samples (individual monitoring)
-    this.individualMonitoringTable.availableParents = rootSamples;
-    this.individualMonitoringTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualMonitoringTable.acquisitionLevel + '#'));
+    if (this.individualMonitoringTable && this.individualReleasesTable) {
+      // Set sub-samples (individual monitoring)
+      const individualMonitoringAcquisitionLevel = this.individualMonitoringTable.acquisitionLevel;
+      this.individualMonitoringTable.availableParents = rootSamples;
+      this.individualMonitoringTable.value = samples.filter(s => s.label && s.label.startsWith(individualMonitoringAcquisitionLevel + '#'));
 
-    // Set sub-samples (individual release)
-    this.individualReleasesTable.availableParents = rootSamples;
-    this.individualReleasesTable.value = samples.filter(s => s.label && s.label.startsWith(this.individualReleasesTable.acquisitionLevel + '#'));
-
+      // Set sub-samples (individual release)
+      const individualReleaseAcquisitionLevel = this.individualReleasesTable.acquisitionLevel;
+      this.individualReleasesTable.availableParents = rootSamples;
+      this.individualReleasesTable.value = samples.filter(s => s.label && s.label.startsWith(individualReleaseAcquisitionLevel + '#'));
+    }
+    else {
+      const subSamples = samples.filter(s => s.label && !s.label.startsWith(rootAcquisitionLevel + '#'));
+      this._subSamplesService.value = subSamples;
+    }
   }
 
   getValue(): Sample[] {
@@ -274,11 +317,15 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   /* -- -- */
 
   protected registerForms() {
-    this.addChildForms([
-      this.samplesTable,
-      this.individualMonitoringTable,
-      this.individualReleasesTable
-    ]);
+    if (this.individualMonitoringTable &&  this.individualReleasesTable) {
+      this.addChildForms([
+        this.samplesTable,
+        this.individualMonitoringTable,
+        this.individualReleasesTable
+      ]);
+    } else {
+      this.addChildForm(this.samplesTable);
+    }
   }
 
   async onIndividualReleaseChanges(subSample: Sample) {
@@ -345,11 +392,14 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     this.samplesTable.setIndividualReleaseModalOption('defaultLatitudeSign', defaultLatitudeSign);
     this.samplesTable.setIndividualReleaseModalOption('defaultLongitudeSign', defaultLongitudeSign);
 
-    this.individualMonitoringTable.i18nColumnSuffix = IndividualMonitoringTable.DEFAULT_I18N_SUFFIX + i18nSuffix;
+    // Configure sub tables
+    if (this.individualMonitoringTable && this.individualReleasesTable) {
+      this.individualMonitoringTable.i18nColumnSuffix = IndividualMonitoringTable.DEFAULT_I18N_SUFFIX + i18nSuffix;
 
-    this.individualReleasesTable.setModalOption('defaultLatitudeSign', defaultLatitudeSign);
-    this.individualReleasesTable.setModalOption('defaultLongitudeSign', defaultLongitudeSign);
-    this.individualReleasesTable.i18nColumnSuffix = IndividualReleasesTable.DEFAULT_I18N_SUFFIX + i18nSuffix;
+      this.individualReleasesTable.setModalOption('defaultLatitudeSign', defaultLatitudeSign);
+      this.individualReleasesTable.setModalOption('defaultLongitudeSign', defaultLongitudeSign);
+      this.individualReleasesTable.i18nColumnSuffix = IndividualReleasesTable.DEFAULT_I18N_SUFFIX + i18nSuffix;
+    }
 
     // Propagate to observables
     if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);

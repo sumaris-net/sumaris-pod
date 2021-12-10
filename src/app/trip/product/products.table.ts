@@ -13,6 +13,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { environment } from '@environments/environment';
 import { SamplesModal } from '../sample/samples.modal';
 import { ProductModal } from '@app/trip/product/product.modal';
+import { mergeMap } from 'rxjs/internal/operators';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -129,10 +130,12 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
-        .subscribe(() => {
-          // if main pmfms are loaded, then other pmfm can be loaded
-          this.programRefService.loadProgramPmfms(this.programLabel, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE})
-            .then(productSalePmfms => this.productSalePmfms = productSalePmfms);
+        // if main pmfms are loaded, then other pmfm can be loaded
+        .pipe(
+          mergeMap(() => this.programRefService.loadProgramPmfms(this.programLabel, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE}))
+        )
+        .subscribe((productSalePmfms) => {
+           this.productSalePmfms = productSalePmfms;
         }));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));

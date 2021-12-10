@@ -287,7 +287,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (this.debug) console.debug('[batch-group-table] Preparing data to be loaded as table rows...');
 
     // Pmfms to normalize (intialPmfms + fake additionnal pmfms)
-    const pmfms = this._initialPmfms.concat(this.$pmfms.value.filter(p => p.id < 0));
+    const pmfms = this._initialPmfms.concat(this.pmfms.filter(p => p.id < 0));
 
     const weightMethodValues = this.qvPmfm ? this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
         res[qvIndex] = false;

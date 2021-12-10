@@ -128,7 +128,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     this.registerSubscription(
       merge(
-        this.onParentChanges.pipe(map(() => this.$pmfms.value)),
+        this.onParentChanges.pipe(map(() => this.pmfms)),
         this.$pmfms
       )
       .pipe(

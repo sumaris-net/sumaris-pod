@@ -753,10 +753,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.addChildForms([
       this.opeForm,
       this.measurementsForm,
-      //this.samplesTable,
-      //this.individualMonitoringTable,
-      //this.individualReleasesTable,
-      this.batchTree
+      this.batchTree,
+      this.sampleTree
     ]);
   }
 

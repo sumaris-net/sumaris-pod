@@ -183,10 +183,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     return super.dirty || this.memoryDataService.dirty;
   }
 
-  get hasPmfms(): boolean {
-    return isNotEmptyArray(this.$pmfms.value);
-  }
-
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
   constructor(
@@ -278,11 +274,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
             const row = this.editedRow;
 
-            const pmfms = this.$pmfms.value || [];
             const formEnabled = row.validator.enabled;
             const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
 
-            pmfms.forEach(pmfm => {
+            (this.pmfms || []).forEach(pmfm => {
               const enable = !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
               const control = controls[pmfm.id];
 
@@ -478,7 +473,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
 
     // Reset the form with the new batch
-    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.value, this.form.form);
+    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.pmfms, this.form.form);
     this.form.setValue(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
     // If need, enable the form
@@ -642,7 +637,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Make sure individual count if init
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
-    const pmfms = this.$pmfms.value || [];
+    const pmfms = this.pmfms || [];
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
 
     // If individual count column is shown (can be greater than 1)
@@ -805,7 +800,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected refreshPmfms() {
-    const pmfms = this.$pmfms.value;
+    const pmfms = this.pmfms;
     if (!pmfms) return; // Not loaded
 
     this.measurementsDataService.pmfms = pmfms;

@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SampleValidatorService} from '../services/validator/sample.validator';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -26,27 +26,27 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {FormGroup} from '@angular/forms';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Sample} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
-import {MatMenu} from '@angular/material/menu';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {isNilOrNaN} from '@app/shared/functions';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
-import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
+import { Moment } from 'moment';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { FormGroup } from '@angular/forms';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Sample } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
+import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { MatMenu } from '@angular/material/menu';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { isNilOrNaN } from '@app/shared/functions';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchGroup } from '@app/trip/services/model/batch-group.model';
+import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { MatCellDef } from '@angular/material/table';
 
 const moment = momentImported;
@@ -253,7 +253,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.onStartEditingRow
         .pipe(
           filter(row => row && row.validator && true),
-          map(row => ({form: row.validator, pmfms: this.$pmfms.value})),
+          map(row => ({form: row.validator, pmfms: this.pmfms})),
           tap(event => {
             // DEBUG
             //console.debug('[samples-table] will sent onPrepareRowForm event:', event)
@@ -507,7 +507,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     try {
       const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
-      (this.$pmfms.value || []).forEach(pmfm => {
+      (this.pmfms || []).forEach(pmfm => {
 
         const show = isNil(taxonGroupId)
           || !PmfmUtils.isDenormalizedPmfm(pmfm)
@@ -530,14 +530,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       if (!saved) return;
     }
 
-    const existingPmfmIds = (this.$pmfms.value || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.pmfms || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
       excludedIds: existingPmfmIds
     }, {
       allowMultiple: false
     });
-    if (!pmfmIds) return; // USer cancelled
+    if (!pmfmIds) return; // User cancelled
 
     console.debug('[samples-table] Adding pmfm ids:', pmfmIds);
     await this.addPmfmColumns(pmfmIds);
@@ -549,7 +549,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
    * @param event
    */
   async openChangePmfmsModal(event?: UIEvent) {
-    const existingPmfmIds = (this.$pmfms.value || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.pmfms || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
       excludedIds: existingPmfmIds
@@ -714,12 +714,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
 
     // Load each pmfms, by id
-    const pmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))));
-    const dPmfms = pmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
+    const newPmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))))
+      .map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     this.pmfms = [
-      ...this.$pmfms.value,
-      ...dPmfms
+      ...this.pmfms,
+      ...newPmfms
     ];
   }
 
@@ -922,22 +922,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       .filter(isNotNilOrBlank)
       .length;
     this.tagCount$.next(tagCount);
-  }
-
-  updateView(res: LoadResult<Sample> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
-    console.log('TODO updateView');
-    return super.updateView(res, opts);
-  }
-
-  protected updateColumns() {
-    console.log('TODO updateColumns');
-    super.updateColumns();
-  }
-
-  protected getDisplayColumns(): string[] {
-    const cols = super.getDisplayColumns();
-    console.log('TODO getDisplayColumns', cols);
-    return cols;
   }
 }
 

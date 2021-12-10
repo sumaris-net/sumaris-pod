@@ -68,7 +68,8 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
 
   async updateProducts(value: Product[]) {
 
-    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms)).map(pmfm => DenormalizedPmfmStrategy.fromObject(pmfm));
+    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms))
+      .map(pmfm => DenormalizedPmfmStrategy.fromObject(pmfm));
     let products = (value || []).slice();
     this.totalPriceCalculated = 0;
 
