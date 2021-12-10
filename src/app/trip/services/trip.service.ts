@@ -64,9 +64,8 @@ import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
 import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {DomUtil} from 'leaflet';
 import {Packet} from '@app/trip/services/model/packet.model';
-import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
+import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
 
 const moment = momentImported;
 
@@ -899,6 +898,9 @@ export class TripService
             }
           }
         });
+
+        // Remove not used physical gears with synchronizationStatus = "DIRTY" (= Physical gear added automatically)
+        entity.gears = (entity.gears || []).filter(physicalGear => res.data.find(o => o.physicalGear.id === physicalGear.id));
       }
 
       if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
@@ -1349,6 +1351,27 @@ export class TripService
         }
       });
     }
+  }
+
+  /***
+   * Add gear on trip from a physical gear of another trip
+   * (used on new child operation when parent operation come from a different trip)
+   * @param tripId
+   * @param physicalGear
+   */
+  async addGear(tripId: number, physicalGear: PhysicalGear): Promise<Trip>{
+
+    let trip = await this.load(tripId);
+
+    // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
+    if (trip.gears?.find(gear => gear.rankOrder === physicalGear.rankOrder)){
+      physicalGear.rankOrder = trip.gears.map(gear => gear.rankOrder).reduce(
+        (max, id) => (id > max ? id : max),
+        0) + 1;
+    }
+
+    trip.gears.push(physicalGear);
+    return await this.save(trip);
   }
 
   /* -- protected methods -- */

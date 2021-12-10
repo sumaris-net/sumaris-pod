@@ -215,6 +215,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         .subscribe()
     );
 
+    this.registerSubscription(
+      this.opeForm.onNewPhysicalGear
+        .subscribe(physicalGear => {
+          this.trip.gears.push(physicalGear);
+        })
+    );
+
   }
 
   ngAfterViewInit() {
@@ -818,10 +825,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
 
+    // If there is new PhysicalGear added automatically, save it on trip
+    const newPhysicalGear = this.trip.gears.find(g => !g.id);
+    if (newPhysicalGear){
+      this.trip = await this.tripService.addGear(this.trip.id, newPhysicalGear);
+    }
+
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
-      updateLinkedOperation: this.opeForm.isParentOperation, // Apply updates on child operation if it exists
+      updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts
     });
     if (!saved && this.opeForm.invalid) {

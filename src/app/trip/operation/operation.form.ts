@@ -46,6 +46,8 @@ import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import { TripService } from '@app/trip/services/trip.service';
+import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
@@ -224,6 +226,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
+  @Output() onNewPhysicalGear = new EventEmitter<PhysicalGear>();
 
   constructor(
     injector: Injector,
@@ -234,6 +237,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected operationService: OperationService,
+    protected physicalGearService: PhysicalGearService,
+    protected tripService: TripService,
     protected pmfmService: PmfmService,
     protected platform: PlatformService,
     protected formBuilder: FormBuilder,
@@ -242,7 +247,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     @Optional() protected geolocation: Geolocation
   ) {
     super(injector, validatorService.getFormGroup());
-    this._$ready.next(false);
     this.mobile = platform.mobile;
     this.i18nFieldPrefix = 'TRIP.OPERATION.EDIT.';
 
@@ -339,10 +343,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
-    const isNew = isNil(data.id);
+    const isNew = isNil(data?.id);
 
     // Use label and name from metier.taxonGroup
-    if (!isNew && data.metier) {
+    if (!isNew && data?.metier) {
       data.metier = data.metier.clone(); // Leave original object unchanged
       data.metier.label = data.metier.taxonGroup && data.metier.taxonGroup.label || data.metier.label;
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
@@ -355,7 +359,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
     if (!isNew && !this._showFishingArea) data.fishingAreas = [];
 
-    const isChildOperation = isNotNil(data.parentOperation?.id);
+    const isChildOperation = data && isNotNil(data.parentOperation?.id);
     const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
     if (isChildOperation || isParentOperation) {
       this._allowParentOperation = true; // do not use setter to not update form group
@@ -397,23 +401,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
     endDateTime.subtract(1, 'second');
-    this.form.patchValue({ startDateTime: this.trip.departureDateTime, endDateTime: endDateTime });
+    this.form.patchValue({startDateTime: this.trip.departureDateTime, endDateTime: endDateTime});
   }
 
-  setChildOperation(value: Operation, opts?: {emitEvent: boolean}) {
+  setChildOperation(value: Operation, opts?: { emitEvent: boolean }) {
     this.childControl.setValue(value, opts);
 
-    if (!opts || opts.emitEvent !== false){
+    if (!opts || opts.emitEvent !== false) {
       this.updateFormGroup();
     }
   }
 
-  async setParentOperation(value: Operation, opts?: {emitEvent: boolean}) {
+  async setParentOperation(value: Operation, opts?: { emitEvent: boolean }) {
     this.parentControl.setValue(value, opts);
 
     await this.onParentOperationChanged(value, {emitEvent: false});
 
-    if (!opts || opts.emitEvent !== false){
+    if (!opts || opts.emitEvent !== false) {
       this.updateFormGroup();
     }
   }
@@ -546,29 +550,37 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       physicalGearControl.patchValue(operation.physicalGear);
       metierControl.patchValue(operation.metier);
     } else {
-      const physicalGear = this._physicalGearsSubject.getValue().filter((value) => {
+      const physicalGears = this._physicalGearsSubject.getValue().filter((value) => {
         // TODO: voir comment sélectionner l'engin par rankOrder, label, etc.
         // Ou alors proposer à l'utilisateur de la choisir
         return value.gear.id === operation.physicalGear.gear.id;
       });
 
-      if (physicalGear.length === 1) {
-        physicalGearControl.setValue(physicalGear[0]);
-        const metiers = await this.loadMetiers(operation.physicalGear);
-
-        const metier = metiers.filter((value) => {
-          return value.id === operation.metier.id;
-        });
-
-        if (metier.length === 1) {
-          metierControl.patchValue(metier[0]);
-        } else {
-          // TODO
-        }
-      } else if (physicalGear.length === 0) {
-        console.warn('[operation-form] no matching physical gear on trip');
-      } else {
+      if (physicalGears.length > 1) {
         console.warn('[operation-form] several matching physical gear on trip');
+      } else if (physicalGears.length === 0) {
+        // Make a copy of parent operation physical gear's on current trip
+        const physicalGear = await this.physicalGearService.load(operation.physicalGear.id, operation.tripId);
+        physicalGear.id = undefined;
+        physicalGear.trip = undefined;
+        physicalGear.tripId = this.trip.id;
+
+        physicalGears.push(physicalGear);
+        this._physicalGearsSubject.next(physicalGears);
+        this.onNewPhysicalGear.emit(physicalGear);
+      }
+
+      physicalGearControl.setValue(physicalGears[0]);
+      const metiers = await this.loadMetiers(operation.physicalGear);
+
+      const metier = metiers.filter((value) => {
+        return value.id === operation.metier.id;
+      });
+
+      if (metier.length === 1) {
+        metierControl.patchValue(metier[0]);
+      } else {
+        // TODO
       }
     }
 
@@ -631,7 +643,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return super.translateControlPath(path);
   }
 
-  protected updateFormGroup(opts?: {emitEvent?: boolean}) {
+  protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
     this.validatorService.updateFormGroup(this.form, {
       isOnFieldMode: this.usageMode === 'FIELD',
@@ -768,10 +780,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
       // Silent mode
       else {
-        if (!this.childControl) this.updateFormGroup({ emitEvent: false }); // Create the child control
+        if (!this.childControl) this.updateFormGroup({emitEvent: false}); // Create the child control
 
         // Make sure qualityFlag has been set
-        this.qualityFlagControl.reset(QualityFlagIds.NOT_COMPLETED, { emitEvent: false });
+        this.qualityFlagControl.reset(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
       }
     }
 
@@ -804,7 +816,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       // Silent mode
       else {
         // Reset qualityFlag
-        this.qualityFlagControl.reset(null, { emitEvent: false });
+        this.qualityFlagControl.reset(null, {emitEvent: false});
       }
     }
   }
@@ -828,7 +840,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     longitudeControl.patchValue(position && position.longitude || null);
   }
 
-  protected updateDistance(opts?: {emitEvent?: boolean}) {
+  protected updateDistance(opts?: { emitEvent?: boolean }) {
     if (!this._showPosition) return; // Skip
 
     const startPosition = this.form.get('startPosition').value;
@@ -842,7 +854,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (!opts || opts.emitEvent !== false) this.markForCheck();
   }
 
-  protected updateDistanceValidity(distance?: number, opts?: {emitEvent?: boolean}) {
+  protected updateDistanceValidity(distance?: number, opts?: { emitEvent?: boolean }) {
     distance = distance || this.distance;
     if (isNotNilOrNaN(distance)) {
       // Distance > max error distance
