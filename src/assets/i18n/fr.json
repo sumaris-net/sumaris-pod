@@ -576,8 +576,12 @@
         "TAB_CATCH": "Capture",
         "TAB_CATCH_TOTAL": "Capture total",
         "TAB_SAMPLES": "Prélèvements",
-        "TAB_SUB_SAMPLES": "Sous-prélèvements",
-        "TAB_INDIVIDUAL_RELEASES": "Relâché",
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Tests de survie"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Captures accidentelles"
+        },
         "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
         "TARGET_SPECIES": "Espèce cible",
@@ -604,13 +608,6 @@
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
-        },
-        "SURVIVAL_TEST": {
-          "TAB_SAMPLES": "Tests de survie",
-          "TAB_SUB_SAMPLES": "Suivi individuel"
-        },
-        "ACCIDENTAL_CATCH": {
-          "TAB_SAMPLES": "Captures accidentelles"
         }
       },
       "PARENT": {
@@ -767,29 +764,46 @@
       }
     },
     "SAMPLE": {
+      "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
       "NEW": {
-        "TITLE": "Nouvel échantillon",
-        "TITLE_PREFIX": "<small>{{prefix}}<br></small>"
+        "TITLE": "Nouvel individu",
+        "AUCTION_CONTROL": {
+          "TITLE": "Nouveau lot"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Nouvelle capture accidentelle"
+        }
       },
       "EDIT": {
-        "TITLE": "Echantillon {{label}}",
-        "LABEL_PLACEHOLDER": "Lot",
+        "TITLE": "Individu {{label}}",
+        "LABEL_PLACEHOLDER": "Libellé",
         "DATE_TIME_PLACEHOLDER": "Date échantillon",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
-        "BTN_SUB_SAMPLE": "Saisir le sous-prélèvement",
-        "BTN_INDIVIDUAL_RELEASE": "Saisir un relâché"
+        "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
+        "AUCTION_CONTROL": {
+          "TITLE": "Lot {{label}}",
+          "LABEL_PLACEHOLDER": "Numéro du lot"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Capture {{label}}",
+          "TAG_ID": "Code du marquage",
+          "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)"
+        }
       },
       "TABLE": {
-        "LABEL": "Lot",
-        "LABEL_PLACEHOLDER": "Lot",
+        "TAB_SAMPLES": "Prélèvements",
+        "TAB_SUB_SAMPLES": "Sous-prélèvement",
+        "TAB_INDIVIDUAL_RELEASES": "Relâché",
+        "LABEL": "Libellé",
+        "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
         "TAXON_NAME": "Espèce scientifique (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "SAMPLE_DATE": "Date/Heure de la mesure",
         "SAMPLE_DATE_PLACEHOLDER": "Date/Heure",
-        "PARENT": "Echantillon parent",
+        "PARENT": "Prélèvement parent",
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement",
@@ -808,7 +822,6 @@
           "TAXON_NAME": "Espèce scientifique (FAO)",
           "TAXON_NAME_PLACEHOLDER": "Code espèce",
           "SAMPLE_DATE": "Date/Heure de la mesure",
-          "PARENT": "Echantillon parent",
           "COMMENTS": "Commentaires",
           "COMMENTS_PLACEHOLDER": "Commentaires",
           "BTN_AUTO_FILL": "Remplir automatiquement",
@@ -820,25 +833,58 @@
           "SEX": "Sexe",
           "AGE": "Age",
           "OTHER": "Autre"
+        },
+        "INDIVIDUAL_RELEASE": {
+          "ACCIDENTAL_CATCH": {
+            "TAG_ID": "Référence de la marque"
+          }
+        },
+        "AUCTION_CONTROL": {
+          "LABEL": "Lot",
+          "LABEL_PLACEHOLDER": "Lot"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Mesures individuelles",
+          "TAXON_GROUP": "Espèce (FAO)",
+          "TAG_ID": "Référence de la marque"
+        },
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Mesures individuelles",
+          "TAB_SUB_SAMPLES": "Suivi individuel"
         }
       },
-      "ERROR" : {
-        "PARAMETERS.EXACT_TAG_ID_LENGTH": "La longueur du code prélévement doit être 4",
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire",
-        "PARAMETERS.DRESSING": "Presentation obligatoire"
+      "ERROR": {
+        "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
+        "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
       }
     },
-    "INDIVIDUAL_RELEASE" : {
+    "SUB_SAMPLE": {
+      "TITLE_PREFIX": "",
       "NEW": {
-        "TITLE": "Nouveau relâché"
+        "TITLE": "Nouveau sous-prélèvement",
+        "INDIVIDUAL_MONITORING": {
+          "TITLE": "Nouveau suivi individuel"
+        },
+        "INDIVIDUAL_RELEASE": {
+          "TITLE": "Nouveau relâché"
+        }
       },
       "EDIT": {
-        "TITLE": "Relâché {{label}}",
+        "TITLE": "Sous-prélèvement {{label}}",
         "LABEL_PLACEHOLDER": "Libellé",
-        "PARENT": "Echantillon parent"
+        "PARENT": "Prélèvement parent",
+        "INDIVIDUAL_MONITORING": {
+          "TITLE": "Suivi individuel {{label}}"
+        },
+        "INDIVIDUAL_RELEASE": {
+          "TITLE": "Relâché {{label}}",
+          "ACCIDENTAL_CATCH": {
+            "TAG_ID": "Référence de la marque"
+          }
+        }
       }
     }
   },
@@ -949,6 +995,7 @@
     }
   },
   "LANDING": {
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "NEW": {
       "TITLE": "Nouveau débarquement",
       "SAMPLING": {
@@ -957,7 +1004,6 @@
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
-      "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
       "TAB_GENERAL": "Détails",
       "PROGRAM": "Programme",
       "STRATEGY": "Stratégie :",
@@ -1616,9 +1662,6 @@
         "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Erreur lors de chargement du label de l'échantillon de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
-        "PARAMETERS.EXACT_TAG_ID_LENGTH": "La longueur du code prélévement doit être 4",
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
-        "PARAMETERS.DRESSING": "La présentation est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
@@ -1954,11 +1997,11 @@
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",
     "FIELD_MAX_COMPACT": "Max {{max}}",
-    "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
-    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale max={{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Trop de décimales (max: {{maxDecimals}})",
+    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale > {{maxDecimals}}",
     "FIELD_INVALID": "Valeur non valide",
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
-    "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
+    "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Dates incohérentes",

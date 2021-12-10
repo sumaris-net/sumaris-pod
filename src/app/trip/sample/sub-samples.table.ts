@@ -12,6 +12,7 @@ import {
   isNotNil,
   joinPropertiesPath,
   OnReady,
+  PlatformService,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -24,8 +25,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
-import { distinctUntilChanged, filter } from 'rxjs/operators';
-import { mergeMap } from 'rxjs/internal/operators';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -95,17 +95,18 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         equals: Sample.equals,
         sortByReplacement: {'id': 'rankOrder'}
       }),
-      injector.get(ValidatorService),
+      injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
-        reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
+        reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS,
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
-    this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    this.i18nColumnPrefix = 'TRIP.SUB_SAMPLE.TABLE.';
     this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
 
@@ -117,11 +118,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-
-    // Always hide parent tag_id (if present)
-    this.setShowColumn(PmfmIds.TAG_ID.toString(), false);
-    this.setShowColumn(PmfmIds.DRESSING.toString(), false);
-
     this.setShowColumn('comments', !this.mobile);
 
     // Parent combo
@@ -132,12 +128,16 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     this.registerSubscription(
       merge(
-        this.onParentChanges.pipe(mergeMap(() => this.$pmfms)),
-        this.$pmfms.pipe(distinctUntilChanged())
+        this.onParentChanges.pipe(map(() => this.$pmfms.value)),
+        this.$pmfms
       )
-        .pipe(
-          filter(isNotEmptyArray),
-        ).subscribe((pmfms) => this.updateParents(pmfms))
+      .pipe(
+        filter(isNotEmptyArray),
+        distinctUntilChanged(),
+        tap(pmfms => this.onPmfmsLoaded(pmfms)),
+        tap(pmfms => this.updateParents(pmfms))
+      )
+      .subscribe()
     )
   }
 
@@ -233,6 +233,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     }
 
     this.markAsLoading();
+    const i18PrefixParts = this.i18nColumnPrefix && this.i18nColumnPrefix.split('.');
+    const i18nPrefix = i18PrefixParts && (i18PrefixParts.slice(0, i18PrefixParts.length - 2).join('.') + '.');
+    console.log('TODO: ' + i18nPrefix);
 
     const modal = await this.modalCtrl.create({
       component: SubSampleModal,
@@ -242,6 +245,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         pmfms,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
+        i18nPrefix,
         i18nSuffix: this.i18nColumnSuffix,
         usageMode: this.usageMode,
         availableParents: this._availableSortedParents,
@@ -285,6 +289,27 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   /* -- protected methods -- */
 
+  protected mapPmfms(pmfms: IPmfm[]) {
+    // DEBUG
+    console.debug('[sub-samples-table] Update parents...', pmfms);
+
+    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
+    const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
+    this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
+
+    // Force the parent PMFM to be hidden
+    if (this.displayParentPmfm && !this.displayParentPmfm.hidden) {
+      pmfms[tagIdPmfmIndex] = this.displayParentPmfm.clone();
+      pmfms[tagIdPmfmIndex].hidden = true;
+    }
+
+    return pmfms;
+  }
+
+  protected onPmfmsLoaded(pmfms: IPmfm[]) {
+    // Can be overridden by subclasses
+  }
+
   protected async updateParents(pmfms: IPmfm[]) {
     // DEBUG
     console.debug('[sub-samples-table] Update parents...', pmfms);
@@ -294,9 +319,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     const attributeName = hasTaxonName ? 'taxonName' : 'taxonGroup';
     const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName)
       .map(key => `${attributeName}.${key}`);
-
-    const tagIdPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
-    this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
 
     // If display parent using by a pmfm
     if (this.displayParentPmfm) {
@@ -496,4 +518,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  isNotHiddenPmfm = PmfmUtils.isNotHidden;
 }

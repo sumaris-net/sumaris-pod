@@ -1,5 +1,5 @@
 import { BehaviorSubject, isObservable, Observable, Subscription } from 'rxjs';
-import { filter, first, map, switchMap, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, first, map, switchMap, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
@@ -109,7 +109,9 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     this._subscription.add(
       this._onRefreshPmfms
         .pipe(
-          filter(() => this.canWatchPmfms()),
+          map(() => this.generatePmfmWatchKey()),
+          filter(isNotNil),
+          distinctUntilChanged(),
           switchMap(() => this.watchProgramPmfms()),
           tap(pmfms => this.applyPmfms(pmfms))
         )
@@ -203,21 +205,24 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
 
   /* -- private methods -- */
 
-  private canWatchPmfms(): boolean {
+  private generatePmfmWatchKey(): string | undefined {
     if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) {
-      return false;
+      return;
     }
 
     if (this._requiredStrategy && isNil(this._strategyLabel)) {
       if (this._debug) console.debug("[meas-service] Cannot watch Pmfms yet. Missing required 'strategyLabel'.");
-      return false;
+      return;
     }
 
-    return true;
+    return `${this._programLabel}|${this._acquisitionLevel}|${this._strategyLabel}`;
   }
 
   private watchProgramPmfms(): Observable<IPmfm[]> {
     this.loadingPmfms = true;
+
+    // DEBUG
+    if (this._debug) console.debug(`[meas-service] Loading pmfms... {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}̀̀`);
 
     // Watch pmfms
     let res = this.programRefService.watchProgramPmfms(this._programLabel, {

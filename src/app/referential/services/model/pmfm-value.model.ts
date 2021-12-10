@@ -1,4 +1,4 @@
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import {
   fromDateISOString,
   isNil,
@@ -11,9 +11,9 @@ import {
   ReferentialUtils,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
-import {IPmfm, Pmfm, PmfmUtils} from './pmfm.model';
-import {DenormalizedPmfmStrategy} from './pmfm-strategy.model';
-import {isNilOrNaN} from '@app/shared/functions';
+import { IPmfm, Pmfm, PmfmUtils } from './pmfm.model';
+import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
+import { isNilOrNaN } from '@app/shared/functions';
 
 export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;

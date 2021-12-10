@@ -20,6 +20,7 @@ export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModal
   showTaxonName: boolean;
   showLabel: boolean;
   title: string;
+  i18nSuffix: string;
 
   onReady: (modal: M) => Promise<void> | void;
 }
@@ -43,6 +44,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   @Input() programLabel: string;
   @Input() pmfms: IPmfm[];
   @Input() usageMode: UsageMode;
+  @Input() i18nSuffix: string;
 
   @Input() canEdit: boolean;
 
@@ -92,6 +94,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   ngOnInit() {
     this.canEdit = toBoolean(this.canEdit, !this.disabled);
     this.disabled = !this.canEdit || toBoolean(this.disabled, true);
+    this.i18nSuffix = this.i18nSuffix || '';
 
     if (this.disabled) {
       this.table.disable();

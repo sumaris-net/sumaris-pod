@@ -1,17 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import { Alerts, AppFormUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
-import {environment} from '../../../environments/environment';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {Sample} from '../services/model/sample.model';
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime, filter} from 'rxjs/operators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {SubSampleForm} from '@app/trip/sample/sub-sample.form';
-import { SampleModal } from '@app/trip/sample/sample.modal';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Alerts, AppFormUtils, isNil, isNotEmptyArray, isNotNilOrBlank, LocalSettingsService, PlatformService, toBoolean, TranslateContextService, UsageMode } from '@sumaris-net/ngx-components';
+import { environment } from '../../../environments/environment';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { Sample } from '../services/model/sample.model';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { SubSampleForm } from '@app/trip/sample/sub-sample.form';
 
 export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityModalOptions<Sample> {
 
@@ -23,6 +21,7 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
 
   // UI Options
   maxVisibleButtons: number;
+  i18nPrefix?: string;
   i18nSuffix?: string;
   defaultLatitudeSign: '+' | '-';
   defaultLongitudeSign: '+' | '-';
@@ -88,6 +87,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
+    protected translateContext: TranslateContextService,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
@@ -103,6 +103,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
+    this.i18nSuffix = this.i18nSuffix || '';
 
     if (this.disabled) {
       this.form.disable();
@@ -124,19 +125,20 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
       );
     }
 
-    this.applyValue();
+    this.init();
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
   }
 
-  async applyValue() {
-    console.debug('[sub-sample-modal] Applying data to form')
+  private async init() {
 
+    console.debug('[sample-modal] Applying value to form...', this.data);
     this.form.markAsReady();
 
     try {
+
       // Set form value
       this.data = this.data || new Sample();
       let promiseOrVoid = this.form.setValue(this.data);
@@ -261,24 +263,27 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   protected async computeTitle(data?: Sample) {
 
+    // Make sure form is ready, before accessing to autocomplete config
+    await this.form.ready();
+
+    // DEBUG
+    console.debug('Computing title');
+
     data = data || this.data;
 
-    // Compute prefix
-    let prefix = '';
-    const prefixItems = [];
-    if (isNotEmptyArray(prefixItems)) {
-      prefix = await this.translate.get('TRIP.SAMPLE.NEW.TITLE_PREFIX',
-        { prefix: prefixItems.join(' / ')})
-        .toPromise();
-    }
+    // Compute prefix, from parent
+    const parentStr = data.parent && this.form?.autocompleteFields.parent.displayWith(data.parent);
+    const prefix = isNotNilOrBlank(parentStr)
+      ? this.translateContext.instant('TRIP.SUB_SAMPLE.TITLE_PREFIX', this.i18nSuffix,{ prefix: parentStr})
+      : '';
 
     if (this.isNew || !data) {
-      this.$title.next(prefix + await this.translate.get('TRIP.INDIVIDUAL_RELEASE.NEW.TITLE').toPromise());
+      this.$title.next(prefix + await this.translateContext.get( `TRIP.SUB_SAMPLE.NEW.TITLE`, this.i18nSuffix).toPromise());
     }
     else {
       // Label can be optional (e.g. in auction control)
       const label = this.showLabel && data.label || ('#' + data.rankOrder);
-      this.$title.next(prefix + await this.translate.get('TRIP.INDIVIDUAL_RELEASE.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(prefix + await this.translateContext.get(`TRIP.SUB_SAMPLE.EDIT.TITLE`, this.i18nSuffix, {label}).toPromise());
     }
   }
 

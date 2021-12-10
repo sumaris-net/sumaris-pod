@@ -2,8 +2,10 @@ import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { MethodIds } from '../services/model/model.enum';
 import { PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { isNotNilOrBlank, TranslateContextService } from '@sumaris-net/ngx-components';
+import { isNotNilOrBlank, LocalSettingsService, LongitudeFormatPipe, TranslateContextService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
+import { DateFormatPipe } from '../../../../ngx-sumaris-components/src/app/shared/pipes/date-format.pipe';
+import { LatitudeFormatPipe } from '../../../../ngx-sumaris-components/src/app/shared/pipes/latlong-format.pipe';
 
 @Pipe({
     name: 'pmfmName'
@@ -52,8 +54,30 @@ export class PmfmNamePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class PmfmValuePipe implements PipeTransform {
 
-  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): any {
-    return PmfmValueUtils.valueToString(val, opts);
+  constructor(
+    private dateFormatPipe: DateFormatPipe,
+    private latFormatPipe: LatitudeFormatPipe,
+    private longFormatPipe: LongitudeFormatPipe,
+    private settings: LocalSettingsService
+  ) {
+  }
+
+  transform(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): any {
+    const type = PmfmUtils.getExtendedType(opts?.pmfm);
+    switch (type) {
+      case 'date':
+        return this.dateFormatPipe.transform(value, {time: false});
+      case 'dateTime':
+        return this.dateFormatPipe.transform(value, {time: true});
+      case 'duration':
+        return value || null;
+      case 'latitude':
+        return this.latFormatPipe.transform(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+      case 'longitude':
+        return this.longFormatPipe.transform(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+      default:
+        return PmfmValueUtils.valueToString(value, opts);
+    }
   }
 }
 

@@ -1,5 +1,17 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Alerts, AppFormUtils, EntityUtils, isNil, isNotEmptyArray, LocalSettingsService, PlatformService, referentialToString, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  AppFormUtils,
+  EntityUtils,
+  isNil,
+  isNotEmptyArray,
+  LocalSettingsService,
+  PlatformService,
+  referentialToString,
+  toBoolean,
+  TranslateContextService,
+  UsageMode,
+} from '@sumaris-net/ngx-components';
 import { environment } from '../../../environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic } from 'rxjs';
@@ -44,7 +56,6 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private _subscription = new Subscription();
-  $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -96,6 +107,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
+    protected translateContext: TranslateContextService,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
@@ -111,6 +123,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
+    this.i18nSuffix = this.i18nSuffix || '';
     if (isNil(this.enableBurstMode)) {
       this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
         this.usageMode === 'FIELD');
@@ -137,16 +150,16 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       );
     }
 
-    this.applyValue();
+    this.init();
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
   }
 
-  async applyValue() {
-    console.debug('[sample-modal] Applying data to form')
+  private async init() {
 
+    console.debug('[sample-modal] Applying value to form...', this.data);
     this.form.markAsReady();
 
     try {
@@ -281,18 +294,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /* -- protected methods -- */
 
-  private setPmfms(value: Observable<IPmfm[]> | IPmfm[]) {
-    if (isObservable(value)) {
-      this.registerSubscription(
-        value
-          .pipe(filter(pmfms => pmfms !== this.$pmfms.value))
-          .subscribe(pmfms => this.$pmfms.next(pmfms))
-      );
-    } else if (value !== this.$pmfms.value) {
-      this.$pmfms.next(value);
-    }
-  }
-
   protected getDataToSave(): Sample {
 
     if (this.invalid) {
@@ -353,17 +354,16 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       prefixItems.push(referentialToString(data.taxonName, this.settings.getFieldDisplayAttributes('taxonName')));
     }
     if (isNotEmptyArray(prefixItems)) {
-      prefix = await this.translate.get('TRIP.SAMPLE.NEW.TITLE_PREFIX',
-        {prefix: prefixItems.join(' / ')})
-        .toPromise();
+      prefix = this.translateContext.instant('TRIP.SAMPLE.TITLE_PREFIX', this.i18nSuffix,
+        {prefix: prefixItems.join(' / ')});
     }
 
     if (this.isNew || !data) {
-      this.$title.next(prefix + await this.translate.get('TRIP.SAMPLE.NEW.TITLE').toPromise());
+      this.$title.next(prefix + this.translateContext.instant('TRIP.SAMPLE.NEW.TITLE', this.i18nSuffix));
     } else {
       // Label can be optional (e.g. in auction control)
       const label = this.showLabel && data.label || ('#' + data.rankOrder);
-      this.$title.next(prefix + await this.translate.get('TRIP.SAMPLE.EDIT.TITLE', {label}).toPromise());
+      this.$title.next(prefix + this.translateContext.instant('TRIP.SAMPLE.EDIT.TITLE', this.i18nSuffix, {label}));
     }
   }
 

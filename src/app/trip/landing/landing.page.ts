@@ -81,7 +81,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   mobile: boolean;
   showEntityMetadata = false;
   showQualityForm = false;
-  i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
   contextService: ContextService;
 
   get form(): FormGroup {
@@ -111,6 +110,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
     this.contextService = injector.get(ContextService);
+    this.i18nContext.prefix = LANDING_DEFAULT_I18N_PREFIX;
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -341,9 +341,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
-    this.i18nPrefix = LANDING_DEFAULT_I18N_PREFIX + i18nSuffix;
-    this.landingForm.i18nPrefix = this.i18nPrefix;
+    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : (this.i18nContext?.suffix || '');
+    this.i18nContext.suffix = i18nSuffix;
+    this.landingForm.i18nSuffix = i18nSuffix;
 
     if (this.samplesTable) {
       this.samplesTable.modalOptions = {
@@ -462,7 +462,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
-      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
+      await this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';

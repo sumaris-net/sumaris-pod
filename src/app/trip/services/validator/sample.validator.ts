@@ -1,14 +1,9 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {AppValidatorService, SharedFormGroupValidators, SharedValidators} from '@sumaris-net/ngx-components';
-import {Sample} from "../model/sample.model";
-import {isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {Subscription} from "rxjs";
-import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
-import {ParameterLabelGroups} from "../../../referential/services/model/model.enum";
-import {TranslateService} from '@ngx-translate/core';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { Sample } from '../model/sample.model';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})
 export class SampleValidatorService extends AppValidatorService implements ValidatorService {
@@ -52,8 +47,7 @@ export class SampleValidatorService extends AppValidatorService implements Valid
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
-    if (errorKey === 'missingWeightOrSize') return this.translate.instant(errorContent);
-    if (errorKey === 'missingDressing') return this.translate.instant(errorContent);
+    if (SAMPLE_VALIDATOR_I18N_ERROR_KEYS[errorKey]) return this.translate.instant(SAMPLE_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
     return super.getI18nError(errorKey, errorContent);
   }
 
@@ -61,7 +55,6 @@ export class SampleValidatorService extends AppValidatorService implements Valid
 
 
 export const SAMPLE_VALIDATOR_I18N_ERROR_KEYS = {
-  missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH',
-  missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING',
-  tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH'
+  missingWeightOrSize: 'TRIP.SAMPLE.ERROR.WEIGHT_OR_LENGTH_REQUIRED',
+  tagIdLength: 'TRIP.SAMPLE.ERROR.INVALID_TAG_ID_LENGTH'
 }

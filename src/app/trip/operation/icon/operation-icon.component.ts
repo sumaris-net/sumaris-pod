@@ -21,7 +21,7 @@ export declare type OperationIonIcon = 'navigate';
 export class OperationIconComponent {
 
   icon: OperationIonIcon = null;
-  svgIcon: OperationMatSvgIcons = null;
+  matSvgIcon: OperationMatSvgIcons = null;
   color: AppColors = null;
   badgeIcon: QualityIonIcon = null;
   badgeColor: AppColors = null;
@@ -65,12 +65,12 @@ export class OperationIconComponent {
 
     // Is child
     if (isNotNil(value.parentOperationId)) {
-      this.svgIcon = 'rollback-arrow';
+      this.matSvgIcon = 'rollback-arrow';
       this.icon = undefined;
     }
     // Is parent, and has a child
     else if (isNotNil(value.childOperationId) || value.qualityFlagId === QualityFlagIds.NOT_COMPLETED || this.allowParentOperation) {
-      this.svgIcon = 'down-arrow';
+      this.matSvgIcon = 'down-arrow';
       this.icon = undefined;
       if (isNil(value.childOperationId)) {
         this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : undefined;
@@ -80,7 +80,7 @@ export class OperationIconComponent {
     // Other
     else {
       this.icon = 'navigate';
-      this.svgIcon = undefined;
+      this.matSvgIcon = undefined;
     }
 
     if (isNil(value.controlDate)) {
@@ -112,8 +112,9 @@ export class OperationIconComponent {
   }
 
   private reset() {
-    this.svgIcon = null;
     this.icon = null;
+    this.matSvgIcon = null;
+    this.color = null;
     this.badgeIcon = null;
     this.badgeFill = 'clear';
     this.badgeColor = null;

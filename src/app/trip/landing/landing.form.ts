@@ -148,7 +148,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.showMetier || this.showFishingArea;
   }
 
-  @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
+  @Input() i18nSuffix: string;
   @Input() required = true;
   @Input() showProgram = true;
   @Input() showVessel = true;

@@ -26,7 +26,7 @@ import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import { SubBatchForm } from '../form/sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { SubBatchModal } from '../modal/sub-batch.modal';
+import { ISubBatchModalOptions, SubBatchModal } from '../modal/sub-batch.modal';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
@@ -611,7 +611,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     const modal = await this.modalCtrl.create({
       component: SubBatchModal,
-      componentProps: /*<ISubBatchModalOptions>*/{
+      componentProps: <Partial<ISubBatchModalOptions>>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         availableParents: this.availableParents,
@@ -623,7 +623,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         showTaxonGroup: false, // Not used
         showTaxonName: this.showTaxonNameColumn,
         showIndividualCount: this.showIndividualCount
-      }, keyboardClose: true
+      },
+      keyboardClose: true
     });
 
     // Open the modal

@@ -51,7 +51,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   showSamplesTable = false;
   helpContent: string;
 
-
   constructor(
     injector: Injector,
     protected platform: PlatformService,

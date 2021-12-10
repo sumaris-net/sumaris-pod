@@ -1,18 +1,13 @@
-import {Component, OnInit, ViewChild} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {BehaviorSubject} from "rxjs";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import {ReferentialRefService} from "../../../referential/services/referential-ref.service";
-import {ProgramService} from "../../../referential/services/program.service";
-import {mergeMap} from "rxjs/operators";
-import {BatchTreeComponent} from "../batch-tree.component";
-import {MatAutocompleteConfigHolder} from "@sumaris-net/ngx-components";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {PmfmIds} from "../../../referential/services/model/model.enum";
-import {isEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ProgramRefService} from "../../../referential/services/program-ref.service";
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { mergeMap } from 'rxjs/operators';
+import { BatchTreeComponent } from '../batch-tree.component';
+import { EntitiesStorage, EntityUtils, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { PmfmIds } from '../../../referential/services/model/model.enum';
+import { ProgramRefService } from '../../../referential/services/program-ref.service';
 
 function getSortingMeasValues(opts?: {
   weight?: number;
@@ -139,7 +134,7 @@ export class BatchTreeTestPage implements OnInit {
   ) {
 
     this.form = formBuilder.group({
-      program: [{id:10, label: 'ADAP-MER'}, Validators.compose([Validators.required, SharedValidators.entity])],
+      program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required]
     });
@@ -238,7 +233,7 @@ export class BatchTreeTestPage implements OnInit {
     // - a local ID
     // - only the parentId, and NOT the parent
     const batches = EntityUtils.treeToArray(json) || [];
-    await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
+    await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues(Batch.TYPENAME, count));
     batches.forEach(b => {
       b.parentId = b.parent && b.parent.id;
       delete b.parent;

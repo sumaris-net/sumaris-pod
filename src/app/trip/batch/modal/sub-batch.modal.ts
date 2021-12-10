@@ -9,12 +9,13 @@ import { PmfmStrategy } from '../../../referential/services/model/pmfm-strategy.
 import { SubBatchForm } from '../form/sub-batch.form';
 import { SubBatch } from '../../services/model/subbatch.model';
 import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
+import { BatchGroup } from '@app/trip/services/model/batch-group.model';
 
 
 export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
 
   showParent: boolean;
-  availableParents: Batch[];
+  availableParents: BatchGroup[];
 }
 
 @Component({
@@ -39,7 +40,7 @@ export class SubBatchModal implements OnInit {
   @Input() showTaxonName = true;
   @Input() showIndividualCount = false;
   @Input() qvPmfm: PmfmStrategy;
-  @Input() availableParents: Batch[];
+  @Input() availableParents: BatchGroup[];
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
   @ViewChild(IonContent) content: IonContent;

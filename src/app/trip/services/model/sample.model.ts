@@ -9,16 +9,16 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toDateISOString
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import { Moment } from 'moment';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -32,8 +32,22 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 
   static fromObject: (source, opts?: SampleFromObjectOptions) => Sample;
 
+  static fromObjectArrayAsTree(source: any[]): Sample[] {
+    if (!source) return null;
+    const samples = (source || []).map((json) => Sample.fromObject(json, {withChildren: false}));
+    // Link to parent (using parentId)
+    samples.forEach(s => {
+      s.parent = isNotNil(s.parentId) && samples.find(p => p.id === s.parentId) || undefined;
+      s.parentId = undefined; // Avoid redundant info on parent
+    });
+    // Link to children
+    samples.forEach(s => s.children = samples.filter(p => p.parent && p.parent === s) || []);
+    // Return root samples
+    return samples.filter(b => isNil(b.parent));
+  }
+
   /**
-   * Transform a samples tree, into a array of object.
+   * Transform a samples tree, into an array of object.
    * Parent & children links are removed, to keep only a parentId
    * @param sources
    * @param opts
@@ -192,5 +206,101 @@ export class SampleUtils {
 
     // Display rankOrder only (should never occur)
     return `#${parent.rankOrder}`;
+  }
+
+  static logSample(sample: Sample, opts?: {
+    println?: (message: string) => void;
+    indent?: string;
+    nextIndent?: string;
+    showAll?: boolean;
+    showParent?: boolean;
+    showTaxon?: boolean;
+    showMeasure?: boolean;
+  }) {
+    opts = opts || {};
+    const indent = opts && opts.indent || '';
+    let message = indent + (sample.label || 'NO_LABEL');
+
+    if (opts.showAll) {
+      const excludeKeys = ['label', 'parent', 'children', '__typename'];
+      Object.keys(sample)
+        .filter(key => !excludeKeys.includes(key) && isNotNil(sample[key]))
+        .forEach(key => {
+          let value = sample[key];
+          if (value instanceof Object) {
+            if (!(value instanceof Sample)) {
+              value = JSON.stringify(value);
+            }
+          }
+          message += ' ' + key + ':' + value;
+        });
+    } else {
+
+      if (isNotNil(sample.id)) {
+        message += ' id:' + sample.id;
+      }
+
+      // Parent
+      if (opts.showParent !== false) {
+        if (sample.parent) {
+          if (isNotNil(sample.parent.id)) {
+            message += ' parent.id:' + sample.parent.id;
+          } else if (isNotNil(sample.parent.label)) {
+            message += ' parent.label:' + sample.parent.label;
+          }
+        }
+        if (isNotNil(sample.parentId)) {
+          message += ' parentId:' + sample.parentId;
+        }
+      }
+      // Taxon
+      if (opts.showTaxon !== false) {
+        if (sample.taxonGroup) {
+          message += ' taxonGroup:' + (sample.taxonGroup && (sample.taxonGroup.label || sample.taxonGroup.id));
+        }
+        if (sample.taxonName) {
+          message += ' taxonName:' + (sample.taxonName && (sample.taxonName.label || sample.taxonName.id));
+        }
+      }
+      // Measurement
+      if (opts.showMeasure !== false && sample.measurementValues) {
+        Object.keys(sample.measurementValues)
+          .filter(key => key !== '__typename')
+          .forEach(pmfmId => {
+            message += ` pmfm#${pmfmId}: ${sample.measurementValues[pmfmId]}`;
+          })
+      }
+    }
+    // Print
+    if (opts.println) opts.println(message);
+    else console.debug(message);
+
+  }
+
+  static logTree(samples: Sample[], opts?: {
+    println?: (message: string) => void;
+    indent?: string;
+    nextIndent?: string;
+    showAll?: boolean;
+    showParent?: boolean;
+    showTaxon?: boolean;
+    showMeasure?: boolean;
+  }) {
+    opts = opts || {};
+    samples = samples || [];
+    const indent = opts && opts.indent || '';
+    const nextIndent = opts && opts.nextIndent || indent;
+
+    samples.forEach(sample => {
+
+      // Log current
+      this.logSample(sample, opts);
+
+      // Loop on children
+      this.logTree(sample.children, {
+        println: opts.println,
+        indent: nextIndent + ' |- '
+      });
+    })
   }
 }

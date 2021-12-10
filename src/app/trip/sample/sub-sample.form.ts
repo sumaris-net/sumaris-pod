@@ -1,24 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {DateAdapter} from '@angular/material/core';
-import {Moment} from 'moment';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormBuilder} from '@angular/forms';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormBuilder } from '@angular/forms';
 import { AppFormUtils, EntityUtils, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, LocalSettingsService, startsWithUpperCase, toNumber, UsageMode } from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
-import {Sample} from '../services/model/sample.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {SubSampleValidatorService} from '@app/trip/services/validator/sub-sample.validator';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { Sample } from '../services/model/sample.model';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';
 import { mergeMap } from 'rxjs/internal/operators';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
-import { SortDirection } from '@angular/material/sort';
 
-const SAMPLE_FORM_DEFAULT_I18N_PREFIX = 'TRIP.INDIVIDUAL_RELEASE.EDIT.';
 
 @Component({
   selector: 'app-sub-sample-form',
@@ -33,10 +28,9 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   private _availableSortedParents: Sample[] = [];
   focusFieldName: string;
   displayAttributes: string[];
-  linkToParentWithTagId: boolean = true;
   onParentChanges = new Subject();
 
-  @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
+  @Input() i18nSuffix: string;
 
   @Input() mobile: boolean;
   @Input() tabindex: number;
@@ -115,10 +109,12 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     }
   }
 
-  mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+  /* -- protected methods -- */
+
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     // Hide pmfm TAG_ID and DRESSING
     return pmfms.map(pmfm => {
-      if ((pmfm.id === PmfmIds.TAG_ID || pmfm.id === PmfmIds.DRESSING) && !pmfm.hidden) {
+      if (pmfm.id === PmfmIds.TAG_ID && pmfm.required && !pmfm.hidden) {
         pmfm = pmfm.clone();
         pmfm.hidden = true;
       }
@@ -126,8 +122,6 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     });
   }
 
-
-  /* -- protected methods -- */
   protected getValue(): Sample {
     const value = super.getValue();
     if (!this.showComment) value.comments = undefined;

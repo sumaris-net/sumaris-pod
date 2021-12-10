@@ -10,12 +10,11 @@ import { CatchBatchForm } from './catch/catch.form';
 import { PhysicalGearForm } from './physicalgear/physical-gear.form';
 import { PhysicalGearTable } from './physicalgear/physical-gears.table';
 import { OperationsTable } from './operation/operations.table';
-import { SamplesTable } from './sample/samples.table';
+import { AppActionCellDef, SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
 import { BatchGroupsTable } from './batch/table/batch-groups.table';
 import { BatchesTable } from './batch/table/batches.table';
 import { SubBatchesTable } from './batch/table/sub-batches.table';
-import { IndividualMonitoringSubSamplesTable } from './sample/individualmonitoring/individual-monitoring-samples.table';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { SubBatchesModal } from './batch/modal/sub-batches.modal';
 import { SubBatchForm } from './batch/form/sub-batch.form';
@@ -45,6 +44,9 @@ import { VesselModule } from '@app/vessel/vessel.module';
 import { SubSampleForm } from '@app/trip/sample/sub-sample.form';
 import { SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
+import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
+import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
+import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 
 @NgModule({
   imports: [
@@ -99,8 +101,11 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
     SubSamplesTable,
     SubSampleForm,
     SubSampleModal,
-    IndividualMonitoringSubSamplesTable,
-    OperationIconComponent
+    IndividualMonitoringTable,
+    IndividualReleasesTable,
+    OperationIconComponent,
+    AppActionCellDef,
+    SampleTreeComponent
   ],
   exports: [
     // Modules
@@ -133,7 +138,8 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
     SampleForm,
     SamplesTable,
     SubSamplesTable,
-    BatchGroupForm
+    BatchGroupForm,
+    SampleTreeComponent
   ],
 })
 export class TripModule {

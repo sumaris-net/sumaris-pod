@@ -80,7 +80,10 @@
      [class.has-pmfm-header-details]="showPmfmDetails"
      *ngIf="$pmfms | async; let pmfms" [style.--pmfm-count]="pmfms?.length">
 
-  <!-- writable table -->
+  <!-- ********************************************************** -->
+  <!-- ***********  Writable table (e.g. for desktop) *********** -->
+  <!-- ********************************************************** -->
+
   <table mat-table matSort
          matSortDisableClear
          *ngIf="inlineEdition; else readonly"
@@ -164,14 +167,14 @@
     <!-- Label column -->
     <ng-container matColumnDef="label" >
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label>{{i18nColumnPrefix + 'LABEL' | translate}}</ion-label>
+        <ion-label>{{'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix}}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='label'">
         <mat-form-field floatLabel="never">
           <input matInput autocomplete="off"
                  [appAutofocus]="row.editing && focusColumn === 'label'"
                  [formControl]="row.validator.controls.label"
-                 [placeholder]="i18nColumnPrefix + 'LABEL_PLACEHOLDER'|translate"
+                 [placeholder]="'TRIP.SAMPLE.TABLE.LABEL_PLACEHOLDER'| translateContext: i18nColumnSuffix"
                  (click)="selectInputContent($event)">
           <mat-error *ngIf="row.validator.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
           </mat-error>
@@ -186,13 +189,13 @@
     <!-- Taxon group  -->
     <ng-container matColumnDef="taxonGroup">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
+        <ion-label>{{'TRIP.SAMPLE.TABLE.TAXON_GROUP'|translateContext: i18nColumnSuffix}}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonGroup'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                 [autofocus]="row.editing && focusColumn === 'taxonGroup'"
                                 [formControl]="row.validator.controls.taxonGroup"
-                                [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+                                [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translateContext: i18nColumnSuffix"
                                 [required]="showTaxonGroupColumn"
                                 [config]="autocompleteFields.taxonGroup">
         </mat-autocomplete-field>
@@ -203,13 +206,13 @@
     <!-- Taxon name -->
     <ng-container matColumnDef="taxonName">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-label>
+        <ion-label>{{'TRIP.SAMPLE.TABLE.TAXON_NAME'|translateContext: i18nColumnSuffix }}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonName'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                 [autofocus]="row.editing && focusColumn === 'taxonName'"
                                 [formControl]="row.validator.controls.taxonName"
-                                [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translate"
+                                [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translateContext: i18nColumnSuffix"
                                 [config]="autocompleteFields.taxonName"
                                 [required]="showTaxonNameColumn">
         </mat-autocomplete-field>
@@ -220,13 +223,13 @@
     <!-- Date -->
     <ng-container matColumnDef="sampleDate">
       <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-        <ion-label>{{i18nColumnPrefix + 'SAMPLE_DATE' | translate}}</ion-label>
+        <ion-label>{{'TRIP.SAMPLE.TABLE.SAMPLE_DATE' |translateContext: i18nColumnSuffix}}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
         <mat-date-time-field floatLabel="never"
                              [formControl]="row.validator.controls.sampleDate"
                              [autofocus]="row.editing && focusColumn === 'sampleDate'"
-                             [placeholder]="i18nColumnPrefix + 'SAMPLE_DATE_PLACEHOLDER'|translate"
+                             [placeholder]="'TRIP.SAMPLE.TABLE.SAMPLE_DATE_PLACEHOLDER'|translateContext: i18nColumnSuffix"
                              [compact]="compactFields" [readonly]="!row.editing" [required]="true"></mat-date-time-field>
       </td>
 
@@ -252,6 +255,8 @@
 
         <app-pmfm-field *ngIf="row.editing; else readonlyPmfmField"
                         [pmfm]="pmfm"
+                        [i18nPrefix]="i18nColumnPrefix"
+                        [i18nSuffix]="i18nColumnSuffix"
                         [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
                         [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
                         [compact]="compactFields" floatLabel="never"></app-pmfm-field>
@@ -350,7 +355,10 @@
     </ng-container>
   </table>
 
-  <!-- readonly table (e.g. for mobile) -->
+  <!-- ********************************************************* -->
+  <!-- ***********  Readonly table (e.g. for mobile) *********** -->
+  <!-- ********************************************************* -->
+
   <ng-template #readonly>
     <table mat-table matSort matSortDisableClear
            [dataSource]="dataSource"
@@ -419,7 +427,7 @@
       <!-- label Column -->
       <ng-container matColumnDef="label">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <ion-label>{{i18nColumnPrefix + 'LABEL'|translate}}</ion-label>
+          <ion-label>{{'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix}}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text>{{row.currentData.label}}</ion-text>
@@ -429,7 +437,7 @@
       <!-- Taxon group  -->
       <ng-container matColumnDef="taxonGroup">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_GROUP</ion-label>
+          <ion-label>{{'TRIP.SAMPLE.TABLE.TAXON_GROUP'|translateContext: i18nColumnSuffix}}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text>{{row.currentData.taxonGroup|referentialToString:autocompleteFields.taxonGroup.attributes }}</ion-text>
@@ -439,7 +447,7 @@
       <!-- Taxon name -->
       <ng-container matColumnDef="taxonName">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
-          <ion-label translate>TRIP.SAMPLE.TABLE.TAXON_NAME</ion-label>
+          <ion-label>{{'TRIP.SAMPLE.TABLE.TAXON_NAME'|translateContext: i18nColumnSuffix }}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text>{{row.currentData.taxonName|referentialToString:autocompleteFields.taxonName.attributes }}</ion-text>
@@ -449,7 +457,7 @@
       <!-- Date -->
       <ng-container matColumnDef="sampleDate">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
-          <ion-label translate>TRIP.SAMPLE.TABLE.SAMPLE_DATE</ion-label>
+          <ion-label>{{'TRIP.SAMPLE.TABLE.SAMPLE_DATE' |translateContext: i18nColumnSuffix}}</ion-label>
         </th>
         <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
           <ion-text>{{row.currentData.sampleDate | dateFormat: {time: true} }}</ion-text>
@@ -460,10 +468,10 @@
       <ng-container *ngFor="let pmfm of pmfms; index as index" [matColumnDef]="(pmfm.id || index)|toString">
         <th mat-header-cell *matHeaderCellDef mat-sort-header
             class="mat-column-pmfm mat-column-{{pmfm.label}}"
-            [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
-            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0">
-          <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails}"></ion-label>
+            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
+            [class.mat-cell-content-start-padding]="showGroupHeader">
+          <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
         </th>
         <td mat-cell *matCellDef="let row"
             class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -499,15 +507,8 @@
           </button>
         </th>
         <td mat-cell *matCellDef="let row">
-          <!-- open individual release -->
-          <button mat-icon-button
-                  *ngIf="mobile && showIndividualReleaseButton"
-                  [color]="row.currentData.children?.length && 'primary' || 'dark'"
-                  [title]="'TRIP.SAMPLE.EDIT.BTN_INDIVIDUAL_RELEASE'|translate"
-                  (click)="onIndividualReleaseClick($event, row)">
-            <mat-icon>room</mat-icon>
-          </button>
 
+          <ng-container *ngTemplateOutlet="actionCellDef?.template; context: { $implicit: row  }"></ng-container>
         </td>
       </ng-container>
 

@@ -484,7 +484,7 @@ export class BatchUtils {
         }
       }
       // Measurement
-      if (opts.showMeasure !== false) {
+      if (opts.showMeasure !== false && batch.measurementValues) {
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
           message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }

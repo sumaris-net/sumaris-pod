@@ -98,8 +98,7 @@
     <mat-error *ngIf="formControl.hasError('max')">
       {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('maxDecimals')">
-      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
-      pmfm.maximumNumberDecimals} }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:formControl.errors['maxDecimals'] }}</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

@@ -79,7 +79,7 @@
             <!-- landing form-->
             <app-landing-form #landingForm
                               [programLabel]="$programLabel|async"
-                              [i18nPrefix]="i18nPrefix"
+                              [i18nSuffix]="i18nContext.suffix"
                               [requiredStrategy]="true"
                               [showMeasurements]="true"
                               [showError]="false"
@@ -110,11 +110,11 @@
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
                                              [value]="$strategy|async"
-                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
+                                             [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE'|translateContext: i18nContext.suffix"
                                              [calcifiedTypesDisplayed]="true">
                     <!-- age fractions -->
                     <ng-container *ngIf="strategyCard.data?.pmfms | isNotEmptyArray">
-                      <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+                      <ion-label color="primary">{{'LANDING.EDIT.CALCIFIED_TYPE'|translateContext: i18nContext.suffix}}</ion-label>
                       <ion-label class="status">
                         <ul>
                           <ng-container *ngFor="let calcifiedType of strategyCard.data.pmfms; let i=index">
@@ -150,13 +150,12 @@
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate" [disabled]="!showSamplesTable">
+    <mat-tab [label]="'LANDING.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix" [disabled]="!showSamplesTable">
       <ng-template mat-tab-label>
         <mat-icon >center_focus_strong</mat-icon>
-        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <ion-label>{{'LANDING.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
-
 
       <!-- error -->
       <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">

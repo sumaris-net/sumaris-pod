@@ -37,6 +37,7 @@
                        [programLabel]="programLabel"
                        [mobile]="mobile"
                        [pmfms]="pmfms"
+                       [i18nSuffix]="i18nSuffix"
                        [usageMode]="usageMode"
                        [showLabel]="showLabel"
                        [enableParent]="enableParent"
@@ -46,6 +47,8 @@
                        [defaultLatitudeSign]="defaultLatitudeSign"
                        [defaultLongitudeSign]="defaultLongitudeSign"
                        (onSubmit)="onSubmit($event)">
+
+
     <ion-row *ngIf="mobile">
       <ion-col size="6">
         <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable="">

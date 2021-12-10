@@ -16,7 +16,7 @@
                  formControlName="label"
                  [appAutofocus]="enabled &&  focusFieldName === 'label'"
                  [tabindex]="tabindex"
-                 [placeholder]="i18nPrefix + 'LABEL_PLACEHOLDER'|translate"
+                 [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nSuffix"
                  (click)="selectInputContent($event)"
                  [required]="showLabel">
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
@@ -31,7 +31,7 @@
       <ion-col size="6" size-md="">
           <mat-autocomplete-field formControlName="parent"
                                   [autofocus]="enabled && focusFieldName === 'parent'"
-                                  [placeholder]="(displayParentPmfm | pmfmName) || ('TRIP.SAMPLE.TABLE.PARENT' | translate)"
+                                  [placeholder]="(displayParentPmfm | pmfmName) || ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nSuffix)"
                                   [config]="autocompleteFields.parent"
                                   [tabindex]="(showLabel ? 1 : 0) + tabindex"
                                   [readonly]="!enableParent"
@@ -44,11 +44,13 @@
     <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
              [formGroup]="measurementValuesForm"
              class="ion-no-padding">
+
       <ion-col *ngFor="let pmfm of pmfms; index as i; last as last"
                [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
                class="pmfm-{{pmfm.id}}">
         <app-pmfm-field #matInput
                         [pmfm]="pmfm"
+                        [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPrefix, i18nContext: i18nSuffix}"
                         [style]="mobile && 'button'"
                         [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                         [maxVisibleButtons]="maxVisibleButtons"

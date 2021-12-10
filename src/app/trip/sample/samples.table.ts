@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import {TableElement} from '@e-is/ngx-material-table';
 import {SampleValidatorService} from '../services/validator/sample.validator';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
@@ -47,8 +47,19 @@ import {isNilOrNaN} from '@app/shared/functions';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
+import { MatCellDef } from '@angular/material/table';
 
 const moment = momentImported;
+
+/**
+ * Cell definition for the mat-table.
+ * Captures the template of a column's data row cell as well as cell-specific properties.
+ */
+@Directive({
+  selector: '[appActionCellDef]',
+  providers: [{provide: MatCellDef, useExisting: AppActionCellDef}],
+})
+export class AppActionCellDef extends MatCellDef {}
 
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
@@ -120,6 +131,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
+
+  //@ViewChild('[appActionCellDef]') actionCellDef: AppActionCellDef;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
@@ -230,7 +243,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.propagateRowError = true;
 
     // Set default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE; // Default value, can be override by subclasses
+    this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -254,11 +267,16 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   ngOnInit() {
-    super.ngOnInit();
+    this.inlineEdition = this.validatorService && !this.mobile;
+    this.allowRowDetail = !this.inlineEdition;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
+    super.ngOnInit();
+
     // Add footer listener
-    this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms));
+    this.registerSubscription(
+      this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms))
+    );
   }
 
   ngAfterViewInit() {
@@ -489,7 +507,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     try {
       const taxonGroupId = toNumber(taxonGroup && taxonGroup.id, null);
-      (this.$pmfms.getValue() || []).forEach(pmfm => {
+      (this.$pmfms.value || []).forEach(pmfm => {
 
         const show = isNil(taxonGroupId)
           || !PmfmUtils.isDenormalizedPmfm(pmfm)
@@ -512,7 +530,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       if (!saved) return;
     }
 
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.$pmfms.value || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
       excludedIds: existingPmfmIds
@@ -531,7 +549,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
    * @param event
    */
   async openChangePmfmsModal(event?: UIEvent) {
-    const existingPmfmIds = (this.$pmfms.getValue() || []).map(p => p.id).filter(isNotNil);
+    const existingPmfmIds = (this.$pmfms.value || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
       excludedIds: existingPmfmIds
@@ -700,7 +718,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     const dPmfms = pmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     this.pmfms = [
-      ...this.$pmfms.getValue(),
+      ...this.$pmfms.value,
       ...dPmfms
     ];
   }
@@ -778,6 +796,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             }
           }
 
+          // Apply weight conversion, if need
           if (this.weightDisplayedUnit) {
             PmfmUtils.setWeightUnitConversion(pmfm, this.weightDisplayedUnit, {clone: false});
           }
@@ -903,6 +922,22 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       .filter(isNotNilOrBlank)
       .length;
     this.tagCount$.next(tagCount);
+  }
+
+  updateView(res: LoadResult<Sample> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
+    console.log('TODO updateView');
+    return super.updateView(res, opts);
+  }
+
+  protected updateColumns() {
+    console.log('TODO updateColumns');
+    super.updateColumns();
+  }
+
+  protected getDisplayColumns(): string[] {
+    const cols = super.getDisplayColumns();
+    console.log('TODO getDisplayColumns', cols);
+    return cols;
   }
 }
 

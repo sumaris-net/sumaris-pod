@@ -9,10 +9,12 @@ import {TranslateModule} from "@ngx-translate/core";
 import {TestingPage} from "@sumaris-net/ngx-components";
 import { BatchGroupFormTestPage } from '@app/trip/batch/form/testing/batch-group.form.test';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SampleTreeTestPage } from '@app/trip/sample/testing/sample-tree.test';
 
 export const TRIP_TESTING_PAGES = [
   <TestingPage>{label: 'Batch tree', page: '/testing/trip/batchTree'},
-  <TestingPage>{label: 'Batch group form', page: '/testing/trip/batchGroupForm'}
+  <TestingPage>{label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
+  <TestingPage>{label: 'Sample tree', page: '/testing/trip/sampleTree'}
 ];
 
 const routes: Routes = [
@@ -25,7 +27,12 @@ const routes: Routes = [
     path: 'batchGroupForm',
     pathMatch: 'full',
     component: BatchGroupFormTestPage
-  }
+  },
+  {
+    path: 'sampleTree',
+    pathMatch: 'full',
+    component: SampleTreeTestPage
+  },
 ];
 
 @NgModule({
@@ -40,11 +47,13 @@ const routes: Routes = [
   ],
   declarations: [
     BatchGroupFormTestPage,
-    BatchTreeTestPage
+    BatchTreeTestPage,
+    SampleTreeTestPage
   ],
   exports: [
     BatchGroupFormTestPage,
-    BatchTreeTestPage
+    BatchTreeTestPage,
+    SampleTreeTestPage
   ]
 })
 export class TripTestingModule {

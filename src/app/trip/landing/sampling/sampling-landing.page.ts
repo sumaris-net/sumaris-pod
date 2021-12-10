@@ -4,17 +4,7 @@ import { Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import {
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  firstNotNilPromise,
-  HistoryPageReference,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  SharedValidators,
-} from '@sumaris-net/ngx-components';
+import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
 import { LandingPage } from '../landing.page';
 import { Landing } from '../../services/model/landing.model';
@@ -224,7 +214,7 @@ export class SamplingLandingPage extends LandingPage {
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
+      await this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';
