@@ -29,14 +29,16 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   focusFieldName: string;
   displayAttributes: string[];
   onParentChanges = new Subject();
+  i18nFullSuffix: string;
 
+  @Input() i18nPmfmSuffix: string;
   @Input() i18nSuffix: string;
 
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() showLabel = false;
-  @Input() enableParent = true;
+  @Input() showParent = true;
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
@@ -72,9 +74,8 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
       }
     );
 
-    // Set default acquisition level
-    this._acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_RELEASE;
     this._enable = true;
+    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
 
     // for DEV only
     this.debug = !environment.production;
@@ -83,8 +84,15 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   ngOnInit() {
     super.ngOnInit();
 
+    // Set defaults
+    this._acquisitionLevel = this._acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     this.tabindex = toNumber(this.tabindex, 1);
     this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
+    this.focusFieldName = !this.mobile && (this.showLabel ? 'label' :
+      (this.showParent ? 'parent' : null));
+    this.i18nFieldPrefix = this.i18nFieldPrefix || `TRIP.SUB_SAMPLE.`;
+    this.i18nSuffix = this.i18nSuffix || '';
+    this.i18nFullSuffix = `${this._acquisitionLevel}.${this.i18nSuffix}`;
 
     // Parent combo
     this.registerAutocompleteField('parent', {
@@ -102,9 +110,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
         ).subscribe((pmfms) => this.updateParents(pmfms))
     )
 
-    this.focusFieldName = !this.mobile && this.showLabel && 'label';
-
-    if (!this.enableParent) {
+    if (!this.showParent) {
       this.form.parent?.disable();
     }
   }
@@ -112,34 +118,47 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   /* -- protected methods -- */
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    // Hide pmfm TAG_ID and DRESSING
-    return pmfms.map(pmfm => {
-      if (pmfm.id === PmfmIds.TAG_ID && pmfm.required && !pmfm.hidden) {
-        pmfm = pmfm.clone();
-        pmfm.hidden = true;
-      }
-      return pmfm;
-    });
+    // DEBUG
+    console.debug('[sub-sample-form] Mapping PMFMs...', pmfms);
+
+    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
+    const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
+    this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
+
+    // Force the parent PMFM to be hidden, and NOT required
+    if (this.displayParentPmfm && !this.displayParentPmfm.hidden) {
+      const cloneParentPmfm = this.displayParentPmfm.clone();
+      cloneParentPmfm.hidden = true;
+      cloneParentPmfm.required = false;
+      pmfms[tagIdPmfmIndex] = cloneParentPmfm;
+    }
+
+    return pmfms;
   }
 
   protected getValue(): Sample {
     const value = super.getValue();
+
+    // Copy parent measurement, if any
+    if (this.displayParentPmfm && value.parent) {
+      const parentPmfmId = this.displayParentPmfm.id.toString();
+      value.measurementValues = value.measurementValues || {};
+      value.measurementValues[parentPmfmId] = value.parent.measurementValues[parentPmfmId];
+    }
+
     if (!this.showComment) value.comments = undefined;
     return value;
   }
 
   protected async updateParents(pmfms: IPmfm[]) {
     // DEBUG
-    console.debug('[sub-samples-form] Update parents...');
+    console.debug('[sub-sample-form] Update parents...');
 
     const parents = this._availableParents || [];
     const hasTaxonName = parents.some(s => isNotNil(s.taxonName?.id));
     const attributeName = hasTaxonName ? 'taxonName' : 'taxonGroup';
     const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName)
       .map(key => `${attributeName}.${key}`);
-
-    const tagIdPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
-    this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
 
     // If display parent using by a pmfm
     if (this.displayParentPmfm) {

@@ -1,20 +1,18 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
-import {FormBuilder, Validators} from '@angular/forms';
-import {AppForm, AppFormUtils, isEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators, StatusIds} from '@sumaris-net/ngx-components';
-import {DateAdapter} from '@angular/material/core';
+import { ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { AppForm, AppFormUtils, isEmptyArray, PlatformService, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
-import {ProgramRefQueries, ProgramRefService} from '../../../referential/services/program-ref.service';
-import {Program} from '../../../referential/services/model/program.model';
-import {TripOfflineFilter} from '@app/trip/services/filter/trip.filter';
+import { Moment } from 'moment';
+import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
+import { Program } from '../../../referential/services/model/program.model';
+import { TripOfflineFilter } from '@app/trip/services/filter/trip.filter';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { mergeMap } from 'rxjs/internal/operators';
+import { map } from 'rxjs/operators';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {mergeMap} from 'rxjs/internal/operators';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {map} from 'rxjs/operators';
 
 const moment = momentImported;
 
@@ -28,7 +26,6 @@ const moment = momentImported;
 })
 export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnInit{
 
-  loading = true;
   mobile: boolean;
 
   periodDurations: { value: number; unit: DurationConstructor }[] = [
@@ -52,13 +49,6 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
 
   get valid(): boolean {
     return this.form.valid;
-  }
-
-  markAsLoaded() {
-    if (this.loading) {
-      this.loading = false;
-      this.markForCheck();
-    }
   }
 
   constructor(

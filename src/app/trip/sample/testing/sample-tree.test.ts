@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, sleep } from '@sumaris-net/ngx-components';
+import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, sleep, toDateISOString } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -23,6 +23,7 @@ function getMeasValues(opts?: {
   const res = {};
 
   res[PmfmIds.TAG_ID] = opts.tagId;
+  res[PmfmIds.IS_DEAD] = 1;
   if (isNotNil(opts.totalLength)) {
     res[PmfmIds.LENGTH_TOTAL_CM] = opts.totalLength;
   }
@@ -32,11 +33,28 @@ function getMeasValues(opts?: {
   return res;
 }
 
+function getMonitoringMeasValues(opts?: {
+  tagId: string;
+  dateTime?: string;
+}) {
+  opts = {
+    tagId: 'TAG-1',
+    ...opts
+  }
+  const res = {};
+
+  res[PmfmIds.TAG_ID] = opts.tagId;
+  if (isNotNil(opts.dateTime)) {
+    res[PmfmIds.MEASURE_TIME] = opts.dateTime;
+  }
+  return res;
+}
+
 function getReleaseMeasValues(opts?: {
   tagId: string;
   latitude?: number;
   longitude?: number;
-  dateTime?: string;
+  dateTime?: string|Moment;
 }) {
   opts = {
     tagId: 'TAG-1',
@@ -52,26 +70,29 @@ function getReleaseMeasValues(opts?: {
     res[PmfmIds.RELEASE_LONGITUDE] = opts.longitude;
   }
   if (isNotNil(opts.dateTime)) {
-    res[PmfmIds.MEASURE_TIME] = opts.dateTime;
+    res[PmfmIds.MEASURE_TIME] = toDateISOString(opts.dateTime);
   }
   return res;
 }
 const TREE_EXAMPLES: {[key: string]: any} = {
   'default': [{
     label: 'SAMPLE#1', rankOrder: 1,
+    sampleDate: moment(),
     taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
     taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
     measurementValues: getMeasValues({ tagId: 'TAG-1', totalLength: 100, sex: 'M' }),
     children: [
       {
-        label: 'INDIVIDUAL_RELEASE#1',
+        label: 'INDIVIDUAL_MONITORING#1',
         rankOrder: 1,
-        measurementValues: getReleaseMeasValues({ tagId: 'TAG-1', latitude: 11, longitude: 11 }),
+        sampleDate: moment(),
+        measurementValues: getMonitoringMeasValues({ tagId: 'TAG-1' }),
       },
       {
-        label: 'INDIVIDUAL_RELEASE#2',
-        rankOrder: 2,
-        measurementValues: getReleaseMeasValues({ tagId: 'TAG-1', latitude: 11, longitude: 11 }),
+        label: 'INDIVIDUAL_RELEASE#1',
+        rankOrder: 1,
+        sampleDate: moment(),
+        measurementValues: getReleaseMeasValues({ tagId: 'TAG-1', latitude: 11, longitude: 11, dateTime: moment() }),
       }
     ]
   }],
@@ -162,20 +183,28 @@ export class SampleTreeTestPage implements OnInit {
 
   // Load data into components
   async updateView(data: Sample[]) {
+    console.log('[TEST] updateView()', data);
 
     this.markAsReady();
 
-    this.mobileTree.value = data.map(s => s.clone());
-    this.desktopTree.value = data.map(s => s.clone());
+    await this.mobileTree.setValue(data.map(s => s.clone()));
+    await this.desktopTree.setValue(data.map(s => s.clone()));
 
     this.mobileTree.enable();
     this.desktopTree.enable();
+
+    this.markAsLoaded();
 
   }
 
   markAsReady() {
     this.mobileTree.markAsReady();
     this.desktopTree.markAsReady();
+  }
+
+  markAsLoaded() {
+    this.mobileTree.markAsLoaded();
+    this.desktopTree.markAsLoaded();
   }
 
   doSubmit(event?: UIEvent) {

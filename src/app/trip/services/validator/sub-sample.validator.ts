@@ -1,29 +1,50 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {Sample} from "../model/sample.model";
 import {toNumber} from "@sumaris-net/ngx-components";
+import { SampleValidatorOptions, SampleValidatorService } from '@app/trip/services/validator/sample.validator';
+import { TranslateService } from '@ngx-translate/core';
+
+export interface SubSampleValidatorOptions extends SampleValidatorOptions{
+  withParent?: boolean;
+  requiredParent?: boolean;
+}
 
 @Injectable({providedIn: 'root'})
-export class SubSampleValidatorService implements ValidatorService {
+export class SubSampleValidatorService extends SampleValidatorService<SubSampleValidatorOptions> {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(
+    protected formBuilder: FormBuilder,
+    protected translate: TranslateService) {
+    super(formBuilder, translate);
   }
 
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: Sample): FormGroup {
-    return this.formBuilder.group({
-      __typename: [Sample.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [data && data.label || null],
-      parent: [data && data.parent || null, Validators.compose([Validators.required, SharedValidators.object])],
-      comments: [data && data.comments || null]
+  getFormGroupConfig(data?: any, opts?: SubSampleValidatorOptions): { [p: string]: any } {
+    const config = super.getFormGroupConfig(data, {
+      withChildren: false, // Tree depth = 1 (by default)
+      ...opts
     });
+
+    // Change label and samples to optional
+    config['label'] = [data && data.label || null];
+    config['sampleDate'] = [data && data.sampleDate || null];
+
+    // Add parent control (required by default)
+    if (!opts || opts.withParent !== false) {
+      const parentValidators = (!opts || opts.requiredParent !== false)
+        ? Validators.compose([SharedValidators.entity, Validators.required])
+        : SharedValidators.entity;
+      config['parent'] = [data && data.parent || null, parentValidators];
+    }
+
+    return config;
+  }
+
+  getFormGroupOptions(data?: Sample, opts?: SubSampleValidatorOptions): AbstractControlOptions | null {
+    return {
+      validators: [] // remove required validator on taxonGroup/taxonName
+    };
   }
 }

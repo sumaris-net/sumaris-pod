@@ -26,7 +26,6 @@ const moment = momentImported;
 })
 export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> {
 
-  loading = true;
   mobile: boolean;
 
   periodDurations: { value: number; unit: DurationConstructor; }[] = [
@@ -50,13 +49,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
   get valid(): boolean {
     return this.form.valid;
-  }
-
-  markAsLoaded() {
-    if (this.loading) {
-      this.loading = false;
-      this.markForCheck();
-    }
   }
 
   constructor(

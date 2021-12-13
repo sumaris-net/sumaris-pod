@@ -202,6 +202,8 @@ export class BatchTreeTestPage implements OnInit {
   // Load data into components
   async updateView(data: Batch) {
 
+    this.markAsReady();
+
     this.mobileBatchTree.value = data.clone();
     this.desktopBatchTree.value = data.clone();
 
@@ -209,9 +211,20 @@ export class BatchTreeTestPage implements OnInit {
     this.desktopBatchTree.enable();
 
     setTimeout(() => {
+      this.markAsLoaded();
       this.mobileBatchTree.waitIdle().then( () => this.mobileBatchTree.autoFill());
       this.desktopBatchTree.waitIdle().then( () => this.desktopBatchTree.autoFill())
     });
+  }
+
+  markAsReady() {
+    this.mobileBatchTree.markAsReady();
+    this.desktopBatchTree.markAsReady();
+  }
+
+  markAsLoaded() {
+    this.mobileBatchTree.markAsLoaded();
+    this.desktopBatchTree.markAsLoaded();
   }
 
   doSubmit(event?: UIEvent) {

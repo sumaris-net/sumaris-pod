@@ -167,7 +167,6 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
 
       await this.form.waitIdle();
       const gear = this.form.value;
-      console.log('TODO form value: ', gear)
 
       return await this.viewCtrl.dismiss(gear);
     }

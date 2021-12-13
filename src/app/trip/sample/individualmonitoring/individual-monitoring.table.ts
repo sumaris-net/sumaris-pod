@@ -22,8 +22,6 @@ import { merge } from 'rxjs';
 })
 export class IndividualMonitoringTable extends SubSamplesTable implements OnInit {
 
-  static DEFAULT_I18N_SUFFIX = 'INDIVIDUAL_MONITORING.';
-
   protected currentSample: Sample; // require to preset presentation on new row
 
   constructor(
@@ -31,7 +29,6 @@ export class IndividualMonitoringTable extends SubSamplesTable implements OnInit
   ) {
     super(injector);
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
-    this.i18nColumnSuffix = IndividualMonitoringTable.DEFAULT_I18N_SUFFIX;
   }
 
   protected onPmfmsLoaded(pmfms: IPmfm[]) {

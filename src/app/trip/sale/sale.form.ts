@@ -30,7 +30,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() showButtons = true;
 
   @Input() set minDate(value: Moment) {
-    if (this._minDate !== value) {
+    if (value && (!this._minDate || !this._minDate.isSame(value))) {
+      console.log('TODO received new date', value)
       this._minDate = value;
       if (!this._loading) this.updateFormGroup();
     }

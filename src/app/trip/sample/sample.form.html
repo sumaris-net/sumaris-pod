@@ -82,7 +82,7 @@
                          [style]="mobile && 'button'"
                          [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                          [maxVisibleButtons]="maxVisibleButtons"
-                         [placeholder]="pmfm|pmfmName: {i18nPrefix: 'TRIP.SAMPLE.EDIT.', i18nContext: i18nSuffix}"
+                         [placeholder]="pmfm|pmfmName: {i18nPrefix: 'TRIP.SAMPLE.TABLE.', i18nContext: i18nSuffix}"
                          [tabindex]="tabindex+4 + i*maxVisibleButtons"
                          (keyup.enter)="last && onSubmit.emit($event)">
           </app-pmfm-field>

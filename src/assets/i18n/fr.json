@@ -777,17 +777,15 @@
       "EDIT": {
         "TITLE": "Individu {{label}}",
         "LABEL_PLACEHOLDER": "Libellé",
-        "DATE_TIME_PLACEHOLDER": "Date échantillon",
+        "SAMPLE_DATE_PLACEHOLDER": "Date de la mesure",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
-        "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "AUCTION_CONTROL": {
           "TITLE": "Lot {{label}}",
           "LABEL_PLACEHOLDER": "Numéro du lot"
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Capture {{label}}",
-          "TAG_ID": "Code du marquage",
           "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)"
         }
       },
@@ -816,29 +814,8 @@
         "OTHER": "Autre",
         "TOTAL_DOTS": "Total :",
         "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
-        "SAMPLING": {
-          "TAXON_GROUP": "Espèce commerciale (FAO)",
-          "TAXON_GROUP_PLACEHOLDER": "Code espèce",
-          "TAXON_NAME": "Espèce scientifique (FAO)",
-          "TAXON_NAME_PLACEHOLDER": "Code espèce",
-          "SAMPLE_DATE": "Date/Heure de la mesure",
-          "COMMENTS": "Commentaires",
-          "COMMENTS_PLACEHOLDER": "Commentaires",
-          "BTN_AUTO_FILL": "Remplir automatiquement",
-          "TAG_ID": "Code prélèvement",
-          "DRESSING": "Présentation",
-          "WEIGHT": "Poids",
-          "LENGTH": "Taille",
-          "MATURITY": "Maturité",
-          "SEX": "Sexe",
-          "AGE": "Age",
-          "OTHER": "Autre"
-        },
-        "INDIVIDUAL_RELEASE": {
-          "ACCIDENTAL_CATCH": {
-            "TAG_ID": "Référence de la marque"
-          }
-        },
+        "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
+        "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "AUCTION_CONTROL": {
           "LABEL": "Lot",
           "LABEL_PLACEHOLDER": "Lot"
@@ -846,11 +823,40 @@
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
           "TAXON_GROUP": "Espèce (FAO)",
-          "TAG_ID": "Référence de la marque"
+          "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Mesures individuelles",
-          "TAB_SUB_SAMPLES": "Suivi individuel"
+          "TAB_SUB_SAMPLES": "Suivi individuel",
+          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel"
+        }
+      },
+      "PMFM_GROUP": {
+        "WEIGHT": "Poids",
+        "LENGTH": "Taille",
+        "MATURITY": "Maturité",
+        "SEX": "Sexe",
+        "AGE": "Age",
+        "OTHER": "Autre"
+      },
+      "PMFM": {
+        "INDIVIDUAL_RELEASE": {
+          "MEASURE_TIME": "Heure de remise à l'eau",
+          "ACCIDENTAL_CATCH": {
+            "MEASURE_TIME": "Heure de remise à l'eau",
+            "TAG_ID": "Référence de la marque"
+          }
+        },
+        "ACCIDENTAL_CATCH": {
+          "MEASURE_TIME": "Heure de remise à l'eau",
+          "TAG_ID": "Référence de la marque"
+        },
+        "SAMPLING": {
+          "TAG_ID": "Code prélèvement",
+          "DRESSING": "Présentation"
+        },
+        "SURVIVAL_TEST": {
+          "TAG_ID": "Tag-ID"
         }
       },
       "ERROR": {
@@ -862,7 +868,7 @@
       }
     },
     "SUB_SAMPLE": {
-      "TITLE_PREFIX": "",
+      "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
       "NEW": {
         "TITLE": "Nouveau sous-prélèvement",
         "INDIVIDUAL_MONITORING": {
@@ -880,10 +886,7 @@
           "TITLE": "Suivi individuel {{label}}"
         },
         "INDIVIDUAL_RELEASE": {
-          "TITLE": "Relâché {{label}}",
-          "ACCIDENTAL_CATCH": {
-            "TAG_ID": "Référence de la marque"
-          }
+          "TITLE": "Relâché {{label}}"
         }
       }
     }

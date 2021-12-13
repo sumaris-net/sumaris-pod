@@ -69,11 +69,12 @@
         <ion-col size="12">
 
           <app-sample-tree #mobileTree
-                          [programLabel]="$programLabel|async"
-                          queryTabIndexParamName="mobileTab"
-                          [usageMode]="'FIELD'"
-                          [mobile]="true"
-                          [debug]="true">
+                           [programLabel]="$programLabel|async"
+                           [defaultSampleDate]="defaultSampleDate"
+                           queryTabIndexParamName="mobileTab"
+                           [usageMode]="'FIELD'"
+                           [mobile]="true"
+                           [debug]="true">
           </app-sample-tree>
         </ion-col>
 
@@ -119,7 +120,6 @@
                           queryTabIndexParamName="desktopTab"
                           [defaultSampleDate]="defaultSampleDate"
                           [usageMode]="'FIELD'"
-                          [mobile]="false"
                           [debug]="true">
          </app-sample-tree>
        </ion-col>

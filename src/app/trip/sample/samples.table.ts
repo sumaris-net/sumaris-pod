@@ -31,8 +31,8 @@ import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measuremen
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { FormGroup } from '@angular/forms';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { Sample, SampleUtils } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
@@ -40,7 +40,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
 import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { isNilOrNaN } from '@app/shared/functions';
@@ -48,6 +48,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { BatchGroup } from '@app/trip/services/model/batch-group.model';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { MatCellDef } from '@angular/material/table';
+import { OverlayEventDetail } from '@ionic/core';
 
 const moment = momentImported;
 
@@ -91,7 +92,6 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   private _footerRowsSubscription: Subscription;
-  private _availableReleases: Sample[] = [];
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -110,6 +110,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
 
+  @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
   @Input() useSticky = false;
   @Input() canAddPmfm = false;
@@ -121,16 +122,19 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
   @Input() showIndividualReleaseButton = false;
+  @Input() showIndividualMonitoringButton = false;
   @Input() defaultSampleDate: Moment;
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
-  @Input() individualReleaseModalOptions: Partial<ISubSampleModalOptions>;
+  @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() tagIdMinLength = 4;
   @Input() tagIdPadString = '0';
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
 
   //@ViewChild('[appActionCellDef]') actionCellDef: AppActionCellDef;
 
@@ -182,22 +186,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
-  @Input()
-  set availableReleases(children: Sample[]) {
-    if (this._availableReleases !== children) {
-
-      this._availableReleases = children;
-      this.linkReleasesToParent();
-    }
-  }
+  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
 
   get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
   }
 
   @Output() onPrepareRowForm = new EventEmitter<{ form: FormGroup, pmfms: IPmfm[] }>();
-  @Output() onIndividualReleaseChanges = new EventEmitter<Sample>();
-  @Output() onIndividualReleaseDelete = new EventEmitter<Sample>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -229,6 +224,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
     this.defaultSortDirection = 'asc';
@@ -270,6 +266,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
+
+    // in DEBUG only: force validator = null
+    if (this.debug && this.mobile) this.setValidatorService(null);
 
     super.ngOnInit();
 
@@ -317,12 +316,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return column.key;
   }
 
-  setIndividualReleaseModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
-    this.individualReleaseModalOptions = this.individualReleaseModalOptions || {};
-    this.individualReleaseModalOptions[key as any] = value;
+  setSubSampleModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
+    this.subSampleModalOptions = this.subSampleModalOptions || {};
+    this.subSampleModalOptions[key as any] = value;
   }
 
-  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
     console.debug('[samples-table] Opening detail modal...');
     const pmfms = await firstNotNilPromise(this.$pmfms);
 
@@ -348,12 +347,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       i18nSuffix: this.i18nColumnSuffix,
       usageMode: this.usageMode,
       showLabel: this.showLabelColumn,
+      mobile: this.mobile,
       defaultSampleDate: this.defaultSampleDate,
       showSampleDate: this.showSampleDateColumn,
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
       showIndividualReleaseButton: this.showIndividualReleaseButton,
       onReady: onModalReady,
+      onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {
           await this.addEntityToTable(dataToSave);
@@ -367,9 +368,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         await this.onNewEntity(newData);
         return newData;
       },
-
-      onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
-      openIndividualReleaseModal: (subSample) => this.openIndividualReleaseModalFromParentModal(dataToOpen),
+      openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
 
       // Override using given options
       ...this.modalOptions,
@@ -383,43 +382,67 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       component: SampleModal,
       componentProps: options,
       keyboardClose: true,
-      backdropDismiss: false
+      backdropDismiss: false,
+      cssClass: 'modal-large'
     });
 
     // Open the modal
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const {data, role} = await modal.onDidDismiss();
     if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
     this.markAsLoaded();
 
-    return data instanceof Sample ? data : undefined;
+    return data instanceof Sample ? {data, role} : undefined;
   }
 
-  async onIndividualReleaseClick(event: UIEvent,
-                                 row: TableElement<Sample>) {
-    if (event) event.preventDefault();
+  async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {
+    return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
 
+  }
+
+  async onIndividualReleaseClick(event: UIEvent, row: TableElement<Sample>) {
+    return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
+  }
+
+  async onSubSampleButtonClick(event: UIEvent,
+                               row: TableElement<Sample>,
+                               acquisitionLevel: AcquisitionLevelType) {
+    if (event) event.preventDefault();
+    console.debug(`[samples-table] onSubSampleButtonClick() on ${acquisitionLevel}`);
     // Loading spinner
     this.markAsLoading();
 
     try {
 
-      const selectedParent = this.toEntity(row);
-      const subSample = await this.openIndividualReleaseModal(selectedParent, {enableParent: false});
+      const parent = this.toEntity(row);
+      const { data, role } = await this.openSubSampleModal(parent, {acquisitionLevel });
 
-      if (isNil(subSample)) return; // User cancelled
+      if (isNil(data)) return; // User cancelled
 
-      // Update the batch group, from subbatches (e.g. observed individual count)
-      this.onIndividualReleaseChanges.emit(subSample);
+      if (role === 'DELETE') {
+        parent.children = SampleUtils.removeChild(parent, data);
+      }
+      else {
+        parent.children = SampleUtils.insertOrUpdateChild(parent, data, acquisitionLevel);
+      }
+
+      if (row.validator) {
+        row.validator.patchValue({children: parent.children});
+      }
+      else {
+        row.currentData.children = parent.children.slice(); // Force pipes update
+        this.markAsDirty();
+      }
 
     } finally {
       this.markAsLoaded();
     }
   }
 
-  protected async openIndividualReleaseModalFromParentModal(parent: Sample): Promise<Sample> {
+  protected async openSubSampleModalFromRootModal(parent: Sample, acquisitionLevel: AcquisitionLevelType): Promise<Sample> {
+    if (!parent || !acquisitionLevel) throw Error('Missing \'parent\' or \'acquisitionLevel\' arguments');
 
     // Make sure the row exists
     this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
@@ -427,33 +450,43 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       // Or add it to table, if new
       || (await this.addEntityToTable(parent, {confirmCreate: false}));
 
-    parent.children = this._availableReleases.filter(r => r.parent.id === parent?.id);
+    const { data, role } = await this.openSubSampleModal(parent, { acquisitionLevel });
 
-    const subSamples = await this.openIndividualReleaseModal(parent, {
-      enableParent: false // action triggered from the parent sample modal, so the parent field can be hidden
-    });
+    if (isNil(data)) return; // User cancelled
 
-    if (isNil(subSamples)) return; // User cancelled
+    if (role === 'DELETE') {
+      parent.children = SampleUtils.removeChild(parent, data);
+    }
+    else {
+      parent.children = SampleUtils.insertOrUpdateChild(parent, data, acquisitionLevel);
+    }
 
     // Return the updated parent
     return parent;
   }
 
-  protected async openIndividualReleaseModal(parentSample?: Sample, opts?: {
-    enableParent: boolean
-  }): Promise<Sample | undefined> {
+  protected async openSubSampleModal(parentSample?: Sample, opts?: {
+    showParent?: boolean;
+    acquisitionLevel?: AcquisitionLevelType;
+  }): Promise<OverlayEventDetail<Sample | undefined>> {
 
-    const enableParent = !opts || opts.enableParent !== false; // True by default
-    const onModalDismiss = new Subject<any>();
 
-    const isNew = !parentSample || !parentSample.children || parentSample.children.length === 0;
+    const showParent = opts && opts.showParent === true; // False by default
+    const acquisitionLevel = opts?.acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
+
+    console.debug(`[samples-table] Opening sub-sample modal for {acquisitionLevel: ${acquisitionLevel}}`);
+
+    const children = SampleUtils.filterByAcquisitionLevel(parentSample.children || [], acquisitionLevel);
+    const isNew = !children || children.length === 0;
     let subSample: Sample;
     if (isNew) {
       subSample = new Sample();
-      subSample.parent = parentSample;
     } else {
-      subSample = parentSample.children[0];
+      subSample = children[0];
     }
+
+    // Make sure to set the parent
+    subSample.parent = parentSample.asObject({withChildren: false});
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -461,19 +494,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       componentProps: <ISubSampleModalOptions>{
         programLabel: this.programLabel,
         usageMode: this.usageMode,
-        acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_RELEASE,
+        acquisitionLevel,
         isNew,
-        enableParent,
         data: subSample,
+        showParent,
+        i18nSuffix: this.i18nColumnSuffix,
+        defaultLatitudeSign: this.defaultLatitudeSign,
+        defaultLongitudeSign: this.defaultLongitudeSign,
         showLabel: false,
         disabled: this.disabled,
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
         mobile: this.mobile,
-        onDelete:  (event, dataToDelete)  => {
-          this.onIndividualReleaseDelete.emit(dataToDelete);
-          return true;
-        },
-        ...this.individualReleaseModalOptions
+
+        onDelete: (event, data) => Promise.resolve(true),
+        ...this.subSampleModalOptions
       },
       backdropDismiss: false,
       keyboardClose: true,
@@ -484,21 +518,35 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
-
-    onModalDismiss.next(); // disconnect observables
+    const {data, role} = await modal.onDidDismiss();
 
     // User cancelled
     if (isNil(data)) {
       if (this.debug) console.debug('[sample-table] Sub-sample modal: user cancelled');
     } else {
       // DEBUG
-      if (this.debug) console.debug('[sample-table] Sub-sample modal result: ', data);
-
-      this.onIndividualReleaseChanges.emit(data);
+      if (this.debug) console.debug('[sample-table] Sub-sample modal result: ', data, role);
     }
 
-    return data;
+    return {data, role};
+  }
+
+  onDeleteSubSample(event: UIEvent, parent: Sample, subSample: Sample): boolean {
+
+    parent.children = SampleUtils.removeChild(parent, subSample);
+
+    this.findRowByEntity(parent)
+      .then(row => {
+        if (row.validator) {
+          row.validator.patchValue({ children: parent.children})
+        }
+        else {
+          row.currentData.children = parent.children.slice(); // Force pipes update
+          this.markAsDirty();
+        }
+      });
+
+    return true;
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
@@ -561,21 +609,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   /* -- protected methods -- */
-
-  protected async linkReleasesToParent() {
-
-    const rows = await this.dataSource.getRows();
-
-    // Check if need to delete some rows
-    const data = rows.filter(row => {
-      const item = row.currentData;
-      item.children = this._availableReleases.filter(r => r.parent.id === item.id);
-      return true;
-    }).map(r => r.currentData);
-
-    this.value = data;
-  }
-
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
@@ -658,7 +691,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const data = await this.openDetailModal();
+    const {data} = await this.openDetailModal();
     if (data) {
       await this.addEntityToTable(data);
     }
@@ -673,14 +706,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       return true;
     }
 
-    const data = this.toEntity(row, true);
+    const dataToOpen = this.toEntity(row, true);
 
     // Prepare entity measurement values
-    this.prepareEntityToSave(data);
+    this.prepareEntityToSave(dataToOpen);
 
-    const updatedData = await this.openDetailModal(data, row);
-    if (updatedData) {
-      await this.updateEntityToTable(updatedData, row);
+    const {data} = await this.openDetailModal(dataToOpen, row);
+    if (data) {
+      await this.updateEntityToTable(data, row);
     } else {
       this.editedRow = null;
     }
@@ -691,7 +724,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Override by subclasses
   }
 
-  protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
+  async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
     return (await this.dataSource.getRows())
       .find(r => r.currentData.rankOrder === data.rankOrder);
@@ -709,6 +742,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
     return canDeleteRow;
   }
+
 
   protected async addPmfmColumns(pmfmIds: number[]) {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
@@ -791,9 +825,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           // Use rankOrder as a group index (will be used in template, to computed column class)
           if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
             pmfm.rankOrder = groupIndex;
-            if (pmfm.id === PmfmIds.DRESSING) {
-              pmfm.completeName = null;
-            }
           }
 
           // Apply weight conversion, if need
@@ -814,7 +845,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
             return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
               key,
               label: group,
-              name: visible && (this.i18nColumnPrefix + group) || '',
+              name: visible && ('TRIP.SAMPLE.PMFM_GROUP.' + group) || '',
               cssClass: visible && cssClass || '',
               colSpan: groupPmfmCount
             });
@@ -870,12 +901,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return color ? `var(--ion-color-${color})` : undefined;
   }
 
-  selectInputContent = AppFormUtils.selectInputContent;
-
-  markForCheck() {
-    this.cd.markForCheck();
-  }
-
   addRow(event?: Event, insertAt?: number): boolean {
     this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
@@ -883,7 +908,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected addFooterListener(pmfms: IPmfm[]) {
 
-    this.showTagCount = pmfms && pmfms.findIndex(pmfm => pmfm.id === PmfmIds.TAG_ID) !== -1;
+    this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);
+    this.showTagCount = !!this.tagIdPmfm;
 
     // Should display tag count: add column to footer
     if (this.showTagCount && !this.footerColumns.includes('footer-tagCount')) {
@@ -923,5 +949,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       .length;
     this.tagCount$.next(tagCount);
   }
+
+  selectInputContent = AppFormUtils.selectInputContent;
+  isIndividualMonitoring = SampleUtils.isIndividualMonitoring;
+  isIndividualRelease = SampleUtils.isIndividualRelease;
+
+  markForCheck() {
+    this.cd.markForCheck();
+  }
+
 }
 

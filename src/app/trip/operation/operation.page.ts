@@ -18,7 +18,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService,
+  PlatformService, ReferentialRef,
   ReferentialUtils,
   toBoolean,
   toNumber,
@@ -42,11 +42,6 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 
 const moment = momentImported;
 
-const OPERATION_TABS = {
-  GENERAL: 0,
-  CATCH: 1,
-  SAMPLE: 2
-};
 
 @Component({
   selector: 'app-operation-page',
@@ -66,6 +61,13 @@ const OPERATION_TABS = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationPage extends AppEntityEditor<Operation, OperationService> {
+
+
+  private static TABS = {
+    GENERAL: 0,
+    CATCH: 1,
+    SAMPLE: 2
+  };
 
   private _lastOperationsTripId: number;
   private _measurementSubscription: Subscription;
@@ -109,9 +111,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   get showFabButton(): boolean {
     if (!this._enabled) return false;
     switch (this._selectedTabIndex) {
-      case OPERATION_TABS.CATCH:
+      case OperationPage.TABS.CATCH:
         return this.showBatchTables;
-      case OPERATION_TABS.SAMPLE:
+      case OperationPage.TABS.SAMPLE:
         return this.showSamplesTab;
       default:
         return false;
@@ -317,7 +319,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
             // Force first sub tab index, if modification was done from the form
             // This condition avoid to change subtab, when reloading the page
-            if (this.selectedTabIndex == OPERATION_TABS.GENERAL) {
+            if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
             this.updateTablesState();
@@ -350,7 +352,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
 
             // Force first tab index
-            if (this.selectedTabIndex == OPERATION_TABS.GENERAL) {
+            if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
             this.updateTablesState();
@@ -393,7 +395,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             }
 
             // Force first tab index
-            if (this.selectedTabIndex == OPERATION_TABS.GENERAL) {
+            if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
             this.updateTablesState();
@@ -578,10 +580,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   onNewFabButtonClick(event: UIEvent) {
     switch (this.selectedTabIndex) {
-      case OPERATION_TABS.CATCH:
+      case OperationPage.TABS.CATCH:
         if (this.showBatchTables) this.batchTree.addRow(event);
         break;
-      case OPERATION_TABS.SAMPLE:
+      case OperationPage.TABS.SAMPLE:
         if (this.showSamplesTab) this.sampleTree.addRow(event);
         break;
     }
@@ -631,11 +633,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const changed = super.onTabChange(event, queryParamName);
     if (changed) {
       switch (this.selectedTabIndex) {
-        case OPERATION_TABS.CATCH:
+        case OperationPage.TABS.CATCH:
           if (this.showBatchTables && this.batchTree) this.batchTree.realignInkBar();
           this.markForCheck();
           break;
-        case OPERATION_TABS.SAMPLE:
+        case OperationPage.TABS.SAMPLE:
           if (this.showSamplesTab && this.sampleTree) this.sampleTree.realignInkBar();
           this.markForCheck();
           break;
@@ -747,12 +749,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     const invalidTabIndex = invalidTabs.indexOf(true);
 
     // If catch tab, open the invalid sub tab
-    if (invalidTabIndex === OPERATION_TABS.CATCH) {
+    if (invalidTabIndex === OperationPage.TABS.CATCH) {
       this.selectedSubTabIndex = this.batchTree.getFirstInvalidTabIndex();
       this.updateTablesState();
     }
     // If sample tab, open the invalid sub tab
-    else if (invalidTabIndex === OPERATION_TABS.SAMPLE) {
+    else if (invalidTabIndex === OperationPage.TABS.SAMPLE) {
       this.selectedSubTabIndex = this.sampleTree.getFirstInvalidTabIndex();
       this.updateTablesState();
     }
@@ -838,7 +840,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       ...opts
     });
     if (!saved && this.opeForm.invalid) {
-      console.log('TODO computing form error');
+
+      // DEBUG
+      console.debug('[operation] Computing form error...');
+
       this.setError(this.opeForm.formError);
       this.scrollToTop();
     }
@@ -856,13 +861,16 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected async setDefaultTaxonGroups(enable: boolean) {
     if (!enable) {
-      // Reset table's default taxon groups
-      this.batchTree.defaultTaxonGroups = null;
+      // Reset table's taxon groups
+      this.batchTree.availableTaxonGroups = null;
+      this.sampleTree.availableTaxonGroups = null;
       return; // Skip
     }
 
     if (this.debug) console.debug('[operation] Check if can auto fill species...');
-    let defaultTaxonGroups: string[];
+
+    // Load program's taxon groups
+    let availableTaxonGroups = await this.programRefService.loadTaxonGroups(this.$programLabel.value);
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
     const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
@@ -874,23 +882,24 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
-      if (qualitativeValue && qualitativeValue.label) {
-        defaultTaxonGroups = qualitativeValue.label
-          .split(/[^\w]+/) // Split by separator (= not a word)
-          .filter(isNotNilOrBlank)
-          .map(label => label.trim().toUpperCase());
+      const contextualTaxonGroups = qualitativeValue?.label
+        .split(/[^\w]+/) // Split by separator (= not a word)
+        .filter(isNotNilOrBlank)
+        .map(label => label.trim().toUpperCase());
+
+      // Limit the program list, using the restricted list
+      if (isNotEmptyArray(contextualTaxonGroups)) {
+        availableTaxonGroups = availableTaxonGroups.filter(tg => contextualTaxonGroups.includes(tg.label));
       }
-    } else {
-      const taxonGroupRefs = await this.programRefService.loadTaxonGroups(this.$programLabel.value);
-      defaultTaxonGroups = taxonGroupRefs.map(taxonGroup => taxonGroup.label);
     }
 
     // Set table's default taxon groups
-    this.batchTree.defaultTaxonGroups = defaultTaxonGroups;
+    this.batchTree.availableTaxonGroups = availableTaxonGroups;
+    this.sampleTree.availableTaxonGroups = availableTaxonGroups;
 
     // If new data, auto fill the table
     if (this.isNewData) {
-      await this.batchTree.autoFill({defaultTaxonGroups, forceIfDisabled: true});
+      await this.batchTree.autoFill({forceIfDisabled: true});
     }
   }
 
@@ -967,7 +976,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected computeNextTabIndex(): number | undefined {
     if (this.selectedTabIndex > 0) return undefined; // Already on the next tab
 
-    return this.showCatchTab ? OPERATION_TABS.CATCH :
-      (this.showSamplesTab ? OPERATION_TABS.SAMPLE : undefined);
+    return this.showCatchTab ? OperationPage.TABS.CATCH :
+      (this.showSamplesTab ? OperationPage.TABS.SAMPLE : undefined);
   }
 }

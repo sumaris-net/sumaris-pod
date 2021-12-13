@@ -118,7 +118,7 @@
             class="mat-column-pmfm-group mat-cell-content-start-padding"
             [class]="item.cssClass"
             [attr.colspan]="item.colSpan">
-          <ion-label>{{ item.name|translate }}</ion-label>
+          <ion-label>{{ item.name|translateContext: i18nColumnSuffix }}</ion-label>
         </th>
       </ng-container>
     </ng-container>
@@ -132,13 +132,13 @@
 
     <!-- Select checkbox -->
     <ng-container matColumnDef="select" [sticky]="useSticky">
-      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+      <th mat-header-cell *matHeaderCellDef >
         <mat-checkbox (change)="$event ? masterToggle() : null"
                       [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+      <td mat-cell *matCellDef="let row">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
                       [checked]="selection.isSelected(row)">
         </mat-checkbox>
@@ -241,15 +241,15 @@
           mat-sort-header
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
-          [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
+          [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
           [class.mat-cell-content-start-padding]="showGroupHeader">
-        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nContext: i18nColumnSuffix}"></ion-label>
       </th>
       <td mat-cell *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.mat-cell-computed]="pmfm|isComputedPmfm"
-          [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
+          [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
           [class.mat-cell-content-start-padding]="showGroupHeader"
           (click)="focusColumn=(pmfm.id || index).toString()">
 
@@ -281,7 +281,7 @@
                         floatLabel="never">
           <input matInput
                  [formControl]="row.validator.controls.comments"
-                 [placeholder]="i18nColumnPrefix + 'COMMENTS_PLACEHOLDER'|translate"
+                 [placeholder]="'TRIP.SAMPLE.TABLE.COMMENTS_PLACEHOLDER'|translateContext: i18nColumnSuffix"
                  [appAutofocus]="focusColumn === 'comments'">
         </mat-form-field>
         <ng-template #readonlyComment>
@@ -388,13 +388,7 @@
       <!-- Group header: end spacer -->
       <ng-container matColumnDef="top-end">
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderEndColSpan">
-          <button mat-icon-button
-                  *ngIf="!mobile && !selection.hasValue()"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_ADD_ROW'|translate"
-                  (click)="addRow()">
-            <mat-icon>add</mat-icon>
-          </button>
+
           <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="deleteSelection($event)">
@@ -403,13 +397,13 @@
         </th>
       </ng-container>
 
-      <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
           <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                         [indeterminate]="selection.hasValue() && !isAllSelected()">
           </mat-checkbox>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+        <td mat-cell *matCellDef="let row" class="cdk-visually-hidden">
           <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
                         [checked]="selection.isSelected(row)">
           </mat-checkbox>
@@ -471,7 +465,7 @@
             [class.mat-cell-date-time]="pmfm|isDatePmfm"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
             [class.mat-cell-content-start-padding]="showGroupHeader">
-          <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
+          <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
         </th>
         <td mat-cell *matCellDef="let row"
             class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -508,7 +502,24 @@
         </th>
         <td mat-cell *matCellDef="let row">
 
-          <ng-container *ngTemplateOutlet="actionCellDef?.template; context: { $implicit: row  }"></ng-container>
+          <!-- open individual monitoring -->
+          <button mat-icon-button
+                  *ngIf="showIndividualMonitoringButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
+                  [color]="(row.currentData.children | arrayFilter: isIndividualMonitoring | isNotEmptyArray) ? 'primary': 'dark'"
+                  color="primary"
+                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING'|translate"
+                  (click)="onIndividualMonitoringClick($event, row)">
+            <mat-icon>center_focus_strong</mat-icon>
+          </button>
+
+          <!-- open individual release -->
+          <button mat-icon-button
+                  *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
+                  [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) ? 'primary': 'dark'"
+                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
+                  (click)="onIndividualReleaseClick($event, row)">
+            <mat-icon>room</mat-icon>
+          </button>
         </td>
       </ng-container>
 

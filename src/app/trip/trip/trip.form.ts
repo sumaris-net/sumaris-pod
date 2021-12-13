@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { TripValidatorService } from '../services/validator/trip.validator';
 import { ModalController } from '@ionic/angular';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -34,13 +34,13 @@ import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
 import { Trip } from '../services/model/trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { combineAll, debounceTime, filter, map, mergeAll, tap } from 'rxjs/operators';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
-import { BehaviorSubject, merge, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, merge, Observable } from 'rxjs';
 import { Moment } from 'moment';
 import { DateUtils } from '../../../../ngx-sumaris-components/src/app/shared/dates';
 
@@ -58,7 +58,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
-  private _$maxDate = new BehaviorSubject<Moment>(null);
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -161,13 +160,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._loading;
   }
 
-  get maxDate(): Moment {
-    return this._$maxDate.value
-  }
 
-  get maxDateChanges(): Observable<Moment> {
-    return this._$maxDate.asObservable();
-  }
+  @Output() maxDate = new EventEmitter<Moment>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
 
@@ -262,21 +256,22 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         .subscribe((value) => this.updateMetierFilter(value))
     );
 
-    this.registerSubscription(
-      merge(
-          this.form.get('departureDateTime').valueChanges,
-          this.form.get('returnDateTime').valueChanges
-        )
-      .pipe(
-        tap(() => console.log('TODO date changes')),
-        filter(() => !this._loading),
-        map(fromDateISOString),
-        map(date => DateUtils.max(this._$maxDate.value, date))
-      ).subscribe(maxDate => this._$maxDate.next(maxDate)));
+
   }
 
   ngOnReady() {
     this.updateFormGroup();
+
+    this.registerSubscription(
+      combineLatest([
+        this.form.get('departureDateTime').valueChanges,
+        this.form.get('returnDateTime').valueChanges
+      ])
+      .subscribe(([d1, d2]) => {
+        const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
+        this.maxDate.next(max);
+      })
+    );
   }
 
   toggleFilteredMetier() {
@@ -324,7 +319,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.metiersHelper?.resize(0);
     }
 
-    this._$maxDate.next(DateUtils.max(data.departureDateTime, data.returnDateTime));
+    this.maxDate.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
 
     // Send value for form
     super.setValue(data, opts);

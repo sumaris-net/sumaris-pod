@@ -166,7 +166,7 @@ export class SamplingLandingPage extends LandingPage {
 
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()]
     if (strategyLabel) {
-      this.samplesTable.strategyLabel = strategyLabel;
+      this.$strategyLabel.next(strategyLabel);
     }
 
     if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {

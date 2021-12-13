@@ -1,12 +1,17 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
 
+export interface SampleValidatorOptions {
+  withChildren?: boolean;
+  measurementValuesAsGroup?: boolean;
+}
+
 @Injectable({providedIn: 'root'})
-export class SampleValidatorService extends AppValidatorService implements ValidatorService {
+export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions> extends AppValidatorService implements ValidatorService {
 
   constructor(
     protected formBuilder: FormBuilder,
@@ -18,8 +23,15 @@ export class SampleValidatorService extends AppValidatorService implements Valid
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Sample): FormGroup {
-    return this.formBuilder.group({
+  getFormGroup(data?: Sample, opts?: O): FormGroup {
+    return this.formBuilder.group(
+      this.getFormGroupConfig(data, opts),
+      this.getFormGroupOptions(data, opts)
+    );
+  }
+
+  getFormGroupConfig(data?: any, opts?: O): { [p: string]: any } {
+    const config = {
       __typename: [Sample.TYPENAME],
       id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
@@ -35,15 +47,33 @@ export class SampleValidatorService extends AppValidatorService implements Valid
       size: [toNumber(data && data.size, null)],
       sizeUnit: [data && data.sizeUnit || null],
       comments: [data && data.comments || null],
-      parent: [data && data.parent || null, SharedValidators.entity],
-      measurementValues: this.formBuilder.group({}),
       children: this.formBuilder.array([])
-    }, {
+    }
+
+    // Add children form array
+    if (!opts || opts.withChildren !== false) {
+      config['children'] = this.formBuilder.array([]);
+    }
+
+    // Add measurement values
+    if (!opts || opts.measurementValuesAsGroup !== false) {
+      config['measurementValues'] = this.formBuilder.group({});
+    }
+    else {
+      config['measurementValues'] = this.formBuilder.control(data?.measurementValues || null);
+    }
+
+
+    return config;
+  }
+
+  getFormGroupOptions(data?: Sample, opts?: O): AbstractControlOptions | null {
+    return {
       validators: [
         SharedFormGroupValidators.requiredIfEmpty('taxonGroup', 'taxonName'),
         SharedFormGroupValidators.requiredIfEmpty('taxonName', 'taxonGroup')
       ]
-    });
+    };
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {

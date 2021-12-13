@@ -16,7 +16,7 @@ import { environment } from '../../../environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { SampleForm } from './sample.form';
 import { Sample } from '../services/model/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
@@ -25,10 +25,11 @@ import { debounceTime, filter } from 'rxjs/operators';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Moment } from 'moment';
 
-
+export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
 
   // UI Fields show/hide
+  mobile: boolean;
   showLabel: boolean;
   showSampleDate: boolean;
   showTaxonGroup: boolean;
@@ -45,7 +46,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   // Callback actions
   onSaveAndNew: (data: Sample) => Promise<Sample>;
   onReady: (modal: M) => Promise<void> | void;
-  openIndividualReleaseModal: (subSample: Sample) => Promise<Sample>;
+  openSubSampleModal: (parent: Sample, acquisitionLevel: AcquisitionLevelType) => Promise<Sample>;
 }
 
 @Component({
@@ -59,8 +60,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
-  mobile: boolean;
 
+  @Input() mobile: boolean;
   @Input() isNew: boolean;
   @Input() data: Sample;
   @Input() disabled: boolean;
@@ -83,7 +84,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
   @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
-  @Input() openIndividualReleaseModal: (subSample: Sample) => Promise<Sample>;
+  @Input() openSubSampleModal: (parent: Sample, acquisitionLevel: AcquisitionLevelType) => Promise<Sample>;
 
   @ViewChild('form', {static: true}) form: SampleForm;
   @ViewChild(IonContent) content: IonContent;
@@ -124,6 +125,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
+    this.showIndividualReleaseButton = !!this.openSubSampleModal;
     if (isNil(this.enableBurstMode)) {
       this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
         this.usageMode === 'FIELD');
@@ -212,7 +214,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     const data = this.getDataToSave();
     if (!data) return; // invalid
 
-    this.loading = true;
+    this.markAsLoading();
 
     try {
       const newData = await this.onSaveAndNew(data);
@@ -220,8 +222,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       await this.scrollToTop();
     } finally {
-      this.loading = false;
-      this.markForCheck();
+      this.markAsLoaded();
     }
   }
 
@@ -234,7 +235,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     // Leave without saving
     if (!this.dirty) {
-      this.loading = true;
+      this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
     // Convert and dismiss
@@ -242,36 +243,39 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       const data = this.dirty ? this.getDataToSave() : this.data;
       if (!data) return; // invalid
 
-      this.loading = true;
+      this.markAsLoading();
       await this.modalCtrl.dismiss(data);
     }
   }
 
   async delete(event?: UIEvent) {
-    if (!this.onDelete) return; // Skip
+    let canDelete = true;
 
-    const result = await this.onDelete(event, this.data);
+    if (this.onDelete) {
+      canDelete = await this.onDelete(event, this.data);
+      if (isNil(canDelete) || (event && event.defaultPrevented)) return; // User cancelled
+    }
 
-    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
-
-    if (result) {
-      await this.modalCtrl.dismiss();
+    if (canDelete) {
+      await this.modalCtrl.dismiss(this.data, 'DELETE');
     }
   }
 
-  async showIndividualReleaseModal(event?: UIEvent) {
-    if (!this.openIndividualReleaseModal) return; // Skip
+  async showIndividualReleaseModal(event: UIEvent, acquisitionLevel: AcquisitionLevelType) {
+    if (!this.openSubSampleModal) return; // Skip
 
     // Save
-    const savedSample = await this.getDataToSave();
+    const savedSample = await this.getDataToSave({disable: false});
     if (!savedSample) return;
 
     try {
 
       // Execute the callback
-      const updatedParent = await this.openIndividualReleaseModal(savedSample);
+      const updatedParent = await this.openSubSampleModal(savedSample, acquisitionLevel);
 
       if (!updatedParent) return; // User cancelled
+
+      this.form.setChildren(updatedParent.children);
 
       this.form.markAsDirty();
     } finally {
@@ -294,7 +298,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /* -- protected methods -- */
 
-  protected getDataToSave(): Sample {
+  protected getDataToSave(opts?: {disable?: boolean;}): Sample {
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
@@ -304,16 +308,18 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       return undefined;
     }
 
-    this.loading = true;
+    this.markAsLoading();
 
     // To force enable, to get computed values
-    this.form.form.enable();
+    this.enable();
 
     try {
       // Get form value
       return this.form.value;
     } finally {
-      this.form.form.disable();
+      if (!opts || opts.disable !== false) {
+        this.disable();
+      }
     }
   }
 
@@ -327,7 +333,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       //this.form.markAsPristine();
       //this.form.markAsUntouched();
 
-      this.form.enable();
+      this.enable();
 
       if (this.onReady) {
         this.onReady(this);
@@ -373,6 +379,22 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   protected registerSubscription(teardown: TeardownLogic) {
     this._subscription.add(teardown);
+  }
+
+  protected markAsLoading() {
+    this.loading = true;
+    this.markForCheck();
+  }
+  protected markAsLoaded() {
+    this.loading = true;
+    this.markForCheck();
+  }
+  protected enable() {
+    this.form.enable();
+  }
+
+  protected disable() {
+    this.form.disable();
   }
 
   protected markForCheck() {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Alerts, AppFormUtils, isNil, isNotEmptyArray, isNotNilOrBlank, LocalSettingsService, PlatformService, toBoolean, TranslateContextService, UsageMode } from '@sumaris-net/ngx-components';
 import { environment } from '../../../environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
@@ -17,7 +17,7 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
   availableParents: Sample[];
 
   // UI Fields show/hide
-  enableParent: boolean;
+  showParent: boolean;
 
   // UI Options
   maxVisibleButtons: number;
@@ -34,13 +34,14 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
   templateUrl: 'sub-sample.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions {
+export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSampleModalOptions {
 
   private _subscription = new Subscription();
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
   readonly mobile: boolean;
+  i18nFullSuffix: string;
 
   @Input() isNew: boolean;
   @Input() data: Sample;
@@ -54,8 +55,8 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   // UI options
   @Input() i18nSuffix: string;
-  @Input() showLabel = false;
-  @Input() enableParent = true;
+  @Input() showLabel: boolean;
+  @Input() showParent: boolean;
   @Input() showComment: boolean;
   @Input() maxVisibleButtons: number;
   @Input() defaultLatitudeSign: '+' | '-';
@@ -92,7 +93,6 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   ) {
     // Default value
     this.mobile = platform.mobile;
-    this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
 
     // TODO: for DEV only
     this.debug = !environment.production;
@@ -103,7 +103,9 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
+    this.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     this.i18nSuffix = this.i18nSuffix || '';
+    this.i18nFullSuffix = `${this.acquisitionLevel}.${this.i18nSuffix}`;
 
     if (this.disabled) {
       this.form.disable();
@@ -113,26 +115,15 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
       this.form.form.get('rankOrder').setValidators(null);
     }
 
-    // Compute the title
-    this.computeTitle();
 
-    // Update title each time value changes
-    if (!this.isNew) {
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(debounceTime(250))
-          .subscribe(json => this.computeTitle(json))
-      );
-    }
 
-    this.init();
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
   }
 
-  private async init() {
+  async ngAfterViewInit() {
 
     console.debug('[sample-modal] Applying value to form...', this.data);
     this.form.markAsReady();
@@ -149,6 +140,18 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
         promiseOrVoid = this.onReady(this);
         if (promiseOrVoid) await promiseOrVoid;
       }*/
+
+      // Compute the title
+      await this.computeTitle();
+
+      // Update title each time value changes
+      if (!this.isNew) {
+        this._subscription.add(
+          this.form.valueChanges
+            .pipe(debounceTime(250))
+            .subscribe(json => this.computeTitle(json))
+        );
+      }
     }
     finally {
       this.form.markAsUntouched();
@@ -199,14 +202,14 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   }
 
   async delete(event?: UIEvent) {
-    if (!this.onDelete) return; // Skip
+    let canDelete = true;
+    if (this.onDelete) {
+      canDelete = await this.onDelete(event, this.data);
+      if (isNil(canDelete) || (event && event.defaultPrevented)) return; // User cancelled
+    }
 
-    const result = await this.onDelete(event, this.data);
-
-    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
-
-    if (result) {
-      await this.modalCtrl.dismiss();
+    if (canDelete) {
+      await this.modalCtrl.dismiss(this.data, 'DELETE');
     }
   }
 
@@ -267,23 +270,23 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     await this.form.ready();
 
     // DEBUG
-    console.debug('Computing title');
+    console.debug('[sub-sample-modal] Computing title');
 
     data = data || this.data;
 
     // Compute prefix, from parent
     const parentStr = data.parent && this.form?.autocompleteFields.parent.displayWith(data.parent);
     const prefix = isNotNilOrBlank(parentStr)
-      ? this.translateContext.instant('TRIP.SUB_SAMPLE.TITLE_PREFIX', this.i18nSuffix,{ prefix: parentStr})
+      ? this.translateContext.instant(`TRIP.SUB_SAMPLE.TITLE_PREFIX`, this.i18nFullSuffix,{ prefix: parentStr })
       : '';
 
     if (this.isNew || !data) {
-      this.$title.next(prefix + await this.translateContext.get( `TRIP.SUB_SAMPLE.NEW.TITLE`, this.i18nSuffix).toPromise());
+      this.$title.next(prefix + this.translateContext.instant( `TRIP.SUB_SAMPLE.NEW.TITLE`, this.i18nFullSuffix));
     }
     else {
       // Label can be optional (e.g. in auction control)
       const label = this.showLabel && data.label || ('#' + data.rankOrder);
-      this.$title.next(prefix + await this.translateContext.get(`TRIP.SUB_SAMPLE.EDIT.TITLE`, this.i18nSuffix, {label}).toPromise());
+      this.$title.next(prefix + this.translateContext.instant(`TRIP.SUB_SAMPLE.EDIT.TITLE`, this.i18nFullSuffix, {label}));
     }
   }
 

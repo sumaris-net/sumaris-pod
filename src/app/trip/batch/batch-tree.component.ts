@@ -5,7 +5,7 @@ import {
   AppTable,
   Entity,
   firstTruePromise,
-  InMemoryEntitiesService,
+  InMemoryEntitiesService, IReferentialRef,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -16,7 +16,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AlertController, ModalController } from '@ionic/angular';
-import { BehaviorSubject, defer } from 'rxjs';
+import { BehaviorSubject, defer, Observable } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { OperationService } from '../services/operation.service';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
@@ -34,6 +34,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { SubBatch, SubBatchUtils } from '../services/model/subbatch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 @Component({
   selector: 'app-batch-tree',
@@ -123,12 +124,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
   }
 
-  @Input() set defaultTaxonGroups(value: string[]) {
-    this.batchGroupsTable.defaultTaxonGroups = value;
+  @Input() set availableTaxonGroups(value: TaxonGroupRef[]) {
+    this.batchGroupsTable.availableTaxonGroups = value;
   }
 
-  get defaultTaxonGroups(): string[] {
-    return this.batchGroupsTable.defaultTaxonGroups;
+  get availableTaxonGroups(): TaxonGroupRef[]  {
+    return this.batchGroupsTable.availableTaxonGroups;
   }
 
   @Input() set defaultHasSubBatches(value: boolean) {
@@ -420,7 +421,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
     }
 
-    // Propagate to observables
+    // Propagate to children components, if need
+    // This should be need when $program has been set by parent, and not from the $programLabel observable
     if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
   }
 
@@ -441,17 +443,18 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string) {
     const result = super.onTabChange(event, queryTabIndexParamName);
-    if (this.loading) return result;
 
-    // On each tables, confirm the current editing row
-    if (this.showBatchTables && this.batchGroupsTable) this.batchGroupsTable.confirmEditCreate();
-    if (this.allowSubBatches && this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
+    if (!this.loading)  {
+      // On each tables, confirm the current editing row
+      if (this.showBatchTables && this.batchGroupsTable) this.batchGroupsTable.confirmEditCreate();
+      if (this.allowSubBatches && this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
+    }
 
     return result;
   }
 
 
-  async autoFill(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean; }): Promise<void> {
+  async autoFill(opts?: { forceIfDisabled?: boolean; }): Promise<void> {
     return this.batchGroupsTable.autoFillTable(opts);
   }
 

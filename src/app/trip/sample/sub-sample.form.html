@@ -6,6 +6,14 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
+  <ion-text *ngIf="debug">
+    showParent: {{showParent}}<br/>
+    i18nFieldPrefix: {{i18nFieldPrefix}}<br/>
+    i18nPmfmPrefix: {{i18nPmfmPrefix}}<br/>
+    i18nSuffix: {{i18nSuffix}}<br/>
+    i18nFullSuffix: {{i18nFullSuffix}}<br/>
+  </ion-text>
+
   <ion-grid class="ion-no-padding ion-padding-start">
     <ion-row class="ion-no-padding">
       <!-- label -->
@@ -16,9 +24,9 @@
                  formControlName="label"
                  [appAutofocus]="enabled &&  focusFieldName === 'label'"
                  [tabindex]="tabindex"
-                 [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nSuffix"
+                 [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nFullSuffix"
                  (click)="selectInputContent($event)"
-                 [required]="showLabel">
+                 required>
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
           </mat-error>
           <!-- Need by auction control (label as an additional validator) -->
@@ -28,13 +36,13 @@
       </ion-col>
 
       <!-- Parent -->
-      <ion-col size="6" size-md="">
+      <ion-col size="6" size-md="" *ngIf="!loading">
           <mat-autocomplete-field formControlName="parent"
                                   [autofocus]="enabled && focusFieldName === 'parent'"
-                                  [placeholder]="(displayParentPmfm | pmfmName) || ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nSuffix)"
+                                  [placeholder]="(displayParentPmfm | pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}) || ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)"
                                   [config]="autocompleteFields.parent"
                                   [tabindex]="(showLabel ? 1 : 0) + tabindex"
-                                  [readonly]="!enableParent"
+                                  [readonly]="!showParent"
                                   required>
           </mat-autocomplete-field>
       </ion-col>
@@ -50,15 +58,15 @@
                class="pmfm-{{pmfm.id}}">
         <app-pmfm-field #matInput
                         [pmfm]="pmfm"
-                        [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPrefix, i18nContext: i18nSuffix}"
+                        [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                         [style]="mobile && 'button'"
                         [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                         [maxVisibleButtons]="maxVisibleButtons"
                         [compact]="compact"
                         [tabindex]="tabindex+2 + i*maxVisibleButtons"
                         [defaultLatitudeSign]="defaultLatitudeSign"
-                        [defaultLongitudeSign]="defaultLongitudeSign">
-          <!-- TODO (keyup.enter)="last && onSubmit($event)" -->
+                        [defaultLongitudeSign]="defaultLongitudeSign"
+                        (keyup.enter)="last && doSubmit($event)">
         </app-pmfm-field>
       </ion-col>
     </ion-row>

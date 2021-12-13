@@ -84,7 +84,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   protected getValue(): Batch {
     const batch = super.getValue();
-    console.log('TODO', batch);
     return batch;
   }
 }

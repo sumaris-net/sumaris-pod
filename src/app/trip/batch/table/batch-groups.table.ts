@@ -4,7 +4,7 @@ import {FormGroup, Validators} from '@angular/forms';
 import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from './batches.table';
 import {
   changeCaseToUnderscore,
-  ColumnItem,
+  ColumnItem, firstNotNilPromise,
   FormFieldDefinition,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -32,7 +32,7 @@ import {Batch, BatchUtils, BatchWeight} from '../../services/model/batch.model';
 import {BatchGroupModal, IBatchGroupModalOptions} from '../modal/batch-group.modal';
 import {BatchGroup} from '../../services/model/batch-group.model';
 import {SubBatch} from '../../services/model/subbatch.model';
-import {defer, Observable, Subject} from 'rxjs';
+import { defer, isObservable, Observable, Subject } from 'rxjs';
 import {map, takeUntil} from 'rxjs/operators';
 import {ISubBatchesModalOptions, SubBatchesModal} from '../modal/sub-batches.modal';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
@@ -178,7 +178,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Input() useSticky = false;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
-  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() availableTaxonGroups: TaxonGroupRef[];
 
   @Input() set showSamplingBatchColumns(value: boolean) {
     if (this._showSamplingBatchColumns !== value) {
@@ -213,20 +213,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Input() showIndividualCountColumns: boolean;
   @Input() showError = true;
-
-  @Input() set defaultTaxonGroups(value: string[]) {
-    // If empty, replace with undefined (need by autoFill button - see template)
-    value = isNotEmptyArray(value) ? value : undefined;
-    if (this._defaultTaxonGroups !== value) {
-      this._defaultTaxonGroups = value;
-      this.loadAvailableTaxonGroups();
-      this.markForCheck();
-    }
-  }
-
-  get defaultTaxonGroups(): string[] {
-    return this._defaultTaxonGroups;
-  }
 
   get additionalPmfms(): IPmfm[] {
     return this._initialPmfms.filter(pmfm => (!this.qvPmfm || pmfm.id !== this.qvPmfm.id) && pmfm.id !== this.defaultWeightPmfm.id);
@@ -273,6 +259,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
     this.showIndividualCountColumns = toBoolean(this.showIndividualCountColumns, !this.mobile);
+
+    // in DEBUG only: force validator = null
+    if (this.debug && this.mobile) this.setValidatorService(null);
+
     super.ngOnInit();
   }
 
@@ -369,9 +359,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    *
    * @params opts.includeTaxonGroups : include taxon label
    */
-  async autoFillTable(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean; }) {
-    // Wait table ready
-    await this.waitIdle();
+  async autoFillTable(opts?: { forceIfDisabled?: boolean; }) {
+    // Wait table ready and loaded
+    await Promise.all([this.ready(), this.waitIdle()]);
 
     // Skip when disabled
     if ((!opts || opts.forceIfDisabled !== true) && this.disabled) {
@@ -395,13 +385,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         .map(batch => batch.taxonGroup)
         .filter(isNotNil);
 
-      const taxonGroups = (await this.loadAvailableTaxonGroups(opts))
+      const taxonGroups = this.availableTaxonGroups
         // Exclude species that already exists in table
-        .filter(taxonGroup => !rowsTaxonGroups.find(tg => ReferentialUtils.equals(tg, taxonGroup)));
+        .filter(taxonGroup => !rowsTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
 
       for (const taxonGroup of taxonGroups) {
         const batch = new BatchGroup();
-        batch.taxonGroup = taxonGroup;
+        batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
         await this.addEntityToTable(batch);
       }
 
@@ -423,14 +413,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return column.rankOrder;
   }
 
-  hideUnusedColumns() {
+  // FIXME check if need by any program
+  async hideUnusedColumns() {
     // DEBUG
     console.debug('[batch-groups-table] hideUnusedColumns()');
-
-    const defaultTaxonGroups = this.defaultTaxonGroups;
-    if (isNotEmptyArray(defaultTaxonGroups) && isNotEmptyArray(this.taxonGroupsNoWeight)) {
-      const allTaxonHasNoWeight = defaultTaxonGroups
-        .every(tg => this.taxonGroupsNoWeight.findIndex(tgNw => tgNw.startsWith(tg)) !== -1);
+    const availableTaxonGroups = this.availableTaxonGroups;
+    if (isNotEmptyArray(availableTaxonGroups) && isNotEmptyArray(this.taxonGroupsNoWeight)) {
+      const allTaxonHasNoWeight = availableTaxonGroups
+        .every(tg => this.taxonGroupsNoWeight.findIndex(tgNw => tgNw.startsWith(tg.label)) !== -1);
       this.showWeightColumns = !allTaxonHasNoWeight;
     } else {
       this.showWeightColumns = true;
@@ -1092,9 +1082,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   protected async loadAvailableTaxonGroups(opts?: { defaultTaxonGroups?: string[] }): Promise<TaxonGroupRef[]> {
-    if (!this.programLabel) {
-      return;
-    }
+    if (!this.programLabel) return;
     const defaultTaxonGroups = opts && opts.defaultTaxonGroups || this._defaultTaxonGroups || null;
     console.debug('[batch-group-table] Loading available taxon groups, using options:', opts);
 

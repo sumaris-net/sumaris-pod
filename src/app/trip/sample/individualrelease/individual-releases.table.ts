@@ -16,14 +16,12 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 })
 export class IndividualReleasesTable extends SubSamplesTable {
 
-  static DEFAULT_I18N_SUFFIX = 'INDIVIDUAL_RELEASE.';
 
   constructor(
     injector: Injector
   ) {
     super(injector);
     this.acquisitionLevel = AcquisitionLevelCodes.INDIVIDUAL_RELEASE;
-    this.i18nColumnSuffix = IndividualReleasesTable.DEFAULT_I18N_SUFFIX;
   }
 
   /* -- protected functions -- */

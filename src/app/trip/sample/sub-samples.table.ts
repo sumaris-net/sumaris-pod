@@ -14,7 +14,7 @@ import {
   OnReady,
   PlatformService, suggestFromArray,
   toNumber,
-  UsageMode,
+  UsageMode, waitIdle,
 } from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable } from '../measurement/measurements.table.class';
 import { Sample } from '../services/model/sample.model';
@@ -26,6 +26,7 @@ import { SampleFilter } from '../services/filter/sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { firstTruePromise } from '../../../../ngx-sumaris-components/src/app/shared/observables';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -83,6 +84,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
 
   constructor(
     protected injector: Injector
@@ -106,7 +109,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     );
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
-    this.i18nColumnPrefix = 'TRIP.SUB_SAMPLE.TABLE.';
+    this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
+    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
 
@@ -127,34 +131,22 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       showAllOnFocus: true
     });
 
+    // Compute parent, when parents or pmfms changed
     this.registerSubscription(
       merge(
-        this.onParentChanges.pipe(map(() => this.pmfms)),
-        this.$pmfms
+        this.onParentChanges
+          .pipe(map(() => this.pmfms)),
+        this.$pmfms.pipe(
+          filter(isNotEmptyArray),
+          distinctUntilChanged(),
+          tap(pmfms => this.onPmfmsLoaded(pmfms))
+        )
       )
       .pipe(
-        filter(isNotEmptyArray),
-        distinctUntilChanged(),
-        tap(pmfms => this.onPmfmsLoaded(pmfms)),
         tap(pmfms => this.updateParents(pmfms))
       )
       .subscribe()
     )
-  }
-
-  markAsReady(opts?: { emitEvent?: boolean }) {
-    console.log('[sub-samples-table] markAsReady()')
-    super.markAsReady(opts);
-
-    if (this.readySubject.value !== true) {
-      this.readySubject.next(false);
-
-      // If subclasses implements OnReady
-      if (typeof this['ngOnReady'] === 'function') {
-        (this as any as OnReady).ngOnReady();
-      }
-    }
-
   }
 
   setModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
@@ -163,13 +155,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   async autoFillTable() {
-    // Wait table is ready
-    await this.ready();
+    console.debug("[sub-sample-table] Auto fill table");
 
-    // Wait table is loaded
-    if (this.loading) {
-      await firstFalsePromise(this.loadingSubject);
-    }
+    // Wait table ready and loaded
+    await Promise.all([this.ready(), this.waitIdle()]);
 
     // Skip when disabled or still editing a row
     if (this.disabled || !this.confirmEditCreate()) {
@@ -180,7 +169,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.markAsLoading();
 
     try {
-      console.debug("[sub-sample-table] Auto fill table");
+
 
       // Read existing rows
       const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
@@ -212,9 +201,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService.value = data;
   }
 
-  async addRowFromValue(subSample: Sample){
+  async addOrUpdateEntityToTable(subSample: Sample){
     if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)){
-      await this.onNewEntity(subSample);
       await this.addEntityToTable(subSample);
     }
     else {
@@ -236,7 +224,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.markAsLoading();
     const i18PrefixParts = this.i18nColumnPrefix && this.i18nColumnPrefix.split('.');
     const i18nPrefix = i18PrefixParts && (i18PrefixParts.slice(0, i18PrefixParts.length - 2).join('.') + '.');
-    console.log('TODO: ' + i18nPrefix);
 
     const modal = await this.modalCtrl.create({
       component: SubSampleModal,
@@ -250,6 +237,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         i18nSuffix: this.i18nColumnSuffix,
         usageMode: this.usageMode,
         availableParents: this._availableSortedParents,
+        defaultLatitudeSign: this.defaultLatitudeSign,
+        defaultLongitudeSign: this.defaultLongitudeSign,
         onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
 
         // Override using given options
@@ -292,7 +281,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
   protected mapPmfms(pmfms: IPmfm[]) {
     // DEBUG
-    console.debug('[sub-samples-table] Update parents...', pmfms);
+    console.debug('[sub-samples-table] Mapping PMFMs...', pmfms);
 
     const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
     const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
@@ -511,7 +500,6 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // All
     if (isNil(value)) return {data: this._availableSortedParents, total: this._availableSortedParents.length};
 
-    console.log('TODO: suggest parent: ', value, opts);
     return suggestFromArray(this._availableSortedParents, value, {
       ...opts
     });

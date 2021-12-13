@@ -7,7 +7,7 @@ import {
   AppForm,
   AppFormUtils,
   DateFormatPipe,
-  EntityUtils,
+  EntityUtils, firstNotNilPromise,
   FormArrayHelper,
   fromDateISOString,
   IReferentialRef,
@@ -524,10 +524,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   async addParentOperation(): Promise<Operation> {
-    const operation = await this.openSelectOperationModal();
+    const parentOperation = await this.openSelectOperationModal();
 
     // User cancelled
-    if (!operation) {
+    if (!parentOperation) {
       this.parentControl.markAsTouched();
       this.parentControl.markAsDirty();
       this.markForCheck();
@@ -544,23 +544,27 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     const qualityFlagIdControl = form.get('qualityFlagId');
     const fishingAreasControl = this._showFishingArea && form.get('fishingAreas');
 
-    this.parentControl.setValue(operation);
+    this.parentControl.setValue(parentOperation);
 
-    if (this._trip.id === operation.tripId) {
-      physicalGearControl.patchValue(operation.physicalGear);
-      metierControl.patchValue(operation.metier);
-    } else {
-      const physicalGears = this._physicalGearsSubject.getValue().filter((value) => {
-        // TODO: voir comment sélectionner l'engin par rankOrder, label, etc.
-        // Ou alors proposer à l'utilisateur de la choisir
-        return value.gear.id === operation.physicalGear.gear.id;
-      });
+    if (this._trip.id === parentOperation.tripId) {
+      physicalGearControl.patchValue(parentOperation.physicalGear);
+      metierControl.patchValue(parentOperation.metier);
+    }
+    // Parent is not on the same trip
+    else {
+      const physicalGears = (await firstNotNilPromise(this._physicalGearsSubject))
+        .sort(PhysicalGear.sameAsComparator(parentOperation.physicalGear));
 
       if (physicalGears.length > 1) {
-        console.warn('[operation-form] several matching physical gear on trip');
+        if (this.debug) {
+          console.warn('[operation-form] several matching physical gear on trip',
+            physicalGears,
+            physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)))
+        }
+        else console.warn('[operation-form] several matching physical gear on trip', physicalGears);
       } else if (physicalGears.length === 0) {
         // Make a copy of parent operation physical gear's on current trip
-        const physicalGear = await this.physicalGearService.load(operation.physicalGear.id, operation.tripId);
+        const physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId, {toEntity: false});
         physicalGear.id = undefined;
         physicalGear.trip = undefined;
         physicalGear.tripId = this.trip.id;
@@ -571,10 +575,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       }
 
       physicalGearControl.setValue(physicalGears[0]);
-      const metiers = await this.loadMetiers(operation.physicalGear);
+      const metiers = await this.loadMetiers(parentOperation.physicalGear);
 
       const metier = metiers.filter((value) => {
-        return value.id === operation.metier.id;
+        return value.id === parentOperation.metier.id;
       });
 
       if (metier.length === 1) {
@@ -585,11 +589,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
 
     if (this._showPosition) {
-      this.setPosition(startPositionControl, operation.startPosition);
-      this.setPosition(endPositionControl, operation.endPosition);
+      this.setPosition(startPositionControl, parentOperation.startPosition);
+      this.setPosition(endPositionControl, parentOperation.endPosition);
     }
-    if (this._showFishingArea && isNotEmptyArray(operation.fishingAreas)) {
-      const fishingAreasCopy = operation.fishingAreas
+    if (this._showFishingArea && isNotEmptyArray(parentOperation.fishingAreas)) {
+      const fishingAreasCopy = parentOperation.fishingAreas
         .filter(fa => ReferentialUtils.isNotEmpty(fa.location))
         .map(fa => <FishingArea>{location: fa.location});
       if (isNotEmptyArray(fishingAreasCopy) && this.fishingAreasHelper.size() <= 1) {
@@ -598,14 +602,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       }
     }
 
-    startDateTimeControl.patchValue(operation.startDateTime);
-    fishingStartDateTimeControl.patchValue(operation.fishingStartDateTime);
+    startDateTimeControl.patchValue(parentOperation.startDateTime);
+    fishingStartDateTimeControl.patchValue(parentOperation.fishingStartDateTime);
     qualityFlagIdControl.patchValue(null); // Reset quality flag, on a child operation
 
 
     this.markAsDirty();
 
-    return operation;
+    return parentOperation;
   }
 
   addFishingArea() {
@@ -637,11 +641,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   /* -- protected methods -- */
-
-  translateControlPath(path: string): string {
-    console.log('TODO translating path=' + path);
-    return super.translateControlPath(path);
-  }
 
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
@@ -688,7 +687,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   protected async loadMetiers(physicalGear?: PhysicalGear | any): Promise<ReferentialRef[]> {
 
-    console.log('TODO loadMetiers');
     // No gears selected: skip
     if (EntityUtils.isEmpty(physicalGear, 'id')) return undefined;
 

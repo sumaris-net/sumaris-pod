@@ -19,6 +19,8 @@ import { RootDataEntity } from '@app/data/services/model/root-data-entity.model'
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { sampleTime } from 'rxjs/internal/operators';
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -206,6 +208,56 @@ export class SampleUtils {
 
     // Display rankOrder only (should never occur)
     return `#${parent.rankOrder}`;
+  }
+
+  static computeNextRankOrder(sources: Sample[], acquisitionLevel: AcquisitionLevelType) {
+    return sources.filter(s => this.hasAcquisitionLevel(s, acquisitionLevel))
+      .reduce((max, s) => Math.max(max, s.rankOrder || 0), 0) + 1;
+  }
+
+  static computeLabel(rankOrder: number, acquisitionLevel: AcquisitionLevelType) {
+    return acquisitionLevel + '#' + rankOrder;
+  }
+
+  static hasAcquisitionLevel(s: Sample, acquisitionLevel: AcquisitionLevelType) {
+    return s && s.label && s.label.startsWith(acquisitionLevel + '#');
+  }
+  static isIndividualMonitoring = (s: Sample) => SampleUtils.hasAcquisitionLevel(s, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
+  static isIndividualRelease = (s: Sample) => SampleUtils.hasAcquisitionLevel(s, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
+
+  static filterByAcquisitionLevel(samples: Sample[], acquisitionLevel: AcquisitionLevelType): Sample[] | undefined {
+    return samples && samples.filter(s => s.label && s.label.startsWith(acquisitionLevel + '#'));
+  }
+  static filterIndividualMonitoring = (samples: Sample[]) => SampleUtils.filterByAcquisitionLevel(samples, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
+  static filterIndividualRelease = (samples: Sample[]) => SampleUtils.filterByAcquisitionLevel(samples, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
+
+  static insertOrUpdateChild(parent: Sample, child: Sample, acquisitionLevel: AcquisitionLevelType): Sample[] {
+    if (!parent || !child) throw new Error('Missing \'parent\' or \'child\' arguments');
+    parent.children = parent.children || [];
+    const subSampleIndex = parent.children.findIndex(s => Sample.equals(s, child));
+    const isNew = subSampleIndex === -1;
+    // Add
+    if (isNew) {
+      child.rankOrder = this.computeNextRankOrder(parent.children, acquisitionLevel);
+      child.label = this.computeLabel(parent.rankOrder, acquisitionLevel);
+      parent.children.push(child); // Create a copy, to force change detection to recompute pipes
+    }
+    // Or replace
+    else {
+      parent.children[subSampleIndex] = child;
+    }
+    return parent.children;
+  }
+
+  static removeChild(parent: Sample, child: Sample): Sample[] {
+    if (!parent || !child) throw new Error('Missing \'parent\' or \'child\' arguments');
+    const subSampleIndex = (parent.children || []).findIndex(s => Sample.equals(s, child));
+    const exists = subSampleIndex !== -1;
+    // Add
+    if (exists) {
+      parent.children.splice(subSampleIndex, 1);
+    }
+    return parent.children;
   }
 
   static logSample(sample: Sample, opts?: {

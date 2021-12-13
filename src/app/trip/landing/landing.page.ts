@@ -336,7 +336,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
-    await super.setProgram(program);
+    console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
     // Customize the UI, using program options
     const requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
@@ -355,6 +355,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.i18nSuffix = i18nSuffix;
 
     if (this.samplesTable) {
+      this.samplesTable.i18nColumnSuffix = i18nSuffix;
       this.samplesTable.modalOptions = {
         ...this.samplesTable.modalOptions,
         maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
@@ -404,12 +405,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.showTaxonGroupColumn = false;
 
       // Load strategy's pmfms
-      const samplesStrategyPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(this.$program.value.label,
+      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(this.$program.value.label,
         {
           strategyLabel: strategy.label,
           acquisitionLevel: this.samplesTable.acquisitionLevel
         });
-      const strategyPmfmIds = samplesStrategyPmfms.map(pmfm => pmfm.id);
+      const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
       const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
@@ -427,13 +428,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
         // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
         // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
-        this.samplesTable.pmfms = [
-          ...samplesStrategyPmfms,
-          ...additionalFullPmfms
-        ];
-      } else {
-        this.samplesTable.pmfms = samplesStrategyPmfms;
+        samplesPmfms = samplesPmfms.concat(additionalFullPmfms);
       }
+
+      // Give it to samples table (but exclude STRATEGY_LABEL)
+      this.samplesTable.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
     }
 
     this.markForCheck();

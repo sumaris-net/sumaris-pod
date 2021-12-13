@@ -27,15 +27,15 @@ export class PmfmNamePipe implements PipeTransform {
     i18nPrefix?: string;
     i18nContext?: string;
   }): string {
+    if (!pmfm) return '';
     // Try to resolve PMFM using prefix + label
     if (opts && isNotNilOrBlank(opts.i18nPrefix)) {
       const i18nKey = opts.i18nPrefix + pmfm.label;
 
       // I18n translation WITH context, if any
       if (opts && opts.i18nContext) {
-        const contextualKey = this.translateContext.contextualKey(i18nKey, opts.i18nContext);
-        const contextualTranslation = this.translate.instant(contextualKey);
-        if (contextualTranslation !== contextualKey) return contextualTranslation;
+        const contextualTranslation = this.translateContext.instant(i18nKey, opts.i18nContext);
+        if (contextualTranslation !== i18nKey) return contextualTranslation;
       }
 
       // I18n translation without context

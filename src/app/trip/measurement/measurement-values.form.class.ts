@@ -36,6 +36,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $programLabel = new BehaviorSubject<string>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  i18nPmfmPrefix: string = null;
 
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _gearId: number = null;
@@ -92,7 +93,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value && isNotNil(value)) {
+    if (isNotNil(value) && this._acquisitionLevel !== value) {
       this._acquisitionLevel = value;
       if (!this.starting) this._onRefreshPmfms.emit();
     }
@@ -235,8 +236,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     await firstNotNilPromise(this.$loadingStep
       .pipe(
-        filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY),
-        map(_ => true)
+        filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
       ));
   }
 
@@ -434,9 +434,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   resetPmfms() {
-    this.markAsLoading();
-    if (this.debug && this.$pmfms.value) console.warn(`${this.logPrefix} Reset pmfms`);
-    if (this.$pmfms.value) this.$pmfms.next(undefined);
+    if (isNil(this.$pmfms.value)) return; // Already resetted
+
+    if (this.debug) console.warn(`${this.logPrefix} Reset pmfms`);
+
+    if (!this.starting && !this.loading) this.markAsLoading();
+    this.$pmfms.next(undefined);
   }
 
   async setPmfms(value: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
@@ -586,7 +589,6 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';
     return `[meas-values-form-${acquisitionLevel}]`;
   }
-
 
   protected markForCheck() {
     this.cd?.markForCheck();

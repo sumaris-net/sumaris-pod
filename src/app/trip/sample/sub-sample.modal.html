@@ -9,6 +9,7 @@
 
     <!-- Options menu -->
     <button mat-icon-button
+            *ngIf="!isNew"
             [title]="'COMMON.OPTIONS'|translate"
             [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
@@ -40,7 +41,7 @@
                        [i18nSuffix]="i18nSuffix"
                        [usageMode]="usageMode"
                        [showLabel]="showLabel"
-                       [enableParent]="enableParent"
+                       [showParent]="showParent"
                        [showComment]="showComment"
                        [availableParents]="availableParents"
                        [maxVisibleButtons]="maxVisibleButtons"
@@ -62,7 +63,7 @@
 
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm *ngIf="!mobile">
+<ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <ion-toolbar>
 
@@ -71,13 +72,13 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="close()">
+        <ion-button fill="clear" color="dark" (click)="close($event)">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
         <ion-button color="tertiary"
                     [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
+                    [disabled]="loading || disabled"
                     (keyup.enter)="onSubmit($event)"
                     (click)="onSubmit($event)">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>

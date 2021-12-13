@@ -97,11 +97,11 @@
               <form-trip #tripForm
                          [showError]="false"
                          [returnFieldsRequired]="usageMode|isNotOnField"
-                         (onSubmit)="save($event)">
+                         (onSubmit)="save($event)"
+                         (maxDate)="saleForm.minDate = $event">
                 <!-- sale -->
                 <form-sale #saleForm
                            [class.cdk-visually-hidden]="!showSaleForm"
-                           [minDate]="tripForm.maxDateChanges|async"
                            [showVessel]="false"
                            [showError]="false"
                            [showComment]="false"

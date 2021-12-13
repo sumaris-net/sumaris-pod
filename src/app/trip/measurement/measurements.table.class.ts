@@ -59,6 +59,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected readonly options: AppMeasurementsTableOptions<T>;
 
   measurementValuesFormGroupConfig: { [key: string]: any };
+  i18nPmfmPrefix: string = null;
+
   readonly hasRankOrder: boolean;
 
   @Input() set requiredStrategy(value: boolean) {
@@ -163,9 +165,9 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return this.measurementsDataService.delegate;
   }
 
-  get loading(): boolean {
+  /*get loading(): boolean {
     return this.measurementsDataService.loadingPmfms && isNotNil(this.pmfms);
-  }
+  }*/
 
   protected constructor(
     protected injector: Injector,
@@ -223,6 +225,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Remember the value of autoLoad, but force to false, to make sure pmfm will be loaded before
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
+    this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
@@ -566,7 +569,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   protected getI18nPmfmName(pmfm: IPmfm) {
     if (pmfm) return this.pmfmNamePipe.transform(pmfm, {
-      i18nPrefix: this.i18nColumnPrefix,
+      i18nPrefix: this.i18nPmfmPrefix,
       i18nContext: this.i18nColumnSuffix
     });
   }
