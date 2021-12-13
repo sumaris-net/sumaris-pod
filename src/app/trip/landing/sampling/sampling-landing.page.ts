@@ -75,7 +75,7 @@ export class SamplingLandingPage extends LandingPage {
 
     // Move to second tab
     if (this.showSamplesTable && !this.isNewData && this.selectedTabIndex === 0) {
-      setTimeout(() => this.selectedTabIndex = 1, 650);
+      setTimeout(() => this.selectedTabIndex = 1 );
     }
   }
 

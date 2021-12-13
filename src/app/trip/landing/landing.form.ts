@@ -526,7 +526,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.markForCheck();
     }
 
-    // TODO BLA: same for strategy
     if (this._canEditStrategy && this.strategyControl.disabled) {
       this.strategyControl.enable(opts);
     }

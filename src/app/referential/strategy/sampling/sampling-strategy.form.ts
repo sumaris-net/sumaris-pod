@@ -1050,6 +1050,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   async getValue(): Promise<SamplingStrategy> {
+
+    // DEBUG
+    console.debug('[sampling-strategy-form] getValue()');
+
     const json = this.form.getRawValue();
     const target = SamplingStrategy.fromObject(json);
 

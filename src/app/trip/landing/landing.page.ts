@@ -364,7 +364,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
 
       // Send programLabel to samples tables: will start loading pmfms
-      // If strategy is required, pmfms will be loaded by setStrategy()
+      // If strategy is required, programLabel will be set by setStrategy()
       if (!requiredStrategy) {
         this.samplesTable.programLabel = program.label;
       }
@@ -376,7 +376,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
-    this.markAsReady();
+    if (this.isNewData || !requiredStrategy) {
+      this.landingForm.canEditStrategy = true;
+      this.markAsReady();
+    }
 
     // Listen program's strategies change (will reload strategy if need)
     this.startListenProgramRemoteChanges(program);
@@ -435,8 +438,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
     }
 
+    this.markAsReady();
     this.markForCheck();
-
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {
