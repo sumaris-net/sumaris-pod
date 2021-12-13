@@ -64,4 +64,118 @@
         </preConditions>
         <sqlFile path="insert_harbours_FRA.sql" relativeToChangelogFile="true" endDelimiter=";"/>
     </changeSet>
+
+    <!-- Insert taxon_group DCO (Dauphin Commun) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.acost.expectedResult}">${sqlCheck.acost.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group where label = 'DCO'</sqlCheck>
+            </and>
+        </preConditions>
+
+        <insert tableName="TAXON_GROUP">
+            <column name="ID" valueComputed="NEXT VALUE FOR taxon_group_seq"/>
+            <column name="LABEL">DLP</column>
+            <column name="NAME">Delphinidae</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="TAXON_GROUP">
+            <column name="ID" valueComputed="nextval('taxon_group_seq"/>
+            <column name="LABEL">DLP</column>
+            <column name="NAME">Dauphin Commun</column>
+            <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="0"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="PARENT_TAXON_GROUP_FK" valueComputed="(select id from TAXON_GROUP WHERE LABEL='DLP' AND TAXON_GROUP_TYPE_FK=2"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert taxon_name DCO (Dauphin Commun) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.acost.expectedResult}">${sqlCheck.acost.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_name where label = 'DCO'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="nextval('reference_taxon_seq"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="nextval('TAXON_NAME_SEQ"/>
+            <column name="LABEL">DLP</column>
+            <column name="NAME">Dauphins nca</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="17"/><!-- FAMILY -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Delphinidae</column>
+            <column name="UPPER_RANK" valueNumeric="266300000"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="nextval('reference_taxon_seq')"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="nextval('taxon_name_seq')"/>
+            <column name="NAME">Delphinus</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="26"/><!-- GENUS-->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Delphinus</column>
+            <column name="UPPER_RANK" valueNumeric="266400000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Delphinidae' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=17)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+        <insert tableName="reference_taxon">
+            <column name="ID" valueComputed="nextval('reference_taxon_seq')"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <insert tableName="taxon_name">
+            <column name="ID" valueComputed="nextval('taxon_name_seq')"/>
+            <column name="LABEL">DCO</column>
+            <column name="NAME">Dauphin Commun</column>
+            <column name="START_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="TAXONOMIC_LEVEL_FK" valueNumeric="28"/> <!-- SPECIES -->
+            <column name="IS_REFERENT" valueBoolean="true"/>
+            <column name="IS_NAMING" valueBoolean="false"/>
+            <column name="IS_VIRTUAL" valueBoolean="false"/>
+            <column name="COMMENTS">Delphinus delphis</column>
+            <column name="UPPER_RANK" valueNumeric="266500000"/>
+            <column name="PARENT_TAXON_NAME_FK"  valueComputed="(select id from taxon_name WHERE comments='Delphinus' AND IS_REFERENT = true AND TAXONOMIC_LEVEL_FK=26)"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(select max(id) from reference_taxon WHERE UPDATE_DATE &gt; date_sub(current_timestamp, INTERVAL 2 SECOND))"/>
+        </insert>
+
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="nextval('taxon_group_historical_record_seq')"/>
+            <column name="START_DATE">2019-01-01</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='DLP')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='DLP' AND IS_REFERENT = true)"/>
+        </insert>
+        <insert tableName="TAXON_GROUP_HISTORICAL_RECORD">
+            <column name="ID" valueComputed="nextval('taxon_group_historical_record_seq')"/>
+            <column name="START_DATE">2019-01-01</column>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='DCO')"/>
+            <column name="REFERENCE_TAXON_FK" valueComputed="(SELECT REFERENCE_TAXON_FK FROM TAXON_NAME WHERE LABEL='DCO' AND IS_REFERENT = true)"/>
+        </insert>
+    </changeSet>
 </databaseChangeLog>
