@@ -1,18 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormBuilder } from '@angular/forms';
-import { AppFormUtils, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, LocalSettingsService, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AppFormUtils, EntityUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
-import { DenormalizedPmfmStrategy } from '../../referential/services/model/pmfm-strategy.model';
 import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
-
-const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
+import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { Batch } from '@app/trip/services/model/batch.model';
+import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
 
 @Component({
   selector: 'app-sample-form',
@@ -23,9 +21,10 @@ const SAMPLE_FORM_DEFAULT_I18N_PREFIX = "TRIP.SAMPLE.TABLE.";
 export class SampleForm extends MeasurementValuesForm<Sample>
   implements OnInit, OnDestroy {
 
+  childrenArrayHelper: FormArrayHelper<Sample>
   focusFieldName: string;
 
-  @Input() i18nPrefix = SAMPLE_FORM_DEFAULT_I18N_PREFIX;
+  @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
@@ -36,26 +35,28 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() showComment = true;
   @Input() showError = true;
   @Input() maxVisibleButtons: number;
-  @Input() mapPmfmFn: (pmfms: DenormalizedPmfmStrategy[]) => DenormalizedPmfmStrategy[];
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: SampleValidatorService,
-    protected settings: LocalSettingsService,
+    protected subValidatorService: SubSampleValidatorService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
-      validatorService.getFormGroup()
+    super(injector, measurementValidatorService, formBuilder, programRefService,
+      validatorService.getFormGroup(),
+      {
+        skipDisabledPmfmControl: false,
+        skipComputedPmfmControl: false
+      }
     );
 
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
     this._enable = true;
-    this.keepDisabledPmfmControl = true;
-    this.keepComputedPmfmControl = true;
+    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
+    this.childrenArrayHelper = this.getChildrenFormHelper(this.form);
 
     // for DEV only
     this.debug = !environment.production;
@@ -83,13 +84,33 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       || (this.showTaxonName && 'taxonName'));
   }
 
-  protected getValue(): Sample {
-    const value = super.getValue();
-    if (!this.showComment) value.comments = undefined;
-    return value;
+  setChildren(children: Sample[], opts?: {emitEvent?: boolean;}) {
+    children = children || [];
+
+    if (this.childrenArrayHelper.size() !== children.length) {
+      this.childrenArrayHelper.resize(children.length);
+    }
+
+    this.form.patchValue({children}, opts);
   }
 
   /* -- protected methods -- */
+
+  protected onApplyingEntity(data: Sample, opts?: { [p: string]: any }) {
+    super.onApplyingEntity(data, opts);
+
+    const childrenCount = data.children?.length || 0;
+    if (this.childrenArrayHelper.size() !== childrenCount) {
+      this.childrenArrayHelper.resize(childrenCount);
+    }
+  }
+
+  protected getValue(): Sample {
+    const value = super.getValue();
+    // Reset comment, when hidden
+    if (!this.showComment) value.comments = undefined;
+    return value;
+  }
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     return this.programRefService.suggestTaxonGroups(value,
@@ -113,9 +134,28 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       });
   }
 
-  selectInputContent = AppFormUtils.selectInputContent;
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected getChildrenFormHelper(form: FormGroup): FormArrayHelper<Sample> {
+    let arrayControl = form.get('children') as FormArray;
+    if (!arrayControl) {
+      arrayControl = this.formBuilder.array([]);
+      form.addControl('children', arrayControl);
+    }
+    return new FormArrayHelper<Sample>(
+      arrayControl,
+      (value) => this.subValidatorService.getFormGroup(value, {
+        measurementValuesAsGroup: false, // avoid to pass pmfms list
+        requiredParent: false // Not need
+      }),
+      (v1, v2) => Sample.equals(v1, v2),
+      (value) => isNil(value),
+      {allowEmptyArray: true}
+    );
+  }
+
+  isNotHiddenPmfm = PmfmUtils.isNotHidden;
+  selectInputContent = AppFormUtils.selectInputContent;
 }

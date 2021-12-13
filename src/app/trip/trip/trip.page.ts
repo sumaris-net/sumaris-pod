@@ -11,11 +11,11 @@ import { AcquisitionLevelCodes, PmfmIds } from '../../referential/services/model
 import { AppRootDataEditor } from '../../data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
 import {
-  Alerts,
+  Alerts, DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  firstTruePromise,
+  firstTruePromise, fromDateISOString,
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
@@ -34,13 +34,14 @@ import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 import { ProgramProperties } from '../../referential/services/config/program.config';
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '../../referential/services/model/program.model';
 import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, merge, Subscription } from 'rxjs';
+import { Moment } from 'moment';
 
 const moment = momentImported;
 
@@ -67,6 +68,7 @@ export const TripPageSettingsEnum = {
 export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
+  readonly $minSaleDate = new BehaviorSubject<Moment>(null);
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
@@ -74,7 +76,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   forceMeasurementAsOptional = false;
   settingsId: string;
   devAutoFillData = false;
-  $ready = new BehaviorSubject(false);
   private _measurementSubscription: Subscription;
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
@@ -158,6 +159,17 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       );
     }
 
+    this.registerSubscription(
+      merge(
+        this.tripForm.form.get('departureDateTime').valueChanges,
+        this.tripForm.form.get('returnDateTime').valueChanges
+      ).pipe(
+        map(fromDateISOString),
+        map(date => DateUtils.max(this.$minSaleDate.value, date))
+      )
+        .subscribe(date => this.$minSaleDate.next(date))
+    );
+
     // Auto fill form, in DEV mode
     if (!environment.production) {
       this.registerSubscription(
@@ -189,7 +201,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
 
-    this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    // Trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
@@ -200,14 +212,17 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
     this.tripForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
 
+    // Sale form
+    this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.operationsTable.showPosition = positionEnabled;
     this.operationsTable.showFishingArea = !positionEnabled;
+    const allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+    this.operationsTable.allowParentOperation = allowParentOperation;
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
-
-    //this.operationsTable.$uselinkedOperations.next(program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION));
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -221,14 +236,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.registerSubscription(subscription);
     }
 
+    // If new data, enable gears tab
     if (this.isNewData) {
-      // If new data, enable gears tab
       this.showGearTable = true;
-      // BUT leave operation gear have been filled
-      this.showOperationTable = false;
     }
 
-    this.$ready.next(true);
+    // Disabled operations tab, while no gear
+    // But enable anyway, when parent operation allowed
+    this.showOperationTable = this.showOperationTable || allowParentOperation;
+
+    this.markAsReady();
     this.markForCheck();
   }
 
@@ -282,6 +299,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     this.showGearTable = false;
     this.showOperationTable = false;
+
+    if (!data.program) this.markAsReady();
+  }
+
+  protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
+    // program
+    const programLabel =  data.program?.label;
+    if (programLabel) this.$programLabel.next(programLabel);
   }
 
   updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
@@ -301,12 +326,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   protected async setValue(data: Trip) {
     // Set data to form
-    this.tripForm.value = data;
+    const formPromise = this.tripForm.setValue(data, {emitEvent: true});
 
     const isNew = isNil(data.id);
     if (!isNew) {
       this.$programLabel.next(data.program.label);
     }
+
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
 
@@ -317,6 +343,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (!isNew && this.operationsTable) {
       this.operationsTable.setTripId(data.id, {emitEvent: false});
     }
+
+    await formPromise;
   }
 
   async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
@@ -357,7 +385,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   // For DEV only
   setTestValue(program: Program) {
-    const departureDate = moment();
+    const departureDate = moment().startOf('minutes');
     const returnDate = departureDate.clone().add(15, 'day');
     const trip = Trip.fromObject({
       program,
@@ -367,7 +395,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       returnLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', entityName: 'Location', __typename: 'ReferentialVO'},
       vesselSnapshot: {id: 1, vesselId: 1, name: 'Vessel 1', basePortLocation: {id: 11, label: 'FRDRZ', name: 'Douarnenez', __typename: 'ReferentialVO'} , __typename: 'VesselSnapshotVO'},
       measurements: [
-        { numericalValue: 1, pmfmId: 21}
+        { numericalValue: 1, pmfmId: 21}, // NB fisherman
+        { numericalValue: 1, pmfmId: 188} // GPS_USED
       ]
     });
 
@@ -457,6 +486,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
   }
 
+  protected computeNextTabIndex(): number | undefined {
+    return super.computeNextTabIndex() || this.selectedTabIndex;
+  }
+
   protected computeTitle(data: Trip): Promise<string> {
 
     // new data
@@ -493,11 +526,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected getFirstInvalidTabIndex(): number {
-    const tab0Invalid = this.tripForm.invalid || this.measurementsForm.invalid;
-    const tab1Invalid = !tab0Invalid && this.physicalGearsTable.invalid;
-    const tab2Invalid = !tab1Invalid && this.operationsTable.invalid;
+    const invalidTabs = [
+      this.tripForm.invalid || this.measurementsForm.invalid,
+      this.showGearTable && this.physicalGearsTable.invalid,
+      this.showOperationTable && this.operationsTable.invalid
+    ]
 
-    return tab0Invalid ? 0 : (tab1Invalid ? 1 : (tab2Invalid ? 2 : this.selectedTabIndex));
+    return invalidTabs.findIndex(invalid => invalid === true);
   }
 
   /**
@@ -543,11 +578,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       );
     }
 
-  }
-
-  protected async ready() {
-    if (this.$ready.value === true) return;
-    await firstTruePromise(this.$ready);
   }
 
   protected markForCheck() {

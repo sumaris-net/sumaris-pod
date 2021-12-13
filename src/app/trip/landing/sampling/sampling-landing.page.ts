@@ -4,7 +4,7 @@ import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
-import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators,} from '@sumaris-net/ngx-components';
+import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise,firstTruePromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators,} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
@@ -24,7 +24,7 @@ import {ProgramProperties} from '@app/referential/services/config/program.config
 })
 export class SamplingLandingPage extends LandingPage {
 
-  showSamplesTable = false;
+
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
@@ -36,7 +36,8 @@ export class SamplingLandingPage extends LandingPage {
     protected accountService: AccountService,
   ) {
     super(injector, {
-      pathIdAttribute: 'samplingId'
+      pathIdAttribute: 'samplingId',
+      autoOpenNextTab: true
     });
   }
 
@@ -44,17 +45,11 @@ export class SamplingLandingPage extends LandingPage {
     super.ngAfterViewInit();
 
     // Show table, if there is some pmfms
-    this.registerSubscription(
-      this.samplesTable.$pmfms
-        .pipe(
-          filter(pmfms => !this.showSamplesTable && isNotEmptyArray(pmfms)),
-          first()
-        )
-        .subscribe(_ => {
-          this.showSamplesTable = true;
-          this.markForCheck();
-        })
-    );
+    firstTruePromise(this.samplesTable.$hasPmfms)
+      .then(() => {
+        this.showSamplesTable = true;
+        this.markForCheck();
+      });
 
     // Load Pmfm IDs
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
@@ -71,7 +66,7 @@ export class SamplingLandingPage extends LandingPage {
 
   updateTabsState(data: Landing) {
     // Enable landings tab
-    this.showSamplesTable = this.showSamplesTable || (!this.isNewData || this.isOnFieldMode);
+    this.showSamplesTable = this.showSamplesTable || !this.isNewData || this.isOnFieldMode;
 
     // confirmation pop-up on quite form if form not touch
     if (this.isNewData && this.isOnFieldMode) {
@@ -80,8 +75,7 @@ export class SamplingLandingPage extends LandingPage {
 
     // Move to second tab
     if (this.showSamplesTable && !this.isNewData && this.selectedTabIndex === 0) {
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
+      setTimeout(() => this.selectedTabIndex = 1, 650);
     }
   }
 
@@ -185,7 +179,7 @@ export class SamplingLandingPage extends LandingPage {
 
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()]
     if (strategyLabel) {
-      this.samplesTable.strategyLabel = strategyLabel;
+      this.$strategyLabel.next(strategyLabel);
     }
 
     if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {
@@ -236,7 +230,7 @@ export class SamplingLandingPage extends LandingPage {
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
+      await this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';

@@ -100,7 +100,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     // Fill default PmfmStrategy (e.g. the PMFM to store the strategy's label)
     this.fillPmfmStrategyDefaults(data);
 
-    await this.strategyForm.ready();
+    this.markAsReady();
   }
 
   protected async onEntityLoaded(data: SamplingStrategy, options?: EntityServiceLoadOptions): Promise<void> {
@@ -117,7 +117,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
       data.analyticReference = await this.samplingStrategyService.loadAnalyticReferenceByLabel(data.analyticReference);
     }
 
-    await this.strategyForm.ready();
+    this.markAsReady();
   }
 
   protected async onEntitySaved(data: SamplingStrategy): Promise<void> {
@@ -170,7 +170,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   protected getFirstInvalidTabIndex(): number {
     if (this.strategyForm.invalid) return 0;
-    return 0;
+    return -1;
   }
 
   protected loadFromRoute(): Promise<void> {

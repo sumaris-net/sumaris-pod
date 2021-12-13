@@ -1,31 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from "@angular/core";
-import {Batch, BatchUtils} from "../../services/model/batch.model";
-import { Entity, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
-import {AlertController, ModalController} from "@ionic/angular";
-import {BehaviorSubject, merge, Observable, Subscription} from "rxjs";
-import {TranslateService} from "@ngx-translate/core";
-import {AcquisitionLevelCodes, QualityFlagIds} from "../../../referential/services/model/model.enum";
-import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {BatchGroupForm} from "../form/batch-group.form";
-import {isNil, toBoolean} from "@sumaris-net/ngx-components";
-import { debounceTime, filter, map, mergeMap, startWith } from 'rxjs/operators';
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {BatchGroup} from "../../services/model/batch-group.model";
-import {IReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {AppFormUtils}  from "@sumaris-net/ngx-components";
-import {environment} from "../../../../environments/environment";
-import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Alerts, AppFormUtils, IReferentialRef, isNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { AlertController, ModalController } from '@ionic/angular';
+import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
+import { BatchGroupForm } from '../form/batch-group.form';
+import { debounceTime, filter, map, startWith } from 'rxjs/operators';
+import { BatchGroup } from '../../services/model/batch-group.model';
+import { environment } from '../../../../environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
@@ -60,7 +43,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() disabled: boolean;
   @Input() usageMode: UsageMode;
 
-  @Input() qvPmfm: PmfmStrategy;
+  @Input() qvPmfm: IPmfm;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;

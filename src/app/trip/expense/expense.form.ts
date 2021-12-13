@@ -1,21 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
-import {
-  filterNotNil,
-  firstNotNilPromise,
-  FormArrayHelper,
-  isNil,
-  isNotEmptyArray,
-  isNotNilOrNaN,
-  LocalSettingsService,
-  ObjectMap,
-  PlatformService,
-  remove,
-  removeAll,
-  round,
-} from '@sumaris-net/ngx-components';
+import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, PlatformService, remove, removeAll, round } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
@@ -105,15 +90,13 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected validatorService: ExpenseValidatorService,
     protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService
   ) {
-    super(dateAdapter, validatorService, formBuilder, programRefService, settings, cd);
+    super(injector, validatorService, formBuilder, programRefService);
     this.mobile = platform.mobile;
     this.keepRankOrder = true;
     this.tabindex = 0;

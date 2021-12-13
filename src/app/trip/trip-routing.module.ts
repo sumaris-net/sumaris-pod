@@ -6,6 +6,7 @@ import { ComponentDirtyGuard, SharedRoutingModule } from '@sumaris-net/ngx-compo
 import {TripTable} from "./trip/trips.table";
 import {TripPage} from "./trip/trip.page";
 import {TripModule} from "./trip.module";
+import { IonicModule } from '@ionic/angular';
 
 const routes: Routes = [
   {

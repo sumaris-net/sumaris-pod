@@ -1,0 +1,17 @@
+
+<mat-icon [svgIcon]="matSvgIcon"
+          [style.pointer-events]="'none'"
+          [style.color]="'var(--ion-color-'+color+')'"
+          matBadge
+          [ionBadgeIcon]="badgeIcon"
+          [matBadgeColor]="badgeColor"
+          [matBadgeFill]="badgeFill"
+          matBadgeSize="small"
+          [matBadgeHidden]="!badgeIcon"
+>
+  <ion-icon *ngIf="icon" slot="icon-only"
+            [color]="color"
+            [name]="icon"
+  ></ion-icon>
+</mat-icon>
+

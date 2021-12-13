@@ -142,27 +142,24 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_BATCH_WEIGHT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.weight.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
+
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_SAMPLE_ACQUISITION_LEVEL: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.sample.acquisitionLevel',
-    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ACQUISITION_LEVEL',
-    defaultValue: AcquisitionLevelCodes.SAMPLE,
-    type: 'enum',
-    values: [
-      {
-        key: AcquisitionLevelCodes.SURVIVAL_TEST,
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
-      },
-      {
-        key: AcquisitionLevelCodes.SAMPLE,
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_LEGACY'
-      }
-    ]
+  TRIP_SAMPLE_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.dateTime.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_DATE_TIME_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
   },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.taxonName.enable',
@@ -499,6 +496,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'SURVIVAL_TEST.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
+      },
+      {
+        key: 'ACCIDENTAL_CATCH.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ACCIDENTAL_CATCH'
       }
     ],
     defaultValue: 'legacy'

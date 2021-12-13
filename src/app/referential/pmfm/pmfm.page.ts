@@ -5,14 +5,14 @@ import {
   AccountService,
   AppEntityEditor,
   EntityServiceLoadOptions,
-  fadeInOutAnimation,
+  fadeInOutAnimation, firstNotNil, firstNotNilPromise,
   FormFieldDefinitionMap,
   HistoryPageReference,
   isNil, joinProperties,
   joinPropertiesPath,
   MatAutocompleteFieldConfig,
   referentialToString,
-  ReferentialUtils
+  ReferentialUtils, toNumber,
 } from '@sumaris-net/ngx-components';
 import {ReferentialForm} from '../form/referential.form';
 import {PmfmValidatorService} from '../services/validator/pmfm.validator';
@@ -22,7 +22,7 @@ import {PmfmService} from '../services/pmfm.service';
 import {ReferentialRefService} from '../services/referential-ref.service';
 import {ParameterService} from '../services/parameter.service';
 import {filter, mergeMap} from 'rxjs/operators';
-import {Observable} from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import {environment} from '@environments/environment';
 
 @Component({
@@ -39,7 +39,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
   canEdit: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
-  $parameter: Observable<Parameter>;
+  $parameter = new BehaviorSubject<Parameter>(null);
 
   get matrix(): any {
     return this.form.controls.matrix.value;
@@ -175,12 +175,20 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         return value && (!this.matrix || value.levelId !== this.matrix.id) ? {entity: true} : null;
       });
 
-    // Check fraction
-    this.$parameter = this.form.get('parameter').valueChanges
+    // Listen for parameter
+    this.registerSubscription(
+      this.form.get('parameter').valueChanges
         .pipe(
           filter(ReferentialUtils.isNotEmpty),
           mergeMap(p => this.parameterService.load(p.id))
-        );
+        )
+      .subscribe(p => this.$parameter.next(p))
+    );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$parameter.complete();
   }
 
   async addNewParameter() {
@@ -188,6 +196,16 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
       '/referential/parameter/new'
     );
     return true;
+  }
+
+  async openParameter(parameter?: Parameter) {
+    parameter = parameter || this.$parameter.value;
+    if (isNil(parameter)) return;
+
+    const succeed = await this.router.navigateByUrl(
+      `/referential/parameter/${parameter.id}?label=${parameter.label}`
+    );
+    return succeed;
   }
 
   /* -- protected methods -- */
@@ -272,12 +290,16 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         const label = control.enabled && control.value;
         return label && (await this.pmfmService.existsByLabel(label, {excludedId: this.data.id})) ? {unique: true} : null;
       });
+
+    this.markAsReady();
   }
 
   protected async onEntityLoaded(data: Pmfm, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     this.canEdit = this.canUserWrite(data);
+
+    this.markAsReady();
   }
 
   referentialToString = referentialToString;

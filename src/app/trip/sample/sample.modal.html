@@ -53,35 +53,47 @@
                    [acquisitionLevel]="acquisitionLevel"
                    [programLabel]="programLabel"
                    [mobile]="mobile"
-                   [pmfms]="$pmfms|async"
-                   [mapPmfmFn]="mapPmfmFn"
+                   [pmfms]="pmfms"
                    [usageMode]="usageMode"
+                   [i18nSuffix]="i18nSuffix"
                    [showLabel]="showLabel"
-                   [showSampleDate]="showDateTime"
+                   [showSampleDate]="showSampleDate"
                    [showTaxonGroup]="showTaxonGroup"
                    [showTaxonName]="showTaxonName"
                    [showComment]="showComment"
                    [maxVisibleButtons]="maxVisibleButtons"
                    (onSubmit)="enableBurstMode ? onSubmitAndNext($event) : onSubmit($event)">
-    <ion-row *ngIf="mobile">
+    <ion-row beforeComment *ngIf="mobile">
       <ion-col size="6">
         <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable="">
-          <ion-toggle [checked]="showComment" ></ion-toggle>
+          <ion-toggle [checked]="showComment"></ion-toggle>
           <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
         </ion-item>
       </ion-col>
-      <ion-col size="6" class="ion-text-end">
-        <!-- Next -->
-        <ion-button *ngIf="enableBurstMode && !disabled"
-                    [fill]="form.invalid ? 'clear' : 'solid'"
-                    [disabled]="disabled || form.invalid"
-                    [color]="form.invalid ? 'dark' : 'tertiary'"
-                    (click)="onSubmitAndNext($event)">
-          <ion-label translate>COMMON.BTN_VALIDATE_AND_CONTINUE</ion-label>
-          <ion-icon slot="end" name="arrow-forward"></ion-icon>
-        </ion-button>
-      </ion-col>
     </ion-row>
+    <ion-buttons afterComment class="ion-justify-content-end" *ngIf="mobile">
+      <ion-button mat-button
+                  *ngIf="showIndividualReleaseButton"
+                  fill="clear" color="tertiary"
+                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
+                  (click)="showIndividualReleaseModal($event, 'INDIVIDUAL_RELEASE')">
+        <mat-icon slot="start">room</mat-icon>
+        <ion-label>
+          <span translate>TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE</span>
+        </ion-label>
+      </ion-button>
+
+      <!-- Next -->
+      <ion-button *ngIf="enableBurstMode && !disabled"
+                  [fill]="form.invalid ? 'clear' : 'solid'"
+                  [disabled]="disabled || form.invalid"
+                  [color]="form.invalid ? 'dark' : 'tertiary'"
+                  (click)="onSubmitAndNext($event)">
+        <ion-label translate>COMMON.BTN_VALIDATE_AND_CONTINUE</ion-label>
+        <ion-icon slot="end" name="arrow-forward"></ion-icon>
+      </ion-button>
+
+    </ion-buttons>
 
   </app-sample-form>
 

@@ -117,8 +117,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     });
   }
 
-  ready(): Promise<any> {
-    return firstTruePromise(this._$ready);
+  async ready(): Promise<void> {
+    await firstTruePromise(this._$ready);
   }
 
   /**

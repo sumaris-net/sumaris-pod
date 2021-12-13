@@ -155,6 +155,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
       delete target.parentId;
       // Remove computed properties
       delete target.weight;
+      if (target.measurementValues) delete target.measurementValues.__typename
     }
 
     return target;
@@ -483,7 +484,7 @@ export class BatchUtils {
         }
       }
       // Measurement
-      if (opts.showMeasure !== false) {
+      if (opts.showMeasure !== false && batch.measurementValues) {
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
           message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }

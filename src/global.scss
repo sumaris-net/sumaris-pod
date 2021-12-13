@@ -34,5 +34,9 @@
   @media screen and (max-width: #{$screen-xs-max}) {
     --mat-toolbar-height: #{$mat-toolbar-height-mobile};
   }
+
+  ion-icon {
+    pointer-events: none !important;
+  }
 }
 

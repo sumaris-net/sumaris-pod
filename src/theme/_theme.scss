@@ -41,6 +41,11 @@
       }
     }
   }
+
+  .mat-header-row  .mat-header-cell .pmfm-details {
+    margin-top: 4px;
+    font-size: 90% !important;
+  }
 }
 
 mat-form-field {
@@ -67,6 +72,7 @@ mat-form-field {
   }
 }
 
-.mat-toolbar {
+.mat-toolbar, .mat-toolbar-single-row {
   background-color: #{$mat-toolbar-background-color};
+  height: var(--mat-toolbar-height);
 }

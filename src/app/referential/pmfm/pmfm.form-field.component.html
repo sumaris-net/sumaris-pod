@@ -98,8 +98,7 @@
     <mat-error *ngIf="formControl.hasError('max')">
       {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
     <mat-error *ngIf="formControl.hasError('maxDecimals')">
-      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS')| translate:{max:
-      pmfm.maximumNumberDecimals} }}</mat-error>
+      {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:formControl.errors['maxDecimals'] }}</mat-error>
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -140,14 +139,14 @@
 
   <!-- date -->
   <mat-date-field *ngSwitchCase="'date'" #matInput
-                   [formControl]="formControl"
-                   [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
-                   [floatLabel]="floatLabel"
-                   [required]="required"
-                   [readonly]="readonly"
-                   [compact]="compact"
-                   [tabindex]="tabindex"
-                   [autofocus]="autofocus">
+                  [formControl]="formControl"
+                  [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
+                  [floatLabel]="floatLabel"
+                  [required]="required"
+                  [readonly]="readonly"
+                  [compact]="compact"
+                  [tabindex]="tabindex"
+                  [autofocus]="autofocus">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -212,13 +211,14 @@
 
   <!-- latitude -->
   <mat-latlong-field *ngSwitchCase="'latitude'"
-               [floatLabel]="floatLabel"
-               [formControl]="formControl"
-               type="latitude"
-               [placeholder]="placeholder"
-               [required]="required"
-               [tabindex]="tabindex"
-               [latLongPattern]="latLongFormat">
+                     [floatLabel]="floatLabel"
+                     [formControl]="formControl"
+                     type="latitude"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [tabindex]="tabindex"
+                     [latLongPattern]="latLongFormat"
+                     [defaultSign]="defaultLatitudeSign">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>
@@ -226,13 +226,14 @@
 
   <!-- longitude -->
   <mat-latlong-field *ngSwitchCase="'longitude'"
-               [floatLabel]="floatLabel"
-               [formControl]="formControl"
-               type="longitude"
-               [placeholder]="placeholder"
-               [required]="required"
-               [tabindex]="tabindex"
-               [latLongPattern]="latLongFormat">
+                     [floatLabel]="floatLabel"
+                     [formControl]="formControl"
+                     type="longitude"
+                     [placeholder]="placeholder"
+                     [required]="required"
+                     [tabindex]="tabindex"
+                     [latLongPattern]="latLongFormat"
+                     [defaultSign]="defaultLongitudeSign">
     <div matSuffix>
       <ng-content select="[matSuffix]"></ng-content>
     </div>

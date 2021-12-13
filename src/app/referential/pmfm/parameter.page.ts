@@ -95,6 +95,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
           {unique: true} : null;
       });
 
+    this.markAsReady();
   }
 
   /* -- protected methods -- */
@@ -171,7 +172,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.isQualitative && this.qualitativeValuesTable.invalid) return 1;
-    return 0;
+    return -1;
   }
 
   protected async onEntityLoaded(data: Parameter, options?: EntityServiceLoadOptions): Promise<void> {

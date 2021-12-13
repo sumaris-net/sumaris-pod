@@ -189,7 +189,11 @@ export class AppComponent {
   }
 
   protected addCustomSVGIcons() {
-    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow']
+    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow',
+
+      // PIFIL
+      'dolphin-damage'
+    ]
       .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
         this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
         ));

@@ -1,7 +1,7 @@
 import {Directive, Injector, OnInit} from '@angular/core';
 
 import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
-import {changeCaseToUnderscore, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
+import { changeCaseToUnderscore, firstNotNilPromise, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import {distinctUntilChanged, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
 import {Program} from "../../referential/services/model/program.model";
 import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
@@ -130,14 +130,14 @@ export abstract class AppRootDataEditor<
         // Allow to force reload (e.g. when program remotely changes - see startListenProgramRemoteChanges() )
         this._reloadStrategy$
           .pipe(
-            map(() => this.$strategyLabel.getValue())
+            map(() => this.$strategyLabel.value)
           )
       )
       .pipe(
         // DEBUG
         //tap(strategyLabel => console.debug("[root-data-editor] Received strategy label: ", strategyLabel)),
-        mergeMap( async (strategyLabel) => isNilOrBlank(strategyLabel)
-          ? undefined // Allow to have empty strategy (e.g. when user reset the strategy field)
+        mergeMap( (strategyLabel) => isNilOrBlank(strategyLabel)
+          ? Promise.resolve(undefined) // Allow to have empty strategy (e.g. when user reset the strategy field)
           : this.strategyRefService.loadByLabel(strategyLabel)
         ),
         // DEBUG
@@ -151,7 +151,12 @@ export abstract class AppRootDataEditor<
     this.registerSubscription(
       merge(
         this.$program.pipe(tap(program => this.setProgram(program))),
-        this.$strategy.pipe(tap(strategy => this.setStrategy(strategy)))
+        this.$strategy.pipe(mergeMap(async (strategy) => {
+          // Make sure program has been set first
+          await firstNotNilPromise(this.$program);
+          // Set strategy
+          return this.setStrategy(strategy);
+        }))
       ).subscribe()
     );
   }

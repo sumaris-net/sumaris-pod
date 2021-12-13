@@ -26,7 +26,7 @@ import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import { SubBatchForm } from '../form/sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { SubBatchModal } from '../modal/sub-batch.modal';
+import { ISubBatchModalOptions, SubBatchModal } from '../modal/sub-batch.modal';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
@@ -183,10 +183,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     return super.dirty || this.memoryDataService.dirty;
   }
 
-  get hasPmfms(): boolean {
-    return isNotEmptyArray(this.$pmfms.value);
-  }
-
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
   constructor(
@@ -278,11 +274,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
             const row = this.editedRow;
 
-            const pmfms = this.$pmfms.value || [];
             const formEnabled = row.validator.enabled;
             const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
 
-            pmfms.forEach(pmfm => {
+            (this.pmfms || []).forEach(pmfm => {
               const enable = !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
               const control = controls[pmfm.id];
 
@@ -478,7 +473,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
 
     // Reset the form with the new batch
-    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.$pmfms.value, this.form.form);
+    MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.pmfms, this.form.form);
     this.form.setValue(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
     // If need, enable the form
@@ -611,7 +606,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     const modal = await this.modalCtrl.create({
       component: SubBatchModal,
-      componentProps: /*<ISubBatchModalOptions>*/{
+      componentProps: <Partial<ISubBatchModalOptions>>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         availableParents: this.availableParents,
@@ -623,7 +618,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         showTaxonGroup: false, // Not used
         showTaxonName: this.showTaxonNameColumn,
         showIndividualCount: this.showIndividualCount
-      }, keyboardClose: true
+      },
+      keyboardClose: true
     });
 
     // Open the modal
@@ -641,7 +637,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Make sure individual count if init
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
-    const pmfms = this.$pmfms.value || [];
+    const pmfms = this.pmfms || [];
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, pmfms);
 
     // If individual count column is shown (can be greater than 1)
@@ -804,7 +800,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected refreshPmfms() {
-    const pmfms = this.$pmfms.value;
+    const pmfms = this.pmfms;
     if (!pmfms) return; // Not loaded
 
     this.measurementsDataService.pmfms = pmfms;

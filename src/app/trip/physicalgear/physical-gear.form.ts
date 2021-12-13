@@ -1,22 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import {PhysicalGearValidatorService} from "../services/validator/physicalgear.validator";
-import {Moment} from 'moment';
-import { BehaviorSubject, merge } from 'rxjs';
-import { distinctUntilChanged, filter, map, mergeMap, tap } from 'rxjs/operators';
-import {MeasurementValuesForm} from "../measurement/measurement-values.form.class";
-import {MeasurementsValidatorService} from "../services/validator/measurement.validator";
-import {FormBuilder} from "@angular/forms";
-import { GetFocusableInputOptions, isNotNil, toNumber } from '@sumaris-net/ngx-components';
-import {InputElement, selectInputContent} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {PhysicalGear} from "../services/model/trip.model";
-import {DateAdapter} from "@angular/material/core";
-import {ReferentialRef, focusNextInput, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {AcquisitionLevelCodes} from "../../referential/services/model/model.enum";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {environment} from "../../../environments/environment";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { PhysicalGearValidatorService } from '../services/validator/physicalgear.validator';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormBuilder } from '@angular/forms';
+import { focusNextInput, GetFocusableInputOptions, InputElement, isNotNil, PlatformService, ReferentialRef, ReferentialUtils, selectInputContent, toNumber } from '@sumaris-net/ngx-components';
+import { PhysicalGear } from '../services/model/trip.model';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -44,19 +38,15 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: PhysicalGearValidatorService,
     protected referentialRefService: ReferentialRefService,
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
-      //allowSetValueBeforePmfms: true
-    });
+    super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
     this._enable = true;
     this.mobile = platform.mobile;
     this.requiredGear = true;
@@ -89,7 +79,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
       mobile: this.mobile
     });
 
-    // Propage data.gear into gearId
+    // Propagate data.gear into gearId
     this.registerSubscription(
       this.form.get('gear').valueChanges
         .pipe(
@@ -123,7 +113,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     super.onApplyingEntity(data, opts);
 
-    // Propage the gear
+    // Propagate the gear
     if (ReferentialUtils.isNotEmpty(data.gear)) {
       this.gearId = data.gear.id;
     }

@@ -46,6 +46,7 @@
     "BTN_SHOW_HELP": "Show help",
     "BTN_HIDE": "Hide",
     "BTN_HIDE_MENU": "Hide menu",
+    "BTN_SORT_BY_DOTS": "Sort by...",
     "BTN_SHOW": "Show",
     "BTN_SHOW_MENU": "Show menu",
     "BTN_SHOW_MORE": "Show more",
@@ -186,8 +187,9 @@
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel",
         "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
-        "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port ?",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels: Nb char. for search"
+        "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels: Nb char. for search",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Vessels: Registration: search as prefix?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
@@ -217,7 +219,8 @@
         "PARAMETER_GROUP_WEIGHT_LABELS": "Strategy > Parameter > Weight labels",
         "PARAMETER_GROUP_LENGTH_LABELS": "Strategy > Parameter > Length labels",
         "PARAMETER_GROUP_MATURITY_LABELS": "Strategy > Parameter > Maturity labels",
-        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Strategy > Fraction > Calcified structure ids"
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Strategy > Fraction > Calcified structure ids",
+        "UNIT_NONE_ID": "Referential > Unit > None (hide by default)"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
@@ -563,16 +566,23 @@
       "EDIT": {
         "TITLE": "Ope #{{rankOrder}} <small>at {{startDateTime}}</small>",
         "TITLE_NO_RANK": "Ope {{startDateTime}}",
+        "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
+        "BTN_EDIT_PARENT" : "Edit setting",
+        "BTN_SELECT_PARENT" : "Select setting",
+        "BTN_SAVE_AND_NEW" : "Save and new",
+        "COMMENTS": "Comment",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
         "TAB_CATCH_TOTAL": "Total catch",
-        "TAB_SURVIVAL_TEST": "Survival tests",
-        "TAB_INDIVIDUAL_MONITORING": "Individual monitoring",
+        "TAB_SAMPLES": "Samples",
+        "TAB_SUB_SAMPLES": "Sub-samples",
         "TAB_INDIVIDUAL_RELEASES": "Releases",
         "TAB_BATCH_SPECIES": "Batch by species",
         "TAB_BATCH_INDIVIDUAL": "Individual measure",
+        "TARGET_SPECIES": "Target species",
+        "PHYSICAL_GEAR": "Gear used",
         "START": "Start of fishing:",
         "END": "End of fishing:",
         "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
@@ -592,8 +602,13 @@
           "PARENT" : "Setting",
           "CHILD" : "Hauling"
         },
-        "BTN_EDIT_PARENT" : "Edit setting",
-        "BTN_SELECT_PARENT" : "Select setting"
+        "SURVIVAL_TEST" : {
+          "TAB_SAMPLES": "Survival tests",
+          "TAB_SUB_SAMPLES": "Individual monitoring"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Accidental catches"
+        }
       },
       "PARENT": {
         "TITLE" : "Select setting",
@@ -611,6 +626,7 @@
         "OPERATIONS_LAYER": "Operations"
       },
       "LIST": {
+        "ID": "Number",
         "TRIP_ID": "Trip",
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
@@ -757,12 +773,14 @@
         "LABEL_PLACEHOLDER": "Batch",
         "DATE_TIME_PLACEHOLDER": "Sample date",
         "TAXON_GROUP_PLACEHOLDER": "Commercial species (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)"
+        "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)",
+        "BTN_SUB_SAMPLE": "Fill sub-sample",
+        "BTN_INDIVIDUAL_RELEASE": "Fill release"
       },
       "TABLE": {
         "LABEL": "Batch",
         "LABEL_PLACEHOLDER": "Batch",
-        "TAXON_GROUP": "Scientific species (FAO)",
+        "TAXON_GROUP": "Commercial species (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Species code",
         "TAXON_NAME": "Scientific species (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Species code",
@@ -783,10 +801,21 @@
         "TAG_COUNT": "<b>{{tagCount}}</b> sample(s)"
       },
       "ERROR" : {
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length mandatory"
+        "INVALID_TAG_ID_LENGTH": "Tag length must be 4 characters",
+        "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required"
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Sample: enable burst mode?"
+      }
+    },
+    "INDIVIDUAL_RELEASE" : {
+      "NEW": {
+        "TITLE": "New release"
+      },
+      "EDIT": {
+        "TITLE": "Release {{label}}",
+        "LABEL_PLACEHOLDER": "Batch",
+        "PARENT": "Parent sample"
       }
     }
   },
@@ -1334,6 +1363,8 @@
       "I18N_SUFFIX" : "Thematic dictionary",
       "I18N_SUFFIX_LEGACY" : "By default",
       "I18N_SUFFIX_SAMPLING" : "Biological parameter",
+      "I18N_SUFFIX_SURVIVAL_TEST" : "Survival tests",
+      "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Accidental catches",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
@@ -1355,6 +1386,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter individual number?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Catch > Individual measure: Commercial species?",
+      "TRIP_BATCH_WEIGHT_ENABLE": "Catch > Weight?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Catch > Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Catch > Sample: Scientific species?",
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Catch > Survival test: Scientific species?",
@@ -1367,7 +1399,9 @@
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation : Max travelled distance before warning :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation : Max travelled distance before error : ",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation : Initialize dates with trip's dates?",
+      "OBSERVED_LOCATION_START_TIME_ENABLE": "Observation > Start date: Time ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
+      "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Observation: Fill observers?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Observation > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Observation > Add landing: Show history?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Observation > Location level",
@@ -1389,7 +1423,6 @@
       "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Observation > Landings: Weight unit",
-      "LANDING_ONE_TAB_ENABLE": "Observation > Landing: single tab?",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
       "STRATEGY_EDITOR" : "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
@@ -1531,9 +1564,6 @@
         "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Error while loading stategy's sample label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy's analytic references",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
-        "PARAMETERS.EXACT_TAG_ID_LENGTH": "Tag Id length should be 4",
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is mandatory",
-        "PARAMETERS.DRESSING": "Dressing is required",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "The number of efforts must be greater than or equal to 1 for quarters with individual measures",
         "LABEL.UNIQUE": "The code of the sampling plan line already exists",
@@ -1869,8 +1899,8 @@
     "FIELD_MIN_COMPACT": "Min value={{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
     "FIELD_MAX_COMPACT": "Max value={{max}}",
-    "FIELD_MAXIMUM_DECIMALS": "Invalid number of decimals ({{max}} max)",
-    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals max={{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Too many decimals ({{maxDecimals}} max)",
+    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals > {{max}}",
     "FIELD_INVALID": "Invalid value",
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",

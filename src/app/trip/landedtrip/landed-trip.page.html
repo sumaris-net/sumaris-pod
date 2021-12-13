@@ -179,9 +179,9 @@
           <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_PRODUCT'|translate}}">
             <ng-template mat-tab-label>
               <ion-label
-                [matBadge]='productsTable?.value?.length'
-                [matBadgeHidden]="!productsTable?.value?.length"
-                matBadgeOverlap='false'
+                [matBadge]="productsTable.visibleRowCount"
+                [matBadgeHidden]="!productsTable.visibleRowCount"
+                matBadgeOverlap="false"
                 matBadgeColor="accent"
                 matBadgeSize="small"
                 matBadgePosition="above after"
@@ -198,7 +198,7 @@
                                 [$parents]="$operationGroups"
                                 [parentFilter]="$productFilter | async"
                                 [parentAttributes]="operationGroupAttributes"
-                                [showSaleType]='false'
+                                [showSaleType]="false"
                                 [showToolbar]="!mobile"
                                 [useSticky]="true">
             </app-products-table>
@@ -207,9 +207,9 @@
           <mat-tab label="{{'TRIP.LANDED_CATCH.TAB_BATCH'|translate}}">
             <ng-template mat-tab-label>
               <ion-label
-                [matBadge]='packetsTable?.value?.length'
-                [matBadgeHidden]="!packetsTable?.value?.length"
-                matBadgeOverlap='false'
+                [matBadge]="packetsTable.visibleRowCount"
+                [matBadgeHidden]="!packetsTable.visibleRowCount"
+                matBadgeOverlap="false"
                 matBadgeColor="accent"
                 matBadgeSize="small"
                 matBadgePosition="above after"

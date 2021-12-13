@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { AppTabEditor, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
@@ -49,13 +49,10 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
     protected router: Router,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
-    // protected landedSaleValidatorService: ExpectedSaleValidatorService,
-    protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    // super(dateAdapter, landedSaleValidatorService.getFormGroup(undefined), settings);
     super(route, router, alertCtrl, translate);
 
     this.form = formBuilder.group({});
@@ -71,7 +68,8 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
 
   async updateProducts(value: Product[]) {
 
-    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms)).map(pmfm => DenormalizedPmfmStrategy.fromObject(pmfm));
+    const pmfms = (await firstNotNilPromise(this.productsTable.$pmfms))
+      .map(pmfm => DenormalizedPmfmStrategy.fromObject(pmfm));
     let products = (value || []).slice();
     this.totalPriceCalculated = 0;
 

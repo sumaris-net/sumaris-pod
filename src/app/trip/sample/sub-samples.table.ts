@@ -1,15 +1,32 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {PmfmIds} from '@app/referential/services/model/model.enum';
-import {SubSampleValidatorService} from '../services/validator/sub-sample.validator';
-import {EntityUtils, filterNotNil, firstFalsePromise, InMemoryEntitiesService, isNil, isNotNil, joinPropertiesPath, toNumber, UsageMode} from '@sumaris-net/ngx-components';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {Sample} from '../services/model/sample.model';
-import {SortDirection} from '@angular/material/sort';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
-import {environment} from '@environments/environment';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { SubSampleValidatorService } from '../services/validator/sub-sample.validator';
+import {
+  EntityUtils,
+  firstFalsePromise,
+  firstNotNilPromise,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  joinPropertiesPath, LoadResult,
+  OnReady,
+  PlatformService, suggestFromArray,
+  toNumber,
+  UsageMode, waitIdle,
+} from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { Sample } from '../services/model/sample.model';
+import { SortDirection } from '@angular/material/sort';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { environment } from '@environments/environment';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
+import { merge, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { firstTruePromise } from '../../../../ngx-sumaris-components/src/app/shared/observables';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -34,24 +51,18 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   protected cd: ChangeDetectorRef;
   protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
+  onParentChanges = new Subject();
   displayParentPmfm: IPmfm;
+
+  @Input() showError = true;
+  @Input() showPmfmDetails = false;
+  @Input() compactFields = true;
 
   @Input()
   set availableParents(parents: Sample[]) {
     if (this._availableParents !== parents) {
-
       this._availableParents = parents;
-
-      // Sort parents by by Tag-ID
-      if (this.displayParentPmfm) {
-        this._availableSortedParents = this.sortData(parents.slice(), this.displayParentPmfm.id.toString());
-      }
-      else {
-        this._availableSortedParents = this.sortData(parents.slice(), 'taxonGroup');
-      }
-
-      // Link samples to parent, and delete orphan
-      this.linkDataToParentAndDeleteOrphan();
+      if (!this.loading) this.onParentChanges.next();
     }
   }
 
@@ -68,9 +79,13 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   }
 
   @Input() showLabelColumn = false;
-
+  @Input() showToolbar = true;
+  @Input() modalOptions: Partial<ISubSampleModalOptions>;
+  @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
-  @Input() useSticky: true;
+  @Input() useSticky = false;
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
 
   constructor(
     protected injector: Injector
@@ -83,20 +98,21 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         equals: Sample.equals,
         sortByReplacement: {'id': 'rankOrder'}
       }),
-      injector.get(ValidatorService),
+      injector.get(PlatformService).mobile ? null : injector.get(ValidatorService),
       {
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: SUB_SAMPLE_RESERVED_START_COLUMNS,
-        reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS
+        reservedEndColumns: SUB_SAMPLE_RESERVED_END_COLUMNS,
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
     this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-    // TODO: override openDetailModal(), then uncomment :
-    // this.inlineEdition = !this.mobile;
-    this.inlineEdition = true;
+    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
+    this.confirmBeforeDelete = this.mobile;
+    this.inlineEdition = !this.mobile;
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -106,51 +122,43 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-
-    // Always hide parent tag_id (if present)
-    this.setShowColumn(PmfmIds.TAG_ID.toString(), false);
-    this.setShowColumn(PmfmIds.DRESSING.toString(), false);
+    this.setShowColumn('comments', !this.mobile);
 
     // Parent combo
+    // the exact list of attributes to display will be set when receiving the pmfms and parents
     this.registerAutocompleteField('parent', {
-      suggestFn: (value: any, options?: any) => this.suggestParent(value),
+      suggestFn: (value: any, opts?: any) => this.suggestParent(value, opts),
       showAllOnFocus: true
     });
 
-    // Check if there a tag id in pmfms
+    // Compute parent, when parents or pmfms changed
     this.registerSubscription(
-      filterNotNil(this.$pmfms)
-        .subscribe((pmfms) => {
-          this.displayParentPmfm = pmfms.find(p => p.id === PmfmIds.TAG_ID);
-          const displayAttributes = this.settings.getFieldDisplayAttributes('taxonName')
-            .map(key => 'taxonName.' + key);
-          if (this.displayParentPmfm) {
-            this.autocompleteFields.parent.attributes = [`measurementValues.${this.displayParentPmfm.id}`].concat(displayAttributes);
-            this.autocompleteFields.parent.columnSizes = [4].concat(displayAttributes.map(attr =>
-              // If label then col size = 2
-              attr.endsWith('label') ? 2 : undefined));
-            this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
-            this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
-              && PmfmValueUtils.valueToString(obj.measurementValues[this.displayParentPmfm.id], {pmfm: this.displayParentPmfm})
-              || undefined;
-          } else {
-            this.autocompleteFields.parent.attributes = displayAttributes;
-            this.autocompleteFields.parent.columnSizes = undefined; // use defaults
-            this.autocompleteFields.parent.columnNames = undefined; // use defaults
-            this.autocompleteFields.parent.displayWith = (obj) => obj && joinPropertiesPath(obj, displayAttributes) || undefined;
-          }
-          this.markForCheck();
-        }));
+      merge(
+        this.onParentChanges
+          .pipe(map(() => this.pmfms)),
+        this.$pmfms.pipe(
+          filter(isNotEmptyArray),
+          distinctUntilChanged(),
+          tap(pmfms => this.onPmfmsLoaded(pmfms))
+        )
+      )
+      .pipe(
+        tap(pmfms => this.updateParents(pmfms))
+      )
+      .subscribe()
+    )
+  }
+
+  setModalOption(key: keyof ISubSampleModalOptions, value: ISubSampleModalOptions[typeof key]) {
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
   }
 
   async autoFillTable() {
-    // Wait table is ready
-    await this.ready();
+    console.debug("[sub-sample-table] Auto fill table");
 
-    // Wait table is loaded
-    if (this.loading) {
-      await firstFalsePromise(this.loadingSubject);
-    }
+    // Wait table ready and loaded
+    await Promise.all([this.ready(), this.waitIdle()]);
 
     // Skip when disabled or still editing a row
     if (this.disabled || !this.confirmEditCreate()) {
@@ -161,7 +169,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.markAsLoading();
 
     try {
-      console.debug("[sub-sample-table] Auto fill table");
+
 
       // Read existing rows
       const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
@@ -193,7 +201,184 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.memoryDataService.value = data;
   }
 
+  async addOrUpdateEntityToTable(subSample: Sample){
+    if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)){
+      await this.addEntityToTable(subSample);
+    }
+    else {
+      const row = await this.findRowByEntity(subSample);
+      await this.updateEntityToTable(subSample, row);
+    }
+  }
+
+  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
+    console.debug('[sub-samples-table] Opening detail modal...');
+    const pmfms = await firstNotNilPromise(this.$pmfms);
+
+    let isNew = !dataToOpen && true;
+    if (isNew) {
+      dataToOpen = new Sample();
+      await this.onNewEntity(dataToOpen);
+    }
+
+    this.markAsLoading();
+    const i18PrefixParts = this.i18nColumnPrefix && this.i18nColumnPrefix.split('.');
+    const i18nPrefix = i18PrefixParts && (i18PrefixParts.slice(0, i18PrefixParts.length - 2).join('.') + '.');
+
+    const modal = await this.modalCtrl.create({
+      component: SubSampleModal,
+      componentProps: <ISubSampleModalOptions>{
+        // Default options:
+        programLabel: undefined, // Prefer to pass PMFMs directly, to avoid a reloading
+        pmfms,
+        acquisitionLevel: this.acquisitionLevel,
+        disabled: this.disabled,
+        i18nPrefix,
+        i18nSuffix: this.i18nColumnSuffix,
+        usageMode: this.usageMode,
+        availableParents: this._availableSortedParents,
+        defaultLatitudeSign: this.defaultLatitudeSign,
+        defaultLongitudeSign: this.defaultLongitudeSign,
+        onDelete: (event, dataToDelete) => this.deleteEntity(event, dataToDelete),
+
+        // Override using given options
+        ...this.modalOptions,
+
+        // Data to open
+        isNew,
+        data: dataToOpen
+      },
+      keyboardClose: true,
+      backdropDismiss: false
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data && this.debug) console.debug('[sub-samples-table] Modal result: ', data);
+    this.markAsLoaded();
+
+    return data instanceof Sample ? data : undefined;
+  }
+
+
+  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const canDeleteRow = await this.canDeleteRows([row]);
+    if (canDeleteRow === true) {
+      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    }
+    return canDeleteRow;
+  }
+
   /* -- protected methods -- */
+
+  protected mapPmfms(pmfms: IPmfm[]) {
+    // DEBUG
+    console.debug('[sub-samples-table] Mapping PMFMs...', pmfms);
+
+    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
+    const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
+    this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
+
+    // Force the parent PMFM to be hidden, and NOT required
+    if (this.displayParentPmfm && !this.displayParentPmfm.hidden) {
+      const cloneParentPmfm = this.displayParentPmfm.clone();
+      cloneParentPmfm.hidden = true;
+      cloneParentPmfm.required = false;
+      pmfms[tagIdPmfmIndex] = cloneParentPmfm;
+    }
+
+    return pmfms;
+  }
+
+  protected onPmfmsLoaded(pmfms: IPmfm[]) {
+    // Can be overridden by subclasses
+  }
+
+  protected async updateParents(pmfms: IPmfm[]) {
+    // DEBUG
+    console.debug('[sub-samples-table] Update parents...', pmfms);
+
+    const parents = this._availableParents || [];
+    const hasTaxonName = parents.some(s => isNotNil(s.taxonName?.id));
+    const attributeName = hasTaxonName ? 'taxonName' : 'taxonGroup';
+    const baseDisplayAttributes = this.settings.getFieldDisplayAttributes(attributeName)
+      .map(key => `${attributeName}.${key}`);
+
+    // If display parent using by a pmfm
+    if (this.displayParentPmfm) {
+      const parentDisplayPmfmIdStr = this.displayParentPmfm.id.toString();
+      const parentDisplayPmfmPath = `measurementValues.${parentDisplayPmfmIdStr}`;
+      // Keep parents without this pmfms
+      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[parentDisplayPmfmIdStr]));
+      this._availableSortedParents = EntityUtils.sort(filteredParents, parentDisplayPmfmPath);
+
+      this.autocompleteFields.parent.attributes = [parentDisplayPmfmPath].concat(baseDisplayAttributes);
+      this.autocompleteFields.parent.columnSizes = [4].concat(baseDisplayAttributes.map(attr =>
+        // If label then col size = 2
+        attr.endsWith('label') ? 2 : undefined));
+      this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
+      this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
+        && PmfmValueUtils.valueToString(obj.measurementValues[parentDisplayPmfmIdStr], {pmfm: this.displayParentPmfm})
+        || undefined;
+    }
+    else {
+      const displayAttributes = ['rankOrder'].concat(baseDisplayAttributes);
+      this._availableSortedParents = this.sortData(parents.slice(), 'taxonGroup');
+      this.autocompleteFields.parent.attributes = displayAttributes;
+      this.autocompleteFields.parent.columnSizes = undefined; // use defaults
+      this.autocompleteFields.parent.columnNames = undefined; // use defaults
+      this.autocompleteFields.parent.displayWith = (obj) => obj && joinPropertiesPath(obj, displayAttributes) || undefined;
+    }
+
+    // Configure the filter for suggestParent()
+    this.autocompleteFields.parent.filter = this.autocompleteFields.parent.filter || {};
+    this.autocompleteFields.parent.filter.searchAttributes = this.autocompleteFields.parent.attributes;
+
+    // Link samples to parent, and delete orphan
+    await this.linkDataToParentAndDeleteOrphan();
+
+    this.markForCheck();
+  }
+
+  protected async openNewRowDetail(): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    const data = await this.openDetailModal();
+    if (data) {
+      await this.addEntityToTable(data);
+    }
+    return true;
+  }
+
+  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
+    if (!this.allowRowDetail) return false;
+
+    if (this.onOpenRow.observers.length) {
+      this.onOpenRow.emit({id, row});
+      return true;
+    }
+
+    const data = this.toEntity(row, true);
+
+    // Prepare entity measurement values
+    this.prepareEntityToSave(data);
+
+    const updatedData = await this.openDetailModal(data, row);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
+    } else {
+      this.editedRow = null;
+    }
+    return true;
+  }
 
   protected getValue(): Sample[] {
     return this.memoryDataService.value;
@@ -203,8 +388,14 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Override by subclasses
   }
 
+  protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
+    if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
+    return (await this.dataSource.getRows())
+      .find(r => r.currentData.rankOrder === data.rankOrder);
+  }
+
   protected async onNewEntity(data: Sample): Promise<void> {
-    console.debug("[sample-table] Initializing new row data...");
+    console.debug("[sub-samples-table] Initializing new row data...");
 
     await super.onNewEntity(data);
 
@@ -245,6 +436,9 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     const rows = await this.dataSource.getRows();
 
+    //console.debug("[sub-samples-table] Calling linkDataToParentAndDeleteOrphan()", rows);
+
+    const parentDisplayPmfmId = this.displayParentPmfm?.id;
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
@@ -257,15 +451,15 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
           // Update the parent, by id
           parent = this._availableParents.find(p => p.id === parentId);
         }
-        // No parent, search from tag ID
-        else {
-          const parentTagId = item.parent && item.parent.measurementValues && item.parent.measurementValues[PmfmIds.TAG_ID];
-          if (isNil(parentTagId)) {
+        // No parent, search from parent Pmfm
+        else if (isNotNil(parentDisplayPmfmId)){
+          const parentPmfmValue = item.parent && item.parent.measurementValues && item.parent.measurementValues[parentDisplayPmfmId];
+          if (isNil(parentPmfmValue)) {
             parent = undefined; // remove link to parent
           }
           else {
             // Update the parent, by tagId
-            parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[PmfmIds.TAG_ID]) === parentTagId);
+            parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[parentDisplayPmfmId]) === parentPmfmValue);
           }
         }
 
@@ -299,23 +493,22 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     return data;
   }
 
-  protected async suggestParent(value: any): Promise<any[]> {
-    if (EntityUtils.isNotEmpty(value, 'label')) {
-      return [value];
-    }
+  protected async suggestParent(value: any, opts?: any): Promise<LoadResult<Sample>> {
+    if (EntityUtils.isNotEmpty(value, 'label')) return {data: [value]};
     value = (typeof value === "string" && value !== "*") && value || undefined;
-    if (isNil(value)) return this._availableSortedParents; // All
 
-    if (this.debug) console.debug(`[sub-sample-table] Searching parent {${value || '*'}}...`);
-    if (this.displayParentPmfm) { // Search on a specific Pmfm (e.g Tag-ID)
-      return this._availableSortedParents.filter(p => this.startsWithUpperCase(p.measurementValues[this.displayParentPmfm.id], value));
-    }
-    // Search on rankOrder
-    return this._availableSortedParents.filter(p => p.rankOrder.toString().startsWith(value));
+    // All
+    if (isNil(value)) return {data: this._availableSortedParents, total: this._availableSortedParents.length};
+
+    return suggestFromArray(this._availableSortedParents, value, {
+      ...opts
+    });
   }
 
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  isNotHiddenPmfm = PmfmUtils.isNotHidden;
 }

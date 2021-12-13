@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
@@ -84,7 +84,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected formBuilder: FormBuilder,
     protected route: ActivatedRoute,
     protected router: Router,
@@ -95,10 +95,9 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     protected validatorService: ExtractionCriteriaValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter,
+    super(injector,
       // Empty form, that will be filled by setType() and setSheetName()
-      formBuilder.group({}),
-      settings);
+      formBuilder.group({}));
   }
 
   ngOnInit() {

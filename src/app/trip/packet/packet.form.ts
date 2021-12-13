@@ -13,7 +13,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { PacketValidatorService } from '../services/validator/packet.validator';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
@@ -87,14 +87,13 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected validatorService: PacketValidatorService,
-    protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, validatorService.getFormGroup(undefined, {withComposition: true}), settings);
+    super(injector, validatorService.getFormGroup(undefined, {withComposition: true}));
 
   }
 

@@ -1,0 +1,93 @@
+<form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <ion-text *ngIf="debug">
+    showParent: {{showParent}}<br/>
+    i18nFieldPrefix: {{i18nFieldPrefix}}<br/>
+    i18nPmfmPrefix: {{i18nPmfmPrefix}}<br/>
+    i18nSuffix: {{i18nSuffix}}<br/>
+    i18nFullSuffix: {{i18nFullSuffix}}<br/>
+  </ion-text>
+
+  <ion-grid class="ion-no-padding ion-padding-start">
+    <ion-row class="ion-no-padding">
+      <!-- label -->
+      <ion-col *ngIf="showLabel" size="6">
+        <mat-form-field floatLabel="auto">
+          <ion-icon matPrefix name="pricetag"></ion-icon>
+          <input matInput autocomplete="off"
+                 formControlName="label"
+                 [appAutofocus]="enabled &&  focusFieldName === 'label'"
+                 [tabindex]="tabindex"
+                 [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nFullSuffix"
+                 (click)="selectInputContent($event)"
+                 required>
+          <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
+          </mat-error>
+          <!-- Need by auction control (label as an additional validator) -->
+          <mat-error *ngIf="form.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN
+          </mat-error>
+        </mat-form-field>
+      </ion-col>
+
+      <!-- Parent -->
+      <ion-col size="6" size-md="" *ngIf="!loading">
+          <mat-autocomplete-field formControlName="parent"
+                                  [autofocus]="enabled && focusFieldName === 'parent'"
+                                  [placeholder]="(displayParentPmfm | pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}) || ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)"
+                                  [config]="autocompleteFields.parent"
+                                  [tabindex]="(showLabel ? 1 : 0) + tabindex"
+                                  [readonly]="!showParent"
+                                  required>
+          </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+
+    <!-- Measurements -->
+    <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
+             [formGroup]="measurementValuesForm"
+             class="ion-no-padding">
+
+      <ion-col *ngFor="let pmfm of pmfms; index as i; last as last"
+               [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
+               class="pmfm-{{pmfm.id}}">
+        <app-pmfm-field #matInput
+                        [pmfm]="pmfm"
+                        [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                        [style]="mobile && 'button'"
+                        [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
+                        [maxVisibleButtons]="maxVisibleButtons"
+                        [compact]="compact"
+                        [tabindex]="tabindex+2 + i*maxVisibleButtons"
+                        [defaultLatitudeSign]="defaultLatitudeSign"
+                        [defaultLongitudeSign]="defaultLongitudeSign"
+                        (keyup.enter)="last && doSubmit($event)">
+        </app-pmfm-field>
+      </ion-col>
+    </ion-row>
+
+    <ng-content></ng-content>
+
+    <!-- Comments -->
+    <ion-row *ngIf="showComment">
+      <ion-col>
+        <mat-form-field appearance="outline">
+          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
+                    maxlength="2000"
+                    tabindex="100"
+                    [placeholder]="'COMMON.COMMENTS'|translate"
+                    formControlName="comments"></textarea>
+          <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+
+</form>

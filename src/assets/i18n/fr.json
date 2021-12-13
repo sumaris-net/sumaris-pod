@@ -46,6 +46,7 @@
     "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
+    "BTN_SORT_BY_DOTS": "Trier par...",
     "BTN_SHOW": "Afficher",
     "BTN_SHOW_MENU": "Afficher le menu",
     "BTN_SHOW_MORE": "Afficher plus",
@@ -464,7 +465,8 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
-      "OTHER_FEATURES": "Caractéristiques :"
+      "OTHER_FEATURES": "Caractéristiques :",
+      "BTN_DELETE": "Supprimer toute la marée"
     },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
@@ -554,7 +556,6 @@
       "BTN_SHOW_ALL": "Voir tout",
       "BTN_HISTORY": "Historique",
       "BTN_SHOW_MAP": "Carte des opérations",
-      "COMMENTS": "Commentaires",
       "LAST_OPERATIONS": "Dernières opérations",
       "NO_LAST_OPERATION": "Aucune opération précédente",
       "OPE_PREFIX": "OPE",
@@ -565,23 +566,36 @@
       "EDIT": {
         "TITLE": "Ope #{{rankOrder}} <small>du {{startDateTime}}</small>",
         "TITLE_NO_RANK": "Ope {{startDateTime}}",
+        "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
         "BTN_EDIT_PARENT" : "Modifier le filage...",
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",
+        "BTN_SAVE_AND_NEW" : "Sauvegarder et nouveau",
+        "COMMENTS": "Commentaires",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
         "TAB_CATCH_TOTAL": "Capture total",
         "TAB_SAMPLES": "Prélèvements",
-        "TAB_SUB_SAMPLES": "Sous-prélèvements",
-        "TAB_INDIVIDUAL_RELEASES": "Relachés",
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Tests de survie"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Captures accidentelles"
+        },
         "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
+        "TARGET_SPECIES": "Espèce cible",
+        "PHYSICAL_GEAR": "Engin utilisé",
         "START": "Début pêche :",
         "END": "Fin pêche :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
+        "START_DATE_TIME": "Début d'opération",
+        "FISHING_START_DATE_TIME": "Début de pêche",
+        "FISHING_END_DATE_TIME": "Fin de pêche",
+        "END_DATE_TIME": "Fin d'opération",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
         "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
@@ -595,10 +609,6 @@
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
-        },
-        "SURVIVAL_TEST": {
-          "TAB_SAMPLES": "Tests de survie",
-          "TAB_SUB_SAMPLES": "Suivi individuel"
         }
       },
       "PARENT": {
@@ -617,6 +627,7 @@
         "OPERATIONS_LAYER": "Opérations"
       },
       "LIST": {
+        "ID": "Numéro",
         "TRIP_ID": "Marée",
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
@@ -754,27 +765,44 @@
       }
     },
     "SAMPLE": {
+      "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
       "NEW": {
-        "TITLE": "Nouvel échantillon",
-        "TITLE_PREFIX": "<small>{{prefix}}<br></small>"
+        "TITLE": "Nouvel individu",
+        "AUCTION_CONTROL": {
+          "TITLE": "Nouveau lot"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Nouvelle capture accidentelle"
+        }
       },
       "EDIT": {
-        "TITLE": "Echantillon {{label}}",
-        "LABEL_PLACEHOLDER": "Lot",
-        "DATE_TIME_PLACEHOLDER": "Date échantillon",
+        "TITLE": "Individu {{label}}",
+        "LABEL_PLACEHOLDER": "Libellé",
+        "SAMPLE_DATE_PLACEHOLDER": "Date de la mesure",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)"
+        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
+        "AUCTION_CONTROL": {
+          "TITLE": "Lot {{label}}",
+          "LABEL_PLACEHOLDER": "Numéro du lot"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Capture {{label}}",
+          "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)"
+        }
       },
       "TABLE": {
-        "LABEL": "Lot",
-        "LABEL_PLACEHOLDER": "Lot",
+        "TAB_SAMPLES": "Prélèvements",
+        "TAB_SUB_SAMPLES": "Sous-prélèvement",
+        "TAB_INDIVIDUAL_RELEASES": "Relâché",
+        "LABEL": "Libellé",
+        "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
         "TAXON_NAME": "Espèce scientifique (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "SAMPLE_DATE": "Date/Heure de la mesure",
         "SAMPLE_DATE_PLACEHOLDER": "Date/Heure",
-        "PARENT": "Echantillon parent",
+        "PARENT": "Prélèvement parent",
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
         "BTN_AUTO_FILL": "Remplir automatiquement",
@@ -787,33 +815,80 @@
         "OTHER": "Autre",
         "TOTAL_DOTS": "Total :",
         "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
-        "SAMPLING": {
-          "TAXON_GROUP": "Espèce commerciale (FAO)",
-          "TAXON_GROUP_PLACEHOLDER": "Code espèce",
-          "TAXON_NAME": "Espèce scientifique (FAO)",
-          "TAXON_NAME_PLACEHOLDER": "Code espèce",
-          "SAMPLE_DATE": "Date/Heure de la mesure",
-          "PARENT": "Echantillon parent",
-          "COMMENTS": "Commentaires",
-          "COMMENTS_PLACEHOLDER": "Commentaires",
-          "BTN_AUTO_FILL": "Remplir automatiquement",
-          "TAG_ID": "Code prélèvement",
-          "DRESSING": "Présentation",
-          "WEIGHT": "Poids",
-          "LENGTH": "Taille",
-          "MATURITY": "Maturité",
-          "SEX": "Sexe",
-          "AGE": "Age",
-          "OTHER": "Autre"
+        "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
+        "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
+        "AUCTION_CONTROL": {
+          "LABEL": "Lot",
+          "LABEL_PLACEHOLDER": "Lot"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Mesures individuelles",
+          "TAXON_GROUP": "Espèce (FAO)",
+          "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
+        },
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Mesures individuelles",
+          "TAB_SUB_SAMPLES": "Suivi individuel",
+          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel"
         }
       },
-      "ERROR" : {
-        "PARAMETERS.EXACT_TAG_ID_LENGTH": "La longueur du code prélévement doit être 4",
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Poids ou taille obligatoire",
-        "PARAMETERS.DRESSING": "Presentation obligatoire"
+      "PMFM_GROUP": {
+        "WEIGHT": "Poids",
+        "LENGTH": "Taille",
+        "MATURITY": "Maturité",
+        "SEX": "Sexe",
+        "AGE": "Age",
+        "OTHER": "Autre"
+      },
+      "PMFM": {
+        "INDIVIDUAL_RELEASE": {
+          "MEASURE_TIME": "Heure de remise à l'eau",
+          "ACCIDENTAL_CATCH": {
+            "MEASURE_TIME": "Heure de remise à l'eau",
+            "TAG_ID": "Référence de la marque"
+          }
+        },
+        "ACCIDENTAL_CATCH": {
+          "MEASURE_TIME": "Heure de remise à l'eau",
+          "TAG_ID": "Référence de la marque"
+        },
+        "SAMPLING": {
+          "TAG_ID": "Code prélèvement",
+          "DRESSING": "Présentation"
+        },
+        "SURVIVAL_TEST": {
+          "TAG_ID": "Tag-ID"
+        }
+      },
+      "ERROR": {
+        "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
+        "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
         "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
+      }
+    },
+    "SUB_SAMPLE": {
+      "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
+      "NEW": {
+        "TITLE": "Nouveau sous-prélèvement",
+        "INDIVIDUAL_MONITORING": {
+          "TITLE": "Nouveau suivi individuel"
+        },
+        "INDIVIDUAL_RELEASE": {
+          "TITLE": "Nouveau relâché"
+        }
+      },
+      "EDIT": {
+        "TITLE": "Sous-prélèvement {{label}}",
+        "LABEL_PLACEHOLDER": "Libellé",
+        "PARENT": "Prélèvement parent",
+        "INDIVIDUAL_MONITORING": {
+          "TITLE": "Suivi individuel {{label}}"
+        },
+        "INDIVIDUAL_RELEASE": {
+          "TITLE": "Relâché {{label}}"
+        }
       }
     }
   },
@@ -924,6 +999,7 @@
     }
   },
   "LANDING": {
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
     "NEW": {
       "TITLE": "Nouveau débarquement",
       "SAMPLING": {
@@ -932,7 +1008,6 @@
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
-      "TITLE_PREFIX": "<small>{{location}} - {{date}}<br/></small>",
       "TAB_GENERAL": "Détails",
       "PROGRAM": "Programme",
       "STRATEGY": "Stratégie :",
@@ -1362,6 +1437,7 @@
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
+      "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
@@ -1375,17 +1451,19 @@
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
-      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientiques ?",
+      "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientifiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
       "TRIP_BATCH_ENABLE": "Capture > Lots pas espèces: Activer ?",
       "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lots pas espèces: Activer les mesures individuelles ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientiques ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
+      "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Poids : Activer ?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Capture > Echantillon : Date et heure ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
-      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientiques ?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientifiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientifiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
@@ -1434,7 +1512,7 @@
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
       "LOCATIONS": "Lieux",
-      "TAB_PMFM": "PMFM",
+      "TAB_PMFM": "Protocole de collecte",
       "GEARS": "Engins",
       "TAXON_GROUPS": "Espèces commerciales",
       "TAXON_NAMES": "Espèce cible",
@@ -1588,9 +1666,6 @@
         "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Erreur lors de chargement du label de l'échantillon de la stratégie",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Erreur lors de chargement des références analytiques pour la stratégie",
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
-        "PARAMETERS.EXACT_TAG_ID_LENGTH": "La longueur du code prélévement doit être 4",
-        "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
-        "PARAMETERS.DRESSING": "La présentation est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
         "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour les trimestres ayant des mesures individuelles : {{quarters}}",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
@@ -1798,7 +1873,7 @@
       "CL": "Débarquements",
       "CE": "Efforts",
       "ST": "Tests de survie",
-      "RL": "Relachés"
+      "RL": "Relâché"
     },
     "OPTIONS": {
       "ENABLE": "Extraction > Activer ?",
@@ -1926,11 +2001,11 @@
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
     "FIELD_MAX": "Valeur maximale autorisée: {{max}}",
     "FIELD_MAX_COMPACT": "Max {{max}}",
-    "FIELD_MAXIMUM_DECIMALS": "Nombre de décimale incorrect ({{max}} max)",
-    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale max={{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Trop de décimales (max: {{maxDecimals}})",
+    "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale > {{maxDecimals}}",
     "FIELD_INVALID": "Valeur non valide",
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
-    "FIELD_NOT_VALID_EMAIL": "Addresse email invalide",
+    "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Dates incohérentes",

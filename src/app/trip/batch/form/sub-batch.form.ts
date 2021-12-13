@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Batch } from '../../services/model/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import {
@@ -20,12 +18,12 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  LocalSettingsService,
   PlatformService,
   ReferentialUtils,
   SharedValidators,
   startsWithUpperCase,
-  toBoolean, toNumber,
+  toBoolean,
+  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
@@ -58,9 +56,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
 
   mobile: boolean;
-  enableIndividualCountControl: AbstractControl;
-  freezeTaxonNameControl: AbstractControl;
-  freezeQvPmfmControl: AbstractControl;
+  enableIndividualCountControl: FormControl;
+  freezeTaxonNameControl: FormControl;
+  freezeQvPmfmControl: FormControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
 
@@ -158,18 +156,16 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
     protected platform: PlatformService,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected translate: TranslateService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         rankOrderRequired: false, // Avoid to have form.invalid, in Burst mode
       }),

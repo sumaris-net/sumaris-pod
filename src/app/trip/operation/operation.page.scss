@@ -3,10 +3,20 @@
   ion-title {
     --color: var(--ion-color-primary-contrast);
   }
-}
+  //--table-container-offset: var(--mat-tab-link-height, 0px);
 
-ion-content > .mat-tab-group {
-  --mat-tab-body-content-height: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px);
+
+  .mat-tab-group-root {
+    --mat-tab-body-content-height-root: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 2px);
+    --mat-tab-body-content-height: var(--mat-tab-body-content-height-root);
+
+    .mat-tab-group-samples {
+      height: var(--mat-tab-body-content-height-root);
+      --mat-tab-body-content-height: calc(var(--mat-tab-body-content-height-root) - var(--mat-tab-link-height, 0px) - 1px);
+    }
+
+  }
+
 }
 
 ion-col>ion-label {

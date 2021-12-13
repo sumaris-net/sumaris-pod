@@ -66,7 +66,6 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
     service: 'WMS'
   });
 
-  ready = false;
   options = <MapOptions>{
     layers: [this.sextantBaseLayer],
     maxZoom: 10, // max zoom to sextant layer

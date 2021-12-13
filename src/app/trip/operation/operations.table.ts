@@ -48,6 +48,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() useSticky = true;
+  @Input() allowParentOperation = false;
 
   @Input() set showQualityColumn(value: boolean) {
     this.setShowColumn('quality', value);
@@ -66,6 +67,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
           return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
           return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        case 'fishingArea':
+          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         default:
           return sortActive;
       }
@@ -75,12 +78,13 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       switch (sortActive) {
         case 'targetSpecies':
           return 'metier';
+        case 'fishingArea':
+          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         default:
           return sortActive;
       }
     }
   }
-
 
   @Input() set showPosition(show: boolean) {
     this.setShowColumn('startPosition', show);
@@ -264,6 +268,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       gear: this.settings.getFieldDisplayAttributes('gear'),
       physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+      fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label'])
     };
 
     this.markForCheck();

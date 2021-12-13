@@ -43,6 +43,7 @@ import {
   SharedModule,
   SocialModule,
   TestingPage,
+  APP_FORM_ERROR_I18N_KEYS
 } from '@sumaris-net/ngx-components';
 import {environment} from '@environments/environment';
 import {HttpClient, HttpClientModule} from '@angular/common/http';

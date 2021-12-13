@@ -1,9 +1,9 @@
-import {FormGroup} from "@angular/forms";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {Subscription} from "rxjs";
-import { isNilOrBlank, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
-import {ObjectMap} from "@sumaris-net/ngx-components";
-import {PmfmIds} from '../../../referential/services/model/model.enum';
+import { FormGroup } from '@angular/forms';
+import { DenormalizedPmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
+import { Subscription } from 'rxjs';
+import { isNotNil, isNotNilOrBlank, ObjectMap } from '@sumaris-net/ngx-components';
+import { PmfmIds } from '../../../referential/services/model/model.enum';
+import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 
 export class BiologicalSamplingValidators {
 
@@ -25,13 +25,13 @@ export class BiologicalSamplingValidators {
 
       const tagId = measValues[PmfmIds.TAG_ID];
       if (isNotNilOrBlank(tagId) && tagId.length !== 4) {
-        return { tagIdLength: 'TRIP.SAMPLE.ERROR.PARAMETERS.EXACT_TAG_ID_LENGTH' };
+        return { tagIdLength: {length: 4} };
       }
 
       const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       if (!hasWeight && !hasLengthSize){
-        return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
+        return { missingWeightOrSize: SAMPLE_VALIDATOR_I18N_ERROR_KEYS.missingWeightOrSize };
       }
     });
 

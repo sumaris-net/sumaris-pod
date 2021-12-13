@@ -15,7 +15,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field formControlName="program"
-                                [placeholder]="i18nPrefix + 'PROGRAM'|translate"
+                                [placeholder]="'LANDING.EDIT.PROGRAM'|translateContext: i18nSuffix"
                                 [config]="autocompleteFields.program"
                                 [tabindex]="tabindex"
                                 required>
@@ -27,12 +27,12 @@
     <!-- Strategy -->
     <ion-row *ngIf="showStrategy">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label class="ion-float-end hidden-xs hidden-sm">{{i18nPrefix + 'STRATEGY'|translate}}</ion-label>
+        <ion-label class="ion-float-end hidden-xs hidden-sm">{{'LANDING.EDIT.STRATEGY'|translateContext: i18nSuffix}}</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
           [formControl]="strategyControl"
-          [placeholder]="i18nPrefix + 'STRATEGY_PLACEHOLDER'|translate"
+          [placeholder]="'LANDING.EDIT.STRATEGY_PLACEHOLDER'|translateContext: i18nSuffix"
           [config]="autocompleteFields.strategy"
           [readonly]="!canEditStrategy"
           [tabindex]="tabindex+1"
@@ -76,12 +76,12 @@
     <!-- LOCATION + date/time-->
     <ion-row *ngIf="!loading && (showLocation || showDateTime)">
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end">{{i18nPrefix+'LANDING'|translate}}</ion-label>
+        <ion-label class="ion-float-end">{{'LANDING.EDIT.LANDING'|translateContext: i18nSuffix}}</ion-label>
       </ion-col>
       <!-- location -->
       <ion-col *ngIf="showLocation">
         <mat-autocomplete-field formControlName="location"
-                                [placeholder]="i18nPrefix + 'LOCATION'|translate"
+                                [placeholder]="'LANDING.EDIT.LOCATION'|translateContext: i18nSuffix"
                                 [config]="autocompleteFields.location"
                                 [tabindex]="tabindex+4"
                                 required>
@@ -89,7 +89,7 @@
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="" offset-lg="3" *ngIf="showDateTime">
-        <mat-date-time-field [placeholder]="i18nPrefix + 'DATE'|translate"
+        <mat-date-time-field [placeholder]="'LANDING.EDIT.DATE'|translateContext: i18nSuffix"
                              formControlName="dateTime"
                              [tabindex]="tabindex+5"
                              [required]="true">
@@ -175,9 +175,9 @@
 
       <!-- Observers -->
       <ng-container *ngIf="showObservers">
-        <ion-row *ngFor="let observerForm of observersForm?.controls; let i=index">
+        <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first">
           <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
-            <ion-label class="ion-float-end" *ngIf="!i" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
+            <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
           </ion-col>
           <ion-col>
             <mat-autocomplete-field [formControl]="observersHelper.at(i)"
@@ -186,7 +186,7 @@
                                     [config]="autocompleteFields.person"
                                     [tabindex]="tabindex+10+i*3"
                                     [i18nPrefix]="'USER.'"
-                                    [required]="i === 0">
+                                    [required]="first">
               <ion-icon matPrefix name="person"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
@@ -244,16 +244,18 @@
     <ion-row *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
-                    maxlength="2000"
+          <textarea matInput #comments
+                    formControlName="comments"
+                    matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
                     tabindex="100"
                     [placeholder]="'COMMON.COMMENTS'|translate"
-                    formControlName="comments"></textarea>
+                    ></textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls['comments'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>
+
   </ion-grid>
 
 </form>

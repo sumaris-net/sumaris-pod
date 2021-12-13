@@ -2,11 +2,13 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, I
 import {
   AppFormUtils,
   AppTabEditor,
-  AppTableUtils,
+  AppTable,
+  Entity,
   firstTruePromise,
-  InMemoryEntitiesService,
+  InMemoryEntitiesService, IReferentialRef,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   PlatformService,
@@ -14,10 +16,10 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AlertController, ModalController } from '@ionic/angular';
-import { BehaviorSubject, defer } from 'rxjs';
+import { BehaviorSubject, defer, Observable } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { OperationService } from '../services/operation.service';
-import { debounceTime, filter, map, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { TripService } from '../services/trip.service';
 import { Batch, BatchUtils } from '../services/model/batch.model';
 import { BatchGroup, BatchGroupUtils } from '../services/model/batch-group.model';
@@ -32,6 +34,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { SubBatch, SubBatchUtils } from '../services/model/subbatch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 @Component({
   selector: 'app-batch-tree',
@@ -45,8 +48,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
-  $programLabel = new BehaviorSubject<string>(undefined);
+  $programLabel = new BehaviorSubject<string>(null);
+  $program = new BehaviorSubject<Program>(null);
   showSubBatchesTable = false;
+  listenProgramChanges = true;
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
@@ -101,6 +106,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
   }
 
+  get programLabel(): string {
+    return this.$programLabel.value;
+  }
+
+  @Input()
+  set program(value: Program) {
+    this.listenProgramChanges = false; // Avoid to watch program changes, when program is given by parent component
+    this.$program.next(value);
+  }
+
   @Input()
   set gearId(value: number) {
     if (this._gearId !== value && isNotNil(value)) {
@@ -109,12 +124,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
   }
 
-  @Input() set defaultTaxonGroups(value: string[]) {
-    this.batchGroupsTable.defaultTaxonGroups = value;
+  @Input() set availableTaxonGroups(value: TaxonGroupRef[]) {
+    this.batchGroupsTable.availableTaxonGroups = value;
   }
 
-  get defaultTaxonGroups(): string[] {
-    return this.batchGroupsTable.defaultTaxonGroups;
+  get availableTaxonGroups(): TaxonGroupRef[]  {
+    return this.batchGroupsTable.availableTaxonGroups;
   }
 
   @Input() set defaultHasSubBatches(value: boolean) {
@@ -129,15 +144,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
-  set selectedSubTabIndex(value: number) {
-    this.setSelectedTabIndex(value);
-  }
-
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
 
-  private _applyingProgram = false;
 
   constructor(
     protected route: ActivatedRoute,
@@ -165,13 +175,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   ngOnInit() {
     // Set defaults
+    this.tabCount = this.mobile ? 1 : 2;
     this.showCatchForm = toBoolean(this.showCatchForm, true);
     this.showBatchTables = toBoolean(this.showBatchTables, true);
     this.allowSamplingBatches = toBoolean(this.allowSamplingBatches, true);
     this.allowSubBatches = toBoolean(this.allowSubBatches, true);
 
-    this._subBatchesService = isNil(this.subBatchesTable)
-      ? new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
+    this._subBatchesService = this.mobile
+      ? new InMemoryEntitiesService(SubBatch, SubBatchFilter, {
         equals: Batch.equals
       })
       : null;
@@ -199,16 +210,27 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   ngAfterViewInit() {
 
-
     // Get available sub-batches only when subscribe (for performance reason)
-    this.batchGroupsTable.availableSubBatches = defer(() => this.getSubBatches({saveIfDirty: true}));
+    this.batchGroupsTable.availableSubBatches = defer(() => this.getSubBatches());
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
       this.$programLabel
         .pipe(
+          filter(() => this.listenProgramChanges), // Avoid to watch program, if was already set
           filter(isNotNilOrBlank),
+          distinctUntilChanged(),
           switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
+        )
+        .subscribe(program => this.$program.next(program))
+    );
+
+    // Watch program, to configure tables from program properties
+    this.registerSubscription(
+      this.$program
+        .pipe(
+          distinctUntilChanged((p1, p2) => p1 && p2 && p1.label === p2.label && p1.updateDate.isSame(p2.updateDate)),
+          filter(isNotNil)
         )
         .subscribe(program => this.setProgram(program))
     );
@@ -216,9 +238,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this.subBatchesTable) {
 
       // Enable sub batches table, only when table pmfms ready
-      firstTruePromise(this.subBatchesTable.$pmfms
-        .pipe(map(isEmptyArray))
-      ).then(() => this.showSubBatchesTable = true);
+      firstTruePromise(this.subBatchesTable.$hasPmfms)
+        .then(() => this.showSubBatchesTable = true);
 
       // Update available parent on individual batch table, when batch group changes
       this.registerSubscription(
@@ -246,38 +267,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     super.ngOnDestroy();
 
     this._subBatchesService?.ngOnDestroy();
+
+    this.$programLabel.complete();
+    this.$program.complete();
   }
 
-  setProgram(program: Program) {
-    if (!program || this._applyingProgram) return;
-    this._applyingProgram = true;
-    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
-
-    this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
-    this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-
-    // Some specific taxon groups have no weight collected
-    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
-      .map(label => label.trim().toUpperCase())
-      .filter(isNotNilOrBlank) || undefined;
-
-    // Force taxon name in sub batches, if not filled in root batch
-    if (this.subBatchesTable) {
-      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
-      this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
-      this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
-    }
-
-    // Propage to children components
-    this.programLabel = program.label;
-
-    this._applyingProgram = false;
-  }
-
-  async load(id?: number, options?: any): Promise<any> {
-    return Promise.resolve(undefined);
-  }
 
   async save(event?: UIEvent, options?: any): Promise<any> {
 
@@ -288,13 +282,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Save batch groups and sub batches
     const [batchGroups, subBatches] = await Promise.all([
-      this.batchGroupsTable.save().then(() => this.batchGroupsTable.value),
-      this.getSubBatches({saveIfDirty: true})
+      this.getTableValue(this.batchGroupsTable),
+      this.getSubBatches()
     ]);
     target.children = batchGroups;
 
-    // Prepare subbatches for model (set parent)
-    if (subBatches){
+    // Prepare subBatches for model (set parent)
+    if (isNotEmptyArray(subBatches)){
       SubBatchUtils.linkSubBatchesToParent(batchGroups, subBatches, {
         qvPmfm: this.batchGroupsTable.qvPmfm
       });
@@ -313,13 +307,20 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.form.value;
   }
 
-  async reload() {
-
-  }
-
   getValue(): Batch {
     return this.data;
   }
+
+  load(id?: number, options?: any): Promise<any> {
+    // Unused
+    return Promise.resolve(undefined);
+  }
+
+  reload() {
+    // Unused
+    return Promise.resolve(undefined);
+  }
+
 
   /* -- protected method -- */
 
@@ -394,6 +395,36 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     ]);
   }
 
+  protected async setProgram(program: Program) {
+    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
+
+    const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.allowSamplingBatches = hasBatchMeasure;
+    this.allowSubBatches = hasBatchMeasure;
+
+    this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
+    this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+    this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+
+    this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+
+    // Some specific taxon groups have no weight collected
+    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank) || undefined;
+
+    // Force taxon name in sub batches, if not filled in root batch
+    if (this.subBatchesTable) {
+      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
+      this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
+      this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
+    }
+
+    // Propagate to children components, if need
+    // This should be need when $program has been set by parent, and not from the $programLabel observable
+    if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
+  }
 
   async onSubBatchesChanges(subbatches: SubBatch[]) {
     if (isNil(subbatches)) return; // user cancelled
@@ -402,7 +433,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.subBatchesTable.value = subbatches;
 
       // Wait table not busy
-      await AppTableUtils.waitIdle(this.subBatchesTable);
+      await this.subBatchesTable.waitIdle();
 
       this.subBatchesTable.markAsDirty();
     } else  {
@@ -412,17 +443,18 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string) {
     const result = super.onTabChange(event, queryTabIndexParamName);
-    if (this.loading) return result;
 
-    // On each tables, confirm the current editing row
-    if (this.showBatchTables && this.batchGroupsTable) this.batchGroupsTable.confirmEditCreate();
-    if (this.allowSubBatches && this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
+    if (!this.loading)  {
+      // On each tables, confirm the current editing row
+      if (this.showBatchTables && this.batchGroupsTable) this.batchGroupsTable.confirmEditCreate();
+      if (this.allowSubBatches && this.subBatchesTable) this.subBatchesTable.confirmEditCreate();
+    }
 
     return result;
   }
 
 
-  async autoFill(opts?: { defaultTaxonGroups?: string[]; forceIfDisabled?: boolean; }): Promise<void> {
+  async autoFill(opts?: { forceIfDisabled?: boolean; }): Promise<void> {
     return this.batchGroupsTable.autoFillTable(opts);
   }
 
@@ -434,7 +466,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   realignInkBar() {
-    if (this.tabGroup) {
+    if (this.tabGroup && this.showBatchTables) {
       //this.tabGroup.selectedIndex = this.selectedTabIndex;
       this.tabGroup.realignInkBar();
     }
@@ -464,26 +496,30 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected methods -- */
 
-  async getSubBatches(opts?: { saveIfDirty?: boolean; }): Promise<SubBatch[]> {
+  async getSubBatches(): Promise<SubBatch[]> {
     if (!this.showBatchTables) return undefined;
     if (this.subBatchesTable) {
-      // Save table first (if need)
-      if (this.subBatchesTable.dirty) {
-        await this.subBatchesTable.save();
-
-        // Remember dirty state
-        this.markAsDirty({emitEvent: false});
-      }
-
-      return this.subBatchesTable.value;
+      return this.getTableValue(this.subBatchesTable);
     } else {
       return this._subBatchesService.value;
     }
   }
 
+
   protected resetSubBatches() {
     if (this.subBatchesTable) this.subBatchesTable.value = [];
     if (this._subBatchesService) this._subBatchesService.setValue([]);
+  }
+
+  protected async getTableValue<T extends Entity<T>>(table: AppTable<T> & { value: T[]}): Promise<T[]> {
+    if (table.dirty) {
+      await table.save();
+
+      // Remember dirty state
+      this.markAsDirty({emitEvent: false});
+    }
+
+    return table.value;
   }
 
   markForCheck() {

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy
 import { Product } from '../services/model/product.model';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { ProductValidatorService } from '../services/validator/product.validator';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -45,14 +45,13 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected validatorService: ProductValidatorService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, validatorService.getFormGroup(undefined, {withSaleProducts: true}), settings);
+    super(injector, validatorService.getFormGroup(undefined, {withSaleProducts: true}));
   }
 
   ngOnInit() {

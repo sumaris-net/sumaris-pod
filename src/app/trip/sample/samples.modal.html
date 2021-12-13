@@ -7,15 +7,14 @@
 </app-modal-toolbar>
 
 <ion-content>
-  <!--                     [class.cdk-visually-hidden]="!samplesTable.defaultTaxonGroup"-->
-  <!--                     [defaultSampleDate]="data?.dateTime"-->
+
   <app-samples-table #table
                      [programLabel]="programLabel"
                      [acquisitionLevel]="acquisitionLevel"
                      [defaultTaxonGroup]="defaultTaxonGroup"
                      [defaultSampleDate]="defaultSampleDate"
                      [showLabelColumn]="showLabel"
-                     [showDateTimeColumn]="false"
+                     [showSampleDateColumn]="false"
                      [showTaxonNameColumn]="showTaxonName"
                      [showTaxonGroupColumn]="showTaxonGroup"
                      [showCommentsColumn]="false"

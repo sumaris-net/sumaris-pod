@@ -1,11 +1,9 @@
-import {LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators} from '@sumaris-net/ngx-components';
-import {FormBuilder, FormControl, Validators} from '@angular/forms';
-import {RootDataEntity} from '../model/root-data-entity.model';
-import {IWithObserversEntity} from '../model/model.utils';
-import {Program} from '../../../referential/services/model/program.model';
-import {Optional} from '@angular/core';
-import {DataEntityValidatorOptions, DataEntityValidatorService} from './data-entity.validator';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import { LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { RootDataEntity } from '../model/root-data-entity.model';
+import { IWithObserversEntity } from '../model/model.utils';
+import { Program } from '../../../referential/services/model/program.model';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;

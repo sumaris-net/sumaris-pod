@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, AbstractControlOptions, FormBuilder, FormGroup} from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
-import {Measurement, MeasurementUtils, MeasurementValuesUtils} from '../model/measurement.model';
-import {PmfmValidators} from '../../../referential/services/validator/pmfm.validators';
-import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import {Measurement, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils} from '../model/measurement.model';
+import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 export interface MeasurementsValidatorOptions {
@@ -48,15 +48,18 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         onlyExistingPmfms: false
       }) || undefined;
 
-    return opts.pmfms.reduce((res, pmfm) => {
-      const validator = PmfmValidators.create(pmfm, null, opts);
-      if (validator) {
-        res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
-      } else {
-        res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
-      }
-      return res;
-    }, {});
+    return {
+      ...opts.pmfms.reduce((res, pmfm) => {
+        const validator = PmfmValidators.create(pmfm, null, opts);
+        if (validator) {
+          res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
+        } else {
+          res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
+        }
+        return res;
+      }, {}),
+      __typename: [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue, Validators.required]
+    };
   }
 
   getFormGroupOptions(data?: T[], opts?: O): AbstractControlOptions | null {
@@ -66,7 +69,10 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   updateFormGroup(form: FormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
-    const controlNamesToRemove = Object.getOwnPropertyNames(form.controls);
+    const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
+      // Excluded protected attributes
+      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName) || controlName !== '__typename');
+
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
 
@@ -94,11 +100,15 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       if (index !== -1) controlNamesToRemove.splice(index, 1);
     });
 
+
     // Remove unused controls
-    controlNamesToRemove
-      // Excluded protected attributes
-      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName))
-      .forEach(controlName => form.removeControl(controlName));
+    controlNamesToRemove.forEach(controlName => form.removeControl(controlName));
+
+    // Create control for '__typename' (required)
+    if (!form.get('__typename')) {
+      console.warn('[measurement-validator] Re add control \'__typename\' to measurement values form group');
+      form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
+    }
   }
 
   /* -- protected functions -- */
@@ -110,7 +120,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     opts.forceOptional = toBoolean(opts.forceOptional, false);
 
-    opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate'];
+    opts.protectedAttributes = opts.protectedAttributes || ['id', 'rankOrder', 'comments', 'updateDate', '__typename'];
 
     return opts;
   }

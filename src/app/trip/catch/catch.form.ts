@@ -1,15 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Moment } from 'moment';
-import { DateAdapter } from '@angular/material/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../services/validator/batch.validator';
-import { isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { isNotNil } from '@sumaris-net/ngx-components';
 import { Batch } from '../services/model/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -29,16 +27,14 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   @Input() showError = true;
 
    constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected validatorService: BatchValidatorService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected validatorService: BatchValidatorService
   ) {
 
-    super(dateAdapter, measurementsValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup());
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
   }
 
   ngOnInit() {
@@ -84,6 +80,11 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
     // Force the label
      data.label = this._acquisitionLevel;
+  }
+
+  protected getValue(): Batch {
+    const batch = super.getValue();
+    return batch;
   }
 }
 

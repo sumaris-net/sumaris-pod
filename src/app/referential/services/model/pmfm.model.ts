@@ -1,14 +1,16 @@
 import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
-import { MethodIds, PmfmIds, UnitLabel, WeightToKgCoefficientConversion, WeightUnitSymbol } from './model.enum';
+import { MethodIds, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns, WeightToKgCoefficientConversion, WeightUnitSymbol } from './model.enum';
 import { Parameter, ParameterType } from './parameter.model';
 import { PmfmValue } from './pmfm-value.model';
 import { Moment } from 'moment';
 
 export declare type PmfmType = ParameterType | 'integer';
 
+export declare type ExtendedPmfmType = PmfmType | 'latitude' | 'longitude' | 'duration' | 'dateTime';
+
 export const PMFM_ID_REGEXP = /\d+/;
 
-export const PMFM_NAME_REGEXP = new RegExp(/^\s*([^\/(]+)[/(]\s*(.*)$/);
+export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)((?:\s+\/\s+[^/]+)|(?:\([^\)]+\)))$/);
 
 export interface IPmfm<
   T extends Entity<T, ID> = Entity<any, any>,
@@ -207,6 +209,27 @@ export abstract class PmfmUtils {
 
   static NAME_WITH_WEIGHT_UNIT_REGEXP = /^(.* )\((t|kg|g|mg)\)( - .*)?$/;
 
+  static getExtendedType(pmfm: IPmfm): ExtendedPmfmType {
+    if (!pmfm || !pmfm.type) return ; // Unknown
+    if (pmfm.type === 'double') {
+      if (PmfmLabelPatterns.LATITUDE.test(pmfm.label)) {
+        return "latitude";
+      }
+      if (PmfmLabelPatterns.LONGITUDE.test(pmfm.label)) {
+        return "longitude";
+      }
+      if (pmfm.unitLabel === UnitLabel.DECIMAL_HOURS || UnitLabelPatterns.DECIMAL_HOURS.test(pmfm.unitLabel)) {
+        return "duration";
+      }
+    }
+    else if (pmfm.type === "date") {
+      if (pmfm.unitLabel === UnitLabel.DATE_TIME || UnitLabelPatterns.DATE_TIME.test(pmfm.unitLabel)) {
+        return 'dateTime';
+      }
+    }
+    return pmfm.type as ExtendedPmfmType;
+  }
+
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
     let qvPmfm = pmfms.find(p => p.type === 'qualitative_value'
       // exclude hidden pmfm (see batch modal)
@@ -252,32 +275,48 @@ export abstract class PmfmUtils {
     return pmfm['parameter'] && true;
   }
 
+  static isNotHidden(pmfm: IPmfm): boolean {
+    return !pmfm.hidden;
+  }
+
   /**
    * Compute a PMFM.NAME, with the last part of the name
    * @param pmfm
    * @param opts
    */
   static getPmfmName(pmfm: IPmfm, opts?: {
-    withUnit?: boolean;
-    html?: boolean;
-    withDetails?: boolean;
+    withUnit?: boolean; // true by default
+    compact?: boolean; // true by default
+    html?: boolean; // false by default
+    withDetails?: boolean; // false by default
   }): string {
     if (!pmfm) return undefined;
 
     let name;
     if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
-      // Is complete name exists, use it
+      // If withDetails = true, use complete name if exists
       if (opts && opts.withDetails && pmfm.completeName) {
-        if (opts.html) {
-          const parts = pmfm.completeName.split(' - ')
-          return parts.length === 1 ? pmfm.completeName : `<b>${parts[0]}</b><br/><span style="font-size: smaller;">` + parts.slice(1).join(' - ') + '</span>';
-        }
-        return pmfm.completeName;
+        if (!opts.html) return pmfm.completeName;
+
+        // Html: secondary elements (matrix, fraction, method, etc.) small
+        const index = pmfm.completeName.indexOf(' - ');
+        return index !== -1
+          ? `<b>${pmfm.completeName.substr(0, index)}</b><div class="pmfm-details">${pmfm.completeName.substr(index + 3)}</div>`
+          : pmfm.completeName;
       }
 
-      // Remove parenthesis content, if any
-      const matches = PMFM_NAME_REGEXP.exec(pmfm.name || '');
-      name = matches && matches[1] || pmfm.name;
+      // Remove parenthesis content (=synonym), if any
+      // e.g.
+      // - 'Longueur totale (LT)' should becomes 'Longueur totale'
+      // - 'D1 / Open wounds' should becomes 'D1'
+
+      if (!opts || opts.compact !== false) {
+        const matches = PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP.exec(pmfm.name || '');
+        name = matches && matches[1] || pmfm.name;
+      }
+      else {
+        name = pmfm.name;
+      }
     } else if (PmfmUtils.isFullPmfm(pmfm)) {
       name = pmfm.parameter && pmfm.parameter.name;
       if (opts && opts.withDetails) {
@@ -290,7 +329,7 @@ export abstract class PmfmUtils {
     }
 
     // Append unit
-    if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel) {
+    if ((!opts || opts.withUnit !== false) && (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unitLabel && pmfm.unitLabel !== '°') {
       if (opts && opts.html) {
         name += `<small><br/>(${pmfm.unitLabel})</small>`;
       } else {
@@ -315,36 +354,44 @@ export abstract class PmfmUtils {
     return pmfms;
   }
 
-  static setWeightUnitConversion<P extends IPmfm>(pmfm: P, expectedWeightSymbol: WeightUnitSymbol, opts?: {
+  static setWeightUnitConversion<P extends IPmfm>(source: P, expectedWeightSymbol: WeightUnitSymbol, opts?: {
     clone?: boolean;
   }): P {
-    if (!this.isWeight(pmfm)) return pmfm;
+    if (!this.isWeight(source)) return source;
 
-    const actualWeightUnit = pmfm.unitLabel || UnitLabel.KG;
+    const actualWeightUnit = source.unitLabel || UnitLabel.KG;
     if (actualWeightUnit === expectedWeightSymbol) return; // Conversion not need
 
-    // Clone, to keep existing pmfm unchanged
-    if (!opts || opts.clone !== false) {
-      pmfm = pmfm.clone() as P;
-    }
-
-    if (this.isDenormalizedPmfm(pmfm)) {
-      pmfm.unitLabel = expectedWeightSymbol;
-
-
-      // Update the complete name (the unit part), if exists
-      const matches = pmfm.completeName && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(pmfm.completeName);
-      if (matches) {
-        pmfm.completeName = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
-      }
-    }
-    else if ((pmfm instanceof Pmfm) && pmfm.unit) {
-      pmfm.unit.label = expectedWeightSymbol;
-      pmfm.unit.name = expectedWeightSymbol;
-    }
     // actual -> kg (= pivot) -> expected
     const conversionCoefficient = WeightToKgCoefficientConversion[actualWeightUnit] / WeightToKgCoefficientConversion[expectedWeightSymbol];
-    pmfm.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
+
+    // Clone, to keep existing pmfm unchanged
+    const target = (!opts || opts.clone !== false)
+      ? source.clone() as P
+      : source;
+
+    target.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
+
+    if (this.isDenormalizedPmfm(target)) {
+      target.unitLabel = expectedWeightSymbol;
+
+      // Update the complete name (the unit part), if exists
+      const matches = target.completeName && this.NAME_WITH_WEIGHT_UNIT_REGEXP.exec(target.completeName);
+      if (matches) {
+        target.completeName = `${matches[1]}(${expectedWeightSymbol})${matches[3]||''}`;
+      }
+
+      // Convert max number decimals
+      if (isNotNil(target.maximumNumberDecimals)) {
+        const convertedMaximumNumberDecimals = Math.log(conversionCoefficient);
+        target.maximumNumberDecimals = Math.max(0, target.maximumNumberDecimals - convertedMaximumNumberDecimals);
+      }
+    }
+    else if ((target instanceof Pmfm) && target.unit) {
+      target.unit.label = expectedWeightSymbol;
+      target.unit.name = expectedWeightSymbol;
+    }
+    return target;
   }
 }
 

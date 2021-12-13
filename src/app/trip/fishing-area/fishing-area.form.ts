@@ -1,17 +1,11 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {FishingArea} from "../services/model/fishing-area.model";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {FormBuilder} from "@angular/forms";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ModalController} from "@ionic/angular";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {FishingAreaValidatorService} from "../services/validator/fishing-area.validator";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {debounceTime, distinctUntilChanged, filter, pluck} from "rxjs/operators";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
+import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { FishingArea } from '../services/model/fishing-area.model';
+import { FormBuilder } from '@angular/forms';
+import { ReferentialRefService } from '../../referential/services/referential-ref.service';
+import { ModalController } from '@ionic/angular';
+import { AppForm, NetworkService } from '@sumaris-net/ngx-components';
+import { FishingAreaValidatorService } from '../services/validator/fishing-area.validator';
+import { LocationLevelIds } from '../../referential/services/model/model.enum';
 
 @Component({
   selector: 'app-fishing-area-form',
@@ -42,16 +36,15 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected formBuilder: FormBuilder,
     protected validatorService: FishingAreaValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
     public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter, validatorService.getFormGroup(), settings);
+    super(injector, validatorService.getFormGroup());
     this.mobile = this.settings.mobile;
   }
 

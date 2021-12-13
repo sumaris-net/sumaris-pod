@@ -1,7 +1,5 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import { Moment } from 'moment';
-import { DateAdapter } from '@angular/material/core';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, tap } from 'rxjs/operators';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from '../services/validator/landing.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
@@ -14,16 +12,17 @@ import {
   FormArrayHelper,
   IReferentialRef,
   isNil,
-  isNilOrBlank, isNotEmptyArray,
+  isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   LoadResult,
-  LocalSettingsService,
   MatAutocompleteField,
   Person,
   PersonService,
   PersonUtils,
   ReferentialRef,
-  ReferentialUtils, SharedFormArrayValidators, SharedValidators,
+  ReferentialUtils,
+  SharedFormArrayValidators,
   StatusIds,
   suggestFromArray,
   toBoolean,
@@ -62,7 +61,7 @@ type FilterableFieldName = 'fishingArea';
 })
 export class LandingForm extends MeasurementValuesForm<Landing> implements OnInit {
 
-  private _showObservers: boolean;
+  private _showObservers: boolean; // Disable by default
   private _canEditStrategy: boolean;
 
   observersHelper: FormArrayHelper<Person>;
@@ -149,7 +148,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return this.showMetier || this.showFishingArea;
   }
 
-  @Input() i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
+  @Input() i18nSuffix: string;
   @Input() required = true;
   @Input() showProgram = true;
   @Input() showVessel = true;
@@ -203,7 +202,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
@@ -211,16 +210,14 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected settings: LocalSettingsService,
     protected samplingStrategyService: SamplingStrategyService,
     protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected tripValidatorService: TripValidatorService,
-    protected fishingAreaValidatorService: FishingAreaValidatorService,
-    protected cd: ChangeDetectorRef
+    protected fishingAreaValidatorService: FishingAreaValidatorService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd, validatorService.getFormGroup(), {
+    super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
@@ -241,7 +238,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     super.ngOnInit();
 
     // Default values
-    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
+    this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     if (isNil(this.locationLevelIds) && this.showLocation) {
       this.locationLevelIds = [LocationLevelIds.PORT];
@@ -395,7 +392,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         this.form.addControl('trip', tripForm);
       }
 
-      if (this.showMetier) this.initMetiers(tripForm);
+      if (this.showMetier) this.initMetiersHelper(tripForm);
       if (this.showFishingArea) this.initFishingAreas(tripForm);
     }
   }
@@ -427,13 +424,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       this.observersHelper.resize(Math.max(1, data.observers.length));
     } else {
       data.observers = [];
-      this.observersHelper.removeAllEmpty();
+      this.observersHelper?.resize(0);
     }
 
     // Trip
     let trip = (data.trip as Trip);
-    this.showMetier = this.showMetier || (trip?.metiers || []).length > 0;
-    this.showFishingArea = this.showFishingArea || (trip?.fishingAreas || []).length > 0;
+    this.showMetier = this.showMetier || isNotEmptyArray(trip?.metiers);
+    this.showFishingArea = this.showFishingArea || isNotEmptyArray(trip?.fishingAreas);
     if (!trip && (this.showMetier || this.showFishingArea)) {
       trip = new Trip();
       data.trip = trip;
@@ -559,10 +556,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return modal.present();
   }
 
-  notHiddenPmfm(pmfm: IPmfm): boolean {
-    return pmfm && pmfm.hidden !== true;
-  }
-
   /* -- protected method -- */
 
   protected isFieldFilterEnable(fieldName: FilterableFieldName) {
@@ -656,13 +649,22 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   protected initObserversHelper() {
     if (isNil(this._showObservers)) return; // skip if not loading yet
-    this.observersHelper = new FormArrayHelper<Person>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
-      (person) => this.validatorService.getObserverControl(person),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {allowEmptyArray: !this._showObservers}
-    );
+
+    // Create helper, if need
+    if (!this.observersHelper) {
+      this.observersHelper = new FormArrayHelper<Person>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
+        (person) => this.validatorService.getObserverControl(person),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        { allowEmptyArray: !this._showObservers }
+      );
+    }
+
+    // Helper exists: update options
+    else {
+      this.observersHelper.allowEmptyArray = !this._showObservers;
+    }
 
     if (this._showObservers) {
       // Create at least one observer
@@ -675,36 +677,49 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
-  protected initMetiers(form: FormGroup) {
-    this.metiersHelper = new FormArrayHelper<FishingArea>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'metiers'),
-      (metier) => this.tripValidatorService.getMetierControl(metier),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {allowEmptyArray: false}
-    );
-    if (this.metiersHelper.size() === 0) {
-      this.metiersHelper.resize(1);
+  protected initMetiersHelper(form: FormGroup) {
+
+    if (!this.metiersHelper) {
+      this.metiersHelper = new FormArrayHelper<FishingArea>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'metiers'),
+        (metier) => this.tripValidatorService.getMetierControl(metier),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        { allowEmptyArray: !this.showMetier }
+      );
     }
-    this.metiersHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
+    else {
+      this.metiersHelper.allowEmptyArray = !this.showMetier;
+    }
+    if (this.showMetier) {
+      if (this.metiersHelper.size() === 0) {
+        this.metiersHelper.resize(1);
+      }
+    }
+    else if (this.metiersHelper.size() > 0) {
+      this.metiersHelper.resize(0);
+    }
   }
 
   protected initFishingAreas(form: FormGroup) {
-    this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
-      (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
-      (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
-      (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
-    {allowEmptyArray: false}
-    );
-    if (this.fishingAreasHelper.size() === 0) {
-      this.fishingAreasHelper.resize(1);
+    if (!this.fishingAreasHelper) {
+      this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
+        (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),
+        (o1, o2) => isNil(o1) && isNil(o2) || (o1 && o1.equals(o2)),
+        (fishingArea) => !fishingArea || ReferentialUtils.isEmpty(fishingArea.location),
+      { allowEmptyArray: !this.showFishingArea});
     }
-    this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
+    else {
+      this.fishingAreasHelper.allowEmptyArray = !this.showFishingArea;
+    }
+    if (this.showFishingArea) {
+      if (this.fishingAreasHelper.size() === 0) {
+        this.fishingAreasHelper.resize(1);
+      }
+    } else if (this.fishingAreasHelper.size() > 0) {
+      this.fishingAreasHelper.resize(0);
+    }
   }
 
   /**
@@ -739,4 +754,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return pmfms;
   }
 
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+  notHiddenPmfm(pmfm: IPmfm) {
+    return !pmfm.hidden;
+  }
 }

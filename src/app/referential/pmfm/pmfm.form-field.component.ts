@@ -7,11 +7,12 @@ import { PmfmValidators } from '../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 const noop = () => {
 };
 
-export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' | 'button' ;
+export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'checkbox' ;
 
 @Component({
   selector: 'app-pmfm-field',
@@ -82,9 +83,13 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() style: PmfmFormFieldStyle;
   @Input() maxVisibleButtons: number;
   @Input() acquisitionNumber: number;
+  @Input() defaultLatitudeSign: '+' | '-';
+  @Input() defaultLongitudeSign: '+' | '-';
+  @Input() i18nPrefix: string;
+  @Input() i18nSuffix: string;
 
   // When async validator (e.g. BatchForm), force update when error detected
-  @Input() listenStatusChanges: boolean;
+  @Input() listenStatusChanges = false;
 
   @Output('keyup.enter')
   onPressEnter = new EventEmitter<any>();
@@ -107,6 +112,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder,
+    protected pmfmNamePipe: PmfmNamePipe,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
   }
@@ -143,10 +149,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       if (this.listenStatusChanges) {
         control.statusChanges.subscribe((_) => this.cd.markForCheck());
       }
-      this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});
-      /*if (this.weightDisplayedUnit && this.weightDisplayedUnit !== UnitLabel.KG) {
-        this.placeholder = this.placeholder.replace(UnitLabel.KG, this.weightDisplayedUnit);
-      }*/
+      this.placeholder = this.placeholder || this.pmfmNamePipe.transform(this.pmfm, {
+        withUnit: !this.compact,
+        i18nPrefix: this.i18nPrefix,
+        i18nContext: this.i18nSuffix
+      });
+
       this.required = toBoolean(this.required, this.pmfm.required);
 
       this.updateTabIndex();
@@ -241,19 +249,8 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   /* -- protected method -- */
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
-
-    if (pmfm.maximumNumberDecimals > 0) {
-      let step = "0.";
-      if (pmfm.maximumNumberDecimals > 1) {
-        for (let i = 0; i < pmfm.maximumNumberDecimals - 1; i++) {
-          step += "0";
-        }
-      }
-      step += "1";
-      return step;
-    } else {
-      return "1";
-    }
+    return Math.pow(10, -1 * (pmfm.maximumNumberDecimals || 0))
+      .toString().replace(',', '.');
   }
 
   protected updateTabIndex() {

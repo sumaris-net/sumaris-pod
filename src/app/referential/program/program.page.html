@@ -5,11 +5,11 @@
 
 <ion-content>
 
-  <mat-tab-group  class="mat-tab-disabled-hidden" #tabGroup
-                  [(selectedIndex)]="selectedTabIndex"
+  <mat-tab-group class="mat-tab-disabled-hidden" #tabGroup
+                 [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
-                 dynamicHeight>
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'PROGRAM.TAB_GENERAL'|translate}}">
