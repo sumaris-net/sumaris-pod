@@ -75,4 +75,19 @@
 		</sql>
 	</changeSet>
 
+	<!-- Make sure TAG_ID is required, in sub samples table-->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-403">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">SELECT count(*) FROM pmfm_strategy where pmfm_fk=82</sqlCheck>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update PMFM_STRATEGY set IS_MANDATORY=1 where ACQUISITION_LEVEL_FK in (8,9) and PMFM=82;
+		</sql>
+	</changeSet>
+
+
+
 </databaseChangeLog>
