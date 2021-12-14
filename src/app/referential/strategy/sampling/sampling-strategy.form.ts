@@ -77,8 +77,6 @@ const STRATEGY_LABEL_UI_REGEXP = new RegExp(/^\d\d [a-zA-Z][a-zA-Z][a-zA-Z][a-zA
 })
 export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
-  private _started = false;
-  private _startPromise: Promise<void>;
   private _$pmfmGroups: BehaviorSubject<ObjectMap<number[]>> = new BehaviorSubject(null);
 
   initJobs = [];
@@ -90,16 +88,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   hasEffort = false;
   hasLanding = false;
 
-  taxonNamesHelper: FormArrayHelper<TaxonNameStrategy>;
-  departmentsHelper: FormArrayHelper<StrategyDepartment>;
-  appliedStrategiesHelper: FormArrayHelper<AppliedStrategy>;
-  appliedPeriodsHelper: FormArrayHelper<AppliedPeriod>;
-  pmfmsHelper: FormArrayHelper<PmfmStrategy>;
+  taxonNamesHelper: FormArrayHelper<TaxonNameStrategy, FormGroup>;
+  departmentsHelper: FormArrayHelper<StrategyDepartment, FormGroup>;
+  appliedStrategiesHelper: FormArrayHelper<AppliedStrategy, FormGroup>;
+  appliedPeriodsHelper: FormArrayHelper<AppliedPeriod, FormGroup>;
+  pmfmsHelper: FormArrayHelper<PmfmStrategy, FormGroup>;
 
-  lengthPmfmsHelper: FormArrayHelper<PmfmStrategy>;
-  weightPmfmsHelper: FormArrayHelper<PmfmStrategy>;
-  maturityPmfmsHelper: FormArrayHelper<PmfmStrategy>;
-  fractionPmfmsHelper: FormArrayHelper<PmfmStrategy>;
+  lengthPmfmsHelper: FormArrayHelper<PmfmStrategy, FormGroup>;
+  weightPmfmsHelper: FormArrayHelper<PmfmStrategy, FormGroup>;
+  maturityPmfmsHelper: FormArrayHelper<PmfmStrategy, FormGroup>;
+  fractionPmfmsHelper: FormArrayHelper<PmfmStrategy, FormGroup>;
   locationLevelIds: number[];
 
   disableEditionListeners: boolean;
@@ -291,10 +289,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ngOnInit() {
     super.ngOnInit();
 
-    const notLoadingFn = () => !this._loading;
+    const loadedTest = () => !this.loading;
     this.registerSubscription(
       this.form.get('age').valueChanges
-        .pipe(filter(notLoadingFn))
+        .pipe(filter(loadedTest))
         .subscribe(hasAge => {
         if (hasAge) {
           this.loadFraction();
@@ -362,7 +360,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         this.form.get('sex').valueChanges,
         this.form.get('age').valueChanges
       )
-      .pipe(filter(() => !this._loading && !this.disabled && !this.disableEditionListeners))
+      .pipe(filter(() => !this.loading && !this.disabled && !this.disableEditionListeners))
       .subscribe(() => {
         this.pmfmsForm.updateValueAndValidity();
         this.validatePmfmsForm();
@@ -371,7 +369,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
     this.registerSubscription(
       this.form.get('label').valueChanges
-        .pipe(filter(() => !this._loading && !this.disabled && !this.disableEditionListeners))
+        .pipe(filter(() => !this.loading && !this.disabled && !this.disableEditionListeners))
         .subscribe(label => this.onStrategyLabelChanged(label))
     )
 
@@ -383,7 +381,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         this.taxonNameStrategyControl.valueChanges.pipe(map(_ => 'taxonName'))
       )
       .pipe(
-        filter(() => !this._loading && !this.disabled && !this.disableEditionListeners),
+        filter(() => !this.loading && !this.disabled && !this.disableEditionListeners),
         //debounceTime(200) // Need to make sure year date has been updated
       )
       .subscribe(event => this.generateLabelPrefix(event)));
@@ -1328,7 +1326,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   // TaxonName Helper -----------------------------------------------------------------------------------------------
   protected initTaxonNameHelper() {
     // appliedStrategies => appliedStrategies.location ?
-    this.taxonNamesHelper = new FormArrayHelper<TaxonNameStrategy>(
+    this.taxonNamesHelper = new FormArrayHelper<TaxonNameStrategy, FormGroup>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'taxonNames'),
       (ts) => this.validatorService.getTaxonNameStrategyControl(ts),
       (t1, t2) => EntityUtils.equals(t1.taxonName, t2.taxonName, 'name'),
@@ -1346,7 +1344,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   // appliedStrategies Helper -----------------------------------------------------------------------------------------------
   protected initAppliedStrategiesHelper() {
     // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
-    this.appliedStrategiesHelper = new FormArrayHelper<AppliedStrategy>(
+    this.appliedStrategiesHelper = new FormArrayHelper<AppliedStrategy, FormGroup>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'appliedStrategies'),
       (appliedStrategy) => this.validatorService.getAppliedStrategiesControl(appliedStrategy),
       (s1, s2) => EntityUtils.equals(s1.location, s2.location, 'label'),
@@ -1395,10 +1393,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   // appliedStrategies Helper -----------------------------------------------------------------------------------------------
   protected initAppliedPeriodHelper() {
     // Use the first applied strategy form group (created just before)
-    const appliedStrategyForm = this.appliedStrategiesHelper.at(0) as FormGroup;
+    const appliedStrategyForm = this.appliedStrategiesHelper.at(0);
 
-    // appliedStrategiesHelper formControl can't have common validator since quarters efforts are optional
-    this.appliedPeriodsHelper = new FormArrayHelper<AppliedPeriod>(
+    // appliedStrategyForm formControl can't have common validator since quarters efforts are optional
+    this.appliedPeriodsHelper = new FormArrayHelper<AppliedPeriod, FormGroup>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, appliedStrategyForm, 'appliedPeriods'),
       (appliedPeriod) => this.validatorService.getAppliedPeriodsControl(appliedPeriod),
       (p1, p2) => EntityUtils.equals(p1, p2, 'startDate'),
@@ -1418,7 +1416,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   // Laboratory Helper -----------------------------------------------------------------------------------------------
   protected initDepartmentsHelper() {
-    this.departmentsHelper = new FormArrayHelper<StrategyDepartment>(
+    this.departmentsHelper = new FormArrayHelper<StrategyDepartment, FormGroup>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'departments'),
       (department) => this.validatorService.getStrategyDepartmentsControl(department),
       (d1, d2) => EntityUtils.equals(d1.department, d2.department, 'label'),
@@ -1446,8 +1444,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.fractionPmfmsHelper = this.createPmfmStrategiesArrayHelper('fractionPmfms', 1);
   }
 
-  protected createPmfmStrategiesArrayHelper(arrayName: string, minSize?: number): FormArrayHelper<PmfmStrategy> {
-    const helper = new FormArrayHelper<PmfmStrategy>(
+  protected createPmfmStrategiesArrayHelper(arrayName: string, minSize?: number): FormArrayHelper<PmfmStrategy, FormGroup> {
+    const helper = new FormArrayHelper<PmfmStrategy, FormGroup>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, arrayName),
       (data) => this.pmfmStrategyValidator.getFormGroup(data, {withDetails: false, required: false}),
       PmfmStrategy.equals,

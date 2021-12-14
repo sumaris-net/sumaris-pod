@@ -248,7 +248,7 @@
       </ion-col>
     </ion-row>
 
-    <ion-row>
+    <ion-row *ngIf="pmfmsForm; let pmfmsForm">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -363,8 +363,8 @@
     </ion-row>
 
     <!-- Maturity Pmfms -->
-    <ion-row [class.cdk-visually-hidden]="!hasSex"
-             *ngFor="let maturityPmfmForm of maturityPmfmsForm?.controls; index as i; first as first">
+    <ng-container *ngIf="hasSex">
+    <ion-row *ngFor="let maturityPmfmForm of maturityPmfmsForm?.controls; index as i; first as first">
       <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
       </ion-col>
@@ -406,6 +406,8 @@
         </button>
       </ion-col>
     </ion-row>
+    </ng-container>
+
     <ion-row style="height: 15px"></ion-row>
 
     <!-- AGE -->
@@ -420,53 +422,54 @@
     </ion-row>
 
     <!-- Age fractions -->
-    <ion-row [class.cdk-visually-hidden]="!hasAge"
-             *ngFor="let fractionControl of fractionPmfmsForm?.controls; index as i; first as first">
-      <ion-col [size]="first ? 12 : 0" size-md="2" size-lg="3" class="ion-align-self-end">
-        <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
-      </ion-col>
-      <ion-col>
-        <form [formGroup]="fractionControl">
-          <mat-autocomplete-field #fractionField
-                                  formControlName="fraction"
-                                  [placeholder]="(i18nFieldPrefix + 'CALCIFIED_TYPE_PLACEHOLDER'|translate) + (i+1)"
-                                  [config]="autocompleteFields.fractionPmfm"
-                                  [tabindex]="tabindex+10+i*3"
-                                  [required]="false">
-            <button matAfter type="button" mat-icon-button
-                    tabindex="-1"
-                    [disabled]="disabled"
-                    [title]="'COMMON.BTN_FILTER'|translate"
-                    (click)="toggleFilter('fractionPmfm', fractionField)"
-                    [color]="autocompleteFilters.fractionPmfm ? 'primary' : undefined">
-              <mat-icon>filter_list_alt</mat-icon>
-            </button>
+    <ng-container *ngIf="hasAge">
+      <ion-row *ngFor="let fractionControl of fractionPmfmsForm?.controls; index as i; first as first">
+        <ion-col [size]="first ? 12 : 0" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+        </ion-col>
+        <ion-col>
+          <form [formGroup]="fractionControl">
+            <mat-autocomplete-field #fractionField
+                                    formControlName="fraction"
+                                    [placeholder]="(i18nFieldPrefix + 'CALCIFIED_TYPE_PLACEHOLDER'|translate) + (i+1)"
+                                    [config]="autocompleteFields.fractionPmfm"
+                                    [tabindex]="tabindex+10+i*3"
+                                    [required]="false">
+              <button matAfter type="button" mat-icon-button
+                      tabindex="-1"
+                      [disabled]="disabled"
+                      [title]="'COMMON.BTN_FILTER'|translate"
+                      (click)="toggleFilter('fractionPmfm', fractionField)"
+                      [color]="autocompleteFilters.fractionPmfm ? 'primary' : undefined">
+                <mat-icon>filter_list_alt</mat-icon>
+              </button>
 
-          </mat-autocomplete-field>
-        </form>
-      </ion-col>
+            </mat-autocomplete-field>
+          </form>
+        </ion-col>
 
-      <ion-col size="auto" class="ion-align-self-center">
+        <ion-col size="auto" class="ion-align-self-center">
 
-        <button type="button" mat-icon-button
-                [disabled]="fractionControl.disabled"
-                [tabindex]="tabindex+10++i*3+1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addPmfmFraction()">
-          <mat-icon>add</mat-icon>
-        </button>
+          <button type="button" mat-icon-button
+                  [disabled]="fractionControl.disabled"
+                  [tabindex]="tabindex+10++i*3+1"
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  (click)="addPmfmFraction()">
+            <mat-icon>add</mat-icon>
+          </button>
 
-        <button type="button" mat-icon-button
-                [disabled]="fractionControl.disabled"
-                [tabindex]="tabindex+10++i*3+2"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="fractionPmfmsHelper.removeAt(i)">
-          <mat-icon>close</mat-icon>
-        </button>
+          <button type="button" mat-icon-button
+                  [disabled]="fractionControl.disabled"
+                  [tabindex]="tabindex+10++i*3+2"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="fractionPmfmsHelper.removeAt(i)">
+            <mat-icon>close</mat-icon>
+          </button>
 
-      </ion-col>
+        </ion-col>
 
-    </ion-row>
+      </ion-row>
+    </ng-container>
 
     <!-- Comments -->
     <ion-row>
