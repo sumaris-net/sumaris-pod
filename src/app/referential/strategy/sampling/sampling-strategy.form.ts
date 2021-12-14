@@ -199,10 +199,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.taxonNamesHelper?.at(0) as FormGroup;
   }
 
-  get loading(): boolean {
-    return this._loading;
-  }
-
   get touched(): boolean {
     return this.form.touched;
   }
@@ -272,7 +268,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   ) {
     super(injector, validatorService.getFormGroup());
     this.mobile = this.settings.mobile;
-    this._loading = true;
     this.debug = !environment.production;
 
     // Add missing control
@@ -289,7 +284,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.initPmfmStrategiesHelpers();
 
     // Start loading items
-    this.start();
+    this.loadReferentialItems();
   }
 
 
@@ -520,20 +515,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     this.disableEditionListeners = disable;
   }
 
-  async start(): Promise<void> {
-    if (this._started) return;
-    if (this._startPromise) return this._startPromise;
-
-    const now = Date.now();
-    console.debug('[sampling-strategy-form] Starting...');
-    this._startPromise = this.loadReferentialItems()
-      .then(() => {
-        console.debug('[sampling-strategy-form] Started in ' + (Date.now() - now) + 'ms');
-        this._started = true;
-      });
-    return this._startPromise;
-  }
-
   protected async setProgram(program: Program, opts?: { emitEvent?: boolean; }) {
     if (program && this.program !== program) {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
@@ -555,7 +536,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   async ready(): Promise<void> {
-    if (!this._started) return this.start();
+    await super.ready();
+
+    await Promise.all([
+      firstNotNilPromise(this.$allFractions),
+      firstNotNilPromise(this._$pmfmGroups)
+    ]);
   }
 
   loadFraction(): void {
@@ -1011,7 +997,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         data.age = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1;
         data.sex = data.pmfms.findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1;
         console.debug("[sampling-strategy-form] Has sex ?", data.sex, PmfmIds.SEX);
-        data.label = data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
+        data.label = data.label && data.label.substr(0, 2).concat(' ').concat(data.label.substr(2, 7)).concat(' ').concat(data.label.substr(9, 3));
       }
 
       data.lengthPmfms = this.getPmfmStrategiesByGroup(data.pmfms, this.pmfmGroups.LENGTH, ParameterLabelGroups.LENGTH);

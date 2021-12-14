@@ -5,7 +5,7 @@ import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.mode
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOptions {
-  keepEffort: boolean; // fa  lse by default
+  keepEffort: boolean; // false by default
 }
 
 @EntityClass({typename: 'SamplingStrategyVO'})

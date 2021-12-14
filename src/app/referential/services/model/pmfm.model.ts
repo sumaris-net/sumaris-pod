@@ -1,4 +1,4 @@
-import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
 import { MethodIds, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns, WeightToKgCoefficientConversion, WeightUnitSymbol } from './model.enum';
 import { Parameter, ParameterType } from './parameter.model';
 import { PmfmValue } from './pmfm-value.model';
@@ -130,11 +130,11 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
     });
 
     if (opts && opts.minify) {
-      target.parameterId = this.parameter && this.parameter.id;
-      target.matrixId = this.matrix && this.matrix.id;
-      target.fractionId = this.fraction && this.fraction.id;
-      target.methodId = this.method && this.method.id;
-      target.unitId = this.unit && this.unit.id;
+      target.parameterId = toNumber(this.parameter && this.parameter.id, null);
+      target.matrixId = toNumber(this.matrix && this.matrix.id, null);
+      target.fractionId = toNumber(this.fraction && this.fraction.id, null);
+      target.methodId = toNumber(this.method && this.method.id, null);
+      target.unitId = toNumber(this.unit && this.unit.id, null);
       delete target.parameter;
       delete target.matrix;
       delete target.fraction;
@@ -150,6 +150,7 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
     }
 
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(opts)) || undefined;
+
     return target;
   }
 

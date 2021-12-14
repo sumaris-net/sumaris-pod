@@ -34,6 +34,7 @@ import {Moment} from 'moment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ExtractionCacheDurationType} from '@app/extraction/services/model/extraction-type.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -210,7 +211,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
           this.insertIntoMutableCachedQueries(cache, {
             queries: this.getLoadQueries(),
-            data: savedEntity
+            data: entity.asObject({...NOT_MINIFY_OPTIONS, keepEffort: true})
           });
         }
       }

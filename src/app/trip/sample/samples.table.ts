@@ -136,8 +136,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
 
-  //@ViewChild('[appActionCellDef]') actionCellDef: AppActionCellDef;
-
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
       this.showGroupHeader = true;
