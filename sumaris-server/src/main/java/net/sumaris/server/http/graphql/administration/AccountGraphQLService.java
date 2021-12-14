@@ -22,6 +22,7 @@
 
 package net.sumaris.server.http.graphql.administration;
 
+import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
@@ -29,8 +30,10 @@ import io.leangen.graphql.annotations.GraphQLSubscription;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsGuest;
@@ -39,6 +42,7 @@ import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.reactivestreams.Publisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
@@ -107,6 +111,18 @@ public class AccountGraphQLService {
                                          @GraphQLArgument(name="locale", defaultValue = "en_GB") String locale) {
         accountService.sendConfirmationEmail(email, locale);
         return true;
+    }
+
+    @GraphQLMutation(name = "saveSettings", description = "Save user settings")
+    @IsGuest
+    public UserSettingsVO saveSettings(@GraphQLArgument(name="settings") UserSettingsVO settings) {
+        Preconditions.checkNotNull(settings);
+
+        // Set account pubkey into issuer
+        PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+        settings.setIssuer(user.getPubkey());
+
+        return accountService.saveSettings(settings);
     }
 
     /* -- Subscriptions -- */
