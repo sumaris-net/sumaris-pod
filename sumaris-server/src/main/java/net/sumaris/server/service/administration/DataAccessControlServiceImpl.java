@@ -65,8 +65,8 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        authorizedProgramIds = ImmutableList.copyOf(configuration.getAuthorizedProgramIds());
-        accessNotSelfDataDepartmentIds = ImmutableList.copyOf(configuration.getAccessNotSelfDataDepartmentIds());
+        authorizedProgramIds = configuration.getAuthorizedProgramIds();
+        accessNotSelfDataDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         accessNotSelfDataMinRole = configuration.getAccessNotSelfDataMinRole();
     }
 
@@ -110,8 +110,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @Override
     public Integer[] getAuthorizedProgramIdsForAdmin(Integer[] programIds) {
-        return getAuthorizedProgramIdsAsCollection(programIds)
-            .toArray(new Integer[0]);
+        return toArrayOrNull(getAuthorizedProgramIdsAsCollection(programIds));
     }
 
     @Override
@@ -140,7 +139,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     protected Collection<Integer> getAuthorizedProgramIdsAsCollection(Integer[] programIds) {
         // Nothing limited by config: all requested programs are authorized
-        if (CollectionUtils.isEmpty(authorizedProgramIds)) return ImmutableList.copyOf(programIds);
+        if (CollectionUtils.isEmpty(authorizedProgramIds)) return toCollectionOrNull(programIds);
 
         // Nothing requested: all authorized program
         if (ArrayUtils.isEmpty(programIds)) return authorizedProgramIds;
@@ -161,5 +160,13 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     protected Collection<Integer> toNotEmptyCollection(Collection<Integer> items) {
         return CollectionUtils.isNotEmpty(items) ? items : ImmutableList.of(FAKE_ID);
+    }
+
+    protected Integer[] toArrayOrNull(Collection<Integer> items) {
+        return CollectionUtils.isEmpty(items) ? null : items.toArray(new Integer[items.size()]);
+    }
+
+    protected Collection<Integer> toCollectionOrNull(Integer[] items) {
+        return ArrayUtils.isEmpty(items) ? null : ImmutableList.copyOf(items);
     }
 }
