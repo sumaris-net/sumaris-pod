@@ -113,6 +113,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
+    this.errorTranslatorOptions = {controlPathTranslator: this, separator: '\n'};
 
     //this.debug = false;
     this.debug = !environment.production;
