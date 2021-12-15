@@ -2,10 +2,8 @@ import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { MethodIds } from '../services/model/model.enum';
 import { PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { isNotNilOrBlank, LocalSettingsService, LongitudeFormatPipe, TranslateContextService } from '@sumaris-net/ngx-components';
+import {DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService} from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
-import { DateFormatPipe } from '../../../../ngx-sumaris-components/src/app/shared/pipes/date-format.pipe';
-import { LatitudeFormatPipe } from '../../../../ngx-sumaris-components/src/app/shared/pipes/latlong-format.pipe';
 
 @Pipe({
     name: 'pmfmName'

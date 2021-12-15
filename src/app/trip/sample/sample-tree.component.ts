@@ -1,38 +1,34 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewChild} from '@angular/core';
 import {
   AppTabEditor,
   AppTable,
   Entity,
+  EntityUtils,
   IconRef,
-  InMemoryEntitiesService,
   IReferentialRef,
-  isNil, isNotEmptyArray,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   PlatformService,
   UsageMode,
-  WaitForOptions,
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ModalController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
-import { SamplesTable } from '@app/trip/sample/samples.table';
-import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
-import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, combineLatest, defer, Observable } from 'rxjs';
-import { Program } from '@app/referential/services/model/program.model';
-import { Moment } from 'moment';
-import { environment } from '@environments/environment';
-import { SampleFilter } from '@app/trip/services/filter/sample.filter';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { MatTabChangeEvent } from '@angular/material/tabs';
-import { EntityUtils } from '../../../../ngx-sumaris-components/src/app/core/services/model/entity.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { mergeMap } from 'rxjs/internal/operators';
+import {Sample, SampleUtils} from '@app/trip/services/model/sample.model';
+import {ActivatedRoute, Router} from '@angular/router';
+import {AlertController, ModalController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
+import {SamplesTable} from '@app/trip/sample/samples.table';
+import {IndividualMonitoringTable} from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
+import {IndividualReleasesTable} from '@app/trip/sample/individualrelease/individual-releases.table';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
+import {Program} from '@app/referential/services/model/program.model';
+import {Moment} from 'moment';
+import {environment} from '@environments/environment';
+import {debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs/operators';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {MatTabChangeEvent} from '@angular/material/tabs';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 
 export interface SampleTabDefinition {
   iconRef: IconRef;
@@ -286,6 +282,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
       rootSamples.forEach(sample => {
           sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
         });
+      target = rootSamples;
     }
     else {
       target = await this.getTableValue(this.samplesTable);
