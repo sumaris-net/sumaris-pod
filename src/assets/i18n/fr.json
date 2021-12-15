@@ -579,12 +579,6 @@
         "TAB_CATCH": "Capture",
         "TAB_CATCH_TOTAL": "Capture total",
         "TAB_SAMPLES": "Prélèvements",
-        "SURVIVAL_TEST": {
-          "TAB_SAMPLES": "Tests de survie"
-        },
-        "ACCIDENTAL_CATCH": {
-          "TAB_SAMPLES": "Captures accidentelles"
-        },
         "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
         "TARGET_SPECIES": "Espèce cible",
@@ -611,6 +605,12 @@
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
+        },
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Tests de survie"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Captures accidentelles"
         }
       },
       "PARENT": {
@@ -794,8 +794,8 @@
       },
       "TABLE": {
         "TAB_SAMPLES": "Prélèvements",
-        "TAB_SUB_SAMPLES": "Sous-prélèvement",
-        "TAB_INDIVIDUAL_RELEASES": "Relâché",
+        "TAB_SUB_SAMPLES": "Sous-prélèvements",
+        "TAB_INDIVIDUAL_RELEASES": "Relâchés",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
