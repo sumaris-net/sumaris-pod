@@ -78,6 +78,7 @@
             <column name="ID" valueComputed="nextval('taxon_group_seq')"/>
             <column name="LABEL">ODN</column>
             <column name="NAME">Baleines odontocètes nca</column>
+            <column name="COMMENTS">Odontoceti</column>
             <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
             <column name="STATUS_FK" valueNumeric="0"/>
             <column name="CREATION_DATE" valueComputed="current_timestamp" />
@@ -86,7 +87,8 @@
         <insert tableName="TAXON_GROUP">
             <column name="ID" valueComputed="nextval('taxon_group_seq')"/>
             <column name="LABEL">DLP</column>
-            <column name="NAME">Delphinidae</column>
+            <column name="NAME">Dauphins nca</column>
+            <column name="COMMENTS">Delphinidae</column>
             <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
             <column name="STATUS_FK" valueNumeric="0"/>
             <column name="CREATION_DATE" valueComputed="current_timestamp" />
@@ -97,6 +99,7 @@
             <column name="ID" valueComputed="nextval('taxon_group_seq')"/>
             <column name="LABEL">DCO</column>
             <column name="NAME">Dauphin Commun</column>
+            <column name="COMMENTS">Delphinus delphis</column>
             <column name="TAXON_GROUP_TYPE_FK" valueNumeric="2"/>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="current_timestamp" />
