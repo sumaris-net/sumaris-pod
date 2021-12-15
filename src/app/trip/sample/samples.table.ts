@@ -1,13 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SampleValidatorService} from '../services/validator/sample.validator';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
   ColorName,
   firstNotNilPromise,
-
   InMemoryEntitiesService,
   IReferentialRef,
   isEmptyArray,
@@ -19,7 +18,7 @@ import {
   LoadResult,
   ObjectMap,
   PlatformService,
-  ReferentialRef, ReferentialUtils,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
@@ -27,28 +26,29 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {FormGroup, Validators} from '@angular/forms';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Sample, SampleUtils} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, AcquisitionLevelType,ParameterGroups, PmfmIds, QualitativeLabels,WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {debounceTime, delay,filter, map, tap} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Observable,Subscription} from 'rxjs';
-import {MatMenu} from '@angular/material/menu';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {isNilOrNaN} from '@app/shared/functions';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';import { BatchGroup } from '@app/trip/services/model/batch-group.model';
+import { Moment } from 'moment';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Sample, SampleUtils } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
+import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { MatMenu } from '@angular/material/menu';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { isNilOrNaN } from '@app/shared/functions';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchGroup } from '@app/trip/services/model/batch-group.model';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { MatCellDef } from '@angular/material/table';
 import { OverlayEventDetail } from '@ionic/core';
+import { PmfmForm } from '@app/trip/services/validator/operation.validator';
 
 const moment = momentImported;
 
@@ -79,6 +79,7 @@ declare interface GroupColumnDefinition {
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
 export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
 export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
+
 
 @Component({
   selector: 'app-samples-table',
@@ -194,7 +195,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return super.getRowError(row, opts);
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<{ form: FormGroup, pmfms: IPmfm[] }>();
+  @Output() onPrepareRowForm = new EventEmitter<PmfmForm>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -240,6 +241,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.saveBeforeFilter = true;
     this.propagateRowError = true;
 
+    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
+
     // Set default value
     this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
 
@@ -251,7 +254,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.onStartEditingRow
         .pipe(
           filter(row => row && row.validator && true),
-          map(row => ({form: row.validator, pmfms: this.pmfms})),
+          map(row => ({form: row.validator, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})),
           tap(event => {
             // DEBUG
             //console.debug('[samples-table] will sent onPrepareRowForm event:', event)
@@ -278,51 +281,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.registerSubscription(
       this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms))
     );
-
-    // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
-    this.registerSubscription(
-      this.registerCellValueChanges('individual_on_deck', "measurementValues." + PmfmIds.INDIVIDUAL_ON_DECK.toString())
-        .subscribe((value) => {
-          if (!this.editedRow || !this.pmfms) return; // Should never occur
-          const row = this.editedRow;
-
-            const individualOnDeckPmfm = this.pmfms.find(pmfm => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
-            if (individualOnDeckPmfm) {
-
-              const measFormGroup = (row.validator.controls['measurementValues'] as FormGroup);
-              const individualOnDeckControl = measFormGroup.controls[individualOnDeckPmfm.id];
-              const controls = this.pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder).map(pmfm => measFormGroup.controls[pmfm.id]);
-
-              this.registerSubscription(individualOnDeckControl.valueChanges
-                .pipe(
-                  // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
-                  delay(200)
-                )
-                .subscribe((value) => {
-                  if (value) {
-                    if (row.validator.enabled) {
-                      controls.forEach(control => {
-                        control.enable();
-                      });
-                      this.pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.required).forEach(pmfm => {
-                        measFormGroup.controls[pmfm.id].setValidators(Validators.required);
-                        measFormGroup.controls[pmfm.id].updateValueAndValidity({onlySelf: true})
-                      });
-
-                      measFormGroup.updateValueAndValidity({onlySelf: true});
-                      row.validator.updateValueAndValidity({onlySelf: true});
-                    }
-                  } else {
-                    controls.forEach(control => {
-                      control.setValue(null);
-                      control.setValidators(null);
-                      control.disable();
-                    });
-                  }
-                }));
-            }
-        }));
-
   }
 
   ngAfterViewInit() {
@@ -380,7 +338,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     const onModalReady = (modal) => {
       const form = modal.form.form;
-      this.onPrepareRowForm.emit({form, pmfms});
+      const markForCheck = () => modal.markForCheck();
+      this.onPrepareRowForm.emit({form, pmfms, markForCheck});
     };
 
     this.markAsLoading();

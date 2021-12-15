@@ -239,14 +239,17 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Enable sub batches table, only when table pmfms ready
       firstTruePromise(this.subBatchesTable.$hasPmfms)
-        .then(() => this.showSubBatchesTable = true);
+        .then(() => {
+          this.showSubBatchesTable = true;
+          this.markForCheck();
+        });
 
       // Update available parent on individual batch table, when batch group changes
       this.registerSubscription(
         this.batchGroupsTable.dataSource.datasourceSubject
           .pipe(
             // skip if loading, or hide
-            filter(() => !this.loading && this.allowSubBatches),
+            filter(() => !this.loading && this.allowSubBatches && this.showSubBatchesTable),
             debounceTime(400),
             map(value => value || [])
           )

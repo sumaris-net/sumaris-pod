@@ -503,7 +503,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._availableParents = value;
 
     // DEBUG
-    console.debug('[sub-batch-form] setAvailableParents() ', value);
+    //console.debug('[sub-batch-form] setAvailableParents() ', value);
 
     // Reset  parentGroup control, if no more in the list
     if (!this.loading && this.showParentGroup) {

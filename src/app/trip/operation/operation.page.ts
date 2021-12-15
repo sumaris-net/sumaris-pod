@@ -18,7 +18,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService, ReferentialRef,
+  PlatformService,
   ReferentialUtils,
   toBoolean,
   toNumber,
@@ -39,6 +39,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
+import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
 
 const moment = momentImported;
 
@@ -71,6 +72,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   private _lastOperationsTripId: number;
   private _measurementSubscription: Subscription;
+  private _sampleRowSubscription: Subscription;
 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
@@ -468,6 +470,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.$programLabel.complete();
     this.$lastOperations.complete();
     this.$tripId.complete();
+    this._sampleRowSubscription?.unsubscribe();
   }
 
   protected async setProgram(program: Program) {
@@ -721,7 +724,47 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       || (this.data && this.data.id === other.id);
   }
 
+  async save(event, opts?: OperationSaveOptions): Promise<boolean> {
+
+    // If there is new PhysicalGear added automatically, save it on trip
+    const newPhysicalGear = this.trip.gears.find(g => !g.id);
+    if (newPhysicalGear){
+      this.trip = await this.tripService.addGear(this.trip.id, newPhysicalGear);
+    }
+
+    // Force to pass specific saved options to dataService.save()
+    const saved = await super.save(event, <OperationSaveOptions>{
+      ...this.saveOptions,
+      updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
+      ...opts
+    });
+    if (!saved && this.opeForm.invalid) {
+
+      // DEBUG
+      console.debug('[operation] Computing form error...');
+
+      this.setError(this.opeForm.formError);
+      this.scrollToTop();
+    }
+    return saved;
+  }
+
+  async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
+    return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
+  }
+
+  onPrepareSampleForm(pmfmForm: PmfmForm) {
+    console.debug('[operation-page] Initializing sample form (validators...)');
+    this._sampleRowSubscription?.unsubscribe();
+    this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
+  }
+
+
   /* -- protected method -- */
+
+  protected computeSampleRowValidator(pmfmForm: PmfmForm): Subscription {
+    return OperationValidators.addSampleValidators(pmfmForm);
+  }
 
   protected async loadTrip(tripId: number): Promise<Trip> {
 
@@ -764,8 +807,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected computeUsageMode(operation: Operation): UsageMode {
     return this.settings.isUsageMode('FIELD') && (
       isNil(this.trip) || (
-      isNotNil(this.trip.departureDateTime)
-      && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
+        isNotNil(this.trip.departureDateTime)
+        && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
       ? 'FIELD' : 'DESK';
   }
 
@@ -823,35 +866,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     json.measurements = this.measurementsForm.value;
     json.tripId = this.trip.id;
     return json;
-  }
-
-  async save(event, opts?: OperationSaveOptions): Promise<boolean> {
-
-    // If there is new PhysicalGear added automatically, save it on trip
-    const newPhysicalGear = this.trip.gears.find(g => !g.id);
-    if (newPhysicalGear){
-      this.trip = await this.tripService.addGear(this.trip.id, newPhysicalGear);
-    }
-
-    // Force to pass specific saved options to dataService.save()
-    const saved = await super.save(event, <OperationSaveOptions>{
-      ...this.saveOptions,
-      updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
-      ...opts
-    });
-    if (!saved && this.opeForm.invalid) {
-
-      // DEBUG
-      console.debug('[operation] Computing form error...');
-
-      this.setError(this.opeForm.formError);
-      this.scrollToTop();
-    }
-    return saved;
-  }
-
-  async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
-    return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
   }
 
   protected canUserWrite(data: Operation): boolean {
@@ -957,7 +971,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       data.parentOperation = undefined;
     }
   }
-
 
   protected computePageUrl(id: number | 'new'): string | any[] {
     const parentUrl = this.getParentPageUrl();

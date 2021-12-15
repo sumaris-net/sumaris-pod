@@ -139,8 +139,6 @@
 
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
-  <ion-spinner class="ion-align-self-center" *ngIf="pending"></ion-spinner>
-
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
                  [(selectedIndex)]="selectedTabIndex"
@@ -257,6 +255,7 @@
                        [selectedTabIndex]="selectedSubTabIndex"
                        [defaultSampleDate]="form.get('endDateTime').valueChanges|async"
                        [usageMode]="usageMode"
+                       (onPrepareRowForm)="onPrepareSampleForm($event)"
                        [mobile]="mobile"
                        [debug]="debug">
       </app-sample-tree>

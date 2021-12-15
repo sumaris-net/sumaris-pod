@@ -4,7 +4,7 @@ import {
   AppFormUtils,
   EntityUtils,
   isNil,
-  isNotEmptyArray,
+  isNotEmptyArray, isNotNil, isNotNilOrBlank,
   LocalSettingsService,
   PlatformService,
   referentialToString,
@@ -16,7 +16,7 @@ import { environment } from '../../../environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { SampleForm } from './sample.form';
 import { Sample } from '../services/model/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
@@ -80,6 +80,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
+  tagIdPmfm: IPmfm;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -125,10 +126,16 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
-    this.showIndividualReleaseButton = !!this.openSubSampleModal;
     if (isNil(this.enableBurstMode)) {
       this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
         this.usageMode === 'FIELD');
+    }
+    this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
+    if (this.tagIdPmfm) {
+      this.showIndividualReleaseButton = !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]);
+    }
+    else {
+      this.showIndividualReleaseButton = !!this.openSubSampleModal;
     }
 
     if (this.disabled) {
@@ -139,10 +146,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       this.form.form.get('rankOrder').setValidators(null);
     }
 
-
-    // Compute the title
-    this.computeTitle();
-
     // Update title each time value changes
     if (!this.isNew) {
       this._subscription.add(
@@ -152,21 +155,33 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       );
     }
 
-    this.init();
+    this.form.ready().then(() => {
+      this.registerSubscription(
+        this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
+          .valueChanges
+          .subscribe(tagId => {
+            this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
+            this.markForCheck();
+          })
+      );
+    });
+
+    this.setValue(this.data);
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
   }
 
-  private async init() {
+  private async setValue(data: Sample) {
 
     console.debug('[sample-modal] Applying value to form...', this.data);
     this.form.markAsReady();
+    this.form.error = null;
 
     try {
       // Set form value
-      this.data = this.data || new Sample();
+      this.data = data || new Sample();
       let promiseOrVoid = this.form.setValue(this.data);
       if (promiseOrVoid) await promiseOrVoid;
 
@@ -175,10 +190,13 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         promiseOrVoid = this.onReady(this);
         if (promiseOrVoid) await promiseOrVoid;
       }
+
+      this.computeTitle();
     }
     finally {
       this.form.markAsUntouched();
       this.form.markAsPristine();
+      this.enable();
       this.markForCheck();
     }
   }
@@ -218,7 +236,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     try {
       const newData = await this.onSaveAndNew(data);
-      this.reset(newData);
+      await this.reset(newData);
 
       await this.scrollToTop();
     } finally {
@@ -323,27 +341,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  protected reset(data?: Sample) {
-
-    this.data = data || new Sample();
-    this.form.error = null;
-
-    try {
-      this.form.value = this.data;
-      //this.form.markAsPristine();
-      //this.form.markAsUntouched();
-
-      this.enable();
-
-      if (this.onReady) {
-        this.onReady(this);
-      }
-
-      // Compute the title
-      this.computeTitle();
-    } finally {
-      this.markForCheck();
-    }
+  protected async reset(data?: Sample) {
+    await this.setValue(data || new Sample());
   }
 
   protected async computeTitle(data?: Sample) {
@@ -377,6 +376,10 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     return this.content.scrollToTop();
   }
 
+  markForCheck() {
+    this.cd.markForCheck();
+  }
+
   protected registerSubscription(teardown: TeardownLogic) {
     this._subscription.add(teardown);
   }
@@ -385,10 +388,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.loading = true;
     this.markForCheck();
   }
+
   protected markAsLoaded() {
-    this.loading = true;
+    this.loading = false;
     this.markForCheck();
   }
+
   protected enable() {
     this.form.enable();
   }
@@ -397,7 +402,5 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.form.disable();
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
+
 }

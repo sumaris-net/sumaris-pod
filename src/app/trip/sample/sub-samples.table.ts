@@ -25,7 +25,8 @@ import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
 import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 import {merge, Subject} from 'rxjs';
-import {distinctUntilChanged, filter, map, tap} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/internal/operators';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -134,7 +135,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     this.registerSubscription(
       merge(
         this.onParentChanges
-          .pipe(map(() => this.pmfms)),
+          .pipe(mergeMap(() => this.$pmfms)),
         this.$pmfms.pipe(
           filter(isNotEmptyArray),
           distinctUntilChanged(),
@@ -142,6 +143,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         )
       )
       .pipe(
+        debounceTime(250),
         tap(pmfms => this.updateParents(pmfms))
       )
       .subscribe()
@@ -173,7 +175,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
       // Read existing rows
       const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
 
-      const parents = this._availableParents
+      const displayParentPmfmId = this.displayParentPmfm?.id;
+      const availableParents = this._availableSortedParents || this._availableParents
+          .filter(p => (isNil(displayParentPmfmId) || isNotNil(p.measurementValues[displayParentPmfmId])))
+      const parents = availableParents
         .filter(p => !existingSamples.find(s => Sample.equals(s.parent, p)));
 
       // Create new row for each parent

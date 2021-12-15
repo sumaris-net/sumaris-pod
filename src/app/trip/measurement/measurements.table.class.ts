@@ -165,10 +165,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return this.measurementsDataService.delegate;
   }
 
-  /*get loading(): boolean {
-    return this.measurementsDataService.loadingPmfms && isNotNil(this.pmfms);
-  }*/
-
   protected constructor(
     protected injector: Injector,
     protected dataType: new() => T,

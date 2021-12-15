@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import {
   AppTabEditor,
   AppTable,
@@ -29,6 +29,9 @@ import {debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs/operat
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {MatTabChangeEvent} from '@angular/material/tabs';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import { FormGroup } from '@angular/forms';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { PmfmForm } from '@app/trip/services/validator/operation.validator';
 
 export interface SampleTabDefinition {
   iconRef: IconRef;
@@ -116,9 +119,12 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     return super.dirty || false;
   }
 
+
   @ViewChild('samplesTable', {static: true}) samplesTable: SamplesTable;
   @ViewChild('individualMonitoringTable', {static: false}) individualMonitoringTable: IndividualMonitoringTable;
   @ViewChild('individualReleaseTable', {static: false}) individualReleasesTable: IndividualReleasesTable;
+
+  @Output() onPrepareRowForm = new EventEmitter<PmfmForm>();
 
   constructor(
     protected route: ActivatedRoute,
@@ -162,7 +168,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
           this.individualMonitoringTable.$hasPmfms,
           this.individualReleasesTable.$hasPmfms
         ])
-        .pipe(debounceTime(100))
         .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
           this.showIndividualMonitoringTable = hasMonitoringPmfms;
           this.showIndividualReleaseTable = hasReleasePmfms;
@@ -175,14 +180,14 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
       this.registerSubscription(
         this.samplesTable.dataSource.datasourceSubject
           .pipe(
-            debounceTime(350),
+            debounceTime(400),
             filter(() => !this.loading) // skip if loading
           )
           .subscribe(samples => {
             console.debug('[sample-tree] Propagate root samples to sub-samples tables', samples);
             // Will refresh the tables (inside the setter):
-            this.individualMonitoringTable.availableParents = samples;
-            this.individualReleasesTable.availableParents = samples;
+            if (this.showIndividualMonitoringTable) this.individualMonitoringTable.availableParents = samples;
+            if (this.showIndividualReleaseTable) this.individualReleasesTable.availableParents = samples;
           }));
 
     }

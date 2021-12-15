@@ -34,8 +34,8 @@ export class SubSampleValidatorService extends SampleValidatorService<SubSampleV
     // Add parent control (required by default)
     if (!opts || opts.withParent !== false) {
       const parentValidators = (!opts || opts.requiredParent !== false)
-        ? Validators.compose([SharedValidators.entity, Validators.required])
-        : SharedValidators.entity;
+        ? Validators.compose([SharedValidators.object, Validators.required])
+        : SharedValidators.object;
       config['parent'] = [data && data.parent || null, parentValidators];
     }
 

@@ -78,15 +78,16 @@ export class AuctionControlValidators {
     const indivCountPmfm = pmfms.find(p => p.id === PmfmIds.SAMPLE_INDIV_COUNT);
 
     // Get controls
-    const outOfSizeWeightControl = form.get('measurementValues.' + PmfmIds.OUT_OF_SIZE_WEIGHT);
-    const outOfSizeCountControl = form.get('measurementValues.' + PmfmIds.OUT_OF_SIZE_INDIV_COUNT);
-    const outOfSizePctControl = form.get('measurementValues.' + PmfmIds.OUT_OF_SIZE_PCT);
-    const parasitizedCountControl = form.get('measurementValues.' + PmfmIds.PARASITIZED_INDIV_COUNT);
-    const dirtyCountControl = form.get('measurementValues.' + PmfmIds.DIRTY_INDIV_COUNT);
+    const measFormGroup = form.controls['measurementValues'] as FormGroup;
+    const outOfSizeWeightControl = measFormGroup.controls[PmfmIds.OUT_OF_SIZE_WEIGHT];
+    const outOfSizeCountControl = measFormGroup.controls[PmfmIds.OUT_OF_SIZE_INDIV_COUNT];
+    const outOfSizePctControl = measFormGroup.controls[PmfmIds.OUT_OF_SIZE_PCT];
+    const parasitizedCountControl = measFormGroup.controls[PmfmIds.PARASITIZED_INDIV_COUNT];
+    const dirtyCountControl = measFormGroup.controls[PmfmIds.DIRTY_INDIV_COUNT];
 
     // Get PMFM values
-    const weight = weightPmfm ? +form.get('measurementValues.' + weightPmfm.id).value : undefined;
-    const indivCount = indivCountPmfm ? +form.get('measurementValues.' + indivCountPmfm.id).value : undefined;
+    const weight = weightPmfm ? +measFormGroup.controls[weightPmfm.id].value : undefined;
+    const indivCount = indivCountPmfm ? +measFormGroup.controls[indivCountPmfm.id].value : undefined;
     const outOfSizeWeight = outOfSizeWeightControl ? +outOfSizeWeightControl.value : undefined;
     const outOfSizeCount = outOfSizeCountControl ? +outOfSizeCountControl.value : undefined;
 
@@ -136,7 +137,7 @@ export class AuctionControlValidators {
 
     // Parasitized: compute percentile
     const parasitizedCount = parasitizedCountControl ? +parasitizedCountControl.value : undefined;
-    const parasitizedPctControl = form.get('measurementValues.' + PmfmIds.PARASITIZED_INDIV_PCT);
+    const parasitizedPctControl = measFormGroup.controls[PmfmIds.PARASITIZED_INDIV_PCT];
     // Compute out of size percentage
     if (parasitizedPctControl) {
       if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(parasitizedCount)
@@ -162,7 +163,7 @@ export class AuctionControlValidators {
 
     // Dirty: compute percentile
     const dirtyCount = dirtyCountControl ? +dirtyCountControl.value : undefined;
-    const dirtyPctControl = form.get('measurementValues.' + PmfmIds.DIRTY_INDIV_PCT);
+    const dirtyPctControl = measFormGroup.controls[PmfmIds.DIRTY_INDIV_PCT];
     if (dirtyPctControl) {
       if (isNotNilOrBlank(indivCount) && isNotNilOrBlank(parasitizedCount)
         && dirtyCount <= indivCount) {

@@ -2,14 +2,34 @@ import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { PositionValidatorService } from './position.validator';
-import { fromDateISOString, isNotNil, LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  fromDateISOString,
+  isNotNil,
+  LocalSettingsService,
+  SharedFormArrayValidators,
+  SharedFormGroupValidators,
+  SharedValidators,
+  toBoolean,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { MeasurementsValidatorService } from './measurement.validator';
 import { Operation, Trip } from '../model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { merge, Observable, Subscription } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+
+
+export interface PmfmForm {
+  form: FormGroup;
+  pmfms: IPmfm[];
+  markForCheck: () => void;
+}
 
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -367,5 +387,83 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       endDateTime: [data && data.endDateTime || null]
     })
   }
+
+}
+
+export class OperationValidators {
+
+  static addSampleValidators(pmfmForm: PmfmForm): Subscription {
+    const {form, pmfms } = pmfmForm;
+    if (!form) {
+      console.warn("Argument 'form' required");
+      return null;
+    }
+
+    // Disable computed pmfms
+    AppFormUtils.disableControls(form,
+      pmfms
+        .filter(p => p.isComputed)
+        .map(p => `measurementValues.${p.id}`), {onlySelf: true, emitEvent: false});
+
+    const observables = [
+      OperationValidators.listenIndividualOnDeck(pmfmForm)
+    ].filter(isNotNil);
+
+    if (!observables.length) return null;
+    if (observables.length === 1) return observables[0].subscribe();
+    return merge(observables).subscribe();
+  }
+
+  /**
+   * Validate and compute
+   * @param form
+   * @param pmfms
+   * @param opts
+   */
+  static listenIndividualOnDeck(event: PmfmForm): Observable<any> | null {
+    const {form, pmfms, markForCheck} = event;
+    const measFormGroup = form.controls['measurementValues'] as FormGroup;
+
+    // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
+    const individualOnDeckPmfm = pmfms.find(pmfm => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
+    const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
+    if (individualOnDeckControl) {
+      console.debug("[operation-validator] Listening if on deck...");
+
+      return individualOnDeckControl.valueChanges
+        .pipe(
+          startWith(individualOnDeckControl.value),
+          map((individualOnDeck) => {
+          if (individualOnDeck) {
+            if (form.enabled) {
+              pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
+                .map(pmfm => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  if (pmfm.required) {
+                    control.setValidators(Validators.required);
+                  }
+                  control.enable();
+                });
+              if (markForCheck) markForCheck();
+            }
+          } else {
+            if (form.enabled) {
+              pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
+                .map(pmfm => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  control.disable();
+                  control.reset(null, { emitEvent: false });
+                  control.setValidators(null);
+                });
+              if (markForCheck) markForCheck();
+            }
+          }
+          return null;
+        })
+      );
+    }
+    return null;
+  }
+
 
 }
