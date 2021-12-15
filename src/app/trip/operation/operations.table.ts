@@ -238,7 +238,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
     this.highlightedRow = row;
-
     return super.clickRow(event, row);
   }
 

@@ -279,7 +279,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     if (strategy && strategy.effortByQuarter) {
       const effortByQuarter = strategy.effortByQuarter[date?.quarter()];
       // Check same year
-      if (effortByQuarter && effortByQuarter.startDate.year() === date?.year()) {
+      if (effortByQuarter && effortByQuarter.startDate?.year() === date?.year()) {
         return effortByQuarter;
       }
     }

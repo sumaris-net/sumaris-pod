@@ -270,7 +270,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
     this.highlightedRow = row;
-
     return super.clickRow(event, row);
   }
 
