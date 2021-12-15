@@ -40,7 +40,7 @@
           <mat-icon>refresh</mat-icon>
         </button>
         <button mat-icon-button
-                *ngIf="defaultTaxonGroups && !selection.hasValue() && enabled"
+                *ngIf="availableTaxonGroups && !selection.hasValue() && enabled"
                 [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
                 (click)="autoFillTable()">
           <mat-icon>control_point_duplicate</mat-icon>
@@ -223,7 +223,7 @@
       <ng-container matColumnDef="top-start" [sticky]="useSticky">
         <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
           <button mat-icon-button
-                  *ngIf="defaultTaxonGroups && !selection.hasValue() && enabled"
+                  *ngIf="availableTaxonGroups && !selection.hasValue() && enabled"
                   [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
                   (click)="autoFillTable()">
             <mat-icon>control_point_duplicate</mat-icon>
