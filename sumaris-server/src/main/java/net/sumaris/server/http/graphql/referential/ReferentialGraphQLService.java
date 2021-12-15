@@ -23,9 +23,7 @@
 package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.*;
-import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -34,19 +32,16 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
-import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,9 +56,6 @@ import java.util.*;
 public class ReferentialGraphQLService {
 
     @Autowired
-    private SumarisServerConfiguration configuration;
-
-    @Autowired
     private ReferentialService referentialService;
 
     @Autowired
@@ -73,13 +65,13 @@ public class ReferentialGraphQLService {
     private MetierRepository metierRepository;
 
     @Autowired
-    private ProgramRepository programRepository;
-
-    @Autowired
     private ChangesPublisherService changesPublisherService;
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private DataAccessControlService dataSecurityService;
 
     /* -- Referential queries -- */
 
@@ -105,18 +97,17 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
-        // Special case
-        if (Metier.class.getSimpleName().equals(entityName)) {
+        // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
+        if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
             return metierRepository.findByFilter(
                     ReferentialFilterVO.nullToEmpty(filter),
                     offset, size, sort,
                     SortDirection.valueOf(direction.toUpperCase()));
         }
 
-        // Limit access to program
-        if (Program.class.getSimpleName().equals(entityName) && !authService.isAdmin()) {
-            Collection<Integer> programIds = limitProgramIdsForUser(Beans.getList(filter.getIncludedIds()));
-            filter.setIncludedIds(programIds.toArray(new Integer[0]));
+        // Restrict access to program
+        if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {
+            restrictProgramFilter(filter);
         }
 
         return referentialService.findByFilter(entityName,
@@ -131,11 +122,9 @@ public class ReferentialGraphQLService {
     @Transactional(readOnly = true)
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
                                      @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
-
-        // Limit access to program
-        if (Program.class.getSimpleName().equals(entityName) && !authService.isAdmin()) {
-            Collection<Integer> programIds = limitProgramIdsForUser(Beans.getList(filter.getIncludedIds()));
-            filter.setIncludedIds(programIds.toArray(new Integer[0]));
+        // Restrict access to program
+        if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {
+            restrictProgramFilter(filter);
         }
 
         return referentialService.countByFilter(entityName, filter);
@@ -263,25 +252,9 @@ public class ReferentialGraphQLService {
                 .build();
     }
 
-
-    protected Collection<Integer> limitProgramIdsForUser(Collection<Integer> programIds) {
-
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        if (user != null) {
-            // To get allowed program ids, we made intersection with not empty lists.
-            // If all list are empty => All programs allowed
-            programIds = Beans.intersectionIfNotEmpty(programIds,
-                configuration.getProgramIds(),
-                programRepository.getProgramIdsByUserId(user.getId())
-            );
-
-            return CollectionUtils.isNotEmpty(programIds)
-                ? programIds
-                : ImmutableList.of(-999); // No
-        }
-        else {
-            return ImmutableList.of(-999); // No access
-        }
+    protected void restrictProgramFilter(ReferentialFilterVO filter) {
+        Integer[] authorizedProgramIds = dataSecurityService.getAuthorizedProgramIds(filter.getIncludedIds());
+        filter.setIncludedIds(authorizedProgramIds);
     }
 
 }

@@ -380,7 +380,7 @@ public class VesselGraphQLService {
      * Check user is admin
      */
     protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
+        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Access forbidden");
     }
 
     protected void logDeprecatedUse(String functionName, String appVersion) {

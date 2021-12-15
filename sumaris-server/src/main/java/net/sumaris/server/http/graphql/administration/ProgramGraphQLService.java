@@ -502,7 +502,7 @@ public class ProgramGraphQLService {
      * Check user is admin
      */
     protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
+        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Access forbidden");
     }
 
     /**

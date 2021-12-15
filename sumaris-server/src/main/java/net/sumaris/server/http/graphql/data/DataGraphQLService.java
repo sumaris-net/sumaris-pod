@@ -23,12 +23,10 @@
 package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
-import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -37,7 +35,6 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -51,13 +48,14 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,7 +63,6 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,7 +148,7 @@ public class DataGraphQLService {
     private VesselGraphQLService vesselGraphQLService;
 
     @Autowired
-    private ProgramRepository programRepository;
+    private DataAccessControlService dataAccessControlService;
 
     /* -- Trip -- */
 
@@ -171,7 +168,7 @@ public class DataGraphQLService {
         // Read from trash
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Set default sort
             sort = sort != null ? sort : TripVO.Fields.UPDATE_DATE;
@@ -206,7 +203,7 @@ public class DataGraphQLService {
                            @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Call the trash service
             return trashService.count(Trip.class.getSimpleName());
@@ -224,8 +221,12 @@ public class DataGraphQLService {
                               @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.get(id);
 
+        // Check read access
+        dataAccessControlService.checkCanRead(result);
+
         // Add additional properties if needed
         fillTripFields(result, GraphQLUtils.fields(env));
+
 
         return result;
     }
@@ -457,7 +458,7 @@ public class DataGraphQLService {
         // Read from trash
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Set default sort
             sort = sort != null ? sort : ObservedLocationVO.Fields.UPDATE_DATE;
@@ -490,7 +491,7 @@ public class DataGraphQLService {
                                        @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Call the trash service
             return trashService.count(ObservedLocation.class.getSimpleName());
@@ -508,6 +509,9 @@ public class DataGraphQLService {
                                                       @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.get(id);
 
+        // Check access rights
+        dataAccessControlService.checkCanRead(result);
+
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
@@ -520,7 +524,10 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
-        final ObservedLocationVO result = observedLocationService.save(observedLocation, options);
+        // Make sure user can write
+        dataAccessControlService.checkCanWrite(observedLocation);
+
+        ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
@@ -1453,10 +1460,14 @@ public class DataGraphQLService {
                 }
             }
 
-            // Limit program access, when not admin
-            if (!authService.isAdmin()) {
-                Collection<Integer> programIds = limitProgramIdsForUser(user.getId(), Beans.getList(filter.getProgramIds()));
-                filter.setProgramIds(programIds.toArray(new Integer[0]));
+            // Limit program access
+            if (authService.isAdmin()) {
+                Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIdsForAdmin(filter.getProgramIds());
+                filter.setProgramIds(authorizedProgramIds);
+            }
+            else {
+                Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(user.getId(), filter.getProgramIds());
+                filter.setProgramIds(authorizedProgramIds);
             }
         } else {
             filter.setRecorderPersonId(-999); // Hide all. Should never occur
@@ -1475,25 +1486,8 @@ public class DataGraphQLService {
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 
-    protected Collection<Integer> limitProgramIdsForUser(int userId, Collection<Integer> programIds) {
-        // To get allowed program ids, we made intersection with not empty lists.
-        // If all list are empty => All programs allowed
-        programIds = Beans.intersectionIfNotEmpty(programIds,
-            configuration.getProgramIds(),
-            programRepository.getProgramIdsByUserId(userId)
-            );
 
-        return CollectionUtils.isNotEmpty(programIds)
-            ? programIds
-            : ImmutableList.of(-999); // No access
-    }
 
-    /**
-     * Check user is admin
-     */
-    protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
-    }
 
     protected void logDeprecatedUse(String functionName, String appVersion) {
         Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);

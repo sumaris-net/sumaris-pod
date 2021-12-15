@@ -110,19 +110,19 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
         // Not exists in cache
         if (result == null) {
-            String depIds = applicationConfig.getOption(optionKey);
-            if (StringUtils.isBlank(depIds)) {
+            String ids = applicationConfig.getOption(optionKey);
+            if (StringUtils.isBlank(ids)) {
                 result = ImmutableList.of();
             } else {
                 final List<String> invalidIds = Lists.newArrayList();
                 result = Splitter.on(",").omitEmptyStrings().trimResults()
-                        .splitToList(depIds)
+                        .splitToList(ids)
                         .stream()
-                        .map(depId -> {
+                        .map(id -> {
                             try {
-                                return Integer.parseInt(depId);
+                                return Integer.parseInt(id);
                             } catch (Exception e) {
-                                invalidIds.add(depId);
+                                invalidIds.add(id);
                                 return null;
                             }
                         })
@@ -134,20 +134,18 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
                 }
             }
 
-            // Add to options cache
+            // Add to cache
             complexOptionsCache.put(optionKey, result);
         }
         return result;
     }
 
     public List<Integer> getAccessNotSelfDataDepartmentIds() {
-        final String optionKey = SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey();
-        return getConfigurationOptionAsNumbers(optionKey);
+        return getConfigurationOptionAsNumbers(SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey());
     }
 
-    public List<Integer> getProgramIds() {
-        final String optionKey = SumarisServerConfigurationOption.ACCESS_DATA_PROGRAM_IDS.getKey();
-        return getConfigurationOptionAsNumbers(optionKey);
+    public List<Integer> getAuthorizedProgramIds() {
+        return getConfigurationOptionAsNumbers(SumarisServerConfigurationOption.ACCESS_DATA_PROGRAM_IDS.getKey());
     }
 
     public String getAccessNotSelfDataMinRole() {
