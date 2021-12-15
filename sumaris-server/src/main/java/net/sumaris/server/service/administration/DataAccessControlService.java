@@ -40,7 +40,7 @@ public interface DataAccessControlService {
     Integer[] getAuthorizedProgramIds(Integer[] programIds);
 
     @Transactional(readOnly = true)
-    Integer[] getAuthorizedProgramIdsForAdmin(Integer[] programIds);
+    Integer[] getAllAuthorizedProgramIds(Integer[] programIds);
 
     @Transactional(readOnly = true)
     Integer[] getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds);

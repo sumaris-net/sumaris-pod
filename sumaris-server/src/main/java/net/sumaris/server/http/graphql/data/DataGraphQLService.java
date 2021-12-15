@@ -1462,7 +1462,7 @@ public class DataGraphQLService {
 
             // Limit program access
             if (authService.isAdmin()) {
-                Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIdsForAdmin(filter.getProgramIds());
+                Integer[] authorizedProgramIds = dataAccessControlService.getAllAuthorizedProgramIds(filter.getProgramIds());
                 filter.setProgramIds(authorizedProgramIds);
             }
             else {

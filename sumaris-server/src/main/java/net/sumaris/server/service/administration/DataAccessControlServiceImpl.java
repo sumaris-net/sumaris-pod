@@ -98,18 +98,19 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     public Integer[] getAuthorizedProgramIds(Integer[] programIds) {
 
         // Admin
-        if (authService.isAdmin()) return getAuthorizedProgramIdsForAdmin(programIds);
+        if (authService.isAdmin()) return getAllAuthorizedProgramIds(programIds);
 
         // Other user
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
-
-        if (user == null) return getAuthorizedProgramIds(programIds);
-
-        return getAuthorizedProgramIdsByUserId(user.getId(), programIds);
+        return authService.getAuthenticatedUserId()
+            .map(userId -> getAuthorizedProgramIdsByUserId(userId, programIds))
+            // Guest: can see all programs
+            // /!\ This case can only occur on referential access (see ReferentialGraphQLService)
+            // Data graphQL access should be protected by @IsUser(), to required a logged in user
+            .orElseGet(() -> getAllAuthorizedProgramIds(programIds));
     }
 
     @Override
-    public Integer[] getAuthorizedProgramIdsForAdmin(Integer[] programIds) {
+    public Integer[] getAllAuthorizedProgramIds(Integer[] programIds) {
         return toArrayOrNull(getAuthorizedProgramIdsAsCollection(programIds));
     }
 

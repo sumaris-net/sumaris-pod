@@ -73,6 +73,9 @@ public interface AuthService extends IAuthService<PersonVO> {
     @Transactional(readOnly = true)
     Optional<PersonVO> getAuthenticatedUser();
 
+    @Transactional(readOnly = true)
+    Optional<Integer> getAuthenticatedUserId();
+
     @Transactional
     UserDetails authenticateByToken(String token) throws AuthenticationException;
 

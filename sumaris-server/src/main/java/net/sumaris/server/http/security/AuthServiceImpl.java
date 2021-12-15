@@ -274,6 +274,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public Optional<Integer> getAuthenticatedUserId() {
+        return getAuthenticatedUser().map(PersonVO::getId);
+    }
+
+    @Override
     public boolean hasAuthority(String authority) {
         return hasUpperOrEqualsAuthority(getAuthorities(), authority);
     }
