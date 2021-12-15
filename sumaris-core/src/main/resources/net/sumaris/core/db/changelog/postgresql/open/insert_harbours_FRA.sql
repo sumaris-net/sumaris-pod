@@ -1,3 +1,24 @@
+---
+-- #%L
+-- SUMARiS:: Core
+-- %%
+-- Copyright (C) 2018 - 2021 SUMARiS Consortium
+-- %%
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License as
+-- published by the Free Software Foundation, either version 3 of the
+-- License, or (at your option) any later version.
+-- 
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+-- 
+-- You should have received a copy of the GNU General Public
+-- License along with this program.  If not, see
+-- <http://www.gnu.org/licenses/gpl-3.0.html>.
+-- #L%
+---
 insert into LOCATION (ID, LABEL, NAME, COMMENTS, STATUS_FK, VALIDITY_STATUS_FK, LOCATION_LEVEL_FK, CREATION_DATE, UPDATE_DATE) values (nextval('location_seq'), 'FR_1BI', 'Etang de Palo', '1BI', 1, 1, 2, current_timestamp, current_timestamp);
 insert into LOCATION (ID, LABEL, NAME, COMMENTS, STATUS_FK, VALIDITY_STATUS_FK, LOCATION_LEVEL_FK, CREATION_DATE, UPDATE_DATE) values (nextval('location_seq'), 'FR_1NI', 'Villeneuve Loubet', '1NI', 1, 1, 2, current_timestamp, current_timestamp);
 insert into LOCATION (ID, LABEL, NAME, COMMENTS, STATUS_FK, VALIDITY_STATUS_FK, LOCATION_LEVEL_FK, CREATION_DATE, UPDATE_DATE) values (nextval('location_seq'), 'FR_1P1', 'CP-Capesterre de Marie-Galante', '1P1', 1, 1, 2, current_timestamp, current_timestamp);
