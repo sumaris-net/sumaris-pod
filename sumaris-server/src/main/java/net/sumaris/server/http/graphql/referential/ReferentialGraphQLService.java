@@ -68,9 +68,6 @@ public class ReferentialGraphQLService {
     private ChangesPublisherService changesPublisherService;
 
     @Autowired
-    private AuthService authService;
-
-    @Autowired
     private DataAccessControlService dataSecurityService;
 
     /* -- Referential queries -- */
@@ -253,7 +250,8 @@ public class ReferentialGraphQLService {
     }
 
     protected void restrictProgramFilter(ReferentialFilterVO filter) {
-        Integer[] authorizedProgramIds = dataSecurityService.getAuthorizedProgramIds(filter.getIncludedIds());
+        Integer[] authorizedProgramIds = dataSecurityService.getAuthorizedProgramIds(filter.getIncludedIds())
+            .orElse(new Integer[]{-999});
         filter.setIncludedIds(authorizedProgramIds);
     }
 

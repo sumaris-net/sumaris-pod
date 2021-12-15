@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
-import lombok.NonNull;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -74,9 +73,6 @@ import java.util.*;
 public class DataGraphQLService {
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
-
-    @Autowired
-    private SumarisServerConfiguration configuration;
 
     @Autowired
     private TripService tripService;
@@ -1446,48 +1442,45 @@ public class DataGraphQLService {
             log.error("Cannot create filter instance: {}", e.getMessage(), e);
         }
 
-        // Restrict to self data and/or department data
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        if (user != null) {
-            if (!canUserAccessNotSelfData()) {
-                // Limit data access to self data
-                filter.setRecorderPersonId(user.getId());
-            } else {
-                Integer depId = user.getDepartment().getId();
-                if (!canDepartmentAccessNotSelfData(depId)) {
-                    // Limit data access to user's department
-                    filter.setRecorderDepartmentId(depId);
-                }
-            }
-
-            // Limit program access
-            if (authService.isAdmin()) {
-                Integer[] authorizedProgramIds = dataAccessControlService.getAllAuthorizedProgramIds(filter.getProgramIds());
-                filter.setProgramIds(authorizedProgramIds);
-            }
-            else {
-                Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(user.getId(), filter.getProgramIds());
-                filter.setProgramIds(authorizedProgramIds);
-            }
-        } else {
-            filter.setRecorderPersonId(-999); // Hide all. Should never occur
+        // Admin: restrict only on programs
+        if (authService.isAdmin()) {
+            Integer[] authorizedProgramIds = dataAccessControlService.getAllAuthorizedProgramIds(filter.getProgramIds())
+                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+            filter.setProgramIds(authorizedProgramIds);
+            return filter;
         }
 
+        // Restrict to self data and/or department data
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+
+        // Guest: hide all (Should never occur, because of @IsUser security annotation)
+        if (user == null) {
+            filter.setRecorderPersonId(DataAccessControlService.NO_ACCESS_FAKE_ID);
+            return filter;
+        }
+
+        // Limit program access
+        Integer[] programIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(user.getId(), filter.getProgramIds())
+            // No access
+            .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+        filter.setProgramIds(programIds);
+
+        if (programIds == DataAccessControlService.NO_ACCESS_FAKE_IDS) return filter; // No Access
+
+        // Limit on own data
+        if (!dataAccessControlService.canUserAccessNotSelfData()) {
+            // Limit data access to self data
+            filter.setRecorderPersonId(user.getId());
+            return filter;
+        }
+
+        // Limit data access to user's department
+        Integer depId = user.getDepartment().getId();
+        if (!dataAccessControlService.canDepartmentAccessNotSelfData(depId)) {
+            filter.setRecorderDepartmentId(depId);
+        }
         return filter;
     }
-
-    protected boolean canUserAccessNotSelfData() {
-        String minRole = configuration.getAccessNotSelfDataMinRole();
-        return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
-    }
-
-    protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
-        return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
-    }
-
-
-
 
     protected void logDeprecatedUse(String functionName, String appVersion) {
         Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);

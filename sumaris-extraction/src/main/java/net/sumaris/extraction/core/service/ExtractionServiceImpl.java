@@ -199,6 +199,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected void onConfigurationReady(ConfigurationEvent event) {
         this.enableProduct = configuration.enableExtractionProduct();
         this.cacheDefaultTtl = configuration.getExtractionCacheDefaultTtl();
+        if (this.cacheDefaultTtl == null) {
+            this.cacheDefaultTtl = CacheTTL.DEFAULT;
+        }
 
         log.info("Extraction configured with {cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
             this.cacheDefaultTtl.name(),

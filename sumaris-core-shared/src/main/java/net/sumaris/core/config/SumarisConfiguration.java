@@ -106,6 +106,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     protected final Set<String> transientOptionKeys;
 
+    protected final Properties defaults;
+
     /**
      * <p>initDefault.</p>
      */
@@ -123,6 +125,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         super();
         this.applicationConfig = applicationConfig;
         this.transientOptionKeys = null;
+        this.defaults = null;
 
         // Override application version
         initVersion(applicationConfig);
@@ -152,13 +155,13 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // load all default options
         Set<ApplicationConfigProvider> providers = getProviders();
-        Properties defaults = getDefaults(providers, env);
+        this.defaults = getDefaults(providers, env);
 
         // Create Nuiton config instance
         this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.forAllScopesWithout(
                 ApplicationConfigScope.HOME
         )
-                .setDefaults(defaults));
+                .setDefaults(this.defaults));
         this.applicationConfig.setEncoding(Charsets.UTF_8.name());
         this.applicationConfig.setConfigFileName(file);
 
@@ -357,6 +360,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
 
+    public void restoreDefaults() {
+        applicationConfig.setOptions(new Properties(defaults));
+    }
 
     /**
      * <p>Getter for the field <code>configFile</code>.</p>

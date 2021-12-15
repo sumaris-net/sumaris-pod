@@ -23,13 +23,13 @@
 package net.sumaris.server.service.administration;
 
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.ForbiddenException;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
@@ -40,18 +40,17 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Optional;
 
 @Service("dataAccessControlService")
 public class DataAccessControlServiceImpl implements DataAccessControlService {
 
-    public static final Integer FAKE_ID = -999;
 
     /**
      * By default (configuration not loaded: no access)
      */
-    private List<Integer> authorizedProgramIds = ImmutableList.of(FAKE_ID);
-    private List<Integer> accessNotSelfDataDepartmentIds = ImmutableList.of(FAKE_ID);
+    private ImmutableList<Integer> authorizedProgramIds = ImmutableList.of(NO_ACCESS_FAKE_ID);
+    private ImmutableList<Integer> accessNotSelfDataDepartmentIds = ImmutableList.of(NO_ACCESS_FAKE_ID);
     private String accessNotSelfDataMinRole = "ROLE_ADMIN";
 
     @Autowired
@@ -65,9 +64,19 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        authorizedProgramIds = configuration.getAuthorizedProgramIds();
-        accessNotSelfDataDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
-        accessNotSelfDataMinRole = configuration.getAccessNotSelfDataMinRole();
+        authorizedProgramIds = toListOrNull(configuration.getAuthorizedProgramIds());
+        accessNotSelfDataDepartmentIds = toListOrNull(configuration.getAccessNotSelfDataDepartmentIds());
+        accessNotSelfDataMinRole = StringUtils.trimToNull(configuration.getAccessNotSelfDataMinRole());
+    }
+
+    @Override
+    public boolean canUserAccessNotSelfData() {
+        return accessNotSelfDataMinRole == null || authService.hasAuthority(accessNotSelfDataMinRole);
+    }
+
+    @Override
+    public boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
+        return accessNotSelfDataDepartmentIds == null || accessNotSelfDataDepartmentIds.contains(actualDepartmentId);
     }
 
     /**
@@ -95,79 +104,86 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
-    public Integer[] getAuthorizedProgramIds(Integer[] programIds) {
+    public Optional<Integer[]> getAuthorizedProgramIds(Integer[] programIds) {
 
         // Admin
         if (authService.isAdmin()) return getAllAuthorizedProgramIds(programIds);
 
         // Other user
         return authService.getAuthenticatedUserId()
-            .map(userId -> getAuthorizedProgramIdsByUserId(userId, programIds))
-            // Guest: can see all programs
-            // /!\ This case can only occur on referential access (see ReferentialGraphQLService)
-            // Data graphQL access should be protected by @IsUser(), to required a logged in user
-            .orElseGet(() -> getAllAuthorizedProgramIds(programIds));
+            .flatMap(userId -> getAuthorizedProgramIdsByUserId(userId, programIds));
     }
 
     @Override
-    public Integer[] getAllAuthorizedProgramIds(Integer[] programIds) {
-        return toArrayOrNull(getAuthorizedProgramIdsAsCollection(programIds));
+    public Optional<Integer[]> getAllAuthorizedProgramIds(Integer[] programIds) {
+        return getAuthorizedProgramIdsAsCollection(programIds)
+            .map(this::toArray);
     }
 
     @Override
-    public Integer[] getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds) {
+    public Optional<Integer[]> getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds) {
         // To get allowed program ids, we made intersection with not empty lists.
 
         // User has no rights: no access
-        Collection<Integer> userProgramIds = programRepository.getProgramIdsByUserId(userId);
-        if (CollectionUtils.isEmpty(userProgramIds)) return new Integer[]{FAKE_ID};
+        final Collection<Integer> userProgramIds = programRepository.getProgramIdsByUserId(userId);
+        if (CollectionUtils.isEmpty(userProgramIds)) return Optional.empty();
 
-        // All programs authorized: return requested programs
-        Collection<Integer> authorizedProgramIds = getAuthorizedProgramIdsAsCollection(programIds);
-        if (CollectionUtils.isEmpty(authorizedProgramIds)) return userProgramIds.toArray(new Integer[0]);
+        return getAuthorizedProgramIdsAsCollection(programIds)
+            .flatMap(authorizedProgramIds -> {
 
-        // Intersect authorized (by config) and user programs
-        Collection<Integer> userAuthorizedProgramIds = Beans.intersection(
-            authorizedProgramIds,
-            userProgramIds
-        );
+                // No restriction: only user's programs
+                if (CollectionUtils.isEmpty(authorizedProgramIds)) return Optional.of(toNotNullList(userProgramIds));
 
-        // If intersection is empty (=no access): return a FAKE program id
-        return toNotEmptyArray(userAuthorizedProgramIds);
+                // Intersect authorized (by config) and user programs
+                Collection<Integer> intersection = CollectionUtils.intersection(
+                    authorizedProgramIds,
+                    userProgramIds
+                );
+
+                return CollectionUtils.isEmpty(intersection)
+                    ? Optional.empty() // No access
+                    : Optional.of(intersection);
+            })
+            .map(this::toArray);
     }
 
     /* -- protected functions -- */
 
-    protected Collection<Integer> getAuthorizedProgramIdsAsCollection(Integer[] programIds) {
+    protected Optional<Collection<Integer>> getAuthorizedProgramIdsAsCollection(Integer[] programIds) {
         // Nothing limited by config: all requested programs are authorized
-        if (CollectionUtils.isEmpty(authorizedProgramIds)) return toCollectionOrNull(programIds);
+        if (authorizedProgramIds == null) return Optional.of(toNotNullList(programIds));
 
         // Nothing requested: all authorized program
-        if (ArrayUtils.isEmpty(programIds)) return authorizedProgramIds;
+        if (ArrayUtils.isEmpty(programIds)) return Optional.of(authorizedProgramIds);
 
         // Intersection between expected and authorized
-        Collection<Integer> intersectProgramIds = Beans.intersection(
+        Collection<Integer> intersection = CollectionUtils.intersection(
             ImmutableList.copyOf(programIds),
             authorizedProgramIds
         );
 
-        // If intersection is empty (=no access): return a FAKE program id
-        return toNotEmptyCollection(intersectProgramIds);
-    }
-
-    protected Integer[] toNotEmptyArray(Collection<Integer> items) {
-        return CollectionUtils.isNotEmpty(items) ? items.toArray(new Integer[0]) : new Integer[]{FAKE_ID};
+        return CollectionUtils.isEmpty(intersection)
+            ? Optional.empty() // No access, if no intersection
+            : Optional.of(intersection);
     }
 
     protected Collection<Integer> toNotEmptyCollection(Collection<Integer> items) {
-        return CollectionUtils.isNotEmpty(items) ? items : ImmutableList.of(FAKE_ID);
+        return CollectionUtils.isNotEmpty(items) ? items : ImmutableList.of(NO_ACCESS_FAKE_ID);
     }
 
-    protected Integer[] toArrayOrNull(Collection<Integer> items) {
-        return CollectionUtils.isEmpty(items) ? null : items.toArray(new Integer[items.size()]);
+    protected Integer[] toArray(@NonNull Collection<Integer> items) {
+        return items.toArray(new Integer[items.size()]);
     }
 
-    protected Collection<Integer> toCollectionOrNull(Integer[] items) {
-        return ArrayUtils.isEmpty(items) ? null : ImmutableList.copyOf(items);
+    protected ImmutableList<Integer> toNotNullList(Integer[] items) {
+        return ArrayUtils.isEmpty(items) ? ImmutableList.of() : ImmutableList.copyOf(items);
+    }
+
+    protected ImmutableList<Integer> toNotNullList(Collection<Integer> items) {
+        return CollectionUtils.isEmpty(items) ? ImmutableList.of() : ImmutableList.copyOf(items);
+    }
+
+    protected ImmutableList<Integer> toListOrNull(Collection<Integer> items) {
+        return CollectionUtils.isEmpty(items) ? null : ImmutableList.copyOf(items);
     }
 }

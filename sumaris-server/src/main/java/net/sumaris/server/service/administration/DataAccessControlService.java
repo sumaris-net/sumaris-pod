@@ -25,8 +25,17 @@ package net.sumaris.server.service.administration;
 import net.sumaris.core.vo.data.IRootDataVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Transactional
 public interface DataAccessControlService {
+
+    Integer NO_ACCESS_FAKE_ID = -999;
+    Integer[] NO_ACCESS_FAKE_IDS = new Integer[]{NO_ACCESS_FAKE_ID};
+
+    boolean canUserAccessNotSelfData();
+
+    boolean canDepartmentAccessNotSelfData(Integer userDepartmentId);
 
     void checkIsAdmin(String message);
 
@@ -37,11 +46,11 @@ public interface DataAccessControlService {
     void checkCanWrite(IRootDataVO data);
 
     @Transactional(readOnly = true)
-    Integer[] getAuthorizedProgramIds(Integer[] programIds);
+    Optional<Integer[]> getAuthorizedProgramIds(Integer[] programIds);
 
     @Transactional(readOnly = true)
-    Integer[] getAllAuthorizedProgramIds(Integer[] programIds);
+    Optional<Integer[]> getAllAuthorizedProgramIds(Integer[] programIds);
 
     @Transactional(readOnly = true)
-    Integer[] getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds);
+    Optional<Integer[]> getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds);
 }
