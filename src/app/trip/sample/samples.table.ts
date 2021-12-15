@@ -128,7 +128,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultTaxonGroup: ReferentialRef;
   @Input() defaultTaxonName: ReferentialRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
-  @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
@@ -136,6 +135,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() tagIdPadString = '0';
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
+
+  @Input() allowSubSamples = false;
+  @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
@@ -374,7 +376,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         await this.onNewEntity(newData);
         return newData;
       },
-      openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
+      openSubSampleModal: this.allowSubSamples
+        ? (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel)
+        : undefined,
 
       // Override using given options
       ...this.modalOptions,
@@ -535,24 +539,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
 
     return {data, role};
-  }
-
-  onDeleteSubSample(event: UIEvent, parent: Sample, subSample: Sample): boolean {
-
-    parent.children = SampleUtils.removeChild(parent, subSample);
-
-    this.findRowByEntity(parent)
-      .then(row => {
-        if (row.validator) {
-          row.validator.patchValue({ children: parent.children})
-        }
-        else {
-          row.currentData.children = parent.children.slice(); // Force pipes update
-          this.markAsDirty();
-        }
-      });
-
-    return true;
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {

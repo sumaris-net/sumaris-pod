@@ -130,12 +130,26 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
         this.usageMode === 'FIELD');
     }
+
+    // Show/Hide individual release button
     this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
     if (this.tagIdPmfm) {
-      this.showIndividualReleaseButton = !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]);
+      this.showIndividualReleaseButton =  !!this.openSubSampleModal
+        && !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]);
+
+      this.form.ready().then(() => {
+        this.registerSubscription(
+          this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
+            .valueChanges
+            .subscribe(tagId => {
+              this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
+              this.markForCheck();
+            })
+        );
+      });
     }
     else {
-      this.showIndividualReleaseButton = !!this.openSubSampleModal;
+      this.showIndividualReleaseButton =  !!this.openSubSampleModal;
     }
 
     if (this.disabled) {
@@ -155,16 +169,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       );
     }
 
-    this.form.ready().then(() => {
-      this.registerSubscription(
-        this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
-          .valueChanges
-          .subscribe(tagId => {
-            this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
-            this.markForCheck();
-          })
-      );
-    });
 
     this.setValue(this.data);
   }
