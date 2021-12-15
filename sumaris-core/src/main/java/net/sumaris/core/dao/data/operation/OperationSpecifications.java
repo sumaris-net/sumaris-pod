@@ -23,15 +23,19 @@ package net.sumaris.core.dao.data.operation;
  */
 
 import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -48,187 +52,165 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationSpecifications
-        extends DataSpecifications<Operation> {
+    extends DataSpecifications<Operation> {
 
     String TRIP_ID_PARAM = "tripId";
     String VESSEL_ID_PARAM = "vesselId";
     String INCLUDED_IDS_PARAMETER = "includedIds";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
     String PROGRAM_LABEL_PARAM = "programLabel";
-    String EXCLUDE_CHILD_OPERATION_PARAM = "excludeChildOperation";
-    String HAS_NO_CHILD_OPERATION_PARAM = "hasNoChildOperation";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
     String GEAR_IDS_PARAMETER = "gearIds";
     String TAXON_GROUP_LABELS_PARAMETER = "targetSpecieIds";
     String QUALITY_FLAG_ID_PARAMETER = "qualityFlagId";
 
+    default Specification<Operation> excludeOperationGroup() {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            Join<Operation, Trip> tripJoin = Daos.composeJoin(root, Operation.Fields.TRIP, JoinType.INNER);
+            return criteriaBuilder.notEqual(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME));
+        });
+    }
+
     default Specification<Operation> hasTripId(Integer tripId) {
         if (tripId == null) return null;
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            Join<Operation, Trip> tripJoin = Daos.composeJoin(root, Operation.Fields.TRIP, JoinType.INNER);
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(param),
-                    criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(TRIP_ID_PARAM, tripId);
-        return specification;
+            return criteriaBuilder.equal(tripJoin.get(IEntity.Fields.ID), param);
+        }).addBind(TRIP_ID_PARAM, tripId);
     }
 
     default Specification<Operation> includedIds(Integer[] includedIds) {
         if (ArrayUtils.isEmpty(includedIds)) return null;
         return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
-            return criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param);
-        })
-                .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
+                return criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param);
+            })
+            .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
     }
 
     default Specification<Operation> excludedIds(Integer[] excludedIds) {
         if (ArrayUtils.isEmpty(excludedIds)) return null;
         return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
-            return criteriaBuilder.not(
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
+                return criteriaBuilder.not(
                     criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param)
-            );
-        })
-                .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
+                );
+            })
+            .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
     }
 
     default Specification<Operation> hasProgramLabel(String programLabel) {
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
-            Join<Operation, Trip> tripJoin = root.join(Operation.Fields.TRIP, JoinType.INNER);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(param),
-                    criteriaBuilder.equal(tripJoin.get(Trip.Fields.PROGRAM).get(IItemReferentialEntity.Fields.LABEL), param)
-            );
-        });
-        specification.addBind(PROGRAM_LABEL_PARAM, programLabel);
-        return specification;
+        if (StringUtils.isBlank(programLabel)) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+                ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
+                return criteriaBuilder.equal(
+                    Daos.composePath(root, StringUtils.doting(Operation.Fields.TRIP, Trip.Fields.PROGRAM, Program.Fields.LABEL)),
+                    param);
+            })
+            .addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
 
     default Specification<Operation> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            Join<Operation, Trip> tripJoin = root.join(Operation.Fields.TRIP, JoinType.INNER);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(param),
-                    criteriaBuilder.equal(tripJoin.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param)
-            );
-        });
-        specification.addBind(VESSEL_ID_PARAM, vesselId);
-        return specification;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+                ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
+                return criteriaBuilder.equal(
+                    Daos.composePath(root, StringUtils.doting(Operation.Fields.TRIP, Trip.Fields.VESSEL, Vessel.Fields.ID)),
+                    param);
+            })
+            .addBind(VESSEL_ID_PARAM, vesselId);
     }
 
-    default Specification<Operation> notChildOperation(Boolean excludeChildOperation) {
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-                    ParameterExpression<Boolean> param = criteriaBuilder.parameter(Boolean.class, EXCLUDE_CHILD_OPERATION_PARAM);
-                    return criteriaBuilder.or(
-                            criteriaBuilder.isNull(param),
-                            criteriaBuilder.isFalse(param),
-                            criteriaBuilder.isNull(root.get(Operation.Fields.PARENT_OPERATION)));
-                }
+    default Specification<Operation> excludeChildOperation(Boolean excludeChildOperation) {
+        if (excludeChildOperation == null || !excludeChildOperation) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) ->
+            criteriaBuilder.isNull(root.get(Operation.Fields.PARENT_OPERATION))
         );
-
-        specification.addBind(EXCLUDE_CHILD_OPERATION_PARAM, excludeChildOperation);
-        return specification;
     }
 
     default Specification<Operation> hasNoChildOperation(Boolean hasNotChildOperation) {
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-                    ParameterExpression<Boolean> param = criteriaBuilder.parameter(Boolean.class, HAS_NO_CHILD_OPERATION_PARAM);
-                    Join<Operation, Operation> operationJoin = root.join(Operation.Fields.CHILD_OPERATION, JoinType.LEFT);
+        if (hasNotChildOperation == null || !hasNotChildOperation) return null;
 
-                    return criteriaBuilder.or(
-                            criteriaBuilder.isNull(param),
-                            criteriaBuilder.isFalse(param),
-                            criteriaBuilder.isNull(operationJoin));
-                }
+        return BindableSpecification.where((root, query, criteriaBuilder) ->
+            criteriaBuilder.isNull(Daos.composeJoin(root, Operation.Fields.CHILD_OPERATION, JoinType.LEFT))
         );
-
-        specification.addBind(HAS_NO_CHILD_OPERATION_PARAM, hasNotChildOperation);
-        return specification;
     }
 
     default Specification<Operation> inGearIds(Integer[] gearIds) {
         if (ArrayUtils.isEmpty(gearIds)) return null;
         return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, GEAR_IDS_PARAMETER);
-            Join<Operation, PhysicalGear> physicalGearJoin = root.join(Operation.Fields.PHYSICAL_GEAR, JoinType.INNER);
-
-            return criteriaBuilder.in(physicalGearJoin.get(PhysicalGear.Fields.GEAR).get(IEntity.Fields.ID)).value(param);
-        })
-                .addBind(GEAR_IDS_PARAMETER, Arrays.asList(gearIds));
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, GEAR_IDS_PARAMETER);
+                return criteriaBuilder.in(
+                    Daos.composePath(root, StringUtils.doting(Operation.Fields.PHYSICAL_GEAR, PhysicalGear.Fields.GEAR, PhysicalGear.Fields.ID),
+                        JoinType.INNER)
+                ).value(param);
+            })
+            .addBind(GEAR_IDS_PARAMETER, Arrays.asList(gearIds));
     }
 
     default Specification<Operation> inTaxonGroupLabels(String[] taxonGroupLabels) {
         if (ArrayUtils.isEmpty(taxonGroupLabels)) return null;
         return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, TAXON_GROUP_LABELS_PARAMETER);
-            Join<Operation, Metier> metierJoin = root.join(Operation.Fields.METIER, JoinType.INNER);
-
-            return criteriaBuilder.in(metierJoin.get(Metier.Fields.TAXON_GROUP).get(TaxonGroup.Fields.LABEL)).value(param);
-        })
-
-                .addBind(TAXON_GROUP_LABELS_PARAMETER, Arrays.asList(taxonGroupLabels));
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, TAXON_GROUP_LABELS_PARAMETER);
+                return criteriaBuilder.in(
+                    Daos.composePath(root, StringUtils.doting(Operation.Fields.METIER, Metier.Fields.TAXON_GROUP, TaxonGroup.Fields.LABEL))
+                ).value(param);
+            })
+            .addBind(TAXON_GROUP_LABELS_PARAMETER, Arrays.asList(taxonGroupLabels));
     }
 
 
     default Specification<Operation> isBetweenDates(Date startDate, Date endDate) {
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-                    ParameterExpression<Date> startDateparam = criteriaBuilder.parameter(Date.class, START_DATE_PARAM);
-                    ParameterExpression<Date> endDateparam = criteriaBuilder.parameter(Date.class, END_DATE_PARAM);
+        if (startDate == null && endDate == null) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+                ParameterExpression<Date> startDateParam = criteriaBuilder.parameter(Date.class, START_DATE_PARAM);
+                ParameterExpression<Date> endDateParam = criteriaBuilder.parameter(Date.class, END_DATE_PARAM);
 
-                    return criteriaBuilder.and(
-                            criteriaBuilder.or(
-                                    criteriaBuilder.isNull(startDateparam.as(String.class)),
-                                    criteriaBuilder.or(
-                                            criteriaBuilder.and(
-                                                    criteriaBuilder.isNotNull(root.get(Operation.Fields.END_DATE_TIME)),
-                                                    criteriaBuilder.greaterThan(root.get(Operation.Fields.END_DATE_TIME), startDateparam)
-                                            ),
-                                            criteriaBuilder.and(
-                                                    criteriaBuilder.isNotNull(root.get(Operation.Fields.FISHING_START_DATE_TIME)),
-                                                    criteriaBuilder.greaterThan(root.get(Operation.Fields.FISHING_START_DATE_TIME), startDateparam)
-                                            )
-                                    )
+                // TODO BLA: review this code
+                // - use NOT(condition) ?
+                // - Use fishingStartDate only if parent Operation ? or make sure to store
+                return criteriaBuilder.and(
+                    criteriaBuilder.or(
+                        criteriaBuilder.isNull(startDateParam.as(String.class)),
+                        criteriaBuilder.or(
+                            criteriaBuilder.and(
+                                criteriaBuilder.isNotNull(root.get(Operation.Fields.END_DATE_TIME)),
+                                criteriaBuilder.greaterThan(root.get(Operation.Fields.END_DATE_TIME), startDateParam)
                             ),
-                            criteriaBuilder.or(
-                                    criteriaBuilder.isNull(endDateparam.as(String.class)),
-                                    criteriaBuilder.or(
-                                            criteriaBuilder.and(
-                                                    criteriaBuilder.isNotNull(root.get(Operation.Fields.END_DATE_TIME)),
-                                                    criteriaBuilder.lessThan(root.get(Operation.Fields.END_DATE_TIME), endDateparam)
-                                            ),
-                                            criteriaBuilder.and(
-                                                    criteriaBuilder.isNotNull(root.get(Operation.Fields.FISHING_START_DATE_TIME)),
-                                                    criteriaBuilder.lessThan(root.get(Operation.Fields.FISHING_START_DATE_TIME), endDateparam)
-                                            )
-                                    )
+                            criteriaBuilder.and(
+                                criteriaBuilder.isNotNull(root.get(Operation.Fields.FISHING_START_DATE_TIME)),
+                                criteriaBuilder.greaterThan(root.get(Operation.Fields.FISHING_START_DATE_TIME), startDateParam)
                             )
-                    );
-                }
-        );
-
-        specification.addBind(START_DATE_PARAM, startDate);
-        specification.addBind(END_DATE_PARAM, endDate);
-        return specification;
+                        )
+                    ),
+                    criteriaBuilder.or(
+                        criteriaBuilder.isNull(endDateParam.as(String.class)),
+                        criteriaBuilder.or(
+                            criteriaBuilder.and(
+                                criteriaBuilder.isNotNull(root.get(Operation.Fields.END_DATE_TIME)),
+                                criteriaBuilder.lessThan(root.get(Operation.Fields.END_DATE_TIME), endDateParam)
+                            ),
+                            criteriaBuilder.and(
+                                criteriaBuilder.isNotNull(root.get(Operation.Fields.FISHING_START_DATE_TIME)),
+                                criteriaBuilder.lessThan(root.get(Operation.Fields.FISHING_START_DATE_TIME), endDateParam)
+                            )
+                        )
+                    )
+                );
+            })
+            .addBind(START_DATE_PARAM, startDate)
+            .addBind(END_DATE_PARAM, endDate);
     }
 
     default Specification<Operation> hasQualityFlagId(Integer qualityFlagId) {
         if (qualityFlagId == null) return null;
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, QUALITY_FLAG_ID_PARAMETER);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(param),
-                    criteriaBuilder.equal(root.get(Operation.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), param)
-            );
-        });
-        specification.addBind(QUALITY_FLAG_ID_PARAMETER, qualityFlagId);
-        return specification;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+                ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, QUALITY_FLAG_ID_PARAMETER);
+                return criteriaBuilder.equal(root.get(Operation.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), param);
+            })
+            .addBind(QUALITY_FLAG_ID_PARAMETER, qualityFlagId);
     }
 
     List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);

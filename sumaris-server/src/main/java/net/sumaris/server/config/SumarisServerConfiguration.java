@@ -32,12 +32,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
-import org.nuiton.version.VersionBuilder;
 import org.nuiton.version.Version;
+import org.nuiton.version.VersionBuilder;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 /**
@@ -88,55 +90,62 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     /**
      * <p>Constructor for SumarisServerConfiguration.</p>
      *
-     * @param env a {@link ConfigurableEnvironment} object.
+     * @param env  a {@link ConfigurableEnvironment} object.
      * @param args a {@link String} object.
      */
     public SumarisServerConfiguration(ConfigurableEnvironment env, String... args) {
         super(env, args);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void overrideExternalModulesDefaultOptions(ApplicationConfig applicationConfig) {
         super.overrideExternalModulesDefaultOptions(applicationConfig);
     }
 
-    public List<Integer> getAccessNotSelfDataDepartmentIds() {
-        final String optionKey = SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey();
+    public List<Integer> getConfigurationOptionAsNumbers(String optionKey) {
         List<Integer> result = (List<Integer>) complexOptionsCache.getIfPresent(optionKey);
 
         // Not exists in cache
         if (result == null) {
-            String depIds = applicationConfig.getOption(optionKey);
-            if (StringUtils.isBlank(depIds)) {
+            String ids = applicationConfig.getOption(optionKey);
+            if (StringUtils.isBlank(ids)) {
                 result = ImmutableList.of();
-            }
-            else {
+            } else {
                 final List<String> invalidIds = Lists.newArrayList();
                 result = Splitter.on(",").omitEmptyStrings().trimResults()
-                    .splitToList(depIds)
-                    .stream()
-                    .map(depId -> {
-                        try {
-                            return Integer.parseInt(depId);
-                        }
-                        catch (Exception e) {
-                            invalidIds.add(depId);
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                        .splitToList(ids)
+                        .stream()
+                        .map(id -> {
+                            try {
+                                return Integer.parseInt(id);
+                            } catch (Exception e) {
+                                invalidIds.add(id);
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
                 if (CollectionUtils.isNotEmpty(invalidIds)) {
                     log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);
                 }
             }
 
-            // Add to options cache
+            // Add to cache
             complexOptionsCache.put(optionKey, result);
         }
         return result;
+    }
+
+    public List<Integer> getAccessNotSelfDataDepartmentIds() {
+        return getConfigurationOptionAsNumbers(SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS.getKey());
+    }
+
+    public List<Integer> getAuthorizedProgramIds() {
+        return getConfigurationOptionAsNumbers(SumarisServerConfigurationOption.ACCESS_DATA_PROGRAM_IDS.getKey());
     }
 
     public String getAccessNotSelfDataMinRole() {
@@ -153,7 +162,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     public boolean enableAuthBasic() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_LDAP_ENABLED.getKey())
-            || applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_AD_ENABLED.getKey());
+                || applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.SECURITY_AUTHENTICATION_AD_ENABLED.getKey());
     }
 
     /**
@@ -185,6 +194,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     /**
      * <p>getDownloadDirectory</p>
+     *
      * @return a {@link File} object.
      */
     public File getDownloadDirectory() {
@@ -193,6 +203,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
     /**
      * <p>getUploadDirectory</p>
+     *
      * @return a {@link File} object.
      */
     public File getUploadDirectory() {
@@ -305,8 +316,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
 
         try {
             return VersionBuilder.create(versionStr).build();
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             logger.error(String.format("Unable to parse value '%s' for config option '%s': %s",
                     versionStr, SumarisServerConfigurationOption.APP_MIN_VERSION.getKey(), e.getMessage()));
             return null;
@@ -323,8 +333,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /* -- Internal methods -- */
-
-
 
 
     /**

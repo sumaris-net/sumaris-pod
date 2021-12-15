@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
@@ -227,10 +228,10 @@ public class AccountServiceImpl implements AccountService {
         AccountVO savedAccount = (AccountVO) personRepository.save(account);
 
         // Save settings
-        if (account.getSettings() != null) {
-            account.getSettings().setIssuer(account.getPubkey());
-            UserSettingsVO savedSettings = userSettingsRepository.save(account.getSettings());
-            savedAccount.setSettings(savedSettings);
+        UserSettingsVO settings = account.getSettings();
+        if (settings != null) {
+            settings.setIssuer(account.getPubkey());
+            saveSettings(settings);
         }
 
         // Send confirmation Email
@@ -376,10 +377,13 @@ public class AccountServiceImpl implements AccountService {
         return account;
     }
 
+    @Override
+    public UserSettingsVO saveSettings(@NonNull UserSettingsVO settings) {
+        Preconditions.checkNotNull(settings.getIssuer());
+        return userSettingsRepository.save(settings);
+    }
 
     /* -- protected methods -- */
-
-
 
     protected void checkValid(AccountVO account) {
         Preconditions.checkNotNull(account);

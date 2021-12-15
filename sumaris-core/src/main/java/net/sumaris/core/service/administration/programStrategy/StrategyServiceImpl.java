@@ -171,6 +171,8 @@ public class StrategyServiceImpl implements StrategyService {
 
 	@Override
 	public void delete(int id) {
+		log.info("Delete Strategy#{}", id);
+
 		strategyRepository.deleteById(id);
 	}
 

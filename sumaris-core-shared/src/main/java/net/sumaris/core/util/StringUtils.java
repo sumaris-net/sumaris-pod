@@ -98,4 +98,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return str == null ? "" : str;
     }
 
+    public static String cleanPath(String path) {
+        return org.springframework.util.StringUtils.cleanPath(path);
+    }
 }

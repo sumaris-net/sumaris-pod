@@ -53,4 +53,5 @@ public class AggregatedLandingFilterVO implements IRootDataFilter {
 
     // Quality
     private DataQualityStatusEnum[] dataQualityStatus; // NOT used
+    private Integer[] programIds;
 }

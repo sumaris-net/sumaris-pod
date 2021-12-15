@@ -328,6 +328,7 @@ public class SampleRepositoryImpl
         parentProgram.setId(parent.getTrip().getProgram().getId());
 
         samples.forEach(sample -> {
+            sample.setLandingId(null);
             sample.setOperationId(operationId);
             sample.setProgram(parentProgram);
         });
@@ -358,6 +359,7 @@ public class SampleRepositoryImpl
 
         // Save each entities
         samples.forEach(sample -> {
+            sample.setOperationId(null);
             sample.setLandingId(landingId);
             sample.setProgram(parentProgram);
         });

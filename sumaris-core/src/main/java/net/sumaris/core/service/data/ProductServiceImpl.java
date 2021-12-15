@@ -170,5 +170,4 @@ public class ProductServiceImpl implements ProductService {
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
     }
-
 }

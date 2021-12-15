@@ -23,8 +23,8 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
@@ -56,13 +56,16 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.sql.Timestamp;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -99,6 +102,11 @@ public class PersonRepositoryImpl
     }
 
     @Override
+    public PersonVO get(int id) {
+        return findById(id).orElseThrow(() -> new DataRetrievalFailureException("Cannot load person with id=" + id));
+    }
+
+    @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", unless="#result==null")
     public Optional<PersonVO> findById(int id) {
         return super.findById(id).map(this::toVO);
@@ -112,7 +120,7 @@ public class PersonRepositoryImpl
 
     @Override
     public Optional<PersonVO> findByUsername(String username) {
-        return findAll(hasUsername(username)).stream().findFirst().map(this::toVO);
+        return findAll(hasUsername(username)).stream().filter(p -> StatusEnum.ENABLE.getId().equals(p.getStatus().getId())).findFirst().map(this::toVO);
     }
 
     @Override
@@ -158,6 +166,7 @@ public class PersonRepositoryImpl
     }
 
     protected Specification<Person> toSpecification(PersonFilterVO filter) {
+
         return BindableSpecification
             .where(inStatusIds(filter))
             .and(hasUserProfileIds(filter))
@@ -165,16 +174,9 @@ public class PersonRepositoryImpl
             .and(hasEmail(filter.getEmail()))
             .and(hasFirstName(filter.getFirstName()))
             .and(hasLastName(filter.getLastName()))
-            .and(searchText(new String[]{
-                    Person.Fields.PUBKEY,
-                    Person.Fields.EMAIL,
-                    Person.Fields.FIRST_NAME,
-                    Person.Fields.LAST_NAME
-                },
-                Daos.getEscapedSearchText(filter.getSearchText(), true)))
+            .and(searchText(filter))
             .and(includedIds(filter.getIncludedIds()))
-            .and(excludedIds(filter.getExcludedIds()))
-        ;
+            .and(excludedIds(filter.getExcludedIds()));
     }
 
     @Override

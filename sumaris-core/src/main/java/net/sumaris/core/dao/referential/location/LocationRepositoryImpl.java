@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.location;
  * #L%
  */
 
+import com.google.common.collect.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
@@ -29,19 +30,26 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationAssociation;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.util.Date;
-import java.util.Optional;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 18/08/2020.
@@ -107,12 +115,10 @@ public class LocationRepositoryImpl
     @Override
     public void updateLocationHierarchy() {
         String jdbcUrl = getConfig().getJdbcURL();
-        // If running on HSQLDB: skip (no stored procedure define)
-        if (Daos.isHsqlDatabase(jdbcUrl)) {
-            log.warn("Skipping location hierarchy (Stored procedure P_FILL_LOCATION_HIERARCHY not exists). TODO: add Java implementation ?");
 
-            // TODO: add Java implementation
-
+        // If running on Hsqldb, or Postgrsql: run java implementation
+        if (Daos.isHsqlDatabase(jdbcUrl) || Daos.isPostgresqlDatabase(jdbcUrl)) {
+            doUpdateLocationHierarchy();
             return;
         }
 
@@ -122,5 +128,116 @@ public class LocationRepositoryImpl
                     .execute();
             return;
         }
+    }
+
+    /* -- protected functions -- */
+
+    protected void doUpdateLocationHierarchy() {
+        long startTime = System.currentTimeMillis();
+        log.info("Adding missing LocationHierarchy... (Java implementation)");
+
+        EntityManager em = this.getEntityManager();
+        Timestamp updateDate = getDatabaseCurrentTimestamp();
+        Map<Integer, Set<Integer>> allParentsByChild = loadLocationHierarchyMap();
+        int counter = 0;
+        int iterationCounter = 0;
+        boolean stop = false;
+        while (!stop) {
+
+            // Get location associations
+            TypedQuery<Object[]> query = em.createQuery("select distinct " +
+                "l.id, parent.id " +
+                "from Location l, " +
+                "LocationAssociation la, " +
+                "Location parent " +
+                "where l.id=la.childLocation.id and parent.id=la.parentLocation.id", Object[].class);
+
+            int count = insertMissingLocationHierarchies(query.getResultStream(),
+                allParentsByChild,
+                updateDate);
+            stop = count == 0;
+            counter += count;
+            iterationCounter++;
+        }
+
+        log.info("Adding missing LocationHierarchy [OK] in {} - ({} inserts - {} iterations)",
+            Dates.elapsedTime(startTime),
+            counter, iterationCounter);
+    }
+
+    protected int insertMissingLocationHierarchies(Stream<Object[]> locationAssociations,
+                                                   Map<Integer, Set<Integer>> existingParentsByChild,
+                                                   Timestamp updateDate) {
+        final EntityManager em = getEntityManager();
+        final Map<Integer, Set<Integer>> newLinks = Maps.newHashMap();
+
+        // First pass, on direct associations
+        locationAssociations
+            .forEach(row -> {
+                Integer childId = (Integer) row[0];
+                Integer parentId = (Integer) row[1];
+
+                Set<Integer> newParents = Beans.getSet(newLinks.get(childId));
+                Set<Integer> existingParents = Beans.getSet(existingParentsByChild.get(childId));
+
+                // Add link to himself
+                if (!existingParents.contains(childId)) {
+                    newParents.add(childId);
+                }
+
+                // Add link to parent
+                if (!existingParents.contains(parentId)) {
+                    newParents.add(parentId);
+                }
+
+                // Add all parent's parents
+                Beans.getStream(existingParentsByChild.get(parentId))
+                    .filter(parentIdOfParent -> !existingParents.contains(parentIdOfParent))
+                    .forEach(newParents::add);
+
+                if (!newParents.isEmpty()) {
+                    newLinks.put(childId, newParents);
+
+                    existingParents.addAll(newParents);
+                    existingParentsByChild.put(childId, existingParents);
+                }
+            });
+
+        if (MapUtils.isEmpty(newLinks)) return 0;
+
+        int counter = 0;
+        for (Integer childId : newLinks.keySet()) {
+            Location child = getReference(Location.class, childId);
+            for (Integer parentId : newLinks.get(childId)) {
+                Location parent = getReference(Location.class, parentId);
+                LocationHierarchy lh = new LocationHierarchy();
+                lh.setChildLocation(child);
+                lh.setParentLocation(parent);
+                lh.setUpdateDate(updateDate);
+
+                lh.setChildSurfaceRatio(1d); // TODO: better computation
+                lh.setIsMainAssociation(Boolean.TRUE); // TODO, review this
+                em.persist(lh);
+                counter++;
+            }
+        }
+
+        em.flush();
+        em.clear();
+
+        return counter;
+    }
+
+    protected Map<Integer, Set<Integer>> loadLocationHierarchyMap() {
+        TypedQuery<Object[]> query = this.getEntityManager().createQuery("select distinct lh.childLocation.id, lh.parentLocation.id from LocationHierarchy lh", Object[].class);
+        return query.getResultStream()
+            .collect(Collectors.toMap(
+                row -> (Integer)row[0], // key
+                row -> Sets.newHashSet((Integer)row[1]), // value
+                (o1, o2) -> {
+                    o1.addAll(o2);
+                    return o1;
+                },
+                HashMap<Integer, Set<Integer>>::new));
     }
 }

@@ -51,10 +51,6 @@ public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vess
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
-    @Formula("coalesce(end_date, date'2100-01-01')")
-    @Column(name = "nvl_end_date", insertable = false, updatable = false)
-    private Date nvlEndDate;
-
     @Column(name = "registration_code", length = 40)
     private String registrationCode;
 

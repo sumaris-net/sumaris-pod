@@ -52,4 +52,5 @@ public class SaleFilterVO implements IRootDataFilter {
     private Integer tripId;
 
     private DataQualityStatusEnum[] dataQualityStatus;
+    private Integer[] programIds;
 }

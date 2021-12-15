@@ -113,7 +113,7 @@ public class AdministrationGraphQLService {
     public boolean isEmailExists(@GraphQLArgument(name = "hash") String hash,
                                  @GraphQLArgument(name = "email") String email) {
         if (StringUtils.isBlank(hash) && StringUtils.isBlank(email)) {
-            throw new SumarisTechnicalException("required 'meil' or 'hash' argument");
+            throw new SumarisTechnicalException("required 'email' or 'hash' argument");
         }
         if (StringUtils.isNotBlank(email)) {
             hash = MD5Util.md5Hex(email);

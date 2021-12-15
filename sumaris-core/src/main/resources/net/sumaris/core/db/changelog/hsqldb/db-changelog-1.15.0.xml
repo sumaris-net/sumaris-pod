@@ -44,17 +44,6 @@
 		<dropColumn tableName="quantification_measurement_b" columnName="rank_order"/>
 	</changeSet>
 
-	<!-- TODO: Change column RANK_ORDER to type SMALLINT
-		GearUseMeasurement, VesseUseMeasurement, SaleMeasurement
-	-->
-	<!--<changeSet author="benoit.lavenier@e-is.pro" id="1631698876905-3">
-		<preConditions onFail="MARK_RAN">
-			<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
-		</preConditions>
-		<mergeColumns tableName="" column1Name="" joinString="" column2Name="" finalColumnName="" finalColumnType=""
-	</changeSet>
--->
-
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876905-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">

@@ -27,6 +27,7 @@ import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.model.data.IDataEntity;
@@ -101,17 +102,22 @@ public interface VesselFeaturesSpecifications<
     }
 
     default Expression<Date> nvlFeaturesEndDate(Path<?> root, CriteriaBuilder cb) {
+
         if (isOracleDatabase()) {
-            // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
-            return root.get(VesselFeatures.Fields.NVL_END_DATE);
+            // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
+            return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
+                root.get(VesselFeatures.Fields.END_DATE)
+            );
         }
         return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
     }
 
     default Expression<Date> nvlRegistrationEndDate(Path<VesselRegistrationPeriod> vrp, CriteriaBuilder cb) {
         if (isOracleDatabase()) {
-            // When using Oracle (e.g. over a SIH-Agadgio schema): use NVL to allow use of index
-            return vrp.get(VesselRegistrationPeriod.Fields.NVL_END_DATE);
+            // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
+            return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
+                vrp.get(VesselRegistrationPeriod.Fields.END_DATE)
+            );
         }
         return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
     }

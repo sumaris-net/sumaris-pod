@@ -64,4 +64,7 @@ public class ProgramVO implements IReferentialVO {
 
     private List<StrategyVO> strategies;
 
+    private List<ProgramDepartmentVO> departments;
+    private List<ProgramPersonVO> persons;
+
 }

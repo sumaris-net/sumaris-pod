@@ -56,6 +56,13 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     String LAST_NAME_PARAMETER = "lastName";
     String USERNAME_PARAMETER = "username";
 
+    String[] DEFAULT_SEARCH_ATTRIBUTES = new String[]{
+        Person.Fields.PUBKEY,
+            Person.Fields.EMAIL,
+            Person.Fields.FIRST_NAME,
+            Person.Fields.LAST_NAME
+    };
+
     default Specification<Person> hasUserProfileIds(PersonFilterVO filter) {
         // Prepare user profile ids
         Collection<Integer> userProfileIds = null;
@@ -71,15 +78,13 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         else if (filter.getUserProfileId() != null) {
             userProfileIds = ImmutableList.of(filter.getUserProfileId());
         }
+
+        // Stop if filter not need
         if (CollectionUtils.isEmpty(userProfileIds)) return null;
 
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-
-            // Avoid multiple row
-            query.distinct(true);
-
+            query.distinct(true); // Avoid duplicate persons
             ParameterExpression<Collection> userProfileIdsParam = criteriaBuilder.parameter(Collection.class, USER_PROFILE_IDS_PARAMETER);
-
             return criteriaBuilder
                 .in(Daos.composePath(root, StringUtils.doting(Person.Fields.USER_PROFILES, UserProfile.Fields.ID)))
                 .value(userProfileIdsParam);
@@ -88,12 +93,10 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     }
 
     default Specification<Person> hasPubkey(String pubkey) {
+        if (pubkey == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, PUBKEY_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(root.get(Person.Fields.PUBKEY), parameter)
-            );
+            return criteriaBuilder.equal(root.get(Person.Fields.PUBKEY), parameter);
         }).addBind(PUBKEY_PARAMETER, pubkey);
     }
 
@@ -110,34 +113,45 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     }
 
     default Specification<Person> hasEmail(String email) {
+        if (email == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, EMAIL_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(root.get(Person.Fields.EMAIL), parameter)
-            );
+            return criteriaBuilder.equal(root.get(Person.Fields.EMAIL), parameter);
         }).addBind(EMAIL_PARAMETER, email);
     }
 
     default Specification<Person> hasFirstName(String firstName) {
+        if (firstName == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, FIRST_NAME_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), parameter)
-            );
-        }).addBind(FIRST_NAME_PARAMETER, firstName != null ? firstName.toUpperCase() : null);
+            return criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.FIRST_NAME)), parameter);
+        }).addBind(FIRST_NAME_PARAMETER, firstName.toUpperCase());
     }
 
     default Specification<Person> hasLastName(String lastName) {
+        if (lastName == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, LAST_NAME_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(parameter),
-                criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter)
-            );
-        }).addBind(LAST_NAME_PARAMETER, lastName != null ? lastName.toUpperCase() : null);
+            return criteriaBuilder.equal(criteriaBuilder.upper(root.get(Person.Fields.LAST_NAME)), parameter);
+        }).addBind(LAST_NAME_PARAMETER, lastName.toUpperCase());
     }
+
+    default Specification<Person> searchText(PersonFilterVO filter) {
+        if (StringUtils.isBlank(filter.getSearchText())) return null;
+
+        String[] searchAttributes = StringUtils.isNotBlank(filter.getSearchAttribute())
+            ? ArrayUtils.toArray(filter.getSearchAttribute())
+            : filter.getSearchAttributes();
+
+        // No search attribute(s) define: use defaults
+        if (ArrayUtils.isEmpty(searchAttributes)) {
+            searchAttributes = DEFAULT_SEARCH_ATTRIBUTES;
+        }
+
+        return searchText(searchAttributes, filter.getSearchText(), true);
+    }
+
+    PersonVO get(int id);
 
     Optional<PersonVO> findById(int id);
 

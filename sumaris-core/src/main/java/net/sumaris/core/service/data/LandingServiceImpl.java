@@ -82,6 +82,9 @@ public class LandingServiceImpl implements LandingService {
     protected SampleService sampleService;
 
     @Autowired
+    protected OperationGroupService operationGroupService;
+
+    @Autowired
     protected PmfmService pmfmService;
 
     @Autowired
@@ -134,11 +137,21 @@ public class LandingServiceImpl implements LandingService {
         if (fetchOptions.isWithChildrenEntities()) {
 
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
-            target.setSamples(sampleService.getAllByLandingId(id));
 
+            OperationGroupVO mainUndefinedOperation = null;
             if (target.getTripId() != null) {
                 TripVO trip = tripService.get(target.getTripId(), fetchOptions);
                 target.setTrip(trip);
+
+                // Get the main undefined operation group
+                mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(target.getTripId());
+            }
+
+            // Get samples by operation if a main undefined operation group exists
+            if (mainUndefinedOperation != null) {
+                target.setSamples(sampleService.getAllByOperationId(mainUndefinedOperation.getId()));
+            } else {
+                target.setSamples(sampleService.getAllByLandingId(id));
             }
         }
 
@@ -196,6 +209,13 @@ public class LandingServiceImpl implements LandingService {
         result.forEach(this::saveChildrenEntities);
 
         return result;
+    }
+
+    @Override
+    public void deleteAllByObservedLocationId(int observedLocationId) {
+        // TODO BLA: use a specific query, that only fetch IDs ?
+        landingRepository.findAllByObservedLocationId(observedLocationId)
+                .forEach(l -> this.delete(l.getId()));
     }
 
     @Override
@@ -284,11 +304,40 @@ public class LandingServiceImpl implements LandingService {
             source.setMeasurements(ListUtils.union(landingMeasurements, surveyMeasurements));
         }
 
+        // Save trip
+        OperationGroupVO mainUndefinedOperation = null;
+        TripVO trip = source.getTrip();
+        if (trip != null) {
+            // Prepare landing to save
+            trip.setLandingId(source.getId());
+            trip.setLanding(null);
+
+            fillDefaultProperties(source, trip);
+
+            // Save the landed trip
+            TripSaveOptions tripSaveOptions = TripSaveOptions.LANDED_TRIP;
+            tripSaveOptions.setWithExpectedSales(trip.getExpectedSale() != null || trip.getExpectedSales() != null);
+            TripVO savedTrip = tripService.save(trip, tripSaveOptions);
+
+            // Update the source landing
+            source.setTripId(savedTrip.getId());
+            source.setTrip(savedTrip);
+
+            // Get the main undefined operation group
+            mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(savedTrip.getId());
+        }
+
         // Save samples
         {
             List<SampleVO> samples = getSamplesAsList(source);
             samples.forEach(s -> fillDefaultProperties(source, s));
-            samples = sampleService.saveByLandingId(source.getId(), samples);
+
+            // Save samples by operation if a main undefined operation group exists
+            if (mainUndefinedOperation != null) {
+                samples = sampleService.saveByOperationId(mainUndefinedOperation.getId(), samples);
+            } else {
+                samples = sampleService.saveByLandingId(source.getId(), samples);
+            }
 
             // Prepare saved samples (e.g. to be used as graphQL query response)
             samples.forEach(sample -> {
@@ -304,22 +353,6 @@ public class LandingServiceImpl implements LandingService {
             source.setSamples(samples);
         }
 
-        // Save trip
-        TripVO trip = source.getTrip();
-        if (trip != null) {
-            // Prepare landing to save
-            trip.setLandingId(source.getId());
-            trip.setLanding(null);
-
-            fillDefaultProperties(source, trip);
-
-            // Save the landed trip
-            TripVO savedTrip = tripService.save(trip, TripSaveOptions.LANDED_TRIP);
-
-            // Update the source landing
-            source.setTripId(savedTrip.getId());
-            source.setTrip(savedTrip);
-        }
     }
 
     protected void checkCanSave(final LandingVO source) {

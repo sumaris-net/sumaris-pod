@@ -86,6 +86,32 @@ public class Beans {
         }
     }
 
+    public static <E> List<E> getList(E[] values) {
+     return values !=null ? Lists.newArrayList(values) : Lists.newArrayList();
+    }
+
+    public static <E> Collection<E> intersection(Collection<E> ...lists) {
+        Collection<E> result = null;
+        for (Collection<E> item: lists) {
+            result = result == null ? item : CollectionUtils.intersection(item, result);
+        }
+
+        return result;
+    }
+
+    public static <E> Collection<E> intersectionIfNotEmpty(Collection<E> ...lists) {
+        Collection<E> result = null;
+        for (Collection<E> item: lists) {
+            // Skip is empty
+            if (CollectionUtils.isNotEmpty(item)) {
+                result = result == null ? item // First not empty list
+                    : CollectionUtils.intersection(item, result);
+            }
+        }
+
+        return result;
+    }
+
     /**
      * <p>getList.</p>
      *
@@ -404,7 +430,7 @@ public class Beans {
     }
 
     public static <T> Comparator<T> unsortedComparator() {
-        return (o1, o2) -> -1;
+        return (o1, o2) -> 0;
     }
 
     public static <T> T clone(T source, Class<T> sourceClass) {

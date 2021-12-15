@@ -40,19 +40,20 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @NoRepositoryBean
 @Slf4j
 public abstract class RootDataRepositoryImpl<
-    E extends IRootDataEntity<Integer>,
-    V extends IRootDataVO<Integer>,
-    F extends IRootDataFilter,
-    O extends IDataFetchOptions
-    >
-    extends DataRepositoryImpl<E, V, F, O>
-    implements RootDataRepository<E, V, F, O> {
+        E extends IRootDataEntity<Integer>,
+        V extends IRootDataVO<Integer>,
+        F extends IRootDataFilter,
+        O extends IDataFetchOptions
+        >
+        extends DataRepositoryImpl<E, V, F, O>
+        implements RootDataRepository<E, V, F, O> {
 
     @Autowired
     private PersonRepository personRepository;
@@ -63,8 +64,8 @@ public abstract class RootDataRepositoryImpl<
     protected RootDataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
         setCopyExcludeProperties(
-            IRootDataEntity.Fields.UPDATE_DATE,
-            IRootDataEntity.Fields.CREATION_DATE);
+                IRootDataEntity.Fields.UPDATE_DATE,
+                IRootDataEntity.Fields.CREATION_DATE);
 
         this.setLockForUpdate(true);
     }
@@ -101,7 +102,7 @@ public abstract class RootDataRepositoryImpl<
         // Program
         if (source.getProgram() != null) {
             target.setProgram(programRepository.toVO(source.getProgram(),
-                ProgramFetchOptions.builder().withProperties(false).build()));
+                    ProgramFetchOptions.builder().withProperties(false).build()));
         }
 
         // Recorder person
@@ -182,7 +183,8 @@ public abstract class RootDataRepositoryImpl<
     @Override
     protected Specification<E> toSpecification(F filter, O fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasRecorderPersonId(filter.getRecorderPersonId()))
-            .and(hasProgramLabel(filter.getProgramLabel()));
+                .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+                .and(hasProgramLabel(filter.getProgramLabel()))
+                .and(hasProgramIds(filter.getProgramIds()));
     }
 }

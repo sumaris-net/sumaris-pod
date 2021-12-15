@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.technical.hibernate.spatial;
+package net.sumaris.core.dao.technical.hibernate.spatial.dialect;
 
 /*-
  * #%L
@@ -22,14 +22,18 @@ package net.sumaris.core.dao.technical.hibernate.spatial;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.hibernate.types.IntegerArrayUserType;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.HSQLDialect;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
+import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.GeolatteGeometryType;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.JTSGeometryType;
+import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor;
 
 import java.sql.Types;
@@ -39,6 +43,24 @@ import java.sql.Types;
  */
 public class HSQLSpatialDialect extends HSQLDialect {
 
+    public HSQLSpatialDialect() {
+        super();
+
+        // Register new array type
+        registerHibernateType(Types.ARRAY, IntegerArrayUserType.class.getName());
+
+        // Register additional functions
+        for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
+            if (function == AdditionalSQLFunctions.nvl_end_date) {
+                // Register 'nvl' to use 'coalesce' function
+                registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
+            }
+            else {
+                registerFunction(function.name(), function.asRegisterFunction());
+            }
+        }
+    }
+
     @Override
     public void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
         super.contributeTypes(typeContributions, serviceRegistry);
@@ -46,10 +68,7 @@ public class HSQLSpatialDialect extends HSQLDialect {
         // Add spatial type bound to a string
         typeContributions.contributeType(new GeolatteGeometryType(LongVarcharTypeDescriptor.INSTANCE));
         typeContributions.contributeType(new JTSGeometryType(LongVarcharTypeDescriptor.INSTANCE));
-
         typeContributions.contributeJavaTypeDescriptor(GeolatteGeometryJavaTypeDescriptor.INSTANCE);
         typeContributions.contributeJavaTypeDescriptor(JTSGeometryJavaTypeDescriptor.INSTANCE);
-
-        registerHibernateType(Types.ARRAY, IntegerArrayUserType.class.getName());
     }
 }

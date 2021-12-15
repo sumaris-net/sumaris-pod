@@ -98,10 +98,6 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @Column(name = "end_date")
     private Date endDate;
 
-    @Formula("coalesce(end_date, date'2100-01-01')")
-    @Column(name = "nvl_end_date", insertable = false, updatable = false)
-    private Date nvlEndDate;
-
     private String name;
 
     @Column(name = "exterior_marking")

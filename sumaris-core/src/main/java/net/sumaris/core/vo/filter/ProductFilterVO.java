@@ -56,4 +56,5 @@ public class ProductFilterVO implements IRootDataFilter {
 
     // Quality
     private DataQualityStatusEnum[] dataQualityStatus;
+    private Integer[] programIds;
 }

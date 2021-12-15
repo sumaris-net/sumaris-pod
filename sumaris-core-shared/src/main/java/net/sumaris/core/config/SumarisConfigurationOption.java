@@ -24,7 +24,7 @@ package net.sumaris.core.config;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.hibernate.spatial.HSQLSpatialDialect;
+import net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 

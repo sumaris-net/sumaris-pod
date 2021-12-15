@@ -57,7 +57,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void saveExisting() {
-        StrategyVO strategy = service.getByLabel("20-LEUCCIR-001",
+        StrategyVO strategy = service.getByLabel("20LEUCCIR001",
                 StrategyFetchOptions.builder().withPmfms(true).build());
         Assert.assertNotNull(strategy);
         Assert.assertNotNull(strategy.getId());

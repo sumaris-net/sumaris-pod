@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +76,16 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	public void delete(int id) {
 		// Apply deletion
 		physicalGearRepository.deleteById(id);
+	}
+
+	@Override
+	public PhysicalGearVO get(int physicalGearId) {
+		return physicalGearRepository.get(physicalGearId);
+	}
+
+	@Override
+	public PhysicalGearVO get(int physicalGearId, DataFetchOptions o) {
+		return physicalGearRepository.get(physicalGearId, o);
 	}
 
 }

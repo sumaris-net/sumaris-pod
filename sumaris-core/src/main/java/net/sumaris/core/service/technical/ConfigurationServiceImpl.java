@@ -22,10 +22,8 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
@@ -58,6 +56,7 @@ import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -93,6 +92,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Autowired
     private ApplicationEventPublisher publisher;
+
+    @Autowired
+    ConfigurableEnvironment env;
 
     private Version dbVersion;
 
@@ -173,6 +175,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (isCurrentSoftware) {
             ready = false;
 
+
+            // Restore defaults
+            configuration.restoreDefaults();
+
             // Update the config, from the software properties
             applySoftwareProperties();
 
@@ -252,8 +258,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Preconditions.checkNotNull(software.getLabel());
 
         Map<String, String> properties = software.getProperties();
-        if (MapUtils.isEmpty(properties)) return; // Skip if empty - TODO: applying defaults ?
-
+        if (MapUtils.isEmpty(properties)) return; // Skip if empty
 
         log.info(String.format("Applying {%s} software properties, as config options...", software.getLabel()));
 
@@ -279,9 +284,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         properties.forEach((key, value) -> {
             if (!optionKeys.contains(key)) {
-                if (info) log.info(String.format(" - Skipping unknown configuration option {%s=%s}", key, value));
+                if (info) log.debug(String.format(" - Skipping unknown configuration option {%s=%s}", key, value));
             } else if (transientOptionKeys.contains(key)) {
-                if (info) log.info(String.format(" - Skipping transient configuration option {%s=%s}", key, value));
+                if (info) log.warn(String.format(" - Skipping transient configuration option {%s=%s}", key, value));
             } else {
                 if (info) log.info(String.format(" - Applying option {%s=%s}", key, value));
                 appConfig.setOption(key, value);

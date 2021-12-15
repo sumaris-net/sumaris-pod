@@ -25,6 +25,7 @@ package net.sumaris.server.service.administration;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,8 @@ public interface AccountService {
     AccountVO createAccount(AccountVO account);
 
     AccountVO updateAccount(AccountVO account);
+
+    UserSettingsVO saveSettings(UserSettingsVO settings);
 
     void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException;
 

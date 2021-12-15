@@ -122,13 +122,14 @@ public class ReferentialEntities {
                 // Métier
                 Metier.class,
                 // Pmfm
-                Parameter.class,
                 Pmfm.class,
+                Parameter.class,
                 Matrix.class,
                 Fraction.class,
                 Method.class,
-                QualitativeValue.class,
                 Unit.class,
+                ParameterGroup.class,
+                QualitativeValue.class,
                 // Quality
                 QualityFlag.class,
                 // Program/strategy

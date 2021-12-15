@@ -29,6 +29,7 @@ import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.model.administration.user.Person;
@@ -52,6 +53,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.List;
@@ -239,7 +241,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         }
         // Apply a find (and NOT a getReference)
         // because can return a null value (e.g. if id is not in the DB instance)
-        entity.setQualityFlag(find(QualityFlag.class, qualityFlagId));
+        QualityFlag value = find(QualityFlag.class, qualityFlagId, LockModeType.NONE);
+        entity.setQualityFlag(value);
 
         // TODO UNVALIDATION PROCESS HERE
         // - insert into qualification history
@@ -313,7 +316,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     }
 
     protected Specification<E> toSpecification(F filter, O fetchOptions) {
-        return hasRecorderDepartmentId(filter.getRecorderDepartmentId());
+        return BindableSpecification
+                .where(hasRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
 
     /* -- protected methods -- */

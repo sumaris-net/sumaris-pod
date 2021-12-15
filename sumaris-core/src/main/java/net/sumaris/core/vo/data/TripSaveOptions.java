@@ -56,8 +56,12 @@ public class TripSaveOptions implements ISaveOptions {
     @Builder.Default
     private Boolean withLanding = false;
 
+    @Builder.Default
+    private Boolean withExpectedSales = true;
+
     @GraphQLIgnore
     private Integer landingId;
+
     @GraphQLIgnore
     private Integer observedLocationId;
 }

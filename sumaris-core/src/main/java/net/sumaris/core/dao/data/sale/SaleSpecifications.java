@@ -41,12 +41,10 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
     String LOCATION_ID_PARAM = "locationId";
 
     default Specification<Sale> hasTripId(Integer tripId) {
+        if (tripId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(param),
-                criteriaBuilder.equal(root.get(Sale.Fields.TRIP).get(IEntity.Fields.ID), param)
-            );
+            return criteriaBuilder.equal(root.get(Sale.Fields.TRIP).get(IEntity.Fields.ID), param);
         }).addBind(TRIP_ID_PARAM, tripId);
     }
 

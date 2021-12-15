@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
-import lombok.NonNull;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -48,13 +47,14 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.ImageService;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -62,7 +62,6 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,9 +73,6 @@ import java.util.*;
 public class DataGraphQLService {
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
-
-    @Autowired
-    private SumarisServerConfiguration configuration;
 
     @Autowired
     private TripService tripService;
@@ -147,6 +143,9 @@ public class DataGraphQLService {
     @Autowired
     private VesselGraphQLService vesselGraphQLService;
 
+    @Autowired
+    private DataAccessControlService dataAccessControlService;
+
     /* -- Trip -- */
 
     @GraphQLQuery(name = "trips", description = "Search in trips")
@@ -165,7 +164,7 @@ public class DataGraphQLService {
         // Read from trash
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Set default sort
             sort = sort != null ? sort : TripVO.Fields.UPDATE_DATE;
@@ -200,7 +199,7 @@ public class DataGraphQLService {
                            @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Call the trash service
             return trashService.count(Trip.class.getSimpleName());
@@ -218,8 +217,12 @@ public class DataGraphQLService {
                               @GraphQLEnvironment ResolutionEnvironment env) {
         final TripVO result = tripService.get(id);
 
+        // Check read access
+        dataAccessControlService.checkCanRead(result);
+
         // Add additional properties if needed
         fillTripFields(result, GraphQLUtils.fields(env));
+
 
         return result;
     }
@@ -400,6 +403,16 @@ public class DataGraphQLService {
         return tripService.get(physicalGear.getTripId());
     }
 
+
+    @GraphQLQuery(name = "physicalGear", description = "Get a physical gear")
+    @Transactional(readOnly = true)
+    @IsUser
+    public PhysicalGearVO getPhysicalGear(@GraphQLArgument(name = "id") int id,
+                                    @GraphQLEnvironment() ResolutionEnvironment env) {
+        Set<String> fields = GraphQLUtils.fields(env);
+        return physicalGearService.get(id, getFetchOptions(fields));
+    }
+
     /* -- Metier -- */
 
     @GraphQLQuery(name = "metier", description = "Get operation's metier")
@@ -441,7 +454,7 @@ public class DataGraphQLService {
         // Read from trash
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Set default sort
             sort = sort != null ? sort : ObservedLocationVO.Fields.UPDATE_DATE;
@@ -474,7 +487,7 @@ public class DataGraphQLService {
                                        @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
         if (trash) {
             // Check user is admin
-            checkIsAdmin("Cannot access to trash");
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
 
             // Call the trash service
             return trashService.count(ObservedLocation.class.getSimpleName());
@@ -492,6 +505,9 @@ public class DataGraphQLService {
                                                       @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.get(id);
 
+        // Check access rights
+        dataAccessControlService.checkCanRead(result);
+
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
 
@@ -504,7 +520,10 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
-        final ObservedLocationVO result = observedLocationService.save(observedLocation, options);
+        // Make sure user can write
+        dataAccessControlService.checkCanWrite(observedLocation);
+
+        ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
@@ -654,11 +673,11 @@ public class DataGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public List<OperationVO> findOperationsByFilter(@GraphQLArgument(name = "filter") OperationFilterVO filter,
-                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                          @GraphQLArgument(name = "sortBy") String sort,
-                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
-                                          @GraphQLEnvironment() ResolutionEnvironment env
+                                                    @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                    @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                    @GraphQLArgument(name = "sortBy") String sort,
+                                                    @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                                    @GraphQLEnvironment() ResolutionEnvironment env
     ) {
 
         Preconditions.checkNotNull(filter, "Missing filter");
@@ -748,12 +767,12 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
         return operationGroupService.findAllByTripId(filter.getTripId(),
-            Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(), null);
+                Page.builder()
+                        .offset(offset)
+                        .size(size)
+                        .sortBy(sort)
+                        .sortDirection(SortDirection.fromString(direction))
+                        .build(), null);
     }
 
     /* -- Products -- */
@@ -841,7 +860,15 @@ public class DataGraphQLService {
         if (landing.getSamples() != null) return landing.getSamples();
         if (landing.getId() == null) return null;
 
-        List<SampleVO> samples = sampleService.getAllByLandingId(landing.getId());
+        // Get samples by operation if a main undefined operation group exists
+        List<SampleVO> samples;
+        Integer operationId = getMainUndefinedOperationGroupId(landing);
+        if (operationId != null) {
+            samples = sampleService.getAllByOperationId(operationId);
+        } else {
+            samples = sampleService.getAllByLandingId(landing.getId());
+        }
+
         landing.setSamples(samples);
         return samples;
     }
@@ -852,7 +879,15 @@ public class DataGraphQLService {
         if (landing.getSamplesCount() != null) return landing.getSamplesCount();
         if (landing.getId() == null) return 0l;
 
-        SampleFilterVO filter = SampleFilterVO.builder().landingId(landing.getId()).withTagId(true).build();
+        // Get samples by operation if a main undefined operation group exists
+        SampleFilterVO filter = SampleFilterVO.builder().withTagId(true).build();
+        Integer operationId = getMainUndefinedOperationGroupId(landing);
+        if (operationId != null) {
+            filter.setOperationId(operationId);
+        } else {
+            filter.setLandingId(landing.getId());
+        }
+
         return sampleService.countByFilter(filter);
     }
 
@@ -897,14 +932,14 @@ public class DataGraphQLService {
         Set<String> fields = GraphQLUtils.fields(env);
 
         final List<LandingVO> result = landingService.findAll(
-            filter,
-            Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build(),
-            getFetchOptions(fields));
+                filter,
+                Page.builder()
+                        .offset(offset)
+                        .size(size)
+                        .sortBy(sort)
+                        .sortDirection(SortDirection.fromString(direction))
+                        .build(),
+                getFetchOptions(fields));
 
         // Add additional properties if needed
         fillLandingsFields(result, fields);
@@ -919,12 +954,13 @@ public class DataGraphQLService {
         return landingService.countByFilter(filter);
     }
 
-    @GraphQLQuery(name = "landing", description = "Get an observed location, by id")
+    @GraphQLQuery(name = "landing", description = "Get a landing, by id")
     @Transactional(readOnly = true)
     @IsUser
     public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
                                 @GraphQLEnvironment ResolutionEnvironment env) {
-        final LandingVO result = landingService.get(id);
+        // TODO: rename getTripFetchOptions -> getLandingFetchOptions ?
+        final LandingVO result = landingService.get(id, getTripFetchOptions(GraphQLUtils.fields(env)));
 
         // Add additional properties if needed
         fillLandingFields(result, GraphQLUtils.fields(env));
@@ -1016,8 +1052,8 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
     public void deleteAggregatedLandings(
-        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-        @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
+            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+            @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
     ) {
         aggregatedLandingService.deleteAll(filter, vesselSnapshotIds);
     }
@@ -1285,8 +1321,8 @@ public class DataGraphQLService {
         vesselGraphQLService.fillVesselSnapshot(trip, fields);
 
         if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID))
-            || fields.contains(TripVO.Fields.LANDING_ID)
-            || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+                || fields.contains(TripVO.Fields.LANDING_ID)
+                || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
     }
@@ -1375,6 +1411,13 @@ public class DataGraphQLService {
                 .build();
     }
 
+    protected DataFetchOptions getTripFetchOptions(Set<String> fields) {
+        return DataFetchOptions.builder()
+                .withExpectedSales(
+                        fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+                                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID)))
+                .build();
+    }
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
         return OperationFetchOptions.builder()
@@ -1389,57 +1432,67 @@ public class DataGraphQLService {
 
     /**
      * Restrict to self data and/or department data
+     *
      * @param filter
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
         try {
             filter = filter != null ? filter : filterClass.newInstance();
-        }
-        catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             log.error("Cannot create filter instance: {}", e.getMessage(), e);
+        }
+
+        // Admin: restrict only on programs
+        if (authService.isAdmin()) {
+            Integer[] authorizedProgramIds = dataAccessControlService.getAllAuthorizedProgramIds(filter.getProgramIds())
+                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+            filter.setProgramIds(authorizedProgramIds);
+            return filter;
         }
 
         // Restrict to self data and/or department data
         PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        if (user != null) {
-            if (!canUserAccessNotSelfData()) {
-                // Limit data access to self data
-                filter.setRecorderPersonId(user.getId());
-            }
-            else {
-                Integer depId = user.getDepartment().getId();
-                if (!canDepartmentAccessNotSelfData(depId)) {
-                    // Limit data access to user's department
-                    filter.setRecorderDepartmentId(depId);
-                }
-            }
-        } else {
-            filter.setRecorderPersonId(-999); // Hide all. Should never occur
+
+        // Guest: hide all (Should never occur, because of @IsUser security annotation)
+        if (user == null) {
+            filter.setRecorderPersonId(DataAccessControlService.NO_ACCESS_FAKE_ID);
+            return filter;
         }
 
+        // Limit program access
+        Integer[] programIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(user.getId(), filter.getProgramIds())
+            // No access
+            .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+        filter.setProgramIds(programIds);
+
+        if (programIds == DataAccessControlService.NO_ACCESS_FAKE_IDS) return filter; // No Access
+
+        // Limit on own data
+        if (!dataAccessControlService.canUserAccessNotSelfData()) {
+            // Limit data access to self data
+            filter.setRecorderPersonId(user.getId());
+            return filter;
+        }
+
+        // Limit data access to user's department
+        Integer depId = user.getDepartment().getId();
+        if (!dataAccessControlService.canDepartmentAccessNotSelfData(depId)) {
+            filter.setRecorderDepartmentId(depId);
+        }
         return filter;
-    }
-
-    protected boolean canUserAccessNotSelfData() {
-        String minRole = configuration.getAccessNotSelfDataMinRole();
-        return StringUtils.isBlank(minRole) || authService.hasAuthority(minRole);
-    }
-
-    protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
-        List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
-        return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
-    }
-
-    /**
-     * Check user is admin
-     */
-    protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Forbidden");
     }
 
     protected void logDeprecatedUse(String functionName, String appVersion) {
         Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);
         log.warn(String.format("User {id: %s} used service {%s} that is deprecated since {appVersion: %s}.", userId, functionName, appVersion));
 
+    }
+
+    private Integer getMainUndefinedOperationGroupId(LandingVO landing) {
+        if (landing.getTripId() != null) {
+            OperationGroupVO mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(landing.getTripId());
+            return mainUndefinedOperation != null ? mainUndefinedOperation.getId() : null;
+        }
+        return null;
     }
 }

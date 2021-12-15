@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.15.3</version>
+  <version>1.16.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -93,9 +93,9 @@
     <ojdbc8.version>12.2.0.1</ojdbc8.version>
     <pgsql.version>42.2.5</pgsql.version>
 
-    <slf4j.version>1.7.30</slf4j.version>
+    <slf4j.version>1.7.32</slf4j.version>
     <logback.version>1.2.3</logback.version>
-    <log4j.version>2.12.1</log4j.version>
+    <log4j.version>2.15.0</log4j.version>
     <jansi.version>1.9</jansi.version>
     <guava.version>23.0</guava.version>
     <xml-apis.version>2.0.2</xml-apis.version>

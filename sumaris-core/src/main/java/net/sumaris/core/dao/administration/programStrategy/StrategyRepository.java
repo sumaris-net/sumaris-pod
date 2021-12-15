@@ -22,11 +22,17 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -34,5 +40,18 @@ import net.sumaris.core.vo.filter.StrategyFilterVO;
 public interface StrategyRepository
     extends ReferentialRepository<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>,
     StrategySpecifications {
+
+    @Caching(
+        evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true)
+        }
+    )
+    @Modifying
+    @Query("delete from Strategy s where s.id = :id")
+    void deleteById(@Param("id") int id);
 
 }

@@ -45,6 +45,7 @@ public class PersonFilterVO implements IReferentialFilter {
     private String searchJoin;
     private String searchText;
     private String searchAttribute;
+    private String[] searchAttributes;
 
     private Integer userProfileId;
     private Integer[] userProfileIds;

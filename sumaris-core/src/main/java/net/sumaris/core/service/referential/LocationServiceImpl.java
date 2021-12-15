@@ -221,9 +221,9 @@ public class LocationServiceImpl implements LocationService{
         }
 
         if (log.isInfoEnabled()) {
-            log.info(String.format("Square 10'x10' successfully inserted (%s inserts, %s location associations) ",
+            log.info("Square 10'x10' successfully inserted ({} inserts, {} location associations) ",
                     locationInsertCount,
-                    locationAssociationInsertCount));
+                    locationAssociationInsertCount);
         }
     }
 
@@ -374,9 +374,6 @@ public class LocationServiceImpl implements LocationService{
         }
         locationRepository.updateLocationHierarchy();
     }
-
-
-
 
     @Override
     public String getLocationLabelByLatLong(Number latitude, Number longitude) {

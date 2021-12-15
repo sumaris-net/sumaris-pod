@@ -59,6 +59,8 @@ public interface LandingService {
 
 	List<LandingVO> save(List<LandingVO> data);
 
+	void deleteAllByObservedLocationId(int observedLocationId);
+
 	void delete(int id);
 
 	void delete(List<Integer> ids);

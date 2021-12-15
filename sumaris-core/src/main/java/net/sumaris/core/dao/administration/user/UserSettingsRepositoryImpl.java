@@ -43,6 +43,8 @@ public class UserSettingsRepositoryImpl
 
     protected UserSettingsRepositoryImpl(EntityManager entityManager) {
         super(UserSettings.class, UserSettingsVO.class, entityManager);
+        setCheckUpdateDate(false);
+        setLockForUpdate(false);
     }
 
     @Override

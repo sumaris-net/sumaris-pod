@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.io.Serializable;
@@ -34,7 +35,7 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class StrategyDepartmentVO implements Serializable, IUpdateDateEntityBean<Integer, Date> {
+public class StrategyDepartmentVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
     private Date updateDate;

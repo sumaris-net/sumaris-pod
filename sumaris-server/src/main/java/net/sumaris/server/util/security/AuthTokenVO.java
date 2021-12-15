@@ -34,6 +34,7 @@ import java.text.ParseException;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthTokenVO {
+
     private String username;
     private String pubkey;
     private String challenge;

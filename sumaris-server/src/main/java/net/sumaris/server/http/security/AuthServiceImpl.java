@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) {
+    public UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication)  throws AuthenticationException {
         Preconditions.checkArgument(enableAuthBasic);
 
         // First check anonymous user
@@ -274,6 +274,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public Optional<Integer> getAuthenticatedUserId() {
+        return getAuthenticatedUser().map(PersonVO::getId);
+    }
+
+    @Override
     public boolean hasAuthority(String authority) {
         return hasUpperOrEqualsAuthority(getAuthorities(), authority);
     }
@@ -323,7 +328,7 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
-    private void checkEnabledAccount(PersonVO person) throws DataNotFoundException {
+    private void checkEnabledAccount(PersonVO person) throws DisabledException {
         // Cannot auth if user has been deleted or is disable
         StatusEnum status = StatusEnum.valueOf(person.getStatusId());
         if (StatusEnum.DISABLE.equals(status) || StatusEnum.DELETED.equals(status)) {

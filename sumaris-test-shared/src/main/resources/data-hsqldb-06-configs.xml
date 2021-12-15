@@ -103,11 +103,11 @@
     <SOFTWARE_PROPERTY ID="115" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.data.accessNotSelfData.department.ids" NAME="3"/>
     <SOFTWARE_PROPERTY ID="116" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.sample.uniqueTag" NAME="true"/>
 
-    <!-- ****** OPEN (Homard, Acost) properties ****** -->
+    <!-- ****** OPEN (ACOST, PIFIL, HOMARD, ...) properties ****** -->
 
-    <SOFTWARE_PROPERTY ID="130"  STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
-    <SOFTWARE_PROPERTY ID="131"  STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:50"/>
-    <SOFTWARE_PROPERTY ID="132"  STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:2,department:3,department:4,department:5,department:6,department:7"/>
+    <SOFTWARE_PROPERTY ID="130" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
+    <SOFTWARE_PROPERTY ID="131" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:50"/>
+    <SOFTWARE_PROPERTY ID="132" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:2,department:3,department:4,department:5,department:6,department:7"/>
     <SOFTWARE_PROPERTY ID="133" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40,image:41,image:42,image:43,image:44,image:45,image:46,image:47,image:48,image:49"/>
     <SOFTWARE_PROPERTY ID="134" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
     <SOFTWARE_PROPERTY ID="135" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
@@ -119,5 +119,6 @@
     <SOFTWARE_PROPERTY ID="141" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="142" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="143" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
 </dataset>
