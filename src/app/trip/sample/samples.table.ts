@@ -18,7 +18,7 @@ import {
   LoadResult,
   ObjectMap,
   PlatformService,
-  ReferentialRef,
+  ReferentialRef, ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
@@ -29,13 +29,13 @@ import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
-import { FormGroup } from '@angular/forms';
+import {FormGroup, Validators} from '@angular/forms';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample, SampleUtils } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, QualitativeLabels, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import {debounceTime, delay, filter, map, tap} from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
@@ -276,6 +276,51 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.registerSubscription(
       this.$pmfms.subscribe(pmfms => this.addFooterListener(pmfms))
     );
+
+    // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
+    this.registerSubscription(
+      this.registerCellValueChanges('individual_on_deck', "measurementValues." + PmfmIds.INDIVIDUAL_ON_DECK.toString())
+        .subscribe((value) => {
+          if (!this.editedRow || !this.pmfms) return; // Should never occur
+          const row = this.editedRow;
+
+            const individualOnDeckPmfm = this.pmfms.find(pmfm => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
+            if (individualOnDeckPmfm) {
+
+              const measFormGroup = (row.validator.controls['measurementValues'] as FormGroup);
+              const individualOnDeckControl = measFormGroup.controls[individualOnDeckPmfm.id];
+              const controls = this.pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder).map(pmfm => measFormGroup.controls[pmfm.id]);
+
+              this.registerSubscription(individualOnDeckControl.valueChanges
+                .pipe(
+                  // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+                  delay(200)
+                )
+                .subscribe((value) => {
+                  if (value) {
+                    if (row.validator.enabled) {
+                      controls.forEach(control => {
+                        control.enable();
+                      });
+                      this.pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.required).forEach(pmfm => {
+                        measFormGroup.controls[pmfm.id].setValidators(Validators.required);
+                        measFormGroup.controls[pmfm.id].updateValueAndValidity({onlySelf: true})
+                      });
+
+                      measFormGroup.updateValueAndValidity({onlySelf: true});
+                      row.validator.updateValueAndValidity({onlySelf: true});
+                    }
+                  } else {
+                    controls.forEach(control => {
+                      control.setValue(null);
+                      control.setValidators(null);
+                      control.disable();
+                    });
+                  }
+                }));
+            }
+        }));
+
   }
 
   ngAfterViewInit() {
@@ -394,7 +439,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
     this.markAsLoaded();
 
-    return data instanceof Sample ? {data, role} : undefined;
+    return {data:(data instanceof Sample ? data : undefined), role};
   }
 
   async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {

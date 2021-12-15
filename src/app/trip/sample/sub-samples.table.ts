@@ -1,32 +1,31 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { SubSampleValidatorService } from '../services/validator/sub-sample.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {SubSampleValidatorService} from '../services/validator/sub-sample.validator';
 import {
   EntityUtils,
-  firstFalsePromise,
   firstNotNilPromise,
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  joinPropertiesPath, LoadResult,
-  OnReady,
-  PlatformService, suggestFromArray,
+  joinPropertiesPath,
+  LoadResult,
+  PlatformService,
+  suggestFromArray,
   toNumber,
-  UsageMode, waitIdle,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
-import { Sample } from '../services/model/sample.model';
-import { SortDirection } from '@angular/material/sort';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { environment } from '@environments/environment';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
-import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
-import { merge, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
-import { firstTruePromise } from '../../../../ngx-sumaris-components/src/app/shared/observables';
+import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {Sample} from '../services/model/sample.model';
+import {SortDirection} from '@angular/material/sort';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {environment} from '@environments/environment';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from '../services/filter/sample.filter';
+import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
+import {merge, Subject} from 'rxjs';
+import {distinctUntilChanged, filter, map, tap} from 'rxjs/operators';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];

@@ -1,16 +1,17 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { AppFormUtils, EntityUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
-import { SampleValidatorService } from '../services/validator/sample.validator';
-import { Sample } from '../services/model/sample.model';
-import { environment } from '../../../environments/environment';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { Batch } from '@app/trip/services/model/batch.model';
-import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
+import {ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AppFormUtils, EntityUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, ReferentialUtils, toNumber, UsageMode} from '@sumaris-net/ngx-components';
+import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../referential/services/model/model.enum';
+import {SampleValidatorService} from '../services/validator/sample.validator';
+import {Sample} from '../services/model/sample.model';
+import {environment} from '../../../environments/environment';
+import {ProgramRefService} from '../../referential/services/program-ref.service';
+import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {Batch} from '@app/trip/services/model/batch.model';
+import {SubSampleValidatorService} from '@app/trip/services/validator/sub-sample.validator';
+import {delay, filter} from 'rxjs/operators';
 
 @Component({
   selector: 'app-sample-form',
@@ -21,7 +22,7 @@ import { SubSampleValidatorService } from '@app/trip/services/validator/sub-samp
 export class SampleForm extends MeasurementValuesForm<Sample>
   implements OnInit, OnDestroy {
 
-  childrenArrayHelper: FormArrayHelper<Sample>
+  childrenArrayHelper: FormArrayHelper<Sample>;
   focusFieldName: string;
 
   @Input() i18nSuffix: string;
@@ -48,7 +49,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       validatorService.getFormGroup(),
       {
         skipDisabledPmfmControl: false,
-        skipComputedPmfmControl: false
+        skipComputedPmfmControl: false,
+        onUpdateFormGroup: (form) => this.onUpdateControls(form)
       }
     );
 
@@ -84,8 +86,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       || (this.showTaxonName && 'taxonName'));
   }
 
-  setChildren(children: Sample[], opts?: {emitEvent?: boolean;}) {
-    children = children || [];
+  setChildren(children: Sample[], opts?: { emitEvent?: boolean; }) {
+    children = children || [];
 
     if (this.childrenArrayHelper.size() !== children.length) {
       this.childrenArrayHelper.resize(children.length);
@@ -154,6 +156,50 @@ export class SampleForm extends MeasurementValuesForm<Sample>
       (value) => isNil(value),
       {allowEmptyArray: true}
     );
+  }
+
+  protected onUpdateControls(form: FormGroup) {
+
+    const pmfms = this.$pmfms.getValue();
+
+    if (pmfms) {
+      const individualOnDeckPmfm = pmfms.find(pmfm => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
+      if (individualOnDeckPmfm) {
+
+        const measFormGroup = (form.controls['measurementValues'] as FormGroup);
+        const individualOnDeckControl = measFormGroup.controls[individualOnDeckPmfm.id];
+        const disableControls = pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder).map(pmfm => measFormGroup.controls[pmfm.id]);
+
+        this.registerSubscription(individualOnDeckControl.valueChanges
+          .pipe(
+            // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+            delay(200),
+            filter(isNotNil)
+          )
+          .subscribe((value) => {
+            if (value) {
+              if (this.form.enabled) {
+                disableControls.forEach(control => {
+                  control.enable();
+                });
+                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.required).forEach(pmfm => {
+                  measFormGroup.controls[pmfm.id].setValidators(Validators.required);
+                  measFormGroup.controls[pmfm.id].updateValueAndValidity({onlySelf: true})
+                });
+
+                measFormGroup.updateValueAndValidity({onlySelf: true});
+                this.form.updateValueAndValidity({onlySelf: true});
+              }
+            } else {
+              disableControls.forEach(control => {
+                control.setValue(null);
+                control.setValidators(null);
+                control.disable();
+              });
+            }
+          }));
+      }
+    }
   }
 
   isNotHiddenPmfm = PmfmUtils.isNotHidden;
