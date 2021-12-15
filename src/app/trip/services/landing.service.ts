@@ -108,6 +108,7 @@ export const LandingFragments = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${ReferentialFragments.referential}
   `,
+
   landing: gql`fragment LandingFragment on LandingVO {
     id
     program {
@@ -149,6 +150,28 @@ export const LandingFragments = {
     samplesCount
   }`
 };
+/*
+  TODO BLA review
+
+  trip {
+      id
+      departureDateTime
+      returnDateTime
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualificationDate
+      qualityFlagId
+      comments
+      metiers {
+        ...MetierFragment
+      }
+      fishingAreas {
+        ...FishingAreaFragment
+      }
+    }
+ */
 
 const LandingQueries = {
   load: gql`query Landing($id: Int!){
@@ -163,6 +186,10 @@ const LandingQueries = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
+  /* TODO BLA review
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}
+   */
 
   loadAll: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -192,6 +219,9 @@ const LandingQueries = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`
+  /* TODO BLA review
+  ${Fragments.metier}
+  ${DataFragments.fishingArea} */
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -207,6 +237,9 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
+  /* TODO BLA: review this Imagine code:
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}*/
 
   saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
     data: saveLandings(landings: $data){
@@ -220,6 +253,10 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`,
+  /* TODO BLA: review this Imagine code:
+  ${Fragments.measurement}
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}*/
 
   deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
@@ -239,6 +276,9 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
   ${TripFragments.landedTrip}`
+  /* TODO BLA: review this Imagine code:
+  ${Fragments.metier}
+  ${DataFragments.fishingArea}*/
 };
 
 
@@ -299,7 +339,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     if (!dataFilter || dataFilter.isEmpty()) {
       console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
-      return of({total: 0, data: []});
+      return EMPTY;
     }
 
     // Load offline
@@ -987,15 +1027,18 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Update samples
     if (sources && targets) {
       targets.forEach(target => {
-        // Set the landing id (required by equals function)
+        // Set the landing id (required by equals function) => Obsolete : there is no more direct link between sample and landing
         target.landingId = savedLanding.id;
+        // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing / #IMAGINE-569
+        // Set the operation id (required by equals function)
+        target.operationId = savedLanding.samples[0]?.operationId;
 
         const source = sources.find(json => target.equals(json));
         EntityUtils.copyIdAndUpdateDate(source, target);
         DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
         // Copy parent Id (need for link to parent)
-        target.parentId = source.parentId;
+        target.parentId = source?.parentId;
         target.parent = null;
 
         // Apply to children

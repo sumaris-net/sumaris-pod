@@ -1,9 +1,9 @@
-import {FormGroup} from "@angular/forms";
-import {DenormalizedPmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
-import {Subscription} from "rxjs";
-import {isNotNil} from "@sumaris-net/ngx-components";
-import {ObjectMap} from "@sumaris-net/ngx-components";
-import {PmfmIds} from '../../../referential/services/model/model.enum';
+import { FormGroup } from '@angular/forms';
+import { DenormalizedPmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
+import { Subscription } from 'rxjs';
+import { isNotNil, isNotNilOrBlank, ObjectMap } from '@sumaris-net/ngx-components';
+import { PmfmIds } from '../../../referential/services/model/model.enum';
+import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 
 export class BiologicalSamplingValidators {
 
@@ -21,24 +21,17 @@ export class BiologicalSamplingValidators {
     }
 
     form.setValidators( (control) => {
-      const formGroup = control as FormGroup;
-      const measValues = formGroup.get('measurementValues').value;
-      // ensure dressing pmfm exist
-      const tagIdIndex = (pmfmGroups.TAG_ID || []).findIndex(pmfmId => pmfmId === PmfmIds.DRESSING);
-      let hasTagId
-      if (tagIdIndex !== -1) {
-        hasTagId = measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] && (measValues[pmfmGroups.TAG_ID[tagIdIndex].toString()] !== "");
-      } else {
-        hasTagId = false;
+      const measValues = form.controls.measurementValues.value;
+
+      const tagId = measValues[PmfmIds.TAG_ID];
+      if (isNotNilOrBlank(tagId) && tagId.length !== 4) {
+        return { tagIdLength: {length: 4} };
       }
+
       const hasWeight = (pmfmGroups.WEIGHT || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
       const hasLengthSize = (pmfmGroups.LENGTH || []).findIndex(pmfmId => isNotNil(measValues[pmfmId.toString()])) !== -1;
-
-      if (!hasTagId) {
-        return { missingDressing: 'TRIP.SAMPLE.ERROR.PARAMETERS.DRESSING' };
-      }
       if (!hasWeight && !hasLengthSize){
-        return { missingWeightOrSize: 'TRIP.SAMPLE.ERROR.PARAMETERS.WEIGHT_OR_LENGTH' };
+        return { missingWeightOrSize: SAMPLE_VALIDATOR_I18N_ERROR_KEYS.missingWeightOrSize };
       }
     });
 

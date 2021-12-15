@@ -5,7 +5,7 @@ import {Entity}  from "@sumaris-net/ngx-components";
 import {UsageMode}  from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../referential/services/model/pmfm.model";
 
-export interface IDataEntityModalOptions<T extends Entity<T>> extends IModalDetailOptions<T> {
+export interface IDataEntityModalOptions<T = any> extends IModalDetailOptions<T> {
   // Program (or PMFMs, to avoid loading PMFMs by program)
   programLabel: string;
   acquisitionLevel: string;

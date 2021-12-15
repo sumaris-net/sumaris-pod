@@ -1,22 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
-import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../../services/model/extraction-type.model';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
-import {ReferentialForm} from "../../../referential/form/referential.form";
-import {BehaviorSubject} from "rxjs";
-import {arraySize, isNil, isNotNilOrBlank} from "@sumaris-net/ngx-components";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ExtractionService} from "../../services/extraction.service";
-import {debounceTime} from "rxjs/operators";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ExtractionColumn, ExtractionFilterCriterion } from '../../services/model/extraction-type.model';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AggregationTypeValidatorService } from '../../services/validator/aggregation-type.validator';
+import { ReferentialForm } from '../../../referential/form/referential.form';
+import { BehaviorSubject } from 'rxjs';
+import { AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
+import { ExtractionService } from '../../services/extraction.service';
+import { debounceTime } from 'rxjs/operators';
 import { AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyIds, ProcessingFrequencyItems } from '../../services/model/extraction-product.model';
-import {ExtractionUtils} from "../../services/extraction.utils";
-import {ExtractionProductService} from "../../services/extraction-product.service";
-import {FormArrayHelper}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {EntityUtils}  from "@sumaris-net/ngx-components";
+import { ExtractionUtils } from '../../services/extraction.utils';
+import { ExtractionProductService } from '../../services/extraction-product.service';
 import { ExtractionCriteriaForm } from '@app/extraction/form/extraction-criteria.form';
 
 declare interface ColumnMap {
@@ -35,7 +28,6 @@ const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFreque
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
-
 
   data: ExtractionProduct;
   frequenciesById = FrequenciesById;
@@ -105,16 +97,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     }
   }
 
-  constructor(protected dateAdapter: DateAdapter<Moment>,
+  constructor(injector: Injector,
               protected formBuilder: FormBuilder,
               protected settings: LocalSettingsService,
               protected validatorService: AggregationTypeValidatorService,
               protected extractionService: ExtractionService,
               protected aggregationService: ExtractionProductService,
               protected cd: ChangeDetectorRef) {
-    super(dateAdapter,
-      validatorService.getFormGroup(),
-      settings);
+    super(injector,
+      validatorService.getFormGroup());
 
     // Stratum
     this.stratumFormArray = this.form.controls.stratum as FormArray;
@@ -224,6 +215,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     );
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$sheetNames.complete();
+    this.$timeColumns.complete();
+    this.$spatialColumns.complete();
+    this.$aggColumns.complete();
+    this.$techColumns.complete();
+  }
+
   toggleDocPreview() {
     this.showMarkdownPreview = !this.showMarkdownPreview;
     if (this.showMarkdownPreview) {
@@ -231,9 +231,13 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     }
   }
 
-  /* -- protected -- */
+  reset(data?: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    super.setValue(data || new ExtractionProduct(), opts);
+  }
 
-  setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  async setValue(data: ExtractionProduct, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+
+    await this.ready();
 
     console.debug('[product-form] Setting value: ', data);
 
@@ -278,6 +282,9 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     super.setValue(data, opts);
 
   }
+
+
+  /* -- protected -- */
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -34,8 +34,8 @@ import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
 import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../services/filter/observed-location.filter';
 import {filter, tap} from 'rxjs/operators';
 import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ContextService } from '@app/shared/context.service';
+import {ContextService} from '@app/shared/context.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -61,7 +61,6 @@ export class ObservedLocationsPage extends
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
-
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -135,7 +134,7 @@ export class ObservedLocationsPage extends
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
-      filter: {
+      filter: <ReferentialRefFilter>{
         entityName: 'Program'
       },
       mobile: this.mobile
@@ -330,6 +329,33 @@ export class ObservedLocationsPage extends
     // delete if observation have no sample
     await super.deleteSelection(event);
     this.confirmBeforeDelete = oldConfirmBeforeDelete;
+  }
+
+  get canUserCancelOrDelete(): boolean {
+    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+
+    // When connected user is an admin
+    if (this.accountService.isAdmin()) {
+      return true;
+    }
+
+    const row = !this.selection.isEmpty() && this.selection.selected[0];
+    const entity = row.currentData;
+
+    // When observed location has been recorded by connected user
+    const recorder = entity.recorderPerson;
+    const connectedPerson = this.accountService.person;
+    if (connectedPerson.id === recorder?.id) {
+      return true;
+    }
+
+    // When connected user is in observed location observers
+    for (const observer of entity.observers) {
+      if (connectedPerson.id === observer.id) {
+        return true;
+      }
+    }
+    return false;
   }
 
 

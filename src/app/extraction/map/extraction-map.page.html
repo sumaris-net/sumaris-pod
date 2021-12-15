@@ -572,7 +572,7 @@
 
 
   <!-- Leaflet map -->
-  <div *ngIf="ready"
+  <div *ngIf="$ready|async"
        leaflet
        class="leaflet-reset-pane-z-index"
        (leafletMapReady)="onMapReady($event)"

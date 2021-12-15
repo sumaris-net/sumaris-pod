@@ -1,7 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, QueryList, ViewChildren } from '@angular/core';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
 import { AbstractControl, FormBuilder, FormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -133,25 +131,21 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
 
   constructor(
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected dateAdapter: DateAdapter<Moment>,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchGroupValidatorService,
-    protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter,
+    super(injector,
       measurementValidatorService,
       formBuilder,
       programRefService,
       platform,
       validatorService,
-      referentialRefService,
-      settings,
-      cd);
+      referentialRefService);
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;

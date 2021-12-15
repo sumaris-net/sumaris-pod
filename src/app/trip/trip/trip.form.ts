@@ -1,23 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {TripValidatorService} from '../services/validator/trip.validator';
 import {ModalController} from '@ionic/angular';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 
 import {
   AppForm,
+  DateUtils,
   EntityUtils,
   FormArrayHelper,
   fromDateISOString,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  LocalSettingsService,
   MatAutocompleteField,
   NetworkService,
+  OnReady,
   Person,
   PersonService,
   PersonUtils,
@@ -26,7 +26,6 @@ import {
   ReferentialUtils,
   StatusIds,
   toBoolean,
-  UsageMode,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
@@ -41,7 +40,9 @@ import {VesselModal} from '@app/vessel/modal/vessel-modal';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {MetierFilter} from '@app/referential/services/filter/metier.filter';
-import { Metier } from "@app/referential/services/model/metier.model";
+import {Metier} from '@app/referential/services/model/metier.model';
+import {combineLatest} from 'rxjs';
+import {Moment} from 'moment';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -52,7 +53,7 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   styleUrls: ['./trip.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripForm extends AppForm<Trip> implements OnInit {
+export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   private _showObservers: boolean;
   private _showMetiers: boolean;
@@ -120,7 +121,7 @@ export class TripForm extends AppForm<Trip> implements OnInit {
 
   @Input() set returnFieldsRequired(value: boolean){
     this._returnFieldsRequired = value;
-    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
+    if (!this._loading) this.updateFormGroup();
   };
 
   get returnFieldsRequired(): boolean {
@@ -132,15 +133,13 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   }
 
   get value(): any {
-    const json = this.form.value;
+    const json = this.form.value as Partial<Trip>;
 
     // Add program, because if control disabled the value is missing
     json.program = this.form.get('program').value;
 
-    // Force remove all observers
-    if (!this._showObservers) {
-      json.observers = [];
-    }
+    if (!this._showObservers) json.observers = []; // Remove observers, if hide
+    if (!this._showMetiers) json.metiers = []; // Remove metiers, if hide
 
     return json;
   }
@@ -157,10 +156,17 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     return this.form.controls.metiers as FormArray;
   }
 
+  get loading(): boolean {
+    return this._loading;
+  }
+
+
+  @Output() maxDate = new EventEmitter<Moment>();
+
   @ViewChild('metierField') metierField: MatAutocompleteField;
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected formBuilder: FormBuilder,
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -168,12 +174,11 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     protected metierService: MetierService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
     public network: NetworkService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(dateAdapter, validatorService.getFormGroup(), settings);
+    super(injector, validatorService.getFormGroup());
     this.mobile = this.settings.mobile;
   }
 
@@ -181,8 +186,9 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     super.ngOnInit();
 
     // Default values
-    this.showObservers = toBoolean(this.showObservers, true); // Will init the observers helper
-    this.showMetiers = toBoolean(this.showMetiers, true); // Will init the metiers helper
+    this.showObservers = toBoolean(this.showObservers, false); // Will init the observers helper
+    this.showMetiers = toBoolean(this.showMetiers, false); // Will init the metiers helper
+    this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.returnFieldsRequired = toBoolean(this.returnFieldsRequired, !this.settings.isOnFieldMode);
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
@@ -249,6 +255,23 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         )
         .subscribe((value) => this.updateMetierFilter(value))
     );
+
+
+  }
+
+  ngOnReady() {
+    this.updateFormGroup();
+
+    this.registerSubscription(
+      combineLatest([
+        this.form.get('departureDateTime').valueChanges,
+        this.form.get('returnDateTime').valueChanges
+      ])
+      .subscribe(([d1, d2]) => {
+        const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
+        this.maxDate.next(max);
+      })
+    );
   }
 
   toggleFilteredMetier() {
@@ -266,32 +289,40 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     this.updateMetierFilter();
   }
 
-  setValue(value: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  reset(data?: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    this.setValue(data || new Trip(), opts);
+  }
 
-    if (!value) return;
+  async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
+
+    // Wait ready (= form group updated, by the parent page)
+    await this.ready();
 
     // Make sure to have (at least) one observer
-    value.observers = value.observers && value.observers.length ? value.observers : [null];
-
     // Resize observers array
     if (this._showObservers) {
-      this.observersHelper.resize(Math.max(1, value.observers.length));
+      data.observers = data.observers && data.observers.length ? data.observers : [null];
+      this.observersHelper.resize(Math.max(1, data.observers.length));
     }
     else {
-      this.observersHelper.removeAllEmpty();
+      data.observers = [];
+      this.observersHelper?.resize(0);
     }
 
     // Make sure to have (at least) one metier
-    value.metiers = value.metiers && value.metiers.length ? value.metiers : [null];
-    // Resize metiers array
+    this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
-      this.metiersHelper.resize(Math.max(1, value.metiers.length));
+      data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
+      this.metiersHelper.resize(Math.max(1, data.metiers.length));
     } else {
-      this.metiersHelper.removeAllEmpty();
+      data.metiers = [];
+      this.metiersHelper?.resize(0);
     }
 
+    this.maxDate.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
+
     // Send value for form
-    super.setValue(value, opts);
+    super.setValue(data, opts);
   }
 
   async addVesselModal(): Promise<any> {
@@ -337,61 +368,6 @@ export class TripForm extends AppForm<Trip> implements OnInit {
   referentialToString = referentialToString;
 
   /* -- protected methods-- */
-
-  protected initObserversHelper() {
-    if (isNil(this._showObservers)) return; // skip if not loading yet
-
-    // Create helper, if need
-    if (!this.observersHelper) {
-      this.observersHelper = new FormArrayHelper<Person>(
-        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
-        (person) => this.validatorService.getObserverControl(person),
-        ReferentialUtils.equals,
-        ReferentialUtils.isEmpty,
-        {
-          allowEmptyArray: !this._showObservers
-        }
-      );
-    }
-
-    // Helper exists: update options
-    else {
-      this.observersHelper.allowEmptyArray = !this._showObservers;
-    }
-
-    if (this._showObservers) {
-      // Create at least one observer
-      if (this.observersHelper.size() === 0) {
-        this.observersHelper.resize(1);
-      }
-    } else if (this.observersHelper.size() > 0) {
-      this.observersHelper.resize(0);
-    }
-  }
-
-  protected initMetiersHelper() {
-    if (isNil(this._showMetiers)) return; // skip if not loading yet
-
-    this.metiersHelper = new FormArrayHelper<ReferentialRef>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
-      (metier) => this.validatorService.getMetierControl(metier),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {
-        allowEmptyArray: !this._showMetiers
-      }
-    );
-
-    if (this._showMetiers) {
-      // Create at least one metier
-      if (this.metiersHelper.size() === 0) {
-        this.metiersHelper.resize(1);
-
-      }
-    } else if (this.metiersHelper.size() > 0) {
-      this.metiersHelper.resize(0);
-    }
-  }
 
   protected updateMetierFilter(value?: Trip) {
     console.debug("[trip-form] Updating metier filter...");
@@ -451,14 +427,74 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Excluded existing observers, BUT keep the current control value
     const excludedIds = (this.metiersForm.value || [])
       .filter(ReferentialUtils.isNotEmpty)
-      .filter(metier => !currentControlValue || currentControlValue !== metier)
-      .map(metier => parseInt(metier.id));
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
 
     return this.metierService.suggest(newValue, {
       ...filter,
       ...this.metierFilter,
       excludedIds
     });
+  }
+
+  protected initObserversHelper() {
+    if (isNil(this._showObservers)) return; // skip if not loading yet
+
+    // Create helper, if need
+    if (!this.observersHelper) {
+      this.observersHelper = new FormArrayHelper<Person>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'observers'),
+        (person) => this.validatorService.getObserverControl(person),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        { allowEmptyArray: !this._showObservers }
+      );
+    }
+
+    // Helper exists: update options
+    else {
+      this.observersHelper.allowEmptyArray = !this._showObservers;
+    }
+
+    if (this._showObservers) {
+      // Create at least one observer
+      if (this.observersHelper.size() === 0) {
+        this.observersHelper.resize(1);
+      }
+    }
+    else if (this.observersHelper.size() > 0) {
+      this.observersHelper.resize(0);
+    }
+  }
+
+  protected initMetiersHelper() {
+    if (isNil(this._showMetiers)) return; // skip if not loading yet
+
+    if (!this.metiersHelper) {
+      this.metiersHelper = new FormArrayHelper<ReferentialRef>(
+        FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'metiers'),
+        (metier) => this.validatorService.getMetierControl(metier),
+        ReferentialUtils.equals,
+        ReferentialUtils.isEmpty,
+        { allowEmptyArray: !this._showMetiers }
+      );
+    }
+    else {
+      this.metiersHelper.allowEmptyArray = !this._showMetiers;
+    }
+    if (this._showMetiers) {
+      if (this.metiersHelper.size() === 0) {
+        this.metiersHelper.resize(1);
+      }
+    }
+    else if (this.metiersHelper.size() > 0) {
+      this.metiersHelper.resize(0);
+    }
+  }
+
+  protected updateFormGroup() {
+    console.info('[trip-form] Updating form group...');
+    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
   }
 
   protected markForCheck() {

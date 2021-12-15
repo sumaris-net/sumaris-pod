@@ -16,6 +16,7 @@
 :root {
   @include css-variables-to-root();
   --mat-tab-link-height: #{$mat-tab-link-height};
+  --mat-toolbar-background-color: #{$mat-toolbar-background-color};
 
   ion-app {
     @include css-variables-to-root();
@@ -30,11 +31,12 @@
   }
 
   // Extra small device
-  @media screen and (max-width: $screen-xs-max) {
+  @media screen and (max-width: #{$screen-xs-max}) {
     --mat-toolbar-height: #{$mat-toolbar-height-mobile};
+  }
+
+  ion-icon {
+    pointer-events: none !important;
   }
 }
 
-ion-button.mat-form-field-button.ion-color.md.button.button-solid {
-  text-transform: capitalize;
-}

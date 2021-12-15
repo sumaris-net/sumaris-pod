@@ -52,5 +52,17 @@ export const ProgramFragments = {
       locations {
         ...ReferentialFragment
       }
+      persons {
+        id
+        location {
+          ...ReferentialFragment
+        }
+        privilege {
+          ...ReferentialFragment
+        }
+        person {
+           ...LightPersonFragment
+        }
+      }
     }`
 };

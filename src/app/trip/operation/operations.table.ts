@@ -48,6 +48,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() useSticky = true;
+  @Input() allowParentOperation = false;
 
   @Input() set showQualityColumn(value: boolean) {
     this.setShowColumn('quality', value);
@@ -66,6 +67,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
           return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
           return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        case 'fishingArea':
+          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         default:
           return sortActive;
       }
@@ -75,12 +78,13 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       switch (sortActive) {
         case 'targetSpecies':
           return 'metier';
+        case 'fishingArea':
+          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
         default:
           return sortActive;
       }
     }
   }
-
 
   @Input() set showPosition(show: boolean) {
     this.setShowColumn('startPosition', show);
@@ -185,14 +189,17 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   setTripId(id: number, opts?: { emitEvent?: boolean; }) {
+    const emitEvent = (!opts || opts.emitEvent !== false);
     if (this.tripId !== id) {
       this.tripId = id;
       const filter = this.filter || new OperationFilter();
       filter.tripId = id;
       this.dataSource.serviceOptions = this.dataSource.serviceOptions || {};
       this.dataSource.serviceOptions.tripId = id;
-      this.setFilter(filter, {emitEvent: (!opts || opts.emitEvent !== false) && isNotNil(id)});
-    } else if ((!opts || opts.emitEvent !== false) && isNotNil(this.filter.tripId)) {
+      this.setFilter(filter, {emitEvent: emitEvent && isNotNil(id)});
+    }
+    // Nothing change, but force to applying filter
+    else if (emitEvent && isNotNil(this.filter.tripId)) {
       this.onRefresh.emit();
     }
   }
@@ -231,7 +238,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
   clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
     this.highlightedRow = row;
-
     return super.clickRow(event, row);
   }
 
@@ -241,6 +247,11 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       .filter(isNotNil)
       .map(gear => gear.id)
       .reduce((res, id) => res.includes(id) ? res : res.concat(id), []);
+  }
+
+  // Changed as public
+  getI18nColumnName(columnName: string): string {
+    return super.getI18nColumnName(columnName);
   }
 
   /* -- protected methods -- */
@@ -261,6 +272,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       gear: this.settings.getFieldDisplayAttributes('gear'),
       physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+      fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label'])
     };
 
     this.markForCheck();

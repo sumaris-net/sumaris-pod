@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
-import { ReferentialFragments } from './referential.fragments';
+import {Injectable} from '@angular/core';
+import {FetchPolicy, gql} from '@apollo/client/core';
+import {ReferentialFragments} from './referential.fragments';
 import {
   AccountService,
   ConfigService,
@@ -11,27 +11,30 @@ import {
   firstArrayValue,
   GraphqlService,
   isEmptyArray,
-  isNil, isNilOrBlank,
+  isNil,
+  isNilOrBlank,
   isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService, ReferentialRef
+  PlatformService,
+  ReferentialRef
 } from '@sumaris-net/ngx-components';
-import { CacheService } from 'ionic-cache';
-import { SortDirection } from '@angular/material/sort';
-import { StrategyFragments } from './strategy.fragments';
-import { StrategyService } from './strategy.service';
-import { Observable, of, timer } from 'rxjs';
-import { map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import { ParameterLabelGroups } from './model/model.enum';
-import { PmfmService } from './pmfm.service';
-import { ReferentialRefService } from './referential-ref.service';
-import { SamplingStrategy, StrategyEffort } from './model/sampling-strategy.model';
-import { BaseReferentialService } from './base-referential-service.class';
-import { Moment } from 'moment';
-import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ExtractionCacheDurationType } from '@app/extraction/services/model/extraction-type.model';
+import {CacheService} from 'ionic-cache';
+import {SortDirection} from '@angular/material/sort';
+import {StrategyFragments} from './strategy.fragments';
+import {StrategyService} from './strategy.service';
+import {Observable, timer} from 'rxjs';
+import {map, mergeMap, startWith, switchMap} from 'rxjs/operators';
+import {ParameterLabelGroups} from './model/model.enum';
+import {PmfmService} from './pmfm.service';
+import {ReferentialRefService} from './referential-ref.service';
+import {SamplingStrategy, StrategyEffort} from './model/sampling-strategy.model';
+import {BaseReferentialService} from './base-referential-service.class';
+import {Moment} from 'moment';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {ExtractionCacheDurationType} from '@app/extraction/services/model/extraction-type.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -132,7 +135,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
             //tap(_ => console.debug('[sampling-strategy-service] timer reach !')),
 
             mergeMap((_) => this.fillEfforts(res.data).then(_ => res)),
-            startWith(res)
+            startWith(res as LoadResult<SamplingStrategy>)
           )
         )
       );
@@ -208,7 +211,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
           this.insertIntoMutableCachedQueries(cache, {
             queries: this.getLoadQueries(),
-            data: savedEntity
+            data: entity.asObject({...NOT_MINIFY_OPTIONS, keepEffort: true})
           });
         }
       }
@@ -274,9 +277,9 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     });
     const strategy = firstArrayValue(data);
     if (strategy && strategy.effortByQuarter) {
-      const effortByQuarter = strategy.effortByQuarter[date.quarter()];
+      const effortByQuarter = strategy.effortByQuarter[date?.quarter()];
       // Check same year
-      if (effortByQuarter && effortByQuarter.startDate.year() === date.year()) {
+      if (effortByQuarter && effortByQuarter.startDate?.year() === date?.year()) {
         return effortByQuarter;
       }
     }
@@ -354,7 +357,6 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       return; // Skip is empty
     }
 
-
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,
       variables: {
@@ -379,12 +381,14 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
       // Clean realized efforts
       // /!\ BUT keep expected effort (comes from strategies table)
-      [1,2,3,4].map(quarter => s.effortByQuarter[quarter])
-        .filter(isNotNil)
-        .forEach(effort => {
-          effort.realizedEffort = 0;
-          effort.landingCount = 0;
-        })
+      if (s.effortByQuarter) {
+        [1, 2, 3, 4].map(quarter => s.effortByQuarter[quarter])
+          .filter(isNotNil)
+          .forEach(effort => {
+            effort.realizedEffort = 0;
+            effort.landingCount = 0;
+          })
+      }
     });
 
     // Add effort to entities
@@ -394,19 +398,20 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
         const strategy = entities.find(s => s.label === effort.strategyLabel);
         if (strategy) {
           strategy.efforts = strategy.efforts || [];
-          strategy.efforts.push(effort);
 
           if (isNotNil(effort.quarter)) {
             strategy.effortByQuarter = strategy.effortByQuarter || {};
             const existingEffort = strategy.effortByQuarter[effort.quarter];
+
             // Set the quarter's effort
             if (!existingEffort) {
               // Do a copy, to be able to increment if more than one effort by quarter
-              strategy.effortByQuarter[effort.quarter] = effort.clone();
-              existingEffort.expectedEffort += effort.expectedEffort;
+              //strategy.effortByQuarter[effort.quarter] = effort.clone(); => Code disable since it keeps strategy efforts for deleted applied period efforts
             }
             // More than one effort, on this quarter
             else {
+              effort.expectedEffort = existingEffort.expectedEffort; // Update efforts expected effort with last value from effortByQuarter.
+              strategy.efforts.push(effort); // moved here from global loop in order to prevent copy of obsolete deleted efforts.
               // Merge properties
               existingEffort.startDate = DateUtils.min(existingEffort.startDate, effort.startDate);
               existingEffort.endDate = DateUtils.max(existingEffort.endDate, effort.endDate);

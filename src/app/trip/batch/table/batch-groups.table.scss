@@ -5,70 +5,61 @@
 
 .mat-table {
   background-color: transparent !important;
+  --mat-cell-vertical-padding: 4px;
 
-  // First row header
+  /* First header row (group) */
   .mat-header-row.first-header-row {
-    --qv-visible-column-count: 5;
-
-    // Reduce visible columns, if mobile
-    &.plt-mobile {
-      --qv-visible-column-count: 2;
-    }
-
-    max-height: 58px;
-    min-height: 58px;
-    margin-top: -58px;
+    background-color: var(--mat-toolbar-background-color, whitesmoke);
+    height: var(--mat-toolbar-height, 64px);
+    --mat-cell-vertical-padding: 0;
 
     .mat-header-cell {
       background-color: transparent;
-    }
-    .mat-header-cell.qv {
-      display: none;
-      visibility: hidden;
-    }
-    .mat-header-cell.qv.even {
-      background-color: var(--ion-color-medium) !important;
-    }
-    .mat-header-cell.qv.odd {
-      background-color: var(--ion-color-light-shade, lightgray) !important;
-    }
-    .mat-header-cell.qv.show {
-      display: flex;
-      visibility: visible;
-      flex: var(--qv-visible-column-count);
 
-      ion-label,
-      mat-label {
+      &.mat-column-top-start {
+        padding-inline-start: 8px;
+        color: unset;
+      }
+
+      &.mat-column-qv-group {
         text-align: center;
-        margin: 0;
-        width: 100%;
+        background-color: var(--ion-color-light-shade, lightgray);
+        border-top: 8px solid var(--mat-toolbar-background-color);
+        &.even {
+          background-color: var(--ion-color-medium) !important;
+        }
+        ion-label,
+        mat-label {
+          text-align: center !important;
+          margin: 0;
+          width: 100%;
 
-        mat-checkbox {
-          margin-left: 5px;
-          margin-right: 5px;
+          mat-checkbox {
+            margin-left: 5px;
+            margin-right: 5px;
+          }
         }
       }
     }
   }
 
+
   .mat-header-row,
   .mat-row {
 
-    .mat-header-cell.hide,
-    .mat-cel.hide {
-      display: none;
-      visibility: hidden;
-    }
 
     .mat-header-cell.total {
-      background-color: var(--ion-color-light, whitesmoke) !important;
+      background-color: var(--ion-color-light-tint, lightgray) !important;
     }
-
     .mat-cell.total {
-      background-color: var(--ion-color-light, whitesmoke) !important;
-      color: var(--ion-color-light-contrast, black) !important;
+      background-color: var(--ion-color-light-tint, lightgray);
     }
 
+    &.mat-row-selected {
+      .mat-cell.total {
+        background-color: rgba(0,0,0, 0.1) !important;
+      }
+    }
     .mat-column-id {
       max-width: 30px;
     }
@@ -78,14 +69,20 @@
       min-width: 150px;
     }
 
+    .mat-column-samplingIndividualCount {
+      max-width: 60px;
+    }
+
     .mat-column-comments {
       max-width: inherit; // Override default limitation
     }
 
+    .mat-column-top-end,
     .mat-column-actions {
       max-width: 40px;
       padding-inline-start: 0;
       padding-inline-end: 0;
+      color: unset;
     }
   }
 }

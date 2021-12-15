@@ -46,6 +46,9 @@ export const PmfmIds = {
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
+  MEASURE_TIME: 103,
+  RELEASE_LATITUDE: 110,
+  RELEASE_LONGITUDE: 111,
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only
@@ -80,6 +83,7 @@ export const PmfmIds = {
 
   /* PIFIL pmfms */
   HAS_ACCIDENTAL_CATCHES: 390,
+  INDIVIDUAL_ON_DECK: 397,
 
   /* LOGBOOK-SEA-CUCUMBER (SFA)*/
   GPS_USED: 188
@@ -121,6 +125,11 @@ export const UnitIds = {
   NONE: 0
 }
 
+export const ParameterGroupIds = {
+  UNKNOWN: 0,
+  SURVEY: 1
+}
+
 export const autoCompleteFractions = {
   1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
   1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
@@ -155,14 +164,24 @@ export const UnitLabelPatterns = {
   DATE_TIME: /^Date[ &]+Time$/
 };
 
+export declare type WeightUnitSymbol = 'kg' | 'g' | 'mg' | 't';
+export const WeightToKgCoefficientConversion = Object.freeze({
+  't': 1000,
+  'kg': 1,
+  'g': 1/1000,
+  'mg': 1/1000/1000
+});
+
 // TODO Should be override by config properties
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg',
-  GRAM: 'g',
-  TOM: 't'
+  KG: <WeightUnitSymbol>'kg',
+  GRAM: <WeightUnitSymbol>'g',
+  MG: <WeightUnitSymbol>'mg',
+  TON: <WeightUnitSymbol>'t'
 };
+
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
   GOOD: 1,

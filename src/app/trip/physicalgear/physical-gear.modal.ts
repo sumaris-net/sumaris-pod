@@ -70,7 +70,8 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
       this.form.disable();
     }
 
-    this.form.value = this.originalData || new PhysicalGear();
+    this.form.setValue(this.originalData || new PhysicalGear());
+    this.form.markAsReady();
 
     // Compute the title
     this.computeTitle();
@@ -164,6 +165,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
     try {
       this.form.error = null;
 
+      await this.form.waitIdle();
       const gear = this.form.value;
 
       return await this.viewCtrl.dismiss(gear);

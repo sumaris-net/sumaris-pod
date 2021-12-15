@@ -1,15 +1,15 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {StrategyValidatorService} from '../services/validator/strategy.validator';
-import {Strategy} from '../services/model/strategy.model';
-import {AppTable, EntitiesTableDataSource, isNotNil, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
-import {StrategyService} from '../services/strategy.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {Program} from '../services/model/program.model';
-import {environment} from '@environments/environment';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { StrategyValidatorService } from '../services/validator/strategy.validator';
+import { Strategy } from '../services/model/strategy.model';
+import { AppTable, EntitiesTableDataSource, isNotNil, LocalSettingsService, PlatformService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList } from '@sumaris-net/ngx-components';
+import { StrategyService } from '../services/strategy.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { Program } from '../services/model/program.model';
+import { environment } from '@environments/environment';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 @Component({
   selector: 'app-strategy-table',
@@ -26,6 +26,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
+  readonly mobile: boolean;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -51,7 +52,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   constructor(
     route: ActivatedRoute,
     router: Router,
-    platform: Platform,
+    platform: PlatformService,
     location: Location,
     modalCtrl: ModalController,
     localSettingsService: LocalSettingsService,
@@ -85,6 +86,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
       null,
       injector);
 
+    this.mobile = platform.mobile;
     this.inlineEdition = false
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.confirmBeforeDelete = true;

@@ -16,7 +16,7 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
-import { PmfmValue, PmfmValueUtils } from '../../../referential/services/model/pmfm-value.model';
+import { PmfmValueUtils } from '../../../referential/services/model/pmfm-value.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -145,7 +145,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     target.taxonName = this.taxonName && this.taxonName.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
-    target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
+    target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject && c.asObject(opts) || c) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
@@ -155,6 +155,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
       delete target.parentId;
       // Remove computed properties
       delete target.weight;
+      if (target.measurementValues) delete target.measurementValues.__typename
     }
 
     return target;
@@ -483,7 +484,7 @@ export class BatchUtils {
         }
       }
       // Measurement
-      if (opts.showMeasure !== false) {
+      if (opts.showMeasure !== false && batch.measurementValues) {
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
           message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }

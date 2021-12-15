@@ -1,4 +1,4 @@
-import {Department, IEntity, Person, Referential, ReferentialRef, StatusIds} from '@sumaris-net/ngx-components';
+import { Department, EntityAsObjectOptions, IEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 
@@ -61,16 +61,21 @@ export const DataQualityStatusList = Object.freeze([
 
 /* -- Interface -- */
 
-export interface IWithRecorderDepartmentEntity<T, ID = number> extends IEntity<T, ID> {
+export interface IWithRecorderDepartmentEntity<T,
+  ID = number,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any
+  >
+  extends IEntity<T, ID, AO, FO> {
   recorderDepartment: Department|ReferentialRef|Referential;
 }
-export interface IWithRecorderPersonEntity<T, ID = number> extends IEntity<T, ID> {
+export interface IWithRecorderPersonEntity<T, ID = number> extends IEntity<T, ID, any> {
   recorderPerson: Person;
 }
-export interface IWithObserversEntity<T, ID = number> extends IEntity<T, ID> {
+export interface IWithObserversEntity<T, ID = number> extends IEntity<T, ID, any> {
   observers: Person[];
 }
-export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID> {
+export interface IWithProgramEntity<T, ID = number> extends IEntity<T, ID, any> {
   program: Referential | any;
   recorderPerson?: Person;
   recorderDepartment: Referential | any;

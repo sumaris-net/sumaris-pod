@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -20,34 +20,34 @@ import {
   StatusIds,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { Program } from '../../services/model/program.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, Platform } from '@ionic/angular';
-import { Location } from '@angular/common';
-import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
-import { ReferentialFilter } from '../../services/filter/referential.filter';
-import { ReferentialRefService } from '../../services/referential-ref.service';
-import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
-import { environment } from '@environments/environment';
-import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
-import { SamplingStrategyService } from '../../services/sampling-strategy.service';
-import { StrategyService } from '../../services/strategy.service';
+import {Program} from '../../services/model/program.model';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ModalController, Platform} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {ReferentialFilter} from '../../services/filter/referential.filter';
+import {ReferentialRefService} from '../../services/referential-ref.service';
+import {ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME} from '../../services/config/program.config';
+import {environment} from '@environments/environment';
+import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
+import {SamplingStrategyService} from '../../services/sampling-strategy.service';
+import {StrategyService} from '../../services/strategy.service';
 import * as momentImported from 'moment';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ParameterService } from '@app/referential/services/parameter.service';
-import { debounceTime, filter, tap } from 'rxjs/operators';
-import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
-import { Subject } from 'rxjs';
-import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { StrategyModal } from '@app/referential/strategy/strategy.modal';
+import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ParameterService} from '@app/referential/services/parameter.service';
+import {debounceTime, filter, tap} from 'rxjs/operators';
+import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import {Subject} from 'rxjs';
+import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
+import {StrategyModal} from '@app/referential/strategy/strategy.modal';
 
 const moment = momentImported;
 
 export const SamplingStrategiesPageSettingsEnum = {
-  PAGE_ID: "samplingStrategies",
-  FILTER_KEY: "filter",
+  PAGE_ID: 'samplingStrategies',
+  FILTER_KEY: 'filter',
   FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME
 };
 
@@ -270,7 +270,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
   clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
     this.highlightedRow = row;
-
     return super.clickRow(event, row);
   }
 

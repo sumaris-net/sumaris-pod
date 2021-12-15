@@ -1,12 +1,10 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {VesselValidatorService} from '../services/validator/vessel.validator';
-import {Vessel} from '../services/model/vessel.model';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {AccountService, AppForm, AppFormUtils, LocalSettingsService, StatusById, StatusIds, StatusList, toBoolean} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {FormGroup} from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { VesselValidatorService } from '../services/validator/vessel.validator';
+import { Vessel } from '../services/model/vessel.model';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AccountService, AppForm, AppFormUtils, LocalSettingsService, StatusById, StatusIds, StatusList, toBoolean } from '@sumaris-net/ngx-components';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { FormGroup } from '@angular/forms';
 
 
 @Component({
@@ -51,7 +49,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected vesselValidatorService: VesselValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
@@ -59,9 +57,8 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
     private accountService: AccountService
   ) {
 
-    super(dateAdapter,
-      vesselValidatorService.getFormGroup(),
-      settings);
+    super(injector,
+      vesselValidatorService.getFormGroup());
 
     this.canEditStatus = this.accountService.isAdmin();
   }

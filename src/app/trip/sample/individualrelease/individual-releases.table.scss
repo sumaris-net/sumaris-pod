@@ -1,0 +1,10 @@
+.table-container {
+  --table-toolbar-height: var(--mat-toolbar-height);
+  height: calc(100vh  - var(--table-container-offset, 0px) - var(--table-toolbar-height) - var(--table-container-bottom, 0px) - 1px);
+}
+
+.mat-column-pmfm {
+  //min-width: 60px;
+  min-width: calc(max(80px, 50vw / var(--pmfm-count)));
+  max-width: calc(70vw / var(--pmfm-count));
+}

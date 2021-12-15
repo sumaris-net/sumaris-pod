@@ -1,20 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
-import {AccountService, IReferentialRef, isNotNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {OperationGroup} from '../services/model/trip.model';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {MetierService} from '@app/referential/services/metier.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {MeasurementValuesForm} from '@app/trip/measurement/measurement-values.form.class';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
-import {OperationGroupValidatorService} from '@app/trip/services/validator/operation-group.validator';
-import {filter, first} from 'rxjs/operators';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {Metier} from '@app/referential/services/model/metier.model';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { AccountService, isNotNil, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { OperationGroup } from '../services/model/trip.model';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { MetierService } from '@app/referential/services/metier.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { MeasurementValuesForm } from '@app/trip/measurement/measurement-values.form.class';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { OperationGroupValidatorService } from '@app/trip/services/validator/operation-group.validator';
+import { filter, first } from 'rxjs/operators';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { Metier } from '@app/referential/services/model/metier.model';
 
 
 @Component({
@@ -25,7 +23,6 @@ import {Metier} from '@app/referential/services/model/metier.model';
 })
 export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> implements OnInit {
 
-  protected $initialized = new BehaviorSubject<boolean>(false);
   displayAttributes: {
     [key: string]: string[]
   };
@@ -40,25 +37,20 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: OperationGroupValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
     protected metierService: MetierService,
-    protected accountService: AccountService,
-    protected cd: ChangeDetectorRef
+    protected accountService: AccountService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         withMeasurements: false
-      }),
-      {
-        onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
-      }
+      })
     );
 
     // Set default acquisition level
@@ -97,12 +89,6 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
         .subscribe(metier => this.updateGearAndTargetSpecies(metier))
     );
   }
-  setValue(data: OperationGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; }) {
-    super.setValue(data, opts);
-
-    // This will cause update controls
-    this.$initialized.next(true);
-  }
 
   async updateGearAndTargetSpecies(metier: Metier) {
 
@@ -121,31 +107,8 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     }
   }
 
-  protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
-    form = form || this.form;
-
-    // Wait end of ngInit()
-    await this.onInitialized();
-
-    // Add pmfms to form
-    const measFormGroup = form.get('measurementValuesForm') as FormGroup;
-    if (measFormGroup) {
-      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this.$pmfms.getValue()});
-    }
-  }
 
   /* -- protected methods -- */
-
-  protected async onInitialized(): Promise<void> {
-    // Wait end of setValue()
-    if (this.$initialized.getValue() !== true) {
-      await this.$initialized
-        .pipe(
-          filter((initialized) => initialized === true),
-          first()
-        ).toPromise();
-    }
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();

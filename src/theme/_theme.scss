@@ -41,6 +41,11 @@
       }
     }
   }
+
+  .mat-header-row  .mat-header-cell .pmfm-details {
+    margin-top: 4px;
+    font-size: 90% !important;
+  }
 }
 
 mat-form-field {
@@ -58,10 +63,16 @@ mat-form-field {
       white-space: normal;
       padding: 0 2px;
       height: 40px;
+      text-transform: capitalize; // Avoid uppercase text
     }
   }
 
   .fab-button-small {
     margin: 0 5px;
   }
+}
+
+.mat-toolbar, .mat-toolbar-single-row {
+  background-color: #{$mat-toolbar-background-color};
+  height: var(--mat-toolbar-height);
 }

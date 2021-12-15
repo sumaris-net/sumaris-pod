@@ -1,4 +1,4 @@
-import {AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import { AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {FormBuilder, Validators} from "@angular/forms";
@@ -20,12 +20,12 @@ export class CommentForm extends AppForm<{comment: string}> implements OnInit, A
   private focused = false;
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder,
   ) {
-    super(dateAdapter, formBuilder.group({comment: [null, Validators.maxLength(2000)]}), settings);
+    super(injector, formBuilder.group({comment: [null, Validators.maxLength(2000)]}));
   }
 
   protected markForCheck() {

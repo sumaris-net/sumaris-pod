@@ -703,8 +703,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.expenseForm.invalid
     ];
 
-    const firstInvalidTab = invalidTabs.indexOf(true);
-    return firstInvalidTab > -1 ? firstInvalidTab : this.selectedTabIndex;
+    return invalidTabs.indexOf(true);
   }
 
   protected computePageUrl(id: number|'new'): string | any[] {

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, merge, Observable, timer } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
@@ -36,6 +36,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   $programLabel = new BehaviorSubject<string>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  i18nPmfmPrefix: string = null;
 
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected _gearId: number = null;
@@ -45,8 +46,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected options: MeasurementValuesFormOptions<T>;
   protected data: T;
   protected applyingValue = false;
-  protected keepDisabledPmfmControl = false;
-  protected keepComputedPmfmControl = false;
+  protected cd: ChangeDetectorRef = null;
 
   get forceOptional(): boolean {
     return this._forceOptional;
@@ -93,7 +93,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (this._acquisitionLevel !== value && isNotNil(value)) {
+    if (isNotNil(value) && this._acquisitionLevel !== value) {
       this._acquisitionLevel = value;
       if (!this.starting) this._onRefreshPmfms.emit();
     }
@@ -143,16 +143,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.form.get('program');
   }
 
-  protected constructor(protected dateAdapter: DateAdapter<Moment>,
+  protected constructor(injector: Injector,
                         protected measurementValidatorService: MeasurementsValidatorService,
                         protected formBuilder: FormBuilder,
                         protected programRefService: ProgramRefService,
-                        protected settings: LocalSettingsService,
-                        protected cd: ChangeDetectorRef,
                         form?: FormGroup,
                         options?: MeasurementValuesFormOptions<T>
   ) {
-    super(dateAdapter, form, settings);
+    super(injector, form);
+    this.cd = injector.get(ChangeDetectorRef);
     this.options = {
       skipComputedPmfmControl: true,
       skipDisabledPmfmControl: true,
@@ -179,14 +178,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.registerSubscription(
       this.form.valueChanges
         .pipe(
-          filter(() => !this.loading && !this.applyingValue)
+          filter(() => !this.loading && !this.applyingValue && this.valueChanges.observers.length > 0)
         )
         .subscribe((_) => this.valueChanges.emit(this.value))
     );
 
     // Try to load pmfms
-    this.setLoadingProgression(MeasurementFormLoadingSteps.LOADING_PMFMS);
-    this.loadPmfms();
+    if (this.starting) {
+      this.setLoadingProgression(MeasurementFormLoadingSteps.LOADING_PMFMS);
+      this.loadPmfms();
+    }
   }
 
   ngOnDestroy() {
@@ -201,7 +202,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * Reset all data to original value. Useful sometimes, to re init the component (e.g. physical gear form).
    * Note: Keep @Input() attributes unchanged
    */
-  public unload() {
+  unload() {
     this.data = null;
     this.applyingValue = false;
     this._measurementValuesForm = null;
@@ -228,38 +229,24 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  waitIdle(opts?: WaitForOptions): Promise<boolean> {
-    let idle$ = this.$loadingStep
+  async ready(): Promise<void> {
+    await super.ready();
+
+    if (this.$loadingStep.value >= MeasurementFormLoadingSteps.FORM_GROUP_READY) return;
+
+    await firstNotNilPromise(this.$loadingStep
       .pipe(
-        // DEBUG
-        //tap(_ => console.debug(this.logPrefix + 'waiting idle...')),
-
-        filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY),
-        map(_ => true)
-      );
-
-    // Add timeout
-    if (opts && opts.timeout) {
-      idle$ = merge(
-        idle$,
-        timer(opts.timeout)
-          .pipe(
-            map(_ => {
-              throw new Error(`waitIdle Timeout (after ${opts.timeout}ms)`);
-            }))
-      );
-    }
-
-    return firstNotNilPromise(idle$);
+        filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
+      ));
   }
 
 
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
-    this.applyValue(data, opts);
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void {
+    return this.applyValue(data, opts);
   }
 
   reset(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
-    this.applyValue(data, opts);
+    this.setValue(data, opts);
   }
 
   /* -- protected methods -- */
@@ -269,7 +256,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
    * @param data
    * @param opts
    */
-  protected async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}) {
+  async applyValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any}) {
     this.applyingValue = true;
 
     try {
@@ -277,8 +264,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       this.onApplyingEntity(data, opts);
 
       // Wait form is ready, before applying the data
-      const waitIdle = (!opts || opts.waitIdle !== false);
-      if (waitIdle) await this.waitIdle();
+      await this.ready();
 
       // Applying value to form (that should be ready).
       await this.updateView(this.data, opts);
@@ -295,7 +281,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
     if (data.program?.label) {
-      // Propage program
+      // Propagate program
       this.setProgramLabel(data.program?.label);
     }
   }
@@ -374,8 +360,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
         .filter(pmfm => {
           const control = measurementValuesForm.controls[pmfm.id];
           return control && (
-            // Dirty or disable
-              control.dirty || (this.options.skipDisabledPmfmControl === false && control.disabled))
+            // Dirty
+            control.dirty
+            // Disabled (skipped by default)
+            || (this.options.skipDisabledPmfmControl === false && control.disabled))
             // Computed (skipped by default)
             || (this.options.skipComputedPmfmControl === false && pmfm.isComputed);
         });
@@ -446,9 +434,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   resetPmfms() {
-    this.markAsLoading();
-    if (this.debug && this.$pmfms.value) console.warn(`${this.logPrefix} Reset pmfms`);
-    if (this.$pmfms.value) this.$pmfms.next(undefined);
+    if (isNil(this.$pmfms.value)) return; // Already resetted
+
+    if (this.debug) console.warn(`${this.logPrefix} Reset pmfms`);
+
+    if (!this.starting && !this.loading) this.markAsLoading();
+    this.$pmfms.next(undefined);
   }
 
   async setPmfms(value: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
@@ -599,9 +590,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return `[meas-values-form-${acquisitionLevel}]`;
   }
 
-
   protected markForCheck() {
-    this.cd.markForCheck();
+    this.cd?.markForCheck();
   }
 
 }

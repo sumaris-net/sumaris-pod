@@ -6,7 +6,7 @@ import {
   EntityUtils,
   fadeInOutAnimation,
   firstArrayValue,
-  firstNotNilPromise,
+  firstNotNilPromise, firstTruePromise,
   fromDateISOString,
   HistoryPageReference,
   isEmptyArray,
@@ -15,7 +15,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   PlatformService,
-  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   UsageMode,
@@ -44,6 +43,7 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const moment = momentImported;
 
@@ -81,8 +81,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   mobile: boolean;
   showEntityMetadata = false;
   showQualityForm = false;
-  i18nPrefix = LANDING_DEFAULT_I18N_PREFIX;
   contextService: ContextService;
+  showSamplesTable = false;
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -111,7 +111,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
     this.contextService = injector.get(ContextService);
-
+    this.i18nContext.prefix = LANDING_DEFAULT_I18N_PREFIX;
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
@@ -120,6 +120,13 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
+
+    // Enable samples tab, when has pmfms
+    firstTruePromise(this.samplesTable.$hasPmfms)
+      .then(() => {
+        this.showSamplesTable = true;
+        this.markForCheck()
+      });
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(
@@ -134,6 +141,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.registerSubscription(
       this.landingForm.$strategyLabel
         .pipe(
+          filter(value => this.$strategyLabel.value !== value),
           tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),
           tap(strategyLabel => this.$strategyLabel.next(strategyLabel))
         )
@@ -164,7 +172,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     // DEBUG
-    // console.debug(' Creating new landing entity');
+    console.debug(' Creating new landing entity');
 
     if (this.isOnFieldMode) {
       data.dateTime = moment();
@@ -176,6 +184,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Load parent
     this.parent = await this.loadParent(data);
+    const programLabel = this.parent.program?.label;
 
     // Copy from parent into the new object
     if (this.parent) {
@@ -221,22 +230,27 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Specific conf
     }
 
-    // Set contextual strategy
-    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
-    if (contextualStrategy) {
-      data.measurementValues = data.measurementValues || {};
-      data.measurementValues[PmfmIds.STRATEGY_LABEL] = contextualStrategy.label;
-      this.$strategyLabel.next(contextualStrategy.label);
-    }
-
     this.showEntityMetadata = false;
     this.showQualityForm = false;
+
+    // Set contextual strategy
+    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
+    const strategyLabel = contextualStrategy?.label;
+    if (strategyLabel) {
+      data.measurementValues = data.measurementValues || {};
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
+    }
+
+    // Emit program, strategy
+    if (programLabel) this.$programLabel.next(programLabel);
+    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
 
   }
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.parent = await this.loadParent(data);
+    const programLabel = this.parent.program?.label;
 
     // Copy not fetched data
     if (this.parent) {
@@ -269,6 +283,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.showEntityMetadata = EntityUtils.isRemote(data);
       this.showQualityForm = this.showEntityMetadata;
     }
+
+
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
+
+    // Emit program, strategy
+    if (programLabel) this.$programLabel.next(programLabel);
+    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
   }
 
   onPrepareSampleForm({form, pmfms}) {
@@ -313,36 +335,50 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   }
 
   protected async setProgram(program: Program) {
-    await super.setProgram(program);
     if (!program) return; // Skip
+    console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
 
     // Customize the UI, using program options
+    const requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    this.landingForm.requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
-    this.landingForm.showStrategy = this.landingForm.requiredStrategy;
+    this.landingForm.requiredStrategy = requiredStrategy;
+    this.landingForm.showStrategy = requiredStrategy;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : '';
-    this.i18nPrefix = LANDING_DEFAULT_I18N_PREFIX + i18nSuffix;
-    this.landingForm.i18nPrefix = this.i18nPrefix;
+    i18nSuffix = (i18nSuffix && i18nSuffix !== 'legacy') ? i18nSuffix : (this.i18nContext?.suffix || '');
+    this.i18nContext.suffix = i18nSuffix;
+    this.landingForm.i18nSuffix = i18nSuffix;
 
     if (this.samplesTable) {
+      this.samplesTable.i18nColumnSuffix = i18nSuffix;
       this.samplesTable.modalOptions = {
         ...this.samplesTable.modalOptions,
         maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
       };
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
-      this.samplesTable.programLabel = program.label;
       this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
+
+      // Send programLabel to samples tables: will start loading pmfms
+      // If strategy is required, programLabel will be set by setStrategy()
+      if (!requiredStrategy) {
+        this.samplesTable.programLabel = program.label;
+      }
     }
 
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
+    }
+
+    // Emit ready event (should allow children forms to apply value)
+    // If strategy is required, markAsReady() will be called in setStrategy()
+    if (this.isNewData || !requiredStrategy) {
+      this.landingForm.canEditStrategy = true;
+      this.markAsReady();
     }
 
     // Listen program's strategies change (will reload strategy if need)
@@ -350,7 +386,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.startListenStrategyRemoteChanges(program);
   }
 
-  protected async setStrategy(strategy: Strategy) {
+  protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean; }) {
     await super.setStrategy(strategy);
 
     if (!strategy) return; // Skip if empty
@@ -364,40 +400,45 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.filteredFishingAreaLocations = fishingAreaLocations;
     this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
-    // Propagate to table
-    this.samplesTable.strategyLabel = strategy.label;
-    const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
-    this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
-    this.samplesTable.showTaxonGroupColumn = false;
+    // Configure samples table
+    if (this.samplesTable) {
+      this.samplesTable.strategyLabel = strategy.label;
+      const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
+      this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
+      this.samplesTable.showTaxonGroupColumn = false;
 
-    // We use pmfms from strategy and from sampling data. Some pmfms are only stored in data.
-    const strategyPmfms: IPmfm[] = (strategy.denormalizedPmfms || []).filter(p => p.acquisitionLevel === this.samplesTable.acquisitionLevel);
-    const strategyPmfmIds = strategyPmfms.map(pmfm => pmfm.id);
+      // Load strategy's pmfms
+      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(this.$program.value.label,
+        {
+          strategyLabel: strategy.label,
+          acquisitionLevel: this.samplesTable.acquisitionLevel
+        });
+      const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
 
-    // Retrieve additional pmfms, from data (= PMFMs NOT in the strategy)
-    const additionalPmfmIds = (this.data?.samples || []).reduce((res, sample) => {
-      const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
-      const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
-      return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
-    }, []);
+      // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
+      const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
+        const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
+        const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
+        return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
+      }, []);
 
-    // Override samples table pmfm, if need
-    if (isNotEmptyArray(additionalPmfmIds)) {
+      // Override samples table pmfm, if need
+      if (isNotEmptyArray(additionalPmfmIds)) {
 
-      // Load additional pmfms, from ids
-      const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.load(id)));
+        // Load additional pmfms, from ids
+        const additionalPmfms = await Promise.all(additionalPmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
+        const additionalFullPmfms = additionalPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
-      // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
-      // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
-      await this.samplesTable.ready();
+        // IMPORTANT: Make sure pmfms have been loaded once, BEFORE override.
+        // (Elsewhere, the strategy's PMFM will be applied after the override, and additional PMFM will be lost)
+        samplesPmfms = samplesPmfms.concat(additionalFullPmfms);
+      }
 
-      // Applying additional PMFMs
-      this.samplesTable.pmfms = [
-        ...strategyPmfms,
-        ...additionalPmfms
-      ];
+      // Give it to samples table (but exclude STRATEGY_LABEL)
+      this.samplesTable.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
     }
 
+    this.markAsReady();
     this.markForCheck();
   }
 
@@ -418,24 +459,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       throw new Error('No parent found in path. Landing without parent not implemented yet !');
     }
 
-    // Emit program
-    if (parent.program && parent.program.label) {
-      this.$programLabel.next(parent.program.label);
-    }
-
     return parent;
   }
 
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
-
-    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
-    if (strategyLabel) {
-      this.landingForm.$strategyLabel.next(strategyLabel);
-    }
-
-    this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
-    this.landingForm.value = data;
+    await this.landingForm.setValue(data);
 
     // Set samples to table
     this.samplesTable.value = data.samples || [];
@@ -456,7 +485,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && (this.parent instanceof ObservedLocation) &&
-      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
+      await this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';
@@ -497,8 +526,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Workaround, because sometime measurementValues is empty (see issue IMAGINE-273)
     data.measurementValues = this.form.controls.measurementValues?.value || {};
-    if (isNotNilOrBlank(this.$strategyLabel.getValue())) {
-      data.measurementValues[PmfmIds.STRATEGY_LABEL] = this.$strategyLabel.getValue();
+    const strategyLabel = this.$strategyLabel.value;
+    if (isNotNilOrBlank(strategyLabel)) {
+      data.measurementValues[PmfmIds.STRATEGY_LABEL] = strategyLabel;
     }
 
     // Save samples table

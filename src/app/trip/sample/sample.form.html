@@ -1,5 +1,11 @@
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
+  <!--<ion-text *ngIf="debug">
+    I18n Pmfm  prefix: {{i18nPmfmPrefix}}<br/>
+    I18n Field prefix: {{i18nFieldPrefix}}<br/>
+    I18n Suffix: {{i18nSuffix}}<br/>
+  </ion-text>-->
+
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -16,7 +22,7 @@
                  formControlName="label"
                  [appAutofocus]="enabled &&  focusFieldName === 'label'"
                  [tabindex]="tabindex"
-                 [placeholder]="i18nPrefix + 'LABEL_PLACEHOLDER'|translate"
+                 [placeholder]="'TRIP.SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nSuffix"
                  (click)="selectInputContent($event)"
                  [required]="showLabel">
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
@@ -32,7 +38,7 @@
                [hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [autofocus]="enabled && focusFieldName === 'taxonGroup'"
-                                [placeholder]="i18nPrefix + 'TAXON_GROUP_PLACEHOLDER'|translate"
+                                [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_GROUP_PLACEHOLDER'|translateContext: i18nSuffix"
                                 [tabindex]="tabindex+2"
                                 [required]="showTaxonGroup"
                                 [config]="autocompleteFields.taxonGroup">
@@ -45,7 +51,7 @@
                *ngIf="showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
                                 [autofocus]="enabled && focusFieldName === 'taxonName'"
-                                [placeholder]="i18nPrefix + 'TAXON_NAME_PLACEHOLDER'|translate"
+                                [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_NAME_PLACEHOLDER'|translateContext: i18nSuffix"
                                 [tabindex]="tabindex+3"
                                 [required]="showTaxonName"
                                 [config]="autocompleteFields.taxonName">
@@ -55,7 +61,7 @@
       <!-- sample date -->
       <ion-col *ngIf="showSampleDate" size="6">
         <mat-date-time-field formControlName="sampleDate"
-                             [placeholder]="i18nPrefix + 'SAMPLE_DATE_PLACEHOLDER'|translate"
+                             [placeholder]="'TRIP.SAMPLE.EDIT.SAMPLE_DATE_PLACEHOLDER'|translateContext: i18nSuffix"
                              [tabindex]="tabindex+4"
                              [required]="usageMode|isNotOnField"
                              [clearable]="usageMode|isOnField">
@@ -64,25 +70,31 @@
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row *ngIf="$pmfms | async; let pmfms"
+    <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
              [formGroup]="measurementValuesForm"
              class="ion-no-padding">
-      <ion-col *ngFor="let pmfm of pmfms; index as i; last as last"
-               [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
-               class="pmfm-{{pmfm.id}}">
-        <app-pmfm-field #matInput
-                       [pmfm]="pmfm"
-                       [style]="mobile && 'button'"
-                       [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
-                       [maxVisibleButtons]="maxVisibleButtons"
-                       [compact]="compact"
-                       [tabindex]="tabindex+4 + i*maxVisibleButtons">
-            <!-- TODO (keyup.enter)="last && onSubmit($event)" -->
-        </app-pmfm-field>
-      </ion-col>
+      <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
+
+        <!--<ion-col *ngIf="(pmfm|pmfmName) === 'D1'" size="12" class="dolphin-damage">
+          <mat-icon svgIcon="dolphin-damage"></mat-icon>
+        </ion-col>-->
+        <ion-col
+                 [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
+                 class="pmfm-{{pmfm.id}}">
+          <app-pmfm-field #matInput
+                         [pmfm]="pmfm"
+                         [style]="mobile && 'button'"
+                         [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
+                         [maxVisibleButtons]="maxVisibleButtons"
+                         [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                         [tabindex]="tabindex+4 + i*maxVisibleButtons"
+                         (keyup.enter)="last && onSubmit.emit($event)">
+          </app-pmfm-field>
+        </ion-col>
+      </ng-container>
     </ion-row>
 
-    <ng-content></ng-content>
+    <ng-content select="[beforeComment]"></ng-content>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
@@ -98,6 +110,8 @@
         </mat-form-field>
       </ion-col>
     </ion-row>
+
+    <ng-content select="[afterComment]"></ng-content>
   </ion-grid>
 
 

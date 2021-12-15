@@ -3,8 +3,8 @@ import {isNil, isNotNil} from "@sumaris-net/ngx-components";
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {IPmfm} from "../model/pmfm.model";
 
-const REGEXP_INTEGER = /^[0-9]+$/;
-const REGEXP_DOUBLE = /^[0-9]+(\.[0-9]+)?$/;
+const REGEXP_INTEGER = /^[+|-]?[0-9]+$/;
+const REGEXP_DOUBLE = /^[+|-]?[0-9]+(\.[0-9]+)?$/;
 
 export class PmfmValidators {
 

@@ -6,7 +6,10 @@ import {ErrorCodes} from './errors';
 import {ReferentialFragments} from './referential.fragments';
 import {
   AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
   EntitiesStorage,
+  EntitySaveOptions,
   EntityUtils,
   GraphqlService,
   IEntitiesService,
@@ -16,21 +19,27 @@ import {
   LoadResult,
   NetworkService,
   PlatformService,
-  ReferentialAsObjectOptions, ReferentialUtils,
+  ReferentialAsObjectOptions,
+  ReferentialUtils,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {CacheService} from 'ionic-cache';
 import {ReferentialRefService} from './referential-ref.service';
-import {Program} from './model/program.model';
+import {Program, ProgramPerson} from './model/program.model';
 import {SortDirection} from '@angular/material/sort';
 import {ReferentialService} from './referential.service';
 import {ProgramFragments} from './program.fragments';
-import {BaseEntityGraphqlMutations, BaseEntityGraphqlQueries} from '@sumaris-net/ngx-components';
 import {ProgramRefService} from './program-ref.service';
 import {BaseReferentialService} from './base-referential-service.class';
 import {StrategyRefService} from './strategy-ref.service';
 import {ProgramFilter} from './filter/program.filter';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+
+export interface ProgramSaveOptions extends EntitySaveOptions {
+  withStrategies?: boolean; // False by default
+  withDepartmentsAndPersons?: boolean; // True by default
+}
 
 const ProgramQueries: BaseEntityGraphqlQueries = {
   // Load by id
@@ -40,7 +49,8 @@ const ProgramQueries: BaseEntityGraphqlQueries = {
     }
   }
   ${ProgramFragments.program}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightPerson}`,
 
   // Load all query
   loadAll: gql`query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -61,13 +71,14 @@ const ProgramQueries: BaseEntityGraphqlQueries = {
 };
 
 const ProgramMutations: BaseEntityGraphqlMutations = {
-  save: gql`mutation SaveProgram($data: ProgramVOInput!){
-    data: saveProgram(program: $data){
+  save: gql`mutation SaveProgram($data: ProgramVOInput!, $options: ProgramSaveOptionsInput!){
+    data: saveProgram(program: $data, options: $options){
       ...ProgramFragment
     }
   }
   ${ProgramFragments.program}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightPerson}`,
 
   delete: gql`mutation DeletePrograms($ids:[Int]){
     deleteReferentials(entityName: "Program", ids: $ids)
@@ -232,13 +243,74 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     return await this.referentialService.existsByLabel(label, { ...opts, entityName: 'Pmfm' });
   }
 
-  async save(entity: Program, options?: any): Promise<Program> {
-    if (!entity) return entity;
 
-    // Clean cache
-    await this.clearCache();
+  async save(entity: Program, opts?: ProgramSaveOptions): Promise<Program> {
 
-    return super.save(entity, options);
+    const isSamplingStrategyEditor = 'sampling' === entity?.properties[ProgramProperties.STRATEGY_EDITOR.key];
+    opts = {
+      withStrategies: false,
+      withDepartmentsAndPersons: isSamplingStrategyEditor ? false : true,
+      ...opts
+    };
+
+    const options: EntitySaveOptions = {
+      awaitRefetchQueries: opts.awaitRefetchQueries,
+      refetchQueries: opts.refetchQueries,
+      update: opts.update
+    };
+
+    if (!this.mutations.save) {
+      if (!this.mutations.saveAll) throw new Error('Not implemented');
+
+      const data = await this.saveAll([entity], options);
+      return data && data[0];
+    }
+
+    // Fill default properties
+    this.fillDefaultProperties(entity);
+
+    // Transform into json
+    const json = this.asObject(entity);
+
+    const isNew = this.isNewFn(json);
+
+    const now = Date.now();
+    if (this._debug) console.debug(this._logPrefix + `Saving ${this._logTypeName}...`, json);
+
+    await this.graphql.mutate<{ data: any }>({
+      mutation: this.mutations.save,
+      refetchQueries: this.getRefetchQueriesForMutation(options),
+      awaitRefetchQueries: options && options.awaitRefetchQueries,
+      variables: {
+        data: json,
+        options: {
+          withStrategies: opts.withStrategies,
+          withDepartmentsAndPersons: opts.withDepartmentsAndPersons
+        }
+      },
+      error: {code: ErrorCodes.SAVE_PROGRAM_ERROR, message: 'ERROR.SAVE_PROGRAM_ERROR'},
+      update: (cache, {data}) => {
+        // Update entity
+        const savedEntity = data && data.data;
+        this.copyIdAndUpdateDate(savedEntity, entity);
+
+        // Insert into the cache
+        if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
+          this.insertIntoMutableCachedQueries(cache, {
+            queries: this.getLoadQueries(),
+            data: savedEntity
+          });
+        }
+
+        if (options && options.update) {
+          options.update(cache, {data});
+        }
+
+        if (this._debug) console.debug(this._logPrefix + `${entity.__typename} saved in ${Date.now() - now}ms`, entity);
+      }
+    });
+
+    return entity;
   }
 
   async clearCache() {
@@ -263,6 +335,15 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
   copyIdAndUpdateDate(source: Program, target: Program) {
     EntityUtils.copyIdAndUpdateDate(source, target);
 
+    // Update persons
+    if (target.persons && source.persons) {
+      target.persons.forEach(targetPerson => {
+        targetPerson.programId = source.id;
+        const sourcePerson = source.persons.find(p => ProgramPerson.equals(p, targetPerson));
+        EntityUtils.copyIdAndUpdateDate(sourcePerson, targetPerson);
+      });
+    }
+
     // Update strategies
     if (target.strategies && source.strategies) {
       target.strategies.forEach(entity => {
@@ -272,6 +353,8 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
 
       });
     }
+
+
   }
 
   /* -- protected methods -- */

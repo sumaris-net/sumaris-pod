@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { IReferentialRef, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { FormBuilder } from '@angular/forms';
 import { MeasurementValuesForm } from '@app/trip/measurement/measurement-values.form.class';
@@ -29,15 +29,13 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
   @Input() parentAttributes: string[];
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected validatorService: ProductValidatorService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected validatorService: ProductValidatorService
   ) {
-    super(dateAdapter, measurementValidatorService, formBuilder, programRefService, settings, cd,
+    super(injector, measurementValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         withMeasurements: false
       })
@@ -46,7 +44,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
 
-    this.mobile = settings.mobile;
+    this.mobile = this.settings.mobile;
     this.debug = !environment.production;
   };
 

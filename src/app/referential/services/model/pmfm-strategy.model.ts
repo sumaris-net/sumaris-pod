@@ -1,15 +1,8 @@
-import {
-  Entity,
-  EntityAsObjectOptions,
-  EntityClass,
-  IReferentialRef, isNil, isNotNil,
-  ReferentialRef, ReferentialUtils,
-  toNumber,
-} from '@sumaris-net/ngx-components';
-import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from "./pmfm.model";
-import { PmfmValue, PmfmValueUtils } from "./pmfm-value.model";
-import { MethodIds } from "./model.enum";
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.model";
+import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, ReferentialRef, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
+import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
+import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
+import { MethodIds, UnitIds } from './model.enum';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 
 
 @EntityClass({typename: "PmfmStrategyVO"})
@@ -159,6 +152,29 @@ export class DenormalizedPmfmStrategy
   implements IDenormalizedPmfm<DenormalizedPmfmStrategy> {
 
   static fromObject: (source: any, opts?: any) => DenormalizedPmfmStrategy;
+  static fromFullPmfm(source: Pmfm, opts?: any): DenormalizedPmfmStrategy {
+    if (!source) return undefined;
+    const target = new DenormalizedPmfmStrategy();
+    target.fromObject({
+      id: source.id,
+      label: source.label,
+      name: source.name,
+      type: source.type,
+      completeName: PmfmUtils.getPmfmName(source,{withDetails:true, withUnit: source.unit?.id !== UnitIds.NONE}),
+      minValue: source.minValue,
+      maxValue: source.maxValue,
+      defaultValue: source.defaultValue,
+      maximumNumberDecimals: source.maximumNumberDecimals,
+      signifFiguresNumber: source.signifFiguresNumber,
+      parameterId: source.parameter.id,
+      matrixId: source.matrixId,
+      fractionId: source.fractionId,
+      methodId: source.methodId,
+      unitLabel: source.unitLabel,
+      qualitativeValues: source.parameter.qualitativeValues && source.parameter.qualitativeValues.map(ReferentialRef.fromObject),
+    });
+    return target;
+  };
 
   label: string;
   name: string;

@@ -2,7 +2,20 @@ import {Moment} from 'moment';
 import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
 import {Sale} from './sale.model';
-import {EntityClass, EntityUtils, fromDateISOString, isEmptyArray, isNil, isNotNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import {
+  CompareWithFn,
+  Entity,
+  EntityClass,
+  EntityUtils,
+  fromDateISOString,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  Person,
+  ReferentialAsObjectOptions,
+  ReferentialRef,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import {FishingArea} from './fishing-area.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
 import {IWithObserversEntity} from '@app/data/services/model/model.utils';
@@ -16,6 +29,7 @@ import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
 import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {Metier} from '@app/referential/services/model/metier.model';
+import { SortDirection } from '@angular/material/sort';
 
 /* -- Helper function -- */
 
@@ -42,10 +56,12 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
   batchAsTree: false,
   sampleAsTree: false,
   keepTrip: true // Trip is needed to apply filter on it
+
 });
 
 @EntityClass({typename: 'OperationVO'})
-export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
+export class Operation
+  extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
   static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
 
@@ -114,8 +130,8 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     delete target.endPosition;
 
     // Physical gear
-    target.physicalGear = this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
-    delete target.physicalGear.measurementValues;
+    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
+    if (target.physicalGear) delete target.physicalGear.measurementValues;
     target.physicalGearId = this.physicalGear && this.physicalGear.id;
     if (opts && opts.keepLocalId === false && target.physicalGearId < 0) {
       delete target.physicalGearId; // Remove local id
@@ -530,6 +546,23 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
         && (s1.rankOrder === s2.rankOrder)
         // WARN: compare parent (e.g. same trip) is tto complicated, because it can be not set yet, before saving
       );
+  }
+
+  static computeSameAsScore(reference: PhysicalGear, source?: PhysicalGear): number {
+    if (!source) return -1;
+    return (reference.gear?.id === source.gear?.id ? 1 : 0) * 100
+      + (reference.rankOrder === source.rankOrder ? 1 : 0) * 10
+      + (reference.tripId === source.tripId ? 1 : 0) * 1
+  }
+
+  static sameAsComparator(gear: PhysicalGear, sortDirection?: SortDirection): (g1: PhysicalGear, g2: PhysicalGear) => number {
+    const direction = !sortDirection || sortDirection === 'desc' ? 1 : -1;
+    return (g1, g2) => {
+      const score1 = this.computeSameAsScore(gear, g1);
+      const score2 = this.computeSameAsScore(gear, g2);
+      return score1 === score2 ? 0 : (score1 > score2 ? direction : -direction);
+    };
+
   }
 
   rankOrder: number = null;

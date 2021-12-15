@@ -1,26 +1,25 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {FormControl, FormGroup} from '@angular/forms';
-import {AppForm} from '@sumaris-net/ngx-components';
-import moment, {Moment} from 'moment';
-import {DateAdapter} from '@angular/material/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { FormBuilder, Validators } from '@angular/forms';
+import { AppForm } from '@sumaris-net/ngx-components';
+import moment, { Moment } from 'moment';
 
 @Component({
   selector: 'app-strategy-modal',
   templateUrl: './strategy.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StrategyModal extends AppForm<Moment> implements OnInit {
+export class StrategyModal extends AppForm<{year: Moment}> implements OnInit {
 
   constructor(
+    injector: Injector,
+    protected formBuilder: FormBuilder,
     protected viewCtrl: ModalController,
-    protected dateAdapter: DateAdapter<Moment>,
     protected cd: ChangeDetectorRef
   ) {
-    super(dateAdapter);
-    this.form = new FormGroup({
-      year: new FormControl()
-    })
+    super(injector, formBuilder.group({
+      year: [null, Validators.required]
+    }));
   }
 
   ngOnInit() {

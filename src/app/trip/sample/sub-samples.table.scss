@@ -1,44 +1,121 @@
-:host {
-  width: 100%;
-}
-.mat-header-row,
-.mat-row {
 
-  .mat-column-id {
-    min-width: 30px;
-    max-width: 30px;
+.table-container {
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
+  min-width: 100%;
+  overflow: auto;
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
   }
 
-  .mat-column-parent {
-    min-width: 150px;
+  &.has-group-header .mat-header-row.second-header-row {
+    th {
+      top: 0 !important;
+    }
   }
 
-  .mat-column-comments {
-    max-width: inherit; // Override default limitation
+  .mat-table {
+    .mat-header-row,
+    .mat-row {
+
+      .mat-column-id {
+        width: 50px;
+      }
+
+      .mat-column-parent {
+        min-width: 150px;
+      }
+
+      .mat-column-comments {
+        min-width: 110px;
+        max-width: 110px;
+      }
+
+      .mat-column-pmfm {
+        min-width: calc(min(80px, 50vw / var(--pmfm-count)));
+        max-width: calc(70vw / var(--pmfm-count));
+      }
+
+      // PMFM specific
+      // Boolean field
+      // 94 ->Dead? Y/N
+      .mat-column-94 {
+        min-width: 50px;
+      }
+
+      // Boolean field
+      // 102 -> kept vertebral ?
+      .mat-column-102 {
+        min-width: 75px;
+      }
+
+      // Monitoring
+      .mat-column-94,
+      .mat-column-100,
+      .mat-column-102,
+      .mat-column-104,
+      .mat-column-105,
+      .mat-column-106,
+      .mat-column-107,
+      .mat-column-108 {
+        max-width: 100px;
+      }
+
+    }
   }
 
-  // Boolean field
-  // 94 ->Dead? Y/N
-  .mat-column-94 {
-    min-width: 50px;
+  &.has-pmfm-header-details {
+
+    /* Second header row : increase row height */
+    .mat-header-row {
+      position: sticky;
+      top: 43px;
+      z-index: 10;
+
+      height: 90px;
+      max-height: 90px;
+
+      &.mat-sort-header-content {
+        display: unset;
+      }
+
+      .mat-column-pmfm {
+        max-height: 100%;
+        overflow: hidden;
+
+        mat-label,
+        ion-label {
+          height: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        &.even {
+          background-color: var(--ion-color-light) !important;
+        }
+
+      }
+
+      mat-label,
+      ion-label {
+        max-height: 90px;
+        text-overflow: ellipsis;
+      }
+    }
   }
 
-  // Boolean field
-  // 102 -> kept vertebral ?
-  .mat-column-102 {
-    min-width: 75px;
-  }
+  &.mobile {
+    .mat-column-pmfm {
+      min-width: unset !important;
+      max-width: unset !important;
+    }
 
-  // Monitoring
-  .mat-column-94,
-  .mat-column-100,
-  .mat-column-102,
-  .mat-column-104,
-  .mat-column-105,
-  .mat-column-106,
-  .mat-column-107,
-  .mat-column-108 {
-    max-width: 100px;
+    .mat-column-comments {
+      min-width: unset !important;
+      max-width: unset !important;
+      width: 40px !important;
+      padding-left: 6px;
+    }
   }
-
 }

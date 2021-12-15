@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
+import { fromDateISOString, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import {toBoolean} from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Sale} from "../model/sale.model";
@@ -8,10 +8,14 @@ import {
   DataRootEntityValidatorOptions,
   DataRootEntityValidatorService
 } from "../../../data/services/validator/root-data-entity.validator";
+import { Moment } from 'moment';
+import { DateAdapter } from '@angular/material/core';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   required?: boolean;
   withProgram?: boolean;
+  minDate?: Moment;
 }
 
 @Injectable({providedIn: 'root'})
@@ -20,6 +24,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
 
   constructor(
     protected formBuilder: FormBuilder,
+    protected dateAdapter: DateAdapter<Moment>,
+    protected translate: TranslateService,
     protected settings: LocalSettingsService) {
     super(formBuilder, settings);
   }
@@ -47,7 +53,7 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
       vesselSnapshot: [data && data.vesselSnapshot || null, !opts.required ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
       saleType: [data && data.saleType || null, !opts.required ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])],
       startDateTime: [data && data.startDateTime || null],
-      endDateTime: [data && data.endDateTime || null],
+      endDateTime: [data && data.endDateTime || null, SharedValidators.dateRangeEnd('startDateTime')],
       saleLocation: [data && data.saleLocation || null, SharedValidators.entity],
       comments: [data && data.comments || null, Validators.maxLength(2000)]
     };
@@ -67,7 +73,7 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   updateFormGroup(form: FormGroup, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    if (opts && opts.required === true) {
+    if (opts.required === true) {
       form.controls['vesselSnapshot'].setValidators([Validators.required, SharedValidators.entity]);
       form.controls['saleType'].setValidators([Validators.required, SharedValidators.entity]);
     }
@@ -76,7 +82,14 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
       form.controls['saleType'].setValidators(SharedValidators.entity);
     }
 
-    form.updateValueAndValidity({emitEvent: false});
+    if (opts.minDate) {
+      const minDate = fromDateISOString(opts.minDate);
+      const minDateStr = this.dateAdapter.format(minDate, this.translate.instant('COMMON.DATE_TIME_PATTERN'));
+      form.controls['startDateTime'].setValidators(SharedValidators.dateIsAfter(minDate, minDateStr));
+    }
+    const formGroupOptions = this.getFormGroupOptions(null, opts);
+    form.setValidators(formGroupOptions?.validators);
+
     return form;
   }
 

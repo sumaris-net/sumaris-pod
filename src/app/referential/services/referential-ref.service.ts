@@ -10,7 +10,7 @@ import {
   chainPromises,
   ConfigService,
   Configuration,
-  EntitiesStorage,
+  EntitiesStorage, firstTruePromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
@@ -23,10 +23,10 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService
+  SuggestService,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
-import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonGroupIds, TaxonomicLevelIds, UnitIds } from './model/model.enum';
+import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterGroupIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonGroupIds, TaxonomicLevelIds, UnitIds} from './model/model.enum';
 import { TaxonGroupRef } from './model/taxon-group.model';
 import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
@@ -98,6 +98,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
     IEntitiesService<ReferentialRef, ReferentialRefFilter> {
 
+  private _$ready = new BehaviorSubject<boolean>(false);
   private _importedEntities: string[];
 
   constructor(
@@ -110,7 +111,14 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   ) {
     super(graphql, environment);
 
-    configService.config.subscribe(config => this.updateModelEnumerations(config));
+    configService.config.subscribe(config => {
+      this.updateModelEnumerations(config);
+      this._$ready.next(true);
+    });
+  }
+
+  async ready(): Promise<void> {
+    await firstTruePromise(this._$ready);
   }
 
   /**
@@ -224,9 +232,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       entityName,
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || filter.searchAttribute
-        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
-        || 'label',
+      sortBy: (sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes[0]) || 'label'),
       sortDirection: sortDirection || 'asc',
       filter: filter.asPodObject()
     };
@@ -787,6 +793,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Units
     UnitIds.NONE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.UNIT_NONE_ID);
+
+    // ParameterGroups
+    ParameterGroupIds.SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_SURVEY_ID);
 
     // Taxon group
     // TODO: add all enumerations

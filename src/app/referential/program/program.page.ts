@@ -35,6 +35,8 @@ import { environment } from '../../../environments/environment';
 import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
+import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
+import { Pmfm } from '@app/referential/services/model/pmfm.model';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -44,6 +46,7 @@ export enum AnimationState {
 @Component({
   selector: 'app-program',
   templateUrl: 'program.page.html',
+  styleUrls: ['./program.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: ProgramValidatorService}
   ],
@@ -64,6 +67,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   @ViewChild('locationClassificationList', { static: true }) locationClassificationList: AppListForm;
   @ViewChild('legacyStrategiesTable', { static: true }) legacyStrategiesTable: StrategiesTable;
   @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
+  @ViewChild('personsTable', { static: true }) personsTable: PersonPrivilegesTable;
+
 
   get strategiesTable(): AppTable<Strategy> {
     return this.strategyEditor !== 'sampling' ? this.legacyStrategiesTable : this.samplingStrategiesTable;
@@ -113,8 +118,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     // Check label is unique
     // TODO BLA: FIXME: le control reste en pending !
     const idControl = this.form.get('id');
-    this.form.get('label').setAsyncValidators([
-      async (control) => {
+    this.form.get('label').setAsyncValidators(async (control) => {
         console.debug('[program-page] Checking of label is unique...');
         const exists = await this.programService.existsByLabel(control.value, {
           excludedIds: isNotNil(idControl.value) ? [idControl.value] : undefined
@@ -127,7 +131,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
         console.debug('[program-page] Checking of label is unique [OK]');
         SharedValidators.clearError(control, 'unique');
       }
-    ]);
+    );
 
     this.registerFormField('gearClassification', {
       type: 'entity',
@@ -149,27 +153,60 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
         }
       }
     });
-
   }
 
-  /* -- protected methods -- */
 
-  async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
+  load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
-  async updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
-    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
-    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
+  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
+    super.enable(opts);
 
-    await super.updateView(data, opts);
+    // TODO BLA remove this ?
+    this.locationClassificationList.enable(opts);
+
+    if (!this.isNewData) {
+      this.form.get('label').disable();
+    }
+  }
+
+  /* -- protected methods -- */
+
+  protected registerForms() {
+    this.addChildForms([
+      this.referentialForm,
+      this.propertiesForm,
+      this.locationClassificationList,
+      this.personsTable
+    ]);
+  }
+
+  protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
+    const definition = <FormFieldDefinition>{
+      key: fieldName,
+      label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
+      ...def
+    };
+    this.fieldDefinitions[fieldName] = definition;
+  }
+
+  protected async onNewEntity(data: Program, options?: EntityServiceLoadOptions): Promise<void> {
+    await super.onNewEntity(data, options);
+    this.markAsReady();
   }
 
   protected async onEntityLoaded(data: Program, options?: EntityServiceLoadOptions): Promise<void> {
     await this.loadEntityProperties(data);
     await super.onEntityLoaded(data, options);
+
+    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
+    this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
+
+    this.cd.detectChanges();
+    this.markAsReady();
   }
 
   protected async onEntitySaved(data: Program): Promise<void> {
@@ -177,7 +214,26 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     await super.onEntitySaved(data);
   }
 
-  async loadEntityProperties(data: Program | null) {
+  protected setValue(data: Program) {
+    if (!data) return; // Skip
+
+    this.form.patchValue({...data,
+      properties: [],
+      locationClassifications: [],
+      strategies: []}, {emitEvent: false});
+
+    // Program properties
+    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
+
+    // Location classification
+    this.locationClassificationList.setValue(data.locationClassifications);
+
+    this.personsTable.setValue(data.persons)
+
+    this.markForCheck();
+  }
+
+  protected async loadEntityProperties(data: Program | null) {
 
     return Promise.all(Object.keys(data.properties)
       .map(key => this.propertyDefinitions.find(def => def.key === key && def.type === 'entity'))
@@ -206,64 +262,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
       }));
   }
 
-
-  protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
-    const definition = <FormFieldDefinition>{
-      key: fieldName,
-      label: this.i18nFieldPrefix + changeCaseToUnderscore(fieldName).toUpperCase(),
-      ...def
-    };
-    this.fieldDefinitions[fieldName] = definition;
-  }
-
   protected canUserWrite(data: Program): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
-  }
-
-  enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
-    super.enable(opts);
-
-    // TODO BLA remove this ?
-    this.locationClassificationList.enable(opts);
-
-    if (!this.isNewData) {
-      this.form.get('label').disable();
-    }
-  }
-
-  protected registerForms() {
-    this.addChildForms([
-      this.referentialForm,
-      this.propertiesForm,
-      this.locationClassificationList
-    ]);
-  }
-
-  protected setValue(data: Program) {
-    if (!data) return; // Skip
-
-    this.form.patchValue({...data,
-      properties: [],
-      locationClassifications: [],
-      strategies: []}, {emitEvent: false});
-
-    // Program properties
-    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
-
-    // Location classification
-    this.locationClassificationList.setValue(data.locationClassifications);
-
-
-    this.markForCheck();
-  }
-
-  // TOD BLA: remove this override
-  async save(event?: Event, options?: any): Promise<boolean> {
-    //console.debug('TODO saving program...');
-    return super.save(event, options);
   }
 
   protected async getJsonValueToSave(): Promise<any> {
@@ -271,10 +273,17 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
+
+    // Transform properties
     data.properties = this.propertiesForm.value;
     data.properties
       .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
-      .forEach(property => property.value = property.value.id);
+      .forEach(property => property.value = (property.value as any)?.id);
+
+    if (this.personsTable.dirty) {
+      await this.personsTable.save();
+    }
+    data.persons = this.personsTable.value;
 
     return data;
   }
@@ -367,12 +376,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     return data;
   }
 
-  referentialToString = referentialToString;
-  referentialEquals = ReferentialUtils.equals;
-
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-}
+  referentialToString = referentialToString;
+  referentialEquals = ReferentialUtils.equals;
 
+}

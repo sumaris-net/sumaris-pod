@@ -18,8 +18,6 @@ import { PmfmStrategiesTable, PmfmStrategyFilter } from './pmfm-strategies.table
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { SelectReferentialModal } from '../list/select-referential.modal';
 import { ModalController } from '@ionic/angular';
-import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment';
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -127,9 +125,8 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
   @Input() allowMultiple = false;
 
   constructor(
-    protected injector: Injector,
+    injector: Injector,
     protected formBuilder: FormBuilder,
-    protected dateAdapter: DateAdapter<Moment>,
     protected settings: LocalSettingsService,
     protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,

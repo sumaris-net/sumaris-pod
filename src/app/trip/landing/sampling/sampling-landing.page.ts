@@ -1,18 +1,18 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { FormGroup, ValidationErrors } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
-import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
-import { LandingPage } from '../landing.page';
-import { Landing } from '../../services/model/landing.model';
-import { filter, first } from 'rxjs/operators';
-import { ObservedLocation } from '../../services/model/observed-location.model';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
+import {FormGroup, ValidationErrors} from '@angular/forms';
+import {Subscription} from 'rxjs';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise,firstTruePromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators,} from '@sumaris-net/ngx-components';
+import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
+import {LandingPage} from '../landing.page';
+import {Landing} from '../../services/model/landing.model';
+import {filter, first} from 'rxjs/operators';
+import {ObservedLocation} from '../../services/model/observed-location.model';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
 
 
 @Component({
@@ -24,7 +24,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 })
 export class SamplingLandingPage extends LandingPage {
 
-  showSamplesTable = false;
+
   zeroEffortWarning = false;
   noEffortError = false;
   warning: string = null;
@@ -32,10 +32,12 @@ export class SamplingLandingPage extends LandingPage {
   constructor(
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
-    protected pmfmService: PmfmService
+    protected pmfmService: PmfmService,
+    protected accountService: AccountService,
   ) {
     super(injector, {
-      pathIdAttribute: 'samplingId'
+      pathIdAttribute: 'samplingId',
+      autoOpenNextTab: true
     });
   }
 
@@ -43,17 +45,11 @@ export class SamplingLandingPage extends LandingPage {
     super.ngAfterViewInit();
 
     // Show table, if there is some pmfms
-    this.registerSubscription(
-      this.samplesTable.$pmfms
-        .pipe(
-          filter(pmfms => !this.showSamplesTable && isNotEmptyArray(pmfms)),
-          first()
-        )
-        .subscribe(_ => {
-          this.showSamplesTable = true;
-          this.markForCheck();
-        })
-    );
+    firstTruePromise(this.samplesTable.$hasPmfms)
+      .then(() => {
+        this.showSamplesTable = true;
+        this.markForCheck();
+      });
 
     // Load Pmfm IDs
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
@@ -61,6 +57,49 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   /* -- protected functions -- */
+  updateViewState(data: Landing, opts?: {onlySelf?: boolean; emitEvent?: boolean}) {
+    super.updateViewState(data);
+
+    // Update tabs state (show/hide)
+    this.updateTabsState(data);
+  }
+
+  updateTabsState(data: Landing) {
+    // Enable landings tab
+    this.showSamplesTable = this.showSamplesTable || !this.isNewData || this.isOnFieldMode;
+
+    // confirmation pop-up on quite form if form not touch
+    if (this.isNewData && this.isOnFieldMode) {
+      this.markAsDirty();
+    }
+
+    // Move to second tab
+    if (this.showSamplesTable && !this.isNewData && this.selectedTabIndex === 0) {
+      setTimeout(() => this.selectedTabIndex = 1 );
+    }
+  }
+
+  get canUserCancelOrDelete(): boolean {
+    // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
+    if (this.accountService.isAdmin()) {
+      return true;
+    }
+
+    const entity = this.data;
+    const recorder = entity.recorderPerson;
+    const connectedPerson = this.accountService.person;
+    if (connectedPerson.id === recorder?.id) {
+      return true;
+    }
+
+    // When connected user is in observed location observers
+    for (const observer of entity.observers) {
+      if (connectedPerson.id === observer.id) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   protected async setStrategy(strategy: Strategy) {
     await super.setStrategy(strategy);
@@ -124,7 +163,7 @@ export class SamplingLandingPage extends LandingPage {
     // Compute final TAG_ID, using the strategy label
     const strategyLabel = data.measurementValues &&  data.measurementValues[PmfmIds.STRATEGY_LABEL];
     if (strategyLabel) {
-      const sampleLabelPrefix = strategyLabel;
+      const sampleLabelPrefix = strategyLabel + '-';
       (data.samples || []).forEach(sample => {
         const tagId = sample.measurementValues[PmfmIds.TAG_ID];
         if (tagId && !tagId.startsWith(sampleLabelPrefix)) {
@@ -140,7 +179,7 @@ export class SamplingLandingPage extends LandingPage {
 
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL.toString()]
     if (strategyLabel) {
-      this.samplesTable.strategyLabel = strategyLabel;
+      this.$strategyLabel.next(strategyLabel);
     }
 
     if (this.parent && this.parent instanceof ObservedLocation && isNotNil(data.id)) {
@@ -150,7 +189,7 @@ export class SamplingLandingPage extends LandingPage {
 
     // Remove sample's TAG_ID prefix
     if (strategyLabel) {
-      const samplePrefix = strategyLabel;
+      const samplePrefix = strategyLabel + '-';
       (data.samples || []).map(sample => {
       if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
         const tagId = sample.measurementValues[PmfmIds.TAG_ID];
@@ -191,7 +230,7 @@ export class SamplingLandingPage extends LandingPage {
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
     const titlePrefix = this.parent && this.parent instanceof ObservedLocation &&
-      await this.translate.get('LANDING.EDIT.TITLE_PREFIX', {
+      await this.translate.get('LANDING.TITLE_PREFIX', {
         location: (this.parent.location && (this.parent.location.name || this.parent.location.label)),
         date: this.parent.startDateTime && this.dateFormat.transform(this.parent.startDateTime) as string || ''
       }).toPromise() || '';

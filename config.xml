@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="11503" id="net.sumaris.app" version="1.15.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="11600" id="net.sumaris.app" version="1.16.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>SUMARiS</name>
     <description>Halieutic data capture</description>
     <author email="contact@e-is.pro" href="http://www.e-is.pro">Environmental Information Systems</author>
@@ -92,18 +92,32 @@
         <splash height="480" src="resources/ios/splash/Default~iphone.png" width="320" />
         <splash height="2732" src="resIonicStorageModuleources/ios/splash/Default@2x~universal~anyany.png" width="2732" />
         <edit-config file="*-Info.plist" mode="merge" target="NSCameraUsageDescription">
-            <string>Need camera to take pictures</string>
+            <string>need access to camera to take pictures</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="merge" target="NSLocationWhenInUseUsageDescription">
-            <string>Need location to fill position</string>
+            <string>need location to fill position</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="merge" target="NSPhotoLibraryUsageDescription">
+            <string>need photo library access to get pictures from there</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="merge" target="NSPhotoLibraryAddUsageDescription">
+            <string>need to store photos to your library</string>
         </edit-config>
     </platform>
-    <plugin name="cordova-plugin-whitelist" spec="1.3.3" />
-    <plugin name="cordova-plugin-statusbar" spec="2.4.2" />
-    <plugin name="cordova-plugin-device" spec="2.0.2" />
-    <plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
-    <plugin name="cordova-plugin-ionic-webview" spec="^4.0.1" />
-    <plugin name="cordova-plugin-ionic-keyboard" spec="^2.1.3" />
-    <plugin name="cordova-plugin-camera" spec="^4.0.3" />
-    <plugin name="cordova-sqlite-storage" spec="^3.2.0" />
+    <plugin name="cordova-plugin-whitelist" spec="1.3.5" />
+    <plugin name="cordova-plugin-statusbar" spec="2.4.3" />
+    <plugin name="cordova-plugin-device" spec="2.0.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="6.0.0" />
+    <plugin name="cordova-plugin-nativeaudio" spec="3.0.9" />
+    <plugin name="clovelced-plugin-audiomanagement" spec="1.0.2" />
+    <plugin name="cordova-plugin-vibration" spec="3.1.1" />
+    <plugin name="cordova-plugin-decimal-keyboard" spec="1.0.0" />
+    <plugin name="cordova-plugin-file-transfer" spec="1.7.1" />
+    <plugin name="cordova-plugin-ionic-webview" spec="5.0.0" />
+    <plugin name="cordova-plugin-ionic-keyboard" spec="2.2.0" />
+    <plugin name="cordova-plugin-network-information" spec="2.0.2" />
+    <plugin name="cordova-plugin-geolocation" spec="4.1.0" />
+    <plugin name="cordova-plugin-camera" spec="5.0.3" />
+    <plugin name="cordova-sqlite-storage" spec="6.0.0" />
+    <plugin name="integrator-cordova-plugin-downloader" spec="1.1.0" />
 </widget>

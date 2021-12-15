@@ -183,7 +183,7 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
 
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
-    return 0;
+    return -1;
   }
 
   protected async onNewEntity(data: TaxonName, options?: EntityServiceLoadOptions): Promise<void> {
@@ -221,12 +221,16 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
         }
         return null;
       });
+
+    this.markAsReady();
   }
 
   protected async onEntityLoaded(data: TaxonName, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
 
     this.canEdit = this.canUserWrite(data);
+
+    this.markAsReady();
   }
 
   referentialToString = referentialToString;

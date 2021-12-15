@@ -1,5 +1,5 @@
 import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, UnitLabel } from '../model/model.enum';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -142,6 +142,25 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_BATCH_WEIGHT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.weight.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
+
+  TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_SAMPLE_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.dateTime.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_DATE_TIME_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   TRIP_SAMPLE_TAXON_NAME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.taxonName.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_TAXON_NAME_ENABLE',
@@ -258,6 +277,13 @@ export const ProgramProperties = Object.freeze({
     type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
+  OBSERVED_LOCATION_OBSERVERS_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.observers.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OBSERVERS_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
+
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE',
@@ -388,9 +414,18 @@ export const ProgramProperties = Object.freeze({
       {
         key: UnitLabel.GRAM,
         value: UnitLabel.GRAM
+      },
+      {
+        key: UnitLabel.MG,
+        value: UnitLabel.MG
+      },
+      {
+        key: UnitLabel.TON,
+        value: UnitLabel.TON
       }
     ],
-    defaultValue: UnitLabel.KG
+    // No default value (keep PMFM unit)
+    //defaultValue: UnitLabel.KG
   },
 
   /* -- Landed trip options -- */
@@ -457,6 +492,14 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'SAMPLING.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SAMPLING'
+      },
+      {
+        key: 'SURVIVAL_TEST.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SURVIVAL_TEST'
+      },
+      {
+        key: 'ACCIDENTAL_CATCH.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ACCIDENTAL_CATCH'
       }
     ],
     defaultValue: 'legacy'

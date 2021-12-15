@@ -31,6 +31,7 @@ import { ReferentialsPage } from '@app/referential/list/referentials.page';
 import { AppCoreModule } from '@app/core/core.module';
 import { StrategiesPage } from './strategy/strategies.page';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
+import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 
 @NgModule({
   imports: [
@@ -50,18 +51,20 @@ import { StrategyModal } from '@app/referential/strategy/strategy.modal';
     IsMultiplePmfmPipe,
 
     // Components
-    ReferentialsPage,
-    ReferentialForm,
-    SamplingStrategyForm,
     ProgramsPage,
     ProgramPage,
-    SamplingStrategyPage,
+    PersonPrivilegesTable,
     StrategiesPage,
     StrategyPage,
     StrategyForm,
     StrategiesTable,
-    SamplingStrategiesTable,
     PmfmStrategiesTable,
+    SamplingStrategyPage,
+    SamplingStrategyForm,
+    SamplingStrategiesTable,
+
+    ReferentialsPage,
+    ReferentialForm,
     SoftwarePage,
     ParameterPage,
     PmfmPage,
@@ -84,18 +87,22 @@ import { StrategyModal } from '@app/referential/strategy/strategy.modal';
     PmfmValuePipe,
     IsDatePmfmPipe,
     IsComputedPmfmPipe,
+    IsMultiplePmfmPipe,
 
     // Components
-    ReferentialsPage,
-    ReferentialForm,
-    SamplingStrategyForm,
-    SamplingStrategyPage,
+    ProgramsPage,
+    ProgramPage,
+    PersonPrivilegesTable,
     StrategiesPage,
     StrategyPage,
     StrategyForm,
+    PmfmStrategiesTable,
+    SamplingStrategyForm,
+    SamplingStrategyPage,
+
+    ReferentialsPage,
+    ReferentialForm,
     SoftwarePage,
-    ProgramsPage,
-    ProgramPage,
     ParameterPage,
     PmfmPage,
     ReferentialRefTable,
@@ -104,10 +111,8 @@ import { StrategyModal } from '@app/referential/strategy/strategy.modal';
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
-    PmfmStrategiesTable,
     TaxonNamePage,
-    StrategyModal,
-    IsMultiplePmfmPipe,
+    StrategyModal
   ],
 })
 export class AppReferentialModule {

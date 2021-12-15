@@ -2,7 +2,7 @@ import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { MethodIds } from '../services/model/model.enum';
 import { PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { isNotNilOrBlank, TranslateContextService } from '@sumaris-net/ngx-components';
+import {DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService} from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 
 @Pipe({
@@ -25,15 +25,15 @@ export class PmfmNamePipe implements PipeTransform {
     i18nPrefix?: string;
     i18nContext?: string;
   }): string {
+    if (!pmfm) return '';
     // Try to resolve PMFM using prefix + label
     if (opts && isNotNilOrBlank(opts.i18nPrefix)) {
       const i18nKey = opts.i18nPrefix + pmfm.label;
 
       // I18n translation WITH context, if any
       if (opts && opts.i18nContext) {
-        const contextualKey = this.translateContext.contextualKey(i18nKey, opts.i18nContext);
-        const contextualTranslation = this.translate.instant(contextualKey);
-        if (contextualTranslation !== contextualKey) return contextualTranslation;
+        const contextualTranslation = this.translateContext.instant(i18nKey, opts.i18nContext);
+        if (contextualTranslation !== i18nKey) return contextualTranslation;
       }
 
       // I18n translation without context
@@ -52,8 +52,30 @@ export class PmfmNamePipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class PmfmValuePipe implements PipeTransform {
 
-  transform(val: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): any {
-    return PmfmValueUtils.valueToString(val, opts);
+  constructor(
+    private dateFormatPipe: DateFormatPipe,
+    private latFormatPipe: LatitudeFormatPipe,
+    private longFormatPipe: LongitudeFormatPipe,
+    private settings: LocalSettingsService
+  ) {
+  }
+
+  transform(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): any {
+    const type = PmfmUtils.getExtendedType(opts?.pmfm);
+    switch (type) {
+      case 'date':
+        return this.dateFormatPipe.transform(value, {time: false});
+      case 'dateTime':
+        return this.dateFormatPipe.transform(value, {time: true});
+      case 'duration':
+        return value || null;
+      case 'latitude':
+        return this.latFormatPipe.transform(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+      case 'longitude':
+        return this.longFormatPipe.transform(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+      default:
+        return PmfmValueUtils.valueToString(value, opts);
+    }
   }
 }
 

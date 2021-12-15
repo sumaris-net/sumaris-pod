@@ -14,7 +14,6 @@
   <ng-container *ngIf="$pmfms | async as pmfms; else measurementsSkeleton">
     <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                     [pmfm]="pmfm"
-                    [controlName]="pmfm.id.toString()"
                     [compact]="compact"
                     [style]="mobile && pmfm.type === 'boolean' && 'button'"
                     [tabindex]="(tabindex || 0) + i*2"

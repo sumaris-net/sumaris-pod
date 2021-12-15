@@ -31,7 +31,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.vesselId = source.vesselId;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
     this.location = ReferentialRef.fromObject(source.location);
     this.observers = source.observers && source.observers.map(Person.fromObject) || [];
     this.includedIds = source.includedIds;

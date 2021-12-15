@@ -91,7 +91,6 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
 })
 export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct> {
 
-  ready = false;
   started = false;
 
   // -- Map Layers --
@@ -281,6 +280,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return this.$sheetNames.value;
   }
 
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
+  }
+
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -334,7 +337,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.platform.ready()
       .then(() => sleep(500))
       .then(() => {
-        this.ready = true;
+        this.markAsReady();
         if (!this.started) return this.start();
       });
 
@@ -971,7 +974,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         }
         // Convert KG to ton
         else if (unit === UnitLabel.KG) {
-          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TOM;
+          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TON;
         }
       }
     }

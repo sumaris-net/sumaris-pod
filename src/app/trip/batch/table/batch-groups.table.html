@@ -1,449 +1,417 @@
-
-<mat-toolbar>
-  <button mat-icon-button
-          hidden-xs hidden-sm hidden-mobile
-          *ngIf="!selection.hasValue() && enabled" [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
-    <mat-icon>add</mat-icon>
-  </button>
-  <button mat-icon-button *ngIf="selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
-    (click)="deleteSelection($event)">
-    <mat-icon>delete</mat-icon>
-  </button>
-
-  <!-- refresh (debug only) -->
-  <button mat-icon-button *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
-    (click)="onRefresh.emit()">
-    <mat-icon>refresh</mat-icon>
-  </button>
-  <button mat-icon-button
-          *ngIf="defaultTaxonGroups && !selection.hasValue() && enabled"
-          [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
-          (click)="autoFillTable()">
-    <mat-icon>control_point_duplicate</mat-icon>
-  </button>
-
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
-
-  <!--span class="toolbar-spacer"></span-->
-
-</mat-toolbar>
-
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+<ion-item *ngIf="showError && error; let error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<!-- First header row -->
-<mat-table *ngIf="qvPmfm">
-  <ng-container matColumnDef="select">
-    <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile"></mat-header-cell>
-  </ng-container>
+<div class="table-container">
 
-  <!-- rankOrder Column = id -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef [class.ion-padding-start]="mobile"></mat-header-cell>
-  </ng-container>
+  <!-- ********************************************************** -->
+  <!-- ***********  Writable table (e.g. for desktop) *********** -->
+  <!-- ********************************************************** -->
 
-  <!-- taxon group (commercial species) -->
-  <ng-container matColumnDef="taxonGroup">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
+  <table *ngIf="inlineEdition; else readonly"
+         mat-table matSort matSortDisableClear
+         matSortActive="rankOrder"
+         matSortDirection="asc"
+         [dataSource]="dataSource"
+         [trackBy]="trackByFn">
 
-  <!-- taxon name (scientific species) -->
-  <ng-container matColumnDef="taxonName">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
+    <!-- Group header: start -->
+    <ng-container matColumnDef="top-start" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
+        <button mat-icon-button class="ion-float-start"
+                *ngIf="!mobile && !selection.hasValue()"
+                [disabled]="disabled"
+                [title]="'COMMON.BTN_ADD_ROW'|translate"
+                (click)="addRow()">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-icon-button class="ion-float-start"
+                *ngIf="selection.hasValue() && enabled"
+                [title]="'COMMON.BTN_DELETE'|translate"
+                (click)="deleteSelection($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
 
-  <!-- Dynamic columns -->
-  <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef" [matColumnDef]="col.key">
-    <mat-header-cell *matHeaderCellDef class="qv"
-                     [class.even]="col.qvIndex | even"
-                     [class.odd]="col.qvIndex | odd"
-                     [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0"
-                     [class.show]="col.rankOrder % qvColumnCount === 0"
-                     [style.flex]="qvDisplayColumnCount">
-      <mat-label  class="ion-text-wrap ion-align-self-center" *ngIf="col.rankOrder % qvColumnCount === 0">
-        <span>{{qvPmfm.qualitativeValues[col.qvIndex].name}}</span><br/>
-        <mat-checkbox *ngIf="weightMethodForm"
-                      [formControl]="weightMethodForm.controls[col.qvIndex]"
-                      labelPosition="before">
-          <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
-          <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
-        </mat-checkbox>
-      </mat-label>
-    </mat-header-cell>
-  </ng-container>
-
-  <!-- Comment column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
-  </ng-container>
-
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef>
-      <!-- Options menu -->
-      <button mat-icon-button
-              hidden-xs hidden-sm hidden-mobile
-              [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
-              (click)="openSelectColumnsModal($event)">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-    </mat-header-cell>
-  </ng-container>
-
-  <mat-header-row class="first-header-row"
-                  [class.plt-mobile]="mobile"
-                  *matHeaderRowDef="displayedColumns"></mat-header-row>
-</mat-table>
-
-<!-- writable -->
-<mat-table *ngIf="inlineEdition; else readonly"
-           [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
-           [trackBy]="trackByFn">
-
-  <!-- TODO Group header: start
-  <ng-container matColumnDef="top-actions" [sticky]="useSticky">
-    <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan">
-
-    </th>
-  </ng-container>-->
-
-  <!-- TODO Group header: QV pmfm columns
-  <ng-container *ngFor="let qv of qvPmfm?.qualitativeValues; index as index">
-    <ng-container [matColumnDef]="'group-' + qv.id">
-      <th mat-header-cell *matHeaderCellDef
-          class="mat-column-pmfm-group mat-cell-content-start-padding"
-          [class.odd]="index % 2 === 0"
-          [attr.colspan]="5">
-        <ion-label>{{qv.name}}</ion-label>
+        <!-- refresh (debug only) -->
+        <button mat-icon-button *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+                (click)="onRefresh.emit()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button
+                *ngIf="availableTaxonGroups && !selection.hasValue() && enabled"
+                [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
+                (click)="autoFillTable()">
+          <mat-icon>control_point_duplicate</mat-icon>
+        </button>
       </th>
     </ng-container>
-  </ng-container> -->
 
-  <!-- Group header: end spacer
-  <ng-container matColumnDef="top-end">
-    <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderEndColSpan">
-      <button mat-icon-button
-              *ngIf="!mobile && !selection.hasValue()"
-              [disabled]="disabled"
-              [title]="'COMMON.BTN_ADD_ROW'|translate"
-              (click)="addRow()">
-        <mat-icon>add</mat-icon>
-      </button>
-      <button mat-icon-button color="light" *ngIf="selection.hasValue() && enabled"
-              [title]="'COMMON.BTN_DELETE'|translate"
-              (click)="deleteSelection($event)">
-        <mat-icon>delete</mat-icon>
-      </button>
-    </th>
-  </ng-container> -->
+    <!-- Group header: pmfm group columns -->
+    <ng-container *ngFor="let item of groupColumns; even as even">
+      <ng-container [matColumnDef]="item.key">
+        <th mat-header-cell *matHeaderCellDef
+            class="mat-column-qv-group mat-cell-content-start-padding"
+            [class.even]="even"
+            [attr.colspan]="item.colSpan">
+          <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">
+            <span>{{item.name}}</span><br />
+            <mat-checkbox *ngIf="weightMethodForm"
+                          [formControl]="weightMethodForm.controls[item.qvIndex]"
+                          labelPosition="before">
+              <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+              <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
+            </mat-checkbox>
+          </ion-label>
+        </th>
+      </ng-container>
+    </ng-container>
 
-  <ng-container matColumnDef="select">
-    <mat-header-cell  *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-        [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </mat-header-cell>
-    <mat-cell  *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </mat-cell>
-  </ng-container>
+    <!-- Group header: end -->
+    <ng-container matColumnDef="top-end">
+      <th mat-header-cell *matHeaderCellDef>
+        <!-- Options menu -->
+        <button mat-icon-button
+                hidden-xs hidden-sm hidden-mobile
+                [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+                (click)="openSelectColumnsModal($event)">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      </th>
+    </ng-container>
 
-  <!-- rankOrder Column = id -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
-      <ion-label>#</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
-      <ion-label>{{ row.currentData.rankOrder }}</ion-label>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Taxon group (commercial species) -->
-  <ng-container matColumnDef="taxonGroup">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
-    </mat-header-cell>
-
-    <mat-cell *matCellDef="let row">
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [autofocus]="row.id == -1 && row.editing"
-                              [formControl]="row.validator.controls.taxonGroup"
-                              [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-                              [required]="showTaxonGroupColumn"
-                              [config]="autocompleteFields.taxonGroup">
-      </mat-autocomplete-field>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Taxon name (scientific species) -->
-  <ng-container matColumnDef="taxonName">
-    <mat-header-cell *matHeaderCellDef mat-sort-header >
-      <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" >
-
-      <!-- desktop -->
-      <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                              [autofocus]="!showTaxonGroupColumn && row.id == -1 && row.editing"
-                              [formControl]="row.validator.controls.taxonName"
-                              [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
-                              [required]="showTaxonNameColumn"
-                              [config]="autocompleteFields.taxonName">
-      </mat-autocomplete-field>
-    </mat-cell>
-
-  </ng-container>
-
-  <!-- Dynamic columns -->
-  <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
-
-    <mat-header-cell *matHeaderCellDef
-                     [class.total]="(qvPmfm || showSamplingBatchColumns) && col.rankOrder % qvColumnCount < 2"
-                     [class.odd]="qvPmfm && isQvOdd(col)"
-                     [class.even]="qvPmfm && isQvEven(col)"
-                     [class.hidden-lg]="col.rankOrder % qvColumnCount >= qvDisplayColumnCount"
-                     [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
-                     [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && col.rankOrder % qvColumnCount !== 3"
-                     class="mat-cell-content-start-padding">
-      <mat-label>
-        <span>{{col.label|translate}}</span>
-        <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
-      </mat-label>
-    </mat-header-cell>
-
-    <mat-cell *matCellDef="let row"
-              [class.total]="(qvPmfm || showSamplingBatchColumns) && col.rankOrder % qvColumnCount < 2"
-              [class.odd]="isQvOdd(col)"
-              [class.even]="isQvEven(col)"
-              [class.hidden-lg]="col.rankOrder % qvColumnCount >= qvDisplayColumnCount"
-              [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
-              [class.mat-cell-computed]="col.computed"
-              class="mat-cell-content-start-padding">
-
-      <app-form-field floatLabel="never"
-                      [definition]="col"
-                      [readonly]="!row.editing || col.computed"
-                      [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
-                      [compact]="true">
-      </app-form-field>
-
-    </mat-cell>
-  </ng-container>
-
-  <!-- Comment column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef >
-      <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never" >
-        <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-          [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" >
-
-      <!-- undo or delete  -->
-      <button mat-icon-button *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-        (click)="cancelOrDelete($event, row)">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-      </button>
-      <!-- validate -->
-      <button mat-icon-button *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
-        (click)="confirmEditCreate($event, row)">
-        <mat-icon>check</mat-icon>
-      </button>
-      <!-- add -->
-      <button mat-icon-button *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-        (click)="confirmAndAdd($event, row)">
-        <mat-icon>add</mat-icon>
-      </button>
-
-    </mat-cell>
-  </ng-container>
-
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-
-  <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty"
-           [class.mat-row-disabled]="!row.editing"
-           (click)="clickRow($event, row)">
-  </mat-row>
-</mat-table>
-
-<!-- readonly table (e.g. for mobile) -->
-<ng-template #readonly>
-  <mat-table [dataSource]="dataSource" matSort matSortActive="rankOrder" matSortDirection="asc" matSortDisableClear
-             [trackBy]="trackByFn">
-
-    <ng-container matColumnDef="select">
-      <mat-header-cell  *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()">
         </mat-checkbox>
-      </mat-header-cell>
-      <mat-cell  *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+      </th>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
         <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
         </mat-checkbox>
-      </mat-cell>
+      </td>
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+    <ng-container matColumnDef="id" [sticky]="useSticky && !mobile">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
         <ion-label>#</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
+      </th>
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
         <ion-label>{{ row.currentData.rankOrder }}</ion-label>
-      </mat-cell>
+      </td>
     </ng-container>
 
     <!-- Taxon group (commercial species) -->
     <ng-container matColumnDef="taxonGroup">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
-      </mat-header-cell>
+      </th>
 
-      <mat-cell *matCellDef="let row">
-        <ion-label>
-          {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
-        </ion-label>
-      </mat-cell>
+      <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonGroup'">
+        <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+                                [autofocus]="row.editing && focusColumn === 'taxonGroup'"
+                                [formControl]="row.validator.controls.taxonGroup"
+                                [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+                                [required]="showTaxonGroupColumn"
+                                [config]="autocompleteFields.taxonGroup">
+        </mat-autocomplete-field>
+      </td>
     </ng-container>
 
     <!-- Taxon name (scientific species) -->
     <ng-container matColumnDef="taxonName">
-      <mat-header-cell *matHeaderCellDef mat-sort-header >
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" >
-        <ion-label>
-          {{ row.currentData.taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
-        </ion-label>
-      </mat-cell>
+      </th>
+      <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonName'">
+
+        <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+                                [autofocus]="row.editing && focusColumn === 'taxonName'"
+                                [formControl]="row.validator.controls.taxonName"
+                                [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
+                                [required]="showTaxonNameColumn"
+                                [config]="autocompleteFields.taxonName">
+        </mat-autocomplete-field>
+      </td>
 
     </ng-container>
 
     <!-- Dynamic columns -->
     <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
 
-      <mat-header-cell *matHeaderCellDef
-                       [class.total]="col.rankOrder % qvColumnCount < 2 && qvDisplayColumnCount > 1"
-                       [class.odd]="isQvOdd(col)"
-                       [class.even]="isQvEven(col)"
-                       [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
-                       [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && (!showSamplingBatchColumns || col.rankOrder % qvColumnCount !== 3)"
-                       class="mat-cell-content-start-padding">
+      <th mat-header-cell *matHeaderCellDef
+          [class]="col.classList"
+          [class.cdk-visually-hidden]="col.hidden"
+          class="mat-cell-content-start-padding">
         <mat-label>
           <span>{{col.label|translate}}</span>
           <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
         </mat-label>
-      </mat-header-cell>
+      </th>
 
-      <mat-cell *matCellDef="let row"
-                [class.total]="col.rankOrder % qvColumnCount < 2 && qvDisplayColumnCount > 1"
-                [class.odd]="col.qvIndex | odd"
-                [class.even]="col.qvIndex | even"
-                [class.hidden-xs]="col.rankOrder % qvColumnCount !== 0"
-                [class.hidden-mobile]="col.rankOrder % qvColumnCount !== 0 && (!showSamplingBatchColumns || col.rankOrder % qvColumnCount !== 3)"
-                [class.mat-cell-computed]="col.computed"
-                class="mat-cell-content-start-padding">
+      <td mat-cell *matCellDef="let row"
+          [class]="col.classList"
+          [class.mat-cell-computed]="col.computed"
+          class="mat-cell-content-start-padding"
+          (click)="focusColumn=col.key">
 
-        <ng-container *ngIf="row.currentData.measurementValues; let measurementValues">
-          <ion-label *ngIf="!mobile; else mobileCellContent">
-            {{measurementValues[col.rankOrder]}}
-          </ion-label>
+        <app-form-field floatLabel="never"
+                        [definition]="col"
+                        [readonly]="!row.editing || col.computed"
+                        [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
+                        [autofocus]="row.editing && focusColumn === col.key"
+                        [compact]="true">
+        </app-form-field>
 
-          <ng-template #mobileCellContent>
-            <div class="mat-form-field ion-text-center" >
-              <!-- Disable value, if any -->
-              <ion-label *ngIf="measurementValues[col.rankOrder] !== null; else missingValue">
-                {{measurementValues[col.rankOrder] | numberFormat}}
-              </ion-label>
-
-              <ng-template #missingValue>
-                <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
-                <ion-label *ngIf="col.rankOrder % qvColumnCount === 3 && measurementValues[col.rankOrder-1] == null && measurementValues[col.rankOrder+1] !== null"
-                           color="danger">
-                  <ion-icon color="danger" class="text-size" name="warning"></ion-icon>
-                  <ion-text translate>COMMON.MISSING</ion-text>
-                </ion-label>
-
-                <!-- If only individual count filled, display it -->
-                <ion-label
-                  *ngIf="col.rankOrder % qvColumnCount === 0 && measurementValues[col.rankOrder] === null && measurementValues[col.rankOrder+1] !== null">
-                  {{ measurementValues[col.rankOrder+1] | numberFormat }} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
-                </ion-label>
-              </ng-template>
-            </div>
-          </ng-template>
-        </ng-container>
-      </mat-cell>
+      </td>
     </ng-container>
 
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
-      <mat-header-cell *matHeaderCellDef >
+      <th mat-header-cell *matHeaderCellDef>
         <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" >
-        <mat-icon class="comment" [class.disabled]="!row.editing"
-                  *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments"></mat-icon>
-      </mat-cell>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+                 [readonly]="!row.editing">
+        </mat-form-field>
+      </td>
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" >
+    <app-actions-column [stickyEnd]="useSticky"
+                        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+                        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+                        (backward)="confirmAndBackward($event.event, $event.row)"
+                        (forward)="confirmAndForward($event.event, $event.row)"
+                        [canCancel]="false">
+    </app-actions-column>
 
-        <!-- open individual measures -->
-        <button mat-icon-button
-                *ngIf="mobile && row.currentData.observedIndividualCount && !selection.isSelected(row)"
-                color="primary"
-                [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
-                (click)="onSubBatchesClick($event, row, {showParent: false})">
-          <mat-icon [matBadge]="row.currentData.observedIndividualCount"
-                    [matBadgeHidden]="!row.currentData.observedIndividualCount"
-                    matBadgeColor="accent"
-                    matBadgeSize="small"
-                    matBadgePosition="above after"
-          >assessment</mat-icon>
-        </button>
-
-        <!-- open individual measures -->
-        <button mat-icon-button
-                *ngIf="mobile && selection.isSelected(row)"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="cancelOrDelete($event, row)">
-          <mat-icon>delete</mat-icon>
-        </button>
-
-      </mat-cell>
+    <!-- first header -->
+    <ng-container *ngIf="showToolbar">
+      <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true"
+          class="first-header-row"></tr>
     </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;"
-             class="mat-row-disabled"
-             [class.mat-row-dirty]="!row.currentData.id"
-             (click)="clickRow($event, row)">
-    </mat-row>
-  </mat-table>
-</ng-template>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        [class.mat-row-selected]="row.editing"
+        [class.mat-row-error]="row.validator.invalid"
+        [class.mat-row-dirty]="row.validator.dirty"
+        [class.mat-row-disabled]="!row.editing"
+        (click)="clickRow($event, row)"
+        (keydown.escape)="escapeEditingRow($event)"
+        [cdkTrapFocus]="row.validator.invalid">
+    </tr>
+  </table>
+
+  <!-- ********************************************************* -->
+  <!-- ***********  Readonly table (e.g. for mobile) *********** -->
+  <!-- ********************************************************* -->
+
+  <ng-template #readonly>
+    <table mat-table matSort matSortDisableClear
+           matSortActive="rankOrder"
+           matSortDirection="asc"
+           [dataSource]="dataSource"
+           [trackBy]="trackByFn">
+
+      <!-- Group header: start -->
+      <ng-container matColumnDef="top-start" [sticky]="useSticky">
+        <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
+          <button mat-icon-button
+                  *ngIf="availableTaxonGroups && !selection.hasValue() && enabled"
+                  [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
+                  (click)="autoFillTable()">
+            <mat-icon>control_point_duplicate</mat-icon>
+          </button>
+        </th>
+      </ng-container>
+
+      <!-- Group header: pmfm group columns -->
+      <ng-container *ngFor="let item of groupColumns; even as even">
+        <ng-container [matColumnDef]="item.key">
+          <th mat-header-cell *matHeaderCellDef
+              class="mat-column-qv-group mat-cell-content-start-padding"
+              [class.even]="even"
+              [attr.colspan]="item.colSpan">
+            <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">
+              <span>{{item.name}}</span><br />
+              <mat-checkbox *ngIf="weightMethodForm"
+                            [formControl]="weightMethodForm.controls[item.qvIndex]"
+                            labelPosition="before">
+                <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+                <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
+              </mat-checkbox>
+            </ion-label>
+          </th>
+        </ng-container>
+      </ng-container>
+
+      <!-- Group header: end -->
+      <ng-container matColumnDef="top-end">
+        <th mat-header-cell *matHeaderCellDef>
+        </th>
+      </ng-container>
+
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+          <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+          </mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+          <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- rankOrder Column = id -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+          <ion-label>#</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
+          <ion-label>{{ row.currentData.rankOrder }}</ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Taxon group (commercial species) -->
+      <ng-container matColumnDef="taxonGroup">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>TRIP.BATCH.TABLE.TAXON_GROUP</ion-label>
+        </th>
+
+        <td mat-cell *matCellDef="let row">
+          <ion-label>
+            {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
+          </ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Taxon name (scientific species) -->
+      <ng-container matColumnDef="taxonName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>
+            {{ row.currentData.taxonName | referentialToString: autocompleteFields.taxonName.attributes }}
+          </ion-label>
+        </td>
+
+      </ng-container>
+
+      <!-- Dynamic columns -->
+      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
+        <th mat-header-cell *matHeaderCellDef
+            [class]="col.classList"
+            [class.cdk-visually-hidden]="col.hidden"
+            class="mat-cell-content-start-padding">
+          <mat-label>
+            <span>{{col.label|translate}}</span>
+            <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
+          </mat-label>
+        </th>
+
+        <td mat-cell *matCellDef="let row"
+            [class]="col.classList"
+            [class.mat-cell-computed]="col.computed"
+            class="mat-cell-content-start-padding"
+            (click)="focusColumn=col.key">
+
+          <ng-container *ngIf="row.currentData.measurementValues; let measurementValues">
+            <ion-label *ngIf="!mobile; else mobileCellContent">
+              {{measurementValues[col.rankOrder]}}
+            </ion-label>
+
+            <ng-template #mobileCellContent>
+              <div class="mat-form-field ion-text-center">
+                <!-- Disable value, if any -->
+                <ion-label *ngIf="measurementValues[col.rankOrder] !== null; else missingValue">
+                  {{measurementValues[col.rankOrder] | numberFormat}}
+                </ion-label>
+
+                <ng-template #missingValue>
+                  <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
+                  <ion-label *ngIf="col.rankOrder % qvColumnCount === 3 && measurementValues[col.rankOrder-1] == null && measurementValues[col.rankOrder+1] !== null"
+                             color="danger">
+                    <ion-icon color="danger" class="text-size" name="warning"></ion-icon>
+                    <ion-text translate>COMMON.MISSING</ion-text>
+                  </ion-label>
+
+                  <!-- If only individual count filled, display it -->
+                  <ion-label
+                    *ngIf="col.rankOrder % qvColumnCount === 0 && measurementValues[col.rankOrder] === null && measurementValues[col.rankOrder+1] !== null">
+                    {{ measurementValues[col.rankOrder + 1] | numberFormat }} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
+                  </ion-label>
+                </ng-template>
+              </div>
+            </ng-template>
+          </ng-container>
+        </td>
+      </ng-container>
+
+      <!-- Comment column -->
+      <ng-container matColumnDef="comments">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-icon class="comment" [class.disabled]="!row.editing"
+                    *ngIf="row.currentData.comments"
+                    [title]="row.currentData.comments"></mat-icon>
+        </td>
+      </ng-container>
+
+      <!-- Actions buttons column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>
+        </th>
+        <td mat-cell *matCellDef="let row">
+
+          <!-- open individual measures -->
+          <button mat-icon-button
+                  *ngIf="mobile && row.currentData.observedIndividualCount && !selection.isSelected(row)"
+                  color="primary"
+                  [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
+                  (click)="onSubBatchesClick($event, row, {showParent: false})">
+            <mat-icon [matBadge]="row.currentData.observedIndividualCount"
+                      [matBadgeHidden]="!row.currentData.observedIndividualCount"
+                      matBadgeColor="accent"
+                      matBadgeSize="small"
+                      matBadgePosition="above after"
+            >assessment
+            </mat-icon>
+          </button>
+
+          <!-- open individual measures -->
+          <button mat-icon-button
+                  *ngIf="mobile && selection.isSelected(row)"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+
+        </td>
+      </ng-container>
+
+      <!-- first header -->
+      <ng-container *ngIf="showToolbar">
+        <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true"
+            class="first-header-row"></tr>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          class="mat-row-disabled"
+          [class.mat-row-dirty]="!row.currentData.id"
+          (click)="clickRow($event, row)">
+      </tr>
+    </table>
+  </ng-template>
+
+</div>

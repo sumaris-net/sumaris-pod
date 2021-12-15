@@ -107,12 +107,13 @@ export abstract class AbstractSoftwarePage<
 
   protected async loadFromRoute(): Promise<void> {
 
-    // Make sure the platform is ready
+    // Make sure the platform is ready, before loading configuration
     await this.platform.ready();
-
 
     return super.loadFromRoute();
   }
+
+
 
   protected setValue(data: T) {
     if (!data) return; // Skip
@@ -158,17 +159,19 @@ export abstract class AbstractSoftwarePage<
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.propertiesForm.invalid) return 1;
-    return 0;
+    return -1;
   }
 
   protected async onEntityLoaded(data: T, options?: EntityServiceLoadOptions): Promise<void> {
     await this.loadEntityProperties(data);
     await super.onEntityLoaded(data, options);
+    this.markAsReady();
   }
 
   protected async onEntitySaved(data: T): Promise<void> {
     await this.loadEntityProperties(data);
     await super.onEntitySaved(data);
+    this.markAsReady();
   }
 
   async loadEntityProperties(data: T | null) {

@@ -5,7 +5,6 @@ import {
   ElementRef,
   EventEmitter,
   forwardRef,
-  Inject,
   Input,
   OnDestroy,
   OnInit,
@@ -13,13 +12,13 @@ import {
   Output,
   QueryList,
   ViewChild,
-  ViewChildren
+  ViewChildren,
 } from '@angular/core';
-import {merge, Observable, of} from 'rxjs';
-import {filter, map, takeUntil, tap} from 'rxjs/operators';
+import { merge, Observable, of } from 'rxjs';
+import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
-import {ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
-import {FloatLabelType} from '@angular/material/form-field';
+import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { FloatLabelType } from '@angular/material/form-field';
 
 
 import {
@@ -38,13 +37,12 @@ import {
   sort,
   suggestFromArray,
   toBoolean,
-  toNumber
+  toNumber,
 } from '@sumaris-net/ngx-components';
-import {PmfmIds} from '../services/model/model.enum';
-import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
-import {PmfmStrategy} from '../services/model/pmfm-strategy.model';
-import {IonButton} from '@ionic/angular';
-import {DOCUMENT} from '@angular/common';
+import { PmfmIds } from '../services/model/model.enum';
+import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { PmfmStrategy } from '../services/model/pmfm-strategy.model';
+import { IonButton } from '@ionic/angular';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
 
@@ -160,8 +158,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       : (this.style === 'button' ? 'name' : attributes[0]);
 
     // Sort values
-    this._sortedQualitativeValues = (this.pmfm instanceof PmfmStrategy && this.pmfm.pmfmId !== PmfmIds.DISCARD_OR_LANDING) ?
-      sort(this._qualitativeValues, this.sortAttribute) :
+    this._sortedQualitativeValues = (this.pmfm.id !== PmfmIds.DISCARD_OR_LANDING) ?
+      sort(this._qualitativeValues, this.sortAttribute, {numeric: true, sensitivity: 'base'}) :
       this._qualitativeValues;
 
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, {withUnit: !this.compact});

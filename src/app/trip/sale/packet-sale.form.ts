@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
-import { DateAdapter } from '@angular/material/core';
+import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { PacketValidatorService } from '../services/validator/packet.validator';
 import { Packet } from '../services/model/packet.model';
@@ -49,14 +49,13 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   }
 
   constructor(
-    protected dateAdapter: DateAdapter<Moment>,
+    injector: Injector,
     protected validatorService: PacketValidatorService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(dateAdapter, validatorService.getFormGroup(undefined, {withSaleProducts: true}), settings);
+    super(injector, validatorService.getFormGroup(undefined, {withSaleProducts: true}));
   }
 
   ngOnInit() {

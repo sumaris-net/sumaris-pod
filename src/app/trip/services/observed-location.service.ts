@@ -75,6 +75,7 @@ export const ObservedLocationFragments = {
     controlDate
     validationDate
     qualificationDate
+    qualityFlagId
     comments
     location {
       ...LocationFragment
@@ -106,6 +107,7 @@ export const ObservedLocationFragments = {
     controlDate
     validationDate
     qualificationDate
+    qualityFlagId
     comments
     location {
       ...LocationFragment

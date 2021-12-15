@@ -41,7 +41,8 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
   updateFormGroup(formGroup: FormGroup, opts?: FishingAreaValidatorOptions) {
     opts = this.fillDefaultOptions(opts);
 
-    formGroup.controls['location'].setValidators(this.getLocationValidators(opts));
+    const locationValidators = this.getLocationValidators(opts);
+    formGroup.get('location').setValidators(locationValidators);
 
     formGroup.updateValueAndValidity({emitEvent: false});
   }

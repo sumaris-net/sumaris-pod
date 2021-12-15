@@ -1,6 +1,5 @@
-import {TypePolicies} from '@apollo/client/core';
-import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-components';
-import {UnitLabel} from '@app/referential/services/model/model.enum';
+import { TypePolicies } from '@apollo/client/core';
+import { FormFieldDefinition, PRIORITIZED_AUTHORITIES } from '@sumaris-net/ngx-components';
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'DataReferenceVO': {
@@ -9,6 +8,12 @@ export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
 };
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({
+  ACCESS_PROGRAM_IDS: <FormFieldDefinition>{
+    key: "sumaris.data.program.ids",
+    label: "CONFIGURATION.OPTIONS.ACCESS_PROGRAM_IDS",
+    defaultValue: '',
+    type: 'string'
+  },
   ACCESS_NOT_SELF_DATA_ROLE: <FormFieldDefinition>{
     key: "sumaris.data.accessNotSelfData.role",
     label: "CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_MIN_ROLE",

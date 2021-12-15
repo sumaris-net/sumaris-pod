@@ -24,7 +24,7 @@
 
   <!-- delete -->
   <button mat-menu-item
-          [disabled]="isNewData || disabled"
+          [disabled]="isNewData || disabled || !canUserCancelOrDelete"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;
@@ -47,11 +47,11 @@
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
   <mat-tab-group #tabGroup
+                 class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-                 [dynamicHeight]="false"
-                 class="mat-tab-fixed-content">
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
@@ -60,10 +60,9 @@
         <ion-label translate>LANDING.EDIT.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid; else warningIcon"></ion-icon>
         <ng-template #warningIcon>
-          <span slot="end" *ngIf="warning" style="color: var(--ion-color-tertiary);"
-                [title]="warning|translate">
-            <mat-icon>warning</mat-icon>
-          </span>
+          <mat-icon *ngIf="warning"
+                [style.color]="'var(--ion-color-tertiary)'"
+                [title]="warning|translate">warning</mat-icon>
         </ng-template>
       </ng-template>
 
@@ -80,7 +79,7 @@
             <!-- landing form-->
             <app-landing-form #landingForm
                               [programLabel]="$programLabel|async"
-                              [i18nPrefix]="i18nPrefix"
+                              [i18nSuffix]="i18nContext.suffix"
                               [requiredStrategy]="true"
                               [showMeasurements]="true"
                               [showError]="false"
@@ -111,11 +110,11 @@
                   <app-strategy-summary-card #strategyCard
                                              [editor]="this"
                                              [value]="$strategy|async"
-                                             [title]="i18nPrefix+'STRATEGY_SUMMARY_TITLE'|translate"
+                                             [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE'|translateContext: i18nContext.suffix"
                                              [calcifiedTypesDisplayed]="true">
                     <!-- age fractions -->
                     <ng-container *ngIf="strategyCard.data?.pmfms | isNotEmptyArray">
-                      <ion-label color="primary">{{i18nPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
+                      <ion-label color="primary">{{'LANDING.EDIT.CALCIFIED_TYPE'|translateContext: i18nContext.suffix}}</ion-label>
                       <ion-label class="status">
                         <ul>
                           <ng-container *ngFor="let calcifiedType of strategyCard.data.pmfms; let i=index">
@@ -148,48 +147,49 @@
           </ion-col>
         </ion-row>
       </ion-grid>
-
-      <div #firstTabInjection></div>
-
     </mat-tab>
 
     <!-- TAB: samples -->
-    <mat-tab [label]="i18nPrefix + 'TAB_SAMPLES'|translate" [disabled]="!showSamplesTable">
+    <mat-tab #samplesTab
+             [label]="'LANDING.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
+             [disabled]="!showSamplesTable">
       <ng-template mat-tab-label>
         <mat-icon >center_focus_strong</mat-icon>
-        <ion-label>{{i18nPrefix + 'TAB_SAMPLES'|translate}}</ion-label>
+        <ion-label [matBadge]="samplesTable.visibleRowCount"
+                   [matBadgeHidden]="samplesTable.invalid || !samplesTable.visibleRowCount"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{samplesTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
-      <div #tabContent>
+      <!-- error -->
+      <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+      </ion-item>
 
-        <!-- error -->
-        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
-        </ion-item>
+      <app-samples-table  #samplesTable
+                          [disabled]="noEffortError"
+                          [showError]="mobile"
+                          [showLabelColumn]="false"
+                          [showSampleDateColumn]="false"
+                          [showTaxonNameColumn]="false"
+                          [showTaxonGroupColumn]="false"
+                          [showPmfmDetails]="true"
+                          [showDisplayColumnModal]="false"
+                          [canAddPmfm]="true"
+                          [defaultSampleDate]="data?.dateTime"
+                          [usageMode]="usageMode"
+                          [useSticky]="true"
+                          [compactFields]="false"
+                          (onPrepareRowForm)="onPrepareSampleForm($event)"
+                          [debug]="debug">
+      </app-samples-table>
 
-        <app-samples-table  #samplesTable
-                            [disabled]="noEffortError"
-                            [showError]="mobile"
-                            [showLabelColumn]="false"
-                            [showDateTimeColumn]="false"
-                            [showTaxonNameColumn]="false"
-                            [showTaxonGroupColumn]="false"
-                            [showPmfmDetails]="true"
-                            [canAddPmfm]="true"
-                            [defaultSampleDate]="data?.dateTime"
-                            [usageMode]="usageMode"
-                            [useSticky]="true"
-                            [compactFields]="false"
-                            (onPrepareRowForm)="onPrepareSampleForm($event)"
-                            [showDisplayColumn]="false"
-                            [debug]="debug">
-        </app-samples-table>
-
-        <!-- final space-->
-        <p visible-xs visible-sm visible-mobile>&nbsp;</p>
-      </div>
+      <!-- final space-->
+      <p visible-xs visible-sm visible-mobile>&nbsp;</p>
     </mat-tab>
 
   </mat-tab-group>
