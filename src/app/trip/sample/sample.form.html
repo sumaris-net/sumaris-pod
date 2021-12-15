@@ -1,6 +1,10 @@
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
-  <ion-text *ngIf="debug">I18n Suffix: {{i18nSuffix}}</ion-text>
+  <ion-text *ngIf="debug">
+    I18n Pmfm  prefix: {{i18nPmfmPrefix}}<br/>
+    I18n Field prefix: {{i18nFieldPrefix}}<br/>
+    I18n Suffix: {{i18nSuffix}}<br/>
+  </ion-text>
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
@@ -82,7 +86,7 @@
                          [style]="mobile && 'button'"
                          [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                          [maxVisibleButtons]="maxVisibleButtons"
-                         [placeholder]="pmfm|pmfmName: {i18nPrefix: 'TRIP.SAMPLE.TABLE.', i18nContext: i18nSuffix}"
+                         [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                          [tabindex]="tabindex+4 + i*maxVisibleButtons"
                          (keyup.enter)="last && onSubmit.emit($event)">
           </app-pmfm-field>
