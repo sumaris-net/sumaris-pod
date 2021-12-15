@@ -49,7 +49,7 @@
             </and>
         </preConditions>
         <sql endDelimiter=";">
-            SELECT setval('location_seq', max(id), true) from location;
+            SELECT NEXT VALUE FOR location_seq from location;
         </sql>
         <sqlFile path="insert_harbours_FRA.sql" relativeToChangelogFile="true" endDelimiter=";"/>
     </changeSet>
