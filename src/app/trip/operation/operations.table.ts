@@ -249,6 +249,11 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       .reduce((res, id) => res.includes(id) ? res : res.concat(id), []);
   }
 
+  // Changed as public
+  getI18nColumnName(columnName: string): string {
+    return super.getI18nColumnName(columnName);
+  }
+
   /* -- protected methods -- */
 
   protected configureFromSettings(settings?: LocalSettings) {
