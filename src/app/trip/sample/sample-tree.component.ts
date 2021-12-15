@@ -171,6 +171,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
         .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
           this.showIndividualMonitoringTable = hasMonitoringPmfms;
           this.showIndividualReleaseTable = hasReleasePmfms;
+          this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
           this.tabCount = hasReleasePmfms ? 3 : (hasMonitoringPmfms ? 2 : 1);
           this.markForCheck();
         })
