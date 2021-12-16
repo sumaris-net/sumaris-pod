@@ -84,6 +84,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   selectedSubTabIndex = 0;
   copyTripDates = false;
   allowParentOperation = false;
+  autoFillBatch = false;
+  autoFillDatesFromTrip = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -262,7 +264,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async onMeasurementsFormReady() {
 
     // Wait program to be loaded
-    await this.ready();
+    //await this.ready();
 
     // DEBUG
     console.debug('[operation-page] Measurement form is ready');
@@ -474,6 +476,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.i18nContext.suffix = i18nSuffix;
 
     this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+    this.autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+    this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
 
     const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
     this.opeForm.trip = this.trip;
@@ -500,15 +504,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.program = program;
     this.sampleTree.program = program;
 
+
+
     // Autofill batch group table (e.g. with taxon groups found in strategies)
-    const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-    await this.setDefaultTaxonGroups(autoFillBatch);
+    await this.initAvailableTaxonGroups(this.autoFillBatch);
 
-    const autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
-    if (autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
-
-    //this.cd.detectChanges();
+    this.cd.detectChanges();
     this.markAsReady();
+
+    await this.ready();
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -709,6 +713,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Set sample tree
     this.sampleTree.value = (data && data.samples || []);
 
+    // If new data, auto fill the table
+    if (this.isNewData) {
+      if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
+      if (this.autoFillBatch) this.batchTree.autoFill({forceIfDisabled: true});
+    }
+
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -895,7 +905,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected async setDefaultTaxonGroups(enable: boolean) {
+  protected async initAvailableTaxonGroups(enable: boolean) {
     if (!enable) {
       // Reset table's taxon groups
       this.batchTree.availableTaxonGroups = null;
@@ -903,7 +913,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       return; // Skip
     }
 
-    if (this.debug) console.debug('[operation] Check if can auto fill species...');
+    if (this.debug) console.debug('[operation] Setting available taxon groups...');
 
     // Load program's taxon groups
     let availableTaxonGroups = await this.programRefService.loadTaxonGroups(this.$programLabel.value);
@@ -933,10 +943,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.sampleTree.availableTaxonGroups = availableTaxonGroups;
 
-    // If new data, auto fill the table
-    if (this.isNewData) {
-      await this.batchTree.autoFill({forceIfDisabled: true});
-    }
   }
 
   protected updateTablesState() {

@@ -79,12 +79,6 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       }));
     }
 
-    // Add position
-    if (opts.withPosition) {
-      form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
-    }
-
     // Add fishing Ares
     if (opts.withFishingAreas) {
       form.addControl('fishingAreas', this.getFishingAreasArray(data,  {required: true}));
@@ -93,6 +87,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Add position
     if (opts.withPosition) {
       form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+      form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
       form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
     }
 
@@ -301,18 +297,22 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Add position
     if (opts.withPosition) {
       if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
       if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
     }
     else {
-      if (!!form.controls.startPosition) form.removeControl('startPosition');
-      if (!!form.controls.endPosition) form.removeControl('endPosition');
+      if (form.controls.startPosition) form.removeControl('startPosition');
+      if (form.controls.fishingStartPosition) form.removeControl('fishingStartPosition');
+      if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
+      if (form.controls.endPosition) form.removeControl('endPosition');
     }
 
     // Add fishing areas
     if (opts.withFishingAreas) {
       if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
     } else {
-      if (!!form.controls.fishingAreas) form.removeControl('fishingAreas');
+      if (form.controls.fishingAreas) form.removeControl('fishingAreas');
     }
 
     // Update form group validators
