@@ -199,6 +199,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this.form?.controls.qualityFlagId as FormControl;
   }
 
+  get physicalGearControl(): FormControl {
+    return this.form?.controls.physicalGear as FormControl;
+  }
+
   get isParentOperation(): boolean {
     return this.isParentOperationControl.value === true;
   }
@@ -226,7 +230,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
-  @Output() onNewPhysicalGear = new EventEmitter<PhysicalGear>();
 
   constructor(
     injector: Injector,
@@ -571,7 +574,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
         physicalGears.push(physicalGear);
         this._physicalGearsSubject.next(physicalGears);
-        this.onNewPhysicalGear.emit(physicalGear);
       }
 
       physicalGearControl.setValue(physicalGears[0]);

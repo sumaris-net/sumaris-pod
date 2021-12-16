@@ -518,7 +518,8 @@
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {
-      "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
+      "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé",
+      "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
