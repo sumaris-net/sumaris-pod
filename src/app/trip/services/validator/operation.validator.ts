@@ -181,12 +181,35 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // DEBUG
     //console.debug(`[operation-validator] Updating form group validators`);
 
+    // Add position
+    if (opts.withPosition) {
+      if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
+    }
+    else {
+      if (form.controls.startPosition) form.removeControl('startPosition');
+      if (form.controls.fishingStartPosition) form.removeControl('fishingStartPosition');
+      if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
+      if (form.controls.endPosition) form.removeControl('endPosition');
+    }
+
+    // Add fishing areas
+    if (opts.withFishingAreas) {
+      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
+    } else {
+      if (form.controls.fishingAreas) form.removeControl('fishingAreas');
+    }
+
     const parentControl = form.get('parentOperation');
     let childControl = form.get('childOperation');
     const qualityFlagControl = form.get('qualityFlagId');
     const fishingStartDateTimeControl = form.get('fishingStartDateTime');
     const fishingEndDateTimeControl = form.get('fishingEndDateTime');
     const endDateTimeControl = form.get('endDateTime');
+    const fishingEndPositionControl = form.get('fishingEndPosition');
+    const endPositionControl = form.get('endPosition');
 
     // Validator to date inside the trip
     const tripDatesValidators = opts?.trip && [this.createTripDatesValidator(opts.trip)] || [];
@@ -225,6 +248,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       fishingEndDateTimeControl.clearValidators();
       endDateTimeControl.disable();
       endDateTimeControl.clearValidators();
+      fishingEndPositionControl?.disable();
+      endPositionControl?.disable();
     }
 
     // Is a child
@@ -259,6 +284,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         : Validators.compose([Validators.required, ...endDateTimeValidators]));
       endDateTimeControl.enable();
 
+      // Enable positions
+      fishingEndPositionControl?.enable();
+      endPositionControl?.enable();
+
       // Disable unused controls
       fishingStartDateTimeControl.clearValidators();
       fishingStartDateTimeControl.updateValueAndValidity();
@@ -288,32 +317,17 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         : Validators.compose([Validators.required, ...endDateTimeValidators]));
 
       // Disable unused controls
+      // TODO: use program options xxx.enable
       fishingStartDateTimeControl.disable();
       fishingStartDateTimeControl.clearValidators();
       fishingEndDateTimeControl.disable()
       fishingEndDateTimeControl.clearValidators();
+
+      fishingEndPositionControl?.disable()
+      endPositionControl?.enable();
     }
 
-    // Add position
-    if (opts.withPosition) {
-      if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
-      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
-      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
-    }
-    else {
-      if (form.controls.startPosition) form.removeControl('startPosition');
-      if (form.controls.fishingStartPosition) form.removeControl('fishingStartPosition');
-      if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
-      if (form.controls.endPosition) form.removeControl('endPosition');
-    }
 
-    // Add fishing areas
-    if (opts.withFishingAreas) {
-      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
-    } else {
-      if (form.controls.fishingAreas) form.removeControl('fishingAreas');
-    }
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;

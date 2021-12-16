@@ -596,16 +596,33 @@
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
         "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
-        "START_PARENT_OPERATION" : "Début pose :",
-        "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
+        "START_PARENT_OPERATION" : "Début filage :",
+        "END_PARENT_OPERATION" : "Fin filage / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
         "END_CHILD_OPERATION" : "Fin virage :",
         "PARENT_OPERATION" : "Opération associée",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
+        "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
+        },
+        "START_POSITION": {
+          "LATITUDE": "Latitude de début",
+          "LONGITUDE": "Longitude de début"
+        },
+        "END_POSITION": {
+          "LATITUDE": "Latitude de fin",
+          "LONGITUDE": "Longitude de fin"
+        },
+        "FISHING_START_POSITION": {
+          "LATITUDE": "Latitude de début de pêche",
+          "LONGITUDE": "Longitude de début de pêche"
+        },
+        "FISHING_END_POSITION": {
+          "LATITUDE": "Latitude de fin de pêche",
+          "LONGITUDE": "Longitude de fin de pêche"
         },
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Tests de survie"

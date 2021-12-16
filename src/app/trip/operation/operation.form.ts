@@ -53,6 +53,8 @@ const moment = momentImported;
 
 type FilterableFieldName = 'fishingArea';
 
+type PositionField = 'startPosition' | 'fishingStartPosition'|'fishingEndPosition'|'endPosition';
+
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
     value: false,
@@ -472,12 +474,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.markForCheck();
   }
 
-  copyPosition(event: UIEvent, source: string, target: string) {
+  copyPosition(event: UIEvent, source: PositionField, target?: PositionField) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
     const value = this.form.get(source).value;
+
+    if (!target && source === 'startPosition') {
+      target = (this.fishingStartDateTimeEnable && 'fishingStartPosition')
+        || (this.fishingEndDateTimeEnable && 'fishingEndPosition')
+        || (this.endDateTimeEnable && 'endPosition') || undefined;
+    }
+    if (!target) return; // Skip
 
     this.form.get(target).patchValue({
       latitude: value.latitude,
@@ -539,6 +548,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       parentLabel = await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
         startDateTime: parentOperation.startDateTime && this.dateFormat.transform(parentOperation.startDateTime, {time: true}) as string
       }).toPromise() as string;
+
+      // Append end time
+      if (parentOperation.fishingStartDateTime && !parentOperation.startDateTime.isSame(parentOperation.fishingStartDateTime)) {
+          const endSuffix = this.dateFormat.format(parentOperation.fishingStartDateTime, 'HH:mm')
+        parentLabel += ' -> ' + endSuffix;
+      }
     }
     this.$parentOperationLabel.next(parentLabel);
 
@@ -555,10 +570,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       return;
     }
 
+    // DEBUG
+    console.debug('[operation-form] Set parent operation', parentOperation);
+
     const form = this.form;
     const metierControl = form.get('metier');
     const physicalGearControl = form.get('physicalGear');
     const startPositionControl = form.get('startPosition');
+    const fishingStartPositionControl = form.get('fishingStartPosition');
+    const fishingEndPositionControl = form.get('fishingEndPosition');
     const endPositionControl = form.get('endPosition');
     const startDateTimeControl = form.get('startDateTime');
     const fishingStartDateTimeControl = form.get('fishingStartDateTime');
@@ -607,10 +627,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       }
     }
 
+    // Copy positions
     if (this._showPosition) {
+      // Copy parent's positions
       this.setPosition(startPositionControl, parentOperation.startPosition);
-      this.setPosition(endPositionControl, parentOperation.endPosition);
+      this.setPosition(fishingStartPositionControl, parentOperation.fishingStartPosition);
+      // Init child default position
+      this.setPosition(fishingEndPositionControl, parentOperation.startPosition);
+      this.setPosition(endPositionControl, parentOperation.fishingStartPosition);
     }
+
+    // Copy fishing area
     if (this._showFishingArea && isNotEmptyArray(parentOperation.fishingAreas)) {
       const fishingAreasCopy = parentOperation.fishingAreas
         .filter(fa => ReferentialUtils.isNotEmpty(fa.location))
@@ -669,8 +696,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.isChildOperation,
       withPosition: this.showPosition,
-      withFishingAreas: this.showFishingArea,
-      activeDateTimeControlNames: this.activeDateTimeControlNames
+      withFishingAreas: this.showFishingArea
     });
 
     if (!opts || opts.emitEvent !== false) {

@@ -110,6 +110,15 @@ export class Operation
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
 
+    // Fill start position (if valid)
+    if (target.startPosition && target.startPosition.latitude && target.startPosition.longitude) {
+      target.startPosition.dateTime = target.startDateTime;
+    }
+    else {
+      // Invalid position: remove it
+      delete target.startPosition;
+    }
+
     // Fill fishing start position (if valid)
     if (target.fishingStartPosition && target.fishingStartPosition.latitude && target.fishingStartPosition.longitude) {
       // Make sure to fill fishing start date, using start date if need
@@ -256,6 +265,12 @@ export class Operation
         this.positions = undefined;
         if (positions.length > 0) {
           console.warn('[operation] Some positions have no date matches, with start/end or fishingStart/fishingEnd dates', positions);
+
+          // Fallback for previous version compatibility, if invalid dates in position
+          if ((positions.length === 1 || positions.length === 2) && !this.startPosition && !this.endPosition) {
+            this.startPosition = positions[0];
+            this.endPosition = positions[1] || undefined;
+          }
         }
       }
       else {
@@ -273,10 +288,10 @@ export class Operation
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
     // Warn: keept this order: must start with endDateTime, then fishingEndDateTime, then fishingStartDateTime
-    if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {
+    if (this.endDateTime && this.endDateTime.isSameOrBefore(this.fishingEndDateTime||this.fishingStartDateTime||this.startDateTime)) {
       this.endDateTime = undefined;
     }
-    if (this.fishingEndDateTime && this.fishingEndDateTime.isSameOrBefore(this.fishingStartDateTime)) {
+    if (this.fishingEndDateTime && this.fishingEndDateTime.isSameOrBefore(this.fishingStartDateTime||this.startDateTime)) {
       this.fishingEndDateTime = undefined;
     }
     if (this.fishingStartDateTime && this.fishingStartDateTime.isSameOrBefore(this.startDateTime)) {

@@ -390,9 +390,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
-    const options: OperationServiceWatchOptions = {...opts};
 
     //If we have both online and offline, watch all options has to be apply when all results are merged
+    const options: OperationServiceWatchOptions = {...opts};
     if (offline && online){
       options.mapFn = undefined;
       options.sortByDistance = undefined;
@@ -409,7 +409,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       .pipe(
         map(([res1, res2]) => mergeLoadResult(res1, res2)),
         mergeMap(async ({data, total}) => {
-          return await this.applyWatchOptions({data, total}, offset, size,sortBy,sortDirection, dataFilter, opts);
+          return await this.applyWatchOptions({data, total}, offset, size, sortBy, sortDirection, dataFilter, opts);
         })
       );
     }

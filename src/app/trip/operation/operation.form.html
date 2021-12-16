@@ -75,6 +75,7 @@
       </ion-col>
     </ion-row>
 
+
     <ion-row>
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.GEAR_AND_TARGETED_SPECIES</ion-label>
@@ -115,7 +116,7 @@
     </ion-row>
 
     <!-- Start -->
-    <ion-row>
+    <ion-row *ngIf="isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label *ngIf="allowParentOperation else startLabel"
                    class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_PARENT_OPERATION</ion-label>
@@ -131,15 +132,14 @@
                                    formControlName="startDateTime"
                                    [required]="true"
                                    [tabindex]="tabindex+4"
-                                   [startDate]="trip?.departureDateTime"
-                                   [readonly]="isChildOperation">
+                                   [startDate]="trip?.departureDateTime">
               </mat-date-time-field>
             </ion-col>
 
             <!-- lat -->
             <ion-col size="6" size-lg="4"
-                     *ngIf="showPosition && isChildOperation !== true"
-                     [formGroup]="form.controls.startPosition">
+                     *ngIf="form.controls.startPosition as position"
+                     [formGroup]="position">
               <mat-latlong-field formControlName="latitude" type="latitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
@@ -151,8 +151,8 @@
 
             <!-- long -->
             <ion-col size="6" size-lg="4"
-                     *ngIf="showPosition && isChildOperation !== true"
-                     [formGroup]="form.controls.startPosition">
+                     *ngIf="form.controls.startPosition as position"
+                     [formGroup]="position">
               <mat-latlong-field formControlName="longitude" #startDateTime
                                  type="longitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
@@ -167,8 +167,8 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        [hidden]="enableGeolocation || form.controls.startPosition.invalid"
-                        (click)="copyPosition($event,'startPosition', 'endPosition')"
+                        [hidden]="enableGeolocation || position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
+                        (click)="copyPosition($event,'startPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
@@ -181,7 +181,7 @@
     </ion-row>
 
     <!-- Start fishing -->
-    <ion-row *ngIf="fishingStartDateTimeEnable">
+    <ion-row *ngIf="fishingStartDateTimeEnable && isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_PARENT_OPERATION</ion-label>
       </ion-col>
@@ -195,8 +195,7 @@
                                    [required]="usageMode|isNotOnField"
                                    [clearable]="usageMode|isOnField"
                                    [tabindex]="tabindex+9"
-                                   [startDate]="form.controls.startDateTime.value"
-                                   [readonly]="isChildOperation">
+                                   [startDate]="form.controls.startDateTime.value">
                 <mat-hint align="end" *ngIf="control.value && control.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
                   startValue: form.controls.startDateTime.value,
@@ -205,9 +204,11 @@
                 </mat-hint>
               </mat-date-time-field>
             </ion-col>
+
+            <!-- latitude / longitude -->
             <ion-col size="6" size-lg="4"
-                     *ngIf="showPosition && isChildOperation !== true"
-                     [formGroup]="form.controls.endPosition" >
+                     *ngIf="form.controls.fishingStartPosition as position"
+                     [formGroup]="position" >
               <mat-latlong-field formControlName="latitude"
                                  type="latitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
@@ -218,8 +219,8 @@
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4"
-                     *ngIf="showPosition && isChildOperation !== true"
-                     [formGroup]="form.controls.endPosition">
+                     *ngIf="form.controls.fishingStartPosition as position"
+                     [formGroup]="position">
               <mat-latlong-field formControlName="longitude" type="longitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
@@ -227,7 +228,7 @@
                                  [required]="usageMode|isNotOnField"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
-                        (click)="onFillPositionClick($event, 'endPosition')"
+                        (click)="onFillPositionClick($event, 'fishingStartPosition')"
                         tabindex="-1"
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
@@ -245,7 +246,7 @@
 
     </ion-row>
 
-    <!-- End fishing -->
+    <!-- Fishing end  -->
     <ion-row *ngIf="fishingEndDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_CHILD_OPERATION</ion-label>
@@ -258,26 +259,28 @@
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
                                    [startDate]="form.controls.fishingStartDateTime.valueChanges|async"
-                                   [required]="true"
+                                   [required]="isChildOperation"
                                    [clearable]="false">
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="showPosition">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position"
+                     [formGroup]="position" >
               <mat-latlong-field formControlName="latitude" type="latitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+4"
-                                 [required]="true"
+                                 [required]="isChildOperation"
                                  [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls.startPosition" *ngIf="showPosition">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position"
+                     [formGroup]="position">
               <mat-latlong-field formControlName="longitude"
                                  type="longitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
                                  [tabindex]="tabindex+6"
-                                 [required]="true"
+                                 [required]="isChildOperation"
                                  [defaultSign]="defaultLongitudeSign">
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event,'startPosition')"
@@ -286,8 +289,8 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        [hidden]="enableGeolocation || form.controls.startPosition.invalid"
-                        (click)="copyPosition($event,'startPosition', 'endPosition')"
+                        [hidden]="enableGeolocation || position.invalid"
+                        (click)="copyPosition($event,'fishingEndPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
                 </button>
@@ -326,7 +329,8 @@
                 </mat-hint>
               </mat-date-time-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls.endPosition" *ngIf="showPosition">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position"
+                     [formGroup]="position">
               <mat-latlong-field formControlName="latitude"
                                  type="latitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE'|translate"
@@ -336,7 +340,8 @@
                                  [defaultSign]="defaultLatitudeSign">
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="6" size-lg="4" [formGroup]="form.controls.endPosition" *ngIf="showPosition">
+            <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position"
+                     [formGroup]="position">
               <mat-latlong-field formControlName="longitude" type="longitude"
                                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE'|translate"
                                  [latLongPattern]="latLongFormat"
