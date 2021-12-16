@@ -181,7 +181,7 @@
     </ion-row>
 
     <!-- Start fishing -->
-    <ion-row *ngIf="allowParentOperation">
+    <ion-row *ngIf="fishingStartDateTimeEnable">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_PARENT_OPERATION</ion-label>
       </ion-col>
@@ -246,7 +246,7 @@
     </ion-row>
 
     <!-- End fishing -->
-    <ion-row *ngIf="isChildOperation">
+    <ion-row *ngIf="fishingEndDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.START_CHILD_OPERATION</ion-label>
       </ion-col>
@@ -300,7 +300,7 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row *ngIf="!allowParentOperation || isChildOperation">
+    <ion-row *ngIf="endDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label *ngIf="allowParentOperation else end" class="ion-float-end" translate>TRIP.OPERATION.EDIT.END_CHILD_OPERATION</ion-label>
         <ng-template #end>

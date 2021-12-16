@@ -257,7 +257,24 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
-
+  TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingStartDateEnable',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_START_DATE_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_OPERATION_FISHING_END_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingEndDateEnable',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_END_DATE_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_OPERATION_END_DATE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.endDateEnable',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_END_DATE_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean'
+  },
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',

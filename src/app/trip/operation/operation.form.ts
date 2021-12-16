@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorService } from '../services/validator/operation.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from '@angular/core';
+import {OperationValidatorService} from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   AccountService,
   AppForm,
@@ -29,25 +29,25 @@ import {
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
-import { BehaviorSubject, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
-import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Router } from '@angular/router';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { FishingArea } from '@app/trip/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
-import { TripService } from '@app/trip/services/trip.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {BehaviorSubject, merge} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ModalController} from '@ionic/angular';
+import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/operation/select-operation.modal';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {PositionUtils} from '@app/trip/services/position.utils';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {LocationLevelIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {LatLongPattern} from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import {TripService} from '@app/trip/services/trip.service';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
@@ -104,6 +104,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
+  @Input() fishingStartDateTimeEnable = false;
+  @Input() fishingEndDateTimeEnable = false;
+  @Input() endDateTimeEnable = true;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
@@ -227,6 +230,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   get formError(): string {
     return this.getFormError(this.form);
+  }
+
+  get activeDateTimeControlNames(): string[] {
+    const names = ['startDateTime'];
+    if (this.fishingStartDateTimeEnable) {
+      names.push('fishingStartDateTime');
+    }
+    if (this.fishingEndDateTimeEnable) {
+      names.push('fishingEndDateTime');
+    }
+    if (this.endDateTimeEnable) {
+      names.push('endDateTime');
+    }
+    return names;
   }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
@@ -563,9 +580,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         if (this.debug) {
           console.warn('[operation-form] several matching physical gear on trip',
             physicalGears,
-            physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)))
-        }
-        else console.warn('[operation-form] several matching physical gear on trip', physicalGears);
+            physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)));
+        } else console.warn('[operation-form] several matching physical gear on trip', physicalGears);
       } else if (physicalGears.length === 0) {
         // Make a copy of parent operation physical gear's on current trip
         const physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId, {toEntity: false});
@@ -653,7 +669,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.isChildOperation,
       withPosition: this.showPosition,
-      withFishingAreas: this.showFishingArea
+      withFishingAreas: this.showFishingArea,
+      activeDateTimeControlNames: this.activeDateTimeControlNames
     });
 
     if (!opts || opts.emitEvent !== false) {
@@ -903,7 +920,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         AppFormUtils.markAllAsTouched(this.form.get('endPosition'));
       }
     }
-
   }
 
   protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
