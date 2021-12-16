@@ -360,7 +360,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       showSampleDate: this.showSampleDateColumn,
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
-      showIndividualReleaseButton: this.showIndividualReleaseButton,
+      showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton,
       onReady: onModalReady,
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
@@ -376,9 +376,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         await this.onNewEntity(newData);
         return newData;
       },
-      openSubSampleModal: this.allowSubSamples
-        ? (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel)
-        : undefined,
+      openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
 
       // Override using given options
       ...this.modalOptions,
