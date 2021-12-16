@@ -1383,7 +1383,7 @@ export class TripService
       }
 
       // Add it to the trip
-      trip.gears.push(entity;
+      trip.gears.push(entity);
 
       // Save the full trip
       const savedTrip = await this.save(trip);
