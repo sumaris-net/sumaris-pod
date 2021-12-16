@@ -88,6 +88,7 @@ export const OperationFragments = {
       ...PositionFragment
     }
     fishingAreas {
+      id
       location {
         ...LocationFragment
       }

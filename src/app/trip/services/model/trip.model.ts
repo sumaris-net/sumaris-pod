@@ -1,34 +1,33 @@
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
-import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
-import {Sale} from './sale.model';
+import { IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
+import { Sale } from './sale.model';
 import {
-  CompareWithFn,
-  Entity,
   EntityClass,
   EntityUtils,
   fromDateISOString,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
-import {FishingArea} from './fishing-area.model';
-import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
-import {IWithObserversEntity} from '@app/data/services/model/model.utils';
-import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {Landing} from './landing.model';
-import {Sample} from './sample.model';
-import {Batch} from './batch.model';
-import {IWithProductsEntity, Product} from './product.model';
-import {IWithPacketsEntity, Packet} from './packet.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {Metier} from '@app/referential/services/model/metier.model';
+import { FishingArea } from './fishing-area.model';
+import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
+import { IWithObserversEntity } from '@app/data/services/model/model.utils';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { Landing } from './landing.model';
+import { Sample } from './sample.model';
+import { Batch } from './batch.model';
+import { IWithProductsEntity, Product } from './product.model';
+import { IWithPacketsEntity, Packet } from './packet.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { Metier } from '@app/referential/services/model/metier.model';
 import { SortDirection } from '@angular/material/sort';
 
 /* -- Helper function -- */
@@ -74,6 +73,8 @@ export class Operation
   hasCatch: boolean = null;
   positions: VesselPosition[] = null;
   startPosition: VesselPosition = null;
+  fishingStartPosition: VesselPosition = null;
+  fishingEndPosition: VesselPosition = null;
   endPosition: VesselPosition = null;
 
   metier: Metier = null;
@@ -100,22 +101,42 @@ export class Operation
 
   asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
+
+    // DEBUG
+    // console.log('TODO serialize operation...');
+
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
 
-    target.endDateTime = target.endDateTime || target.startDateTime;
+    // Fill fishing start position (if valid)
+    if (target.fishingStartPosition && target.fishingStartPosition.latitude && target.fishingStartPosition.longitude) {
+      // Make sure to fill fishing start date, using start date if need
+      target.fishingStartDateTime = target.fishingStartDateTime || target.startDateTime;
+      target.fishingStartPosition.dateTime = target.fishingStartDateTime;
+    }
+    else {
+      // Invalid position: remove it
+      delete target.fishingStartPosition;
+    }
 
-    // If end position is valid (has latitude AND longitude)
+    // Fill fishing start position (if valid)
+    if (target.fishingEndPosition && target.fishingEndPosition.latitude && target.fishingEndPosition.longitude) {
+      target.fishingEndDateTime = target.fishingEndDateTime || target.fishingStartDateTime || target.startDateTime;
+      target.fishingEndPosition.dateTime = target.fishingEndDateTime;
+    }
+    else {
+      // Invalid position: remove it
+      delete target.fishingEndPosition;
+    }
+
+    // Fill end date, by using start date (because NOT NULL constraint on Pod)
+    target.endDateTime = target.endDateTime || target.fishingEndDateTime || target.fishingStartDateTime || target.startDateTime;
+
+    // Fill end position date/time (if valid = has latitude AND longitude)
     if (target.endPosition && target.endPosition.latitude && target.endPosition.longitude) {
-
-      // Fill end date, using start date (if on FIELD mode, can be null, but Pod has NOT NULL constraint)
-      if (!target.endPosition.dateTime) {
-        // Create a copy
-        target.endPosition = target.endPosition.clone();
-        target.endPosition.dateTime = target.endPosition.dateTime || target.fishingEndDateTime || target.endDateTime;
-      }
+      target.endPosition.dateTime = target.endDateTime;
     }
     // Invalid position (missing latitude or longitude - allowed in on FIELD mode): remove it
     else {
@@ -123,10 +144,16 @@ export class Operation
     }
 
     // Create an array of position, instead of start/end
-    target.positions = [target.startPosition, target.endPosition]
+    target.positions = [
+      target.startPosition,
+      target.fishingStartPosition,
+      target.fishingEndPosition,
+      target.endPosition]
       .filter(p => p && p.dateTime)
       .map(p => p && p.asObject(opts)) || undefined;
     delete target.startPosition;
+    delete target.fishingStartPosition;
+    delete target.fishingEndPosition;
     delete target.endPosition;
 
     // Physical gear
@@ -208,25 +235,33 @@ export class Operation
     this.physicalGear = (source.physicalGear || source.physicalGearId) ? PhysicalGear.fromObject(source.physicalGear || {id: source.physicalGearId}) : undefined;
     this.startDateTime = fromDateISOString(source.startDateTime);
     this.endDateTime = fromDateISOString(source.endDateTime);
-
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
-    if (source.startPosition || source.endPosition) {
-      this.startPosition = source.startPosition && VesselPosition.fromObject(source.startPosition);
-      this.endPosition = source.endPosition && VesselPosition.fromObject(source.endPosition);
+    if (source.startPosition || source.endPosition || source.fishingStartPosition || source.fishingEndPosition) {
+      this.startPosition = VesselPosition.fromObject(source.startPosition);
+      this.endPosition = VesselPosition.fromObject(source.endPosition);
+      this.fishingStartPosition = VesselPosition.fromObject(source.fishingStartPosition);
+      this.fishingEndPosition = VesselPosition.fromObject(source.fishingEndPosition);
       this.positions = undefined;
-    } else if (source.positions) {
-      const positions = source.positions.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
-      if (positions.length >= 1 && positions.length <= 2) {
-        this.startPosition = positions[0];
-        if (positions.length > 1) {
-          this.endPosition = positions.pop(); // last
-        }
+    } else {
+      const positions = source.positions?.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
+      if (isNotEmptyArray(positions)) {
+        // Warn : should be extracted in this order, because startDateTime can be equals to endDateTime
+        this.startPosition = VesselPositionUtils.findByDate(positions, this.startDateTime, true);
+        this.fishingStartPosition = VesselPositionUtils.findByDate(positions, this.fishingStartDateTime, true);
+        this.fishingEndPosition = VesselPositionUtils.findByDate(positions, this.fishingEndDateTime, true);
+        this.endPosition = VesselPositionUtils.findByDate(positions, this.endDateTime, true);
         this.positions = undefined;
-      } else {
+        if (positions.length > 0) {
+          console.warn('[operation] Some positions have no date matches, with start/end or fishingStart/fishingEnd dates', positions);
+        }
+      }
+      else {
         this.startPosition = undefined;
+        this.fishingStartPosition = undefined;
+        this.fishingEndPosition = undefined;
         this.endPosition = undefined;
         this.positions = positions;
       }
@@ -237,15 +272,21 @@ export class Operation
     ];
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
+    // Warn: keept this order: must start with endDateTime, then fishingEndDateTime, then fishingStartDateTime
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.startDateTime)) {
       this.endDateTime = undefined;
     }
     if (this.fishingEndDateTime && this.fishingEndDateTime.isSameOrBefore(this.fishingStartDateTime)) {
       this.fishingEndDateTime = undefined;
     }
-    if (this.endPosition && this.endPosition.dateTime && this.startPosition && this.endPosition.dateTime.isSameOrBefore(this.startPosition.dateTime)) {
-      this.endPosition.dateTime = undefined;
+    if (this.fishingStartDateTime && this.fishingStartDateTime.isSameOrBefore(this.startDateTime)) {
+      this.fishingStartDateTime = undefined;
     }
+
+    // Update positions dates
+    if (this.endPosition) this.endPosition.dateTime = this.endDateTime;
+    if (this.fishingEndPosition) this.fishingEndPosition.dateTime = this.fishingEndDateTime;
+    if (this.fishingStartPosition) this.fishingStartPosition.dateTime = this.fishingStartDateTime;
 
     // Fishing areas
     this.fishingAreas = source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject) || undefined;
@@ -665,3 +706,17 @@ export class VesselPosition extends DataEntity<VesselPosition> {
 }
 
 
+export class VesselPositionUtils {
+  static findByDate(positions: VesselPosition[], dateTime: Moment, removeFromArray?: boolean): VesselPosition | undefined {
+    if (!positions || !dateTime) return undefined;
+
+    const index = positions.findIndex(p => dateTime.isSame(p.dateTime));
+    if (index === -1) return undefined;
+    if (removeFromArray) {
+      return positions.splice(index, 1)[0];
+    }
+    else {
+      return positions[index];
+    }
+  }
+}
