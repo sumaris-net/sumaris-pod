@@ -1563,15 +1563,25 @@
       </plugin>
 
       <plugin>
-          <groupId>com.amashchenko.maven.plugin</groupId>
-          <artifactId>gitflow-maven-plugin</artifactId>
-          <version>${gitflowPluginVersion}</version>
-          <configuration>
-              <!-- optional configuration -->
-              <verbose>true</verbose>
-              <keepBranch>true</keepBranch>
-              <skipTestProject>true</skipTestProject>
-          </configuration>
+        <groupId>com.amashchenko.maven.plugin</groupId>
+        <artifactId>gitflow-maven-plugin</artifactId>
+        <version>${gitflowPluginVersion}</version>
+        <configuration>
+          <installProject>false</installProject>
+          <verbose>true</verbose>
+          <fetchRemote>false</fetchRemote>
+          <skipTestProject>true</skipTestProject>
+          <gitFlowConfig>
+            <productionBranch>master</productionBranch>
+            <developmentBranch>develop</developmentBranch>
+            <releaseBranchPrefix>release/</releaseBranchPrefix>
+            <versionTagPrefix></versionTagPrefix>
+          </gitFlowConfig>
+          <commitMessages>
+            <releaseStartMessage>Release @{version}</releaseStartMessage>
+            <releaseFinishMessage>[ci skip] to bump @{version}</releaseFinishMessage>
+          </commitMessages>
+        </configuration>
       </plugin>
 
     </plugins>
