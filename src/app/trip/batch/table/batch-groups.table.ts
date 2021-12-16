@@ -889,7 +889,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
         availableParents,
-        availableSubBatches: this.availableSubBatches,
+        data: this.availableSubBatches,
         onNewParentClick,
         // Override using input options
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons

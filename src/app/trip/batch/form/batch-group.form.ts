@@ -3,7 +3,7 @@ import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { AbstractControl, FormBuilder, FormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { AppFormUtils, fadeInAnimation, InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, AppTable, fadeInAnimation, InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorService } from '../../services/validator/batch-group.validator';
 import { BehaviorSubject } from 'rxjs';
 import { BatchForm } from './batch.form';
@@ -39,48 +39,48 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input() animated = false; // Animate children card
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
-  @ViewChildren('childForm') children !: QueryList<BatchForm>;
+  @ViewChildren('childForm') childrenList !: QueryList<BatchForm>;
 
   get invalid(): boolean {
     return this.form.invalid || this.hasSubBatchesControl.invalid ||
-      ((this.children || []).find(child => child.invalid) && true) || false;
+      ((this.childrenList || []).find(child => child.invalid) && true) || false;
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
     return this.form.valid && this.hasSubBatchesControl.valid &&
-      (!this.children || !this.children.find(child => !child.valid)) || false;
+      (!this.childrenList || !this.childrenList.find(child => !child.valid)) || false;
   }
 
   get pending(): boolean {
     return this.form.pending || this.hasSubBatchesControl.pending ||
-      (this.children && this.children.find(child => child.pending) && true) || false;
+      (this.childrenList && this.childrenList.find(child => child.pending) && true) || false;
   }
 
   get loading(): boolean {
-    return super.loading || (this.children && this.children.find(child => child.loading) && true) || false;
+    return super.loading || (this.childrenList && this.childrenList.find(child => child.loading) && true) || false;
   }
 
   get dirty(): boolean {
     return this.form.dirty || this.hasSubBatchesControl.dirty ||
-      (this.children && this.children.find(child => child.dirty) && true) || false;
+      (this.childrenList && this.childrenList.find(child => child.dirty) && true) || false;
   }
 
   markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
     super.markAllAsTouched(opts);
-    this.children?.forEach(f => f.markAllAsTouched(opts));
+    this.childrenList?.forEach(f => f.markAllAsTouched(opts));
     this.hasSubBatchesControl.markAsTouched(opts);
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; }) {
     super.markAsPristine(opts);
-    (this.children || []).forEach(child => child.markAsPristine(opts));
+    (this.childrenList || []).forEach(child => child.markAsPristine(opts));
     this.hasSubBatchesControl.markAsPristine(opts);
   }
 
   markAsUntouched(opts?: { onlySelf?: boolean; }) {
     super.markAsUntouched(opts);
-    (this.children || []).forEach(child => child.markAsUntouched(opts));
+    (this.childrenList || []).forEach(child => child.markAsUntouched(opts));
     this.hasSubBatchesControl.markAsUntouched(opts);
   }
 
@@ -88,7 +88,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     onlySelf?: boolean;
   }) {
     super.markAsDirty(opts);
-    (this.children && []).forEach(child => child.markAsDirty(opts));
+    (this.childrenList && []).forEach(child => child.markAsDirty(opts));
     this.hasSubBatchesControl.markAsDirty(opts);
   }
 
@@ -97,7 +97,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     emitEvent?: boolean;
   }) {
     super.disable(opts);
-    (this.children || []).forEach(child => child.disable(opts));
+    (this.childrenList || []).forEach(child => child.disable(opts));
     if (this._enable || (opts && opts.emitEvent)) {
       this._enable = false;
       this.markForCheck();
@@ -110,7 +110,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     emitEvent?: boolean;
   }) {
     super.enable(opts);
-    (this.children || []).forEach(child => child.enable(opts));
+    (this.childrenList || []).forEach(child => child.enable(opts));
     if (!this._enable || (opts && opts.emitEvent)) {
       this._enable = true;
       this.markForCheck();
@@ -171,7 +171,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe(hasSubBatches => {
             hasSubBatches = hasSubBatches && !this.showIndividualCount;
-            (this.children || []).forEach((childForm, index) => {
+            (this.childrenList || []).forEach((childForm, index) => {
               childForm.setIsSampling(hasSubBatches, {emitEvent: true} /*Important, to force async validator*/);
             });
           }));
@@ -208,10 +208,29 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   logFormErrors(logPrefix: string) {
     logPrefix = logPrefix || '';
     AppFormUtils.logFormErrors(this.form, logPrefix);
-    if (this.children) this.children.forEach((childForm, index) => {
+    if (this.childrenList) this.childrenList.forEach((childForm, index) => {
       AppFormUtils.logFormErrors(childForm.form, logPrefix, `children#${index}`);
     });
   }
+
+  async ready(): Promise<void> {
+    await super.ready();
+
+  }
+
+  /*onInitSubForm(form: AppForm<any>) {
+    if (!this.children.includes(form)) {
+      this.addChildForm(form);
+    }
+    // Mark table as ready, if main component is ready
+    if (this._$ready.value) {
+      table.markAsReady();
+    }
+    // Mark table as loaded, if main component is loaded
+    if (!this.loading) {
+      table.markAsLoaded();
+    }
+  }*/
 
   /* -- protected methods -- */
 
@@ -281,19 +300,22 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Then set value of each child form
       this.cd.detectChanges();
 
-      this.children.forEach((childForm, index) => {
+      this.childrenList.forEach((childForm, index) => {
+
         const childBatch = data.children[index] || new Batch();
         childForm.showWeight = this.showChildrenWeight;
         childForm.requiredWeight = this.showChildrenWeight && hasSubBatches;
         childForm.requiredSampleWeight = this.showChildrenWeight && hasSubBatches;
         childForm.requiredIndividualCount = !this.showChildrenWeight && hasSubBatches;
         childForm.setIsSampling(hasSubBatches, {emitEvent: true});
-        childForm.setValue(childBatch);
         if (this.enabled) {
           childForm.enable();
         } else {
           childForm.disable();
         }
+
+        childForm.markAsReady();
+        childForm.setValue(childBatch);
       });
 
       this.computeShowTotalIndividualCount(data);
@@ -324,7 +346,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     // If has children form
     if (this.qvPmfm) {
-      data.children = this.children.map((form, index) => {
+      data.children = this.childrenList.map((form, index) => {
         const qv = this.qvPmfm.qualitativeValues[index];
         const child = form.value;
         if (!child) return; // No set yet

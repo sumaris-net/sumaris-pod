@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation } from '@angular/core';
 import { OperationSaveOptions, OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
@@ -29,9 +29,9 @@ import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, s
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
+import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { BatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -133,8 +133,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
-      tabCount: 5,
-      autoUpdateRoute: !platform.mobile,
+      tabCount: 3,
       autoOpenNextTab: !platform.mobile
     });
 

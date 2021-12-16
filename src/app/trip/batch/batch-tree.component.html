@@ -33,6 +33,7 @@
                             [programLabel]="$programLabel|async"
                             [usageMode]="usageMode"
                             [disabled]="disabled"
+                            [useSticky]="useSticky"
                             [debug]="debug"
                             [mobile]="mobile"
                             [allowSubBatches]="allowSubBatches"
@@ -65,21 +66,11 @@
                            acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                            [programLabel]="$programLabel | async"
                            [usageMode]="usageMode"
+                           [useSticky]="useSticky"
                            [debug]="debug"
                            [tabindex]="200">
     </app-sub-batches-table>
   </mat-tab>
-
-  <!-- TAB: Individual releases
-  <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES'|translate}}">
-    <ng-template mat-tab-label>
-      <mat-icon>room</mat-icon>
-      <ion-label translate>TRIP.OPERATION.EDIT.TAB_INDIVIDUAL_RELEASES</ion-label>
-      <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
-    </ng-template>
-
-    <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
-  </mat-tab>-->
 
   <ng-content></ng-content>
 </mat-tab-group>

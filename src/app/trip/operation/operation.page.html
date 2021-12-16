@@ -230,6 +230,7 @@
                       [showBatchTables]="showBatchTables"
                       [selectedTabIndex]="selectedSubTabIndex"
                       [usageMode]="usageMode"
+                      [useSticky]="mobile"
                       [mobile]="mobile"
                       [debug]="debug">
       </app-batch-tree>
@@ -256,6 +257,7 @@
                        [defaultSampleDate]="form.get('endDateTime').valueChanges|async"
                        [usageMode]="usageMode"
                        (onPrepareRowForm)="onPrepareSampleForm($event)"
+                       [useSticky]="mobile"
                        [mobile]="mobile"
                        [debug]="debug">
       </app-sample-tree>
