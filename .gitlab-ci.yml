@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: jlrigau/maven-git
+image: maven:3.5.4-slim
 
 # stages (main steps of pipeline)
 stages:
@@ -20,8 +20,7 @@ stages:
 # ---------------------------------------------------------------
 
 variables:
-    DOCKER_DRIVER: overlay2
-    ANSIBLE_FORCE_COLOR: '1'
+    DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
     CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
     #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
@@ -38,6 +37,15 @@ variables:
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
+.configure-git-template: &git-setup
+  before_script:
+    - echo "fetch origin"
+    - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git fetch origin
+  tags: [sih_public_runner]
+
 
 .docker:
     image: docker:latest
@@ -59,7 +67,7 @@ variables:
     tags: [sih_public_runner]
     script:
         - echo "Building from sources..."
-        - mvn clean install -s ./ci_settings.xml -q -DskipTests
+        - mvn clean install -s ./ci_settings.xml -DskipTests
     after_script:
         # Get project version
         - mkdir -p target
@@ -79,10 +87,9 @@ build:
     extends: .build
     image: ${CI_BUILD_IMAGE}
     only:
-        - develop
-        - feature/imagine
-        - feature/imagine-569
         - tags
+        - develop
+        - /^feature\/.*/
 
 failsafe-build:
     extends: .build
@@ -90,6 +97,7 @@ failsafe-build:
     when: on_failure
     only:
         - develop
+        - /^feature\/.*/
 
 docker:ci:
     extends: .docker
@@ -98,32 +106,18 @@ docker:ci:
     allow_failure: true
     script:
       # Create the target directory
-      - mkdir -p target/ci
-      # Create the Dockerfile
-      - echo 'FROM tirrell/maven-git' > target/ci/Dockerfile
-      - echo 'WORKDIR /tmp/.build-cache' >> target/ci/Dockerfile
-      - echo 'COPY ./ ./' >> target/ci/Dockerfile
-      - echo "RUN mkdir -p ${MAVEN_LOCAL_REPO}" >> target/ci/Dockerfile
-      - echo "ENV MAVEN_LOCAL_REPO=${MAVEN_LOCAL_REPO}" >> target/ci/Dockerfile
-      - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 3 | egrep -v "^\.$"` > /tmp/before.txt' >> target/ci/Dockerfile
-      - echo 'RUN mvn install -s ./ci_settings.xml -q -DskipTests' >> target/ci/Dockerfile
-      - echo 'RUN mvn clean -s ./ci_settings.xml -q' >> target/ci/Dockerfile
-      - echo 'RUN du -s `find ${MAVEN_LOCAL_REPO} -maxdepth 3 | egrep -v "^\.$"` > /tmp/after.txt' >> target/ci/Dockerfile
-      - echo "RUN diff /tmp/before.txt /tmp/after.txt || true" >> target/ci/Dockerfile
-      - echo 'WORKDIR /build' >> target/ci/Dockerfile
+      - mkdir -p target/docker
+      - cp -rf ${APP_WAR_MODULE}/src/main/docker/build/* target/docker
       # Build and push the CI image
-      - docker build --pull -t ${CI_BUILD_IMAGE} -f target/ci/Dockerfile .
+      - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
       - docker push ${CI_BUILD_IMAGE}
     only:
         - develop
+        - /^feature\/.*/
     artifacts:
         paths:
             - target/ci/Dockerfile
         expire_in: 72 hours
-
-# ---------------------------------------------------------------
-# Test jobs
-# ---------------------------------------------------------------
 
 # ---------------------------------------------------------------
 # Tests jobs
@@ -177,6 +171,7 @@ sonarqube:
             -Dsonar.java.libraries=.
     only:
         - develop
+        - /^feature\/.*/
     when: manual
 
 # ---------------------------------------------------------------
@@ -184,32 +179,20 @@ sonarqube:
 # ---------------------------------------------------------------
 
 .release:
+  <<: *git-setup
   stage: release
   tags: [sih_public_runner]
-  before_script:
-    - git remote set-url origin ${CI_REPOSITORY_URL}
-    - git config --global user.email "${GITLAB_USER_EMAIL}"
-    - git config --global user.name "${GITLAB_USER_NAME}"
-    - git reset --hard develop
-    - git fetch origin
   script:
-    - cd src/scripts
-    - ./release.sh pre ${RELEASE_VERSION}
-#        - echo "Preparing release..."
-#        - git branch -D release/$RELEASE_VERSION || true
-#        - git pull origin develop && git checkout develop && git status
-#        - mvn -s ./ci_settings.xml -B gitflow:release-start --batch-mode -DreleaseVersion="$RELEASE_VERSION"
-#        - echo "Performing release..."
-#        - mvn clean install -s ./ci_settings.xml --batch-mode -DperformRelease -DskipTests
-#        - echo "Creating test DB..."
-#        - mvn -pl ${APP_CORE_MODULE} -q -Prun,hsqldb -DskipTests --batch-mode
-#        - cd ${APP_CORE_MODULE}/target && tar -cf "${APP_DB_MODULE}-${RELEASE_VERSION}.tar.gz" db && cd ../..
-#        - echo "Pushing changes to upstream"
-#        - git commit -a -m "Release $RELEASE_VERSION"
-#        - git status
-#        - mvn gitflow:release-finish
-  after_script:
-    - echo "APP_VERSION=${RELEASE_VERSION}" > ${ENV_FILE}
+    - echo "Preparing release..."
+    - export MVN_OPTS="-DinstallProject=false -DpushRemote=false"
+    - if [[ "_${RELEASE_VERSION}" != "_" ]]; then MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"; else exit 1; fi
+    - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
+    - echo "Performing release..."
+    - mvn clean install --batch-mode -DskipTests
+    - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
+    - mkdir target && echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+    - echo "Pushing changes to upstream"
+    - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
@@ -218,6 +201,8 @@ sonarqube:
       - ${APP_WAR_MODULE}/target/*.zip
     reports:
       dotenv: ${ENV_FILE}
+    expire_in: 60 minutes
+  allow_failure: false
   only:
     - develop
   when: manual
@@ -225,13 +210,11 @@ sonarqube:
 release:
     extends: .release
     image: ${CI_BUILD_IMAGE}
-    needs:
-        - build
+    needs: [build]
 
 failsafe-release:
     extends: .release
-    needs:
-        - failsafe-build
+    needs: [failsafe-build]
 
 gitlab-release:
     stage: release
@@ -260,7 +243,7 @@ gitlab-release:
         - export IMAGE_GROUPID=${IMAGE_GROUPID:-20001}
         # Create the target directory, to build the image
         - mkdir -p target/docker/config
-        - cp -rf ${APP_WAR_MODULE}/src/main/docker/* target/docker/
+        - cp -rf ${APP_WAR_MODULE}/src/main/docker/run/* target/docker/
         - cp -f ${ARTIFACT_WAR_FILE} target/docker/app.war
         - cp -f ${ARTIFACT_CONFIG_FILES} target/docker/config/
         - ls -l target/docker/config
@@ -277,6 +260,7 @@ gitlab-release:
 
 docker:develop:
     extends: .docker-build
+    needs: [build]
     variables:
         IMAGE_TAG: 'develop'
     only:
@@ -284,6 +268,7 @@ docker:develop:
 
 docker:imagine:
     extends: .docker-build
+    needs: [build]
     variables:
         IMAGE_TAG: 'imagine'
     only:
@@ -292,29 +277,22 @@ docker:imagine:
 # to run specific feature
 docker:feature:
     extends: .docker-build
+    needs: [build]
     variables:
         IMAGE_TAG: 'feature'
     only:
-        - feature/imagine-569
+        - /^feature\/.*/
+    when: manual
 
 docker:release:
     extends: .docker-build
+    needs: [release]
     variables:
-        IMAGE_TAG: $CI_COMMIT_TAG
-    only:
-        - tags
-
-docker:production:
-    extends: .docker-build
-    variables:
-        IMAGE_TAG: 'production'
+        IMAGE_TAG: ${APP_VERSION}
         IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
         IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
-        - tags
-        - feature/imagine
-        - feature/imagine-569
-    when: manual
+        - develop
 
 # ---------------------------------------------------------------
 # Publish jobs
