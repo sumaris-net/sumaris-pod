@@ -416,9 +416,7 @@ export class OperationValidators {
 
   /**
    * Validate and compute
-   * @param form
-   * @param pmfms
-   * @param opts
+   * @param event
    */
   static listenIndividualOnDeck(event: PmfmForm): Observable<any> | null {
     const {form, pmfms, markForCheck} = event;

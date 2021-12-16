@@ -619,6 +619,17 @@ export class TripService
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
+    if (EntityUtils.isLocalId(id)) {
+      return this.entities.watchAll<Trip>(Trip.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
+        .pipe(
+          map(({data}) => {
+            const entity = isNotEmptyArray(data) && Trip.fromObject(data[0]);
+            if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, entity);
+            return entity;
+          })
+        );
+    }
+
     return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},

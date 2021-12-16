@@ -123,7 +123,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() set allowParentOperation(value: boolean) {
     if (this._allowParentOperation !== value) {
       this._allowParentOperation = value;
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -134,7 +134,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() set showPosition(value: boolean) {
     if (this._showPosition !== value) {
       this._showPosition = value;
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -145,7 +145,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() set showFishingArea(value: boolean) {
     if (this._showFishingArea !== value) {
       this._showFishingArea = value;
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -167,7 +167,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       } else {
         commentControl.clearValidators();
       }
-      commentControl.updateValueAndValidity({emitEvent: !this._loading, onlySelf: true});
+      commentControl.updateValueAndValidity({emitEvent: !this.loading, onlySelf: true});
     }
   }
 
@@ -367,6 +367,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (isChildOperation || isParentOperation) {
       this._allowParentOperation = true; // do not use setter to not update form group
       this.setIsParentOperation(isParentOperation, {emitEvent: false});
+      if (isChildOperation) this.updateFormGroup({emitEvent: false});
     }
 
     if (isParentOperation && isNil(data.qualityFlagId)) {
@@ -392,7 +393,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       }
 
       // Update form group
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
