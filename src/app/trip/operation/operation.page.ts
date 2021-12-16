@@ -29,7 +29,7 @@ import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, s
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { Operation, Trip } from '../services/model/trip.model';
+import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { BatchTreeComponent } from '../batch/batch-tree.component';
@@ -217,13 +217,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
           tap(data => this.$lastOperations.next(data))
         )
         .subscribe()
-    );
-
-    this.registerSubscription(
-      this.opeForm.onNewPhysicalGear
-        .subscribe(physicalGear => {
-          this.trip.gears.push(physicalGear);
-        })
     );
 
   }
@@ -726,11 +719,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
 
-    // If there is new PhysicalGear added automatically, save it on trip
-    const newPhysicalGear = this.trip.gears.find(g => !g.id);
-    if (newPhysicalGear){
-      this.trip = await this.tripService.addGear(this.trip.id, newPhysicalGear);
-    }
+    // Save new gear to the trip
+    const gearSaved = await this.saveNewPhysicalGear();
+    if (!gearSaved) return false; // Stop if failed
 
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
@@ -751,6 +742,31 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
     return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
+  }
+
+  async saveNewPhysicalGear(): Promise<boolean> {
+    const physicalGear = this.opeForm.physicalGearControl.value;
+    if (!physicalGear || isNotNil(physicalGear.id)) return true; // Skip
+
+    this.markAsSaving();
+    this.error = undefined;
+
+    try {
+      const savedPhysicalGear = await this.tripService.addGear(this.trip.id, physicalGear);
+
+      // Update form with the new gear
+      this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, {emitEvent: false});
+      this.trip.gears.push(savedPhysicalGear);
+
+      return true;
+    }
+    catch(err) {
+      this.setError(err);
+      return false;
+    }
+    finally {
+      this.markAsSaved({emitEvent: false});
+    }
   }
 
   onPrepareSampleForm(pmfmForm: PmfmForm) {
