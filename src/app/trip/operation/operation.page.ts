@@ -31,7 +31,7 @@ import * as momentImported from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
 import { BatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -874,6 +874,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected getJsonValueToSave(): Promise<any> {
     const json = this.opeForm.value;
+
+    // Make sure parent operation has quality flag
+    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id') && isNil(json.qualityFlagId)){
+      console.warn('[operation-page] Parent operation does not have quality flag id');
+      json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
+      this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
+    }
 
     // Clean childOperation if empty
     if (EntityUtils.isEmpty(json.childOperation, 'id')) {
