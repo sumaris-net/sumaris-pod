@@ -87,6 +87,7 @@ build:
     extends: .build
     image: ${CI_BUILD_IMAGE}
     only:
+        - tags
         - develop
         - /^feature\/.*/
 
