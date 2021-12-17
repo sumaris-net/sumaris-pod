@@ -50,7 +50,6 @@ export class EntityQualityFormComponent<
   private _debug = false;
   private _mobile: boolean;
   private _subscription = new Subscription();
-  private _busy = false;
   private _isSynchroService: boolean;
   private _enableQualityProcess = true;
 
@@ -63,6 +62,7 @@ export class EntityQualityFormComponent<
   canUnvalidate: boolean;
   canQualify: boolean;
   canUnqualify: boolean;
+  busy = false;
 
   qualityFlags: ReferentialRef[];
 
@@ -143,7 +143,7 @@ export class EntityQualityFormComponent<
 
   async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
 
-    this._busy = true;
+    this.busy = true;
 
     let valid = false;
     try {
@@ -172,7 +172,7 @@ export class EntityQualityFormComponent<
       }
     }
     finally {
-      this._busy = false;
+      this.busy = false;
     }
 
     return valid;
@@ -213,7 +213,7 @@ export class EntityQualityFormComponent<
 
 
   async synchronize(event?: Event): Promise<boolean> {
-    if (this._busy) return;
+    if (this.busy) return;
 
     if (!this.data || +this.data.id >= 0) throw new Error('Need a local trip');
 
@@ -231,7 +231,7 @@ export class EntityQualityFormComponent<
     const controlled = await this.control(event, {emitEvent: false});
     if (!controlled || event && event.defaultPrevented) return false;
 
-    this._busy = true;
+    this.busy = true;
     // Disable the editor
     this.editor.disable();
 
@@ -265,7 +265,7 @@ export class EntityQualityFormComponent<
     }
     finally {
       this.editor.enable();
-      this._busy
+      this.busy
     }
 
   }
@@ -305,7 +305,7 @@ export class EntityQualityFormComponent<
   /* -- protected method -- */
 
   protected updateView(data?: T) {
-    if (this._busy) return; // Skip
+    if (this.busy) return; // Skip
 
     data = data || this.data || this.editor && this.editor.data;
     this.data = data;
