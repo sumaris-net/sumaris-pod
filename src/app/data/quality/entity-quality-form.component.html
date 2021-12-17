@@ -45,6 +45,7 @@
   <!-- synchronize -->
   <ion-button *ngIf="canSynchronize"
               expand="block"
+              [disabled]="_busy"
               [color]="network.offline ? 'danger100' : 'danger'"
               (click)="synchronize($event)" >
     <ion-icon slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
