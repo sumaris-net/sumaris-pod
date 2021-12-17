@@ -59,7 +59,7 @@ export class OperationIconComponent {
     }
 
     // DEBUG
-    console.debug('[operation-icon] Computing icon for', value);
+    //console.debug('[operation-icon] Computing icon for', value);
 
     this._value = value;
 
