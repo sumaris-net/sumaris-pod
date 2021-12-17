@@ -154,7 +154,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       console.error('Error while updating the view', err);
     }
     finally {
-      this.markAsLoaded();
+      this.markAsLoaded({ emitEvent: false });
       this.markAsUntouched({ emitEvent: false });
       this.markAsPristine({ emitEvent: false });
       this.enable({ emitEvent: false });
