@@ -101,7 +101,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
             return { data, total };
           }))
-        .subscribe(({data}) => this.$types.next(data))
+        .subscribe(({data}) => {
+          this.$types.next(data);
+          this.markAsReady();
+        })
     );
 
     // Listen route parameters
@@ -144,7 +147,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
           });
 
           // Execute the first load
-          await this.loadGeoData();
+          await this.loadData();
 
         }));
   }
@@ -275,11 +278,11 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
   }
 
   async load(id?: number, options?: any): Promise<any> {
-    const type = this.$types.getValue().find(t => t.id === id);
+    const type = this.$types.value.find(t => t.id === id);
     if (type) {
-      this.setType(type, {emitEvent: false});
+      await this.setType(type, {emitEvent: false});
 
-      this.loadGeoData();
+      await this.loadData();
     }
     return undefined;
   }
@@ -291,7 +294,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     return undefined;
   }
 
-  abstract loadGeoData(): Promise<void>;
+  protected abstract loadData(): Promise<void>;
 
   async reload(): Promise<any> {
     return this.load(this.type && this.type.id);

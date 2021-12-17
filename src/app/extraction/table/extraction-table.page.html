@@ -6,10 +6,6 @@
   </ion-title>
 
   <ion-buttons slot="end">
-
-    <!-- Loading spinner -->
-    <ion-spinner *ngIf="loading"></ion-spinner>
-
     <!-- Help button -->
     <button mat-icon-button
             *ngIf="type?.description"
@@ -254,11 +250,17 @@
           class="mat-row-disabled"></tr>
     </table>
 
-    <ion-item *ngIf="data && data.total === 0">
-      <ion-text color="danger" class="text-italic">
-        {{ 'COMMON.NO_RESULT' | translate }}
-      </ion-text>
-    </ion-item>
+    <ng-container *ngIf="loading; else noResult">
+      <ion-item>
+        <ion-skeleton-text animated></ion-skeleton-text>
+      </ion-item>
+    </ng-container>
+
+    <ng-template #noResult>
+      <ion-item *ngIf="data && data.total === 0">
+        <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      </ion-item>
+    </ng-template>
   </div>
 
 </ion-content>
