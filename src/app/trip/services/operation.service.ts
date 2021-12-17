@@ -996,13 +996,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   async updateLinkedOperation(entity: Operation, opts?: OperationSaveOptions) {
 
+    // DEBUG
+    //console.debug('[operation-service] Updating linked operation of op #' + entity.id);
+
     // Update the child operation
     const childOperationId = toNumber(entity.childOperation?.id, entity.childOperationId);
     if (isNotNil(childOperationId)) {
       const cachedChild = isNotNil(entity.childOperation?.id) ? entity.childOperation : undefined;
       let child = cachedChild || await this.load(childOperationId);
-      const needUpdateChild = !entity.startDateTime.isSame(child.startDateTime)
-        || !entity.fishingStartDateTime.isSame(child.fishingStartDateTime);
+      const needUpdateChild =
+        // Check dates
+        !entity.startDateTime.isSame(child.startDateTime)
+        || (entity.fishingStartDateTime && !entity.fishingStartDateTime.isSame(child.fishingStartDateTime))
+        // Check positions
+        || (entity.startPosition && !entity.startPosition.isSamePoint(child.startPosition))
+        || (entity.fishingStartPosition && !entity.fishingStartPosition.isSamePoint(child.fishingStartPosition));
 
       // Update the child operation, if need
       if (needUpdateChild) {
@@ -1014,6 +1022,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         // Update the child
         child.startDateTime = entity.startDateTime;
         child.fishingStartDateTime = entity.fishingStartDateTime;
+        if (entity.startPosition && isNotNil(entity.startPosition.id)) {
+          child.startPosition = child.startPosition || new VesselPosition();
+          child.startPosition.copyPoint(entity.startPosition)
+        }
+        else {
+          child.startPosition = undefined;
+        }
+        if (entity.fishingStartPosition && isNotNil(entity.fishingStartPosition.id)) {
+          child.fishingStartPosition = child.fishingStartPosition || new VesselPosition();
+          child.fishingStartPosition.copyPoint(entity.fishingStartPosition)
+        }
+        else {
+          child.fishingStartPosition = undefined;
+        }
         child.updateDate = entity.updateDate;
         const savedChild = await this.save(child, {...opts, updateLinkedOperation: false});
 
@@ -1224,7 +1246,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     // Update positions (id and updateDate)
-    const sortedSourcePositions = VesselPositionUtils.sortByDateTime(source.positions?.map(VesselPosition.fromObject));
+    const sortedSourcePositions = source.positions?.map(VesselPosition.fromObject).sort(VesselPositionUtils.dateTimeComparator());
     if (isNotEmptyArray(sortedSourcePositions)) {
       [target.startPosition, target.fishingStartPosition, target.fishingEndPosition, target.endPosition]
         .filter(p => p && p.dateTime)

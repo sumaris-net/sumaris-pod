@@ -35,9 +35,6 @@ import { SortDirection } from '@angular/material/sort';
 
 /* -- Data -- */
 
-const sortByDateTimeFn = (n1: VesselPosition, n2: VesselPosition) => {
-  return n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
-};
 
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
@@ -255,8 +252,9 @@ export class Operation
       this.fishingEndPosition = VesselPosition.fromObject(source.fishingEndPosition);
       this.positions = undefined;
     } else {
-      const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
+      const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(VesselPositionUtils.dateTimeComparator()) || undefined;
       if (isNotEmptyArray(sortedPositions)) {
+        console.log('TODO sorted positions: ', sortedPositions.map(p => p.dateTime).join(', '));
         // Warn : should be extracted in this order, because startDateTime can be equals to endDateTime
         this.startPosition = VesselPositionUtils.findByDate(sortedPositions, this.startDateTime, true);
         this.fishingStartPosition = VesselPositionUtils.findByDate(sortedPositions, this.fishingStartDateTime, true);
@@ -269,6 +267,8 @@ export class Operation
           // Fallback for previous version compatibility, if invalid dates in position
           if ((sortedPositions.length === 1 || sortedPositions.length === 2) && !this.startPosition && !this.endPosition) {
             this.startPosition = sortedPositions[0];
+            this.fishingStartPosition = undefined;
+            this.fishingEndPosition = undefined;
             this.endPosition = sortedPositions[1] || undefined;
           }
         }
@@ -718,13 +718,25 @@ export class VesselPosition extends DataEntity<VesselPosition> {
       || (this.dateTime && this.dateTime.isSame(fromDateISOString(other.dateTime))
         && (!this.operationId && !other.operationId || this.operationId === other.operationId));
   }
+
+  isSamePoint(other: VesselPosition) {
+    if (!other) return false;
+    return (this.latitude === other.latitude) && (this.longitude === other.longitude);
+  }
+
+  copyPoint(source: VesselPosition) {
+    if (!source) return;
+    this.latitude = source.latitude;
+    this.longitude = source.longitude;
+  }
 }
 
 
 export class VesselPositionUtils {
 
-  static sortByDateTime(positions: VesselPosition[]): VesselPosition[] {
-    return positions?.sort(sortByDateTimeFn) || undefined;
+  static dateTimeComparator(sortDirection?: SortDirection): (n1: VesselPosition, n2: VesselPosition) => number {
+    const side = sortDirection !== 'desc' ? 1 : -1;
+    return (n1, n2) => n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? side : -1 * side);
   }
 
   static findByDate(positions: VesselPosition[], dateTime: Moment, removeFromArray?: boolean): VesselPosition | undefined {
@@ -742,4 +754,6 @@ export class VesselPositionUtils {
       return positions[index];
     }
   }
+
+
 }
