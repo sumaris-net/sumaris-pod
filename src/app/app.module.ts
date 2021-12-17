@@ -70,6 +70,7 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
 import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
+import { Downloader } from '@ionic-native/downloader/ngx';
 
 
 @NgModule({
@@ -136,6 +137,7 @@ import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/s
     File,
     MediaCapture,
     PhotoViewer,
+    Downloader,
 
     {provide: APP_BASE_HREF, useFactory: function () {
         try {
