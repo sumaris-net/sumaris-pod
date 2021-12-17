@@ -385,7 +385,7 @@ export class MeasurementValuesUtils {
           // If date, convert to ISO string
           else if (value instanceof Date) {
             map[pmfmId] = toDateISOString(moment(value));
-          } else if (value instanceof Array) {
+          } else if (Array.isArray(value)) {
             // Do nothing, managed in measurementValuesMultiples property
           }
           // String, number

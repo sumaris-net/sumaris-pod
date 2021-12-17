@@ -997,34 +997,66 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   async updateLinkedOperation(entity: Operation, opts?: OperationSaveOptions) {
 
     // Update the child operation
-    if (isNotNil(entity.childOperationId)) {
-      const child = entity.childOperation || await this.load(entity.childOperationId);
+    const childOperationId = toNumber(entity.childOperation?.id, entity.childOperationId);
+    if (isNotNil(childOperationId)) {
+      const cachedChild = isNotNil(entity.childOperation?.id) ? entity.childOperation : undefined;
+      let child = cachedChild || await this.load(childOperationId);
       const needUpdateChild = !entity.startDateTime.isSame(child.startDateTime)
         || !entity.fishingStartDateTime.isSame(child.fishingStartDateTime);
 
       // Update the child operation, if need
       if (needUpdateChild) {
-        const fullChild = !entity.childOperation ? child : await this.load(entity.childOperationId);
         console.warn('[operation-service] Updating child operation...');
-        fullChild.startDateTime = entity.startDateTime;
-        fullChild.fishingStartDateTime = entity.fishingStartDateTime;
-        await this.save(fullChild, {...opts, updateLinkedOperation: false});
-        if (entity.childOperation) {
-          entity.childOperation.startDateTime = fullChild.startDateTime;
-          entity.childOperation.fishingStartDateTime = fullChild.fishingStartDateTime;
-          entity.childOperation.updateDate = fullChild.updateDate;
+
+        // Replace cached entity by a full entity
+        if (child === cachedChild) child = await this.load(childOperationId);
+
+        // Update the child
+        child.startDateTime = entity.startDateTime;
+        child.fishingStartDateTime = entity.fishingStartDateTime;
+        child.updateDate = entity.updateDate;
+        const savedChild = await this.save(child, {...opts, updateLinkedOperation: false});
+
+        // Update the cached entity
+        if (cachedChild) {
+          cachedChild.startDateTime = savedChild.startDateTime;
+          cachedChild.fishingStartDateTime = savedChild.fishingStartDateTime;
+          cachedChild.updateDate = savedChild.updateDate;
         }
       }
     }
 
-    // Update the parent operation (only if parent is a local entity)
     else {
-      const parentOperationId = toNumber(entity.parentOperationId, entity.parentOperation?.id);
-      if (isNotNil(parentOperationId) && parentOperationId < 0) {
-        const parent = entity.parentOperation || await this.load(parentOperationId);
-        if (parent.childOperationId !== entity.id) {
-          parent.childOperationId = entity.id;
-          await this.save(parent, {...opts, updateLinkedOperation: false});
+
+      // Update the parent operation (only if parent is a local entity)
+      const parentOperationId = toNumber(entity.parentOperation?.id, entity.parentOperationId);
+      if (isNotNil(parentOperationId)) {
+        const cachedParent = entity.parentOperation;
+        let parent = cachedParent || await this.load(parentOperationId, {fetchPolicy: 'cache-only'});
+
+        let savedParent: Operation;
+        if (parent && parent.childOperationId !== entity.id) {
+
+          if (EntityUtils.isLocal(parent)) {
+            // Replace cached entity by a full entity
+            if (parent === cachedParent) parent = await this.load(parentOperationId);
+
+            // Update the parent
+            parent.childOperationId = entity.id;
+            savedParent = await this.save(parent, {...opts, updateLinkedOperation: false});
+
+            // Update the cached entity
+            if (cachedParent && savedParent) {
+              cachedParent.updateDate = savedParent.updateDate;
+              cachedParent.childOperationId = savedParent.childOperationId;
+            }
+          }
+          // Remote AND on same trip
+          else if (parent.tripId === entity.tripId){
+            // FIXME: find to wait to update parent operation, WITHOUT refecthing queries
+            //  (to avoid duplication, if child is insert manually in cache)
+            // savedParent = await this.load(parentOperationId, {fetchPolicy: 'network-only'});
+          }
         }
       }
     }
@@ -1192,20 +1224,19 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     // Update positions (id and updateDate)
-    // (We use a copy, to be able to remove item, by calling findByDate() later)
-    const sourcePositionsCopy = VesselPositionUtils.sortByDateTime(source.positions?.slice());
-    if (isNotEmptyArray(sourcePositionsCopy)) {
+    const sortedSourcePositions = VesselPositionUtils.sortByDateTime(source.positions?.map(VesselPosition.fromObject));
+    if (isNotEmptyArray(sortedSourcePositions)) {
       [target.startPosition, target.fishingStartPosition, target.fishingEndPosition, target.endPosition]
         .filter(p => p && p.dateTime)
         .forEach(targetPos => {
           targetPos.operationId = source.id;
           // Get the source position, by date
-          const sourcePos = VesselPositionUtils.findByDate(sourcePositionsCopy, targetPos.dateTime, true);
+          const sourcePos = VesselPositionUtils.findByDate(sortedSourcePositions, targetPos.dateTime, true);
           EntityUtils.copyIdAndUpdateDate(sourcePos, targetPos);
         });
-      if (sourcePositionsCopy.length) {
+      if (sortedSourcePositions.length) {
         // Should never append
-        console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sourcePositionsCopy)
+        console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sortedSourcePositions)
       }
     }
 

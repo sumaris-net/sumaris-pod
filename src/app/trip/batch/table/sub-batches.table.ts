@@ -119,7 +119,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       if (this._parentSubscription) this._parentSubscription.unsubscribe();
       this._parentSubscription = parents.subscribe((values) => this.setAvailableParents(values));
       this.registerSubscription(this._parentSubscription);
-    } else if (parents instanceof Array && parents !== this._availableParents) {
+    } else if (Array.isArray(parents) && parents !== this._availableParents) {
       this.setAvailableParents(parents);
     }
   }

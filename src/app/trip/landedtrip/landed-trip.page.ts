@@ -234,6 +234,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Configure fishing area form
     this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
+
+    this.markAsReady();
   }
 
   async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {

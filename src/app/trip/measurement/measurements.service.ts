@@ -262,7 +262,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     }
 
 
-    if (pmfms instanceof Array && pmfms !== this.$pmfms.value) {
+    if (Array.isArray(pmfms) && pmfms !== this.$pmfms.value) {
 
       // DEBUG log
       if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);

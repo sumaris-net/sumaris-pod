@@ -1,4 +1,4 @@
-import { Moment } from 'moment';
+import { isMoment, Moment } from 'moment';
 import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import { IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { Sale } from './sale.model';
@@ -255,21 +255,21 @@ export class Operation
       this.fishingEndPosition = VesselPosition.fromObject(source.fishingEndPosition);
       this.positions = undefined;
     } else {
-      const positions = source.positions?.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
-      if (isNotEmptyArray(positions)) {
+      const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(sortByDateTimeFn) || undefined;
+      if (isNotEmptyArray(sortedPositions)) {
         // Warn : should be extracted in this order, because startDateTime can be equals to endDateTime
-        this.startPosition = VesselPositionUtils.findByDate(positions, this.startDateTime, true);
-        this.fishingStartPosition = VesselPositionUtils.findByDate(positions, this.fishingStartDateTime, true);
-        this.fishingEndPosition = VesselPositionUtils.findByDate(positions, this.fishingEndDateTime, true);
-        this.endPosition = VesselPositionUtils.findByDate(positions, this.endDateTime, true);
+        this.startPosition = VesselPositionUtils.findByDate(sortedPositions, this.startDateTime, true);
+        this.fishingStartPosition = VesselPositionUtils.findByDate(sortedPositions, this.fishingStartDateTime, true);
+        this.fishingEndPosition = VesselPositionUtils.findByDate(sortedPositions, this.fishingEndDateTime, true);
+        this.endPosition = VesselPositionUtils.findByDate(sortedPositions, this.endDateTime, true);
         this.positions = undefined;
-        if (positions.length > 0) {
-          console.warn('[operation] Some positions have no date matches, with start/end or fishingStart/fishingEnd dates', positions);
+        if (sortedPositions.length > 0) {
+          console.warn('[operation] Some positions have no date matches, with start/end or fishingStart/fishingEnd dates', sortedPositions);
 
           // Fallback for previous version compatibility, if invalid dates in position
-          if ((positions.length === 1 || positions.length === 2) && !this.startPosition && !this.endPosition) {
-            this.startPosition = positions[0];
-            this.endPosition = positions[1] || undefined;
+          if ((sortedPositions.length === 1 || sortedPositions.length === 2) && !this.startPosition && !this.endPosition) {
+            this.startPosition = sortedPositions[0];
+            this.endPosition = sortedPositions[1] || undefined;
           }
         }
       }
@@ -278,7 +278,7 @@ export class Operation
         this.fishingStartPosition = undefined;
         this.fishingEndPosition = undefined;
         this.endPosition = undefined;
-        this.positions = positions;
+        this.positions = sortedPositions;
       }
     }
     this.measurements = [
@@ -729,6 +729,9 @@ export class VesselPositionUtils {
 
   static findByDate(positions: VesselPosition[], dateTime: Moment, removeFromArray?: boolean): VesselPosition | undefined {
     if (!positions || !dateTime) return undefined;
+
+    // Make sure we have a valid moment object
+    if (!isMoment(dateTime)) dateTime = fromDateISOString(dateTime);
 
     const index = positions.findIndex(p => dateTime.isSame(p.dateTime));
     if (index === -1) return undefined;
