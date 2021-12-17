@@ -107,6 +107,7 @@
     "RESULT_COUNT": "{{count}} results",
     "NO_RESULT": "No result",
     "NO_DATA": "No data",
+    "LOADING_DOTS": "Loading...",
     "MISSING": "Missing",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
@@ -160,7 +161,7 @@
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "CHECK_SAMPLE_UNIQUE_TAG": "Check if TAG_ID is unique",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
-      "HELP_URL": "App > User manuel (URL)",
+      "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
@@ -1979,6 +1980,7 @@
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
     "DATA_NOT_FOUND": "Data not found",
+    "DOWNLOAD_FAILED": "Download failed: {{error}}",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "LOAD_CONFIG_ERROR": "Error while loading configuration",
@@ -1992,8 +1994,9 @@
     "AUTH_CHALLENGE_ERROR": "Error during authentication on the server (loading challenge failed)",
     "TABLE_INVALID_ROW_ERROR": "A row is invalid",
     "TABLE_READ_ONLY": "Table is in read only mode",
-    "SAVE_DATA_ERROR": "Error while saving data.<small><br/>If the problem persists, please contact your administrator.</small>",
-    "LOAD_DATA_ERROR": "Error while loading data.<small><br/>If the problem persists, please contact your administrator.</small>",
+    "SAVE_DATA_ERROR": "Error while saving data. <small><br/>If the problem persists, please contact your administrator.</small>",
+    "LOAD_DATA_ERROR": "Error while loading data. <small><br/>If the problem persists, please contact your administrator.</small>",
+    "DELETE_DATA_ERROR": "Error while deleting data. <small><br/>If the problem persists, please contact your administrator.</small>",
     "NETWORK_REQUIRED": "No network connection.<br/><b>Check your network connection</b> before trying again.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "No network connection. Unable to synchronize.",
     "IMPORT_REFERENTIAL_ERROR": "Error while loading referential lists. Could not enable the offline mode.",
@@ -2020,7 +2023,8 @@
     "LOAD_ERROR": "Error while loading",
     "SAVE_ERROR": "Error while saving",
     "SUBSCRIBE_ERROR": "Error while subscribe to changes",
-    "FIELD_NOT_EXISTS": "Value doesn't exist"
+    "FIELD_NOT_EXISTS": "Value doesn't exist",
+    "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -2033,9 +2037,12 @@
     "ACTION_IMMEDIATE": "This operation is irreversible.<br/><br/><b>Are you sure</b> you want to continue?",
     "DELETE_ROW": "<b>Are you sure</b> you want to delete this row?",
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?",
+    "CANCEL_ROW": "<b>Are you sure</b> you want to cancel changes on this row ?",
+    "CANCEL_ROWS": "<b>Are you sure</b> you want to cancel changes on these rows ?",
     "SEND_DEBUG_DATA": "Do you want to send this data to the administrator for help?"
   },
   "INFO": {
+    "ALERT_HEADER": "Information",
     "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
@@ -2045,6 +2052,7 @@
     "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
+    "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters"
   }
 }
