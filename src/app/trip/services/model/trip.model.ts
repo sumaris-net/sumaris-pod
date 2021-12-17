@@ -715,13 +715,18 @@ export class VesselPosition extends DataEntity<VesselPosition> {
 
   equals(other: VesselPosition): boolean {
     return super.equals(other)
-      || (this.dateTime === other.dateTime
+      || (this.dateTime && this.dateTime.isSame(fromDateISOString(other.dateTime))
         && (!this.operationId && !other.operationId || this.operationId === other.operationId));
   }
 }
 
 
 export class VesselPositionUtils {
+
+  static sortByDateTime(positions: VesselPosition[]): VesselPosition[] {
+    return positions?.sort(sortByDateTimeFn) || undefined;
+  }
+
   static findByDate(positions: VesselPosition[], dateTime: Moment, removeFromArray?: boolean): VesselPosition | undefined {
     if (!positions || !dateTime) return undefined;
 

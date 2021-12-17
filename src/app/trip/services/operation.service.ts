@@ -33,7 +33,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import {Measurement} from './model/measurement.model';
 import {DataEntity, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import {MINIFY_OPERATION_FOR_LOCAL_STORAGE, Operation, OperationAsObjectOptions, OperationFromObjectOptions, Trip, VesselPosition} from './model/trip.model';
+import { MINIFY_OPERATION_FOR_LOCAL_STORAGE, Operation, OperationAsObjectOptions, OperationFromObjectOptions, Trip, VesselPosition, VesselPositionUtils } from './model/trip.model';
 import {Batch, BatchUtils} from './model/batch.model';
 import {Sample} from './model/sample.model';
 import {SortDirection} from '@angular/material/sort';
@@ -1192,11 +1192,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     // Update positions (id and updateDate)
-    if (source.positions && source.positions.length > 0) {
-      [target.startPosition, target.endPosition].forEach(targetPos => {
-        const savedPos = source.positions.find(srcPos => targetPos.equals(srcPos));
-        EntityUtils.copyIdAndUpdateDate(savedPos, targetPos);
-      });
+    // (We use a copy, to be able to remove item, by calling findByDate() later)
+    const sourcePositionsCopy = VesselPositionUtils.sortByDateTime(source.positions?.slice());
+    if (isNotEmptyArray(sourcePositionsCopy)) {
+      [target.startPosition, target.fishingStartPosition, target.fishingEndPosition, target.endPosition]
+        .filter(p => p && p.dateTime)
+        .forEach(targetPos => {
+          targetPos.operationId = source.id;
+          // Get the source position, by date
+          const sourcePos = VesselPositionUtils.findByDate(sourcePositionsCopy, targetPos.dateTime, true);
+          EntityUtils.copyIdAndUpdateDate(sourcePos, targetPos);
+        });
+      if (sourcePositionsCopy.length) {
+        // Should never append
+        console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sourcePositionsCopy)
+      }
     }
 
     // Update measurements
