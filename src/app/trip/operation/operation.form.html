@@ -289,7 +289,7 @@
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        [hidden]="enableGeolocation || position.invalid"
+                        [hidden]="enableGeolocation || position.invalid || !endDateTimeEnable"
                         (click)="copyPosition($event,'fishingEndPosition', 'endPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
