@@ -343,8 +343,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
-    await super.setProgram(program);
     if (!program) return; // Skip
+
+    await super.setProgram(program);
 
     try {
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
@@ -462,6 +463,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Propagate program
     const programLabel = data.program && data.program.label;
     this.$programLabel.next(programLabel);
+
+    // Enable forms (do not wait for program load)
+    if (!programLabel) this.markAsReady();
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {

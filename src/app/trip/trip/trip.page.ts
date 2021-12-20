@@ -42,6 +42,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
 import { BehaviorSubject, merge, Subscription } from 'rxjs';
 import { Moment } from 'moment';
+import { ContextService } from '@app/shared/context.service';
 
 const moment = momentImported;
 
@@ -95,6 +96,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected programRef: ProgramRefService,
+    protected context: ContextService,
     public network: NetworkService
   ) {
     super(injector,
@@ -268,7 +270,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         // program
         if (searchFilter.program && searchFilter.program.label) {
           data.program = ReferentialRef.fromObject(searchFilter.program);
-          this.$programLabel.next(data.program.label);
         }
 
         // Vessel
@@ -298,10 +299,23 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         );
     }
 
+    // Set contextual program, if any
+    if (!data.program) {
+      const contextualProgram = this.context.getValue('program') as Program;
+      if (contextualProgram?.label) {
+        data.program = ReferentialRef.fromObject(contextualProgram);
+      }
+    }
+
     this.showGearTable = false;
     this.showOperationTable = false;
 
-    if (!data.program) this.markAsReady();
+    // Propagate program
+    const programLabel = data.program && data.program.label;
+    this.$programLabel.next(programLabel);
+
+    // Enable forms (do not wait for program load)
+    if (!programLabel) this.markAsReady();
   }
 
   protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
