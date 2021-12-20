@@ -71,7 +71,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
       // Excluded protected attributes
-      .filter(controlName => !opts.protectedAttributes || !opts.protectedAttributes.includes(controlName) || controlName !== '__typename');
+      .filter(controlName => (!opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) && controlName !== '__typename');
 
     opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
