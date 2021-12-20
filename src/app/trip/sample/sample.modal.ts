@@ -26,6 +26,7 @@ import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {Moment} from 'moment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
@@ -38,6 +39,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
 
+  availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
 
   // UI Options
@@ -82,6 +84,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
+  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   tagIdPmfm: IPmfm;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
