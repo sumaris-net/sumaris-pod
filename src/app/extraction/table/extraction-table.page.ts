@@ -109,7 +109,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           this.paginator.pageIndex = 0;
         }
 
-        return this.loadGeoData();
+        return this.loadData();
       });
 
     this.criteriaCount$ = this.criteriaForm.form.valueChanges
@@ -120,39 +120,46 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   async updateView(data: ExtractionResult) {
 
-    this.data = data;
+    try {
+      this.data = data;
 
-    // Translate names
-    this.translateColumns(data.columns);
+      // Translate names
+      this.translateColumns(data.columns);
 
-    // Sort columns, by rankOrder
-    this.sortedColumns = data.columns.slice()
-      // Sort by rankOder
-      .sort((col1, col2) => col1.rankOrder - col2.rankOrder);
+      // Sort columns, by rankOrder
+      this.sortedColumns = data.columns.slice()
+        // Sort by rankOder
+        .sort((col1, col2) => col1.rankOrder - col2.rankOrder);
 
-    this.displayedColumns = this.sortedColumns
-      .map(column => column.columnName)
-      // Remove id
-      .filter(columnName => columnName !== "id")
-      // Add actions column
-      .concat(['actions']);
+      this.displayedColumns = this.sortedColumns
+        .map(column => column.columnName)
+        // Remove id
+        .filter(columnName => columnName !== "id")
+        // Add actions column
+        .concat(['actions']);
 
-    this.$columns.next(data.columns); // WARN: must keep the original column order
+      this.$columns.next(data.columns); // WARN: must keep the original column order
 
-    // Update rows
-    this.dataSource.updateDatasource(data.rows || []);
+      // Update rows
+      this.dataSource.updateDatasource(data.rows || []);
 
-    // Update title
-    await this.updateTitle();
+      // Update title
+      await this.updateTitle();
 
-    // Wait end of datasource loading
-    await firstNotNilPromise(this.dataSource.connect(null));
+      // Wait end of datasource loading
+      await firstNotNilPromise(this.dataSource.connect(null));
 
-    this.markAsLoaded({emitEvent: false});
-    this.enable({emitEvent: false});
-    this.markAsUntouched({emitEvent: false});
-    this.markAsPristine({emitEvent: false});
-    this.markForCheck();
+    }
+    catch(err) {
+      console.error('Error while updating the view', err);
+    }
+    finally {
+      this.markAsLoaded({ emitEvent: false });
+      this.markAsUntouched({ emitEvent: false });
+      this.markAsPristine({ emitEvent: false });
+      this.enable({ emitEvent: false });
+      this.markForCheck();
+    }
   }
 
   async setType(type: ExtractionType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
@@ -167,6 +174,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
         this.filterExpansionPanel.close();
       }
+
+      this.markAsReady();
     }
 
     return changed;
@@ -431,7 +440,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     return this.service.watchAll(0, 1000);
   }
 
-  async loadGeoData() {
+  protected async loadData() {
 
     if (!this.type || !this.type.category || !this.type.label) return; // skip
 

@@ -23,6 +23,7 @@ fi
 echo "Building Android application..."
 cd ${PROJECT_DIR}
 node ${NODE_OPTIONS} ./node_modules/@ionic/cli/bin/ionic cordova build android --warning-mode=none --color $*
+[[ $? -ne 0 ]] && exit 1
 
 echo "Running Android application..."
 if [[ -f "${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk" ]]; then

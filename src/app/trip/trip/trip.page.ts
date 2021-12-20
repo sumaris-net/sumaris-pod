@@ -19,7 +19,7 @@ import {
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   NetworkService,
   PlatformService,
   PromiseEvent,
@@ -103,7 +103,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       {
         pathIdAttribute: 'tripId',
         tabCount: 3,
-        autoOpenNextTab: !platform.mobile
+        autoOpenNextTab: !platform.mobile,
+        enableListenChanges: true
       });
     this.defaultBackHref = "/trips";
     this.mobile = platform.mobile;
@@ -318,7 +319,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   updateTabsState(data: Trip) {
     // Enable gears tab if a program has been selected
-    this.showGearTable = !this.isNewData || ReferentialUtils.isNotEmpty(this.$programLabel.getValue());
+    this.showGearTable = !this.isNewData || isNotNilOrBlank(this.$programLabel.getValue());
 
     // Enable operations tab if has gears
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));

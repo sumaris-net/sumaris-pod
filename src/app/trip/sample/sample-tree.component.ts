@@ -41,6 +41,7 @@ export interface SampleTabDefinition {
 @Component({
   selector: 'app-sample-tree',
   templateUrl: './sample-tree.component.html',
+  styleUrls: ['./sample-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SampleTreeComponent extends AppTabEditor<Sample[]> {
@@ -60,6 +61,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   showIndividualReleaseTable = false
 
   @Input() debug: boolean;
+  @Input() useSticky = false;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
@@ -333,12 +335,13 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
   onInitTable(table: AppTable<any>) {
     if (!this.children.includes(table)) {
-      console.log('onInitTable -> register table');
       this.addChildForm(table);
     }
+    // Mark table as ready, if main component is ready
     if (this._$ready.value) {
       table.markAsReady();
     }
+    // Mark table as loaded, if main component is loaded
     if (!this.loading) {
       table.markAsLoaded();
     }

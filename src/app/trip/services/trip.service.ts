@@ -66,6 +66,7 @@ import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {Packet} from '@app/trip/services/model/packet.model';
 import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
+import { TripErrorCodes } from '@app/trip/services/trip.errors';
 
 const moment = momentImported;
 
@@ -617,6 +618,17 @@ export class TripService
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
+
+    if (EntityUtils.isLocalId(id)) {
+      return this.entities.watchAll<Trip>(Trip.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
+        .pipe(
+          map(({data}) => {
+            const entity = isNotEmptyArray(data) && Trip.fromObject(data[0]);
+            if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, entity);
+            return entity;
+          })
+        );
+    }
 
     return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
@@ -1357,21 +1369,50 @@ export class TripService
    * Add gear on trip from a physical gear of another trip
    * (used on new child operation when parent operation come from a different trip)
    * @param tripId
-   * @param physicalGear
+   * @param entity
    */
-  async addGear(tripId: number, physicalGear: PhysicalGear): Promise<Trip>{
+  async addGear(tripId: number, entity: PhysicalGear): Promise<PhysicalGear>{
 
-    let trip = await this.load(tripId);
+    const now = Date.now();
+    console.info('[operation-service] Add physical gear to trip...');
 
-    // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
-    if (trip.gears?.find(gear => gear.rankOrder === physicalGear.rankOrder)){
-      physicalGear.rankOrder = trip.gears.map(gear => gear.rankOrder).reduce(
-        (max, id) => (id > max ? id : max),
-        0) + 1;
+    try {
+
+      // Make sure to get an entity
+      entity = PhysicalGear.fromObject(entity);
+
+      // Load the trip
+      const trip = await this.load(tripId);
+      if (!trip) throw new Error(`Cannot find trip #{tripId}`); // Should never occur
+
+      // Compute new rankOrder, according to existing trip's gear
+      // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
+      if (trip.gears?.find(gear => gear.rankOrder === entity.rankOrder)){
+        entity.rankOrder = trip.gears.map(gear => gear.rankOrder)
+          .reduce((max, rankOrder) => Math.max(max, rankOrder), 0)
+          + 1;
+      }
+
+      // Add it to the trip
+      trip.gears.push(entity);
+
+      // Save the full trip
+      const savedTrip = await this.save(trip);
+
+      // Return the saved gear
+      const savedEntity = savedTrip.gears.find(g => g.rankOrder == entity.rankOrder);
+
+      // Check that the gear has been added
+      if (!savedEntity) throw new Error('Cannot find expected physical gear, in the saved trip!');
+
+      console.info(`[operation-service] Physical gear successfully added to trip, in ${Date.now()-now}ms`);
+
+      return savedEntity;
     }
-
-    trip.gears.push(physicalGear);
-    return await this.save(trip);
+    catch (err) {
+      console.error(`[trip⁻service] Error while adding physical gear to trip: ${err && err.message || err}`, err);
+      throw {code: TripErrorCodes.ADD_TRIP_GEAR_ERROR, message: 'TRIP.ERROR.ADD_GEAR'};
+    }
   }
 
   /* -- protected methods -- */

@@ -640,7 +640,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return hasData;
   }
 
-  async loadGeoData() {
+  protected async loadData() {
+    return this.loadGeoData();
+  }
+
+  protected async loadGeoData() {
     if (!this.ready) return;
     if (!this.type || !this.type.category || !this.type.label) {
       this.markAsLoaded();

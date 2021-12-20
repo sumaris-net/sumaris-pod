@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation } from '@angular/core';
 import { OperationSaveOptions, OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
@@ -31,7 +31,7 @@ import * as momentImported from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { BatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -84,6 +84,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   selectedSubTabIndex = 0;
   copyTripDates = false;
   allowParentOperation = false;
+  autoFillBatch = false;
+  autoFillDatesFromTrip = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -133,8 +135,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
-      tabCount: 5,
-      autoUpdateRoute: !platform.mobile,
+      tabCount: 3,
       autoOpenNextTab: !platform.mobile
     });
 
@@ -219,13 +220,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         .subscribe()
     );
 
-    this.registerSubscription(
-      this.opeForm.onNewPhysicalGear
-        .subscribe(physicalGear => {
-          this.trip.gears.push(physicalGear);
-        })
-    );
-
   }
 
   ngAfterViewInit() {
@@ -270,7 +264,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected async onMeasurementsFormReady() {
 
     // Wait program to be loaded
-    await this.ready();
+    //await this.ready();
 
     // DEBUG
     console.debug('[operation-page] Measurement form is ready');
@@ -482,6 +476,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.i18nContext.suffix = i18nSuffix;
 
     this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+    this.autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+    this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
 
     const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
     this.opeForm.trip = this.trip;
@@ -498,6 +494,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.startProgram = program.creationDate;
     this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
     this.opeForm.programLabel = program.label;
+    this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
+    this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
+    this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
@@ -508,15 +507,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.program = program;
     this.sampleTree.program = program;
 
+
+
     // Autofill batch group table (e.g. with taxon groups found in strategies)
-    const autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-    await this.setDefaultTaxonGroups(autoFillBatch);
+    await this.initAvailableTaxonGroups(this.autoFillBatch);
 
-    const autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
-    if (autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
-
-    //this.cd.detectChanges();
+    this.cd.detectChanges();
     this.markAsReady();
+
+    await this.ready();
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -717,6 +716,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Set sample tree
     this.sampleTree.value = (data && data.samples || []);
 
+    // If new data, auto fill the table
+    if (this.isNewData) {
+      if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
+      if (this.autoFillBatch) this.batchTree.autoFill({forceIfDisabled: true});
+    }
+
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -726,11 +731,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
 
-    // If there is new PhysicalGear added automatically, save it on trip
-    const newPhysicalGear = this.trip.gears.find(g => !g.id);
-    if (newPhysicalGear){
-      this.trip = await this.tripService.addGear(this.trip.id, newPhysicalGear);
-    }
+    // Save new gear to the trip
+    const gearSaved = await this.saveNewPhysicalGear();
+    if (!gearSaved) return false; // Stop if failed
 
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
@@ -751,6 +754,31 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
     return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
+  }
+
+  async saveNewPhysicalGear(): Promise<boolean> {
+    const physicalGear = this.opeForm.physicalGearControl.value;
+    if (!physicalGear || isNotNil(physicalGear.id)) return true; // Skip
+
+    this.markAsSaving();
+    this.error = undefined;
+
+    try {
+      const savedPhysicalGear = await this.tripService.addGear(this.trip.id, physicalGear);
+
+      // Update form with the new gear
+      this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, {emitEvent: false});
+      this.trip.gears.push(savedPhysicalGear);
+
+      return true;
+    }
+    catch(err) {
+      this.setError(err);
+      return false;
+    }
+    finally {
+      this.markAsSaved({emitEvent: false});
+    }
   }
 
   onPrepareSampleForm(pmfmForm: PmfmForm) {
@@ -859,6 +887,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   protected getJsonValueToSave(): Promise<any> {
     const json = this.opeForm.value;
 
+    // Make sure parent operation has quality flag
+    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id') && isNil(json.qualityFlagId)){
+      console.warn('[operation-page] Parent operation does not have quality flag id');
+      json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
+      this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
+    }
+
     // Clean childOperation if empty
     if (EntityUtils.isEmpty(json.childOperation, 'id')) {
       delete json.childOperation;
@@ -873,7 +908,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected async setDefaultTaxonGroups(enable: boolean) {
+  protected async initAvailableTaxonGroups(enable: boolean) {
     if (!enable) {
       // Reset table's taxon groups
       this.batchTree.availableTaxonGroups = null;
@@ -881,7 +916,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       return; // Skip
     }
 
-    if (this.debug) console.debug('[operation] Check if can auto fill species...');
+    if (this.debug) console.debug('[operation] Setting available taxon groups...');
 
     // Load program's taxon groups
     let availableTaxonGroups = await this.programRefService.loadTaxonGroups(this.$programLabel.value);
@@ -911,10 +946,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.sampleTree.availableTaxonGroups = availableTaxonGroups;
 
-    // If new data, auto fill the table
-    if (this.isNewData) {
-      await this.batchTree.autoFill({forceIfDisabled: true});
-    }
   }
 
   protected updateTablesState() {

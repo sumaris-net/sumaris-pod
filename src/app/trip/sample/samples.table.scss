@@ -1,14 +1,4 @@
-:root {
-  .mat-table {
-    .mat-header-row {
-      .mat-header-cell .mat-sort-header-content {
-        ion-label {
 
-        }
-      }
-    }
-  }
-}
 .table-container {
   --table-toolbar-height: 0px;
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));

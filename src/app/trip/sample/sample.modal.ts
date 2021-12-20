@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
   EntityUtils,
   isNil,
-  isNotEmptyArray, isNotNil, isNotNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
   LocalSettingsService,
   PlatformService,
   referentialToString,
@@ -12,18 +14,18 @@ import {
   TranslateContextService,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { environment } from '../../../environments/environment';
-import { AlertController, IonContent, ModalController } from '@ionic/angular';
-import { BehaviorSubject, isObservable, Observable, Subscription, TeardownLogic } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
-import { SampleForm } from './sample.form';
-import { Sample } from '../services/model/sample.model';
-import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
-import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
-import { debounceTime, filter } from 'rxjs/operators';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { Moment } from 'moment';
+import {environment} from '@environments/environment';
+import {AlertController, IonContent, ModalController} from '@ionic/angular';
+import {BehaviorSubject, Subscription, TeardownLogic} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
+import {SampleForm} from './sample.form';
+import {Sample} from '../services/model/sample.model';
+import {TRIP_LOCAL_SETTINGS_OPTIONS} from '../services/config/trip.config';
+import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
+import {debounceTime} from 'rxjs/operators';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {Moment} from 'moment';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {

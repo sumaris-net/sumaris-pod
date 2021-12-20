@@ -1,9 +1,12 @@
 <app-toolbar [title]="$title | async"
-            color="primary"
-            [hasValidate]="!loading"
-            (onValidate)="save($event)"
-            [defaultBackHref]="defaultBackHref"
-            [canGoBack]="true">
+             color="primary"
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 

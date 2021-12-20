@@ -72,10 +72,8 @@ export class OperationIconComponent {
     else if (isNotNil(value.childOperationId) || value.qualityFlagId === QualityFlagIds.NOT_COMPLETED || this.allowParentOperation) {
       this.matSvgIcon = 'down-arrow';
       this.icon = undefined;
-      if (isNil(value.childOperationId)) {
-        this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : undefined;
-        this.badgeColor = 'accent';
-      }
+      this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : undefined;
+      this.badgeColor = this.badgeIcon && 'accent' || undefined;
     }
     // Other
     else {

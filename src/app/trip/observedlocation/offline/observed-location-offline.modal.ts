@@ -125,7 +125,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     this.registerAutocompleteField('location', {
       items: locations$,
       displayWith: (arg) => {
-        if (arg instanceof Array) {
+        if (Array.isArray(arg)) {
           return referentialsToString(arg, displayAttributes);
         }
         return referentialToString(arg, displayAttributes);
@@ -199,7 +199,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Location
     if (json.location) {
-      if (json.location instanceof Array) {
+      if (Array.isArray(json.location)) {
         value.locationIds = json.location.map(entity => entity.id);
       }
       else {

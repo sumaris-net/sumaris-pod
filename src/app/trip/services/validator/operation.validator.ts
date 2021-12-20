@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { PositionValidatorService } from './position.validator';
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {PositionValidatorService} from './position.validator';
 import {
   AppFormUtils,
   fromDateISOString,
@@ -13,16 +13,16 @@ import {
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { Program } from '@app/referential/services/model/program.model';
-import { MeasurementsValidatorService } from './measurement.validator';
-import { Operation, Trip } from '../model/trip.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { merge, Observable, Subscription } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
+import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {Program} from '@app/referential/services/model/program.model';
+import {MeasurementsValidatorService} from './measurement.validator';
+import {Operation, Trip} from '../model/trip.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {merge, Observable, Subscription} from 'rxjs';
+import {map, startWith} from 'rxjs/operators';
 
 
 export interface PmfmForm {
@@ -39,6 +39,9 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withPosition?: boolean;
   withFishingAreas?: boolean;
   withChildOperation?: boolean;
+  withFishingStart?: boolean;
+  withFishingEnd?: boolean;
+  withEnd?: boolean;
   trip?: Trip;
 }
 
@@ -79,21 +82,17 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       }));
     }
 
-    // Add position
-    if (opts.withPosition) {
-      form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
-    }
-
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      form.addControl('fishingAreas', this.getFishingAreasArray(data,  {required: true}));
+      form.addControl('fishingAreas', this.getFishingAreasArray(data, {required: true}));
     }
 
     // Add position
     if (opts.withPosition) {
       form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
+      if (opts.withFishingStart) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (opts.withFishingEnd) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (opts.withEnd) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: false}));
     }
 
     // Add position
@@ -185,12 +184,51 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // DEBUG
     //console.debug(`[operation-validator] Updating form group validators`);
 
+    // Add positions
+    // Start position
+    if (opts.withPosition) {
+      if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+    } else {
+      if (form.controls.startPosition) form.removeControl('startPosition');
+    }
+
+    //Fishing start position
+    if (opts.withPosition && opts.withFishingStart) {
+      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
+    } else {
+      if (form.controls.fishingStartPosition) form.removeControl('fishingStartPosition');
+    }
+
+    //Fishing end position
+    if (opts.withPosition && opts.withFishingEnd) {
+      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
+    } else {
+      if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
+    }
+
+    //End position
+    if (opts.withPosition && opts.withEnd) {
+      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: false}));
+    } else {
+      if (form.controls.endPosition) form.removeControl('endPosition');
+    }
+
+    // Add fishing areas
+    if (opts.withFishingAreas) {
+      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
+    } else {
+      if (form.controls.fishingAreas) form.removeControl('fishingAreas');
+    }
+
     const parentControl = form.get('parentOperation');
     let childControl = form.get('childOperation');
     const qualityFlagControl = form.get('qualityFlagId');
     const fishingStartDateTimeControl = form.get('fishingStartDateTime');
     const fishingEndDateTimeControl = form.get('fishingEndDateTime');
     const endDateTimeControl = form.get('endDateTime');
+    const fishingEndPositionControl = form.get('fishingEndPosition');
+    const fishingStartPositionControl = form.get('fishingStartPosition');
+    const endPositionControl = form.get('endPosition');
 
     // Validator to date inside the trip
     const tripDatesValidators = opts?.trip && [this.createTripDatesValidator(opts.trip)] || [];
@@ -214,21 +252,37 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // startDateTime = START
       // fishingStartDateTime = END
-      const fishingStartDateTimeValidators = [
+      if (opts.withFishingStart) {
+        const fishingStartDateTimeValidators = [
           ...tripDatesValidators,
-        SharedValidators.dateRangeEnd('startDateTime'),
-        SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')
-      ];
-      fishingStartDateTimeControl.setValidators(opts?.isOnFieldMode
-        ? Validators.compose(fishingStartDateTimeValidators)
-        : Validators.compose([Validators.required, ...fishingStartDateTimeValidators]));
-      fishingStartDateTimeControl.enable();
+          SharedValidators.dateRangeEnd('startDateTime'),
+          SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')
+        ];
+        fishingStartDateTimeControl.setValidators(opts?.isOnFieldMode
+          ? Validators.compose(fishingStartDateTimeValidators)
+          : Validators.compose([Validators.required, ...fishingStartDateTimeValidators]));
+        fishingStartDateTimeControl.enable();
+
+        // Enable position
+        fishingStartPositionControl?.enable();
+      } else {
+        fishingStartDateTimeControl.disable();
+        fishingStartDateTimeControl.clearValidators();
+
+        // Disable position
+        fishingStartPositionControl?.clearValidators();
+        fishingStartPositionControl?.disable();
+      }
 
       // Disable unused controls
       fishingEndDateTimeControl.disable();
       fishingEndDateTimeControl.clearValidators();
       endDateTimeControl.disable();
       endDateTimeControl.clearValidators();
+      fishingEndPositionControl?.clearValidators();
+      fishingEndPositionControl?.disable();
+      endPositionControl?.clearValidators();
+      endPositionControl?.disable();
     }
 
     // Is a child
@@ -243,25 +297,49 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // Clear quality flag
       qualityFlagControl.clearValidators();
-      qualityFlagControl.patchValue(null, {emitEvent: false})
+      qualityFlagControl.patchValue(null, {emitEvent: false});
 
       // fishingEndDateTime = START
-      fishingEndDateTimeControl.setValidators(Validators.compose([
+      if (opts.withFishingEnd) {
+        fishingEndDateTimeControl.setValidators(Validators.compose([
           Validators.required,
           // Should be after parent dates
           SharedValidators.dateRangeEnd('fishingStartDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
         ]));
-      fishingEndDateTimeControl.enable();
+        fishingEndDateTimeControl.enable();
 
-      // endDateTime = END
-      const endDateTimeValidators = [
-        ...tripDatesValidators,
-        SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
-      ];
-      endDateTimeControl.setValidators(opts?.isOnFieldMode
-        ? Validators.compose(endDateTimeValidators)
-        : Validators.compose([Validators.required, ...endDateTimeValidators]));
-      endDateTimeControl.enable();
+        // Enable position
+        fishingEndPositionControl?.enable();
+      } else {
+        fishingEndDateTimeControl.clearValidators();
+        fishingEndDateTimeControl.disable();
+
+        // Disable position
+        fishingEndPositionControl?.clearValidators();
+        fishingEndPositionControl?.disable();
+      }
+
+      if (opts.withEnd) {
+        // endDateTime = END
+        const endDateTimeValidators = [
+          ...tripDatesValidators,
+          SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
+        ];
+        endDateTimeControl.setValidators(opts?.isOnFieldMode
+          ? Validators.compose(endDateTimeValidators)
+          : Validators.compose([Validators.required, ...endDateTimeValidators]));
+        endDateTimeControl.enable();
+
+        // Enable position
+        endPositionControl?.enable();
+      } else {
+        endDateTimeControl.clearValidators();
+        endDateTimeControl.disable();
+
+        // Disable position
+        endPositionControl?.clearValidators();
+        endPositionControl?.disable();
+      }
 
       // Disable unused controls
       fishingStartDateTimeControl.clearValidators();
@@ -280,40 +358,38 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // Clear quality flag
       qualityFlagControl.clearValidators();
-      qualityFlagControl.patchValue(null, {emitEvent: false})
+      qualityFlagControl.patchValue(null, {emitEvent: false});
 
-      // = END DATE
-      const endDateTimeValidators = [
-        ...tripDatesValidators,
-        SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
-      ];
-      endDateTimeControl.setValidators(opts?.isOnFieldMode
-        ? endDateTimeValidators
-        : Validators.compose([Validators.required, ...endDateTimeValidators]));
+      if (opts.withEnd) {
+        // = END DATE
+        const endDateTimeValidators = [
+          ...tripDatesValidators,
+          SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
+        ];
+        endDateTimeControl.setValidators(opts?.isOnFieldMode
+          ? endDateTimeValidators
+          : Validators.compose([Validators.required, ...endDateTimeValidators]));
 
+        // Enable position
+        endPositionControl?.enable();
+      } else {
+        endDateTimeControl.clearValidators();
+        endDateTimeControl.disable();
+
+        // Disable position
+        endPositionControl?.clearValidators();
+        endPositionControl?.disable();
+      }
       // Disable unused controls
+      // TODO: use program options xxx.enable
       fishingStartDateTimeControl.disable();
       fishingStartDateTimeControl.clearValidators();
-      fishingEndDateTimeControl.disable()
+      fishingEndDateTimeControl.disable();
       fishingEndDateTimeControl.clearValidators();
+
+      fishingEndPositionControl?.disable();
     }
 
-    // Add position
-    if (opts.withPosition) {
-      if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: !opts.isOnFieldMode}));
-    }
-    else {
-      if (!!form.controls.startPosition) form.removeControl('startPosition');
-      if (!!form.controls.endPosition) form.removeControl('endPosition');
-    }
-
-    // Add fishing areas
-    if (opts.withFishingAreas) {
-      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, {required: true}));
-    } else {
-      if (!!form.controls.fishingAreas) form.removeControl('fishingAreas');
-    }
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
@@ -325,10 +401,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
 
-    opts.withMeasurements = toBoolean(opts.withMeasurements,  toBoolean(!!opts.program, false));
+    opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
     opts.withPosition = toBoolean(opts.withPosition, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE), true));
-    opts.withFishingAreas = toBoolean(opts.withFishingAreas, true)
-    opts.withChildOperation = toBoolean(opts.withChildOperation, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION), false))
+    opts.withFishingAreas = toBoolean(opts.withFishingAreas, true);
+    opts.withChildOperation = toBoolean(opts.withChildOperation, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION), false));
+    opts.withFishingStart = toBoolean(opts.withFishingStart, false);
+    opts.withFishingEnd = toBoolean(opts.withFishingEnd, false);
+    opts.withEnd = toBoolean(opts.withEnd, true);
 
     // DEBUG
     //console.debug("[operation-validator] Ope Validator will use options:", opts);
@@ -367,13 +446,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         console.warn(`[operation] Invalid operation: after the trip`, dateTime, tripReturnDateTime);
         return <ValidationErrors>{msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP'};
       }
-    }
+    };
   }
 
-  protected getFishingAreasArray(data?: Operation, opts?: {required?: boolean}) {
+  protected getFishingAreasArray(data?: Operation, opts?: { required?: boolean }) {
     const required = !opts || opts.required !== false;
     return this.formBuilder.array(
-      (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa, { required })),
+      (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa, {required})),
       required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
     );
   }
@@ -385,7 +464,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       fishingStartDateTime: [data && data.fishingStartDateTime || null],
       fishingEndDateTime: [data && data.fishingEndDateTime || null],
       endDateTime: [data && data.endDateTime || null]
-    })
+    });
   }
 
 }
@@ -393,9 +472,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 export class OperationValidators {
 
   static addSampleValidators(pmfmForm: PmfmForm): Subscription {
-    const {form, pmfms } = pmfmForm;
+    const {form, pmfms} = pmfmForm;
     if (!form) {
-      console.warn("Argument 'form' required");
+      console.warn('Argument \'form\' required');
       return null;
     }
 
@@ -416,9 +495,7 @@ export class OperationValidators {
 
   /**
    * Validate and compute
-   * @param form
-   * @param pmfms
-   * @param opts
+   * @param event
    */
   static listenIndividualOnDeck(event: PmfmForm): Observable<any> | null {
     const {form, pmfms, markForCheck} = event;
@@ -428,39 +505,39 @@ export class OperationValidators {
     const individualOnDeckPmfm = pmfms.find(pmfm => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
     const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
     if (individualOnDeckControl) {
-      console.debug("[operation-validator] Listening if on deck...");
+      console.debug('[operation-validator] Listening if on deck...');
 
       return individualOnDeckControl.valueChanges
         .pipe(
           startWith(individualOnDeckControl.value),
           map((individualOnDeck) => {
-          if (individualOnDeck) {
-            if (form.enabled) {
-              pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
-                .map(pmfm => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  if (pmfm.required) {
-                    control.setValidators(Validators.required);
-                  }
-                  control.enable();
-                });
-              if (markForCheck) markForCheck();
+            if (individualOnDeck) {
+              if (form.enabled) {
+                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
+                  .map(pmfm => {
+                    const control = measFormGroup.controls[pmfm.id];
+                    if (pmfm.required) {
+                      control.setValidators(Validators.required);
+                    }
+                    control.enable();
+                  });
+                if (markForCheck) markForCheck();
+              }
+            } else {
+              if (form.enabled) {
+                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
+                  .map(pmfm => {
+                    const control = measFormGroup.controls[pmfm.id];
+                    control.disable();
+                    control.reset(null, {emitEvent: false});
+                    control.setValidators(null);
+                  });
+                if (markForCheck) markForCheck();
+              }
             }
-          } else {
-            if (form.enabled) {
-              pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
-                .map(pmfm => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  control.disable();
-                  control.reset(null, { emitEvent: false });
-                  control.setValidators(null);
-                });
-              if (markForCheck) markForCheck();
-            }
-          }
-          return null;
-        })
-      );
+            return null;
+          })
+        );
     }
     return null;
   }

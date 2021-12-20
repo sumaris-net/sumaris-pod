@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorService } from '../services/validator/operation.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from '@angular/core';
+import {OperationValidatorService} from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   AccountService,
   AppForm,
@@ -29,29 +29,31 @@ import {
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
-import { BehaviorSubject, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
-import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Router } from '@angular/router';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { FishingArea } from '@app/trip/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
-import { TripService } from '@app/trip/services/trip.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {BehaviorSubject, merge, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ModalController} from '@ionic/angular';
+import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/operation/select-operation.modal';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {PositionUtils} from '@app/trip/services/position.utils';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {LocationLevelIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {LatLongPattern} from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import {TripService} from '@app/trip/services/trip.service';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 
 const moment = momentImported;
 
 type FilterableFieldName = 'fishingArea';
+
+type PositionField = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
 
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
@@ -80,6 +82,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _showPosition = true;
   private _showFishingArea = false;
   private _requiredComment = false;
+  private _positionSubscription: Subscription;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -104,6 +107,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
+  @Input() fishingStartDateTimeEnable = false;
+  @Input() fishingEndDateTimeEnable = false;
+  @Input() endDateTimeEnable = true;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
@@ -123,7 +129,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() set allowParentOperation(value: boolean) {
     if (this._allowParentOperation !== value) {
       this._allowParentOperation = value;
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -134,7 +140,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() set showPosition(value: boolean) {
     if (this._showPosition !== value) {
       this._showPosition = value;
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -145,7 +151,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() set showFishingArea(value: boolean) {
     if (this._showFishingArea !== value) {
       this._showFishingArea = value;
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -167,7 +173,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       } else {
         commentControl.clearValidators();
       }
-      commentControl.updateValueAndValidity({emitEvent: !this._loading, onlySelf: true});
+      commentControl.updateValueAndValidity({emitEvent: !this.loading, onlySelf: true});
     }
   }
 
@@ -199,6 +205,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this.form?.controls.qualityFlagId as FormControl;
   }
 
+  get physicalGearControl(): FormControl {
+    return this.form?.controls.physicalGear as FormControl;
+  }
+
   get isParentOperation(): boolean {
     return this.isParentOperationControl.value === true;
   }
@@ -225,8 +235,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this.getFormError(this.form);
   }
 
+  get getLastActivePositionControl(): AbstractControl {
+    return this.endDateTimeEnable && this.form.get('endPosition')
+      || this.fishingEndDateTimeEnable && this.form.get('fishingEndPosition')
+      || this.fishingStartDateTimeEnable && this.form.get('fishingStartPosition')
+      || this.form.get('startPosition');
+  }
+
   @Output() onParentChanges = new EventEmitter<Operation>();
-  @Output() onNewPhysicalGear = new EventEmitter<PhysicalGear>();
 
   constructor(
     injector: Injector,
@@ -307,14 +323,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         .subscribe(value => this.onParentOperationChanged(value))
     );
 
-    this.registerSubscription(
-      merge(
-        this.form.get('startPosition').valueChanges,
-        this.form.get('endPosition').valueChanges
-      )
-        .pipe(debounceTime(200))
-        .subscribe(_ => this.updateDistance())
-    );
+    this.initPositionSubscription();
 
     this.registerSubscription(
       this.isParentOperationControl.valueChanges
@@ -332,6 +341,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this._physicalGearsSubject.complete();
     this._metiersSubject.complete();
     this.$parentOperationLabel.complete();
+    this._positionSubscription?.unsubscribe();
   }
 
   reset(data?: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -364,6 +374,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (isChildOperation || isParentOperation) {
       this._allowParentOperation = true; // do not use setter to not update form group
       this.setIsParentOperation(isParentOperation, {emitEvent: false});
+      if (isChildOperation) this.updateFormGroup({emitEvent: false});
     }
 
     if (isParentOperation && isNil(data.qualityFlagId)) {
@@ -389,7 +400,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       }
 
       // Update form group
-      if (!this._loading) this.updateFormGroup();
+      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -451,12 +462,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.markForCheck();
   }
 
-  copyPosition(event: UIEvent, source: string, target: string) {
+  copyPosition(event: UIEvent, source: PositionField, target?: PositionField) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
     const value = this.form.get(source).value;
+
+    if (!target && source === 'startPosition') {
+      target = (this.fishingStartDateTimeEnable && 'fishingStartPosition')
+        || (this.fishingEndDateTimeEnable && 'fishingEndPosition')
+        || (this.endDateTimeEnable && 'endPosition') || undefined;
+    }
+    if (!target) return; // Skip
 
     this.form.get(target).patchValue({
       latitude: value.latitude,
@@ -518,6 +536,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       parentLabel = await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
         startDateTime: parentOperation.startDateTime && this.dateFormat.transform(parentOperation.startDateTime, {time: true}) as string
       }).toPromise() as string;
+
+      // Append end time
+      if (parentOperation.fishingStartDateTime && !parentOperation.startDateTime.isSame(parentOperation.fishingStartDateTime)) {
+        const endSuffix = this.dateFormat.format(parentOperation.fishingStartDateTime, 'HH:mm');
+        parentLabel += ' -> ' + endSuffix;
+      }
     }
     this.$parentOperationLabel.next(parentLabel);
 
@@ -534,10 +558,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       return;
     }
 
+    // DEBUG
+    console.debug('[operation-form] Set parent operation', parentOperation);
+
     const form = this.form;
     const metierControl = form.get('metier');
     const physicalGearControl = form.get('physicalGear');
     const startPositionControl = form.get('startPosition');
+    const fishingStartPositionControl = form.get('fishingStartPosition');
+    const fishingEndPositionControl = form.get('fishingEndPosition');
     const endPositionControl = form.get('endPosition');
     const startDateTimeControl = form.get('startDateTime');
     const fishingStartDateTimeControl = form.get('fishingStartDateTime');
@@ -559,9 +588,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         if (this.debug) {
           console.warn('[operation-form] several matching physical gear on trip',
             physicalGears,
-            physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)))
-        }
-        else console.warn('[operation-form] several matching physical gear on trip', physicalGears);
+            physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)));
+        } else console.warn('[operation-form] several matching physical gear on trip', physicalGears);
       } else if (physicalGears.length === 0) {
         // Make a copy of parent operation physical gear's on current trip
         const physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId, {toEntity: false});
@@ -571,7 +599,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
         physicalGears.push(physicalGear);
         this._physicalGearsSubject.next(physicalGears);
-        this.onNewPhysicalGear.emit(physicalGear);
       }
 
       physicalGearControl.setValue(physicalGears[0]);
@@ -588,10 +615,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       }
     }
 
+    // Copy positions
     if (this._showPosition) {
+      // Copy parent's positions
       this.setPosition(startPositionControl, parentOperation.startPosition);
-      this.setPosition(endPositionControl, parentOperation.endPosition);
+      if (this.fishingStartDateTimeEnable) this.setPosition(fishingStartPositionControl, parentOperation.fishingStartPosition);
+      // Init child default position
+      if (this.fishingEndDateTimeEnable) this.setPosition(fishingEndPositionControl, parentOperation.startPosition);
+      if (this.endDateTimeEnable) this.setPosition(endPositionControl, parentOperation.fishingStartPosition);
     }
+
+    // Copy fishing area
     if (this._showFishingArea && isNotEmptyArray(parentOperation.fishingAreas)) {
       const fishingAreasCopy = parentOperation.fishingAreas
         .filter(fa => ReferentialUtils.isNotEmpty(fa.location))
@@ -650,10 +684,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.isChildOperation,
       withPosition: this.showPosition,
-      withFishingAreas: this.showFishingArea
+      withFishingAreas: this.showFishingArea,
+      withFishingStart: this.fishingStartDateTimeEnable,
+      withFishingEnd: this.fishingEndDateTimeEnable,
+      withEnd: this.endDateTimeEnable
     });
 
     if (!opts || opts.emitEvent !== false) {
+      this.initPositionSubscription();
+
       this.form.updateValueAndValidity();
       this.markForCheck();
     }
@@ -841,8 +880,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   protected updateDistance(opts?: { emitEvent?: boolean }) {
     if (!this._showPosition) return; // Skip
 
-    const startPosition = this.form.get('startPosition').value;
-    const endPosition = this.form.get('endPosition').value;
+    let startPosition = this.form.get('startPosition').value;
+    let endPosition = this.getLastActivePositionControl?.value;
+
+    if (this.allowParentOperation) {
+      if (this.isParentOperation) {
+        if (!this.fishingStartDateTimeEnable) return;
+        endPosition = this.form.get('fishingStartPosition').value;
+      } else if (this.isChildOperation) {
+        if (!this.fishingEndDateTimeEnable || !this.endDateTimeEnable) return;
+        startPosition = this.form.get('fishingEndPosition').value;
+      }
+    }
+
+    if (!startPosition || !endPosition) return;
 
     const distance = PositionUtils.computeDistanceInMiles(startPosition, endPosition);
     if (this.debug) console.debug('[operation-form] Distance between position: ' + distance);
@@ -880,16 +931,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // If some changes detected
     if (this.distanceError !== hasError || this.distanceWarning !== hasWarning) {
-      if (hasError) {
-        this.form.get('endPosition.longitude').setErrors({tooLong: true});
-        this.form.get('endPosition.latitude').setErrors({tooLong: true});
-        this.form.get('startPosition.longitude').setErrors({tooLong: true});
-        this.form.get('startPosition.latitude').setErrors({tooLong: true});
+      const endPositionControl = this.getLastActivePositionControl;
+      const startPositionControl = this.allowParentOperation && this.isChildOperation && this.fishingStartDateTimeEnable
+        ? this.form.get('fishingEndPosition')
+        : this.form.get('startPosition');
+
+      if (endPositionControl && hasError) {
+        endPositionControl.get('longitude').setErrors({tooLong: true});
+        endPositionControl.get('latitude').setErrors({tooLong: true});
+        startPositionControl.get('longitude').setErrors({tooLong: true});
+        startPositionControl.get('latitude').setErrors({tooLong: true});
       } else {
-        SharedValidators.clearError(this.form.get('endPosition.longitude'), 'tooLong');
-        SharedValidators.clearError(this.form.get('endPosition.latitude'), 'tooLong');
-        SharedValidators.clearError(this.form.get('startPosition.longitude'), 'tooLong');
-        SharedValidators.clearError(this.form.get('startPosition.latitude'), 'tooLong');
+        SharedValidators.clearError(endPositionControl.get('longitude'), 'tooLong');
+        SharedValidators.clearError(endPositionControl.get('latitude'), 'tooLong');
+        SharedValidators.clearError(startPositionControl.get('longitude'), 'tooLong');
+        SharedValidators.clearError(startPositionControl.get('latitude'), 'tooLong');
       }
 
       this.distanceError = hasError;
@@ -897,10 +953,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
       // To force error display: mark as touched
       if (this.distanceError) {
-        AppFormUtils.markAllAsTouched(this.form.get('endPosition'));
+        AppFormUtils.markAllAsTouched(endPositionControl);
       }
     }
-
   }
 
   protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
@@ -952,6 +1007,25 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
+  protected initPositionSubscription() {
+    if (!this.showPosition) return;
+    if (this._positionSubscription) this._positionSubscription.unsubscribe();
+
+    const positionValueChanges = [];
+
+    if (this.fishingStartDateTimeEnable) positionValueChanges.push(this.form.get('fishingStartPosition').valueChanges);
+    if (this.fishingEndDateTimeEnable) positionValueChanges.push(this.form.get('fishingEndPosition').valueChanges);
+    if (this.endDateTimeEnable) positionValueChanges.push(this.form.get('endPosition').valueChanges);
+
+    this._positionSubscription = (
+      merge(
+        this.form.get('startPosition').valueChanges,
+        ...positionValueChanges
+      )
+        .pipe(debounceTime(200))
+        .subscribe(_ => this.updateDistance())
+    );
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

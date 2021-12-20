@@ -21,6 +21,7 @@
     "BTN_EXPAND": "Déplier",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
+    "BTN_INSTALL": "Installer",
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
@@ -106,6 +107,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "LOADING_DOTS": "Chargement...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -131,6 +133,7 @@
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
+    "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
     "LOGOS": "Logos de l'application",
@@ -138,7 +141,7 @@
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
-    "BTN_ADD_PROPERTY": "Ajouter une option",
+    "BTN_ADD_OPTION": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
     "CACHE_TITLE": "Statistique du cache serveur",
     "NEW": {
@@ -518,7 +521,8 @@
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {
-      "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé"
+      "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé",
+      "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
@@ -595,16 +599,33 @@
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
         "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
-        "START_PARENT_OPERATION" : "Début pose :",
-        "END_PARENT_OPERATION" : "Fin pose / Début pêche :",
+        "START_PARENT_OPERATION" : "Début filage :",
+        "END_PARENT_OPERATION" : "Fin filage / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
         "END_CHILD_OPERATION" : "Fin virage :",
         "PARENT_OPERATION" : "Opération associée",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
+        "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE" : "Type d'opération :",
           "PARENT" : "Filage",
           "CHILD" : "Virage"
+        },
+        "START_POSITION": {
+          "LATITUDE": "Latitude de début",
+          "LONGITUDE": "Longitude de début"
+        },
+        "END_POSITION": {
+          "LATITUDE": "Latitude de fin",
+          "LONGITUDE": "Longitude de fin"
+        },
+        "FISHING_START_POSITION": {
+          "LATITUDE": "Latitude de début de pêche",
+          "LONGITUDE": "Longitude de début de pêche"
+        },
+        "FISHING_END_POSITION": {
+          "LATITUDE": "Latitude de fin de pêche",
+          "LONGITUDE": "Longitude de fin de pêche"
         },
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Tests de survie"
@@ -1475,6 +1496,9 @@
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
+      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Marée > Opération : Date de début de pêche ?",
+      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Marée > Opération : Date de fin de pêche ?",
+      "TRIP_OPERATION_END_DATE_ENABLE": "Marée > Opération : Date de fin ?",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
@@ -1996,9 +2020,9 @@
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
     "FIELD_TOO_SHORT": "Valeur trop courte",
-    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caract. min)') }}",
     "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
-    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
+    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caract. max)') }}",
     "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
@@ -2031,8 +2055,10 @@
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
+    "DOWNLOAD_FAILED": "Echec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SAVE_SETTINGS_ERROR": "Erreur lors de la sauvegarde de vos paramètres.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",
     "SAVE_CONFIG_ERROR": "Erreur lors de la sauvegarde de la configuration",
     "ACCOUNT_NOT_EXISTS": "Votre compte semble inexistant, et ne peut donc être sauvegardé.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
@@ -2046,6 +2072,7 @@
     "TABLE_READ_ONLY": "Tableau en lecture seule",
     "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_DATA_ERROR": "Erreur de chargement des données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "DELETE_DATA_ERROR": "Erreur de suppression des données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
@@ -2072,7 +2099,8 @@
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
-    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas"
+    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
+    "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -2085,9 +2113,12 @@
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
+    "CANCEL_ROW": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur cette ligne ?",
+    "CANCEL_ROWS": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
   },
   "INFO": {
+    "ALERT_HEADER": "Information",
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
@@ -2097,6 +2128,7 @@
     "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
+    "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
   }
 }

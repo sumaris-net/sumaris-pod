@@ -9,12 +9,6 @@
     --table-toolbar-height: var(--mat-toolbar-height);
   }
 
-  &.has-group-header .mat-header-row.second-header-row {
-    th {
-      top: 0 !important;
-    }
-  }
-
   .mat-table {
     .mat-header-row,
     .mat-row {
@@ -67,7 +61,6 @@
 
   &.has-pmfm-header-details {
 
-    /* Second header row : increase row height */
     .mat-header-row {
       position: sticky;
       top: 43px;

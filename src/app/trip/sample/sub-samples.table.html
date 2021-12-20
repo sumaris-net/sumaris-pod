@@ -125,6 +125,8 @@
                         [pmfm]="pmfm"
                         [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
                         [autofocus]="row.editing && focusColumn == pmfm.id"
+                        [i18nPrefix]="i18nPmfmPrefix"
+                        [i18nSuffix]="i18nColumnSuffix"
                         [defaultLatitudeSign]="defaultLatitudeSign"
                         [defaultLongitudeSign]="defaultLongitudeSign"
                         [readonly]="!row.editing"

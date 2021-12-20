@@ -55,6 +55,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   @Input() debug: boolean;
   @Input() mobile: boolean;
+  @Input() useSticky = false;
   @Input() usageMode: UsageMode;
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;

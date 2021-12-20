@@ -24,7 +24,7 @@ export interface ISubBatchesModalOptions {
   parentGroup: BatchGroup;
 
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;
-  availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  data: SubBatch[] | Observable<SubBatch[]>;
   onNewParentClick: () => Promise<BatchGroup | undefined>;
 }
 
@@ -73,7 +73,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
-  @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
+  @Input() data: SubBatch[] | Observable<SubBatch[]>;
   @Input() showParentGroup: boolean;
   @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
@@ -124,9 +124,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     this.showForm = this.showForm && (this.form && !this.disabled);
 
-    if (this.form) await this.form.waitIdle();
-
     if (this.form) {
+      this.form.markAsReady();
+
       // Reset the form, using default value
       let defaultBatch: SubBatch;
       if (this.parentGroup) {
@@ -144,19 +144,31 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       );
     }
 
-    const data$: Observable<SubBatch[]> = isObservable<SubBatch[]>(this.availableSubBatches) ? this.availableSubBatches :
-      of(this.availableSubBatches);
+    this.markAsReady();
 
-    data$.subscribe(data => {
-        // Compute the first rankOrder to save
-        this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
+    // Read data
+    const data = isObservable<SubBatch[]>(this.data) ? await this.data.toPromise() : this.data;
 
-        // Apply data to table
-        this.setValue(data);
+    // Apply data to table
+    this.setValue(data);
 
-        // Compute the title
-        this.computeTitle();
-      });
+    // Compute the title
+    this.computeTitle();
+  }
+
+  markAsReady() {
+    this.form.markAsReady();
+  }
+
+  setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
+    // Compute the first rankOrder to save
+    this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
+
+    super.setValue(data, opts);
+  }
+
+  async ready() {
+    await this.form.ready();
   }
 
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {

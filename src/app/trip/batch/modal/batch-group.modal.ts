@@ -11,6 +11,7 @@ import { BatchGroup } from '../../services/model/batch-group.model';
 import { environment } from '../../../../environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { Sample } from '@app/trip/services/model/sample.model';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -122,8 +123,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       this.disable();
     }
 
-    this.data = this.data || new BatchGroup();
-    this.form.setValue(this.data);
 
     // Update title, when form change
     this._subscription.add(
@@ -141,12 +140,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       .subscribe((data) => this.computeTitle(data))
     );
 
-
-    // Wait that form are ready (because of safeSetValue()) then mark as pristine
-    setTimeout(() => {
-      this.form.markAsPristine();
-      this.form.markAsUntouched();
-    }, 500);
+    this.setValue(this.data);
   }
 
   ngAfterViewInit(): void {
@@ -158,6 +152,28 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
+  }
+
+  async setValue(data?: BatchGroup) {
+
+    console.debug('[sample-modal] Applying value to form...', this.data);
+    this.form.markAsReady();
+    this.form.error = null;
+
+    try {
+      // Set form value
+      this.data = data || new BatchGroup();
+      let promiseOrVoid = this.form.setValue(this.data);
+      if (promiseOrVoid) await promiseOrVoid;
+    }
+    finally {
+      this.form.markAsUntouched();
+      this.form.markAsPristine();
+      this.enable();
+      this.markForCheck();
+    }
+
+
   }
 
   async cancel(event?: UIEvent) {
