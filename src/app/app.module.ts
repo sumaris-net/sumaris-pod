@@ -72,7 +72,6 @@ import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 import { Downloader } from '@ionic-native/downloader/ngx';
 
-
 @NgModule({
   declarations: [
     AppComponent
@@ -149,7 +148,6 @@ import { Downloader } from '@ionic-native/downloader/ngx';
         }
       }
     },
-    //{ provide: ErrorHandler, useClass: IonicErrorHandler },
 
     {provide: APP_LOCALES, useValue:
         [
