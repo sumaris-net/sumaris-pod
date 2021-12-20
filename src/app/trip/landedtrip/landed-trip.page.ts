@@ -321,7 +321,15 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         data.observers.push(user);
       }
     }
+  }
 
+  protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
+    // program
+    const programLabel =  data.program?.label;
+    if (programLabel) this.$programLabel.next(programLabel);
+
+    this.$metiers.next(data.metiers);
+    this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
   }
 
   protected async getObservedLocationById(observedLocationId: number): Promise<ObservedLocation> {
@@ -361,16 +369,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   protected async setValue(data: Trip): Promise<void> {
 
-    this.tripForm.value = data;
-    const isNew = isNil(data.id);
-    if (!isNew) {
-      this.$programLabel.next(data.program.label);
-      this.$metiers.next(data.metiers);
-
-      // fixme trouver un meilleur moment pour charger les pmfms
-      this.productSalePmfms = await this.programRefService.loadProgramPmfms(data.program.label, {acquisitionLevel: AcquisitionLevelCodes.PRODUCT_SALE});
-
-    }
+    // Set data to form
+    const formPromise = this.tripForm.setValue(data, {emitEvent: true});
 
     // Fishing area
     this.fishingAreaForm.value = data.fishingAreas?.[0] || {};
@@ -455,6 +455,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Packets table
     this.packetsTable.value = allPackets;
 
+    await formPromise;
   }
 
   // todo attention à cette action
