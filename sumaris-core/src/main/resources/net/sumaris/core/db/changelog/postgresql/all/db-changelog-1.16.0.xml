@@ -75,4 +75,17 @@
 			SELECT setval('order_type_seq', max(id), true) from order_type;
 		</sql>
 	</changeSet>
+
+	<!-- Make sure TAG_ID is required, in sub samples table-->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-403" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">SELECT count(*) FROM pmfm_strategy where pmfm_fk=82 and ACQUISITION_LEVEL_FK in (8,9) and IS_MANDATORY=false</sqlCheck></not>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update PMFM_STRATEGY set IS_MANDATORY=true where ACQUISITION_LEVEL_FK in (8,9) and PMFM_FK=82;
+		</sql>
+	</changeSet>
 </databaseChangeLog>
