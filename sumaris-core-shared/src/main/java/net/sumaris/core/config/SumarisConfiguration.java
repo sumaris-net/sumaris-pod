@@ -361,7 +361,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
 
     public void restoreDefaults() {
-        applicationConfig.setOptions(new Properties(defaults));
+        defaults.forEach((key, value) -> {
+            applicationConfig.setOption(key.toString(), value.toString());
+        });
     }
 
     /**

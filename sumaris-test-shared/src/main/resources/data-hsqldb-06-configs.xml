@@ -25,6 +25,9 @@
     <SOFTWARE_PROPERTY ID="20" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="21" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="22" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.forum.url" NAME="https://forum.sumaris.net/"/>
+    <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.help.url" NAME="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md"/>
+
 
 
     <!-- ****** ADAP properties ****** -->

@@ -54,17 +54,6 @@
         <sqlFile path="insert_harbours_FRA.sql" relativeToChangelogFile="true" endDelimiter=";"/>
     </changeSet>
 
-    <!-- Insert order item for FRA harbours  -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-301" runOnChange="true">
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM ORDER_ITEM WHERE ORDER_TYPE_FK=1</sqlCheck>
-            </and>
-        </preConditions>
-        <sqlFile path="insert_harbours_FRA.sql" relativeToChangelogFile="true" endDelimiter=";"/>
-    </changeSet>
-
     <!-- Insert taxon_group DCO (Dauphin Commun) -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-302" runOnChange="true">
         <preConditions onFail="MARK_RAN">
