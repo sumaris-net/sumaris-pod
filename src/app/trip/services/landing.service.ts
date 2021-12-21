@@ -809,7 +809,6 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     entity.id = undefined;
 
     // Fill Trip
-    const localTripId = entity.tripId;
     const trip = await this.tripService.load(entity.tripId,
       {fullLoad: true, rankOrderOnPeriod: false});
     trip.observedLocationId = entity.observedLocationId;
