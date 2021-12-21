@@ -216,11 +216,11 @@ export abstract class AppRootDataEditor<
       const formErrors = error && error.details && error.details.errors;
       if (formErrors) {
         const i18FormError = this.errorTranslator.translateErrors(formErrors, {
-          separator: '</li><li>',
+          separator: ', ',
           controlPathTranslator: this
         })
         if (isNotNilOrBlank(i18FormError)) {
-          error.details.message = `<ul><li>${i18FormError}</li></ul>`;
+          error.details.message = i18FormError;
         }
       }
 
