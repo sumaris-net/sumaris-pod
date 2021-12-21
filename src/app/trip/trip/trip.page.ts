@@ -105,7 +105,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         pathIdAttribute: 'tripId',
         tabCount: 3,
         autoOpenNextTab: !platform.mobile,
-        enableListenChanges: true
+        enableListenChanges: true,
+        i18nPrefix: 'TRIP.'
       });
     this.defaultBackHref = "/trips";
     this.mobile = platform.mobile;
@@ -185,6 +186,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.physicalGearsTable,
       this.operationsTable
     ]);
+  }
+
+  translateControlPath(controlPath: string): string {
+    if (controlPath.startsWith('measurement')){
+      console.log('TODO', controlPath);
+    }
+    return super.translateControlPath(controlPath);
   }
 
   protected async setProgram(program: Program) {

@@ -655,7 +655,7 @@ export class ObservedLocationService
 
       // Get form errors
       if (form.invalid) {
-        const errors = AppFormUtils.getFormErrors(form, {controlName: 'observedLocation'});
+        const errors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
 

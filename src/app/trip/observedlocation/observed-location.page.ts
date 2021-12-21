@@ -43,8 +43,6 @@ import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 const moment = momentImported;
 
 
-const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
-
 const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
@@ -104,7 +102,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
         autoOpenNextTab: !platform.mobile,
-        i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
+        i18nPrefix: 'OBSERVED_LOCATION.EDIT.'
       });
     this.defaultBackHref = '/observations';
     this.mobile = this.platform.mobile;

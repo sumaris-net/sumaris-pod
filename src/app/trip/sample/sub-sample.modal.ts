@@ -34,7 +34,7 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
   templateUrl: 'sub-sample.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSampleModalOptions {
+export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions {
 
   private _subscription = new Subscription();
   $title = new BehaviorSubject<string>(undefined);
@@ -115,23 +115,32 @@ export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSam
       this.form.form.get('rankOrder').setValidators(null);
     }
 
+    // Update title each time value changes
+    if (!this.isNew) {
+      this._subscription.add(
+        this.form.valueChanges
+          .pipe(debounceTime(250))
+          .subscribe(json => this.computeTitle(json))
+      );
+    }
 
-
+    this.setValue(this.data);
   }
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
   }
 
-  async ngAfterViewInit() {
+  async setValue(data: Sample) {
 
-    console.debug('[sample-modal] Applying value to form...', this.data);
+    console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
+    this.form.error = null;
 
     try {
 
       // Set form value
-      this.data = this.data || new Sample();
+      this.data = data || new Sample();
       let promiseOrVoid = this.form.setValue(this.data);
       if (promiseOrVoid) await promiseOrVoid;
 
@@ -144,16 +153,9 @@ export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSam
       // Compute the title
       await this.computeTitle();
 
-      // Update title each time value changes
-      if (!this.isNew) {
-        this._subscription.add(
-          this.form.valueChanges
-            .pipe(debounceTime(250))
-            .subscribe(json => this.computeTitle(json))
-        );
-      }
     }
     finally {
+      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
       this.markForCheck();
@@ -220,6 +222,10 @@ export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSam
 
   /* -- protected methods -- */
 
+  protected enable() {
+    this.form.enable();
+  }
+
   protected getDataToSave(): Sample {
 
     if (this.invalid) {
@@ -251,8 +257,6 @@ export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSam
 
     try {
       this.form.value = this.data;
-      //this.form.markAsPristine();
-      //this.form.markAsUntouched();
 
       this.form.enable();
 
@@ -260,6 +264,8 @@ export class SubSampleModal implements OnInit, AfterViewInit, OnDestroy, ISubSam
       this.computeTitle();
     }
     finally {
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
       this.markForCheck();
     }
   }

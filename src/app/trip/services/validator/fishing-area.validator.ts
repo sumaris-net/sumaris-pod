@@ -29,13 +29,20 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
   }
 
   getFormGroupOptions(data?: FishingArea, opts?: FishingAreaValidatorOptions): AbstractControlOptions | null{
-    return <AbstractControlOptions>{
-      validator: [
-        SharedFormGroupValidators.requiredIf('location', 'distanceToCoastGradient'),
-        SharedFormGroupValidators.requiredIf('location', 'depthGradient'),
-        SharedFormGroupValidators.requiredIf('location', 'nearbySpecificArea')
-      ]
-    };
+    // Location if required only if the fishing area is NOT already required
+    if (!opts || opts.required !== true) {
+      return <AbstractControlOptions>{
+        validator: [
+          SharedFormGroupValidators.requiredIf('location', 'distanceToCoastGradient'),
+          SharedFormGroupValidators.requiredIf('location', 'depthGradient'),
+          SharedFormGroupValidators.requiredIf('location', 'nearbySpecificArea')
+        ]
+      };
+    }
+    else {
+      // Location control is already required (see getLocationValidators() )
+      return null;
+    }
   }
 
   updateFormGroup(formGroup: FormGroup, opts?: FishingAreaValidatorOptions) {
@@ -43,6 +50,9 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
 
     const locationValidators = this.getLocationValidators(opts);
     formGroup.get('location').setValidators(locationValidators);
+
+    // Set form group validators
+    formGroup.setValidators(this.getFormGroupOptions(null, opts)?.validators);
 
     formGroup.updateValueAndValidity({emitEvent: false});
   }

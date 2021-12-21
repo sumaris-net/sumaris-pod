@@ -440,7 +440,7 @@
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
-    "VESSEL": "Navire",
+    "VESSEL_SNAPSHOT": "Navire",
     "BTN_ADD_VESSEL": "Ajouter un navire",
     "DEPARTURE": "Départ :",
     "DEPARTURE_DATE_TIME": "Date de départ",
@@ -1036,7 +1036,7 @@
       "STRATEGY": "Stratégie :",
       "STRATEGY_PLACEHOLDER": "Stratégie",
       "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
-      "VESSEL": "Navire",
+      "VESSEL_SNAPSHOT": "Navire",
       "LANDING": "Débarquement :",
       "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",

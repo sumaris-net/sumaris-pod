@@ -47,8 +47,6 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 
 const moment = momentImported;
 
-const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
-
 export class LandingEditorOptions extends AppEditorOptions {
 }
 
@@ -103,6 +101,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       pathIdAttribute: 'landingId',
       autoOpenNextTab: true,
       tabCount: 2,
+      i18nPrefix: 'LANDING.EDIT.',
       ...options
     });
     this.observedLocationService = injector.get(ObservedLocationService);
@@ -111,7 +110,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.vesselService = injector.get(VesselSnapshotService);
     this.platform = injector.get(PlatformService);
     this.contextService = injector.get(ContextService);
-    this.i18nContext.prefix = LANDING_DEFAULT_I18N_PREFIX;
 
     this.mobile = this.platform.mobile;
     // FOR DEV ONLY ----
