@@ -100,8 +100,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   updateFormGroup(form: FormGroup, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    form.get('returnDateTime').setValidators(!opts.returnFieldsRequired ? null : Validators.required);
-    form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
+    form.get('returnDateTime').setValidators(opts.isOnFieldMode && !opts.returnFieldsRequired ? null : Validators.required);
+    form.get('returnLocation').setValidators(opts.isOnFieldMode && !opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
 
     return form;
   }

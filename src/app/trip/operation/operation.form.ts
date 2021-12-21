@@ -6,7 +6,7 @@ import {
   AccountService,
   AppForm,
   AppFormUtils,
-  DateFormatPipe,
+  DateFormatPipe, DateUtils,
   EntityUtils, firstNotNilPromise,
   FormArrayHelper,
   fromDateISOString,
@@ -26,13 +26,13 @@ import {
   SharedValidators,
   StatusIds,
   suggestFromArray,
-  toBoolean,
+  toBoolean, toDateISOString,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
-import {BehaviorSubject, merge, Subscription} from 'rxjs';
-import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
@@ -243,6 +243,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
+  @Output() maxDateChanges = new EventEmitter<Moment>();
 
   constructor(
     injector: Injector,
@@ -323,6 +324,28 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         .subscribe(value => this.onParentOperationChanged(value))
     );
 
+    this.registerSubscription(
+      combineLatest([
+        this.form.get('fishingEndDateTime').valueChanges
+          .pipe(
+            filter(_ => this.fishingEndDateTimeEnable)
+          ),
+        this.form.get('endDateTime')
+          .valueChanges
+          .pipe(
+            filter(_ => this.endDateTimeEnable)
+          )
+      ])
+        .subscribe(([d1, d2]) => {
+          const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
+
+          // DEBUG
+          console.debug('[operation-form] max date changed: ' + toDateISOString(max));
+
+          this.maxDateChanges.next(max);
+        })
+    );
+
     this.initPositionSubscription();
 
     this.registerSubscription(
@@ -380,6 +403,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (isParentOperation && isNil(data.qualityFlagId)) {
       data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
     }
+
+    // Send value for form
+    this.maxDateChanges.emit(DateUtils.max(
+      this.fishingEndDateTimeEnable && data.fishingEndDateTime,
+      this.endDateTimeEnable && data.endDateTime));
 
     super.setValue(data, opts);
   }

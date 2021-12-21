@@ -254,7 +254,10 @@ export class Operation
     } else {
       const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(VesselPositionUtils.dateTimeComparator()) || undefined;
       if (isNotEmptyArray(sortedPositions)) {
-        console.log('TODO sorted positions: ', sortedPositions.map(p => p.dateTime).join(', '));
+
+        // DEBUG
+        //console.debug('[operation] Find sorted positions: ', sortedPositions.map(p => toDateISOString(p.dateTime)).join(', '));
+
         // Warn : should be extracted in this order, because startDateTime can be equals to endDateTime
         this.startPosition = VesselPositionUtils.findByDate(sortedPositions, this.startDateTime, true);
         this.fishingStartPosition = VesselPositionUtils.findByDate(sortedPositions, this.fishingStartDateTime, true);

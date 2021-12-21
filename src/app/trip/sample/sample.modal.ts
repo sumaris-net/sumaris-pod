@@ -184,7 +184,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private async setValue(data: Sample) {
 
-    console.debug('[sample-modal] Applying value to form...', this.data);
+    console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
     this.form.error = null;
 
@@ -200,12 +200,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         if (promiseOrVoid) await promiseOrVoid;
       }
 
-      this.computeTitle();
+      await this.computeTitle();
     }
     finally {
+      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
-      this.enable();
       this.markForCheck();
     }
   }

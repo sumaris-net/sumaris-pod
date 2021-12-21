@@ -69,7 +69,6 @@ export const TripPageSettingsEnum = {
 export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
-  readonly $minSaleDate = new BehaviorSubject<Moment>(null);
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
@@ -106,7 +105,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         pathIdAttribute: 'tripId',
         tabCount: 3,
         autoOpenNextTab: !platform.mobile,
-        enableListenChanges: true
+        enableListenChanges: true,
+        i18nPrefix: 'TRIP.'
       });
     this.defaultBackHref = "/trips";
     this.mobile = platform.mobile;
@@ -162,17 +162,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       );
     }
 
-    this.registerSubscription(
-      merge(
-        this.tripForm.form.get('departureDateTime').valueChanges,
-        this.tripForm.form.get('returnDateTime').valueChanges
-      ).pipe(
-        map(fromDateISOString),
-        map(date => DateUtils.max(this.$minSaleDate.value, date))
-      )
-        .subscribe(date => this.$minSaleDate.next(date))
-    );
-
     // Auto fill form, in DEV mode
     if (!environment.production) {
       this.registerSubscription(
@@ -197,6 +186,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.physicalGearsTable,
       this.operationsTable
     ]);
+  }
+
+  translateControlPath(controlPath: string): string {
+    if (controlPath && controlPath.startsWith('measurement')){
+      // TODO
+      console.warn('[trip] TODO: translate PMFM control name (from the program pmfms ?)', controlPath);
+    }
+    return super.translateControlPath(controlPath);
   }
 
   protected async setProgram(program: Program) {

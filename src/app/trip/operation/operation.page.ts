@@ -40,6 +40,7 @@ import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurem
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { Moment } from 'moment';
 
 const moment = momentImported;
 
@@ -77,6 +78,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
   readonly mobile: boolean;
+  readonly $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+  readonly $programLabel = new BehaviorSubject<string>(null);
+  readonly $tripId = new BehaviorSubject<number>(null);
+  readonly $lastOperations = new BehaviorSubject<Operation[]>(null);
+  readonly $maxDateChanges = new BehaviorSubject<Moment>(null);
+
   trip: Trip;
   measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
@@ -93,11 +100,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
-
-  $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
-  $programLabel = new BehaviorSubject<string>(null);
-  $tripId = new BehaviorSubject<number>(null);
-  $lastOperations = new BehaviorSubject<Operation[]>(null);
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
