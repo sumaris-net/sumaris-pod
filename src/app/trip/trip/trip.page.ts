@@ -189,8 +189,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   translateControlPath(controlPath: string): string {
-    if (controlPath.startsWith('measurement')){
-      console.log('TODO', controlPath);
+    if (controlPath && controlPath.startsWith('measurement')){
+      // TODO
+      console.warn('[trip] TODO: translate PMFM control name (from the program pmfms ?)', controlPath);
     }
     return super.translateControlPath(controlPath);
   }
