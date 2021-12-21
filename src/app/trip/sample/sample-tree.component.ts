@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { AppTabEditor, AppTable, Entity, EntityUtils, IconRef, isNotEmptyArray, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
@@ -19,10 +19,6 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { PmfmForm } from '@app/trip/services/validator/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
-export interface SampleTabDefinition {
-  iconRef: IconRef;
-  label: string;
-}
 
 @Component({
   selector: 'app-sample-tree',
@@ -52,10 +48,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   @Input() defaultSampleDate: Moment;
-  @Input() sampleTabDef: SampleTabDefinition = {
-    iconRef: {matSvgIcon: 'fish-oblique'},
-    label: 'TRIP.OPERATION.EDIT.TAB_SAMPLES'
-  };
   @Input() requiredStrategy = false;
 
   @Input()

@@ -69,7 +69,6 @@ export const TripPageSettingsEnum = {
 export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
-  readonly $minSaleDate = new BehaviorSubject<Moment>(null);
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
@@ -161,17 +160,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           .subscribe(_ => this.onMeasurementsFormReady())
       );
     }
-
-    this.registerSubscription(
-      merge(
-        this.tripForm.form.get('departureDateTime').valueChanges,
-        this.tripForm.form.get('returnDateTime').valueChanges
-      ).pipe(
-        map(fromDateISOString),
-        map(date => DateUtils.max(this.$minSaleDate.value, date))
-      )
-        .subscribe(date => this.$minSaleDate.next(date))
-    );
 
     // Auto fill form, in DEV mode
     if (!environment.production) {

@@ -161,7 +161,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
 
-  @Output() maxDate = new EventEmitter<Moment>();
+  @Output() maxDateChanges = new EventEmitter<Moment>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
 
@@ -269,7 +269,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       ])
       .subscribe(([d1, d2]) => {
         const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
-        this.maxDate.next(max);
+        this.maxDateChanges.next(max);
       })
     );
   }
@@ -319,7 +319,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.metiersHelper?.resize(0);
     }
 
-    this.maxDate.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
+    this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
 
     // Send value for form
     super.setValue(data, opts);

@@ -203,9 +203,9 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       this.computeTitle();
     }
     finally {
+      this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
-      this.enable();
       this.markForCheck();
     }
   }

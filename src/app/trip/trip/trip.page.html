@@ -98,7 +98,7 @@
                          [showError]="false"
                          [returnFieldsRequired]="usageMode|isNotOnField"
                          (onSubmit)="save($event)"
-                         (maxDate)="saleForm.minDate = $event">
+                         (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
                 <form-sale #saleForm
                            [class.cdk-visually-hidden]="!showSaleForm"

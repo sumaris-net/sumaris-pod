@@ -172,9 +172,10 @@
               <app-form-operation #opeForm
                                   [programLabel]="$programLabel|async"
                                   [showError]="false"
-                                  (onSubmit)="save($event)"
                                   [usageMode]="usageMode"
                                   [tabindex]="1"
+                                  (onSubmit)="save($event)"
+                                  (maxDateChanges)="$maxDateChanges.next($event)"
                                   [debug]="debug">
 
 
@@ -254,7 +255,7 @@
 
       <app-sample-tree #sampleTree queryTabIndexParamName="subtab"
                        [selectedTabIndex]="selectedSubTabIndex"
-                       [defaultSampleDate]="form.get('endDateTime').valueChanges|async"
+                       [defaultSampleDate]="$maxDateChanges|async"
                        [usageMode]="usageMode"
                        (onPrepareRowForm)="onPrepareSampleForm($event)"
                        [useSticky]="mobile"
