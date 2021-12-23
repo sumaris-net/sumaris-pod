@@ -140,9 +140,10 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
                 predicates.add(
                     criteriaBuilder.isNull(searchTextParam)
                 );
-                Arrays.stream(searchAttributes).forEach(searchAttribute ->
-                    predicates.add(
-                        criteriaBuilder.like(criteriaBuilder.upper(Daos.composePath(root, searchAttribute)),searchTextParam)
+                Arrays.stream(searchAttributes).forEach(searchAttribute -> predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.upper(Daos.composePath(root, searchAttribute)),
+                        searchTextParam,
+                        Daos.LIKE_ESCAPE_CHAR)
                     ));
                 return criteriaBuilder.or(
                     // all predicates
@@ -152,8 +153,8 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             // Search on label+name only
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam))
+                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
+                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
             );
         })
             .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null, searchAny));
@@ -174,14 +175,14 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             if (StringUtils.isNotBlank(searchAttribute)) {
                 return criteriaBuilder.or(
                     criteriaBuilder.isNull(searchTextParam),
-                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)),searchTextParam));
+                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), searchTextParam, Daos.LIKE_ESCAPE_CHAR));
             }
 
             // Search on label+name
             return criteriaBuilder.or(
                 criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)),searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam))
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
+                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
             );
         })
             .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null));

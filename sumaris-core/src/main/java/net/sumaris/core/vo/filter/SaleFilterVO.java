@@ -50,7 +50,9 @@ public class SaleFilterVO implements IRootDataFilter {
 
     // Parent
     private Integer tripId;
-
-    private DataQualityStatusEnum[] dataQualityStatus;
     private Integer[] programIds;
+
+    // Quality
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

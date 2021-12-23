@@ -67,7 +67,9 @@ public class VesselFilterVO implements IRootDataFilter {
     @Builder.Default
     private Boolean onlyWithRegistration = false;
 
-    private DataQualityStatusEnum[] dataQualityStatus; // Not used
+    // Quality
+    private Integer[] qualityFlagIds; // not used
+    private DataQualityStatusEnum[] dataQualityStatus; // not used
 
     public void setDate(Date date) {
         this.startDate = date;

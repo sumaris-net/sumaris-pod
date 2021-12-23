@@ -27,11 +27,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -62,8 +58,8 @@ public interface OperationSpecifications
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
     String GEAR_IDS_PARAMETER = "gearIds";
-    String TAXON_GROUP_LABELS_PARAMETER = "targetSpecieIds";
-    String QUALITY_FLAG_ID_PARAMETER = "qualityFlagId";
+    String TAXON_GROUP_LABELS_PARAM = "targetSpecieIds";
+    String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     default Specification<Operation> excludeOperationGroup() {
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -153,12 +149,12 @@ public interface OperationSpecifications
     default Specification<Operation> inTaxonGroupLabels(String[] taxonGroupLabels) {
         if (ArrayUtils.isEmpty(taxonGroupLabels)) return null;
         return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
-                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, TAXON_GROUP_LABELS_PARAMETER);
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, TAXON_GROUP_LABELS_PARAM);
                 return criteriaBuilder.in(
                     Daos.composePath(root, StringUtils.doting(Operation.Fields.METIER, Metier.Fields.TAXON_GROUP, TaxonGroup.Fields.LABEL))
                 ).value(param);
             })
-            .addBind(TAXON_GROUP_LABELS_PARAMETER, Arrays.asList(taxonGroupLabels));
+            .addBind(TAXON_GROUP_LABELS_PARAM, Arrays.asList(taxonGroupLabels));
     }
 
 
@@ -204,13 +200,20 @@ public interface OperationSpecifications
             .addBind(END_DATE_PARAM, endDate);
     }
 
-    default Specification<Operation> hasQualityFlagId(Integer qualityFlagId) {
-        if (qualityFlagId == null) return null;
+    default Specification<Operation> hasQualityFlagIds(Integer[] qualityFlagIds) {
+        if (ArrayUtils.isEmpty(qualityFlagIds)) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-                ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, QUALITY_FLAG_ID_PARAMETER);
-                return criteriaBuilder.equal(root.get(Operation.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), param);
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
+                return criteriaBuilder.in(root.get(Operation.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
             })
-            .addBind(QUALITY_FLAG_ID_PARAMETER, qualityFlagId);
+            .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
+    }
+
+    // Override the default function, because operation has no validation date
+    default Specification<Operation> isValidated() {
+        return (root, query, criteriaBuilder) ->
+            // Trip's validation date must not be not null
+            criteriaBuilder.isNotNull(Daos.composePath(root, StringUtils.doting(Operation.Fields.TRIP, Trip.Fields.VALIDATION_DATE)));
     }
 
     List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);

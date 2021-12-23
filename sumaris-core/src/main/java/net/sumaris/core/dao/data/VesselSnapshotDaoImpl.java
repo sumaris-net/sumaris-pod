@@ -181,9 +181,9 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             // Filter: search text (on exterior marking OR id)
             cb.or(
                 cb.isNull(searchNameParam),
-                cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), searchNameParam),
-                cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), searchExteriorMarkingParam),
-                cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), searchRegistrationCodeParam)
+                cb.like(cb.lower(root.get(VesselFeatures.Fields.NAME)), searchNameParam, Daos.LIKE_ESCAPE_CHAR),
+                cb.like(cb.lower(root.get(VesselFeatures.Fields.EXTERIOR_MARKING)), searchExteriorMarkingParam, Daos.LIKE_ESCAPE_CHAR),
+                cb.like(cb.lower(vrpJoin.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)), searchRegistrationCodeParam, Daos.LIKE_ESCAPE_CHAR)
             ),
 
             // Status

@@ -22,6 +22,8 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import net.sumaris.core.model.data.DataQualityStatusEnum;
+
 import java.io.Serializable;
 
 /**
@@ -33,4 +35,11 @@ public interface IDataFilter extends Serializable {
 
     void setRecorderDepartmentId(Integer recorderDepartmentId);
 
+    Integer[] getQualityFlagIds();
+
+    void setQualityFlagIds(Integer[] qualityFlagIds);
+
+    DataQualityStatusEnum[] getDataQualityStatus();
+
+    void setDataQualityStatus(DataQualityStatusEnum[] dataQualityStatus);
 }

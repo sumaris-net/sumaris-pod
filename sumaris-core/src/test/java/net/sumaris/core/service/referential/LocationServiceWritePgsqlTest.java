@@ -54,4 +54,11 @@ public class LocationServiceWritePgsqlTest extends AbstractServiceTest{
     public void updateLocationHierarchy() {
         service.updateLocationHierarchy();
     }
+
+    @Test
+    public void insertOrUpdateRectangleLocations() {
+        // Create rectangles
+        service.insertOrUpdateRectangleLocations();
+
+    }
 }

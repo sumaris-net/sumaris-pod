@@ -306,13 +306,14 @@ public class OperationRepositoryImpl
             .and(hasProgramLabel(filter.getProgramLabel()))
             .and(hasVesselId(filter.getVesselId()))
             .and(excludedIds(filter.getExcludedIds()))
+            .and(includedIds(filter.getIncludedIds()))
             .and(excludeChildOperation(filter.getExcludeChildOperation()))
             .and(hasNoChildOperation(filter.getExcludeChildOperation()))
             .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
             .and(inGearIds(filter.getGearIds()))
             .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
-            .and(hasQualityFlagId(filter.getQualityFlagId()))
-            .and(includedIds(filter.getIncludedIds()));
+            .and(hasQualityFlagIds(filter.getQualityFlagIds()))
+            .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
     @Override

@@ -32,14 +32,14 @@
 
     <!-- ****** ADAP properties ****** -->
 
-    <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:18"/>
-    <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:53"/>
-    <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:8"/>
-    <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:30,image:31,image:32,image:33,image:34,image:35,image:36"/>
+    <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:18"/>
+    <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:53"/>
+    <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:8"/>
+    <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:30,image:31,image:32,image:33,image:34,image:35,image:36"/>
 
-    <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
-    <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
-    <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
+    <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
+    <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
 
     <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:54"/>
     <SOFTWARE_PROPERTY ID="33" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
