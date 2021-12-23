@@ -1,3 +1,5 @@
+@import 'theme.globals';
+
 :host {
 
   ion-title {
@@ -16,7 +18,8 @@ ion-col>ion-label {
   white-space: normal;
 }
 
-// TODO only for small device
-.ion-padding-start-prefix {
-  padding-inline-start: 24px;
+@media screen and (max-width: $screen-sm-max) {
+  .measurements-form {
+    padding-inline-start: 24px;
+  }
 }
