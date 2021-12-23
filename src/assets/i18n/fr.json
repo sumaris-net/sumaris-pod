@@ -384,6 +384,7 @@
     "FIELDS": {
       "DEPARTMENT": "Liste déroulante > Organismes",
       "LOCATION": "Liste déroulante > Lieux (port, etc.)",
+      "FISHING_AREA_LOCATION": "Liste déroulante > Zone de pêche (rectangle, etc.)",
       "QUALITATIVE_VALUE": "Liste déroulante > Valeurs d'un paramètre",
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
@@ -595,6 +596,9 @@
         "START_DATE_TIME": "Début d'opération",
         "FISHING_START_DATE_TIME": "Début de pêche",
         "FISHING_END_DATE_TIME": "Fin de pêche",
+        "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
+        "FISHING_AREAS_DOTS": "Zones de pêche :",
+        "FISHING_AREAS": "Zones de pêche",
         "END_DATE_TIME": "Fin d'opération",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
@@ -663,7 +667,8 @@
         "END_POSITION": "Position de fin",
         "FISHING_AREA": "Zone de pêche",
         "COMMENTS": "Commentaires",
-        "QUALITY": "État"
+        "QUALITY": "État",
+        "QUALITY_FILTER": "Filtrer par état :"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -696,7 +701,7 @@
     "LANDED_CATCH": {
       "TAB_PRODUCT": "Lots par espèce",
       "TAB_BATCH": "Lots en paquet",
-      "OPERATION_GROUP_FILTER": "Filtrer par effort"
+      "OPERATION_GROUP_FILTER": "Filtrer par effort :"
     },
     "PRODUCT": {
       "LIST": {

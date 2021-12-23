@@ -47,8 +47,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
-  @Input() defaultSampleDate: Moment;
   @Input() requiredStrategy = false;
+
+
+  @Input() set defaultSampleDate(value: Moment) {
+    this.samplesTable.defaultSampleDate = value;
+  }
+
+  get defaultSampleDate(): Moment {
+    return this.samplesTable.defaultSampleDate;
+  }
 
   @Input()
   set programLabel(value: string) {
@@ -205,7 +213,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     await super.ready(opts);
   }
 
-  async setValue(data: Sample[]) {
+  async setValue(data: Sample[], opts?: { emitEvent?: boolean; }) {
     console.debug('[sample-tree] Setting value', data);
 
     await this.ready();

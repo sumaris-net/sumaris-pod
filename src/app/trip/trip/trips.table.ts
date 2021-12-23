@@ -219,6 +219,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+    console.debug('[trips] click row');
     this.highlightedRow = row;
     return super.clickRow(event, row);
   }

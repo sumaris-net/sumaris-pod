@@ -23,11 +23,17 @@ export class ReferentialRefFilter
     return target;
   }
 
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+
+    this.searchAttributes = source.searchAttributes;
+  }
+
   protected buildFilter(): FilterFn<ReferentialRef>[] {
     const filterFns = super.buildFilter();
 
     // Search on many attributes
-    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes, this.searchText);
+    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || this.searchAttribute || ['label', 'name'], this.searchText);
     if (searchTextFilter) filterFns.push(searchTextFilter);
 
     return filterFns;

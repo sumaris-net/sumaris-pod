@@ -8,13 +8,16 @@
 
   <ion-grid class="ion-no-padding">
 
-    <ion-row class="high" *ngIf="allowParentOperation">
-      <ion-col size="12" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
+    <ion-row [class.has-buttons]="mobile" *ngIf="allowParentOperation">
+      <ion-col size="0" size-md="3" size-lg="3">
+        <ion-label class="ion-float-end" hidden-xs hidden-sm
+                   translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
       <ion-col size="12" size-sm="6" size-md="" size-lg="">
 
         <mat-boolean-field [style]="mobile && 'button' || 'radio'"
+                           [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE'|translate"
+                           [floatLabel]="mobile ? 'always' : 'never'"
                            [formControl]="isParentOperationControl"
                            [yesLabel]="'TRIP.OPERATION.EDIT.TYPE.PARENT'"
                            [noLabel]="'TRIP.OPERATION.EDIT.TYPE.CHILD'"
@@ -23,7 +26,7 @@
       </ion-col>
 
       <ion-col size="12" size-sm="6" size-md="" size-lg="">
-        <mat-form-field [class.cdk-visually-hidden]="!isChildOperation">
+        <mat-form-field [class.cdk-visually-hidden]="!isChildOperation" >
           <input matInput type="text" hidden
                  [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION'|translate"
                  formControlName="parentOperation">
@@ -40,7 +43,7 @@
             <mat-icon>more_horiz</mat-icon>
           </button>
           <ng-template #optionsButton>
-            <button slot="end" mat-icon-button matSuffix type="button"
+            <button matSuffix mat-icon-button type="button"
                     [matMenuTriggerFor]="optionsMenu"
                     tabindex="-1"
                     [title]=" 'COMMON.BTN_OPTIONS'|translate">
@@ -54,7 +57,7 @@
                       tabindex="-1"
                       (click)="addParentOperation()">
                 <ion-label>
-                  <mat-icon>more_horiz</mat-icon>
+                  <mat-icon>list</mat-icon>
                   <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
                 </ion-label>
               </button>
@@ -89,26 +92,29 @@
                                 [tabindex]="tabindex+2"
                                 [required]="true"
                                 [readonly]="isChildOperation">
+          <mat-icon matPrefix *ngIf="mobile">settings</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
 
       <!-- Target species (using metier) -->
       <ion-col size="12" size-md="">
-        <mat-autocomplete-field formControlName="metier"
+        <mat-autocomplete-field #metierField
+                                formControlName="metier"
                                 [placeholder]="'TRIP.OPERATION.EDIT.TARGET_SPECIES'|translate"
                                 [config]="autocompleteFields.taxonGroup"
                                 [tabindex]="tabindex+3"
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
-                                [readonly]="isChildOperation">
-
+                                [readonly]="disabled || isChildOperation">
+          <mat-icon matPrefix visible-xs visible-sm
+                    svgIcon="fish"></mat-icon>
           <!-- Reset filter -->
           <button matAfter type="button" mat-icon-button
                   *ngIf="showMetierFilter && !isChildOperation"
                   tabindex="-1"
                   [title]="'COMMON.BTN_FILTER'|translate"
-                  (click)="toggleMetierFilter($event)"
-                  [color]="enableMetierFilter ? 'primary' : undefined">
+                  (click)="toggleMetierFilter($event, metierField)"
+                  [color]="autocompleteFilters.metier ? 'primary' : undefined">
             <mat-icon>filter_list_alt</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -133,6 +139,7 @@
                                    [required]="true"
                                    [tabindex]="tabindex+4"
                                    [startDate]="trip?.departureDateTime">
+                <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
               </mat-date-time-field>
             </ion-col>
 
@@ -146,6 +153,7 @@
                                  [tabindex]="tabindex+6"
                                  [required]="true"
                                  [defaultSign]="defaultLatitudeSign">
+                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
 
@@ -196,6 +204,7 @@
                                    [clearable]="usageMode|isOnField"
                                    [tabindex]="tabindex+9"
                                    [startDate]="form.controls.startDateTime.value">
+                <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
                 <mat-hint align="end" *ngIf="control.value && control.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
                   startValue: form.controls.startDateTime.value,
@@ -216,6 +225,7 @@
                                  [tabindex]="tabindex+11"
                                  [required]="usageMode|isNotOnField"
                                  [defaultSign]="defaultLatitudeSign">
+                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4"
@@ -261,6 +271,7 @@
                                    [startDate]="form.controls.fishingStartDateTime.valueChanges|async"
                                    [required]="isChildOperation"
                                    [clearable]="false">
+                <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
               </mat-date-time-field>
             </ion-col>
             <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position"
@@ -271,6 +282,7 @@
                                  [tabindex]="tabindex+4"
                                  [required]="isChildOperation"
                                  [defaultSign]="defaultLatitudeSign">
+                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" *ngIf="form.controls.fishingEndPosition as position"
@@ -321,6 +333,7 @@
                                    [required]="usageMode|isNotOnField"
                                    [clearable]="usageMode|isOnField">
 
+                <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
                 <mat-hint align="end" *ngIf="control.value && control.valid">
                   <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
                   startValue: allowParentOperation ? form.controls.fishingEndDateTime.value : form.controls.startDateTime.value,
@@ -338,6 +351,7 @@
                                  [tabindex]="tabindex+12"
                                  [required]="usageMode|isNotOnField"
                                  [defaultSign]="defaultLatitudeSign">
+                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
             <ion-col size="6" size-lg="4" *ngIf="form.controls.endPosition as position"
@@ -369,13 +383,14 @@
     <!-- Fishing areas -->
     <ng-container *ngIf='showFishingArea'>
       <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i=index; first as first">
-        <ion-col size="12" size-md="3" size-lg="3">
-          <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
+        <ion-col size="0" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" hidden-xs hidden-sm
+                     *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
         </ion-col>
         <ion-col [formGroup]="fishingAreaForm">
           <mat-autocomplete-field #fishingAreaField
                                   formControlName="location"
-                                  [placeholder]="('OBSERVED_LOCATION.EDIT.FISHING_AREA_PLACEHOLDER'|translate) + (i+1)"
+                                  [placeholder]="('TRIP.OPERATION.EDIT.FISHING_AREA_PLACEHOLDER'|translate) + (i+1)"
                                   [autofocus]="fishingAreaFocusIndex === i"
                                   [config]="autocompleteFields.fishingAreaLocation"
                                   [tabindex]="tabindex+30+i*3"

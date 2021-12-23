@@ -594,6 +594,9 @@
         "START_DATE_TIME": "Start of operation",
         "FISHING_START_DATE_TIME": "Start of fishing",
         "FISHING_END_DATE_TIME": "End of fishing",
+        "FISHING_AREA_PLACEHOLDER": "Fishing area #",
+        "FISHING_AREAS_DOTS": "Fishing areas:",
+        "FISHING_AREAS": "Fishing areas",
         "END_DATE_TIME": "Endd of operation",
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear",
@@ -604,6 +607,7 @@
         "END_CHILD_OPERATION" : "End hauling:",
         "PARENT_OPERATION" : "Associated operation",
         "PLEASE_SELECT_HELP": "Select an operation",
+        "QUALITY_FLAG_ID": "Quality flag",
         "TYPE": {
           "TITLE" : "Operation type:",
           "PARENT" : "Setting",

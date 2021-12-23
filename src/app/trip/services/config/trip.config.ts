@@ -96,10 +96,12 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
   'OperationVO': <EntityStoreTypePolicy<Operation>>{
     mode: 'by-id',
     skipNonLocalEntities: false,
-    lightFieldsExcludes: <(keyof Operation)[]>["samples", "catchBatch",
-      'fishingAreas',
-      "gearMeasurements", // TODO: to remove ?
-      'childOperation', 'parentOperation' // TODO: to remove ?
+    lightFieldsExcludes: <(keyof Operation)[]>[
+      'gearMeasurements',
+      'catchBatch',
+      'samples',
+      // TODO: remove if not stored
+      'childOperation', 'parentOperation'
     ]
 
   },

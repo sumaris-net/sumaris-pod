@@ -62,8 +62,6 @@ export abstract class AppRootTable<
   hasOfflineMode = false;
   featureId: string;
 
-  synchronizationStatusList: SynchronizationStatus[] = ['DIRTY', 'SYNC'];
-
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
   }

@@ -221,7 +221,8 @@ export class Operation
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    if (!opts || opts.keepTrip !== false) {
+    // Clean properties copied from the parent trip
+    if (!opts || opts.keepTrip !== true) {
       delete target.programLabel;
       delete target.vesselId;
     }

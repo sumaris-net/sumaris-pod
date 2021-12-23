@@ -55,8 +55,8 @@
         <mat-autocomplete-field formControlName="departureLocation"
                                 [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
-                                [filter]="locationFilter"
                                 [required]="true"
+                                logPrefix="[location]"
                                 [panelWidth]="!mobile && '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
@@ -79,7 +79,6 @@
         <mat-autocomplete-field formControlName="returnLocation"
                                 [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
-                                [filter]="locationFilter"
                                 [required]="returnFieldsRequired"
                                 [panelWidth]="!mobile && '500px'">
           <mat-icon matPrefix>room</mat-icon>
@@ -145,7 +144,6 @@
                                   [placeholder]="(first ? 'TRIP.MAIN_METIER_PLACEHOLDER' : 'TRIP.SECONDARY_METIER_PLACEHOLDER')|translate : {rank: i}"
                                   [autofocus]="metierFocusIndex === i"
                                   [config]="autocompleteFields.metier"
-                                  [filter]="metierFilter"
                                   [tabindex]="tabindex+10+i*3"
                                   [i18nPrefix]="'REFERENTIAL.'"
                                   [required]="first"

@@ -15,3 +15,8 @@ ion-col>ion-label {
   word-wrap: break-word;
   white-space: normal;
 }
+
+// TODO only for small device
+.ion-padding-start-prefix {
+  padding-inline-start: 24px;
+}
