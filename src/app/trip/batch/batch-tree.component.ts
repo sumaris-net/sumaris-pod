@@ -278,7 +278,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   async save(event?: UIEvent, options?: any): Promise<any> {
 
-    console.log('TODO: save() ')
     // Create (or fill) the catch form entity
     const source = this.getJsonValueToSave();
     const target = this.data || new Batch();

@@ -99,9 +99,6 @@ export class Operation
   asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    // DEBUG
-    // console.log('TODO serialize operation...');
-
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);

@@ -183,7 +183,6 @@ export class SampleTreeTestPage implements OnInit {
 
   // Load data into components
   async updateView(data: Sample[]) {
-    console.log('[TEST] updateView()', data);
 
     this.markAsReady();
 
