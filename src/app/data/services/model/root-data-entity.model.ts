@@ -13,6 +13,7 @@ export interface IRootDataEntity<T = any,
   synchronizationStatus?: SynchronizationStatus;
 }
 
+
 export abstract class RootDataEntity<
   T extends RootDataEntity<any, ID, AO>,
   ID = number,

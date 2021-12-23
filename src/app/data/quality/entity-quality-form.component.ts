@@ -265,7 +265,8 @@ export class EntityQualityFormComponent<
     }
     finally {
       this.editor.enable();
-      this.busy
+      this.busy = false;
+      this.markForCheck();
     }
 
   }

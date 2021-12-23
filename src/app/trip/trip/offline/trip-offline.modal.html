@@ -27,8 +27,8 @@
       </ion-row>
       <ion-row class="ion-padding-start">
         <ion-col>
-          <mat-autocomplete-field
-            [placeholder]="'TRIP.VESSEL'|translate"
+          <mat-autocomplete-field *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+            [placeholder]="'TRIP.VESSEL_SNAPSHOT'|translate"
             formControlName="vesselSnapshot"
             [config]="autocompleteFields.vesselSnapshot"
             [required]="true">
@@ -83,3 +83,10 @@
   </ion-toolbar>
 
 </ion-footer>
+
+<ng-template #fieldSkeleton>
+  <mat-form-field>
+    <input matInput hidden>
+    <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>

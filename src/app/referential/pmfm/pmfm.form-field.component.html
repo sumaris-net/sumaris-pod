@@ -7,7 +7,7 @@
   <div *ngSwitchCase="'array'">
     <ion-grid class="ion-no-padding">
       <ion-row>
-        <ion-col *ngFor="let childControl of formArray.controls ; index as j; last as last"
+        <ion-col *ngFor="let childControl of formArray.controls; index as j; last as last"
                  size="auto">
           <ion-row>
             <ion-col size="auto" class="ion-align-self-center">
@@ -25,7 +25,7 @@
             <ion-col size="auto" class="ion-align-self-center">
               <button type="button" mat-icon-button
                       [title]="'COMMON.BTN_ADD'|translate"
-                      *ngIf="last && formArrayHelper.size() < acquisitionNumber || acquisitionNumber === -1"
+                      *ngIf="last && formArray.length < acquisitionNumber || acquisitionNumber === -1"
                       (click)="formArrayHelper.add()">
                 <mat-icon>add</mat-icon>
               </button>
@@ -70,7 +70,7 @@
       {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
 
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-form-field>
 
@@ -100,7 +100,7 @@
     <mat-error *ngIf="formControl.hasError('maxDecimals')">
       {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:formControl.errors['maxDecimals'] }}</mat-error>
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-form-field>
 
@@ -114,7 +114,7 @@
                       [compact]="compact"
                       [tabindex]="tabindex">
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-duration-field>
 
@@ -133,7 +133,7 @@
       <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
                       style="visibility: hidden;">
       </ion-fab-button>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-boolean-field>
 
@@ -148,7 +148,7 @@
                   [tabindex]="tabindex"
                   [autofocus]="autofocus">
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-date-field>
 
@@ -162,7 +162,7 @@
                        [tabindex]="tabindex"
                        [autofocus]="autofocus">
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-date-time-field>
 
@@ -182,7 +182,7 @@
                      [buttonsColCount]="maxVisibleButtons"
                      (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </app-pmfm-qv-field>
 
@@ -205,7 +205,7 @@
       {{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:formControl.errors['minlength'] }}</mat-error>
 
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-form-field>
 
@@ -220,7 +220,7 @@
                      [latLongPattern]="latLongFormat"
                      [defaultSign]="defaultLatitudeSign">
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-latlong-field>
 
@@ -235,7 +235,7 @@
                      [latLongPattern]="latLongFormat"
                      [defaultSign]="defaultLongitudeSign">
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </mat-latlong-field>
 
@@ -244,8 +244,12 @@
     <mat-error *ngIf="type">Unknown type {{type}} for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
     <mat-error *ngIf="!type">Error on field for PMFM {{pmfm?.id}}. Please report this error.</mat-error>
     <div matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
+      <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </div>
 
 </ng-container>
+
+<ng-template #matSuffixTemplate>
+  <ng-content select="[matSuffix]"></ng-content>
+</ng-template>

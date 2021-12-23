@@ -706,15 +706,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
       this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
     } else {
-      this.measurementsForm.value = data && data.measurements || [];
+      this.measurementsForm.setValue(data && data.measurements || []);
     }
 
     // Set batch tree
     this.batchTree.gearId = gearId;
-    this.batchTree.value = data && data.catchBatch || null;
+    await this.batchTree.setValue(data && data.catchBatch || null);
 
     // Set sample tree
-    this.sampleTree.value = (data && data.samples || []);
+    await this.sampleTree.setValue(data && data.samples || []);
 
     // If new data, auto fill the table
     if (this.isNewData) {
@@ -787,6 +787,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
   }
 
+
+  markAsLoaded(opts?: { emitEvent?: boolean }) {
+    super.markAsLoaded(opts);
+    this.children?.forEach(c => c.markAsLoaded(opts));
+  }
 
   /* -- protected method -- */
 
@@ -1002,11 +1007,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  markAsLoaded(opts?: { emitEvent?: boolean }) {
-    super.markAsLoaded(opts);
-    this.children?.forEach(c => c.markAsLoaded(opts));
   }
 
   protected computeNextTabIndex(): number | undefined {

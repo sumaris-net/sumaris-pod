@@ -11,20 +11,19 @@ import { AcquisitionLevelCodes, PmfmIds } from '../../referential/services/model
 import { AppRootDataEditor } from '../../data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
 import {
-  Alerts, DateUtils,
+  Alerts,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  firstTruePromise, fromDateISOString,
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   NetworkService,
   PlatformService,
   PromiseEvent,
   ReferentialRef,
-  ReferentialUtils,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
@@ -34,14 +33,13 @@ import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 import { ProgramProperties } from '../../referential/services/config/program.config';
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
-import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '../../referential/services/model/program.model';
 import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
-import { Moment } from 'moment';
+import { Subscription } from 'rxjs';
 import { ContextService } from '@app/shared/context.service';
 
 const moment = momentImported;
@@ -123,7 +121,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Cascade refresh to operation tables
     this.registerSubscription(
       this.onUpdateView
-        .pipe(debounceTime(200))
+        .pipe(
+          filter(_ => !this.loading),
+          debounceTime(200)
+        )
         .subscribe(() => this.operationsTable.onRefresh.emit()));
 
     // Before delete gears, check if used in operations
@@ -338,12 +339,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   protected async setValue(data: Trip) {
     // Set data to form
-    const formPromise = this.tripForm.setValue(data, {emitEvent: true});
-
-    const isNew = isNil(data.id);
-    if (!isNew) {
-      this.$programLabel.next(data.program.label);
-    }
+    const formPromise = this.tripForm.setValue(data);
 
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
@@ -352,8 +348,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.physicalGearsTable.value = data && data.gears || [];
 
     // Operations table
+    const isNew = isNil(data.id);
     if (!isNew && this.operationsTable) {
-      this.operationsTable.setTripId(data.id, {emitEvent: false});
+      this.operationsTable.setTripId(data.id);
     }
 
     await formPromise;

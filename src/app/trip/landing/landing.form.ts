@@ -165,6 +165,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() allowAddNewVessel: boolean;
   @Input() allowManyMetiers: boolean = null;
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
+  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
 
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
@@ -315,16 +316,19 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: fishingAreas
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation', ['label']);
     this.registerAutocompleteField('fishingAreaLocation', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds
+      }),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        levelIds: LocationLevelIds.LOCATIONS_AREA
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: locationAttributes
+      attributes: fishingAreaAttributes
     });
 
     // Propagate program

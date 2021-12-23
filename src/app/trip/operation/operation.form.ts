@@ -32,7 +32,7 @@ import {
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
 import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, tap } from 'rxjs/operators';
 import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {Geolocation} from '@ionic-native/geolocation/ngx';
@@ -48,10 +48,11 @@ import {LocationLevelIds, QualityFlagIds} from '@app/referential/services/model/
 import {LatLongPattern} from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
 import {TripService} from '@app/trip/services/trip.service';
 import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 const moment = momentImported;
 
-type FilterableFieldName = 'fishingArea';
+type FilterableFieldName = 'fishingArea'|'metier';
 
 type PositionField = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
 
@@ -93,13 +94,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   maxDistanceError: number;
   distanceError: boolean;
   distanceWarning: boolean;
-  enableMetierFilter = false;
 
   isParentOperationControl: FormControl;
   $parentOperationLabel = new BehaviorSubject<string>('');
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   fishingAreaFocusIndex = -1;
   autocompleteFilters = {
+    metier: false,
     fishingArea: false
   };
 
@@ -113,11 +114,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
+  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
 
   @Input() set showMetierFilter(value: boolean) {
     this._showMetierFilter = value;
     // Change metier filter button
-    if (this._showMetierFilter !== this.enableMetierFilter) {
+    if (this._showMetierFilter !== this.autocompleteFilters.metier) {
       this.toggleMetierFilter(null);
     }
   }
@@ -159,9 +161,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this._showFishingArea;
   }
 
-  @Input() set fishingAreaLocationLevelIds(ids: number[]) {
-    this.autocompleteFields.fishingAreaLocation.filter.levelIds = ids;
-  }
 
   @Input() set requiredComment(value: boolean) {
     if (this._requiredComment !== value) {
@@ -290,22 +289,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // Combo: fishingAreas
     this.initFishingAreas(this.form);
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation', ['label']);
     this.registerAutocompleteField('fishingAreaLocation', {
-      showAllOnFocus: true,
-      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
-      // Default filter. An excludedIds will be add dynamically
-      filter: {
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds
+      }),
+      filter: <Partial<ReferentialRefFilter>>{
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        levelIds: LocationLevelIds.LOCATIONS_AREA // should be overridden by program property
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: locationAttributes
+      attributes: fishingAreaAttributes,
+      suggestLengthThreshold: 2
     });
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      items: this._metiersSubject,
+      suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       mobile: this.mobile
     });
 
@@ -324,26 +324,31 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         .subscribe(value => this.onParentOperationChanged(value))
     );
 
+    const fishingEndDateTimeControl = this.form.get('fishingEndDateTime');
+    const endDateTimeControl = this.form.get('endDateTime');
     this.registerSubscription(
       combineLatest([
-        this.form.get('fishingEndDateTime').valueChanges
-          .pipe(
-            filter(_ => this.fishingEndDateTimeEnable)
-          ),
-        this.form.get('endDateTime')
+        fishingEndDateTimeControl
           .valueChanges
           .pipe(
-            filter(_ => this.endDateTimeEnable)
+            filter(_ => this.fishingEndDateTimeEnable),
+            startWith(fishingEndDateTimeControl.value) // Need by combineLatest (after filter)
+          ),
+        endDateTimeControl
+          .valueChanges
+          .pipe(
+            filter(_ => this.endDateTimeEnable),
+            startWith(endDateTimeControl.value) // Need by combineLatest (after filter)
           )
       ])
-        .subscribe(([d1, d2]) => {
-          const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
-
-          // DEBUG
-          console.debug('[operation-form] max date changed: ' + toDateISOString(max));
-
-          this.maxDateChanges.next(max);
-        })
+      .pipe(
+        debounceTime(250),
+        map(([d1, d2]) => DateUtils.max(fromDateISOString(d1), fromDateISOString(d2))),
+        distinctUntilChanged(),
+        // DEBUG
+        //tap(max => console.debug('[operation-form] max date changed: ' + toDateISOString(max)))
+      )
+      .subscribe(max => this.maxDateChanges.next(max))
     );
 
     this.initPositionSubscription();
@@ -404,11 +409,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
     }
 
-    // Send value for form
-    this.maxDateChanges.emit(DateUtils.max(
-      this.fishingEndDateTimeEnable && data.fishingEndDateTime,
-      this.endDateTimeEnable && data.endDateTime));
+    setTimeout(() => {
+      this.maxDateChanges.emit(DateUtils.max(
+        this.fishingEndDateTimeEnable && data.fishingEndDateTime,
+        this.endDateTimeEnable && data.endDateTime));
+    })
 
+    // Send value for form
+    if (this.debug) console.debug('[operation-form] Updating form (using entity)', data);
     super.setValue(data, opts);
   }
 
@@ -629,18 +637,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         this._physicalGearsSubject.next(physicalGears);
       }
 
-      physicalGearControl.setValue(physicalGears[0]);
-      const metiers = await this.loadMetiers(parentOperation.physicalGear);
+      const physicalGear = physicalGears[0];
+      physicalGearControl.setValue(physicalGear);
 
-      const metier = metiers.filter((value) => {
-        return value.id === parentOperation.metier.id;
-      });
+      // Use the parent metier
+      metierControl.patchValue(parentOperation.metier);
 
-      if (metier.length === 1) {
-        metierControl.patchValue(metier[0]);
-      } else {
-        // TODO
-      }
+      await this.loadMetiers(physicalGear, true);
     }
 
     // Copy positions
@@ -681,13 +684,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
-  toggleMetierFilter($event) {
-    if ($event) $event.preventDefault();
-    this.enableMetierFilter = !this.enableMetierFilter;
-    const physicalGear = this.form.get('physicalGear').value;
+  async toggleMetierFilter(event: UIEvent, field?: MatAutocompleteField) {
+    if (event) event.preventDefault();
+
+    this.toggleFilter('metier');
 
     // Refresh metiers
-    if (physicalGear) this.loadMetiers(physicalGear);
+    const physicalGear = this.form.get('physicalGear').value;
+    await this.loadMetiers(physicalGear);
+
+    if (field) field.reloadItems();
   }
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
@@ -700,6 +706,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (parent) {
       await this.router.navigateByUrl(`/trips/${parent.tripId}/operation/${parent.id}`);
     }
+  }
+
+  translateControlPath(controlPath: string): string {
+    if (controlPath.match(/^fishingAreas\.[0-9]+\.location$/)) {
+      return this.translate.instant('TRIP.OPERATION.EDIT.FISHING_AREAS');
+    }
+    return super.translateControlPath(controlPath);
   }
 
   /* -- protected methods -- */
@@ -752,16 +765,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
-  protected async loadMetiers(physicalGear?: PhysicalGear | any): Promise<ReferentialRef[]> {
+  protected async loadMetiers(physicalGear?: PhysicalGear | any, keepExistingMetier?: boolean): Promise<ReferentialRef[]> {
+    this._metiersSubject.next(null);
 
     // No gears selected: skip
-    if (EntityUtils.isEmpty(physicalGear, 'id')) return undefined;
+    if (EntityUtils.isEmpty(physicalGear, 'id')) {
+      return undefined;
+    }
 
     const gear = physicalGear && physicalGear.gear;
     console.debug('[operation-form] Loading Metier ref items for the gear: ' + (gear && gear.label));
 
     let res;
-    if (this.enableMetierFilter) {
+    if (this.autocompleteFilters.metier) {
       res = await this.operationService.loadPracticedMetier(0, 100, null, null,
         {
           ...METIER_DEFAULT_FILTER,
@@ -791,7 +807,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     const metiers = res.data;
 
-    if (this.enableMetierFilter && metiers.length === 0) {
+    if (this.autocompleteFilters.metier && metiers.length === 0) {
       this.toggleMetierFilter(null);
       return;
     }
@@ -807,7 +823,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
 
       // Update the metier, if not found (=reset) or ID changed
-      if (!updatedMetier || !ReferentialUtils.equals(metier, updatedMetier)) {
+      if ((!keepExistingMetier && !updatedMetier) || (updatedMetier && !ReferentialUtils.equals(metier, updatedMetier))) {
         metierControl.patchValue(updatedMetier);
       }
     }
@@ -984,6 +1000,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         AppFormUtils.markAllAsTouched(endPositionControl);
       }
     }
+  }
+
+  protected async suggestMetiers(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
+
+    let metiers = this._metiersSubject.value;
+    if (isNil(metiers)) metiers = await firstNotNilPromise(this._metiersSubject);
+    return suggestFromArray(metiers, value, filter);
   }
 
   protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {

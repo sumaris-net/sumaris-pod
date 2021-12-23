@@ -466,7 +466,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   protected async ngInitExtension() {
 
-    await this.waitIdle();
+    await this.ready();
 
     const discardOrLandingControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_OR_LANDING);
     const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);
@@ -482,7 +482,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
           delay(200)
         )
         .subscribe((value) => {
-
           if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (this.form.enabled) {
               discardReasonControl.enable();

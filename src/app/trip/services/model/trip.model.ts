@@ -99,9 +99,6 @@ export class Operation
   asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    // DEBUG
-    // console.log('TODO serialize operation...');
-
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
@@ -221,7 +218,8 @@ export class Operation
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    if (!opts || opts.keepTrip !== false) {
+    // Clean properties copied from the parent trip
+    if (!opts || opts.keepTrip !== true) {
       delete target.programLabel;
       delete target.vesselId;
     }
