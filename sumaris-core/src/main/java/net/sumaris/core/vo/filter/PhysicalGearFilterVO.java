@@ -49,7 +49,10 @@ public class PhysicalGearFilterVO implements IRootDataFilter, IVesselFilter {
     // Parent
     private Integer vesselId;
     private Integer tripId;
-
-    private DataQualityStatusEnum[] dataQualityStatus;
     private Integer[] programIds;
+
+    // Quality
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
+
 }

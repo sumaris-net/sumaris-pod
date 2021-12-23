@@ -509,7 +509,7 @@ public class ReferentialDaoImpl
     protected <R, T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
-                                                       Root<T> entityRoot,
+                                                       Root<T> root,
                                                        IReferentialFilter filter
                                                        //QueryVisitor<R, T> queryVisitor
     ) {
@@ -528,7 +528,7 @@ public class ReferentialDaoImpl
             levelIdsParam = builder.parameter(Collection.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
             if (levelPropertyName != null) {
-                levelIdClause = builder.in(entityRoot.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
+                levelIdClause = builder.in(root.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
             } else {
                 log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
@@ -541,7 +541,7 @@ public class ReferentialDaoImpl
             levelLabelsParam = builder.parameter(Collection.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
             if (levelPropertyName != null) {
-                levelLabelClause = builder.in(entityRoot.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL)).value(levelLabelsParam);
+                levelLabelClause = builder.in(root.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL)).value(levelLabelsParam);
             } else {
                 log.warn(String.format("Trying to request on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
@@ -552,7 +552,7 @@ public class ReferentialDaoImpl
         ParameterExpression<Integer> idParam = null;
         if (filter.getId() != null) {
             idParam = builder.parameter(Integer.class);
-            idClause = builder.equal(entityRoot.get(IItemReferentialEntity.Fields.ID), idParam);
+            idClause = builder.equal(root.get(IItemReferentialEntity.Fields.ID), idParam);
         }
 
         // Filter on label
@@ -560,7 +560,7 @@ public class ReferentialDaoImpl
         ParameterExpression<String> labelParam = null;
         if (StringUtils.isNotBlank(filter.getLabel())) {
             labelParam = builder.parameter(String.class);
-            labelClause = builder.equal(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(labelParam));
+            labelClause = builder.equal(builder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(labelParam));
         }
 
         // Filter on search text
@@ -572,26 +572,26 @@ public class ReferentialDaoImpl
             if (StringUtils.isNotBlank(searchAttribute) && BeanUtils.getPropertyDescriptor(entityClass, searchAttribute) != null) {
                 searchTextClause = builder.or(
                     builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(Daos.composePath(entityRoot, searchAttribute)), builder.upper(searchAsPrefixParam))
+                    builder.like(builder.upper(Daos.composePath(root, searchAttribute)), builder.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             } else if (IItemReferentialEntity.class.isAssignableFrom(entityClass)) {
                 // Search on label+name
                 searchTextClause = builder.or(
                     builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam)),
-                    builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam))
+                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR),
+                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.Fields.LABEL) != null) {
                 // Search on label
                 searchTextClause = builder.or(
                     builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam))
+                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.Fields.NAME) != null) {
                 // Search on name
                 searchTextClause = builder.or(
                     builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(entityRoot.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam))
+                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             }
         }
@@ -600,7 +600,7 @@ public class ReferentialDaoImpl
         ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
         Predicate statusIdsClause = null;
         if (ArrayUtils.isNotEmpty(statusIds) && IWithStatusEntity.class.isAssignableFrom(entityClass)) {
-            statusIdsClause = builder.in(entityRoot.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
+            statusIdsClause = builder.in(root.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
         }
 
         // Included Ids
@@ -608,7 +608,7 @@ public class ReferentialDaoImpl
         ParameterExpression<Collection> includedIdsParam = null;
         if (ArrayUtils.isNotEmpty(includedIds)) {
             includedIdsParam = builder.parameter(Collection.class);
-            includedClause = builder.in(entityRoot.get(IEntity.Fields.ID)).value(includedIdsParam);
+            includedClause = builder.in(root.get(IEntity.Fields.ID)).value(includedIdsParam);
         }
 
         // Excluded Ids
@@ -617,7 +617,7 @@ public class ReferentialDaoImpl
         if (ArrayUtils.isNotEmpty(excludedIds)) {
             excludedIdsParam = builder.parameter(Collection.class);
             excludedClause = builder.not(
-                builder.in(entityRoot.get(IEntity.Fields.ID)).value(excludedIdsParam)
+                builder.in(root.get(IEntity.Fields.ID)).value(excludedIdsParam)
             );
         }
 
@@ -650,7 +650,7 @@ public class ReferentialDaoImpl
 
         // Delegate to visitor
         /*if (queryVisitor != null) {
-            Expression<Boolean> additionalWhere = queryVisitor.apply(query, entityRoot);
+            Expression<Boolean> additionalWhere = queryVisitor.apply(query, root);
             if (additionalWhere != null) {
                 whereClause = (whereClause == null) ? additionalWhere : builder.and(whereClause, additionalWhere);
             }

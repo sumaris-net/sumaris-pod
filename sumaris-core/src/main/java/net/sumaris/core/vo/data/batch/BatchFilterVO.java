@@ -25,6 +25,7 @@ package net.sumaris.core.vo.data.batch;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.vo.filter.IDataFilter;
 
 /**
@@ -43,4 +44,7 @@ public class BatchFilterVO implements IDataFilter {
     private Integer saleId;
     private Integer recorderDepartmentId;
 
+    // Quality
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
 }

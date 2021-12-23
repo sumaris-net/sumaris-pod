@@ -39,28 +39,21 @@ public class ExtractionStrategyFilterVO implements IRootDataFilter {
     private boolean preview;
 
     private String sheetName;
-
     private Page page;
-
     private Date startDate;
-
     private Date endDate;
-
     private String programLabel;
-
     private List<Integer> strategyIds;
-
     private List<String> strategyLabels;
-
     private Integer recorderDepartmentId;
-
     private Integer recorderPersonId;
-
     private Integer locationId;
 
-    private DataQualityStatusEnum[] dataQualityStatus; // Not used yet
-
     private Integer[] programIds;
+
+    // Quality
+    private Integer[] qualityFlagIds; // NOT used
+    private DataQualityStatusEnum[] dataQualityStatus; // NOT used
 
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;

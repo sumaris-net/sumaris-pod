@@ -54,11 +54,14 @@ public class SampleFilterVO implements IRootDataFilter {
     private Integer observedLocationId;
     private Integer[] observedLocationIds;
     private Integer parentId;
+    private Integer[] programIds;
 
+    // Measurement
     private String tagId;
     private Boolean withTagId;
 
+    // Quality
+    private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
 
-    private Integer[] programIds;
 }

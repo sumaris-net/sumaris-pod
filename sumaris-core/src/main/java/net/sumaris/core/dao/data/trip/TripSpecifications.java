@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -41,6 +42,7 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
     String LOCATION_ID_PARAM = "locationId";
     String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
     String INCLUDED_IDS_PARAM = "includedIds";
+    String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
@@ -107,4 +109,12 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
                 .addBind(INCLUDED_IDS_PARAM, Arrays.asList(includedIds));
     }
 
+    default Specification<Trip> hasQualityFlagIds(Integer[] qualityFlagIds) {
+        if (ArrayUtils.isEmpty(qualityFlagIds)) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
+                return criteriaBuilder.in(root.get(Trip.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
+            })
+            .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
+    }
 }

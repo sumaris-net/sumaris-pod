@@ -216,7 +216,8 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
 
             Predicate[] predicates = Arrays.stream(attributes).map(attr -> cb.like(
                 cb.upper(Daos.composePath(root, attr)),
-                (enablePrefixSearch && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam)
+                (enablePrefixSearch && !attr.endsWith(VesselFeatures.Fields.NAME)) ? prefixParam : anyParam,
+                Daos.LIKE_ESCAPE_CHAR)
             ).toArray(Predicate[]::new);
 
             return cb.or(predicates);

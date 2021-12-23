@@ -88,6 +88,8 @@ public class Daos {
     // Should be same as index, if any (see Oracle tables VESSEL_FEATURES and VESSEL_REGISTRATION_PERIOD)
     public final static Date DEFAULT_END_DATE_TIME = Dates.fromISODateTimeString("2100-01-01T00:00:00.000Z");
 
+    public final static char LIKE_ESCAPE_CHAR = '\\';
+
     private final static String JDBC_URL_PREFIX = "jdbc:";
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + DatabaseType.hsqldb.name() + ":";
     private final static String JDBC_URL_PREFIX_HSQLDB_FILE = JDBC_URL_PREFIX_HSQLDB + "file:";
@@ -1659,9 +1661,10 @@ public class Daos {
     public static String getEscapedSearchText(String searchText, boolean searchAny) {
         searchText = StringUtils.trimToNull(searchText);
         if (searchText == null) return null;
-        return  ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
-            .replaceAll("[*]+", "*") // group escape chars
-            .replaceAll("[%]", "\\%") // protected '%' chars
+        return ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
+            .replaceAll("[*]+", "*") // group many '*' chars
+            .replaceAll("[%]", "\\%") // escape '%' char
+            .replaceAll("[_]", "\\_") // escape '_' char
             .replaceAll("[*]", "%"); // replace asterisk mark
     }
 

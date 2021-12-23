@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import java.util.Date;
 
@@ -53,7 +54,7 @@ public class OperationFilterVO implements IDataFilter {
     private Date endDate;
     private Integer[] gearIds;
     private String[] taxonGroupLabels;
-    private Integer qualityFlagId;
-
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
 
 }

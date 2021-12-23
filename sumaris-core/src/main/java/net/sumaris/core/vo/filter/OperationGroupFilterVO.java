@@ -25,6 +25,7 @@ package net.sumaris.core.vo.filter;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 @Data
 @Builder
@@ -36,5 +37,9 @@ public class OperationGroupFilterVO implements IDataFilter {
 
     private boolean onlyDefined;
     private boolean onlyUndefined;
+
+    // Quality
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
 
 }

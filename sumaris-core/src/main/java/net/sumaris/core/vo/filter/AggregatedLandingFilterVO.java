@@ -50,8 +50,9 @@ public class AggregatedLandingFilterVO implements IRootDataFilter {
 
     // Parent
     private Integer observedLocationId;
+    private Integer[] programIds;
 
     // Quality
+    private Integer[] qualityFlagIds; // NOT used
     private DataQualityStatusEnum[] dataQualityStatus; // NOT used
-    private Integer[] programIds;
 }

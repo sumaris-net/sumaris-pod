@@ -65,9 +65,9 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     // Parent
     private Integer observedLocationId;
     private Integer tripId;
+    private Integer[] programIds;
 
     // Quality
+    private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
-
-    private Integer[] programIds;
 }
