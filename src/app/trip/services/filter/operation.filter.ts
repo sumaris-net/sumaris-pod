@@ -20,7 +20,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   endDate?: Date | Moment;
   gearIds?: number[];
   taxonGroupLabels?: string[];
-  qualityFlagId?: number;
+  qualityFlagIds?: number[];
   synchronizationStatus?: SynchronizationStatus[];
 
   static fromObject: (source: any, opts?: any) => OperationFilter;
@@ -39,7 +39,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.endDate = source.endDate;
     this.gearIds = source.gearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
-    this.qualityFlagId = source.qualityFlagId;
+    this.qualityFlagIds = source.qualityFlagIds;
 
   }
 
@@ -112,9 +112,9 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
       filterFns.push((o => isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1));
     }
 
-    if (isNotNil(this.qualityFlagId)){
-      const qualityFlagId = this.qualityFlagId;
-      filterFns.push((o => isNotNil(o.qualityFlagId) && o.qualityFlagId === qualityFlagId));
+    if (isNotNil(this.qualityFlagIds) && this.qualityFlagIds.length > 0){
+      const qualityFlagIds = this.qualityFlagIds;
+      filterFns.push(o => !qualityFlagIds.includes(o.qualityFlagId));
     }
 
     // Filter on parent trip
