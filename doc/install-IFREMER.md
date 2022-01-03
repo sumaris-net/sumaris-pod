@@ -18,7 +18,7 @@ Linux :
 
 ## Récupérer les sources
 Récupérer le projet sous git :
-~~- `git clone git@github.com:sumaris-net/sumaris-app.git`~~
+- ~~`git clone git@github.com:sumaris-net/sumaris-app.git`~~
 - `git clone https://gitlab.ifremer.fr/sih/sumaris/sumaris-app.git`
 
 Puis, dans le projet sumaris-app, lancer ces commandes:
@@ -29,7 +29,7 @@ Puis, dans le projet sumaris-app, lancer ces commandes:
 ## Installation du pod : sumaris-pod
 Documentation: <https://github.com/sumaris-net/sumaris-pod/blob/master/src/site/markdown/pod.md>
 
-~~- `git clone git@github.com:sumaris-net/sumaris-pod.git`~~
+- ~~`git clone git@github.com:sumaris-net/sumaris-pod.git`~~
 - `git clone https://gitlab.ifremer.fr/sih/sumaris/sumaris-pod.git`
 - `cd sumaris-pod`
 
@@ -53,7 +53,7 @@ Puis la lancer :
  - récupérer localement le fichier de propriété Oracle souhaité depuis le projet [isi-sih-sumaris](https://gitlab.ifremer.fr/dev_ops/shared_docker_image_factory/isi-sih-sumaris) (liste des fichiers de properties dans le répertoire `sumaris-server`).
  - exécuter la commande `spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsnames -Dspring.config.location=path-to-file\application-test.properties`
 <details><summary>ancienne commande</summary>
-`spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsnames -Dspring.config.location=C:\dev\application-test.properties -Dsumaris.name=IMAGiNE -Dspring.profiles.active=oracle -Duser.timezone=UTC -Doracle.jdbc.timezoneAsRegion=false -Dspring.security.ldap.enabled=true -Dspring.security.ldap.baseDn=ou=annuaire -Dspring.security.ldap.url=ldap://ldap.ifremer.fr/dc=ifremer,dc=fr`
+spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsnames -Dspring.config.location=C:\dev\application-test.properties -Dsumaris.name=IMAGiNE -Dspring.profiles.active=oracle -Duser.timezone=UTC -Doracle.jdbc.timezoneAsRegion=false -Dspring.security.ldap.enabled=true -Dspring.security.ldap.baseDn=ou=annuaire -Dspring.security.ldap.url=ldap://ldap.ifremer.fr/dc=ifremer,dc=fr
 </details>
 
 Le serveur est accessible sur <http://localhost:8080>
@@ -75,7 +75,7 @@ Pour installer, compiler et lancer le pod sous IntelliJ :
 
 ## Installation de la documentation : summaris-doc
 
-~~- `git clone git@github.com:sumaris-net/sumaris-doc.git`~~
+- ~~`git clone git@github.com:sumaris-net/sumaris-doc.git`~~
 - `git clone https://gitlab.ifremer.fr/sih/sumaris/sumaris-doc.git`
 - ouvrir le projet summaris-doc sous Intellij et installer le plugin PlantUML
 
@@ -85,5 +85,5 @@ Pour installer, compiler et lancer le pod sous IntelliJ :
 - ouvrir un terminal avec les droits admin dans le répertoire "C:\Program Files\Graphviz 2.44.1\bin" et lancer la commande `dot.exe -c`    
 - dans Intellij,  compléter les settings PlantUML, renseigner le champ "Graphviz dot executable" : `C:/Program Files/Graphviz 2.44.1/bin/dot.exe`
 
-### génération de la documentation (svg):
+### Générer la documentation (svg):
 - exécuter le fichier generate.bat
