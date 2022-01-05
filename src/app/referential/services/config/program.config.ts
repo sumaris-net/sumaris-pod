@@ -15,6 +15,12 @@ export const ProgramProperties = Object.freeze({
     type: 'string',
     defaultValue: LocationLevelIds.PORT.toString()
   },
+  TRIP_LOCATION_FILTER_MIN_LENGTH: <FormFieldDefinition>{
+    key: 'sumaris.trip.location.filter.searchText.minLength',
+    label: 'PROGRAM.OPTIONS.TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH',
+    type: 'integer',
+    defaultValue: 0
+  },
   TRIP_SALE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.sale.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SALE_ENABLE',

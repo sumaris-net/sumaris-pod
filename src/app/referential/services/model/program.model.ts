@@ -99,7 +99,7 @@ export class Program extends BaseReferential<Program> {
 
   getProperty<T = string>(definition: FormFieldDefinition): T {
     if (!definition) throw new Error("Missing 'definition' argument");
-    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : definition.defaultValue;
   }
 }
 

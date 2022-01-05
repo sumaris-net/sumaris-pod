@@ -212,6 +212,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
     this.tripForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
+    this.tripForm.locationSuggestLengthThreshold = program.getPropertyAsInt(ProgramProperties.TRIP_LOCATION_FILTER_MIN_LENGTH);
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);

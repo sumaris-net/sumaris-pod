@@ -193,7 +193,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
       },
       "ENUMERATION": {
@@ -1467,6 +1467,7 @@
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
+      "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
