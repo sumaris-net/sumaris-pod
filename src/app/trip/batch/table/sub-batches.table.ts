@@ -474,6 +474,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     // Reset the form with the new batch
     MeasurementValuesUtils.normalizeEntityToForm(newBatch, this.pmfms, this.form.form);
+
+    this.form.markAsReady();
+    this.form.error = null;
+
     this.form.setValue(newBatch, {emitEvent: true, normalizeEntityToForm: false /*already done*/});
 
     // If need, enable the form
