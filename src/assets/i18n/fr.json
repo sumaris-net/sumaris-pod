@@ -662,6 +662,11 @@
         "COMMENTS": "Commentaires",
         "QUALITY": "État"
       },
+      "FILTER": {
+        "GEAR" : "Engin",
+        "START_DATE" : "Début de période",
+        "QUALITY": "État"
+      },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
         "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",

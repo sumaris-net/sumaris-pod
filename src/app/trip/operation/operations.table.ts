@@ -1,28 +1,36 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { OperationValidatorService } from '../services/validator/operation.validator';
-import { AlertController, ModalController, Platform } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
-import { TranslateService } from '@ngx-translate/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import {AlertController, ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
+import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
+import {TranslateService} from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
+  changeCaseToUnderscore,
   EntitiesTableDataSource,
   isNotNil,
   LatLongPattern,
   LocalSettings,
   LocalSettingsService,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
-import { environment } from '@environments/environment';
-import { Operation } from '../services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { from, merge } from 'rxjs';
+import {OperationsMap, OperationsMapModalOptions} from './map/operations.map';
+import {environment} from '@environments/environment';
+import {Operation} from '../services/model/trip.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {BehaviorSubject, from, merge} from 'rxjs';
+import {AbstractControl, FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {debounceTime, filter} from 'rxjs/operators';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {TripFilter} from '@app/trip/services/filter/trip.filter';
+import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
 
 
 @Component({
@@ -40,6 +48,11 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     [key: string]: string[]
   };
   highlightedRow: TableElement<Operation>;
+  filterForm: FormGroup;
+  filterCriteriaCount = 0;
+  $gears = new BehaviorSubject<ReferentialRef[]>(undefined)
+  statusList = DataQualityStatusList;
+  statusById = DataQualityStatusEnum;
 
   @Input() latLongPattern: LatLongPattern;
   @Input() tripId: number;
@@ -49,6 +62,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
+  @Input() showQuality = true;
 
   @Input() set showQualityColumn(value: boolean) {
     this.setShowColumn('quality', value);
@@ -104,6 +118,12 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return this.getShowColumn('fishingArea');
   }
 
+  get filterDataQualityControl(): FormControl {
+    return this.filterForm.controls.dataQualityStatus as FormControl;
+  }
+
+  @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -116,7 +136,9 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected accountService: AccountService,
+    protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
+    formBuilder: FormBuilder,
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -166,13 +188,19 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
 
+    this.filterForm = formBuilder.group({
+      gearIds: [null],
+      startDate: null,
+      dataQualityStatus: null
+    });
+
     // Listen settings changed
     this.registerSubscription(
       merge(
         from(this.settings.ready()),
         this.settings.onChange
       )
-      .subscribe(_ => this.configureFromSettings())
+        .subscribe(_ => this.configureFromSettings())
     );
   }
 
@@ -186,6 +214,24 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     if (isNotNil(this.tripId)) {
       this.setTripId(this.tripId);
     }
+
+    // Update filter when changes
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => this.filterForm.valid)
+        )
+        // Applying the filter
+        .subscribe((json) => {
+
+          const filter = this.asFilter({
+            ...this.filter, // Keep previous filter
+            ...json
+          });
+          this.filterCriteriaCount = filter.countNotEmptyCriteria();
+          this.setFilter(filter, {emitEvent: true /*always apply*/});
+        }));
   }
 
   setTripId(id: number, opts?: { emitEvent?: boolean; }) {
@@ -254,10 +300,92 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return super.getI18nColumnName(columnName);
   }
 
+  clearFilterValue(key: keyof OperationFilter, event?: UIEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.filterForm.get(key).reset(null);
+  }
+
+  applyFilterAndClosePanel(event?: UIEvent) {
+    this.onRefresh.emit(event);
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  }
+
+  resetFilter(event?: UIEvent) {
+    this.filterForm.reset();
+    this.setFilter(null, {emitEvent: true});
+    this.filterCriteriaCount = 0;
+    this.filterExpansionPanel.close();
+  }
+
+  clearFilterStatus(event: UIEvent) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.filterForm.patchValue({statusId: null});
+  }
+
+  setError(error: any) {
+
+    const formErrors = error?.details?.errors?.operations;
+    if (formErrors) {
+      let messages = [];
+      Object.keys(formErrors).map(id => {
+
+        const operationErrors = formErrors[id];
+        messages.push(Object.keys(operationErrors)
+          .map(field => {
+            const fieldErrors = operationErrors[field];
+            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
+            const fieldName = this.translate.instant(fieldI18nKey);
+            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+              return this.translate.instant(key, fieldErrors[key]);
+            }).join(', ');
+            //TODO : replace id by rank order ?
+            return fieldName + ' (' + id + '): ' + errorMsg;
+          }).filter(isNotNil));
+      });
+
+      if (messages.length) {
+        error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
+      }
+      this.errorSubject.next(error.details.message);
+    }
+  }
+
+  setFilter(filter: OperationFilter, opts?: { emitEvent: boolean }) {
+
+    filter = this.asFilter({
+      ...this.filter, // Keep previous filter
+      ...filter
+    });
+    this.filterCriteriaCount = filter.countNotEmptyCriteria();
+    this.filterForm.patchValue(filter, {emitEvent: false});
+    super.setFilter(filter, opts);
+  }
+
+   async loadGears(gearIds: number[]) {
+    const { data } = await this.referentialRefService.loadAll(0, 100, null, null,
+      {
+        entityName: 'Gear',
+        includedIds: gearIds,
+      },
+      {
+        withTotal: false
+      });
+
+    this.$gears.next(data || []);
+  }
+
   /* -- protected methods -- */
 
   protected configureFromSettings(settings?: LocalSettings) {
-    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...');
     settings = settings || this.settings.settings;
 
     if (settings.accountInheritance) {
@@ -276,6 +404,16 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     };
 
     this.markForCheck();
+  }
+
+  protected asFilter(source?: any): OperationFilter {
+    source = source || this.filterForm.value;
+
+    if (this._dataSource && this._dataSource.dataService) {
+      return this._dataSource.dataService.asFilter(source);
+    }
+
+    return OperationFilter.fromObject(source);
   }
 
   protected markForCheck() {

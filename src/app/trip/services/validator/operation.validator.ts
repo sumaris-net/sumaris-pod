@@ -89,10 +89,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add position
     if (opts.withPosition) {
-      form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
-      if (opts.withFishingStart) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
-      if (opts.withFishingEnd) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
-      if (opts.withEnd) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      form.addControl('startPosition', this.positionValidator.getFormGroup(data?.startPosition || null, {required: true}));
+      if (opts.withFishingStart) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(data?.fishingStartPosition || null, {required: false}));
+      if (opts.withFishingEnd) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(data?.fishingEndPosition || null, {required: false}));
+      if (opts.withEnd) form.addControl('endPosition', this.positionValidator.getFormGroup(data?.endPosition || null, {required: false}));
     }
 
     // Add position
@@ -369,6 +369,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         endDateTimeControl.setValidators(opts?.isOnFieldMode
           ? endDateTimeValidators
           : Validators.compose([Validators.required, ...endDateTimeValidators]));
+        endDateTimeControl.enable();
 
         // Enable position
         endPositionControl?.enable();

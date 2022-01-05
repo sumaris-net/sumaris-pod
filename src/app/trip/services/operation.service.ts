@@ -5,6 +5,7 @@ import {filter, first, map} from 'rxjs/operators';
 import {DataCommonFragments, DataFragments} from './trip.queries';
 import {
   AccountService,
+  AppFormUtils,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
@@ -16,6 +17,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
+  FormErrors,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -25,20 +27,22 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobUtils,
-  LoadResult, MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  LoadResult,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
   QueryVariables,
+  toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import {Measurement} from './model/measurement.model';
+import {Measurement, MeasurementUtils} from './model/measurement.model';
 import {DataEntity, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import { MINIFY_OPERATION_FOR_LOCAL_STORAGE, Operation, OperationAsObjectOptions, OperationFromObjectOptions, Trip, VesselPosition, VesselPositionUtils } from './model/trip.model';
+import {MINIFY_OPERATION_FOR_LOCAL_STORAGE, Operation, OperationAsObjectOptions, OperationFromObjectOptions, Trip, VesselPosition, VesselPositionUtils} from './model/trip.model';
 import {Batch, BatchUtils} from './model/batch.model';
 import {Sample} from './model/sample.model';
 import {SortDirection} from '@angular/material/sort';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {environment} from '@environments/environment';
 import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
@@ -55,6 +59,9 @@ import {PositionUtils} from '@app/trip/services/position.utils';
 import {IPosition} from '@app/trip/services/model/position.model';
 import {ErrorCodes} from '@app/data/services/errors';
 import {mergeLoadResult} from '@app/shared/functions';
+import {OperationValidatorService} from '@app/trip/services/validator/operation.validator';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {Program} from '@app/referential/services/model/program.model';
 
 
 export const OperationFragments = {
@@ -330,6 +337,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     protected accountService: AccountService,
     protected metierService: MetierService,
     protected entities: EntitiesStorage,
+    protected validatorService: OperationValidatorService,
     @Optional() protected geolocation: Geolocation
   ) {
     super(graphql, environment);
@@ -393,11 +401,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     //If we have both online and offline, watch all options has to be apply when all results are merged
     const options: OperationServiceWatchOptions = {...opts};
-    if (offline && online){
+    if (offline && online) {
       options.mapFn = undefined;
       options.sortByDistance = undefined;
       options.toEntity = undefined;
-      options.computeRankOrder = undefined
+      options.computeRankOrder = undefined;
     }
 
     const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, options);
@@ -406,12 +414,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Merge local and remote
     if (offline$ && online$) {
       return combineLatest([offline$, online$])
-      .pipe(
-        map(([res1, res2]) => mergeLoadResult(res1, res2)),
-        mergeMap(async ({data, total}) => {
-          return await this.applyWatchOptions({data, total}, offset, size, sortBy, sortDirection, dataFilter, opts);
-        })
-      );
+        .pipe(
+          map(([res1, res2]) => mergeLoadResult(res1, res2)),
+          mergeMap(async ({data, total}) => {
+            return await this.applyWatchOptions({data, total}, offset, size, sortBy, sortDirection, dataFilter, opts);
+          })
+        );
     }
     return offline$ || online$;
   }
@@ -434,7 +442,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       // Load from pod
       else {
-        const query = (opts && opts.query) || (opts && opts.fullLoad === false ? OperationQueries.loadLight: OperationQueries.load);
+        const query = (opts && opts.query) || (opts && opts.fullLoad === false ? OperationQueries.loadLight : OperationQueries.load);
         const res = await this.graphql.query<{ data: Operation }>({
           query,
           variables: {id},
@@ -454,6 +462,101 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       this.loading = false;
     }
   }
+
+
+  async controlByTrip(trip: Trip, program: Program, opts?: any): Promise<FormErrors> {
+    const res = await this.loadAllByTrip({tripId: trip.id},
+      {fullLoad: true, computeRankOrder: false});
+
+    let formErreurs: FormErrors = {};
+    if (res && res.data) {
+
+      const operations = res.data;
+      const showPosition = toBoolean(MeasurementUtils.asBooleanValue(trip.measurements, PmfmIds.GPS_USED), true)
+        && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+
+      const allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+      opts = {
+        ...opts,
+        allowParentOperation,
+        trip: trip,
+        withPosition: showPosition,
+        withFishingAreas: !showPosition,
+        withFishingStart: program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
+        withFishingEnd: program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
+        withEnd: program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+      };
+
+      for (const operation of operations) {
+        const operationErreurs = await this.control(operation, trip, opts);
+        if (operationErreurs) {
+          formErreurs = {...formErreurs, [operation.id]: operationErreurs};
+          operation.controlDate = undefined;
+        } else {
+          operation.controlDate = moment();
+        }
+      }
+
+      if (operations) {
+        await this.saveAll(operations);
+      }
+    }
+
+    if (formErreurs) {
+      return {operations: formErreurs};
+    } else {
+      return undefined;
+    }
+  }
+
+  /**
+   * Control the validity of an operation
+   *
+   * @param entity
+   * @param opts
+   */
+  async control(entity: Operation, trip: Trip, opts?: any): Promise<FormErrors> {
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[operation-service] Control {${entity.id}}...`, entity);
+
+    if (opts && opts.allowParentOperation) {
+      opts.isChild = !!entity.parentOperationId;
+      opts.isParent = entity.qualityFlagId === QualityFlagIds.NOT_COMPLETED;
+    } else {
+      opts.isChild = false;
+      opts.isParent = false;
+    }
+    opts = {
+      ...opts,
+      trip,
+      isOnFieldMode: false, // Always disable 'on field mode'
+      withMeasurements: true // Need by full validation
+    };
+
+    const form = this.validatorService.getFormGroup(entity, opts);
+    this.validatorService.updateFormGroup(form, opts);
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors = AppFormUtils.getFormErrors(form, {controlName: 'trip.operation.edit'});
+
+        /*if (this._debug) */
+        console.debug(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+
+        return errors;
+      }
+    }
+    /*if (this._debug)*/
+    console.debug(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+
+    return undefined;
+  }
+
 
   async delete(data: Operation, options?: any): Promise<any> {
     await this.deleteAll([data]);
@@ -777,7 +880,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
             console.debug(`[operation-service] Loaded ${data.length} operations in ${Date.now() - now}ms`);
             now = undefined;
           }
-          return await this.applyWatchOptions({data, total}, offset, size,sortBy,sortDirection, dataFilter, opts);
+          return await this.applyWatchOptions({data, total}, offset, size, sortBy, sortDirection, dataFilter, opts);
         }));
   }
 
@@ -812,7 +915,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (this._debug) console.debug('[operation-service] Loading operations locally... using options:', variables);
     return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
       .pipe(mergeMap(async ({data, total}) => {
-               return await this.applyWatchOptions({data, total}, offset, size,sortBy,sortDirection, filter, opts);
+        return await this.applyWatchOptions({data, total}, offset, size, sortBy, sortDirection, filter, opts);
       }));
   }
 

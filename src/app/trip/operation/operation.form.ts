@@ -104,6 +104,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   };
 
   @Input() usageMode: UsageMode;
+  @Input() forceDeskMode = false;
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
@@ -674,12 +675,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
+ async setError(error: any){
+    await this.ready();
+    this.error = error.details?.message || error.message;
+    this.forceDeskMode = true;
+    this.showError = true;
+    this.updateFormGroup();
+  }
+
   /* -- protected methods -- */
 
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
     this.validatorService.updateFormGroup(this.form, {
-      isOnFieldMode: this.usageMode === 'FIELD',
+      isOnFieldMode: !this.forceDeskMode && this.usageMode === 'FIELD',
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.isChildOperation,
@@ -886,10 +895,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (this.allowParentOperation) {
       if (this.isParentOperation) {
         if (!this.fishingStartDateTimeEnable) return;
-        endPosition = this.form.get('fishingStartPosition').value;
+        endPosition = this.form.get('fishingStartPosition')?.value;
       } else if (this.isChildOperation) {
         if (!this.fishingEndDateTimeEnable || !this.endDateTimeEnable) return;
-        startPosition = this.form.get('fishingEndPosition').value;
+        startPosition = this.form.get('fishingEndPosition')?.value;
       }
     }
 

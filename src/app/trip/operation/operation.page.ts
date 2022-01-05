@@ -5,7 +5,7 @@ import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
-  AppHelpModal,
+  AppHelpModal, changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -255,6 +255,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       const queryParams = this.route.snapshot.queryParams;
       const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
       this.selectedSubTabIndex = subTabIndex;
+
+      const error = queryParams['error'] && JSON.parse(queryParams['error']);
+      if (error) {
+        console.debug('[operation-page] Operation has error :', error);
+        this.setError(error);
+      }
     }
   }
 
@@ -787,6 +793,33 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
   }
 
+  async setError(error: any) {
+
+    if (error) {
+      // Create a details message, from errors in forms (e.g. returned by control())
+      const formErrors = error && error.details && error.details.errors;
+      if (formErrors) {
+        const messages = Object.keys(formErrors)
+          .map(field => {
+            const fieldErrors = formErrors[field];
+            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
+            const fieldName = this.translate.instant(fieldI18nKey);
+            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+              return this.translate.instant(key, fieldErrors[key]);
+            }).join(', ');
+            return fieldName + ": " + errorMsg;
+          }).filter(isNotNil);
+        if (messages.length) {
+          error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
+        }
+
+       await this.opeForm.setError(error);
+      }
+    }
+
+    super.setError(error);
+  }
 
   /* -- protected method -- */
 
