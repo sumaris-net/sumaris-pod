@@ -1124,6 +1124,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return distance;
   }
 
+  async areUsedPhysicalGears(tripId: number, physicalGearIds: number[]): Promise<boolean>{
+    const res = await this.loadAll(0, 1, null, null,
+      {
+        tripId: tripId,
+        physicalGearIds: physicalGearIds
+      },
+      {
+        withTotal: false
+      });
+
+    const usedGearIds = res.data.map(physicalGear => physicalGear.id);
+    return(usedGearIds.length === 0);
+  }
+
   /* -- protected methods -- */
 
   protected asObject(entity: Operation, opts?: OperationAsObjectOptions): any {

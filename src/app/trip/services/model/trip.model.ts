@@ -666,7 +666,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
       this.tripId = this.trip && this.trip.id;
     } else {
       this.trip = null;
-      this.tripId = null;
+      this.tripId = source.tripId || null; // to keep tripId on clone even if source.trip is null.
     }
 
     return this;

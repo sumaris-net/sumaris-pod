@@ -1,47 +1,49 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild} from '@angular/core';
 
-import { TripService } from '../services/trip.service';
-import { TripForm } from './trip.form';
-import { SaleForm } from '../sale/sale.form';
-import { OperationsTable } from '../operation/operations.table';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
-import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
+import {TripService} from '../services/trip.service';
+import {TripForm} from './trip.form';
+import {SaleForm} from '../sale/sale.form';
+import {OperationsTable} from '../operation/operations.table';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
+import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import { AcquisitionLevelCodes, PmfmIds } from '../../referential/services/model/model.enum';
-import { AppRootDataEditor } from '../../data/form/root-data-editor.class';
-import { FormGroup, Validators } from '@angular/forms';
+import {Moment} from 'moment';
+import {AcquisitionLevelCodes, PmfmIds} from '../../referential/services/model/model.enum';
+import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {FormGroup, Validators} from '@angular/forms';
 import {
-  Alerts, DateUtils,
+  Alerts,
+  DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  firstTruePromise, fromDateISOString,
+  fromDateISOString,
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   NetworkService,
   PlatformService,
   PromiseEvent,
   ReferentialRef,
-  ReferentialUtils,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { TripsPageSettingsEnum } from './trips.table';
-import { PhysicalGear, Trip } from '../services/model/trip.model';
-import { SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
-import { ModalController } from '@ionic/angular';
-import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
-import { ProgramProperties } from '../../referential/services/config/program.config';
-import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
-import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
-import { TableElement } from '@e-is/ngx-material-table';
-import { Program } from '../../referential/services/model/program.model';
-import { environment } from '../../../environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
-import { Moment } from 'moment';
+import {TripsPageSettingsEnum} from './trips.table';
+import {PhysicalGear, Trip} from '../services/model/trip.model';
+import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
+import {ModalController} from '@ionic/angular';
+import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap} from 'rxjs/operators';
+import {TableElement} from '@e-is/ngx-material-table';
+import {Program} from '../../referential/services/model/program.model';
+import {environment} from '../../../environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {TRIP_FEATURE_NAME} from '@app/trip/services/config/trip.config';
+import {BehaviorSubject, merge, Subscription} from 'rxjs';
+import {OperationService} from '@app/trip/services/operation.service';
 
 const moment = momentImported;
 
@@ -95,6 +97,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected programRef: ProgramRefService,
+    protected operationService: OperationService,
     public network: NetworkService
   ) {
     super(injector,
@@ -129,11 +132,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.physicalGearsTable.onBeforeDeleteRows
         .subscribe(async (event) => {
           const rows = (event.detail.rows as TableElement<PhysicalGear>[]);
-          const usedGearIds = await this.operationsTable.getUsedPhysicalGearIds();
-          const usedGears = rows.map(row => row.currentData)
-            .filter(gear => usedGearIds.includes(gear.id));
-
-          const canDelete = (usedGears.length === 0);
+          const canDelete = await this.operationService.areUsedPhysicalGears(this.data.id,  rows.map(row => row.currentData.id));
           event.detail.success(canDelete);
           if (!canDelete) {
             await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP',
@@ -339,6 +338,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Physical gear table
     this.physicalGearsTable.value = data && data.gears || [];
+    this.physicalGearsTable.tripId = data.id;
 
     // Operations table
     if (!isNew && this.operationsTable) {

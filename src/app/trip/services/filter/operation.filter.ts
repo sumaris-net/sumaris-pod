@@ -19,6 +19,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   gearIds?: number[];
+  physicalGearIds?: number[];
   taxonGroupLabels?: string[];
   qualityFlagIds?: number[];
   synchronizationStatus?: SynchronizationStatus[];
@@ -38,6 +39,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.startDate = source.startDate;
     this.endDate = source.endDate;
     this.gearIds = source.gearIds;
+    this.physicalGearIds = source.physicalGearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
     this.qualityFlagIds = source.qualityFlagIds;
 
@@ -104,6 +106,12 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     if (isNotNil(this.gearIds) && this.gearIds.length > 0) {
       const gearIds = this.gearIds;
       filterFns.push((o => isNotNil(o.physicalGear?.gear) && gearIds.includes(o.physicalGear.gear.id)));
+    }
+
+    // PhysicalGearIds;
+    if (isNotNil(this.physicalGearIds) && this.physicalGearIds.length > 0) {
+      const physicalGearIds = this.physicalGearIds;
+      filterFns.push((o => isNotNil(o.physicalGear) && physicalGearIds.includes(o.physicalGear.id)));
     }
 
     // taxonGroupIds
