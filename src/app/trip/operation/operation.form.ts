@@ -332,13 +332,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           .valueChanges
           .pipe(
             filter(_ => this.fishingEndDateTimeEnable),
-            startWith(fishingEndDateTimeControl.value) // Need by combineLatest (after filter)
+            startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (after filter)
           ),
         endDateTimeControl
           .valueChanges
           .pipe(
             filter(_ => this.endDateTimeEnable),
-            startWith(endDateTimeControl.value) // Need by combineLatest (after filter)
+            startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (after filter)
           )
       ])
       .pipe(
