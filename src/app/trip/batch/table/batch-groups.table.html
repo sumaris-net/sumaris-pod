@@ -160,7 +160,7 @@
         <app-form-field floatLabel="never"
                         [definition]="col"
                         [readonly]="!row.editing || col.computed"
-                        [formControl]="row.validator.controls.measurementValues.controls[col.rankOrder]"
+                        [formControl]="row.validator.get(col.path)"
                         [autofocus]="row.editing && focusColumn === col.key"
                         [compact]="true">
         </app-form-field>

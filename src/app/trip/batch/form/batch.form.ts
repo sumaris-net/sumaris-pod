@@ -293,7 +293,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Manage DISCARD_REASON validator
     if (discardOrLandingControl && discardReasonControl) {
 
-      if (discardOrLandingControl.value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+      if (discardOrLandingControl.value?.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
         if (this.form.enabled) {
           discardReasonControl.enable();
         }
