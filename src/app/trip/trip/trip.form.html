@@ -57,7 +57,8 @@
                                 [config]="autocompleteFields.location"
                                 [required]="true"
                                 logPrefix="[location]"
-                                [panelWidth]="!mobile && '500px'">
+                                [panelWidth]="mobile ? '80vw' : '500px'"
+                                [matAutocompletePosition]="mobile ? 'above': 'auto'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
 
@@ -80,7 +81,8 @@
                                 [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [required]="returnFieldsRequired"
-                                [panelWidth]="!mobile && '500px'">
+                                [panelWidth]="mobile ? '80vw' : '500px'"
+                                [matAutocompletePosition]="mobile ? 'above': 'auto'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -92,8 +94,8 @@
                              [clearable]="!returnFieldsRequired">
           <mat-hint align="end" *ngIf="form.controls.returnDateTime.value">
             <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
-            startValue: form.get('departureDateTime').value,
-            endValue: form.get('returnDateTime').value
+            startValue: form.controls.departureDateTime.value,
+            endValue: form.controls.returnDateTime.value
           } | dateDiffDuration }}
           </mat-hint>
         </mat-date-time-field>
