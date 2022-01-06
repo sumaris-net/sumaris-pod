@@ -35,8 +35,8 @@ import { ProgramProperties } from '../../referential/services/config/program.con
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
-import { Program } from '../../referential/services/model/program.model';
-import { environment } from '../../../environments/environment';
+import { Program } from '@app/referential/services/model/program.model';
+import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
 import { Subscription } from 'rxjs';
