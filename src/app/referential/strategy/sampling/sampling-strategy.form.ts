@@ -927,7 +927,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
 
-  setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  async setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     console.debug("[sampling-strategy-form] Setting Strategy value", data);
     if (!data) return;
 
