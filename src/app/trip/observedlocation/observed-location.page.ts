@@ -43,8 +43,6 @@ import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 const moment = momentImported;
 
 
-const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
-
 const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
@@ -104,7 +102,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
         autoOpenNextTab: !platform.mobile,
-        i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
+        i18nPrefix: 'OBSERVED_LOCATION.EDIT.'
       });
     this.defaultBackHref = '/observations';
     this.mobile = this.platform.mobile;
@@ -343,8 +341,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
-    await super.setProgram(program);
     if (!program) return; // Skip
+
+    await super.setProgram(program);
 
     try {
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
@@ -462,6 +461,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Propagate program
     const programLabel = data.program && data.program.label;
     this.$programLabel.next(programLabel);
+
+    // Enable forms (do not wait for program load)
+    if (!programLabel) this.markAsReady();
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {

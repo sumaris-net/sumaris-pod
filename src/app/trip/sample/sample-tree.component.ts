@@ -1,42 +1,24 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import {
-  AppTabEditor,
-  AppTable,
-  Entity,
-  EntityUtils,
-  IconRef,
-  IReferentialRef,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  PlatformService,
-  UsageMode,
-  WaitForOptions
-} from '@sumaris-net/ngx-components';
-import {Sample, SampleUtils} from '@app/trip/services/model/sample.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {AlertController, ModalController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
-import {SamplesTable} from '@app/trip/sample/samples.table';
-import {IndividualMonitoringTable} from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
-import {IndividualReleasesTable} from '@app/trip/sample/individualrelease/individual-releases.table';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
-import {Program} from '@app/referential/services/model/program.model';
-import {Moment} from 'moment';
-import {environment} from '@environments/environment';
-import {debounceTime, distinctUntilChanged, filter, switchMap} from 'rxjs/operators';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {MatTabChangeEvent} from '@angular/material/tabs';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import { FormGroup } from '@angular/forms';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { SamplesTable } from '@app/trip/sample/samples.table';
+import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
+import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import { Program } from '@app/referential/services/model/program.model';
+import { Moment } from 'moment';
+import { environment } from '@environments/environment';
+import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
-export interface SampleTabDefinition {
-  iconRef: IconRef;
-  label: string;
-}
 
 @Component({
   selector: 'app-sample-tree',
@@ -65,12 +47,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
-  @Input() defaultSampleDate: Moment;
-  @Input() sampleTabDef: SampleTabDefinition = {
-    iconRef: {matSvgIcon: 'fish-oblique'},
-    label: 'TRIP.OPERATION.EDIT.TAB_SAMPLES'
-  };
   @Input() requiredStrategy = false;
+
+
+  @Input() set defaultSampleDate(value: Moment) {
+    this.samplesTable.defaultSampleDate = value;
+  }
+
+  get defaultSampleDate(): Moment {
+    return this.samplesTable.defaultSampleDate;
+  }
 
   @Input()
   set programLabel(value: string) {
@@ -109,11 +95,11 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     return this.getValue();
   }
 
-  @Input() set availableTaxonGroups(value: IReferentialRef[] | Observable<IReferentialRef[]>) {
+  @Input() set availableTaxonGroups(value: TaxonGroupRef[]) {
     this.samplesTable.availableTaxonGroups = value;
   }
 
-  get availableTaxonGroups(): IReferentialRef[] | Observable<IReferentialRef[]> {
+  get availableTaxonGroups(): TaxonGroupRef[] {
     return this.samplesTable.availableTaxonGroups;
   }
 
@@ -134,7 +120,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected programRefService: ProgramRefService,
-    protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected cd: ChangeDetectorRef
   ) {
@@ -228,7 +213,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     await super.ready(opts);
   }
 
-  async setValue(data: Sample[]) {
+  async setValue(data: Sample[], opts?: { emitEvent?: boolean; }) {
     console.debug('[sample-tree] Setting value', data);
 
     await this.ready();

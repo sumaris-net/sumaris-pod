@@ -5,8 +5,7 @@ import {
   AppTable,
   Entity,
   firstTruePromise,
-  InMemoryEntitiesService, IReferentialRef,
-  isEmptyArray,
+  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -16,7 +15,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AlertController, ModalController } from '@ionic/angular';
-import { BehaviorSubject, defer, Observable } from 'rxjs';
+import { BehaviorSubject, defer } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { OperationService } from '../services/operation.service';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
@@ -250,14 +249,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         this.batchGroupsTable.dataSource.datasourceSubject
           .pipe(
             // skip if loading, or hide
-            filter(() => !this.loading && this.allowSubBatches && this.showSubBatchesTable),
+            filter(() => !this.loading && this.allowSubBatches),
             debounceTime(400),
             map(value => value || [])
           )
           // Will refresh the tables (inside the setter):
           .subscribe(batchGroups => {
             const isNotEmpty = batchGroups.length > 0;
-            if (isNotEmpty) this.subBatchesTable.availableParents = batchGroups;
+            if (isNotEmpty && this.subBatchesTable) this.subBatchesTable.availableParents = batchGroups;
             if (this.showSubBatchesTable !== isNotEmpty) {
               this.showSubBatchesTable = isNotEmpty;
               this.markForCheck();
@@ -286,7 +285,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Save batch groups and sub batches
     const [batchGroups, subBatches] = await Promise.all([
-      this.getTableValue(this.batchGroupsTable),
+      this.getTableValue(this.batchGroupsTable, true),
       this.getSubBatches()
     ]);
     target.children = batchGroups;
@@ -328,7 +327,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   /* -- protected method -- */
 
-  async setValue(catchBatch: Batch) {
+  async setValue(catchBatch: Batch, opts?: {emitEvent?: boolean;}) {
 
     // Make sure this is catch batch
     if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
@@ -337,7 +336,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // DEBUG
     //console.debug('[batch-tree] setValue()');
-
     this.markAsLoading();
 
     try {
@@ -351,7 +349,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Set catch batch
       this.catchBatchForm.gearId = this._gearId;
-      this.catchBatchForm.value = catchBatch.clone({ withChildren: false });
+      const promiseOrVoid = this.catchBatchForm.setValue(catchBatch.clone({ withChildren: false }), opts);
+      if (promiseOrVoid) await promiseOrVoid;
 
       if (this.batchGroupsTable) {
         // Retrieve batch group (make sure label start with acquisition level)
@@ -362,7 +361,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         this.batchGroupsTable.value = batchGroups;
 
         // Wait batch group table ready (need to be sure the QV pmfm is set)
-        await this.batchGroupsTable.waitIdle();
+        await this.batchGroupsTable.ready();
 
         const groupQvPmfm = this.batchGroupsTable.qvPmfm;
         const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {
@@ -371,7 +370,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
         if (this.subBatchesTable) {
           this.subBatchesTable.qvPmfm = groupQvPmfm;
-          this.subBatchesTable.setAvailableParents(batchGroups, {
+          await this.subBatchesTable.setAvailableParents(batchGroups, {
             emitEvent: false,
             linkDataToParent: false // Not need here
           });
@@ -515,12 +514,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this._subBatchesService) this._subBatchesService.setValue([]);
   }
 
-  protected async getTableValue<T extends Entity<T>>(table: AppTable<T> & { value: T[]}): Promise<T[]> {
-    if (table.dirty) {
+  protected async getTableValue<T extends Entity<T>>(table: AppTable<T> & { value: T[]},
+                                                     forceSave?: boolean): Promise<T[]> {
+    const dirty = table.dirty;
+    if (dirty || forceSave) {
       await table.save();
 
       // Remember dirty state
-      this.markAsDirty({emitEvent: false});
+      if (dirty) this.markAsDirty({emitEvent: false});
     }
 
     return table.value;

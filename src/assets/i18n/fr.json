@@ -21,6 +21,7 @@
     "BTN_EXPAND": "Déplier",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
+    "BTN_INSTALL": "Installer",
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
@@ -106,6 +107,7 @@
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
+    "LOADING_DOTS": "Chargement...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -131,6 +133,7 @@
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
+    "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
     "LOGOS": "Logos de l'application",
@@ -138,7 +141,7 @@
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
-    "BTN_ADD_PROPERTY": "Ajouter une option",
+    "BTN_ADD_OPTION": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
     "CACHE_TITLE": "Statistique du cache serveur",
     "NEW": {
@@ -190,7 +193,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
       },
       "ENUMERATION": {
@@ -381,6 +384,7 @@
     "FIELDS": {
       "DEPARTMENT": "Liste déroulante > Organismes",
       "LOCATION": "Liste déroulante > Lieux (port, etc.)",
+      "FISHING_AREA_LOCATION": "Liste déroulante > Zone de pêche (rectangle, etc.)",
       "QUALITATIVE_VALUE": "Liste déroulante > Valeurs d'un paramètre",
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
@@ -437,7 +441,7 @@
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
-    "VESSEL": "Navire",
+    "VESSEL_SNAPSHOT": "Navire",
     "BTN_ADD_VESSEL": "Ajouter un navire",
     "DEPARTURE": "Départ :",
     "DEPARTURE_DATE_TIME": "Date de départ",
@@ -592,6 +596,9 @@
         "START_DATE_TIME": "Début d'opération",
         "FISHING_START_DATE_TIME": "Début de pêche",
         "FISHING_END_DATE_TIME": "Fin de pêche",
+        "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
+        "FISHING_AREAS_DOTS": "Zones de pêche :",
+        "FISHING_AREAS": "Zones de pêche",
         "END_DATE_TIME": "Fin d'opération",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
@@ -660,7 +667,8 @@
         "END_POSITION": "Position de fin",
         "FISHING_AREA": "Zone de pêche",
         "COMMENTS": "Commentaires",
-        "QUALITY": "État"
+        "QUALITY": "État",
+        "QUALITY_FILTER": "Filtrer par état :"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -693,7 +701,7 @@
     "LANDED_CATCH": {
       "TAB_PRODUCT": "Lots par espèce",
       "TAB_BATCH": "Lots en paquet",
-      "OPERATION_GROUP_FILTER": "Filtrer par effort"
+      "OPERATION_GROUP_FILTER": "Filtrer par effort :"
     },
     "PRODUCT": {
       "LIST": {
@@ -1033,7 +1041,7 @@
       "STRATEGY": "Stratégie :",
       "STRATEGY_PLACEHOLDER": "Stratégie",
       "STRATEGY_SUMMARY_TITLE": "Stratégie appliquée",
-      "VESSEL": "Navire",
+      "VESSEL_SNAPSHOT": "Navire",
       "LANDING": "Débarquement :",
       "DATE": "Date de débarquement",
       "LOCATION": "Lieu de débarquement",
@@ -1459,6 +1467,7 @@
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
+      "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
@@ -2017,9 +2026,9 @@
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
     "FIELD_TOO_SHORT": "Valeur trop courte",
-    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caractères min)') }}",
+    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caract. min)') }}",
     "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
-    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caractères max)') }}",
+    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caract. max)') }}",
     "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
     "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
     "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
@@ -2052,8 +2061,10 @@
     "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
+    "DOWNLOAD_FAILED": "Echec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "SAVE_SETTINGS_ERROR": "Erreur lors de la sauvegarde de vos paramètres.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_CONFIG_ERROR": "Erreur du chargement de la configuration",
     "SAVE_CONFIG_ERROR": "Erreur lors de la sauvegarde de la configuration",
     "ACCOUNT_NOT_EXISTS": "Votre compte semble inexistant, et ne peut donc être sauvegardé.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
@@ -2067,6 +2078,7 @@
     "TABLE_READ_ONLY": "Tableau en lecture seule",
     "SAVE_DATA_ERROR": "Erreur lors de la sauvegarde. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_DATA_ERROR": "Erreur de chargement des données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "DELETE_DATA_ERROR": "Erreur de suppression des données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
     "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
@@ -2093,7 +2105,8 @@
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
-    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas"
+    "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
+    "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -2106,9 +2119,12 @@
     "ACTION_IMMEDIATE": "Cette action est irreversible.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
     "DELETE_ROW": "<b>Êtes-vous sûr</b> de vouloir supprimer cette ligne ?",
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
+    "CANCEL_ROW": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur cette ligne ?",
+    "CANCEL_ROWS": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur ces lignes ?",
     "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
   },
   "INFO": {
+    "ALERT_HEADER": "Information",
     "SYNCHRONIZATION_SUCCEED": "Synchronisation terminée avec succès !<br/>Les données ont bien été recues par le serveur.",
     "DEBUG_DATA_SEND": "Demande d'aide envoyée à l'administrateur.",
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
@@ -2118,6 +2134,7 @@
     "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
+    "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
   }
 }

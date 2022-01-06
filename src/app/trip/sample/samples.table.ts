@@ -20,7 +20,7 @@ import {
   PlatformService,
   ReferentialRef,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS, suggestFromArray,
   toBoolean,
   toNumber,
   UsageMode,
@@ -187,7 +187,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
-  @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
 
   get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
     return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
@@ -356,8 +356,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       usageMode: this.usageMode,
       showLabel: this.showLabelColumn,
       mobile: this.mobile,
+      availableTaxonGroups: this.availableTaxonGroups,
       defaultSampleDate: this.defaultSampleDate,
-      showSampleDate: this.showSampleDateColumn,
+      showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton,
@@ -601,7 +602,10 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    //if (isNilOrBlank(value)) return [];
+    if (isNotEmptyArray(this.availableTaxonGroups)) {
+      return suggestFromArray(this.availableTaxonGroups, value, options);
+    }
+
     return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.programLabel,

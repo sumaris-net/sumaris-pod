@@ -445,12 +445,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(
   // Display attributes for referential useful entities
-  ['department', 'location', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
+  ['department', 'location', 'fishingAreaLocation', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
-      res[`FIELD_${changeCaseToUnderscore(fieldName).toUpperCase()}_ATTRIBUTES`] = {
+      const i18nFieldName = changeCaseToUnderscore(fieldName).toUpperCase(); // e.g. transform 'taxonGroup' into 'TAXON_GROUP'
+      res[`FIELD_${i18nFieldName}_ATTRIBUTES`] = {
         key: `sumaris.field.${fieldName}.attributes`,
-        label: `SETTINGS.FIELDS.${changeCaseToUnderscore(fieldName).toUpperCase()}`,
+        label: `SETTINGS.FIELDS.${i18nFieldName}`,
         type: 'enum',
         values: [
           {key: 'label,name',   value: 'SETTINGS.FIELDS.ATTRIBUTES.LABEL_NAME'},

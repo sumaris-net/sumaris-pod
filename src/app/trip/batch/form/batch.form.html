@@ -46,7 +46,7 @@
             <ng-container *ngIf="mobile && !pmfm.hidden; else defaultPmfmField">
               <app-pmfm-qv-field #matInput
                                  [pmfm]="pmfm"
-                                 [hidden]="pmfm.hidden"
+                                 [hidden]="pmfm.hidden || matInput.formControl?.disabled"
                                  [style]="'button'"
                                  [formControlName]="pmfm.id|toString"
                                  [compact]="compact"

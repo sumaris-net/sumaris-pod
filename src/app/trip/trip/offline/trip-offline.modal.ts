@@ -96,44 +96,9 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
       mobile: this.mobile
     });
 
-    const displayAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']);
-    const vesselSnapshot$ = this.form.get('program').valueChanges
-      .pipe(
-        mergeMap(program => program && program.label && this.programRefService.loadByLabel(program.label) || Promise.resolve()),
-        mergeMap(program => {
-          if (!program) return Promise.resolve();
-          return this.vesselSnapshotService.loadAll(0, 100, displayAttributes[0],  "asc", {
-              program
-          });
-        }),
-        map(res => {
-          if (!res || isEmptyArray(res.data)) {
-            this.form.get('vesselSnapshot').disable();
-            return [];
-          }
-          else {
-            this.form.get('vesselSnapshot').enable();
-            return res.data;
-          }
-        })
-      );
-
-    // vesselSnapshot
-    this.registerAutocompleteField('vesselSnapshot', {
-      items: vesselSnapshot$,
-      attributes: displayAttributes,
-      mobile: this.mobile
-    });
-
-    this.registerAutocompleteField('vesselSnapshot', {
-      service: this.vesselSnapshotService,
-      attributes: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name']),
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        program: this.form.get('program').value
-      },
-      mobile: this.mobile
-    });
+    // Combo: vessels
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
+      this.registerAutocompleteField('vesselSnapshot', opts));
   }
 
   async setValue(value: TripOfflineFilter | any) {

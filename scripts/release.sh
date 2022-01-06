@@ -107,9 +107,15 @@ rel|pre)
 esac
 
 echo "----------------------------------"
+echo "- Refresh dependencies..."
+echo "----------------------------------"
+yarn
+[[ $? -ne 0 ]] && exit 1
+
+echo "----------------------------------"
 echo "- Compiling sources..."
 echo "----------------------------------"
-npm run build.prod
+yarn run build.prod
 [[ $? -ne 0 ]] && exit 1
 
 echo "----------------------------------"

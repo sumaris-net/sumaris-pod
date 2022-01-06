@@ -99,9 +99,6 @@ export class Operation
   asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    // DEBUG
-    // console.log('TODO serialize operation...');
-
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
@@ -221,7 +218,8 @@ export class Operation
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    if (!opts || opts.keepTrip !== false) {
+    // Clean properties copied from the parent trip
+    if (!opts || opts.keepTrip !== true) {
       delete target.programLabel;
       delete target.vesselId;
     }
@@ -254,7 +252,10 @@ export class Operation
     } else {
       const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(VesselPositionUtils.dateTimeComparator()) || undefined;
       if (isNotEmptyArray(sortedPositions)) {
-        console.log('TODO sorted positions: ', sortedPositions.map(p => p.dateTime).join(', '));
+
+        // DEBUG
+        //console.debug('[operation] Find sorted positions: ', sortedPositions.map(p => toDateISOString(p.dateTime)).join(', '));
+
         // Warn : should be extracted in this order, because startDateTime can be equals to endDateTime
         this.startPosition = VesselPositionUtils.findByDate(sortedPositions, this.startDateTime, true);
         this.fishingStartPosition = VesselPositionUtils.findByDate(sortedPositions, this.fishingStartDateTime, true);

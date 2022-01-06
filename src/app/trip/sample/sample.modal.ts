@@ -26,6 +26,9 @@ import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {Moment} from 'moment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import * as momentImported from 'moment';
+const moment = momentImported;
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
@@ -38,6 +41,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
 
+  availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
 
   // UI Options
@@ -82,6 +86,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
+  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
+  @Input() defaultSampleDate: Moment;
   tagIdPmfm: IPmfm;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
@@ -103,6 +109,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   get valid(): boolean {
     return this.form.valid;
   }
+
+
+  get isOnFieldMode() {
+    return this.usageMode === 'FIELD';
+  }
+
 
   constructor(
     protected injector: Injector,
@@ -181,13 +193,24 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private async setValue(data: Sample) {
 
-    console.debug('[sample-modal] Applying value to form...', this.data);
+    console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
     this.form.error = null;
 
     try {
       // Set form value
       this.data = data || new Sample();
+      const isNew = isNil(this.data.id);
+
+      if (isNew && !this.data.sampleDate) {
+        if (this.defaultSampleDate) {
+          this.data.sampleDate = this.defaultSampleDate.clone();
+        }
+        else if (this.isOnFieldMode) {
+          this.data.sampleDate = moment();
+        }
+      }
+
       let promiseOrVoid = this.form.setValue(this.data);
       if (promiseOrVoid) await promiseOrVoid;
 
@@ -197,12 +220,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         if (promiseOrVoid) await promiseOrVoid;
       }
 
-      this.computeTitle();
+      await this.computeTitle();
     }
     finally {
+      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
-      this.enable();
       this.markForCheck();
     }
   }

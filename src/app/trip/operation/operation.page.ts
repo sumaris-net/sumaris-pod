@@ -40,6 +40,7 @@ import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurem
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { Moment } from 'moment';
 
 const moment = momentImported;
 
@@ -77,6 +78,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
   readonly mobile: boolean;
+  readonly $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+  readonly $programLabel = new BehaviorSubject<string>(null);
+  readonly $tripId = new BehaviorSubject<number>(null);
+  readonly $lastOperations = new BehaviorSubject<Operation[]>(null);
+  readonly $maxDateChanges = new BehaviorSubject<Moment>(null);
+
   trip: Trip;
   measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
@@ -93,11 +100,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
-
-  $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
-  $programLabel = new BehaviorSubject<string>(null);
-  $tripId = new BehaviorSubject<number>(null);
-  $lastOperations = new BehaviorSubject<Operation[]>(null);
 
   @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
   @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
@@ -507,10 +509,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.batchTree.program = program;
     this.sampleTree.program = program;
 
-
-
-    // Autofill batch group table (e.g. with taxon groups found in strategies)
-    await this.initAvailableTaxonGroups(this.autoFillBatch);
+    // Load available taxon groups (e.g. with taxon groups found in strategies)
+    await this.initAvailableTaxonGroups(program.label);
 
     this.cd.detectChanges();
     this.markAsReady();
@@ -706,15 +706,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
       this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
     } else {
-      this.measurementsForm.value = data && data.measurements || [];
+      this.measurementsForm.setValue(data && data.measurements || []);
     }
 
     // Set batch tree
     this.batchTree.gearId = gearId;
-    this.batchTree.value = data && data.catchBatch || null;
+    await this.batchTree.setValue(data && data.catchBatch || null);
 
     // Set sample tree
-    this.sampleTree.value = (data && data.samples || []);
+    await this.sampleTree.setValue(data && data.samples || []);
 
     // If new data, auto fill the table
     if (this.isNewData) {
@@ -787,6 +787,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
   }
 
+
+  markAsLoaded(opts?: { emitEvent?: boolean }) {
+    super.markAsLoaded(opts);
+    this.children?.forEach(c => c.markAsLoaded(opts));
+  }
 
   /* -- protected method -- */
 
@@ -908,25 +913,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       && this.tripService.canUserWrite(this.trip);
   }
 
-  protected async initAvailableTaxonGroups(enable: boolean) {
-    if (!enable) {
-      // Reset table's taxon groups
-      this.batchTree.availableTaxonGroups = null;
-      this.sampleTree.availableTaxonGroups = null;
-      return; // Skip
-    }
-
+  protected async initAvailableTaxonGroups(programLabel: string) {
     if (this.debug) console.debug('[operation] Setting available taxon groups...');
 
     // Load program's taxon groups
-    let availableTaxonGroups = await this.programRefService.loadTaxonGroups(this.$programLabel.value);
+    let availableTaxonGroups = await this.programRefService.loadTaxonGroups(programLabel);
 
     // Retrieve the trip measurements on SELF_SAMPLING_PROGRAM, if any
     const qvMeasurement = (this.trip.measurements || []).find(m => m.pmfmId === PmfmIds.SELF_SAMPLING_PROGRAM);
     if (qvMeasurement && ReferentialUtils.isNotEmpty(qvMeasurement.qualitativeValue)) {
 
       // Retrieve QV from the program pmfm (because measurement's QV has only the 'id' attribute)
-      const tripPmfms = await this.programRefService.loadProgramPmfms(this.$programLabel.value, {acquisitionLevel: AcquisitionLevelCodes.TRIP});
+      const tripPmfms = await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel: AcquisitionLevelCodes.TRIP});
       const pmfm = (tripPmfms || []).find(pmfm => pmfm.id === PmfmIds.SELF_SAMPLING_PROGRAM);
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
@@ -943,9 +941,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // Set table's default taxon groups
-    this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.sampleTree.availableTaxonGroups = availableTaxonGroups;
-
+    this.batchTree.availableTaxonGroups = availableTaxonGroups;
   }
 
   protected updateTablesState() {
@@ -1010,11 +1007,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  markAsLoaded(opts?: { emitEvent?: boolean }) {
-    super.markAsLoaded(opts);
-    this.children?.forEach(c => c.markAsLoaded(opts));
   }
 
   protected computeNextTabIndex(): number | undefined {

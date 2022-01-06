@@ -300,23 +300,25 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Then set value of each child form
       this.cd.detectChanges();
 
-      this.childrenList.forEach((childForm, index) => {
+      await Promise.all(
+        this.childrenList.map((childForm, index) => {
 
-        const childBatch = data.children[index] || new Batch();
-        childForm.showWeight = this.showChildrenWeight;
-        childForm.requiredWeight = this.showChildrenWeight && hasSubBatches;
-        childForm.requiredSampleWeight = this.showChildrenWeight && hasSubBatches;
-        childForm.requiredIndividualCount = !this.showChildrenWeight && hasSubBatches;
-        childForm.setIsSampling(hasSubBatches, {emitEvent: true});
-        if (this.enabled) {
-          childForm.enable();
-        } else {
-          childForm.disable();
-        }
+          const childBatch = data.children[index] || new Batch();
+          childForm.showWeight = this.showChildrenWeight;
+          childForm.requiredWeight = this.showChildrenWeight && hasSubBatches;
+          childForm.requiredSampleWeight = this.showChildrenWeight && hasSubBatches;
+          childForm.requiredIndividualCount = !this.showChildrenWeight && hasSubBatches;
+          childForm.setIsSampling(hasSubBatches, {emitEvent: true});
+          if (this.enabled) {
+            childForm.enable();
+          } else {
+            childForm.disable();
+          }
 
-        childForm.markAsReady();
-        childForm.setValue(childBatch);
-      });
+          childForm.markAsReady();
+          return childForm.setValue(childBatch, {emitEvent: true});
+        })
+      );
 
       this.computeShowTotalIndividualCount(data);
 

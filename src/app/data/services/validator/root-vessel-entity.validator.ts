@@ -21,7 +21,7 @@ export abstract class DataRootVesselEntityValidatorService<T extends DataRootVes
     return Object.assign(
       super.getFormGroupConfig(data),
       {
-        vesselSnapshot: ['', Validators.compose([Validators.required, SharedValidators.entity])]
+        vesselSnapshot: [data && data.vesselSnapshot || null, Validators.compose([Validators.required, SharedValidators.entity])]
       });
   }
 }
