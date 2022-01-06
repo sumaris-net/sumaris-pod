@@ -135,9 +135,12 @@ public class MetierRepositoryImpl
 
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
+
+        Integer[] levelIds = filter.getLevelId() != null ? new Integer[]{filter.getLevelId()} : filter.getLevelIds();
         return super.toSpecification(filter, fetchOptions)
-                .and(alreadyPracticedMetier(filter))
-                .and(inGearIds(filter));
+            .and(alreadyPracticedMetier(filter))
+            .and(inGearIds(filter))
+            .and(inLevelIds(filter.getSearchJoin(), levelIds));
     }
 
     /* -- protected method -- */

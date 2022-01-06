@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.metier;
  * #L%
  */
 
+import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -30,11 +31,14 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import org.apache.commons.lang3.ArrayUtils;
+import org.hsqldb.lib.StringUtil;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -110,6 +114,34 @@ public interface MetierSpecifications
         .addBind(VESSEL_ID_PARAMETER, filter.getVesselId())
         .addBind(PROGRAM_LABEL_PARAMETER, filter.getProgramLabel())
         .addBind(EXCLUDED_TRIP_ID_PARAMETER, filter.getExcludedTripId());
+    }
+
+    @Override
+    default Specification<Metier> inLevelLabels(Class<Metier> entityClass, String[] levelLabels) {
+        return null; // Disable the default behaviour, to avoid an error (no level on Metier entity)
+    }
+
+    @Override
+    default Specification<Metier> inLevelIds(Class<Metier> entityClass, Integer... levelIds) {
+        return null; // Disable the default behaviour, to avoid an error (no level on Metier entity: we use searchJoin - see below)
+    }
+
+
+    default Specification<Metier> inLevelIds(String searchJoin, Integer... levelIds) {
+        if (StringUtils.isBlank(searchJoin) || ArrayUtils.isEmpty(levelIds)) return null;
+
+        // Try to get the entity class, from the filter 'searchJoin' attribute
+        Class<? extends IReferentialEntity> joinEntityClass;
+        try {
+            joinEntityClass = ReferentialEntities.getEntityClass(StringUtils.capitalize(searchJoin));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Cannot filter on levelId, when searchJoin in on '%s'", searchJoin), e);
+        }
+
+        return ReferentialEntities.getLevelPropertyNameByClass(joinEntityClass)
+            .map(levelPath -> StringUtils.doting(searchJoin, levelPath)) // Create the full path
+            .map(fullLevelPath -> inJoinPropertyIds(fullLevelPath, levelIds))
+            .orElse(null);
     }
 
     List<MetierVO> findByFilter(

@@ -98,7 +98,10 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         final String paramName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName);
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, paramName);
-            return criteriaBuilder.in(root.join(joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)).value(levelParam);
+            return criteriaBuilder.in(
+                    Daos.composeJoin(root, joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)
+                )
+                .value(levelParam);
         })
         .addBind(paramName, Arrays.asList(ids));
     }
