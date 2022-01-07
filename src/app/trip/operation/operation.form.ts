@@ -289,7 +289,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // Combo: fishingAreas
     this.initFishingAreas(this.form);
-    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation', ['label']);
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation',
+      ['label'] // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
+    );
     this.registerAutocompleteField('fishingAreaLocation', {
       suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
         ...filter,
