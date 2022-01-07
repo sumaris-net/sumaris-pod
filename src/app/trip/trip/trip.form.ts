@@ -294,10 +294,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
-
-    //if (this.debug)
-      console.debug('[location] waiting ...', data);
-
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
@@ -325,10 +321,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
 
     // Send value for form
-
-    //if (this.debug)
-      console.debug('[location] Updating form (using entity)', data);
-
     super.setValue(data, opts);
   }
 

@@ -870,14 +870,15 @@
       },
       "PMFM": {
         "INDIVIDUAL_RELEASE": {
-          "MEASURE_TIME": "Heure de remise à l'eau",
+          "MEASURE_TIME": "Date de remise à l'eau",
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           }
         },
         "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Heure de remise à l'eau",
+          "MEASURE_TIME": "Date de remise à l'eau",
+          "IS_DEAD": "Mort ?",
           "TAG_ID": "Référence de la marque"
         },
         "SAMPLING": {

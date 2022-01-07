@@ -431,7 +431,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       );
     }
 
-    // Fill defaults, from table's filter
+    // Fill defaults, from table's filter. Implemented for all usage mode, to fix #IMAGINE-648
     const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
     if (searchFilter) {
 
