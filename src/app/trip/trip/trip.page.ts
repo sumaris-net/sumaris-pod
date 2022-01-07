@@ -250,35 +250,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
+    console.debug("[trip] New entity: applying defaults...");
+
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
-
-      console.debug("[trip] New entity: set default values...");
-
-      // Fill defaults, using filter applied on trips table
-      const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
-      if (searchFilter) {
-
-        // Synchronization status
-        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
-          data.synchronizationStatus = 'DIRTY';
-        }
-
-        // program
-        if (searchFilter.program && searchFilter.program.label) {
-          data.program = ReferentialRef.fromObject(searchFilter.program);
-        }
-
-        // Vessel
-        if (searchFilter.vesselSnapshot) {
-          data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
-        }
-
-        // Location
-        if (searchFilter.location) {
-          data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
-        }
-      }
 
       // Listen first opening the operations tab, then save
       this.registerSubscription(
@@ -294,6 +269,31 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           )
           .subscribe()
         );
+    }
+
+    // Fill defaults, from table's filter
+    const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
+    if (searchFilter) {
+
+      // Synchronization status
+      if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+        data.synchronizationStatus = 'DIRTY';
+      }
+
+      // program
+      if (searchFilter.program && searchFilter.program.label) {
+        data.program = ReferentialRef.fromObject(searchFilter.program);
+      }
+
+      // Vessel
+      if (searchFilter.vesselSnapshot) {
+        data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
+      }
+
+      // Location
+      if (searchFilter.location) {
+        data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
+      }
     }
 
     // Set contextual program, if any
