@@ -432,6 +432,7 @@ public class AggregationServiceImpl implements AggregationService {
         if (isNew) {
             target = new ExtractionProductVO();
             target.setLabel(source.getLabel().toUpperCase());
+            source.setId(null); // Avoid reusing invalid ID (e.g. from a detached entity)
 
             // Check label != format
             Preconditions.checkArgument(!Objects.equals(source.getLabel(), source.getRawFormatLabel()), "Invalid label. Expected pattern: <type_name>-NNN");

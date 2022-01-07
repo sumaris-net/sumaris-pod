@@ -460,6 +460,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             target.setLabel(source.getLabel());
             target.setRecorderDepartment(source.getRecorderDepartment());
             target.setRecorderPerson(source.getRecorderPerson());
+            source.setId(null); // Avoid reusing invalid ID (e.g. from a detached entity)
         }
         else {
             // Check label was not changed
