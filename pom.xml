@@ -89,7 +89,7 @@
 
     <!-- Commons versions -->
     <hsqldb.version>2.4.1</hsqldb.version>
-    <h2.version>1.4.199</h2.version>
+    <h2.version>2.0.206</h2.version>
     <ojdbc8.version>12.2.0.1</ojdbc8.version>
     <pgsql.version>42.2.5</pgsql.version>
 
