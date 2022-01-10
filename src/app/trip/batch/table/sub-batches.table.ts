@@ -435,6 +435,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   public async resetForm(previousBatch?: SubBatch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
     if (!this.form) throw new Error('Form not exists');
+
     await this.ready();
 
     // Finish form configuration
