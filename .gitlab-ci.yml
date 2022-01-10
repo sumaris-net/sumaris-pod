@@ -3,13 +3,13 @@
 # ---------------------------------------------------------------
 
 # default image
-image: node:12
+image: node:12-slim
 
 stages:
   - build
   - alt_build
 #  - test
-#  - release
+  - release
   - docker
   - docs
 
@@ -18,6 +18,7 @@ stages:
 # ---------------------------------------------------------------
 
 variables:
+  DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   BUILD_ENVIRONMENT: prod
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
@@ -25,6 +26,14 @@ variables:
 # ---------------------------------------------------------------
 # Jobs templates
 # ---------------------------------------------------------------
+.configure-git-template: &git-setup
+  before_script:
+    - echo "fetch origin"
+    - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git fetch origin
+  tags: [sih_public_runner]
 
 .docker:
   image: docker:latest
@@ -64,10 +73,10 @@ build:
   image: ${CI_BUILD_IMAGE}
   before_script:
     # Get project dependencies
-    - mv /tmp/.build-cache/node_modules ./
+    - cp -R /tmp/.build-cache/node_modules .
   only:
     - develop
-    - feature/imagine
+    - /^feature\/.*/
 
 failsafe-build:
   extends: .build
@@ -80,7 +89,7 @@ failsafe-build:
     - yarn install
   only:
     - develop
-    - feature/imagine
+    - /^feature\/.*/
 
 docker:ci:
   extends: .docker
@@ -89,18 +98,79 @@ docker:ci:
   allow_failure: true
   script:
     # Build and push the CI image
-    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="CACHE_DIR=/tmp/build-cache" -f scripts/ci/Dockerfile .
+    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f scripts/ci/Dockerfile .
     #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
     - docker push ${CI_BUILD_IMAGE}
   only:
     - develop
-    - feature/imagine
+    - /^feature\/.*/
 
 # ---------------------------------------------------------------
 # Release jobs
 # ---------------------------------------------------------------
+.release:
+  <<: *git-setup
+  stage: release
+  script:
+      - if [[ "_${RELEASE_VERSION}" == "_" ]]; then exit 1; fi
+      - echo "Release in progress"
+      - git checkout -b release/${RELEASE_VERSION}
+      - echo "manage app version"
+      - 'currentAndroid=`grep -oP "android-versionCode=\"[0-9]+\"" config.xml | grep -oP "\d+"`'
+      - 'IFS="."'
+      - 'read -ra SPLITED_VERSION <<< "${RELEASE_VERSION}"'
+      - 'IFS="-"'
+      - 'read -ra SPLITED_PATCH <<< "${SPLITED_VERSION[2]}"'
+      - 'major2d=$(printf %02d ${SPLITED_VERSION[0]}) ; minor2d=$(printf %02d ${SPLITED_VERSION[1]}) ; patch2d=$(printf %02d ${SPLITED_PATCH[0]})'
+      - 'androidVersion=$major2d$minor2d$patch2d'
+      - 'current=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`'
+      - 'sed -i "s/version\": \"$current\"/version\": \"${RELEASE_VERSION}\"/g" package.json'
+      - 'currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`'
+      - 'sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"${RELEASE_VERSION}\"/g" config.xml'
+      - 'sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$androidVersion\"/g" config.xml'
+      - 'currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`'
+      - 'sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"${RELEASE_VERSION}\"/g" src/assets/manifest.json'
+      - 'sed -i "s/echo \".*\" #lastest/echo \"${RELEASE_VERSION}\" #lastest/g" install.sh'
+      # Copy cached dependencies and build
+      - ls -artl /tmp/.build-cache
+      - cp -R /tmp/.build-cache/node_modules .
+      - npm run build.prod
+      # Git process for release (ISO gitflow)
+      - git add .
+      - git commit -m "Prepare release ${RELEASE_VERSION}"
+      - git checkout master
+      - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
+      - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
+      - git checkout develop
+      - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
+#      - git push origin develop
+#      - git push origin master
+#      - git push --tags
+      - git branch -D release/${RELEASE_VERSION}
+  after_script:
+    # Remember version
+    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "APP_VERSION=${APP_VERSION}" > variables.env
+  artifacts:
+    paths:
+      - www
+    reports:
+      dotenv: variables.env
+    expire_in: 24 hours
+  allow_failure: false
+  only:
+      - develop
+      - /^feature\/.*/
+  when: manual
 
-# TODO
+release:
+    extends: .release
+    image: ${CI_BUILD_IMAGE}
+    needs: [build]
+
+failsafe-release:
+    extends: .release
+    needs: [failsafe-build]
 
 # ---------------------------------------------------------------
 # Docker jobs
@@ -119,6 +189,7 @@ docker:develop:
   extends: .docker-build
   variables:
     IMAGE_TAG: develop
+  needs: [build]
   only:
     - develop
 
@@ -126,25 +197,27 @@ docker:imagine:
   extends: .docker-build
   variables:
     IMAGE_TAG: imagine
+  needs: [build]
   only:
     - feature/imagine
+
+docker:feature:
+  extends: .docker-build
+  needs: [build]
+  variables:
+    IMAGE_TAG: feature
+  only:
+    - /^feature\/.*/
+  when: manual
 
 docker:release:
   extends: .docker-build
   variables:
-    IMAGE_TAG: $CI_COMMIT_TAG
+    IMAGE_TAG: ${APP_VERSION}
+  needs: [release]
   only:
-    - tags
-
-docker:production:
-  extends: .docker-build
-  variables:
-    # IMAGE_TAG: $CI_COMMIT_TAG
-    IMAGE_TAG: 'production'
-  only:
-    - tags
-    - feature/imagine
-  when: manual
+    - develop
+    - /^feature\/.*/
 
 # ---------------------------------------------------------------
 # Docs jobs
