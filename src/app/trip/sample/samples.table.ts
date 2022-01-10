@@ -222,7 +222,16 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         debug: !environment.production,
         ...options,
         // Cannot override mapPmfms (by options)
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        onRowCreated: (row) => {
+          // Need to set additional validator here
+          // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
+          //       e.g. IMAGINE add some validator (see biological sampling page), so new row should always be INVALID with those additional validators
+          if (row.validator) {
+            const event = {form: row.validator, pmfms: this.pmfms, markForCheck: () => this.markForCheck()};
+            this.onPrepareRowForm.emit(event);
+          }
+        }
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
@@ -237,7 +246,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.confirmBeforeDelete = false;
     this.confirmBeforeCancel = false;
     this.undoableDeletion = false;
-    this.saveBeforeDelete = this.mobile;
 
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
@@ -250,23 +258,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     //this.debug = false;
     this.debug = !environment.production;
-
-    // If init form callback exists, apply it when start row edition
-    this.registerSubscription(
-      this.onStartEditingRow
-        .pipe(
-          filter(row => row && row.validator && true),
-          map(row => ({form: row.validator, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})),
-          tap(event => {
-            // DEBUG
-            //console.debug('[samples-table] will sent onPrepareRowForm event:', event)
-            this.onPrepareRowForm.emit(event);
-
-            // Force update of the form validity
-            event.form?.updateValueAndValidity({emitEvent: true, onlySelf: false});
-          })
-        )
-        .subscribe());
   }
 
   ngOnInit() {

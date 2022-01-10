@@ -19,7 +19,7 @@ import {
   isNotNil,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS, waitFor,
 } from '@sumaris-net/ngx-components';
 import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
 import {MeasurementsDataService} from './measurements.service';
@@ -58,7 +58,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected formBuilder: FormBuilder;
   protected readonly options: AppMeasurementsTableOptions<T>;
 
-  measurementValuesFormGroupConfig: { [key: string]: any };
+  measurementValuesFormGroupConfig: { [key: string]: any } = null;
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
@@ -358,6 +358,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     // Wait pmfms load, and controls load
     await firstNotNilPromise(this.$pmfms);
+
+    // Wait form config initialized
+    if (!this.measurementValuesFormGroupConfig) {
+      await waitFor(() => !!this.measurementValuesFormGroupConfig);
+    }
   }
 
   /**
@@ -432,7 +437,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
   }
 
-  private async onRowCreated(row: TableElement<T>): Promise<void> {
+  private async onRowCreated(row: TableElement<T>) {
+
+    // Execute function from constructor's options (is any)
+    // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
+    if (this.options.onRowCreated) {
+      const res = this.options.onRowCreated(row);
+      if (res instanceof Promise) await res;
+    }
+
     const data = row.currentData; // if validator enable, this will call a getter function
 
     await this.onNewEntity(data);
@@ -441,12 +454,11 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     this.normalizeEntityToRow(data, row);
 
     // Set row data
-    row.currentData = data; // if validator enable, this will call a setter function
-
-    // Execute function from constructor's options (is any)
-    if (this.options.onRowCreated) {
-      const res = this.options.onRowCreated(row);
-      if (res instanceof Promise) await res;
+    if (row.validator) {
+      row.validator.patchValue(data);
+    }
+    else {
+      row.currentData = data;
     }
 
     this.markForCheck();

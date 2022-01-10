@@ -273,13 +273,20 @@ export class MeasurementValuesUtils {
   static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
     keepSourceObject?: boolean;
   }): MeasurementModelValues {
+
+    // DEBUG
+    //console.debug('calling normalizeValuesToModel() from ' +  source.__typename);
+
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
 
     if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
       (pmfms || []).forEach(pmfm => {
         target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
       });
-      delete target.__typename;
+      // DO NOT delete __typename, but force it to MeasurementModelValues
+      // If not: there is a bug when edition a row, saving and editing it again: the conversion to form is not applied!
+      //delete target.__typename;
+      target.__typename = MeasurementValuesTypes.MeasurementModelValues;
     }
 
     return target;
@@ -303,6 +310,9 @@ export class MeasurementValuesUtils {
   }): MeasurementFormValues {
     opts = opts || {};
     pmfms = pmfms || [];
+
+    // DEBUG
+    console.debug('calling normalizeValueToForm() from ' +  source.__typename);
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
