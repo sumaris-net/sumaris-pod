@@ -7,9 +7,9 @@ export type TripContext = {
 }
 
 @Injectable({providedIn: 'root'})
-export class TripContextService<S extends TripContext = TripContext> extends ContextService<S> {
+export class TripContextService extends ContextService<TripContext> {
 
   constructor() {
-    super(<S>{});
+    super(<TripContext>{});
   }
 }

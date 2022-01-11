@@ -16,7 +16,6 @@ export type ObservableValues<T> = {
   [key in keyof T]: BehaviorSubject<T[keyof T]>;
 }
 
-@Injectable()
 export class ContextService<S extends Record<string, any> = Context> {
   protected observableState: ObservableValues<S>;
 
