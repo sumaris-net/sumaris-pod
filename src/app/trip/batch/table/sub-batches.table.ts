@@ -300,18 +300,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
   }
 
-  async toggleForm() {
-    if (this.form && !this.showForm) {
-
-      await this.resetForm(null, {focusFirstEmpty: true});
-      this.showForm = true;
-      this.markForCheck();
-    } else if (this.showForm) {
-      this.showForm = false;
-      this.markForCheck();
-    }
-  }
-
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
     // Skip if loading,
     // or if previous edited row not confirmed

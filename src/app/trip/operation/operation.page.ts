@@ -485,11 +485,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.showFishingArea = !this.opeForm.showPosition; // Trip has gps in use, so active positions controls else active fishing area control
-    this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
+    this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
     this.opeForm.defaultLatitudeSign = defaultLatitudeSign;
     this.opeForm.defaultLongitudeSign = defaultLongitudeSign;
+    this.opeForm.metierTaxonGroupTypeIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS);
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = this.allowParentOperation;
@@ -731,6 +732,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
 
+    // DEBUG
+    console.debug('[operation] Saving...');
+
     // Save new gear to the trip
     const gearSaved = await this.saveNewPhysicalGear();
     if (!gearSaved) return false; // Stop if failed
@@ -741,6 +745,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts
     });
+
+    // Display form error on top
     if (!saved && this.opeForm.invalid) {
 
       // DEBUG
@@ -749,6 +755,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.setError(this.opeForm.formError);
       this.scrollToTop();
     }
+
+    if (saved && this.dirty) {
+      let children = this.children.filter(f => f.dirty);
+      if (isNotEmptyArray(children)) {
+
+        children = this.batchTree.children.filter(f => f.dirty);
+        console.debug('[operation] Still dirty children: ', children);
+      }
+      console.debug('[operation] Batch tree ready: ', this.batchTree.batchGroupsTable.isReady());
+      this.batchTree.markAsPristine();
+    }
+
     return saved;
   }
 

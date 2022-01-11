@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
-import { debounceTime, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilKeyChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Landing } from '../../services/model/landing.model';
 import { AuctionControlValidators } from '../../services/validator/auction-control.validators';
@@ -210,6 +210,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     this.registerSubscription(
       this.taxonGroupControl.valueChanges
+        .pipe(distinctUntilKeyChanged('id'))
         .subscribe(taxonGroup => {
           const hasTaxonGroup = ReferentialUtils.isNotEmpty(taxonGroup);
           console.debug('[control] Selected taxon group:', taxonGroup);

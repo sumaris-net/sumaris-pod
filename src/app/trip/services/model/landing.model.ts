@@ -91,7 +91,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   }
 
   equals(other: Landing): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same vessel
         (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)

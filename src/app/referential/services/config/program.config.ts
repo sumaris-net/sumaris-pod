@@ -1,5 +1,6 @@
 import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -251,7 +252,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+  TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entity',
@@ -262,6 +263,12 @@ export const ProgramProperties = Object.freeze({
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
+  },
+  TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS',
+    type: 'string',
+    defaultValue: TaxonGroupTypeIds.METIER.toString()
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingStartDateEnable',

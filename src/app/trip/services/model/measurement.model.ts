@@ -101,7 +101,7 @@ export class Measurement extends DataEntity<Measurement> {
   }
 
   equals(other: Measurement): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same [pmfmId, rankOrder]
         (this.pmfmId === other.pmfmId && this.rankOrder === other.rankOrder)
@@ -329,15 +329,30 @@ export class MeasurementValuesUtils {
       ? {...source} : {};
 
     if (MeasurementValuesUtils.isMeasurementModelValues(target)) {
-      // Normalize all pmfms from the list
-      pmfms.forEach(pmfm => {
-        const pmfmId = pmfm?.id;
-        if (isNil(pmfmId)) {
-          console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
-          return;
-        }
-        target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
-      });
+      // Copy from source, without value conversion (not need)
+      if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
+        // Normalize all pmfms from the list
+        pmfms.forEach(pmfm => {
+          const pmfmId = pmfm?.id;
+          if (isNil(pmfmId)) {
+            console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
+            return;
+          }
+          target[pmfmId.toString()] = source[pmfmId];
+        });
+      }
+      // Copy from source, WITH value conversion
+      else {
+        // Normalize all pmfms from the list
+        pmfms.forEach(pmfm => {
+          const pmfmId = pmfm?.id;
+          if (isNil(pmfmId)) {
+            console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
+            return;
+          }
+          target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
+        });
+      }
       target.__typename = MeasurementValuesTypes.MeasurementFormValue;
     }
 

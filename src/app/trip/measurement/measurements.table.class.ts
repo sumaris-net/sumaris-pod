@@ -353,6 +353,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!this.loading) this.updateColumns();
   }
 
+  isReady() {
+    return !!this.measurementValuesFormGroupConfig;
+  }
+
   async ready() {
     await super.ready();
 
@@ -361,6 +365,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     // Wait form config initialized
     if (!this.measurementValuesFormGroupConfig) {
+      console.debug(`[${this.constructor.name}] Waiting row validator config to be set...`);
       await waitFor(() => !!this.measurementValuesFormGroupConfig);
     }
   }

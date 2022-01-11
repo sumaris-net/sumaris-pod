@@ -2,7 +2,7 @@ import {DataEntityAsObjectOptions} from "../../../data/services/model/data-entit
 import {Moment} from "moment";
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import {Landing} from "./landing.model";
-import {ReferentialAsObjectOptions, ReferentialRef}  from "@sumaris-net/ngx-components";
+import { isNotNil, ReferentialAsObjectOptions, ReferentialRef } from '@sumaris-net/ngx-components';
 import {RootDataEntity} from "../../../data/services/model/root-data-entity.model";
 import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
@@ -62,7 +62,7 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
   }
 
   equals(other: ObservedLocation): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same location
         (this.location && other.location && this.location.id === other.location.id)
