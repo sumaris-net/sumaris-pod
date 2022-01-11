@@ -6,6 +6,11 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
   PROJECT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
   export PROJECT_DIR
 fi;
+
+if [[ -f "${PROJECT_DIR}/.local/env.sh" ]]; then
+  source ${PROJECT_DIR}/.local/env.sh
+fi;
+
 cd ${PROJECT_DIR}
 
 ### Control that the script is run on `develop` branch

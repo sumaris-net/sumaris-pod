@@ -6,8 +6,12 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
   PROJECT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
   export PROJECT_DIR
 fi;
-cd ${PROJECT_DIR}
 
+if [[ -f "${PROJECT_DIR}/.local/env.sh" ]]; then
+  source ${PROJECT_DIR}/.local/env.sh
+fi;
+
+cd ${PROJECT_DIR}
 
 ### Variables
 task=$1
