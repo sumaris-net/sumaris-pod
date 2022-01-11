@@ -225,8 +225,14 @@ public class LandingServiceImpl implements LandingService {
         // Create events (before deletion, to be able to join VO)
         LandingVO eventData = enableTrash ? get(id, DataFetchOptions.FULL_GRAPH) : null;
 
-        // Delete linked trips
-        tripService.deleteAllByLandingId(id);
+        // Delete linked trip
+        // WARN: use delete by id (if possible) to fix Oracle on an Adagio schema - see #IMAGINE-602 and #IMAGINE-589
+        if (eventData.getTripId() != null) {
+            tripService.delete(eventData.getTripId());
+        }
+        else {
+            tripService.deleteAllByLandingId(id);
+        }
 
         // Delete linked samples
         sampleService.deleteAllByLandingId(id);

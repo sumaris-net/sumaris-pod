@@ -62,6 +62,7 @@ import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
@@ -512,16 +513,22 @@ public class ProgramGraphQLService {
      */
     protected StrategyFilterVO fillStrategyFilter(StrategyFilterVO filter) {
 
-        // Restrict to self department data
-        PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        if (user != null) {
-            Integer depId = user.getDepartment().getId();
-            if (!canDepartmentAccessNotSelfData(depId)) {
-                // Limit data access to user's department
-                filter.setDepartmentIds(new Integer[]{depId});
+        if (authService.isAdmin()) {
+            // No restriction on department (= show all)
+        }
+        else {
+            // Restrict to self department data
+            PersonVO user = authService.getAuthenticatedUser().orElse(null);
+            if (user != null) {
+                Integer depId = user.getDepartment().getId();
+                if (!canDepartmentAccessNotSelfData(depId)) {
+                    // Limit data access to user's department
+                    filter.setDepartmentIds(new Integer[]{depId});
+                }
+            } else {
+                // Hide all. Should never occur
+                filter.setDepartmentIds(DataAccessControlService.NO_ACCESS_FAKE_IDS);
             }
-        } else {
-            filter.setDepartmentIds(new Integer[]{-999}); // Hide all. Should never occur
         }
 
         return filter;

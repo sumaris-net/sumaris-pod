@@ -31,14 +31,19 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
 
@@ -54,7 +59,13 @@ public interface MetierSpecifications
 
 
     default Specification<Metier> inGearIds(Integer[] gearIds) {
+        if (ArrayUtils.isEmpty(gearIds)) return null;
         return inJoinPropertyIds(Metier.Fields.GEAR, gearIds);
+    }
+
+    default Specification<Metier> inTaxonGroupTypeIds(Integer[] taxonGroupTypeIds) {
+        if (ArrayUtils.isEmpty(taxonGroupTypeIds)) return null;
+        return inJoinPropertyIds(StringUtils.doting(Metier.Fields.TAXON_GROUP, TaxonGroup.Fields.TAXON_GROUP_TYPE), taxonGroupTypeIds);
     }
 
     default Specification<Metier> alreadyPracticedMetier(MetierFilterVO filter) {

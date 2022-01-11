@@ -53,6 +53,8 @@
   <PROGRAM_PROPERTY ID="92" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.metiers.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="93" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.allowParent" NAME="true"/>
   <PROGRAM_PROPERTY ID="94" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="95" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.location.filter.searchText.minLength" NAME="2"/>
+  <PROGRAM_PROPERTY ID="96" STATUS_FK="1" PROGRAM_FK="50" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4"/>
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="50" LOCATION_CLASSIFICATION_FK="2"/>
 

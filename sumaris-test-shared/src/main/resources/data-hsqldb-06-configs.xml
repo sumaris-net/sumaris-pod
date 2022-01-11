@@ -105,6 +105,7 @@
     <SOFTWARE_PROPERTY ID="114" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.data.accessNotSelfData.role" NAME="ROLE_USER"/>
     <SOFTWARE_PROPERTY ID="115" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.data.accessNotSelfData.department.ids" NAME="3"/>
     <SOFTWARE_PROPERTY ID="116" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.sample.uniqueTag" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="117" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.data.program.ids" NAME="40"/>
 
     <!-- ****** OPEN (ACOST, PIFIL, HOMARD, ...) properties ****** -->
 

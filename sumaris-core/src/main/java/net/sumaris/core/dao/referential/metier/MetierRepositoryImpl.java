@@ -27,14 +27,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
@@ -47,7 +45,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -103,6 +100,11 @@ public class MetierRepositoryImpl
                         target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
                     }
 
+                    if (joinSource instanceof TaxonGroup) {
+                        TaxonGroup tg = (TaxonGroup)joinSource;
+                        target.getTaxonGroup().setLevelId(tg.getTaxonGroupType().getId());
+                    }
+
                     // Override the entityName, to make sure client cache will NOT mixed Metier and Metier+searchJoin
                     target.setEntityName(target.getEntityName() + searchJoinClass);
 
@@ -133,15 +135,15 @@ public class MetierRepositoryImpl
 
     }
 
+    /* -- protected method -- */
+
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(alreadyPracticedMetier(filter))
-                .and(inGearIds(filter));
+            .and(alreadyPracticedMetier(filter))
+            .and(inGearIds(filter))
+            .and(inTaxonGroupTypeIds(filter));
     }
-
-    /* -- protected method -- */
-
 
     private Specification<Metier> alreadyPracticedMetier(IReferentialFilter filter) {
         if (!(filter instanceof MetierFilterVO)) return null;
@@ -157,4 +159,10 @@ public class MetierRepositoryImpl
         return inGearIds(metierFilter.getGearIds());
     }
 
+    private Specification<Metier> inTaxonGroupTypeIds(IReferentialFilter filter) {
+        if (!(filter instanceof MetierFilterVO)) return null;
+        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+
+        return inTaxonGroupTypeIds(metierFilter.getTaxonGroupTypeIds());
+    }
 }

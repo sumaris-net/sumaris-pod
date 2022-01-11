@@ -41,6 +41,7 @@ public class DepartmentFilterVO implements IReferentialFilter {
     private String[] levelLabels;
 
     private String searchJoin;
+    private Integer[] searchJoinLevelIds;
     private String searchText;
     private String searchAttribute;
 

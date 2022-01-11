@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.18.1</version>
+  <version>1.19.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -134,6 +134,7 @@
     <reflections.version>0.9.12</reflections.version>
     <rxjava2.version>2.2.21</rxjava2.version>
     <activemq.version>5.16.2</activemq.version>
+    <jakarta.version>2.0.3</jakarta.version>
 
     <jnr-ffi.version>2.2.2</jnr-ffi.version>
     <kalium.version>0.8.2</kalium.version>
@@ -222,7 +223,9 @@
 
     <!-- I18n configuration -->
     <i18n.bundles>fr_FR,en_GB</i18n.bundles>
+    <i18n.bundleCsvSeparator>;</i18n.bundleCsvSeparator>
     <i18n.silent>true</i18n.silent>
+    <i18n.force>false</i18n.force>
 
     <!-- by default, use maven 2 source base dir -->
     <maven.src.dir>${basedir}/src</maven.src.dir>
@@ -421,7 +424,7 @@
       <dependency>
         <groupId>jakarta.jms</groupId>
         <artifactId>jakarta.jms-api</artifactId>
-        <version>2.0.3</version>
+        <version>${jakarta.version}</version>
       </dependency>
       <dependency>
         <groupId>io.reactivex.rxjava2</groupId>
@@ -1161,7 +1164,7 @@
 
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.2.0</version>
           <configuration>
             <escapeString>\</escapeString>
           </configuration>
@@ -1300,7 +1303,7 @@
             <dependency>
               <groupId>org.hibernate</groupId>
               <artifactId>hibernate-spatial</artifactId>
-              <version>${hibernate.version}</version>
+              <version>${hibernate-spatial.version}</version>
             </dependency>
             <!-- dependencies need for nuiton-config-maven-plugin -->
             <dependency>
@@ -1527,39 +1530,6 @@
             <version>${commonBeanutilsVersion}</version>
           </dependency>
         </dependencies>
-      </plugin>
-
-      <plugin>
-        <groupId>org.nuiton.i18n</groupId>
-        <artifactId>i18n-maven-plugin</artifactId>
-
-        <executions>
-          <execution>
-            <id>scan-sources</id>
-            <configuration>
-              <entries>
-                <entry>
-                  <specificGoal>parserValidation</specificGoal>
-                  <basedir>${maven.src.dir}/main/java/</basedir>
-                  <includes>
-                    <param>**/**-validation.xml</param>
-                  </includes>
-                </entry>
-              </entries>
-            </configuration>
-            <goals>
-              <goal>parserJava</goal>
-              <goal>parserValidation</goal>
-              <goal>gen</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>make-bundle</id>
-            <goals>
-              <goal>bundle</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <plugin>
@@ -2091,8 +2061,8 @@
               </reportSet>
             </reportSets>
             <configuration>
-              <include>sumaris-core-shared,sumaris-core</include>
-              <i18nBundleName>sumaris-core-i18n</i18nBundleName>
+              <include>sumaris-core-shared,sumaris-core,sumaris-server</include>
+              <i18nBundleName>sumaris-server-i18n</i18nBundleName>
               <verbose>true</verbose>
               <outputEncoding>UTF-8</outputEncoding>
             </configuration>

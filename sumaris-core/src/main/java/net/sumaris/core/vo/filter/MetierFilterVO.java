@@ -45,5 +45,6 @@ public class MetierFilterVO extends ReferentialFilterVO {
     private String programLabel;
     private Integer excludedTripId; // optional
     private Integer[] gearIds;
+    private Integer[] taxonGroupTypeIds; // optional
 
 }

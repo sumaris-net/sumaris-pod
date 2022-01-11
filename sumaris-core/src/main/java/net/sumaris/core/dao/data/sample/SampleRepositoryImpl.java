@@ -441,6 +441,7 @@ public class SampleRepositoryImpl
                                      Date newUpdateDate,
                                      boolean enableHashOptimization) {
         Preconditions.checkNotNull(source);
+        EntityManager em = getEntityManager();
 
         if (entity == null && source.getId() != null) {
             entity = findById(source.getId()).orElse(null);
@@ -448,6 +449,7 @@ public class SampleRepositoryImpl
         boolean isNew = (entity == null);
         if (isNew) {
             entity = new Sample();
+            source.setId(null); // Make sure to not re-affect the ID
         }
 
         if (!isNew && checkUpdateDate) {
@@ -457,6 +459,8 @@ public class SampleRepositoryImpl
             // Lock entityName
             //lockForUpdate(entity);
         }
+
+        onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
         boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
@@ -475,7 +479,7 @@ public class SampleRepositoryImpl
             source.setCreationDate(newUpdateDate);
 
             // Add the new sample
-            getEntityManager().persist(entity);
+            em.persist(entity);
             source.setId(entity.getId());
             if (log.isTraceEnabled()) log.trace(String.format("Adding sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
         } else {
@@ -489,7 +493,7 @@ public class SampleRepositoryImpl
 
             // Update existing sample
             if (log.isTraceEnabled()) log.trace(String.format("Updating sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
-            getEntityManager().merge(entity);
+            em.merge(entity);
         }
 
         return source;

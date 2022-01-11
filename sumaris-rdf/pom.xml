@@ -3,7 +3,7 @@
     <parent>
         <artifactId>sumaris-pod</artifactId>
         <groupId>net.sumaris</groupId>
-        <version>1.18.1</version>
+        <version>1.19.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,10 +15,7 @@
     <properties>
         <!-- i18n configuration -->
         <i18n.bundleOutputName>sumaris-rdf-i18n</i18n.bundleOutputName>
-        <i18n.generateCsvFile>true</i18n.generateCsvFile>
-        <i18n.bundleCsvFile>
-            ${project.build.directory}/generated-sources/resources/META-INF/${i18n.bundleOutputName}.csv
-        </i18n.bundleCsvFile>
+        <i18n.bundleCsvFile>${i18n.bundleOutputName}.csv</i18n.bundleCsvFile>
         <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
 
         <!-- Default datasource platform -->
