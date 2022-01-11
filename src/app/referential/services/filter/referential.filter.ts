@@ -109,11 +109,13 @@ export abstract class BaseReferentialFilter<
 
     if (this.searchJoin && isNotEmptyArray(this.searchJoinLevelIds)) {
       const searchJoinLevelPath = uncapitalizeFirstLetter(this.searchJoin) + '.levelId';
-      console.log('TODO: filter searchJoinLevelIds')
       filterFns.push((entity) => {
         const levelId = getPropertyByPath(entity, searchJoinLevelPath);
-        return isNil(levelId) // Keep if no levelId
-          || this.searchJoinLevelIds.includes(levelId);
+        if (isNil(levelId)) {
+          console.warn('[referential-filter] Unable to filter entities, because missing the attribute: ' + searchJoinLevelPath);
+          return true; // Keep the item, when missing levelId
+        }
+        return this.searchJoinLevelIds.includes(levelId);
       });
     }
 

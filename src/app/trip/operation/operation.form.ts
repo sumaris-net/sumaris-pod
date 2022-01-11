@@ -11,11 +11,11 @@ import {
   EntityUtils,
   firstNotNilPromise,
   FormArrayHelper,
-  fromDateISOString,
+  fromDateISOString, getPropertyByPath,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   isNotNilOrNaN,
   LoadResult,
   MatAutocompleteField,
@@ -46,7 +46,7 @@ import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
 import { TripService } from '@app/trip/services/trip.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
@@ -118,7 +118,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
   @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
-  @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER];
+  @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER_DCF_5];
 
 
   @Input() set showMetierFilter(value: boolean) {
@@ -285,7 +285,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     super.ngOnInit();
 
     // Combo: physicalGears
-    const physicalGearAttributes = ['rankOrder'].concat(this.settings.getFieldDisplayAttributes('gear').map(key => 'gear.' + key));
+    const physicalGearAttributes = ['rankOrder']
+      .concat(this.settings.getFieldDisplayAttributes('gear')
+      .map(key => 'gear.' + key));
     this.registerAutocompleteField('physicalGear', {
       items: this._physicalGearsSubject,
       attributes: physicalGearAttributes,
@@ -390,6 +392,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     const isNew = isNil(data?.id);
 
+    // Use trip physical gear Object (if possible)
+    let physicalGear = data.physicalGear;
+    const physicalGears = this._physicalGearsSubject.value;
+    if (physicalGear && isNotNil(physicalGear.id) && isNotEmptyArray(physicalGears)) {
+      data.physicalGear = physicalGears.find(g => g.id === physicalGear.id) || physicalGear;
+    }
+
     // Use label and name from metier.taxonGroup
     if (!isNew && data?.metier) {
       data.metier = data.metier.clone(); // Leave original object unchanged
@@ -432,13 +441,23 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     if (trip) {
       // Propagate physical gears
-      this._physicalGearsSubject.next((trip.gears || []).map(ps => PhysicalGear.fromObject(ps).clone()));
+      const gearLabelPath = 'measurementValues.' + PmfmIds.GEAR_LABEL;
+      const physicalGears = (trip.gears || []).map((ps, i) => {
+        const physicalGear = PhysicalGear.fromObject(ps).clone();
+        // Use physical gear label, if any
+        const physicalGearLabel = getPropertyByPath(ps, gearLabelPath);
+        if (isNotNilOrBlank(physicalGearLabel)) {
+          physicalGear.gear.name = physicalGearLabel;
+        }
+        return physicalGear;
+      });
+      this._physicalGearsSubject.next(physicalGears);
 
       // Use trip physical gear Object (if possible)
       const physicalGearControl = this.form.get('physicalGear');
       let physicalGear = physicalGearControl.value;
       if (physicalGear && isNotNil(physicalGear.id)) {
-        physicalGear = (trip.gears || []).find(g => g.id === physicalGear.id) || physicalGear;
+        physicalGear = physicalGears.find(g => g.id === physicalGear.id) || physicalGear;
         if (physicalGear) physicalGearControl.patchValue(physicalGear);
       }
 

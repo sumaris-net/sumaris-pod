@@ -206,6 +206,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
           // Load last operations (if enabled)
           //filter(_ => this.showLastOperations),
+          filter(isNotNil),
           switchMap(tripId => this.dataService.watchAll(
             0, 5,
             'startDateTime', 'desc',

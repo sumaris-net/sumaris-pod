@@ -85,6 +85,7 @@ export const PmfmIds = {
   /* PIFIL pmfms */
   HAS_ACCIDENTAL_CATCHES: 390,
   INDIVIDUAL_ON_DECK: 397,
+  GEAR_LABEL: 120,
 
   /* LOGBOOK-SEA-CUCUMBER (SFA)*/
   GPS_USED: 188

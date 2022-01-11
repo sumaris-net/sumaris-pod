@@ -268,7 +268,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS',
     type: 'string',
-    defaultValue: TaxonGroupTypeIds.METIER.toString()
+    defaultValue: TaxonGroupTypeIds.METIER_DCF_5.toString()
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingStartDateEnable',
