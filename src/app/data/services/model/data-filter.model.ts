@@ -77,7 +77,11 @@ export abstract class DataEntityFilter<
           // Must be done in sub-classes (see RootDataEntity)
           break;
         case 'QUALIFIED':
-          filterFns.push(t => isNotNil(t.qualityFlagId) && t.qualityFlagId !== QualityFlagIds.NOT_QUALIFIED);
+          filterFns.push(t => isNotNil(t.qualityFlagId)
+            && t.qualityFlagId !== QualityFlagIds.NOT_QUALIFIED
+            // Exclude incomplete OPE (e.g. filage)
+            && t.qualityFlagId !== QualityFlagIds.NOT_COMPLETED
+          );
           break;
       }
     }

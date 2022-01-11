@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorService } from '../services/validator/operation.validator';
+import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
@@ -444,7 +444,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       const gearLabelPath = 'measurementValues.' + PmfmIds.GEAR_LABEL;
       const physicalGears = (trip.gears || []).map((ps, i) => {
         const physicalGear = PhysicalGear.fromObject(ps).clone();
-        // Use physical gear label, if any
+        // Use physical gear label, if any (see issue #314)
         const physicalGearLabel = getPropertyByPath(ps, gearLabelPath);
         if (isNotNilOrBlank(physicalGearLabel)) {
           physicalGear.gear.name = physicalGearLabel;
@@ -745,7 +745,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
-    this.validatorService.updateFormGroup(this.form, {
+    const validatorOpts = <OperationValidatorOptions>{
       isOnFieldMode: this.usageMode === 'FIELD',
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
@@ -755,7 +755,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable
-    });
+    };
+
+    // DEBUG
+    console.debug(`[operation] Updating form group (validators)`, validatorOpts);
+
+    this.validatorService.updateFormGroup(this.form, validatorOpts);
 
     if (!opts || opts.emitEvent !== false) {
       this.initPositionSubscription();

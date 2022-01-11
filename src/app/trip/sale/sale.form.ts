@@ -1,15 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import {SaleValidatorService} from "../services/validator/sale.validator";
-import {Moment} from 'moment';
-import {DateAdapter} from "@angular/material/core";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
-import {Sale} from "../services/model/sale.model";
-import {LocationLevelIds} from "../../referential/services/model/model.enum";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import {referentialToString}  from "@sumaris-net/ngx-components";
-import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {StatusIds}  from "@sumaris-net/ngx-components";
+import { SaleValidatorService } from '../services/validator/sale.validator';
+import { Moment } from 'moment';
+import { AppForm, referentialToString, toNumber } from '@sumaris-net/ngx-components';
+import { VesselSnapshotService } from '../../referential/services/vessel-snapshot.service';
+import { Sale } from '../services/model/sale.model';
+import { LocationLevelIds } from '../../referential/services/model/model.enum';
+import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { OnReady } from '@sumaris-net/ngx-components/public_api';
 
 @Component({
@@ -61,6 +57,9 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Set defaults
+    this.tabindex = toNumber(this.tabindex, 0);
 
     // Combo: vessels (if need)
     if (this.showVessel) {
