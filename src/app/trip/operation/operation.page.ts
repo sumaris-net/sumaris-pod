@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
 import { OperationSaveOptions, OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
@@ -28,6 +28,7 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
+import { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -40,7 +41,7 @@ import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurem
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
-import { Moment } from 'moment';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 const moment = momentImported;
 
@@ -58,7 +59,7 @@ const moment = momentImported;
         canGoBack: () => false,
         nativeEl: '',
       },
-    },
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -131,6 +132,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     hotkeys: Hotkeys,
     dataService: OperationService,
     protected tripService: TripService,
+    protected tripContext: TripContextService,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected modalCtrl: ModalController
@@ -146,7 +148,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Init mobile
     this.mobile = platform.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
-
 
     this.registerSubscription(
       hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
@@ -823,7 +824,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Update trip id (will cause last operations to be watched, if need)
     this.$tripId.next(+tripId);
 
-    const trip = await this.tripService.load(tripId);
+    let trip = this.tripContext.getValue('trip');
+    // Reload
+    if (trip?.id !== tripId) {
+      trip = await this.tripService.load(tripId, {fullLoad: true});
+    }
     this.trip = trip;
     this.saveOptions.trip = trip;
     return trip;

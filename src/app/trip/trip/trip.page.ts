@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -42,6 +42,7 @@ import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
 import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 const moment = momentImported;
 
@@ -94,8 +95,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected programRef: ProgramRefService,
-    protected context: ContextService,
     protected operationService: OperationService,
+    protected context: ContextService,
+    protected tripContext: TripContextService,
     public network: NetworkService
   ) {
     super(injector,
@@ -196,7 +198,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async setProgram(program: Program) {
-    if (!program) return; // Skip
+    if (!program) return; // SkiploadTrip
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -362,7 +364,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (savedOrContinue) {
       this.markAsLoading();
 
-     setTimeout(async () => {
+      // Store the trip in context
+      this.tripContext?.setValue('trip', this.data.clone());
+
+      setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', id], {
           queryParams: {}
         });
@@ -382,6 +387,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
       this.markAsLoading();
+
+      // Store the trip in context
+      this.tripContext?.setValue('trip', this.data.clone());
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {

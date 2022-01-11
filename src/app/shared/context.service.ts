@@ -1,10 +1,11 @@
 import { BehaviorSubject, interval } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import { Injectable } from '@angular/core';
 
 export type Context = {
-  program?: Program,
-  strategy?: Strategy,
+  program?: Program;
+  strategy?: Strategy;
 }
 
 export type ContextOptions = {
@@ -15,6 +16,7 @@ export type ObservableValues<T> = {
   [key in keyof T]: BehaviorSubject<T[keyof T]>;
 }
 
+@Injectable()
 export class ContextService<S extends Record<string, any> = Context> {
   protected observableState: ObservableValues<S>;
 
