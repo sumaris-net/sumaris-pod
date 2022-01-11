@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.util.StringUtils;
@@ -95,7 +96,7 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(ids)) return null;
 
-        final String paramName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName);
+        final String paramName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName.replace(".", "_"));
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
             ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, paramName);
             return criteriaBuilder.in(
@@ -189,6 +190,23 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             );
         })
             .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null));
+    }
+
+    default Specification<E> inSearchJoinLevelIds(String searchJoin, Integer... joinLevelIds) {
+        if (StringUtils.isBlank(searchJoin) || ArrayUtils.isEmpty(joinLevelIds)) return null;
+
+        // Try to get the entity class, from the filter 'searchJoin' attribute
+        Class<? extends IReferentialEntity> joinEntityClass;
+        try {
+            joinEntityClass = ReferentialEntities.getEntityClass(StringUtils.capitalize(searchJoin));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Cannot filter on levelId, when searchJoin in on '%s'", searchJoin), e);
+        }
+
+        return ReferentialEntities.getLevelPropertyNameByClass(joinEntityClass)
+            .map(levelPath -> StringUtils.doting(StringUtils.uncapitalize(searchJoin), levelPath)) // Create the full path
+            .map(fullLevelPath -> inJoinPropertyIds(fullLevelPath, joinLevelIds))
+            .orElse(null);
     }
 
     default Specification<E> includedIds(Integer[] includedIds) {

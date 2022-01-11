@@ -33,7 +33,7 @@ import java.util.Date;
 @Builder
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ReferentialVO implements IReferentialVO {
+public class ReferentialVO implements IReferentialVO, IReferentialWithLevelVO {
     @EqualsAndHashCode.Include
     private Integer id;
     private String label;

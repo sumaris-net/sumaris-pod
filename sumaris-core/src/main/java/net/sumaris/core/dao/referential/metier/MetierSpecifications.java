@@ -22,7 +22,6 @@ package net.sumaris.core.dao.referential.metier;
  * #L%
  */
 
-import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -31,18 +30,20 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.lang3.ArrayUtils;
-import org.hsqldb.lib.StringUtil;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
 
@@ -58,7 +59,13 @@ public interface MetierSpecifications
 
 
     default Specification<Metier> inGearIds(Integer[] gearIds) {
+        if (ArrayUtils.isEmpty(gearIds)) return null;
         return inJoinPropertyIds(Metier.Fields.GEAR, gearIds);
+    }
+
+    default Specification<Metier> inTaxonGroupTypeIds(Integer[] taxonGroupTypeIds) {
+        if (ArrayUtils.isEmpty(taxonGroupTypeIds)) return null;
+        return inJoinPropertyIds(StringUtils.doting(Metier.Fields.TAXON_GROUP, TaxonGroup.Fields.TAXON_GROUP_TYPE), taxonGroupTypeIds);
     }
 
     default Specification<Metier> alreadyPracticedMetier(MetierFilterVO filter) {
@@ -114,34 +121,6 @@ public interface MetierSpecifications
         .addBind(VESSEL_ID_PARAMETER, filter.getVesselId())
         .addBind(PROGRAM_LABEL_PARAMETER, filter.getProgramLabel())
         .addBind(EXCLUDED_TRIP_ID_PARAMETER, filter.getExcludedTripId());
-    }
-
-    @Override
-    default Specification<Metier> inLevelLabels(Class<Metier> entityClass, String[] levelLabels) {
-        return null; // Disable the default behaviour, to avoid an error (no level on Metier entity)
-    }
-
-    @Override
-    default Specification<Metier> inLevelIds(Class<Metier> entityClass, Integer... levelIds) {
-        return null; // Disable the default behaviour, to avoid an error (no level on Metier entity: we use searchJoin - see below)
-    }
-
-
-    default Specification<Metier> inLevelIds(String searchJoin, Integer... levelIds) {
-        if (StringUtils.isBlank(searchJoin) || ArrayUtils.isEmpty(levelIds)) return null;
-
-        // Try to get the entity class, from the filter 'searchJoin' attribute
-        Class<? extends IReferentialEntity> joinEntityClass;
-        try {
-            joinEntityClass = ReferentialEntities.getEntityClass(StringUtils.capitalize(searchJoin));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Cannot filter on levelId, when searchJoin in on '%s'", searchJoin), e);
-        }
-
-        return ReferentialEntities.getLevelPropertyNameByClass(joinEntityClass)
-            .map(levelPath -> StringUtils.doting(searchJoin, levelPath)) // Create the full path
-            .map(fullLevelPath -> inJoinPropertyIds(fullLevelPath, levelIds))
-            .orElse(null);
     }
 
     List<MetierVO> findByFilter(

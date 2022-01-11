@@ -46,6 +46,7 @@ public class StrategyFilterVO implements IReferentialFilter {
     private Integer[] statusIds;
 
     private String searchJoin;
+    private Integer[] searchJoinLevelIds;
     private String searchText;
     private String searchAttribute;
 

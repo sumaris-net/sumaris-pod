@@ -69,6 +69,10 @@ public interface IReferentialFilter extends Serializable {
 
     void setSearchJoin(String searchJoin);
 
+    Integer[] getSearchJoinLevelIds();
+
+    void setSearchJoinLevelIds(Integer[] joinLevelIds);
+
     String getSearchText();
 
     void setSearchText(String searchText);
