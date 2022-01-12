@@ -113,7 +113,7 @@
     <hibernate-search.version>5.11.9.Final</hibernate-search.version>
     <hibernate-spatial.version>5.4.32.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
-    <spring.version>5.3.6</spring.version>
+    <spring.version>5.3.14</spring.version>
     <spring-web.version>5.3.6</spring-web.version>
     <spring-data.version>2.5.0</spring-data.version>
     <spring-security.version>5.4.6</spring-security.version>
