@@ -329,7 +329,7 @@
               <mat-date-time-field [formControl]="control"
                                    [placeholder]="'COMMON.DATE'|translate"
                                    [tabindex]="tabindex+10"
-                                   [startDate]="allowParentOperation ? form.controls.fishingEndDateTime.value  : form.controls.startDateTime.value"
+                                   [startDate]="allowParentOperation ? (form.controls.fishingEndDateTime.value || form.controls.fishingStartDateTime.value) : form.controls.startDateTime.value"
                                    [required]="usageMode|isNotOnField"
                                    [clearable]="usageMode|isOnField">
 

@@ -282,7 +282,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
       return res;
     }, {});
 
-
     // Find the first qualitative PMFM
     this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
 

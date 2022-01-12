@@ -1,4 +1,4 @@
-import {EntityFilter, ReferentialRef} from '@sumaris-net/ngx-components';
+import { EntityFilter, getPropertyByPath, ReferentialRef, uncapitalizeFirstLetter } from '@sumaris-net/ngx-components';
 import {IReferentialRef, Referential}  from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
 import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
@@ -29,8 +29,8 @@ export abstract class BaseReferentialFilter<
   levelLabel?: string;
   levelLabels?: string[];
 
-  // TODO BLA replace by 'searchAttributes' (s) ? (that manage 'xxx.yyy')
   searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
+  searchJoinLevelIds?: number[];
   searchText?: string;
   searchAttribute?: string;
 
@@ -53,6 +53,7 @@ export abstract class BaseReferentialFilter<
     this.levelLabel = source.levelLabel;
     this.levelLabels = source.levelLabels;
     this.searchJoin = source.searchJoin;
+    this.searchJoinLevelIds = source.searchJoinLevelIds;
     this.searchText = source.searchText;
     this.searchAttribute = source.searchAttribute;
     this.includedIds = source.includedIds;
@@ -105,6 +106,18 @@ export abstract class BaseReferentialFilter<
 
     const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttribute, this.searchText);
     if (searchTextFilter) filterFns.push(searchTextFilter);
+
+    if (this.searchJoin && isNotEmptyArray(this.searchJoinLevelIds)) {
+      const searchJoinLevelPath = uncapitalizeFirstLetter(this.searchJoin) + '.levelId';
+      filterFns.push((entity) => {
+        const levelId = getPropertyByPath(entity, searchJoinLevelPath);
+        if (isNil(levelId)) {
+          console.warn('[referential-filter] Unable to filter entities, because missing the attribute: ' + searchJoinLevelPath);
+          return true; // Keep the item, when missing levelId
+        }
+        return this.searchJoinLevelIds.includes(levelId);
+      });
+    }
 
     return filterFns;
   }

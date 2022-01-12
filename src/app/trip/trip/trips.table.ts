@@ -37,6 +37,7 @@ import {BehaviorSubject} from 'rxjs';
 import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
 import {DataQualityStatusList, DataQualityStatusEnum} from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -88,6 +89,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
+    protected tripContext: TripContextService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
@@ -322,5 +324,6 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
 
   protected resetContext() {
     this.context.reset();
+    this.tripContext.reset();
   }
 }

@@ -405,35 +405,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
+    console.debug("[observed-location] New entity: applying defaults...");
+
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
-      console.debug('[observed-location] New entity: set default values...');
-
       data.startDateTime = moment();
 
       // Set current user as observers (if enable)
       if (this.showObservers) {
         const user = this.accountService.account.asPerson();
         data.observers.push(user);
-      }
-
-      // Fill defaults, using filter applied on trips table
-      const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
-      if (searchFilter) {
-        // Synchronization status
-        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
-          data.synchronizationStatus = 'DIRTY';
-        }
-
-        // program
-        if (searchFilter.program && searchFilter.program.label) {
-          data.program = ReferentialRef.fromObject(searchFilter.program);
-        }
-
-        // Location
-        if (searchFilter.location) {
-          data.location = ReferentialRef.fromObject(searchFilter.location);
-        }
       }
 
       this.showLandingTab = true;
@@ -448,6 +429,26 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
           )
           .subscribe()
       );
+    }
+
+    // Fill defaults, from table's filter. Implemented for all usage mode, to fix #IMAGINE-648
+    const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+    if (searchFilter) {
+
+      // Synchronization status
+      if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+        data.synchronizationStatus = 'DIRTY';
+      }
+
+      // program
+      if (searchFilter.program && searchFilter.program.label) {
+        data.program = ReferentialRef.fromObject(searchFilter.program);
+      }
+
+      // Location
+      if (searchFilter.location) {
+        data.location = ReferentialRef.fromObject(searchFilter.location);
+      }
     }
 
     // Set contextual program, if any

@@ -1,15 +1,13 @@
-import { ChangeDetectorRef, Directive, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { Moment } from 'moment';
-import { Injector } from '@angular/core';
+import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { BehaviorSubject, isObservable, merge, Observable, timer } from 'rxjs';
+import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { filter, map } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, firstNotNilPromise, isNil, isNotNil, LocalSettingsService, toNumber, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -210,6 +208,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (this.$pmfms.value) this.$pmfms.next(undefined);
   }
 
+  translateControlPath(path: string): string {
+    if (path.startsWith('measurementValues.')) {
+      const pmfmId = parseInt(path.split('.')[1]);
+      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    return super.translateControlPath(path);
+  }
 
   markAsLoading(opts?: {step?: number; emitEvent?: boolean;}) {
 
@@ -296,7 +302,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     // Adapt measurement values to form (if not skip)
     if (!opts || opts.normalizeEntityToForm !== false) {
-      MeasurementValuesUtils.normalizeEntityToForm(data, this.$pmfms.value, this.form);
+      this.normalizeEntityToForm(data);
     }
 
     // If a program has been filled, always keep it
@@ -594,4 +600,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.cd?.markForCheck();
   }
 
+  protected normalizeEntityToForm(data: T) {
+    if (!data) return; // skip
+
+    // Adapt entity measurement values to reactive form
+    const pmfms = this.$pmfms.value || [];
+    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, this.form);
+  }
 }

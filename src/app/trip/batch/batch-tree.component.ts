@@ -359,9 +359,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
         // Apply to table
         this.batchGroupsTable.value = batchGroups;
-
-        // Wait batch group table ready (need to be sure the QV pmfm is set)
-        await this.batchGroupsTable.ready();
+        await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)
 
         const groupQvPmfm = this.batchGroupsTable.qvPmfm;
         const subBatches: SubBatch[] = SubBatchUtils.fromBatchGroups(batchGroups, {

@@ -189,8 +189,6 @@ import { Downloader } from '@ionic-native/downloader/ngx';
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 
-    /*{provide: ComponentDirtyGuard, useExisting: ComponentDirtyGuard},*/
-
     // Configure hammer gesture
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 

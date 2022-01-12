@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -35,12 +35,14 @@ import { ProgramProperties } from '../../referential/services/config/program.con
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
-import { Program } from '../../referential/services/model/program.model';
-import { environment } from '../../../environments/environment';
+import { Program } from '@app/referential/services/model/program.model';
+import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
 import { Subscription } from 'rxjs';
+import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 const moment = momentImported;
 
@@ -93,7 +95,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected programRef: ProgramRefService,
+    protected operationService: OperationService,
     protected context: ContextService,
+    protected tripContext: TripContextService,
     public network: NetworkService
   ) {
     super(injector,
@@ -132,11 +136,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.physicalGearsTable.onBeforeDeleteRows
         .subscribe(async (event) => {
           const rows = (event.detail.rows as TableElement<PhysicalGear>[]);
-          const usedGearIds = await this.operationsTable.getUsedPhysicalGearIds();
-          const usedGears = rows.map(row => row.currentData)
-            .filter(gear => usedGearIds.includes(gear.id));
-
-          const canDelete = (usedGears.length === 0);
+          const canDelete = await this.operationService.areUsedPhysicalGears(this.data.id,  rows.map(row => row.currentData.id));
           event.detail.success(canDelete);
           if (!canDelete) {
             await Alerts.showError('TRIP.PHYSICAL_GEAR.ERROR.CANNOT_DELETE_USED_GEAR_HELP',
@@ -198,7 +198,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async setProgram(program: Program) {
-    if (!program) return; // Skip
+    if (!program) return; // SkiploadTrip
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -212,6 +212,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.data.metiers = []; // make sure to reset data metiers, if any
     }
     this.tripForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
+    this.tripForm.locationSuggestLengthThreshold = program.getPropertyAsInt(ProgramProperties.TRIP_LOCATION_FILTER_MIN_LENGTH);
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
@@ -251,35 +252,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
+    console.debug("[trip] New entity: applying defaults...");
+
     if (this.isOnFieldMode) {
       data.departureDateTime = moment();
-
-      console.debug("[trip] New entity: set default values...");
-
-      // Fill defaults, using filter applied on trips table
-      const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
-      if (searchFilter) {
-
-        // Synchronization status
-        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
-          data.synchronizationStatus = 'DIRTY';
-        }
-
-        // program
-        if (searchFilter.program && searchFilter.program.label) {
-          data.program = ReferentialRef.fromObject(searchFilter.program);
-        }
-
-        // Vessel
-        if (searchFilter.vesselSnapshot) {
-          data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
-        }
-
-        // Location
-        if (searchFilter.location) {
-          data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
-        }
-      }
 
       // Listen first opening the operations tab, then save
       this.registerSubscription(
@@ -295,6 +271,31 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
           )
           .subscribe()
         );
+    }
+
+    // Fill defaults, from table's filter
+    const searchFilter = this.settings.getPageSettings<any>(TripsPageSettingsEnum.PAGE_ID, TripsPageSettingsEnum.FILTER_KEY);
+    if (searchFilter) {
+
+      // Synchronization status
+      if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+        data.synchronizationStatus = 'DIRTY';
+      }
+
+      // program
+      if (searchFilter.program && searchFilter.program.label) {
+        data.program = ReferentialRef.fromObject(searchFilter.program);
+      }
+
+      // Vessel
+      if (searchFilter.vesselSnapshot) {
+        data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
+      }
+
+      // Location
+      if (searchFilter.location) {
+        data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
+      }
     }
 
     // Set contextual program, if any
@@ -346,6 +347,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Physical gear table
     this.physicalGearsTable.value = data && data.gears || [];
+    this.physicalGearsTable.tripId = data.id;
 
     // Operations table
     const isNew = isNil(data.id);
@@ -362,7 +364,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (savedOrContinue) {
       this.markAsLoading();
 
-     setTimeout(async () => {
+      // Store the trip in context
+      this.tripContext?.setValue('trip', this.data.clone());
+
+      setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', id], {
           queryParams: {}
         });
@@ -382,6 +387,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const savedOrContinue = await savePromise;
     if (savedOrContinue) {
       this.markAsLoading();
+
+      // Store the trip in context
+      this.tripContext?.setValue('trip', this.data.clone());
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {

@@ -193,7 +193,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour la recherche",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
       },
       "ENUMERATION": {
@@ -870,14 +870,15 @@
       },
       "PMFM": {
         "INDIVIDUAL_RELEASE": {
-          "MEASURE_TIME": "Heure de remise à l'eau",
+          "MEASURE_TIME": "Date de remise à l'eau",
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           }
         },
         "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Heure de remise à l'eau",
+          "MEASURE_TIME": "Date de remise à l'eau",
+          "IS_DEAD": "Mort ?",
           "TAG_ID": "Référence de la marque"
         },
         "SAMPLING": {
@@ -1467,6 +1468,7 @@
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
+      "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
@@ -1501,6 +1503,8 @@
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
+      "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée > Opération : Zone de pêche: Niveau(x) de lieu",
+      "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Marée > Opération : Espèce cible: Niveau(x)",
       "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Marée > Opération : Date de début de pêche ?",
       "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Marée > Opération : Date de fin de pêche ?",
       "TRIP_OPERATION_END_DATE_ENABLE": "Marée > Opération : Date de fin ?",

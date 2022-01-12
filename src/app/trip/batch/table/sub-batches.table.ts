@@ -300,18 +300,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     }
   }
 
-  async toggleForm() {
-    if (this.form && !this.showForm) {
-
-      await this.resetForm(null, {focusFirstEmpty: true});
-      this.showForm = true;
-      this.markForCheck();
-    } else if (this.showForm) {
-      this.showForm = false;
-      this.markForCheck();
-    }
-  }
-
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
     // Skip if loading,
     // or if previous edited row not confirmed
@@ -435,9 +423,13 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   public async resetForm(previousBatch?: SubBatch, opts?: {focusFirstEmpty?: boolean, emitEvent?: boolean}) {
     if (!this.form) throw new Error('Form not exists');
+
     await this.ready();
 
+    // Finish form configuration
     this.form.availableParents = this._availableSortedParents;
+    this.form.markAsReady();
+    this.form.error = null;
 
     // Create a new batch
     const newBatch = new SubBatch();

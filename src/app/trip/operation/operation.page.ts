@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
 import { OperationSaveOptions, OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
@@ -28,6 +28,7 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
+import { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -40,7 +41,7 @@ import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurem
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
-import { Moment } from 'moment';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 const moment = momentImported;
 
@@ -58,7 +59,7 @@ const moment = momentImported;
         canGoBack: () => false,
         nativeEl: '',
       },
-    },
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -131,6 +132,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     hotkeys: Hotkeys,
     dataService: OperationService,
     protected tripService: TripService,
+    protected tripContext: TripContextService,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected modalCtrl: ModalController
@@ -146,7 +148,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Init mobile
     this.mobile = platform.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
-
 
     this.registerSubscription(
       hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
@@ -206,6 +207,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
           // Load last operations (if enabled)
           //filter(_ => this.showLastOperations),
+          filter(isNotNil),
           switchMap(tripId => this.dataService.watchAll(
             0, 5,
             'startDateTime', 'desc',
@@ -485,11 +487,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.showFishingArea = !this.opeForm.showPosition; // Trip has gps in use, so active positions controls else active fishing area control
-    this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
+    this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
     this.opeForm.defaultLatitudeSign = defaultLatitudeSign;
     this.opeForm.defaultLongitudeSign = defaultLongitudeSign;
+    this.opeForm.metierTaxonGroupTypeIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS);
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = this.allowParentOperation;
@@ -731,6 +734,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
 
+    // DEBUG
+    console.debug('[operation] Saving...');
+
     // Save new gear to the trip
     const gearSaved = await this.saveNewPhysicalGear();
     if (!gearSaved) return false; // Stop if failed
@@ -741,6 +747,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts
     });
+
+    // Display form error on top
     if (!saved && this.opeForm.invalid) {
 
       // DEBUG
@@ -749,6 +757,18 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.setError(this.opeForm.formError);
       this.scrollToTop();
     }
+
+    if (saved && this.dirty) {
+      let children = this.children.filter(f => f.dirty);
+      if (isNotEmptyArray(children)) {
+
+        children = this.batchTree.children.filter(f => f.dirty);
+        console.debug('[operation] Still dirty children: ', children);
+      }
+      console.debug('[operation] Batch tree ready: ', this.batchTree.batchGroupsTable.isReady());
+      this.batchTree.markAsPristine();
+    }
+
     return saved;
   }
 
@@ -804,7 +824,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Update trip id (will cause last operations to be watched, if need)
     this.$tripId.next(+tripId);
 
-    const trip = await this.tripService.load(tripId);
+    let trip = this.tripContext.getValue('trip');
+    // Reload
+    if (trip?.id !== tripId) {
+      trip = await this.tripService.load(tripId, {fullLoad: true});
+    }
     this.trip = trip;
     this.saveOptions.trip = trip;
     return trip;

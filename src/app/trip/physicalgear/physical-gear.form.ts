@@ -1,16 +1,17 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { PhysicalGearValidatorService } from '../services/validator/physicalgear.validator';
-import { BehaviorSubject } from 'rxjs';
-import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormBuilder } from '@angular/forms';
-import { focusNextInput, GetFocusableInputOptions, InputElement, isNotNil, PlatformService, ReferentialRef, ReferentialUtils, selectInputContent, toNumber } from '@sumaris-net/ngx-components';
-import { PhysicalGear } from '../services/model/trip.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
+import {BehaviorSubject} from 'rxjs';
+import {distinctUntilChanged, filter, mergeMap} from 'rxjs/operators';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormBuilder} from '@angular/forms';
+import {focusNextInput, GetFocusableInputOptions, InputElement, isNotNil, PlatformService, ReferentialRef, ReferentialUtils, selectInputContent, toNumber} from '@sumaris-net/ngx-components';
+import {PhysicalGear} from '../services/model/trip.model';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {OperationService} from '@app/trip/services/operation.service';
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -26,6 +27,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input() showComment = true;
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
+  @Input() canEditGear = true;
 
   @Input()
   set gears(value: ReferentialRef[]) {
@@ -34,7 +36,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   @Output() onSubmit = new EventEmitter<any>();
 
-  @ViewChild("firstInput", { static: true }) firstInputField: InputElement;
+  @ViewChild('firstInput', {static: true}) firstInputField: InputElement;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
@@ -44,6 +46,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: PhysicalGearValidatorService,
+    protected operationService: OperationService,
     protected referentialRefService: ReferentialRefService,
   ) {
     super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
@@ -105,6 +108,15 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     return focusNextInput(event, this.inputFields, opts);
   }
 
+  async setValue(data: PhysicalGear, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {
+
+    // If !tripId, trip was never saved and doesn't have any operation
+    if (data?.tripId) {
+      this.canEditGear =  await this.operationService.areUsedPhysicalGears(data.tripId,[data.id]);
+    }
+
+    super.setValue(data, opts);
+  }
   /* -- protected methods -- */
 
   protected onApplyingEntity(data: PhysicalGear, opts?: {[key: string]: any;}) {

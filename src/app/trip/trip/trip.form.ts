@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import {TripValidatorService} from '../services/validator/trip.validator';
-import {ModalController} from '@ionic/angular';
+import { IonButton, ModalController } from '@ionic/angular';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 
 import {
@@ -58,6 +58,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
+  private _locationSuggestLengthThreshold: number;
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -100,6 +101,15 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   @Input() locationLevelIds = [LocationLevelIds.PORT];
 
+  @Input() set locationSuggestLengthThreshold(value: number) {
+    this._locationSuggestLengthThreshold = value;
+    if (this.autocompleteFields.location) {
+      this.autocompleteFields.location.suggestLengthThreshold = value;
+      // Update fields
+      this.locationFields.forEach(field => field.suggestLengthThreshold = value);
+    }
+  }
+
   @Input() set returnFieldsRequired(value: boolean){
     this._returnFieldsRequired = value;
     if (!this.loading) this.updateFormGroup();
@@ -140,6 +150,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Output() maxDateChanges = new EventEmitter<Moment>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
+  @ViewChildren('locationField') locationFields: QueryList<MatAutocompleteField>;
 
   constructor(
     injector: Injector,
@@ -200,7 +211,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       },
       // Increase default size (=3) of 'label' column
       columnSizes: locationAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      attributes: locationAttributes
+      attributes: locationAttributes,
+      showAllOnFocus: false,
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0
     });
 
     // Combo: observers
@@ -281,10 +294,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
-
-    //if (this.debug)
-      console.debug('[location] waiting ...', data);
-
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
@@ -312,10 +321,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
 
     // Send value for form
-
-    //if (this.debug)
-      console.debug('[location] Updating form (using entity)', data);
-
     super.setValue(data, opts);
   }
 

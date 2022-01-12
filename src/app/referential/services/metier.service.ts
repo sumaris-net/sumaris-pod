@@ -103,6 +103,8 @@ export class MetierService extends BaseGraphqlService
       throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
+    const entityName = filter.entityName || 'Metier';
+
     const variables: any = {
       offset: offset || 0,
       size: size || 100,
@@ -119,7 +121,8 @@ export class MetierService extends BaseGraphqlService
     let res: LoadResult<Metier>;
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
-      res = await this.entities.loadAll('MetierVO',
+      const typename = entityName + 'VO';
+      res = await this.entities.loadAll(typename,
         {
           ...variables,
           filter: filter && filter.asFilterFn()

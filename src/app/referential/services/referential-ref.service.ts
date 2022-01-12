@@ -50,6 +50,9 @@ import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
 import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { MetierService } from '@app/referential/services/metier.service';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -118,6 +121,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   constructor(
     protected graphql: GraphqlService,
     protected referentialService: ReferentialService,
+    protected metierService: MetierService,
     protected accountService: AccountService,
     protected configService: ConfigService,
     protected network: NetworkService,
@@ -546,6 +550,22 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return result;
   }
 
+
+  async loadAllMetier(offset: number,
+                          size: number,
+                          sortBy?: string,
+                          sortDirection?: SortDirection,
+                          filter?: Partial<MetierFilter>,
+                          opts?: {
+                            [key: string]: any;
+                            fetchPolicy?: FetchPolicy;
+                            debug?: boolean;
+                            toEntity?: boolean;
+                            withTotal?: boolean;
+                          }): Promise<LoadResult<Metier>> {
+    return this.metierService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
     throw new Error('Not implemented yet');
   }
@@ -695,7 +715,16 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           );
           break;
         case 'MetierTaxonGroup':
-          filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'};
+          res = await JobUtils.fetchAllPages<any>((offset, size) =>
+              this.loadAllMetier(offset, size, 'id', null,
+                {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'}, {
+                fetchPolicy: 'network-only',
+                debug: false,
+                toEntity: false
+              }),
+            progression,
+            {maxProgression, logPrefix}
+          );
           break;
         case 'TaxonGroup':
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO]};
@@ -718,6 +747,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       }
 
       if (!res) {
+        // Fetch using a generic request
         res = await JobUtils.fetchAllPages<any>((offset, size) =>
             this.referentialService.loadAll(offset, size, 'id', null, filter, {
               debug: false,
@@ -797,6 +827,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.SALE_ESTIMATED_RATIO = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_ESTIMATED_RATIO_ID);
     PmfmIds.SALE_RANK_ORDER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_RANK_ORDER_ID);
     PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
+    PmfmIds.GEAR_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GEAR_LABEL);
 
     // Methods
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);

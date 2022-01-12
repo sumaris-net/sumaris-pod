@@ -84,7 +84,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   }
 
   static equals(s1: Sample | any, s2: Sample | any): boolean {
-    return s1 && s2 && s1.id === s2.id
+    return s1 && s2 && (isNotNil(s1.id) && s1.id === s2.id)
       || (s1.rankOrder === s2.rankOrder
         // same operation
         && ((!s1.operationId && !s2.operationId) || s1.operationId === s2.operationId)
@@ -164,7 +164,9 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   }
 
   equals(other: Sample): boolean {
-    return super.equals(other)
+    // equals by ID
+    return (super.equals(other) && isNotNil(this.id))
+      // Or by functional attributes
       || (this.rankOrder === other.rankOrder
         // same operation
         && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)

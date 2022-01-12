@@ -12,6 +12,7 @@
                           [config]="autocompleteFields.gear"
                           [tabindex]="tabindex"
                           [required]="true"
+                          [readonly]="!canEditGear"
                           (focusout)="focusNextInput($event)">
   </mat-autocomplete-field>
 

@@ -1,5 +1,5 @@
 import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
-import {EntityClass, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
+import { EntityClass, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 @EntityClass({typename: 'FishingAreaVO'})
@@ -44,10 +44,13 @@ export class FishingArea extends DataEntity<FishingArea> {
   }
 
   equals(other: FishingArea): boolean {
-    return super.equals(other) || (ReferentialUtils.equals(this.location, other.location)
-      && ReferentialUtils.equals(this.distanceToCoastGradient, other.distanceToCoastGradient)
-      && ReferentialUtils.equals(this.depthGradient, other.depthGradient)
-      && ReferentialUtils.equals(this.nearbySpecificArea, other.nearbySpecificArea));
+    return (super.equals(other) && isNotNil(this.id))
+      || (
+        ReferentialUtils.equals(this.location, other.location)
+        && ReferentialUtils.equals(this.distanceToCoastGradient, other.distanceToCoastGradient)
+        && ReferentialUtils.equals(this.depthGradient, other.depthGradient)
+        && ReferentialUtils.equals(this.nearbySpecificArea, other.nearbySpecificArea)
+      );
   }
 
 }

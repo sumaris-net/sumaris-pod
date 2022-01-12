@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
-import { AppFormUtils, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNil, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
 import { IonContent, ModalController } from '@ionic/angular';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
 import { PmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
@@ -10,6 +10,7 @@ import { SubBatchForm } from '../form/sub-batch.form';
 import { SubBatch } from '../../services/model/subbatch.model';
 import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 import { BatchGroup } from '@app/trip/services/model/batch-group.model';
+import { debounceTime } from 'rxjs/operators';
 
 
 export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
@@ -23,8 +24,9 @@ export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
   templateUrl: 'sub-batch.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchModal implements OnInit {
+export class SubBatchModal implements OnInit, OnDestroy {
 
+  private _subscription = new Subscription();
   debug = false;
   loading = false;
   mobile: boolean;
@@ -59,7 +61,7 @@ export class SubBatchModal implements OnInit {
 
   constructor(
     protected injector: Injector,
-    protected viewCtrl: ModalController,
+    protected modalCtrl: ModalController,
     protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
@@ -78,48 +80,104 @@ export class SubBatchModal implements OnInit {
     this.disabled = toBoolean(this.disabled, false);
     this.isNew = toBoolean(this.isNew, false);
 
-    this.data = this.data || new SubBatch();
+    if (this.disabled) {
+      this.form.disable();
+    }
 
-    // Compute the title
-    this.computeTitle();
-
-    await this.form.waitIdle();
-    this.form.value = this.data;
-
+    // Update title each time value changes
     if (!this.isNew) {
-      // Update title each time value changes
-      this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
+      this._subscription.add(
+        this.form.valueChanges
+          .pipe(debounceTime(250))
+          .subscribe(json => this.computeTitle(json))
+      );
     }
 
-    if (!this.disabled) {
-      this.form.enable({emitEvent: false});
-    }
+    this.setValue(this.data);
+  }
 
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   async close(event?: UIEvent) {
     if (this.loading) return; // avoid many call
 
-    if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-modal] ");
-      this.form.error = "COMMON.FORM.HAS_ERROR";
-      this.form.markAllAsTouched();
-      return;
+    // Leave without saving
+    if (!this.dirty) {
+      this.markAsLoading();
+      await this.modalCtrl.dismiss();
     }
+    // Convert and dismiss
+    else {
+      const data = this.getDataToSave();
+      if (!data) return; // invalid
 
-    this.loading = true;
-
-    // Save table content
-    const data = this.form.value;
-
-    await this.viewCtrl.dismiss(data);
+      this.markAsLoading();
+      await this.modalCtrl.dismiss(data);
+    }
   }
 
   /* -- protected methods -- */
+
+  protected async setValue(data: Batch) {
+    console.debug('[sub-batch-modal] Applying value to form...', data);
+    this.form.markAsReady();
+    this.form.error = null;
+
+    try {
+      // Set form value
+      this.data = this.data || new SubBatch();
+      const isNew = isNil(this.data.id);
+
+
+      let promiseOrVoid = this.form.setValue(this.data);
+      if (promiseOrVoid) await promiseOrVoid;
+
+      // Call ready callback
+      /*if (this.onReady) {
+        promiseOrVoid = this.onReady(this);
+        if (promiseOrVoid) await promiseOrVoid;
+      }*/
+
+      await this.computeTitle();
+    }
+    finally {
+      if (!this.disabled) this.enable();
+      this.form.markAsUntouched();
+      this.form.markAsPristine();
+      this.markForCheck();
+    }
+  }
+
+  protected getDataToSave(opts?: {disable?: boolean;}): Batch {
+
+    if (this.invalid) {
+      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
+      this.form.error = 'COMMON.FORM.HAS_ERROR';
+      this.form.markAllAsTouched();
+      this.scrollToTop();
+      return undefined;
+    }
+
+    this.markAsLoading();
+
+    // To force enable, to get computed values
+    this.enable();
+
+    try {
+      // Get form value
+      return this.form.value;
+    } finally {
+      if (!opts || opts.disable !== false) {
+        this.disable();
+      }
+    }
+  }
 
   protected async computeTitle(data?: SubBatch) {
     data = data || this.data;
@@ -138,5 +196,27 @@ export class SubBatchModal implements OnInit {
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected registerSubscription(teardown: TeardownLogic) {
+    this._subscription.add(teardown);
+  }
+
+  protected markAsLoading() {
+    this.loading = true;
+    this.markForCheck();
+  }
+
+  protected markAsLoaded() {
+    this.loading = false;
+    this.markForCheck();
+  }
+
+  protected enable() {
+    this.form.enable();
+  }
+
+  protected disable() {
+    this.form.disable();
   }
 }

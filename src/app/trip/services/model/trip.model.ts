@@ -331,7 +331,7 @@ export class Operation
   }
 
   equals(other: Operation): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || ((this.startDateTime === other.startDateTime
           || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
@@ -467,7 +467,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 
   equals(other: OperationGroup): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         this.metier.equals(other.metier) && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
@@ -578,7 +578,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   }
 
   equals(other: Trip): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same vessel
         (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
@@ -667,14 +667,14 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
       this.tripId = this.trip && this.trip.id;
     } else {
       this.trip = null;
-      this.tripId = null;
+      this.tripId = source.tripId || null; // to keep tripId on clone even if source.trip is null.
     }
 
     return this;
   }
 
   equals(other: PhysicalGear): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same gear
         (this.gear && other.gear && this.gear.id === other.gear.id)
@@ -715,7 +715,7 @@ export class VesselPosition extends DataEntity<VesselPosition> {
   }
 
   equals(other: VesselPosition): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (this.dateTime && this.dateTime.isSame(fromDateISOString(other.dateTime))
         && (!this.operationId && !other.operationId || this.operationId === other.operationId));
   }

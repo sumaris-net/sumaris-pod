@@ -55,7 +55,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     this.validatorService.updateFormGroup(this.form, {required: this.required});
 
     // Combo: fishing area location
-    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation', ['label']);
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation');
     this.registerAutocompleteField('fishingAreaLocation', {
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,

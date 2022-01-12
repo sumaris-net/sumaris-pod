@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {
   Alerts,
   AppFormUtils,
-  EntityUtils,
+  EntityUtils, FormErrorTranslator,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -124,6 +124,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected translateContext: TranslateContextService,
+    protected formErrorTranslator: FormErrorTranslator,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
@@ -195,7 +196,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
-    this.form.error = null;
+    this.resetError();
 
     try {
       // Set form value
@@ -287,7 +288,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
     // Convert and dismiss
     else {
-      const data = this.dirty ? this.getDataToSave() : this.data;
+      const data = this.getDataToSave();
       if (!data) return; // invalid
 
       this.markAsLoading();
@@ -349,13 +350,18 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-      this.form.error = 'COMMON.FORM.HAS_ERROR';
+      const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+        controlPathTranslator: this.form,
+        separator: '<br/>'
+      })
+      this.setError(error || 'COMMON.FORM.HAS_ERROR');
       this.form.markAllAsTouched();
       this.scrollToTop();
       return undefined;
     }
 
     this.markAsLoading();
+    this.resetError();
 
     // To force enable, to get computed values
     this.enable();
@@ -431,5 +437,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.form.disable();
   }
 
+  protected setError(error: any) {
+    this.form.error = error;
+  }
+
+  protected resetError() {
+    this.form.error = null;
+  }
 
 }

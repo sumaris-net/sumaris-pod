@@ -455,7 +455,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestAnalyticReferences(value, {
         ...filter, statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }),
-      columnSizes: [4, 6],
+      columnSizes: [4, 8],
       mobile: this.mobile
     });
 

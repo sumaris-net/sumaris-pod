@@ -22,6 +22,7 @@ export class MetierFilter extends ReferentialRefFilter {
   vesselId: number = null;
   excludedTripId: number = null;
   gearIds: number[] = null;
+  taxonGroupTypeIds: number[] = null;
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -32,6 +33,7 @@ export class MetierFilter extends ReferentialRefFilter {
     this.vesselId = source.vesselId;
     this.excludedTripId = source.excludedTripId;
     this.gearIds = source.gearIds;
+    this.taxonGroupTypeIds = source.taxonGroupTypeIds;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -42,6 +44,7 @@ export class MetierFilter extends ReferentialRefFilter {
     target.vesselId = this.vesselId;
     target.excludedTripId = this.excludedTripId;
     target.gearIds = this.gearIds;
+    target.taxonGroupTypeIds = this.taxonGroupTypeIds;
 
     return target;
   }

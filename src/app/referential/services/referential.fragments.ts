@@ -138,7 +138,18 @@ export const ReferentialFragments = {
     id
     label
     name
+    statusId
+    validityStatusId
+    levelId
     entityName
+    taxonGroup {
+      id
+      label
+      name
+      levelId
+      entityName
+      __typename
+    }
     __typename
   }`,
   metier:  gql`fragment MetierFragment on MetierVO {
