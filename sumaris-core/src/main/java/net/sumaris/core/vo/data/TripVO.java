@@ -73,10 +73,14 @@ public class TripVO implements IRootDataVO<Integer>,
     private List<PhysicalGearVO> gears;
 
     @EqualsAndHashCode.Exclude
+    private Boolean hasSales; // Optimization: allow to NOT fetch expected sale (fix #IMAGINE-651)
+    @EqualsAndHashCode.Exclude
     private List<SaleVO> sales;
     @EqualsAndHashCode.Exclude
     private SaleVO sale; // shortcut when only one sale
 
+    @EqualsAndHashCode.Exclude
+    private Boolean hasExpectedSales; // Optimization: allow to NOT fetch expected sale (fix #IMAGINE-651)
     @EqualsAndHashCode.Exclude
     private List<ExpectedSaleVO> expectedSales;
     @EqualsAndHashCode.Exclude

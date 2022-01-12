@@ -35,14 +35,16 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -52,7 +54,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class LandingRepositoryImpl
-    extends RootDataRepositoryImpl<Landing, LandingVO, LandingFilterVO, DataFetchOptions>
+    extends RootDataRepositoryImpl<Landing, LandingVO, LandingFilterVO, LandingFetchOptions>
     implements LandingSpecifications {
 
     private final LocationRepository locationRepository;
@@ -86,7 +88,7 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    public Specification<Landing> toSpecification(LandingFilterVO filter, DataFetchOptions fetchOptions) {
+    public Specification<Landing> toSpecification(LandingFilterVO filter, LandingFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasTripId(filter.getTripId()))
@@ -99,18 +101,19 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    public List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, DataFetchOptions fetchOptions) {
+    public List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, LandingFetchOptions fetchOptions) {
 
         // Following natural sort works only for Oracle
         boolean sortByVesselRegistrationCode = Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
 
         StringBuilder queryBuilder = new StringBuilder();
 
-        queryBuilder.append("select l from Landing l ");
+        queryBuilder.append("from Landing l ");
 
         if (sortByVesselRegistrationCode) {
             // add joins
-            queryBuilder.append("left outer join l.vessel v left outer join v.vesselRegistrationPeriods vrp ");
+            queryBuilder.append("inner join l.vessel v ")
+                .append("left outer join v.vesselRegistrationPeriods vrp ");;
         }
 
         // single filter
@@ -143,17 +146,18 @@ public class LandingRepositoryImpl
             );
         }
 
+
+        // Create the JPA query
         TypedQuery<Landing> query = getEntityManager().createQuery(queryBuilder.toString(), Landing.class);
         query.setParameter("observedLocationId", observedLocationId);
-
         query.setFirstResult((int)page.getOffset());
         query.setMaxResults(page.getSize());
 
+        configureQuery(query, fetchOptions);
+
         return streamQuery(query)
             .map(landing -> toVO(landing, fetchOptions))
-            .collect(Collectors.toList())
-        ;
-
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -186,7 +190,7 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    public void toVO(Landing source, LandingVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Landing source, LandingVO target, LandingFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // location
@@ -279,11 +283,16 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    protected void onAfterSaveEntity(LandingVO vo, Landing savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
+    protected void configureQuery(TypedQuery<Landing> query, LandingFetchOptions fetchOptions) {
+        super.configureQuery(query, fetchOptions);
 
-        // Remove object, because of error
-        /*getSession().flush();
-        getSession().clear();*/
+        // Prepare load graph
+        EntityManager em = getEntityManager();
+        EntityGraph<?> entityGraph = em.getEntityGraph(Landing.GRAPH_LOCATION_AND_PROGRAM);
+        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
+        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
+
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }

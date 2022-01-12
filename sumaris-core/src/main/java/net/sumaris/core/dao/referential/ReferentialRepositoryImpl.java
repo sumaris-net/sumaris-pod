@@ -263,6 +263,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
             return BindableSpecification.where(hasId(filter.getId()));
         }
         Class<E> clazz = getDomainClass();
+
         // default specification
         return BindableSpecification
             .where(inStatusIds(filter))
@@ -270,6 +271,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
             .and(inLevelIds(clazz, filter.getLevelId() != null ? new Integer[]{filter.getLevelId()} : filter.getLevelIds()))
             .and(inLevelLabels(clazz, filter.getLevelLabel() != null ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))
+            .and(inSearchJoinLevelIds(filter.getSearchJoin(), filter.getSearchJoinLevelIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()));
     }

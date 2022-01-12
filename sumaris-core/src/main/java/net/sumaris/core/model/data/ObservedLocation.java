@@ -53,8 +53,16 @@ import java.util.*;
 @FieldNameConstants
 @Entity
 @Table(name="observed_location")
+@NamedEntityGraph(
+    name = ObservedLocation.GRAPH_LOCATION_AND_PROGRAM,
+    attributeNodes = {
+        @NamedAttributeNode(ObservedLocation.Fields.LOCATION),
+        @NamedAttributeNode(ObservedLocation.Fields.PROGRAM)
+    }
+)
 public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntity<Integer, Person> {
 
+    public static final String GRAPH_LOCATION_AND_PROGRAM = "ObservedLocation.locationWithProgram";
     static {
         I18n.n("sumaris.persistence.table.observedLocation");
     }

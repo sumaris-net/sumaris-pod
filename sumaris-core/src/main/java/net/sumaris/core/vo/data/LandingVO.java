@@ -68,8 +68,9 @@ public class LandingVO implements IRootDataVO<Integer>,
     private List<SampleVO> samples;
     private Integer samplesCount;
 
-    // TODO ?
-//    private List<ExpectedSaleVO> expectedSales;
+    // Not used in the App
+    // and the association 'Landing.expectedSales' has been comment out (see issue sumaris-pod #24)
+    //private List<ExpectedSaleVO> expectedSales;
 
     private ProgramVO program;
 

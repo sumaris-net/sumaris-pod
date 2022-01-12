@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.vo.administration.user;
 
 /*-
  * #%L
@@ -23,36 +23,32 @@ package net.sumaris.core.vo.referential;
  */
 
 import lombok.*;
-import lombok.experimental.FieldNameConstants;
-
-import java.util.Date;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@FieldNameConstants
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ReferentialVO implements IReferentialVO, IReferentialWithLevelVO {
-    @EqualsAndHashCode.Include
-    private Integer id;
-    private String label;
-    private String name;
-    private String description;
-    private String comments;
-    private Date updateDate;
-    private Date creationDate;
+@EqualsAndHashCode
+@ToString
+public class PersonFetchOptions implements IFetchOptions {
 
-    private Integer statusId;
-    private Integer validityStatusId;
+    public static final PersonFetchOptions DEFAULT = PersonFetchOptions.builder().build();
 
-    //@EqualsAndHashCode.Exclude
-    private Integer levelId;
+    public static PersonFetchOptions nullToDefault(PersonFetchOptions options) {
+        return options != null ? options : DEFAULT;
+    }
 
-    private Integer rankOrder;
+    /**
+     * Fetch user profile
+     */
+    @Builder.Default
+    private boolean withUserProfiles = true;
 
-    // Metadata
-    //@EqualsAndHashCode.Exclude
-    private String entityName;
+    /**
+     * Fetch user department
+     */
+    @Builder.Default
+    private boolean withDepartment = true;
 }
-

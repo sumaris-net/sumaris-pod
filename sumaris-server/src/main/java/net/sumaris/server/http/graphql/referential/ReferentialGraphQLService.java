@@ -97,7 +97,7 @@ public class ReferentialGraphQLService {
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
         if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
             return metierRepository.findByFilter(
-                    ReferentialFilterVO.nullToEmpty(filter),
+                    MetierFilterVO.nullToEmpty(filter),
                     offset, size, sort,
                     SortDirection.valueOf(direction.toUpperCase()));
         }
