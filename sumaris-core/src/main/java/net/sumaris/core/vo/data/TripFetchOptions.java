@@ -73,4 +73,7 @@ public class TripFetchOptions implements IDataFetchOptions {
     @Builder.Default
     private boolean withExpectedSales = false; // Disable by default - fix #IMAGINE-651
 
+    @Builder.Default
+    private boolean withLanding = true;
+
 }

@@ -33,35 +33,24 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.FetchProfile;
-import org.hibernate.annotations.FetchProfiles;
 import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
 import java.util.*;
 
-@FetchProfiles({
-        @FetchProfile(name = Trip.FETCH_PROFILE_LOCATION,
-            fetchOverrides = {
-                @FetchProfile.FetchOverride(association = "departureLocation", entity = Trip.class, mode = FetchMode.JOIN),
-                @FetchProfile.FetchOverride(association = "returnLocation", entity = Trip.class, mode = FetchMode.JOIN)
-            }),
-        @FetchProfile(name = Trip.FETCH_PROFILE_RECORDER,
-                fetchOverrides = {
-                        @FetchProfile.FetchOverride(association = Trip.Fields.RECORDER_DEPARTMENT, entity = Trip.class, mode = FetchMode.JOIN),
-                        @FetchProfile.FetchOverride(association = Trip.Fields.RECORDER_PERSON, entity = Trip.class, mode = FetchMode.JOIN)
-                }),
-        @FetchProfile(name = Trip.FETCH_PROFILE_OBSERVERS,
-                fetchOverrides = {
-                        @FetchProfile.FetchOverride(association = Trip.Fields.OBSERVERS, entity = Trip.class, mode = FetchMode.JOIN)
-                })
-})
 @Data
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "trip")
+@NamedEntityGraph(
+    name = Trip.GRAPH_LOCATIONS_AND_PROGRAM,
+    attributeNodes = {
+        @NamedAttributeNode(Trip.Fields.DEPARTURE_LOCATION),
+        @NamedAttributeNode(Trip.Fields.RETURN_LOCATION),
+        @NamedAttributeNode(Trip.Fields.PROGRAM)
+    }
+)
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel> {
@@ -70,9 +59,7 @@ public class Trip implements IRootDataEntity<Integer>,
         I18n.n("sumaris.persistence.table.trip");
     }
 
-    public static final String FETCH_PROFILE_LOCATION  = "trip-location";
-    public static final String FETCH_PROFILE_RECORDER  = "trip-recorder";
-    public static final String FETCH_PROFILE_OBSERVERS = "trip-observers";
+    public static final String GRAPH_LOCATIONS_AND_PROGRAM = "Trip.locationsWithProgram";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")

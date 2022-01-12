@@ -146,26 +146,18 @@ public class LandingRepositoryImpl
             );
         }
 
-        // Prepare load graph
-        EntityManager em = getEntityManager();
-        EntityGraph<?> entityGraph = em.getEntityGraph(Landing.GRAPH_LOCATION);
-        entityGraph.addSubgraph(Landing.Fields.PROGRAM);
-        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
-        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
-        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
 
         // Create the JPA query
-        TypedQuery<Landing> query = em.createQuery(queryBuilder.toString(), Landing.class);
-        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+        TypedQuery<Landing> query = getEntityManager().createQuery(queryBuilder.toString(), Landing.class);
         query.setParameter("observedLocationId", observedLocationId);
         query.setFirstResult((int)page.getOffset());
         query.setMaxResults(page.getSize());
 
+        configureQuery(query, fetchOptions);
+
         return streamQuery(query)
             .map(landing -> toVO(landing, fetchOptions))
-            .collect(Collectors.toList())
-        ;
-
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -291,11 +283,16 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    protected void onAfterSaveEntity(LandingVO vo, Landing savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
+    protected void configureQuery(TypedQuery<Landing> query, LandingFetchOptions fetchOptions) {
+        super.configureQuery(query, fetchOptions);
 
-        // Remove object, because of error
-        /*getSession().flush();
-        getSession().clear();*/
+        // Prepare load graph
+        EntityManager em = getEntityManager();
+        EntityGraph<?> entityGraph = em.getEntityGraph(Landing.GRAPH_LOCATION_AND_PROGRAM);
+        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
+        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
+
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }

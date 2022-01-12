@@ -43,9 +43,10 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @NamedEntityGraph(
-    name = Landing.GRAPH_LOCATION,
+    name = Landing.GRAPH_LOCATION_AND_PROGRAM,
     attributeNodes = {
-        @NamedAttributeNode(Landing.Fields.LOCATION)
+        @NamedAttributeNode(Landing.Fields.LOCATION),
+        @NamedAttributeNode(Landing.Fields.PROGRAM)
     }
 )
 public class Landing implements IRootDataEntity<Integer>,
@@ -54,7 +55,7 @@ public class Landing implements IRootDataEntity<Integer>,
         IWithSamplesEntity<Integer, Sample>,
         IWithProductsEntity<Integer, Product> {
 
-    public static final String GRAPH_LOCATION = "Landing.vesselAndLocation";
+    public static final String GRAPH_LOCATION_AND_PROGRAM = "Landing.locationAndProgram";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")

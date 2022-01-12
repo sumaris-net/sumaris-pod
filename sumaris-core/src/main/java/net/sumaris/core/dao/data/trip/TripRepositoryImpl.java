@@ -33,10 +33,13 @@ import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.Objects;
 
 @Slf4j
@@ -78,7 +81,8 @@ public class TripRepositoryImpl
         target.setReturnLocation(locationRepository.toVO(source.getReturnLocation()));
 
         // Parent link
-        if (CollectionUtils.size(source.getLandings()) == 1) {
+        if ((fetchOptions == null || fetchOptions.isWithLanding())
+            && CollectionUtils.size(source.getLandings()) == 1) {
             Landing landing = source.getLandings().get(0);
             if (landing != null) {
                 // Landing id
@@ -143,5 +147,19 @@ public class TripRepositoryImpl
         // Update the given VO (will be returned by the save() function)
         vo.setLandingId(landingId);
         vo.setObservedLocationId(observedLocationId);
+    }
+
+    @Override
+    protected void configureQuery(TypedQuery<Trip> query, TripFetchOptions fetchOptions) {
+        super.configureQuery(query, fetchOptions);
+
+        // Prepare load graph
+        EntityManager em = getEntityManager();
+        EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
+        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
+        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
+
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }
