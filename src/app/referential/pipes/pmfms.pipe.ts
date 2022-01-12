@@ -1,12 +1,12 @@
-import { Injectable, Pipe, PipeTransform } from '@angular/core';
-import { MethodIds } from '../services/model/model.enum';
-import { PmfmValueUtils } from '../services/model/pmfm-value.model';
-import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import {Injectable, Pipe, PipeTransform} from '@angular/core';
+import {MethodIds} from '../services/model/model.enum';
+import {PmfmValueUtils} from '../services/model/pmfm-value.model';
+import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
 import {DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService} from '@sumaris-net/ngx-components';
-import { TranslateService } from '@ngx-translate/core';
+import {TranslateService} from '@ngx-translate/core';
 
 @Pipe({
-    name: 'pmfmName'
+  name: 'pmfmName'
 })
 @Injectable({providedIn: 'root'})
 export class PmfmNamePipe implements PipeTransform {
@@ -34,6 +34,11 @@ export class PmfmNamePipe implements PipeTransform {
       if (opts && opts.i18nContext) {
         const contextualTranslation = this.translateContext.instant(i18nKey, opts.i18nContext);
         if (contextualTranslation !== i18nKey) return contextualTranslation;
+        // INFO CLT Fix for #IMAGINE-644
+        // Imagine labels are optional. Integrity is based on ids. We try to figure id there is an i18n translation for specified id if there is no result for pmfm label
+        const i18nIdKey = opts.i18nPrefix + pmfm.id;
+        const contextualIdTranslation = this.translateContext.instant(i18nIdKey, opts.i18nContext);
+        if (contextualIdTranslation !== i18nIdKey) return contextualIdTranslation;
       }
 
       // I18n translation without context

@@ -883,7 +883,9 @@
         },
         "SAMPLING": {
           "TAG_ID": "Code prélèvement",
-          "DRESSING": "Présentation"
+          "DRESSING": "Présentation",
+          "1435": "Code prélèvement",
+          "116": "Présentation"
         },
         "SURVIVAL_TEST": {
           "TAG_ID": "Tag-ID"
