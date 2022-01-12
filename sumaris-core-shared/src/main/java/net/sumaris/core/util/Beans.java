@@ -472,10 +472,11 @@ public class Beans {
                 // Keep invalid properties
                 .filter(pd -> {
                     PropertyDescriptor targetDescriptor = targetProperties.get(pd.getName());
-                    return targetDescriptor == null
+                    boolean ignored = targetDescriptor == null
                         || !targetDescriptor.getPropertyType().isAssignableFrom(pd.getPropertyType())
                         || Collection.class.isAssignableFrom(pd.getPropertyType())
                         || targetDescriptor.getWriteMethod() == null;
+                    return ignored;
                 })
                 .map(PropertyDescriptor::getName)
                 .toArray(String[]::new);

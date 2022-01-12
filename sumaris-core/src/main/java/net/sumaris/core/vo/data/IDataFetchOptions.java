@@ -35,4 +35,6 @@ public interface IDataFetchOptions extends IFetchOptions {
 
     boolean isWithChildrenEntities();
 
+    boolean isWithMeasurementValues();
+
 }

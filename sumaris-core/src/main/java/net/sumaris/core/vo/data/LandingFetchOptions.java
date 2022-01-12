@@ -31,30 +31,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class DataFetchOptions implements IDataFetchOptions {
+public class LandingFetchOptions implements IDataFetchOptions {
 
-    public static final DataFetchOptions DEFAULT = DataFetchOptions.builder().build();
+    public static final LandingFetchOptions DEFAULT = LandingFetchOptions.builder().build();
 
-    public static final DataFetchOptions MINIMAL = DataFetchOptions.builder()
+    public static final LandingFetchOptions MINIMAL = LandingFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
         .build();
 
-    public static final DataFetchOptions FULL_GRAPH = DataFetchOptions.builder()
-            .withChildrenEntities(true)
-            .withMeasurementValues(true)
-            .build();
-
-    public static final DataFetchOptions copy(IDataFetchOptions other) {
-        return DataFetchOptions.builder()
-            .withRecorderDepartment(other.isWithRecorderDepartment())
-            .withRecorderPerson(other.isWithRecorderPerson())
-            .withObservers(other.isWithObservers())
-            .withChildrenEntities(other.isWithChildrenEntities())
-            .withMeasurementValues(other.isWithMeasurementValues())
-            .build();
-    }
+    public static final LandingFetchOptions FULL_GRAPH = LandingFetchOptions.builder()
+        .withChildrenEntities(true)
+        .withMeasurementValues(true)
+        .withTrip(true)
+        .withTripSales(true)
+        .withTripExpectedSales(true)
+        .build();
 
     @Builder.Default
     private boolean withRecorderDepartment = true;
@@ -70,5 +63,14 @@ public class DataFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withMeasurementValues = false;
+
+    @Builder.Default
+    private boolean withTrip = false;
+
+    @Builder.Default
+    private boolean withTripSales = false;
+
+    @Builder.Default
+    private boolean withTripExpectedSales = false;
 
 }

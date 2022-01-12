@@ -31,30 +31,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class DataFetchOptions implements IDataFetchOptions {
+public class TripFetchOptions implements IDataFetchOptions {
 
-    public static final DataFetchOptions DEFAULT = DataFetchOptions.builder().build();
+    public static final TripFetchOptions DEFAULT = TripFetchOptions.builder().build();
 
-    public static final DataFetchOptions MINIMAL = DataFetchOptions.builder()
+    public static final TripFetchOptions MINIMAL = TripFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
         .build();
 
-    public static final DataFetchOptions FULL_GRAPH = DataFetchOptions.builder()
-            .withChildrenEntities(true)
-            .withMeasurementValues(true)
-            .build();
-
-    public static final DataFetchOptions copy(IDataFetchOptions other) {
-        return DataFetchOptions.builder()
-            .withRecorderDepartment(other.isWithRecorderDepartment())
-            .withRecorderPerson(other.isWithRecorderPerson())
-            .withObservers(other.isWithObservers())
-            .withChildrenEntities(other.isWithChildrenEntities())
-            .withMeasurementValues(other.isWithMeasurementValues())
-            .build();
-    }
+    public static final TripFetchOptions FULL_GRAPH = TripFetchOptions.builder()
+        .withChildrenEntities(true)
+        .withMeasurementValues(true)
+        .withGears(true)
+        .withSales(true)
+        .withExpectedSales(true)
+        .build();
 
     @Builder.Default
     private boolean withRecorderDepartment = true;
@@ -70,5 +63,14 @@ public class DataFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withMeasurementValues = false;
+
+    @Builder.Default
+    private boolean withGears = true;
+
+    @Builder.Default
+    private boolean withSales = true;
+
+    @Builder.Default
+    private boolean withExpectedSales = false; // Disable by default - fix #IMAGINE-651
 
 }

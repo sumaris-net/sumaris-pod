@@ -42,11 +42,19 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
+@NamedEntityGraph(
+    name = Landing.GRAPH_LOCATION,
+    attributeNodes = {
+        @NamedAttributeNode(Landing.Fields.LOCATION)
+    }
+)
 public class Landing implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel>,
         IWithSamplesEntity<Integer, Sample>,
         IWithProductsEntity<Integer, Product> {
+
+    public static final String GRAPH_LOCATION = "Landing.vesselAndLocation";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
@@ -125,9 +133,11 @@ public class Landing implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExpectedSale.class, mappedBy = ExpectedSale.Fields.LANDING)
+    // FIXME when enable, LandginServiceImpl.findAllByObservedLocationId() always fetch expectedSale, but don't knwn shy
+    // (see issue sumaris-pod #24)
+    /*@OneToMany(fetch = FetchType.LAZY, targetEntity = ExpectedSale.class, mappedBy = ExpectedSale.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<ExpectedSale> expectedSales = new ArrayList<>();
+    private List<ExpectedSale> expectedSales = new ArrayList<>();*/
 
     /* -- measurements -- */
 

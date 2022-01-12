@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data.landing;
 
 import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface LandingRepository extends
-    RootDataRepository<Landing, LandingVO, LandingFilterVO, DataFetchOptions>,
+    RootDataRepository<Landing, LandingVO, LandingFilterVO, LandingFetchOptions>,
     LandingSpecifications {
 
     Optional<Landing> findFirstByTripId(Integer tripId);

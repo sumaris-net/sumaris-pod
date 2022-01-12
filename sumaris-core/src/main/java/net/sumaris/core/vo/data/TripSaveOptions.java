@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 import net.sumaris.core.dao.technical.jpa.ISaveOptions;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class TripSaveOptions implements ISaveOptions {
@@ -58,6 +58,9 @@ public class TripSaveOptions implements ISaveOptions {
 
     @Builder.Default
     private Boolean withExpectedSales = true;
+
+    @Builder.Default
+    private Boolean withSales = true;
 
     @GraphQLIgnore
     private Integer landingId;
