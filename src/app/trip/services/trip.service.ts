@@ -238,7 +238,45 @@ export const TripFragments = {
   ${PhysicalGearFragments.physicalGear}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}
-  ${DataFragments.fishingArea}`
+  ${DataFragments.fishingArea}`,
+
+  embeddedLandedTrip: gql`fragment EmbeddedLandedTripFragment on TripVO {
+    program {
+      id
+      label
+    }
+    departureDateTime
+    returnDateTime
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    qualityFlagId
+    comments
+    landing {
+      id
+      rankOrder
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    recorderPerson {
+      ...LightPersonFragment
+    }
+    metiers {
+      ...MetierFragment
+    }
+    operationGroups {
+      ...OperationGroupFragment
+    }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
+  }
+  ${DataCommonFragments.metier}
+  ${DataFragments.fishingArea}
+  ${OperationGroupFragment.operationGroup}`
 };
 
 
@@ -481,8 +519,8 @@ export class TripService
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<Trip>> {
 
     // Load offline
-    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
-    if (offlineData) {
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
@@ -513,6 +551,7 @@ export class TripService
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
+        // Skip update during load()
         filter(() => !this.loading),
         map(({data, total}) => {
           const entities = (!opts || opts.toEntity !== false)

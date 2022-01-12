@@ -129,7 +129,7 @@ export const LandingFragments = {
     observedLocationId
     tripId
     trip {
-      ...LandedTripFragment
+      ...EmbeddedLandedTripFragment
     }
     vesselSnapshot {
       ...VesselSnapshotFragment
@@ -150,28 +150,6 @@ export const LandingFragments = {
     samplesCount
   }`
 };
-/*
-  TODO BLA review
-
-  trip {
-      id
-      departureDateTime
-      returnDateTime
-      creationDate
-      updateDate
-      controlDate
-      validationDate
-      qualificationDate
-      qualityFlagId
-      comments
-      metiers {
-        ...MetierFragment
-      }
-      fishingAreas {
-        ...FishingAreaFragment
-      }
-    }
- */
 
 const LandingQueries = {
   load: gql`query Landing($id: Int!){
@@ -185,11 +163,7 @@ const LandingQueries = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`,
-  /* TODO BLA review
-  ${Fragments.metier}
-  ${DataFragments.fishingArea}
-   */
+  ${TripFragments.embeddedLandedTrip}`,
 
   loadAll: gql`query LightLandings($filter: LandingFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: landings(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -218,10 +192,7 @@ const LandingQueries = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`
-  /* TODO BLA review
-  ${Fragments.metier}
-  ${DataFragments.fishingArea} */
+  ${TripFragments.embeddedLandedTrip}`
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -236,10 +207,7 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`,
-  /* TODO BLA: review this Imagine code:
-  ${Fragments.metier}
-  ${DataFragments.fishingArea}*/
+  ${TripFragments.embeddedLandedTrip}`,
 
   saveAll: gql`mutation SaveLandings($data:[LandingVOInput!]!){
     data: saveLandings(landings: $data){
@@ -252,11 +220,7 @@ const LandingMutations: BaseEntityGraphqlMutations = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`,
-  /* TODO BLA: review this Imagine code:
-  ${Fragments.measurement}
-  ${Fragments.metier}
-  ${DataFragments.fishingArea}*/
+  ${TripFragments.embeddedLandedTrip}`,
 
   deleteAll: gql`mutation DeleteLandings($ids:[Int!]!){
     deleteLandings(ids: $ids)
