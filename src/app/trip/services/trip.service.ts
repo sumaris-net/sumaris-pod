@@ -241,6 +241,7 @@ export const TripFragments = {
   ${DataFragments.fishingArea}`,
 
   embeddedLandedTrip: gql`fragment EmbeddedLandedTripFragment on TripVO {
+    id
     program {
       id
       label
