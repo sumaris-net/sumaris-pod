@@ -167,6 +167,9 @@ export class SamplingLandingPage extends LandingPage {
     if (this.parent && this.parent instanceof ObservedLocation) {
       this.landingForm.form.get('location').patchValue(data.location);
     }
+    if (this.parent && this.parent instanceof Trip) {
+      data.trip = this.parent;
+    }
   }
 
   protected async getValue(): Promise<Landing> {
