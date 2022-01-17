@@ -25,7 +25,7 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripSaveOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -46,13 +46,13 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 
 	@Transactional(readOnly = true)
 	List<TripVO> findAll(TripFilterVO filter, Page page,
-						 DataFetchOptions fieldOptions);
+						 TripFetchOptions fieldOptions);
 
 	@Transactional(readOnly = true)
 	List<TripVO> findAll(TripFilterVO filter, int offset, int size,
 						 String sortAttribute,
 						 SortDirection sortDirection,
-						 DataFetchOptions fieldOptions);
+						 TripFetchOptions fieldOptions);
 
 	@Transactional(readOnly = true)
 	long countByFilter(TripFilterVO filter);
@@ -61,7 +61,7 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 	TripVO get(int id);
 
 	@Transactional(readOnly = true)
-	TripVO get(int id, DataFetchOptions fetchOptions);
+	TripVO get(int id, TripFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	int getProgramIdById(int id);

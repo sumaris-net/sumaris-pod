@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
-    private static final DataFetchOptions defaultFetchOption = DataFetchOptions.builder()
+    private static final LandingFetchOptions defaultFetchOption = LandingFetchOptions.builder()
         .withRecorderDepartment(true)
         .withRecorderPerson(true)
         .withObservers(false)
@@ -120,7 +120,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption);
+            DataFetchOptions.copy(defaultFetchOption));
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
         observedLocations.parallelStream().forEach(observedLocation -> {
@@ -254,7 +254,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption);
+            DataFetchOptions.copy(defaultFetchOption));
 
         // Create observed location if missing
         Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime).map(Dates::resetTime).collect(Collectors.toSet());
@@ -363,7 +363,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            defaultFetchOption);
+            DataFetchOptions.copy(defaultFetchOption));
 
         observedLocations.forEach(observedLocation -> vesselSnapshotIds.forEach(vesselSnapshotId -> {
 

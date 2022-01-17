@@ -24,8 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +41,7 @@ import java.util.List;
 public interface LandingService {
 
 	@Transactional(readOnly = true)
-	List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions);
+	List<LandingVO> findAll(LandingFilterVO filter, Page page, LandingFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	Long countByFilter(LandingFilterVO filter);
@@ -51,7 +50,7 @@ public interface LandingService {
 	LandingVO get(Integer id);
 
 	@Transactional(readOnly = true)
-	LandingVO get(Integer landingId, DataFetchOptions fetchOptions);
+	LandingVO get(Integer landingId, LandingFetchOptions fetchOptions);
 
 	List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> data);
 

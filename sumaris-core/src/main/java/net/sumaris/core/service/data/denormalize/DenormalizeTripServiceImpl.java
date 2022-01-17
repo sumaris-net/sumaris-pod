@@ -32,10 +32,7 @@ import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.util.TimeUtils;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.OperationFetchOptions;
-import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -77,7 +74,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         progression.setMessage(String.format("Starting trips denormalization... filter: %s", filter));
         log.debug(progression.getMessage());
 
-        DataFetchOptions tripFetchOptions = DataFetchOptions.builder()
+        TripFetchOptions tripFetchOptions = TripFetchOptions.builder()
             .withChildrenEntities(false)
             .withMeasurementValues(false)
             .withRecorderPerson(false)

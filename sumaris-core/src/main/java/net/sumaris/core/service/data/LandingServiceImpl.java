@@ -98,7 +98,7 @@ public class LandingServiceImpl implements LandingService {
     }
 
     @Override
-    public List<LandingVO> findAll(LandingFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+    public List<LandingVO> findAll(LandingFilterVO filter, Page page, LandingFetchOptions fetchOptions) {
 
         filter = LandingFilterVO.nullToEmpty(filter);
 
@@ -126,11 +126,11 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public LandingVO get(Integer id) {
-        return get(id, DataFetchOptions.DEFAULT);
+        return get(id, LandingFetchOptions.DEFAULT);
     }
 
     @Override
-    public LandingVO get(Integer id, @NonNull DataFetchOptions fetchOptions) {
+    public LandingVO get(Integer id, @NonNull LandingFetchOptions fetchOptions) {
         LandingVO target = landingRepository.get(id, fetchOptions);
 
         // Fetch children (disabled by default)
@@ -139,9 +139,18 @@ public class LandingServiceImpl implements LandingService {
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
 
             OperationGroupVO mainUndefinedOperation = null;
-            if (target.getTripId() != null) {
-                TripVO trip = tripService.get(target.getTripId(), fetchOptions);
+            if (target.getTripId() != null && fetchOptions.isWithTrip()) {
+                TripFetchOptions tripFetchOptions = TripFetchOptions.builder()
+                    .withChildrenEntities(true) // Need to fetch operation group (fishing areas, metier)
+                    .withSales(false) // Never used when fetching from a landing
+                    .withExpectedSales(false) // Never used when fetching from a landing - fix IMAGINE-651
+                    .build();
+                TripVO trip = tripService.get(target.getTripId(), tripFetchOptions);
                 target.setTrip(trip);
+
+                // Optimization: avoid fetching expected sale (fix #IMAGINE-651)
+                trip.setHasSales(false);
+                trip.setHasExpectedSales(false);
 
                 // Get the main undefined operation group
                 mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(target.getTripId());
@@ -223,7 +232,7 @@ public class LandingServiceImpl implements LandingService {
         log.info("Delete Landing#{} {trash: {}}", id, enableTrash);
 
         // Create events (before deletion, to be able to join VO)
-        LandingVO eventData = enableTrash ? get(id, DataFetchOptions.FULL_GRAPH) : null;
+        LandingVO eventData = enableTrash ? get(id, LandingFetchOptions.FULL_GRAPH) : null;
 
         // Delete linked trip
         // WARN: use delete by id (if possible) to fix Oracle on an Adagio schema - see #IMAGINE-602 and #IMAGINE-589
@@ -321,9 +330,17 @@ public class LandingServiceImpl implements LandingService {
             fillDefaultProperties(source, trip);
 
             // Save the landed trip
-            TripSaveOptions tripSaveOptions = TripSaveOptions.LANDED_TRIP;
-            tripSaveOptions.setWithExpectedSales(trip.getExpectedSale() != null || trip.getExpectedSales() != null);
+            boolean hasSales = trip.getSale() != null || trip.getSales() != null;
+            boolean hasExpectedSales = trip.getExpectedSale() != null || trip.getExpectedSales() != null;
+            TripSaveOptions tripSaveOptions = TripSaveOptions.LANDED_TRIP.toBuilder()
+                .withSales(hasSales)
+                .withExpectedSales(hasExpectedSales)
+                .build();
             TripVO savedTrip = tripService.save(trip, tripSaveOptions);
+
+            // Optimization: avoid fetching expected sale (fix #IMAGINE-651)
+            savedTrip.setHasSales(hasSales);
+            savedTrip.setHasExpectedSales(hasExpectedSales);
 
             // Update the source landing
             source.setTripId(savedTrip.getId());

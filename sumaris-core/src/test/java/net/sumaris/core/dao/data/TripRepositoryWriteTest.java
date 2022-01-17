@@ -26,8 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.trip.TripRepository;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,7 +56,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
 
     @Test
     public void findAll() {
-        List<TripVO> trips = repository.findAll(0, 100, null, null, DataFetchOptions.DEFAULT)
+        List<TripVO> trips = repository.findAll(0, 100, null, null, TripFetchOptions.DEFAULT)
                 .stream().collect(Collectors.toList());
         Assert.assertNotNull(trips);
         Assert.assertTrue(trips.size() > 0);
@@ -87,7 +86,7 @@ public class TripRepositoryWriteTest extends AbstractDaoTest{
     public void getWithChildren() {
 
         Integer id = fixtures.getTripId(0);
-        TripVO trip = repository.get(id, DataFetchOptions.builder()
+        TripVO trip = repository.get(id, TripFetchOptions.builder()
             .withChildrenEntities(true).build());
         Assert.assertNotNull(trip);
     }

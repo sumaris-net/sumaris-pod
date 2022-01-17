@@ -27,7 +27,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -132,7 +132,7 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
         };
     }
 
-    List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, DataFetchOptions fetchOptions);
+    List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, LandingFetchOptions fetchOptions);
 
     List<LandingVO> findAllByObservedLocationId(int observedLocationId);
 
