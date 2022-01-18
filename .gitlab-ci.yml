@@ -143,9 +143,9 @@ docker:ci:
       - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
       - git checkout develop
       - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
-#      - git push origin develop
-#      - git push origin master
-#      - git push --tags
+      - git push origin develop
+      - git push origin master
+      - git push --tags
       - git branch -D release/${RELEASE_VERSION}
   after_script:
     # Remember version
