@@ -160,7 +160,6 @@ docker:ci:
   allow_failure: false
   only:
       - develop
-      - /^feature\/.*/
   when: manual
 
 release:
@@ -217,7 +216,6 @@ docker:release:
   needs: [release]
   only:
     - develop
-    - /^feature\/.*/
 
 # ---------------------------------------------------------------
 # Docs jobs
