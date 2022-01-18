@@ -38,6 +38,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
@@ -70,6 +71,11 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements DataRepository<E, V, F, O>, DataSpecifications<E> {
 
+    protected static PersonFetchOptions PERSON_FETCH_OPTIONS = PersonFetchOptions.builder()
+        .withDepartment(true)
+        .withUserProfiles(false)
+        .build();
+
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
 
     @Autowired
@@ -89,7 +95,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Override
     public List<V> findAll(F filter, O fetchOptions) {
-        return findAll(toSpecification(filter, fetchOptions)).stream()
+        return findAll(toSpecification(filter, fetchOptions))
+            .stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
@@ -110,6 +117,10 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     public List<V> findAll(@Nullable F filter, @Nullable net.sumaris.core.dao.technical.Page page, O fetchOptions) {
         Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
         TypedQuery<E> query = getQuery(spec, page, getDomainClass());
+
+        // Add hints
+        configureQuery(query, fetchOptions);
+
         return streamQuery(query)
             .map(entity -> toVO(entity, fetchOptions))
             .collect(Collectors.toList());
@@ -119,6 +130,10 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     public List<V> findAll(@Nullable F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
         Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
         TypedQuery<E> query = getQuery(spec, offset, size, sortAttribute, sortDirection, getDomainClass());
+
+        // Add hints
+        configureQuery(query, fetchOptions);
+
         return streamQuery(query)
             .map(entity -> toVO(entity, fetchOptions))
             .collect(Collectors.toList());
@@ -146,7 +161,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Override
     public List<V> findAllVO(@Nullable Specification<E> spec, O fetchOptions) {
-        return super.findAll(spec).stream()
+        return super.findAll(spec)
+            .stream()
             .map(e -> this.toVO(e, fetchOptions))
             .collect(Collectors.toList());
     }
@@ -303,7 +319,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
             Set<Person> sourceObservers = ((IWithObserversEntity<Integer, Person>) source).getObservers();
             if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(sourceObservers)) {
                 Set<PersonVO> observers = sourceObservers.stream()
-                    .map(personRepository::toVO)
+                    .map(person -> personRepository.toVO(person, PERSON_FETCH_OPTIONS))
                     .collect(Collectors.toSet());
                 ((IWithObserversEntity<Integer, PersonVO>) target).setObservers(observers);
             }
@@ -328,6 +344,10 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     protected void setCopyExcludeProperties(String... excludedProperties) {
         this.copyExcludeProperties = excludedProperties;
+    }
+
+    protected void configureQuery(TypedQuery<E> query, O fetchOptions) {
+        // Can be override by subclasses
     }
 
 }

@@ -47,7 +47,6 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
@@ -184,7 +183,7 @@ public class DataGraphQLService {
 
         final List<TripVO> result = tripService.findAll(filter,
             Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
-            getFetchOptions(fields));
+            getTripFetchOptions(fields));
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -231,7 +230,10 @@ public class DataGraphQLService {
     public LandingVO getTripLanding(@GraphQLContext TripVO trip) {
         if (trip.getLanding() != null) return trip.getLanding();
         if (trip.getLandingId() == null) return null;
-        LandingVO target = landingService.get(trip.getLandingId());
+
+        LandingVO target = landingService.get(trip.getLandingId(), LandingFetchOptions.DEFAULT.toBuilder()
+                .withTrip(false)
+                .build());
 
         // Avoid trip to be reload from landing (in GraphQL fragment)
         target.setTrip(trip);
@@ -402,7 +404,6 @@ public class DataGraphQLService {
         if (physicalGear.getTripId() == null) return null;
         return tripService.get(physicalGear.getTripId());
     }
-
 
     @GraphQLQuery(name = "physicalGear", description = "Get a physical gear")
     @Transactional(readOnly = true)
@@ -614,6 +615,9 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "sales", description = "Get trip's sales")
     public List<SaleVO> getSalesByTrip(@GraphQLContext TripVO trip) {
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        if (trip.getHasSales() == Boolean.FALSE) return null;
+
         if (trip.getSales() != null) return trip.getSales();
         if (trip.getId() == null) return null;
         return saleService.getAllByTripId(trip.getId(), null);
@@ -621,6 +625,9 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "sale", description = "Get trip's unique sale")
     public SaleVO getUniqueSaleByTrip(@GraphQLContext TripVO trip) {
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        if (trip.getHasSales() == Boolean.FALSE) return null;
+
         if (trip.getSale() != null) return trip.getSale();
         if (trip.getId() == null) return null;
         List<SaleVO> sales = saleService.getAllByTripId(trip.getId(), null);
@@ -631,6 +638,9 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "expectedSales", description = "Get trip's expected sales")
     public List<ExpectedSaleVO> getExpectedSalesByTrip(@GraphQLContext TripVO trip) {
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        if (trip.getHasExpectedSales() == Boolean.FALSE) return null;
+
         if (trip.getExpectedSales() != null) return trip.getExpectedSales();
         if (trip.getId() == null) return null;
         return expectedSaleService.getAllByTripId(trip.getId());
@@ -638,6 +648,9 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "expectedSale", description = "Get trip's unique expected sale")
     public ExpectedSaleVO getUniqueExpectedSaleByTrip(@GraphQLContext TripVO trip) {
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        if (trip.getHasExpectedSales() == Boolean.FALSE) return null;
+
         if (trip.getExpectedSale() != null) return trip.getExpectedSale();
         if (trip.getId() == null) return null;
         List<ExpectedSaleVO> expectedSales = expectedSaleService.getAllByTripId(trip.getId());
@@ -939,7 +952,7 @@ public class DataGraphQLService {
                         .sortBy(sort)
                         .sortDirection(SortDirection.fromString(direction))
                         .build(),
-                getFetchOptions(fields));
+                getLandingFetchOptions(fields));
 
         // Add additional properties if needed
         fillLandingsFields(result, fields);
@@ -959,8 +972,7 @@ public class DataGraphQLService {
     @IsUser
     public LandingVO getLanding(@GraphQLArgument(name = "id") int id,
                                 @GraphQLEnvironment ResolutionEnvironment env) {
-        // TODO: rename getTripFetchOptions -> getLandingFetchOptions ?
-        final LandingVO result = landingService.get(id, getTripFetchOptions(GraphQLUtils.fields(env)));
+        final LandingVO result = landingService.get(id, getLandingFetchOptions(GraphQLUtils.fields(env)));
 
         // Add additional properties if needed
         fillLandingFields(result, GraphQLUtils.fields(env));
@@ -1411,12 +1423,39 @@ public class DataGraphQLService {
                 .build();
     }
 
-    protected DataFetchOptions getTripFetchOptions(Set<String> fields) {
-        return DataFetchOptions.builder()
-                .withExpectedSales(
-                        fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
-                                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID)))
-                .build();
+
+    protected TripFetchOptions getTripFetchOptions(Set<String> fields) {
+        return TripFetchOptions.builder()
+            .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withLanding(fields.contains(StringUtils.slashing(TripVO.Fields.LANDING_ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, IEntity.Fields.ID))
+            )
+            .withSales(fields.contains(StringUtils.slashing(TripVO.Fields.SALE, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.SALES, IEntity.Fields.ID))
+            )
+            .withExpectedSales(fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID))
+            )
+            .build();
+    }
+
+
+    protected LandingFetchOptions getLandingFetchOptions(Set<String> fields) {
+        boolean withTrip = fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, IEntity.Fields.ID));
+        boolean withTripSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALE, IEntity.Fields.ID))
+            || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALES, IEntity.Fields.ID));
+        boolean withTripExpectedSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+            || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID));
+        boolean withChildren = withTrip
+            || fields.contains(StringUtils.slashing(LandingVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID));
+        return LandingFetchOptions.builder()
+            .withTrip(withTrip)
+            .withTripSales(withTripSale)
+            .withTripExpectedSales(withTripExpectedSale)
+            .withChildrenEntities(withChildren)
+            .build();
     }
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {

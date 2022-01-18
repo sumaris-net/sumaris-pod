@@ -28,10 +28,7 @@ import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -148,7 +145,7 @@ public class TripServiceReadTest extends AbstractServiceTest{
     public void getFullGraph() {
 
         Integer id = fixtures.getTripId(0);
-        TripVO trip = service.get(id, DataFetchOptions.FULL_GRAPH);
+        TripVO trip = service.get(id, TripFetchOptions.FULL_GRAPH);
         Assert.assertNotNull(trip);
         Assert.assertNotNull(trip.getVesselSnapshot());
         Assert.assertNotNull(trip.getVesselSnapshot().getExteriorMarking());

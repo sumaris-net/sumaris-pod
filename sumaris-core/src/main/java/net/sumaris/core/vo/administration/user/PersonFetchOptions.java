@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.data;
+package net.sumaris.core.vo.administration.user;
 
 /*-
  * #%L
@@ -22,19 +22,33 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import lombok.*;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@ToString
+public class PersonFetchOptions implements IFetchOptions {
 
-public interface IDataFetchOptions extends IFetchOptions {
+    public static final PersonFetchOptions DEFAULT = PersonFetchOptions.builder().build();
 
-    boolean isWithRecorderDepartment();
+    public static PersonFetchOptions nullToDefault(PersonFetchOptions options) {
+        return options != null ? options : DEFAULT;
+    }
 
-    boolean isWithObservers();
+    /**
+     * Fetch user profile
+     */
+    @Builder.Default
+    private boolean withUserProfiles = true;
 
-    boolean isWithRecorderPerson();
-
-    boolean isWithChildrenEntities();
-
-    boolean isWithMeasurementValues();
-
+    /**
+     * Fetch user department
+     */
+    @Builder.Default
+    private boolean withDepartment = true;
 }
