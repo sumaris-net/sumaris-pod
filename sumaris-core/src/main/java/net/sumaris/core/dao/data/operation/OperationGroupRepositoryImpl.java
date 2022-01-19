@@ -39,6 +39,7 @@ import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
@@ -83,6 +84,7 @@ public class OperationGroupRepositoryImpl
 
     @Autowired
     private MeasurementDao measurementDao;
+
 
     protected OperationGroupRepositoryImpl(EntityManager entityManager) {
         super(Operation.class, OperationGroupVO.class, entityManager);
@@ -247,19 +249,44 @@ public class OperationGroupRepositoryImpl
     }
 
     @Override
-    public void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate) {
+    public void updateUndefinedOperationDates(int tripId, Date startDateTime, Date endDateTime) {
+        // Fix IMAGINE-561: to NOT use a "UPDATE (...) where id IN (SELECT ... )"
+        // Prefer using a "SELECT id FROM Operation", then an "UPDATE where id IN (ids)"
+        EntityManager em = getEntityManager();
+
+        // Get the parent trip, to be able to use old start/end dates, to find the undefined operation
+        Trip parentTrip = getById(Trip.class, tripId);
+        Date previousStartDateTime = parentTrip.getDepartureDateTime();
+        Date previousEndDateTime = parentTrip.getReturnDateTime();
+
+        // Check if update need
+        if (Dates.equals(previousStartDateTime, startDateTime)
+            && Dates.equals(previousEndDateTime, endDateTime)) {
+            return; // no changes in dates: skip update
+        }
+
+        // Get undefined operation ids
+        List<Integer> undefinedOperationIds = em.createNamedQuery("Operation.selectUndefinedOperationIds", Integer.class)
+            .setParameter("tripId", tripId)
+            .setParameter("startDateTime", previousStartDateTime)
+            .setParameter("endDateTime", previousEndDateTime)
+            .getResultList();
+
+        // No undefined operations: skip
+        if (CollectionUtils.isEmpty(undefinedOperationIds)) return;
+
         int nbRowUpdated = getEntityManager()
             .createNamedQuery("Operation.updateUndefinedOperationDates")
-            .setParameter("tripId", tripId)
-            .setParameter("startDateTime", startDate)
-            .setParameter("endDateTime", endDate)
+            .setParameter("ids", undefinedOperationIds)
+            .setParameter("startDateTime", startDateTime)
+            .setParameter("endDateTime", endDateTime)
             .executeUpdate();
 
         if (log.isDebugEnabled() && nbRowUpdated > 0) {
             log.debug(String.format("%s undefined operations updated for trip is=%s", nbRowUpdated, tripId));
         }
 
-        // This is need to make sure next load will have the good dates
+        // This is need to make sure fetched operations will have updated dates
         getEntityManager().flush();
         getEntityManager().clear();
     }

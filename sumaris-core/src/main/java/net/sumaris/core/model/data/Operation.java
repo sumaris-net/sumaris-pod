@@ -48,18 +48,14 @@ import java.util.List;
             "  o.fishingStartDateTime = :startDateTime, " +
             "  o.endDateTime = :endDateTime, " +
             "  o.fishingEndDateTime = :endDateTime " +
-            "WHERE o.id IN ( " +
-            "   SELECT o2.id " +
+            "WHERE o.id IN (:ids)"),
+    @NamedQuery(name = "Operation.selectUndefinedOperationIds",
+        query = "SELECT o2.id " +
             "   FROM Operation o2 " +
-            "   WHERE o2.trip.id = :tripId " +
-            "   AND o2.startDateTime = ft.departureDateTime " +
-            "   AND o2.endDateTime = ft.returnDateTime " +
-            // IMAGINE-657 - Problème de perf Oracle avec cette partie de requete
-            //"   AND (o2.startDateTime != :startDateTime " +
-            //"       OR o2.fishingStartDateTime != :startDateTime " +
-            //"       OR o2.endDateTime != :endDateTime " +
-            //"       OR o2.fishingEndDateTime != :endDateTime) " +
-            ")"),
+            "   INNER JOIN o2.trip ft " +
+            "   WHERE ft.id = :tripId " +
+            "   AND o2.startDateTime = :startDateTime " +
+            "   AND o2.endDateTime = :endDateTime"),
         @NamedQuery(name = "Operation.countByTripId",
                 query = "SELECT COUNT(*) " +
                         "FROM Operation o " +

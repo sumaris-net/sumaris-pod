@@ -518,4 +518,15 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
             throw new SumarisTechnicalException(e);
         }
     }
+
+    /**
+     * Allow to compare dates, ignoring nanoseconds.
+     * This allow to compare a java.util.Date with a java.sql.Timestamp
+     * @param d
+     * @return
+     */
+    public static boolean equals(Date d1, Date d2) {
+        return (d1 == null && d2 == null)
+        || (d1 != null && d2 != null && d1.getTime() == d2.getTime());
+    }
 }
