@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
 import {AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn} from '@angular/forms';
 import * as momentImported from 'moment';
-import {isMoment, Moment} from 'moment';
 import {
   AppForm,
   AppFormUtils,
@@ -1478,8 +1477,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   // Get the year
   protected get year(): number {
     const value = this.form.get('year').value;
-    const date: Moment = isMoment(value) ? value : moment(value, 'YYYY-MM-DD');
-    const year = date && +(date.format('YYYY'));
+    // Value is stored in database in utc, we need to get local timezone moment in order to get year
+    var localTimeZoneDate = moment.utc(value).local();
+    const year = localTimeZoneDate && +(localTimeZoneDate.format('YYYY'));
+
     if (year && year < 1970) return; // Skip if too old
     return year;
   }
