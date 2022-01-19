@@ -143,9 +143,9 @@ docker:ci:
       - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
       - git checkout develop
       - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
-#      - git push origin develop
-#      - git push origin master
-#      - git push --tags
+      - git push origin develop
+      - git push origin master
+      - git push --tags
       - git branch -D release/${RELEASE_VERSION}
   after_script:
     # Remember version
@@ -160,7 +160,6 @@ docker:ci:
   allow_failure: false
   only:
       - develop
-      - /^feature\/.*/
   when: manual
 
 release:
@@ -171,6 +170,20 @@ release:
 failsafe-release:
     extends: .release
     needs: [failsafe-build]
+
+gitlab-release:
+    stage: release
+    tags: [sih_public_runner]
+    image: registry.gitlab.com/gitlab-org/release-cli:latest
+    script:
+        - echo "running release for ${CI_COMMIT_TAG}"
+    release:
+        name: "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}"
+        description: "Created using the release-cli $EXTRA_DESCRIPTION"
+        tag_name: "${CI_COMMIT_TAG}"
+        ref: "${CI_COMMIT_TAG}"
+    only:
+        - tags
 
 # ---------------------------------------------------------------
 # Docker jobs
@@ -217,7 +230,6 @@ docker:release:
   needs: [release]
   only:
     - develop
-    - /^feature\/.*/
 
 # ---------------------------------------------------------------
 # Docs jobs
