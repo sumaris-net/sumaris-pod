@@ -55,10 +55,11 @@ import java.util.List;
             "   WHERE ft.id = :tripId " +
             "   AND o2.startDateTime = ft.departureDateTime " +
             "   AND o2.endDateTime = ft.returnDateTime " +
-            "   AND (o2.startDateTime != :startDateTime " +
-            "       OR o2.fishingStartDateTime != :startDateTime " +
-            "       OR o2.endDateTime != :endDateTime " +
-            "       OR o2.fishingEndDateTime != :endDateTime) " +
+            // IMAGINE-657 - Problème de perf Oracle avec cette partie de requete
+            //"   AND (o2.startDateTime != :startDateTime " +
+            //"       OR o2.fishingStartDateTime != :startDateTime " +
+            //"       OR o2.endDateTime != :endDateTime " +
+            //"       OR o2.fishingEndDateTime != :endDateTime) " +
             ")"),
         @NamedQuery(name = "Operation.countByTripId",
                 query = "SELECT COUNT(*) " +
