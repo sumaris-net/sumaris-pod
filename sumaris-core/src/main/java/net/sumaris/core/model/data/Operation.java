@@ -51,8 +51,7 @@ import java.util.List;
             "WHERE o.id IN ( " +
             "   SELECT o2.id " +
             "   FROM Operation o2 " +
-            "   INNER JOIN o2.trip ft " +
-            "   WHERE ft.id = :tripId " +
+            "   WHERE o2.trip.id = :tripId " +
             "   AND o2.startDateTime = ft.departureDateTime " +
             "   AND o2.endDateTime = ft.returnDateTime " +
             // IMAGINE-657 - Problème de perf Oracle avec cette partie de requete
