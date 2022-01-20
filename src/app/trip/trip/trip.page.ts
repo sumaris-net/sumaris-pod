@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild} from '@angular/core';
 
 import {TripService} from '../services/trip.service';
 import {TripForm} from './trip.form';
@@ -7,17 +7,14 @@ import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
 import {AcquisitionLevelCodes, PmfmIds} from '../../referential/services/model/model.enum';
 import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
 import {FormGroup, Validators} from '@angular/forms';
 import {
   Alerts,
-  DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  fromDateISOString,
   HistoryPageReference,
   isNil,
   isNotEmptyArray,
@@ -29,24 +26,23 @@ import {
   ReferentialRef,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { TripsPageSettingsEnum } from './trips.table';
-import { PhysicalGear, Trip } from '../services/model/trip.model';
-import { SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
-import { ModalController } from '@ionic/angular';
-import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
-import { ProgramProperties } from '../../referential/services/config/program.config';
-import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
-import { TableElement } from '@e-is/ngx-material-table';
-import { Program } from '@app/referential/services/model/program.model';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { Subscription } from 'rxjs';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import {BehaviorSubject, merge, Subscription} from 'rxjs';
+import {TripsPageSettingsEnum} from './trips.table';
+import {PhysicalGear, Trip} from '../services/model/trip.model';
+import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
+import {ModalController} from '@ionic/angular';
+import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import {ProgramProperties} from '../../referential/services/config/program.config';
+import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap} from 'rxjs/operators';
+import {TableElement} from '@e-is/ngx-material-table';
+import {Program} from '@app/referential/services/model/program.model';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {TRIP_FEATURE_NAME} from '@app/trip/services/config/trip.config';
+import {Subscription} from 'rxjs';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ContextService} from '@app/shared/context.service';
+import {TripContextService} from '@app/trip/services/trip-context.service';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 
 const moment = momentImported;
@@ -397,12 +393,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       let queryParams = {};
       if (this.operationErrors && this.operationErrors[id]) {
         queryParams = {
-          error: JSON.stringify({
-            details: {
-              errors: this.operationErrors[id]
-            },
-            message: 'QUALITY.ERROR.INVALID_FORM'
-          })
+          error: true
         };
       }
 

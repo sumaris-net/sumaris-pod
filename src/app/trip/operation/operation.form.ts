@@ -744,9 +744,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
  async setError(error: any){
     await this.ready();
-    this.error = error.details?.message || error.message;
     this.forceDeskMode = true;
-    this.showError = true;
     this.updateFormGroup();
   }
 

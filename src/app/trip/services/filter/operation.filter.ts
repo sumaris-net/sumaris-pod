@@ -55,11 +55,6 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     return target;
   }
 
-  countNotEmptyCriteria(): number {
-    const nbDefaults = isNotNil(this.tripId) ? 1 : 0;
-    return super.countNotEmptyCriteria() - nbDefaults;
-  }
-
   buildFilter(): FilterFn<Operation>[] {
     const filterFns = super.buildFilter();
 

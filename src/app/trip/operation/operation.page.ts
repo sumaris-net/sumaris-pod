@@ -833,9 +833,8 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
         if (messages.length) {
           error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
         }
-
-       await this.opeForm.setError(error);
       }
+      await this.opeForm.setError(error);
     }
 
     super.setError(error);
