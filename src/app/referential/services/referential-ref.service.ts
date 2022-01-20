@@ -10,7 +10,8 @@ import {
   chainPromises,
   ConfigService,
   Configuration,
-  EntitiesStorage, firstTruePromise,
+  EntitiesStorage,
+  firstTruePromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
@@ -26,7 +27,19 @@ import {
   SuggestService,
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
-import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterGroupIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonGroupIds, TaxonomicLevelIds, UnitIds} from './model/model.enum';
+import {
+  FractionIdGroups,
+  LocationLevelIds,
+  MatrixIds,
+  MethodIds,
+  ParameterGroupIds,
+  ParameterLabelGroups,
+  PmfmIds,
+  ProgramLabel,
+  TaxonGroupIds,
+  TaxonomicLevelIds,
+  UnitIds,
+} from './model/model.enum';
 import { TaxonGroupRef } from './model/taxon-group.model';
 import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
@@ -37,6 +50,9 @@ import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
 import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { MetierService } from '@app/referential/services/metier.service';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -100,10 +116,12 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   private _$ready = new BehaviorSubject<boolean>(false);
   private _importedEntities: string[];
+  private static TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
 
   constructor(
     protected graphql: GraphqlService,
     protected referentialService: ReferentialService,
+    protected metierService: MetierService,
     protected accountService: AccountService,
     protected configService: ConfigService,
     protected network: NetworkService,
@@ -249,7 +267,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       fetchPolicy: opts && opts.fetchPolicy || 'cache-first'
     });
 
-    const entities = (!opts || opts.toEntity !== false) ?
+     const entities = (!opts || opts.toEntity !== false) ?
       (data || []).map(ReferentialRef.fromObject) :
       (data || []) as ReferentialRef[];
 
@@ -266,7 +284,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     // Add fetch more capability, if total was fetched
     if (withTotal) {
       const nextOffset = (offset || 0) + entities.length;
-      if (nextOffset < res.total) {
+      if (nextOffset < total) {
         res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
       }
     }
@@ -355,7 +373,14 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                   fetchPolicy?: FetchPolicy;
                 }): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
-    value = (typeof value === 'string' && value !== '*') && value || undefined;
+    // Replace '*' character by undefined
+    if (!value || value === '*') {
+      value = undefined;
+    }
+    // trim search text, and ignore some characters
+    else if (value && typeof value === 'string') {
+      value = value.trim().replace(ReferentialRefService.TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
+    }
     return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       {...filter, searchText: value},
       {withTotal: true /* Used by autocomplete */, ...opts}
@@ -525,6 +550,22 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return result;
   }
 
+
+  async loadAllMetier(offset: number,
+                          size: number,
+                          sortBy?: string,
+                          sortDirection?: SortDirection,
+                          filter?: Partial<MetierFilter>,
+                          opts?: {
+                            [key: string]: any;
+                            fetchPolicy?: FetchPolicy;
+                            debug?: boolean;
+                            toEntity?: boolean;
+                            withTotal?: boolean;
+                          }): Promise<LoadResult<Metier>> {
+    return this.metierService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
     throw new Error('Not implemented yet');
   }
@@ -674,26 +715,30 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
           );
           break;
         case 'MetierTaxonGroup':
-          filter = {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'};
+          res = await JobUtils.fetchAllPages<any>((offset, size) =>
+              this.loadAllMetier(offset, size, 'id', null,
+                {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'}, {
+                fetchPolicy: 'network-only',
+                debug: false,
+                toEntity: false
+              }),
+            progression,
+            {maxProgression, logPrefix}
+          );
           break;
         case 'TaxonGroup':
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO]};
           break;
         case 'Location':
-          let locationLevelIds = [];
-          for (const locationLevel in LocationLevelIds) {
-            if (typeof LocationLevelIds[locationLevel] === 'number') {
-              locationLevelIds.push(LocationLevelIds[locationLevel]);
-            } else {
-              locationLevelIds = locationLevelIds.concat(LocationLevelIds[locationLevel]);
-            }
-          }
-
           filter = {
-            entityName, statusIds, levelIds: locationLevelIds // Object.values(LocationLevelIds)
+            entityName, statusIds,
+            levelIds: Object.keys(LocationLevelIds).reduce((res, item) => {
+              return res.concat(LocationLevelIds[item]);
+            }, [])
               // Exclude rectangles (because more than 7200 rect exists !)
               // => Maybe find a way to add it, depending on the program properties ?
-              .filter(id => id !== LocationLevelIds.ICES_RECTANGLE)
+              //.filter(id => id !== LocationLevelIds.ICES_RECTANGLE
+            //  && id !== LocationLevelIds.GFCM_RECTANGLE)
           };
           break;
         default:
@@ -702,6 +747,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       }
 
       if (!res) {
+        // Fetch using a generic request
         res = await JobUtils.fetchAllPages<any>((offset, size) =>
             this.referentialService.loadAll(offset, size, 'id', null, filter, {
               debug: false,
@@ -781,6 +827,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.SALE_ESTIMATED_RATIO = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_ESTIMATED_RATIO_ID);
     PmfmIds.SALE_RANK_ORDER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_RANK_ORDER_ID);
     PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
+    PmfmIds.GEAR_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GEAR_LABEL);
 
     // Methods
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);

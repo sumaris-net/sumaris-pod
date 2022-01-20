@@ -238,7 +238,46 @@ export const TripFragments = {
   ${PhysicalGearFragments.physicalGear}
   ${OperationGroupFragment.operationGroup}
   ${ExpectedSaleFragments.expectedSale}
-  ${DataFragments.fishingArea}`
+  ${DataFragments.fishingArea}`,
+
+  embeddedLandedTrip: gql`fragment EmbeddedLandedTripFragment on TripVO {
+    id
+    program {
+      id
+      label
+    }
+    departureDateTime
+    returnDateTime
+    creationDate
+    updateDate
+    controlDate
+    validationDate
+    qualificationDate
+    qualityFlagId
+    comments
+    landing {
+      id
+      rankOrder
+    }
+    recorderDepartment {
+      ...LightDepartmentFragment
+    }
+    recorderPerson {
+      ...LightPersonFragment
+    }
+    metiers {
+      ...MetierFragment
+    }
+    operationGroups {
+      ...OperationGroupFragment
+    }
+    fishingAreas {
+      ...FishingAreaFragment
+    }
+  }
+  ${DataCommonFragments.metier}
+  ${DataFragments.fishingArea}
+  ${OperationGroupFragment.operationGroup}`
 };
 
 
@@ -481,8 +520,8 @@ export class TripService
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<Trip>> {
 
     // Load offline
-    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
-    if (offlineData) {
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
@@ -513,6 +552,7 @@ export class TripService
       fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
     })
       .pipe(
+        // Skip update during load()
         filter(() => !this.loading),
         map(({data, total}) => {
           const entities = (!opts || opts.toEntity !== false)
@@ -1071,10 +1111,10 @@ export class TripService
 
       // Get form errors
       if (form.invalid) {
-        const errors = AppFormUtils.getFormErrors(form, {controlName: 'trip'});
+        const errors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
-        return errors;
+           return errors;
       }
     }
     // If trip is Valid, control operations

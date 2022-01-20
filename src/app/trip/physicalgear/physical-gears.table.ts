@@ -49,6 +49,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
   @Input() showToolbar = true;
   @Input() useSticky = false;
+  @Input() tripId: number;
 
   @Input() set showSelectColumn(show: boolean) {
     this.setShowColumn('select', show);
@@ -145,6 +146,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
       gear = new PhysicalGear();
       await this.onNewEntity(gear);
     }
+    gear.tripId = this.tripId;
     const modalSubscription = new Subscription();
 
     const modal = await this.modalCtrl.create({

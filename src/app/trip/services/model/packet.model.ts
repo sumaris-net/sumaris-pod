@@ -60,7 +60,7 @@ export class Packet extends DataEntity<Packet> {
 
   static fromObject: (source: any, opts?: any) => Packet;
 
-  public static equals(p1: Packet | any, p2: Packet | any): boolean {
+  static equals(p1: Packet | any, p2: Packet | any): boolean {
     return p1 && p2 && ((isNotNil(p1.id) && p1.id === p2.id)
       // Or by functional attributes
       || (p1.rankOrder === p2.rankOrder
@@ -135,7 +135,7 @@ export class Packet extends DataEntity<Packet> {
   }
 
   equals(other: Packet): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         this.rankOrder === other.rankOrder && equalsOrNil(this.number, other.number) && equalsOrNil(this.weight, other.weight)
       );
@@ -184,7 +184,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
   }
 
   equals(other: PacketComposition): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
       );

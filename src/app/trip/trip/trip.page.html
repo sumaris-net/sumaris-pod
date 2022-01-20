@@ -7,7 +7,24 @@
              [backHref]="defaultBackHref"
              [canGoBack]="true">
   <ion-buttons slot="end">
-    <ion-spinner *ngIf="loading"></ion-spinner>
+
+    <ng-container *ngIf="mobile && selectedTabIndex === 2">
+      <!-- Reset filter -->
+      <button mat-icon-button (click)="operationsTable.resetFilter()"
+              *ngIf="operationsTable.filterCriteriaCount">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <!-- Show filter -->
+      <button mat-icon-button (click)="operationsTable.filterExpansionPanel.toggle()">
+        <mat-icon [matBadge]="operationsTable.filterCriteriaCount"
+                  [matBadgeHidden]="operationsTable.filterIsEmpty"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+      </button>
+    </ng-container>
 
     <ion-button *ngIf="enabled && !isNewData || debug"
                 [matMenuTriggerFor]="optionsMenu"
@@ -98,7 +115,7 @@
                          [showError]="false"
                          [returnFieldsRequired]="usageMode|isNotOnField"
                          (onSubmit)="save($event)"
-                         (maxDate)="saleForm.minDate = $event">
+                         (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
                 <form-sale #saleForm
                            [class.cdk-visually-hidden]="!showSaleForm"
@@ -107,7 +124,7 @@
                            [showComment]="false"
                            [showEndDateTime]="false"
                            [required]="false"
-                           [tabindex]="10">
+                           [tabindex]="showSaleForm ? 10 : -1">
                 </form-sale>
 
                 <!-- Other features (Measurements) -->
@@ -189,12 +206,12 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label [matBadge]="operationsTable.totalRowCount"
-                   [matBadgeHidden]="!operationsTable.totalRowCount || operationErrors || (operationsTable.invalid && operationsTable.dirty)"
+                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"
                    translate>TRIP.TAB_OPERATIONS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationErrors || (operationsTable.invalid && operationsTable.dirty)"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.invalid && operationsTable.dirty"></ion-icon>
       </ng-template>
 
       <app-operations-table #operationsTable

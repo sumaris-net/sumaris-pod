@@ -16,6 +16,7 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withMetiers?: boolean;
   withFishingAreas?: boolean;
   returnFieldsRequired?: boolean;
+  departureDateTimeRequired?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
@@ -63,7 +64,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       super.getFormGroupConfig(data, opts),
       {
         __typename: [Trip.TYPENAME],
-        departureDateTime: [data && data.departureDateTime || null, Validators.required],
+        departureDateTime: [data && data.departureDateTime || null, !opts.departureDateTimeRequired ? null : Validators.required],
         departureLocation: [data && data.departureLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
         returnDateTime: [data && data.returnDateTime || null, opts.isOnFieldMode && !opts.returnFieldsRequired ? null : Validators.required],
         returnLocation: [data && data.returnLocation || null, opts.isOnFieldMode && !opts.returnFieldsRequired ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
@@ -100,8 +101,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   updateFormGroup(form: FormGroup, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    form.get('returnDateTime').setValidators(!opts.returnFieldsRequired ? null : Validators.required);
-    form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
+    form.get('returnDateTime').setValidators(opts.isOnFieldMode && !opts.returnFieldsRequired ? null : Validators.required);
+    form.get('returnLocation').setValidators(opts.isOnFieldMode && !opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
 
     return form;
   }

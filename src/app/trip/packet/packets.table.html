@@ -118,36 +118,14 @@
         <button mat-icon-button color="light"
                 [title]="getComposition(row)"
                 (click)="openComposition($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon [matBadge]="row.currentData.composition && row.currentData.composition.length"
-                    [matBadgeHidden]="!row.currentData.composition || !row.currentData.composition.length"
+                [hidden]="!inlineEdition"
+                [color]="(row.currentData.composition | isNotEmptyArray) ? 'primary' : undefined">
+          <mat-icon [matBadge]="row.currentData.composition?.length"
+                    [matBadgeHidden]="row.currentData.composition | isEmptyArray"
                     matBadgeColor="accent"
                     matBadgeSize="small"
                     matBadgePosition="above after">pie_chart
           </mat-icon>
-        </button>
-
-        <!-- undo or delete  -->
-        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-                (click)="cancelOrDelete($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-        </button>
-        <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-                [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon>check</mat-icon>
-        </button>
-        <!-- add -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="confirmAndAdd($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon>add</mat-icon>
         </button>
 
         <!-- packet sale -->
@@ -163,6 +141,28 @@
           </mat-icon>
         </button>
 
+
+        <ng-container *ngIf="inlineEdition && row.editing">
+          <!-- undo or delete  -->
+          <button mat-icon-button color="light" *ngIf="row.validator.invalid"
+                  [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+            <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+          </button>
+          <!-- validate -->
+          <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
+                  [title]="'COMMON.BTN_VALIDATE'|translate"
+                  (click)="confirmEditCreate($event, row)">
+            <mat-icon>check</mat-icon>
+          </button>
+          <!-- add -->
+          <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  (click)="confirmAndAdd($event, row)">
+            <mat-icon>add</mat-icon>
+          </button>
+        </ng-container>
       </td>
     </ng-container>
 

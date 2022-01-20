@@ -10,6 +10,14 @@
   &.has-paginator {
     --table-paginator-height: var(--app-paginator-height);
   }
+
+  .filter-panel-floating {
+    z-index: 999;
+    position: absolute;
+    top: var(--table-toolbar-height);
+    left: 0;
+    right: 0;
+  }
 }
 .mat-table {
   min-width: 100%;

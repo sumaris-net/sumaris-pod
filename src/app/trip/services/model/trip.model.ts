@@ -99,9 +99,6 @@ export class Operation
   asObject(opts?: OperationAsObjectOptions): any {
     const target = super.asObject(opts);
 
-    // DEBUG
-    // console.log('TODO serialize operation...');
-
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
@@ -221,7 +218,8 @@ export class Operation
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    if (!opts || opts.keepTrip !== false) {
+    // Clean properties copied from the parent trip
+    if (!opts || opts.keepTrip !== true) {
       delete target.programLabel;
       delete target.vesselId;
     }
@@ -254,7 +252,10 @@ export class Operation
     } else {
       const sortedPositions = source.positions?.map(VesselPosition.fromObject).sort(VesselPositionUtils.dateTimeComparator()) || undefined;
       if (isNotEmptyArray(sortedPositions)) {
-        console.log('TODO sorted positions: ', sortedPositions.map(p => p.dateTime).join(', '));
+
+        // DEBUG
+        //console.debug('[operation] Find sorted positions: ', sortedPositions.map(p => toDateISOString(p.dateTime)).join(', '));
+
         // Warn : should be extracted in this order, because startDateTime can be equals to endDateTime
         this.startPosition = VesselPositionUtils.findByDate(sortedPositions, this.startDateTime, true);
         this.fishingStartPosition = VesselPositionUtils.findByDate(sortedPositions, this.fishingStartDateTime, true);
@@ -330,7 +331,7 @@ export class Operation
   }
 
   equals(other: Operation): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || ((this.startDateTime === other.startDateTime
           || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
@@ -466,7 +467,7 @@ export class OperationGroup extends DataEntity<OperationGroup>
   }
 
   equals(other: OperationGroup): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         this.metier.equals(other.metier) && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
@@ -577,7 +578,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   }
 
   equals(other: Trip): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same vessel
         (this.vesselSnapshot && other.vesselSnapshot && this.vesselSnapshot.id === other.vesselSnapshot.id)
@@ -666,14 +667,14 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
       this.tripId = this.trip && this.trip.id;
     } else {
       this.trip = null;
-      this.tripId = null;
+      this.tripId = source.tripId || null; // to keep tripId on clone even if source.trip is null.
     }
 
     return this;
   }
 
   equals(other: PhysicalGear): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same gear
         (this.gear && other.gear && this.gear.id === other.gear.id)
@@ -714,7 +715,7 @@ export class VesselPosition extends DataEntity<VesselPosition> {
   }
 
   equals(other: VesselPosition): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (this.dateTime && this.dateTime.isSame(fromDateISOString(other.dateTime))
         && (!this.operationId && !other.operationId || this.operationId === other.operationId));
   }

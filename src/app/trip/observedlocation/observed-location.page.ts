@@ -43,8 +43,6 @@ import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 const moment = momentImported;
 
 
-const OBSERVED_LOCATION_DEFAULT_I18N_PREFIX = 'OBSERVED_LOCATION.EDIT.';
-
 const ObservedLocationPageTabs = {
   GENERAL: 0,
   LANDINGS: 1
@@ -104,7 +102,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
         autoOpenNextTab: !platform.mobile,
-        i18nPrefix: OBSERVED_LOCATION_DEFAULT_I18N_PREFIX
+        i18nPrefix: 'OBSERVED_LOCATION.EDIT.'
       });
     this.defaultBackHref = '/observations';
     this.mobile = this.platform.mobile;
@@ -343,8 +341,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
-    await super.setProgram(program);
     if (!program) return; // Skip
+
+    await super.setProgram(program);
 
     try {
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
@@ -406,35 +405,16 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
+    console.debug("[observed-location] New entity: applying defaults...");
+
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
-      console.debug('[observed-location] New entity: set default values...');
-
       data.startDateTime = moment();
 
       // Set current user as observers (if enable)
       if (this.showObservers) {
         const user = this.accountService.account.asPerson();
         data.observers.push(user);
-      }
-
-      // Fill defaults, using filter applied on trips table
-      const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
-      if (searchFilter) {
-        // Synchronization status
-        if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
-          data.synchronizationStatus = 'DIRTY';
-        }
-
-        // program
-        if (searchFilter.program && searchFilter.program.label) {
-          data.program = ReferentialRef.fromObject(searchFilter.program);
-        }
-
-        // Location
-        if (searchFilter.location) {
-          data.location = ReferentialRef.fromObject(searchFilter.location);
-        }
       }
 
       this.showLandingTab = true;
@@ -451,6 +431,26 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       );
     }
 
+    // Fill defaults, from table's filter. Implemented for all usage mode, to fix #IMAGINE-648
+    const searchFilter = this.settings.getPageSettings<any>(ObservedLocationsPageSettingsEnum.PAGE_ID, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+    if (searchFilter) {
+
+      // Synchronization status
+      if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
+        data.synchronizationStatus = 'DIRTY';
+      }
+
+      // program
+      if (searchFilter.program && searchFilter.program.label) {
+        data.program = ReferentialRef.fromObject(searchFilter.program);
+      }
+
+      // Location
+      if (searchFilter.location) {
+        data.location = ReferentialRef.fromObject(searchFilter.location);
+      }
+    }
+
     // Set contextual program, if any
     if (!data.program) {
       const contextualProgram = this.context.getValue('program') as Program;
@@ -462,6 +462,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Propagate program
     const programLabel = data.program && data.program.label;
     this.$programLabel.next(programLabel);
+
+    // Enable forms (do not wait for program load)
+    if (!programLabel) this.markAsReady();
   }
 
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {

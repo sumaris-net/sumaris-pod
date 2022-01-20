@@ -140,7 +140,7 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
     SubSamplesTable,
     BatchGroupForm,
     SampleTreeComponent
-  ],
+  ]
 })
 export class TripModule {
 

@@ -69,7 +69,7 @@ export class Vessel extends RootDataEntity<Vessel> {
   }
 
   equals(other: Vessel): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       && (this.vesselFeatures.id === other.vesselFeatures.id || this.vesselFeatures.startDate.isSame(other.vesselFeatures.startDate))
       && (this.vesselRegistrationPeriod.id === other.vesselRegistrationPeriod.id || this.vesselRegistrationPeriod.startDate.isSame(other.vesselRegistrationPeriod.startDate));
   }

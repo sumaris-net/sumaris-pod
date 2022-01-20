@@ -21,8 +21,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   gearIds?: number[];
+  physicalGearIds?: number[];
   taxonGroupLabels?: string[];
-  qualityFlagIds?: number[];
   synchronizationStatus?: SynchronizationStatus[];
   dataQualityStatus?: DataQualityStatusIdType;
 
@@ -41,8 +41,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.startDate = source.startDate;
     this.endDate = source.endDate;
     this.gearIds = source.gearIds;
+    this.physicalGearIds = source.physicalGearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
-    this.qualityFlagIds = source.qualityFlagIds;
     this.dataQualityStatus = source.dataQualityStatus;
   }
 
@@ -114,15 +114,16 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
       filterFns.push((o => isNotNil(o.physicalGear?.gear) && gearIds.includes(o.physicalGear.gear.id)));
     }
 
+    // PhysicalGearIds;
+    if (isNotNil(this.physicalGearIds) && this.physicalGearIds.length > 0) {
+      const physicalGearIds = this.physicalGearIds;
+      filterFns.push((o => isNotNil(o.physicalGear) && physicalGearIds.includes(o.physicalGear.id)));
+    }
+
     // taxonGroupIds
     if (isNotNil(this.taxonGroupLabels) && this.taxonGroupLabels.length > 0) {
       const targetSpecieLabels = this.taxonGroupLabels;
       filterFns.push((o => isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1));
-    }
-
-    if (isNotNil(this.qualityFlagIds) && this.qualityFlagIds.length > 0) {
-      const qualityFlagIds = this.qualityFlagIds;
-      filterFns.push(o => !qualityFlagIds.includes(o.qualityFlagId));
     }
 
     // Filter on dataQualityStatus

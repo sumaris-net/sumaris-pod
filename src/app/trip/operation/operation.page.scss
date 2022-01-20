@@ -1,3 +1,5 @@
+@import 'theme.globals';
+
 :host {
 
   ion-title {
@@ -14,4 +16,10 @@
 ion-col>ion-label {
   word-wrap: break-word;
   white-space: normal;
+}
+
+@media screen and (max-width: $screen-sm-max) {
+  .measurements-form {
+    padding-inline-start: 24px;
+  }
 }

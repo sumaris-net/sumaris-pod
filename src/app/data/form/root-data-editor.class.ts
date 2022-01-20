@@ -215,19 +215,12 @@ export abstract class AppRootDataEditor<
       // Create a details message, from errors in forms (e.g. returned by control())
       const formErrors = error && error.details && error.details.errors;
       if (formErrors) {
-        const messages = Object.keys(formErrors)
-          .map(field => {
-            const fieldErrors = formErrors[field];
-            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
-            const fieldName = this.translate.instant(fieldI18nKey);
-            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
-              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
-              return this.translate.instant(key, fieldErrors[key]);
-            }).join(', ');
-            return fieldName + ": " + errorMsg;
-          }).filter(isNotNil);
-        if (messages.length) {
-          error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
+        const i18FormError = this.errorTranslator.translateErrors(formErrors, {
+          separator: ', ',
+          controlPathTranslator: this
+        })
+        if (isNotNilOrBlank(i18FormError)) {
+          error.details.message = i18FormError;
         }
       }
 
@@ -237,6 +230,11 @@ export abstract class AppRootDataEditor<
   }
 
   /* -- protected methods -- */
+
+  translateControlPath(controlPath: string): string {
+    const i18nKey = (this.i18nContext.prefix || '') + changeCaseToUnderscore(controlPath).toUpperCase();
+    return this.translate.instant(i18nKey);
+  }
 
   protected registerAutocompleteField<T = any, F = any>(fieldName: string,
                                                         opts?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {

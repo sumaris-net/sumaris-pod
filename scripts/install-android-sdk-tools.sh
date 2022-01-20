@@ -62,6 +62,7 @@ echo y | sdkmanager "platforms;android-25" --sdk_root=${ANDROID_SDK_ROOT} | tee 
 echo y | sdkmanager "platforms;android-27" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-28" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-29" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
+echo y | sdkmanager "platforms;android-30" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 [[ $? -ne 0 ]] && exit 1
 
 # Install NDK

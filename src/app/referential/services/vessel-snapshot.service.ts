@@ -139,7 +139,7 @@ export class VesselSnapshotService
 
   private defaultFilter: Partial<VesselSnapshotFilter> = null;
   private defaultLoadOptions: Partial<VesselServiceLoadOptions> = null;
-  private minSearchTextLength: number = 0;
+  private suggestLengthThreshold: number = 0;
 
   private get onConfigOrSettingsChanges(): Observable<any> {
     return merge(
@@ -278,7 +278,7 @@ export class VesselSnapshotService
     const searchText = (typeof value === 'string' && value !== '*') && value || undefined;
 
     // Not enough character to launch the search
-    if ((searchText && searchText.length || 0) < this.minSearchTextLength) return {data: undefined};
+    if ((searchText && searchText.length || 0) < this.suggestLengthThreshold) return {data: undefined};
 
     // Exclude search on name, when NOT the first display attributes
     let searchAttributes = filter.searchAttributes;
@@ -447,7 +447,7 @@ export class VesselSnapshotService
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         searchAttributes: baseAttributes
       },
-      suggestLengthThreshold: this.minSearchTextLength,
+      suggestLengthThreshold: this.suggestLengthThreshold,
       debounceTime: 450
     };
   }
@@ -480,6 +480,6 @@ export class VesselSnapshotService
       withBasePortLocation
     };
 
-    this.minSearchTextLength = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_MIN_LENGTH);
+    this.suggestLengthThreshold = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_MIN_LENGTH);
   }
 }
