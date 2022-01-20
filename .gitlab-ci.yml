@@ -74,6 +74,8 @@ build:
   before_script:
     # Get project dependencies
     - cp -R /tmp/.build-cache/node_modules .
+  variables:
+    BUILD_ENVIRONMENT: dev
   only:
     - develop
     - /^feature\/.*/
@@ -87,6 +89,8 @@ failsafe-build:
     - yarn global add @ionic/cli @angular/cli
     # Update project dependencies
     - yarn install
+  variables:
+    BUILD_ENVIRONMENT: dev
   only:
     - develop
     - /^feature\/.*/
