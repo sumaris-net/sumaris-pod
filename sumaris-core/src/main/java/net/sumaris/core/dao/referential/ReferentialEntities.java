@@ -65,6 +65,8 @@ public class ReferentialEntities {
 
     // Reserved i18n (required when Nuiton init i18n files)
     static {
+        I18n.n("sumaris.persistence.table.status");
+        I18n.n("sumaris.persistence.table.department");
         I18n.n("sumaris.persistence.table.location");
         I18n.n("sumaris.persistence.table.locationLevel");
         I18n.n("sumaris.persistence.table.gear");

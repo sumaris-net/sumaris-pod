@@ -38,6 +38,10 @@ JAVA_CMD="java ${JAVA_OPTS} -classpath ${CLASSPATH} org.hsqldb.Server ${DB_OPTS}
 #export DB_TEMP_DIRECTORY="../db-temp"
 #export DB_OPTS=$DB_OPTS --database.1 file:$DB_TEMP_DIRECTORY/${DB_NAME} --dbname.1 ${DB_NAME}-temp
 
+if [[ ! -d "${DB_DIRECTORY}" ]]; then
+    echo "Cannot found the DB directory: ${DB_DIRECTORY}"
+fi;
+
 # run db-server
 echo $JAVA_CMD
 $JAVA_CMD

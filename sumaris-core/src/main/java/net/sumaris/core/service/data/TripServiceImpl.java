@@ -247,9 +247,9 @@ public class TripServiceImpl implements TripService {
 
         // Update undefined operations (=metiers) on existing trip, dates can be changed
         if (!isNew) {
-            operationGroupService.updateUndefinedOperationDates(source.getId(), source.getDepartureDateTime(), source.getReturnDateTime());
+            operationGroupService.updateUndefinedOperationDates(source.getId(),
+                source.getDepartureDateTime(), source.getReturnDateTime());
         }
-
 
         // Keep source parent information
         options.setLandingId(source.getLandingId());
