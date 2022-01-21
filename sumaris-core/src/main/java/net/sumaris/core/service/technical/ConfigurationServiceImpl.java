@@ -56,7 +56,6 @@ import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -92,9 +91,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Autowired
     private ApplicationEventPublisher publisher;
-
-    @Autowired
-    ConfigurableEnvironment env;
 
     private Version dbVersion;
 

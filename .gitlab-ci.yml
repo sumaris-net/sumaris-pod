@@ -190,9 +190,9 @@ sonarqube:
     - echo "Performing release..."
     - mvn clean install --batch-mode -DskipTests
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
-    - mkdir target && echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
     - echo "Pushing changes to upstream"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
+    - mkdir target && echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
