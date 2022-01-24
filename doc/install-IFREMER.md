@@ -45,6 +45,8 @@ Puis la lancer :
  - `cd sumaris-core/src/test/scripts`
  - `startServer.bat` sous Windows (si erreur sur "replace" commenter la partie Copy test DB)
 
+Elle est accessible avec DBeaver (driver HSQLDB Server) : `jdbc:hsqldb:hsql://localhost:9001/sumaris`
+
 ### Lancer le pod
 - `cd sumaris-server`
 - `mvn spring-boot:run -Dspring-boot.run.fork=false -Duser.timezone=UTC -Dsumaris.name=IMAGINE` **(ne pas oublier de lancer la base!)**
