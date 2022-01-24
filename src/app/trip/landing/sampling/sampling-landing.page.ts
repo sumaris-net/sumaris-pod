@@ -193,8 +193,14 @@ export class SamplingLandingPage extends LandingPage {
 
       const vesselId = data.vesselSnapshot.id;
       const observedLocationParent = this.parent as ObservedLocation;
+
+      // INFO CLT : IMAGINE-639 [Obs. Individuelle - Echantillonnages] Saisie de plusieurs espèces sur un même navire
+      // We need to use 'no-cache' fetch policy in order to transform mutable watch query into ordinary query since mutable queries doesn't manage correctly updates and cache.
+      // They doesn't wait server result to return client side result.
+      // Todo use trip count instead in order to use a simpler query to figure out how many seconds to add ti landing dateTime.
       const res = await this.landingService.loadAllByObservedLocation({observedLocationId: observedLocationParent.id, locationId: observedLocationParent.location.id, vesselId: vesselId},
-        {fullLoad: true, computeRankOrder: false});
+        {fullLoad: true, computeRankOrder: false, fetchPolicy: 'no-cache'});
+
       const landings = res && res.data;
 
       let maxDatetime: Moment = null;
