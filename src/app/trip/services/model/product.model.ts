@@ -164,7 +164,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
    * @param other
    */
   equals(other: Product): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         this.taxonGroup.equals(other.taxonGroup) && this.rankOrder === other.rankOrder
         && equalsOrNil(this.individualCount, other.individualCount) && equalsOrNil(this.weight, other.weight)

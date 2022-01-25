@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit 
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { AppFormUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, isNotEmptyArray, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 @Component({
   selector: 'app-sample-form',
@@ -27,6 +28,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
+  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() showLabel = true;
   @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;
@@ -68,10 +70,19 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
 
     // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      mobile: this.mobile
-    });
+    if (isNotEmptyArray(this.availableTaxonGroups)) {
+      this.registerAutocompleteField('taxonGroup', {
+        items: this.availableTaxonGroups,
+        mobile: this.mobile
+      });
+    }
+    else {
+      this.registerAutocompleteField('taxonGroup', {
+        suggestFn: (value: any, options?: any) => this.programRefService.suggestTaxonGroups(value, {...options, program: this.programLabel}),
+        mobile: this.mobile
+      });
+    }
+
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
@@ -111,19 +122,11 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     return value;
   }
 
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
-
   protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     const taxonGroup = this.form.get('taxonGroup').value;
 
     // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(parent)) return {data: []};
+    if (this.showTaxonGroup && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
 
     return this.programRefService.suggestTaxonNames(value,
       {

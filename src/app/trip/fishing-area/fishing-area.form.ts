@@ -3,7 +3,7 @@ import { FishingArea } from '../services/model/fishing-area.model';
 import { FormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
-import { AppForm, NetworkService } from '@sumaris-net/ngx-components';
+import { AppForm, NetworkService, StatusIds } from '@sumaris-net/ngx-components';
 import { FishingAreaValidatorService } from '../services/validator/fishing-area.validator';
 import { LocationLevelIds } from '../../referential/services/model/model.enum';
 
@@ -54,12 +54,18 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
     // Set if required or not
     this.validatorService.updateFormGroup(this.form, {required: this.required});
 
-    // Combo: fishing area
-    this.registerAutocompleteField('location', {
+    // Combo: fishing area location
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation');
+    this.registerAutocompleteField('fishingAreaLocation', {
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        entityName: 'Location',
+        ...filter,
         levelIds: this.locationLevelIds
-      })
+      }),
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+      },
+      attributes: fishingAreaAttributes
     });
 
     // Combo: distance to coast gradient

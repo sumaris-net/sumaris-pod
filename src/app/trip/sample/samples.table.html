@@ -56,7 +56,7 @@
     <ion-label translate>TRIP.SAMPLE.TABLE.BTN_ADD_PMFM</ion-label>
   </button>
 
-  <mat-divider></mat-divider>
+  <mat-divider *ngIf="showDisplayColumnModal"></mat-divider>
 
   <!-- display columns option -->
   <button *ngIf="showDisplayColumnModal" mat-menu-item
@@ -154,7 +154,7 @@
       <td mat-cell *matCellDef="let row"
           [title]="row.validator | translateFormError: errorTranslatorOptions">
         <ion-text matBadge="!"
-                  [matBadgeHidden]="!row.editing || row.validator.valid"
+                  [matBadgeHidden]="!row.editing || !row.validator.invalid"
                   matBadgeOverlap="false"
                   matBadgeColor="accent"
                   matBadgeSize="small">

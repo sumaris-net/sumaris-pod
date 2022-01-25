@@ -4,16 +4,30 @@ import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
-import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise,firstTruePromise, HistoryPageReference, isNil, isNotEmptyArray, isNotNil, SharedValidators,} from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  firstTruePromise,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  SharedValidators,
+} from '@sumaris-net/ngx-components';
 import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
 import {LandingPage} from '../landing.page';
 import {Landing} from '../../services/model/landing.model';
-import {filter, first} from 'rxjs/operators';
 import {ObservedLocation} from '../../services/model/observed-location.model';
 import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {LandingService} from '@app/trip/services/landing.service';
+import * as momentImported from 'moment';
+import {Moment} from 'moment';
+import {Trip} from '@app/trip/services/model/trip.model';
 
+const moment = momentImported;
 
 @Component({
   selector: 'app-sampling-landing-page',
@@ -34,6 +48,7 @@ export class SamplingLandingPage extends LandingPage {
     protected samplingStrategyService: SamplingStrategyService,
     protected pmfmService: PmfmService,
     protected accountService: AccountService,
+    protected landingService: LandingService,
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
@@ -152,6 +167,9 @@ export class SamplingLandingPage extends LandingPage {
     if (this.parent && this.parent instanceof ObservedLocation) {
       this.landingForm.form.get('location').patchValue(data.location);
     }
+    if (this.parent && this.parent instanceof Trip) {
+      data.trip = this.parent;
+    }
   }
 
   protected async getValue(): Promise<Landing> {
@@ -161,7 +179,7 @@ export class SamplingLandingPage extends LandingPage {
     data = Landing.fromObject(data);
 
     // Compute final TAG_ID, using the strategy label
-    const strategyLabel = data.measurementValues &&  data.measurementValues[PmfmIds.STRATEGY_LABEL];
+    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
     if (strategyLabel) {
       const sampleLabelPrefix = strategyLabel + '-';
       (data.samples || []).forEach(sample => {
@@ -171,6 +189,35 @@ export class SamplingLandingPage extends LandingPage {
         }
       });
     }
+    if (isNil(data.id) && isNotNil(data.observedLocationId)) {
+
+      const vesselId = data.vesselSnapshot.id;
+      const observedLocationParent = this.parent as ObservedLocation;
+
+      // INFO CLT : IMAGINE-639 [Obs. Individuelle - Echantillonnages] Saisie de plusieurs espèces sur un même navire
+      // We need to use 'no-cache' fetch policy in order to transform mutable watch query into ordinary query since mutable queries doesn't manage correctly updates and cache.
+      // They doesn't wait server result to return client side result.
+      // Todo use trip count instead in order to use a simpler query to figure out how many seconds to add ti landing dateTime.
+      const res = await this.landingService.loadAllByObservedLocation({observedLocationId: observedLocationParent.id, locationId: observedLocationParent.location.id, vesselId: vesselId},
+        {fullLoad: true, computeRankOrder: false, fetchPolicy: 'no-cache'});
+
+      const landings = res && res.data;
+
+      let maxDatetime: Moment = null;
+      (landings || []).forEach(landing => {
+        const trip: Trip = Trip.fromObject(landing.trip);
+        const landingTripDepartureDateTime = trip.departureDateTime;
+        if (maxDatetime == null || landingTripDepartureDateTime.isAfter(maxDatetime)) {
+          maxDatetime = landingTripDepartureDateTime;
+        }
+      });
+      if (maxDatetime != null) {
+        const dataTrip: Trip = Trip.fromObject(data.trip);
+        dataTrip.departureDateTime = moment(maxDatetime).add(1, 'seconds');
+        data.trip = dataTrip;
+      }
+    }
+
     return data;
   }
 

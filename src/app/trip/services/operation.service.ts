@@ -55,6 +55,7 @@ import {PositionUtils} from '@app/trip/services/position.utils';
 import {IPosition} from '@app/trip/services/model/position.model';
 import {ErrorCodes} from '@app/data/services/errors';
 import {mergeLoadResult} from '@app/shared/functions';
+import { TripErrorCodes } from '@app/trip/services/trip.errors';
 
 
 export const OperationFragments = {
@@ -988,7 +989,24 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Update parent/child operation
     if (opts?.updateLinkedOperation) {
-     await this.updateLinkedOperation(entity, opts);
+      try {
+        await this.updateLinkedOperation(entity, opts);
+      }
+      catch (err) {
+        if (err?.code === TripErrorCodes.CHILD_OPERATION_NOT_FOUND) {
+          entity.childOperationId = null;
+          entity.childOperation = null;
+          json.childOperationId = null;
+          json.childOperation = null;
+          await this.entities.save(json);
+        }
+        else if (err?.code === TripErrorCodes.PARENT_OPERATION_NOT_FOUND) {
+          console.error('[operation-service] [offline] Cannot found the parent operation: ' + (err && err.message || err), err);
+        }
+        else {
+          console.error('[operation-service] [offline] Cannot update linked operation: ' + (err && err.message || err), err);
+        }
+      }
     }
 
     return entity;
@@ -1014,10 +1032,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       // Update the child operation, if need
       if (needUpdateChild) {
-        console.warn('[operation-service] Updating child operation...');
+        console.info('[operation-service] Updating child operation...');
 
         // Replace cached entity by a full entity
-        if (child === cachedChild) child = await this.load(childOperationId);
+        if (child === cachedChild) {
+          try {
+            child = await this.load(childOperationId);
+          } catch (err) {
+            // Child not exists
+            if (err.code === ErrorCodes.LOAD_ENTITY_ERROR) {
+              throw {code: TripErrorCodes.CHILD_OPERATION_NOT_FOUND, message: err.message};
+            }
+            throw err;
+          }
+        }
 
         // Update the child
         child.startDateTime = entity.startDateTime;
@@ -1058,10 +1086,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
         let savedParent: Operation;
         if (parent && parent.childOperationId !== entity.id) {
+          console.info('[operation-service] Updating parent operation...');
 
           if (EntityUtils.isLocal(parent)) {
             // Replace cached entity by a full entity
-            if (parent === cachedParent) parent = await this.load(parentOperationId);
+            if (parent === cachedParent) {
+              try {
+                parent = await this.load(parentOperationId);
+              } catch (err) {
+                // Parent not exists
+                if (err.code === ErrorCodes.LOAD_ENTITY_ERROR) {
+                  throw {code: TripErrorCodes.PARENT_OPERATION_NOT_FOUND, message: err.message};
+                }
+                throw err;
+              }
+            }
 
             // Update the parent
             parent.childOperationId = entity.id;
@@ -1122,6 +1161,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       }
     }
     return distance;
+  }
+
+  async areUsedPhysicalGears(tripId: number, physicalGearIds: number[]): Promise<boolean>{
+    const res = await this.loadAll(0, 1, null, null,
+      {
+        tripId: tripId,
+        physicalGearIds: physicalGearIds
+      },
+      {
+        withTotal: false
+      });
+
+    const usedGearIds = res.data.map(physicalGear => physicalGear.id);
+    return(usedGearIds.length === 0);
   }
 
   /* -- protected methods -- */

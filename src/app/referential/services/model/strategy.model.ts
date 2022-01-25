@@ -1,4 +1,4 @@
-import { BaseReferential, Entity, EntityClass, fromDateISOString, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { BaseReferential, Entity, EntityClass, fromDateISOString, isNotNil, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TaxonGroupRef } from './taxon-group.model';
 import { DenormalizedPmfmStrategy, PmfmStrategy } from './pmfm-strategy.model';
@@ -65,7 +65,7 @@ export class Strategy<
   }
 
   equals(other: T): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       // Or by functional attributes
       || (
         // Same label
@@ -155,7 +155,7 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
   }
 
   equals(other: AppliedStrategy) {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       // Same strategyId and location
       || (this.strategyId === other.strategyId
       && ((!this.location && !other.location) || (this.location && other.location && this.location.id === other.location.id))

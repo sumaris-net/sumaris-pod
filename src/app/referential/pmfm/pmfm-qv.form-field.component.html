@@ -37,7 +37,9 @@
           <mat-icon>arrow_drop_down</mat-icon>
         </button>
 
-        <ng-content select="[matSuffix]"></ng-content>
+        <div matSuffix>
+          <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+        </div>
 
         <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
@@ -114,6 +116,10 @@
         </mat-option>
       </mat-select>
 
+      <div matSuffix>
+        <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+      </div>
+
       <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
     </mat-form-field>
@@ -144,7 +150,9 @@
         <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
       </ng-template>
 
-      <ng-content matSuffix select="[matAfter]"></ng-content>
+      <div matSuffix>
+        <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+      </div>
 
       <ion-fab-button matSuffix color="light" size="small" *ngIf="!compact && maxVisibleButtons !== 999"
                       [class.hidden]="maxVisibleButtons === 999"
@@ -157,3 +165,8 @@
   </ng-container>
 
 </ng-template>
+
+<ng-template #matSuffixTemplate>
+  <ng-content select="[matSuffix]"></ng-content>
+</ng-template>
+

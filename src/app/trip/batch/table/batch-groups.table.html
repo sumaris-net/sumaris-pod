@@ -39,8 +39,10 @@
                 (click)="onRefresh.emit()">
           <mat-icon>refresh</mat-icon>
         </button>
+
+        <!-- Auto fill species -->
         <button mat-icon-button
-                *ngIf="availableTaxonGroups && !selection.hasValue() && enabled"
+                *ngIf="enabled && selection.isEmpty() && availableTaxonGroups | isNotEmptyArray"
                 [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
                 (click)="autoFillTable()">
           <mat-icon>control_point_duplicate</mat-icon>
@@ -144,7 +146,7 @@
       <th mat-header-cell *matHeaderCellDef
           [class]="col.classList"
           [class.cdk-visually-hidden]="col.hidden"
-          class="mat-cell-content-start-padding">
+          class="ion-text-center">
         <mat-label>
           <span>{{col.label|translate}}</span>
           <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
@@ -160,6 +162,7 @@
         <app-form-field floatLabel="never"
                         [definition]="col"
                         [readonly]="!row.editing || col.computed"
+                        [tabindex]="col.computed && -1"
                         [formControl]="row.validator.get(col.path)"
                         [autofocus]="row.editing && focusColumn === col.key"
                         [compact]="true">
@@ -306,11 +309,12 @@
       </ng-container>
 
       <!-- Dynamic columns -->
-      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
+      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;"
+                    [matColumnDef]="col.key">
         <th mat-header-cell *matHeaderCellDef
             [class]="col.classList"
             [class.cdk-visually-hidden]="col.hidden"
-            class="mat-cell-content-start-padding">
+            class="ion-text-center">
           <mat-label>
             <span>{{col.label|translate}}</span>
             <small *ngIf="col.unitLabel"><br />({{col.unitLabel}})</small>
@@ -414,4 +418,20 @@
     </table>
   </ng-template>
 
+
+  <ion-item *ngIf="totalRowCount === 0">
+    <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+    <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+  </ion-item>
 </div>
+
+
+<ng-template #addRowButton>
+  <span *ngIf="!mobile && enabled">&nbsp;
+    <ion-button color="medium"
+                (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </span>
+</ng-template>

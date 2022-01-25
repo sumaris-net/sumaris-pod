@@ -73,7 +73,8 @@ export class Program extends BaseReferential<Program> {
   }
 
   equals(other: Program): boolean {
-    return super.equals(other) || this.label === other.label;
+    return (super.equals(other) && isNotNil(this.id))
+      || this.label === other.label;
   }
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
@@ -99,7 +100,7 @@ export class Program extends BaseReferential<Program> {
 
   getProperty<T = string>(definition: FormFieldDefinition): T {
     if (!definition) throw new Error("Missing 'definition' argument");
-    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : (definition.defaultValue || undefined);
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : definition.defaultValue;
   }
 }
 

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {FormGroup, Validators} from '@angular/forms';
-import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from './batches.table';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { FormGroup, Validators } from '@angular/forms';
+import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter } from './batches.table';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -169,7 +169,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
-    super.markAsPristine();
+    super.markAsPristine(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAsPristine(opts);
   }
 
@@ -186,6 +186,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
     super.markAsUntouched(opts);
     if (this.weightMethodForm) this.weightMethodForm.markAsUntouched(opts);
+  }
+
+  get dirty(): boolean {
+    return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
   }
 
   @Input() useSticky = false;
@@ -358,7 +362,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
               BatchUtils.getOrCreateSamplingChild(child);
             }
           }
-
         });
       } else if (!this.qvPmfm && batch) {
         // Replace measurement values inside a new map, based on fake pmfms
@@ -385,6 +388,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Set weight is estimated ?
     if (this.weightMethodForm) {
+      console.debug('[batch-group-table] Set weight form values (is estimated ?)')
       this.weightMethodForm.patchValue(weightMethodValues);
     }
 
@@ -619,7 +623,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return child;
   }
 
-
   protected prepareChildToSave(batch: BatchGroup, groupColumnValues: { [key: number]: any }, qv?: ReferentialRef, qvIndex?: number): Batch {
 
     qvIndex = qvIndex || 0;
@@ -763,11 +766,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         res[index] = [false, Validators.required];
         return res;
       }, {}));
-
-      // Listening changes, to mark table as dirty
-      this.registerSubscription(
-        this.weightMethodForm.valueChanges.subscribe(_ => this.markAsDirty())
-      );
     }
 
     this.estimatedWeightPmfm = this.weightPmfmsByMethod && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;

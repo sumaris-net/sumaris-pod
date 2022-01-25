@@ -16,6 +16,9 @@ export class AuctionControlValidators {
       return null;
     }
 
+    // DEBUG
+    //console.debug('AuctionControlValidators.addSampleValidators()', form);
+
     // Label: remove 'required', and add integer
     form.get('label').setValidators(Validators.pattern(/^[0-9]*$/));
 

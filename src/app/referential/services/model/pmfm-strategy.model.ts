@@ -1,4 +1,4 @@
-import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, ReferentialRef, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
+import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, isNotNil, ReferentialRef, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
 import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
 import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
 import { MethodIds, UnitIds } from './model.enum';
@@ -16,7 +16,9 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
   static getPmfmId = (source: PmfmStrategy) => source && toNumber(source.pmfmId, source.pmfm?.id);
   static equals = (o1: PmfmStrategy, o2: PmfmStrategy) => (isNil(o1) && isNil(o2))
     // Same ID
-    || (o1 && o2 && (o1.id === o2.id
+    || (o1 && o2 && (
+      // Same ID
+      (isNotNil(o1.id) && o1.id === o2.id)
       // Or same strategy, rankOrder and acquisitionLevel
       || (o1.strategyId === o2.strategyId
         && o1.rankOrder === o2.rankOrder
@@ -291,7 +293,8 @@ export class DenormalizedPmfmStrategy
   }
 
   equals(other: DenormalizedPmfmStrategy): boolean {
-    return other && (this.id === other.id
+    return other && (
+      (isNotNil(this.id) && this.id === other.id)
       // Same strategy, acquisitionLevel, pmfmId
       || (this.strategyId === other.strategyId && this.acquisitionLevel === other.acquisitionLevel)
     );

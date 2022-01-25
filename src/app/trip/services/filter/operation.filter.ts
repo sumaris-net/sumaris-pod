@@ -1,8 +1,8 @@
-import {EntityClass, FilterFn, fromDateISOString, isNil, isNotNil} from '@sumaris-net/ngx-components';
-import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
-import {Operation} from '@app/trip/services/model/trip.model';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {Moment} from 'moment';
+import { EntityClass, FilterFn, fromDateISOString, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
+import { Operation } from '@app/trip/services/model/trip.model';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { Moment } from 'moment';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 
 @EntityClass({typename: 'OperationFilterVO'})
@@ -19,8 +19,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   startDate?: Date | Moment;
   endDate?: Date | Moment;
   gearIds?: number[];
+  physicalGearIds?: number[];
   taxonGroupLabels?: string[];
-  qualityFlagId?: number;
   synchronizationStatus?: SynchronizationStatus[];
 
   static fromObject: (source: any, opts?: any) => OperationFilter;
@@ -38,9 +38,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.startDate = source.startDate;
     this.endDate = source.endDate;
     this.gearIds = source.gearIds;
+    this.physicalGearIds = source.physicalGearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
-    this.qualityFlagId = source.qualityFlagId;
-
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -106,15 +105,16 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
       filterFns.push((o => isNotNil(o.physicalGear?.gear) && gearIds.includes(o.physicalGear.gear.id)));
     }
 
+    // PhysicalGearIds;
+    if (isNotNil(this.physicalGearIds) && this.physicalGearIds.length > 0) {
+      const physicalGearIds = this.physicalGearIds;
+      filterFns.push((o => isNotNil(o.physicalGear) && physicalGearIds.includes(o.physicalGear.id)));
+    }
+
     // taxonGroupIds
     if (isNotNil(this.taxonGroupLabels) && this.taxonGroupLabels.length > 0) {
       const targetSpecieLabels = this.taxonGroupLabels;
       filterFns.push((o => isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1));
-    }
-
-    if (isNotNil(this.qualityFlagId)){
-      const qualityFlagId = this.qualityFlagId;
-      filterFns.push((o => isNotNil(o.qualityFlagId) && o.qualityFlagId === qualityFlagId));
     }
 
     // Filter on parent trip

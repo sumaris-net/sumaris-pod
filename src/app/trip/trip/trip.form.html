@@ -31,7 +31,7 @@
       <ion-col>
         <mat-autocomplete-field *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
                                 formControlName="vesselSnapshot"
-                                [placeholder]="'TRIP.VESSEL'|translate"
+                                [placeholder]="'TRIP.VESSEL_SNAPSHOT'|translate"
                                 [config]="autocompleteFields.vesselSnapshot"
                                 required>
           <ion-icon matPrefix name="boat"></ion-icon>
@@ -52,12 +52,14 @@
         <ion-label class="ion-float-end" translate>TRIP.DEPARTURE</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field formControlName="departureLocation"
+        <mat-autocomplete-field #locationField
+                                formControlName="departureLocation"
                                 [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
-                                [filter]="locationFilter"
                                 [required]="true"
-                                [panelWidth]="!mobile && '500px'">
+                                logPrefix="[location]"
+                                [panelWidth]="mobile ? '80vw' : '500px'"
+                                [matAutocompletePosition]="mobile ? 'above': 'auto'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
 
@@ -76,12 +78,13 @@
         <ion-label class="ion-float-end" translate>TRIP.RETURN</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field formControlName="returnLocation"
+        <mat-autocomplete-field #locationField
+                                formControlName="returnLocation"
                                 [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
-                                [filter]="locationFilter"
                                 [required]="returnFieldsRequired"
-                                [panelWidth]="!mobile && '500px'">
+                                [panelWidth]="mobile ? '80vw' : '500px'"
+                                [matAutocompletePosition]="mobile ? 'above': 'auto'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -93,8 +96,8 @@
                              [clearable]="!returnFieldsRequired">
           <mat-hint align="end" *ngIf="form.controls.returnDateTime.value">
             <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
-            startValue: form.get('departureDateTime').value,
-            endValue: form.get('returnDateTime').value
+            startValue: form.controls.departureDateTime.value,
+            endValue: form.controls.returnDateTime.value
           } | dateDiffDuration }}
           </mat-hint>
         </mat-date-time-field>
@@ -145,7 +148,6 @@
                                   [placeholder]="(first ? 'TRIP.MAIN_METIER_PLACEHOLDER' : 'TRIP.SECONDARY_METIER_PLACEHOLDER')|translate : {rank: i}"
                                   [autofocus]="metierFocusIndex === i"
                                   [config]="autocompleteFields.metier"
-                                  [filter]="metierFilter"
                                   [tabindex]="tabindex+10+i*3"
                                   [i18nPrefix]="'REFERENTIAL.'"
                                   [required]="first"

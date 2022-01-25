@@ -194,7 +194,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
 
   equals(other: T): boolean {
     // equals by ID
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       // Or by functional attributes
       || (this.rankOrder === other.rankOrder
         // same operation

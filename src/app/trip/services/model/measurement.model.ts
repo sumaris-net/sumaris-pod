@@ -101,7 +101,7 @@ export class Measurement extends DataEntity<Measurement> {
   }
 
   equals(other: Measurement): boolean {
-    return super.equals(other)
+    return (super.equals(other) && isNotNil(this.id))
       || (
         // Same [pmfmId, rankOrder]
         (this.pmfmId === other.pmfmId && this.rankOrder === other.rankOrder)
@@ -273,13 +273,20 @@ export class MeasurementValuesUtils {
   static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
     keepSourceObject?: boolean;
   }): MeasurementModelValues {
+
+    // DEBUG
+    //console.debug('calling normalizeValuesToModel() from ' +  source.__typename);
+
     const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
 
     if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
       (pmfms || []).forEach(pmfm => {
         target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
       });
-      delete target.__typename;
+      // DO NOT delete __typename, but force it to MeasurementModelValues
+      // If not: there is a bug when edition a row, saving and editing it again: the conversion to form is not applied!
+      //delete target.__typename;
+      target.__typename = MeasurementValuesTypes.MeasurementModelValues;
     }
 
     return target;
@@ -304,6 +311,9 @@ export class MeasurementValuesUtils {
     opts = opts || {};
     pmfms = pmfms || [];
 
+    // DEBUG
+    console.debug('calling normalizeValueToForm() from ' +  source.__typename);
+
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source)
@@ -319,15 +329,30 @@ export class MeasurementValuesUtils {
       ? {...source} : {};
 
     if (MeasurementValuesUtils.isMeasurementModelValues(target)) {
-      // Normalize all pmfms from the list
-      pmfms.forEach(pmfm => {
-        const pmfmId = pmfm?.id;
-        if (isNil(pmfmId)) {
-          console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
-          return;
-        }
-        target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
-      });
+      // Copy from source, without value conversion (not need)
+      if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
+        // Normalize all pmfms from the list
+        pmfms.forEach(pmfm => {
+          const pmfmId = pmfm?.id;
+          if (isNil(pmfmId)) {
+            console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
+            return;
+          }
+          target[pmfmId.toString()] = source[pmfmId];
+        });
+      }
+      // Copy from source, WITH value conversion
+      else {
+        // Normalize all pmfms from the list
+        pmfms.forEach(pmfm => {
+          const pmfmId = pmfm?.id;
+          if (isNil(pmfmId)) {
+            console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
+            return;
+          }
+          target[pmfmId.toString()] = PmfmValueUtils.fromModelValue(source[pmfmId], pmfm);
+        });
+      }
       target.__typename = MeasurementValuesTypes.MeasurementFormValue;
     }
 

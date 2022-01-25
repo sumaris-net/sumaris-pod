@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import {TripValidatorService} from '../services/validator/trip.validator';
-import {ModalController} from '@ionic/angular';
+import { IonButton, ModalController } from '@ionic/angular';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 
 import {
@@ -58,6 +58,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showObservers: boolean;
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
+  private _locationSuggestLengthThreshold: number;
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -65,10 +66,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   metierFilter: Partial<MetierFilter>;
   metiersHelper: FormArrayHelper<ReferentialRef>;
   metierFocusIndex = -1;
-  locationFilter: Partial<ReferentialRefFilter> = {
-    entityName: 'Location',
-    levelIds: [LocationLevelIds.PORT]
-  };
   canFilterMetier = false;
   mobile: boolean;
 
@@ -102,26 +99,20 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._showMetiers;
   }
 
-  @Input() set locationLevelIds(value: number[]) {
-    if (this.locationFilter.levelIds !== value) {
+  @Input() locationLevelIds = [LocationLevelIds.PORT];
 
-      console.debug("[trip-form] Location level ids:", value);
-      this.locationFilter = {
-        ...this.locationFilter,
-        entityName: 'Location',
-        levelIds: value
-      };
-      this.markForCheck();
+  @Input() set locationSuggestLengthThreshold(value: number) {
+    this._locationSuggestLengthThreshold = value;
+    if (this.autocompleteFields.location) {
+      this.autocompleteFields.location.suggestLengthThreshold = value;
+      // Update fields
+      this.locationFields.forEach(field => field.suggestLengthThreshold = value);
     }
-  }
-
-  get locationLevelIds(): number[] {
-    return this.locationFilter && this.locationFilter.levelIds;
   }
 
   @Input() set returnFieldsRequired(value: boolean){
     this._returnFieldsRequired = value;
-    if (!this._loading) this.updateFormGroup();
+    if (!this.loading) this.updateFormGroup();
   };
 
   get returnFieldsRequired(): boolean {
@@ -156,14 +147,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.controls.metiers as FormArray;
   }
 
-  get loading(): boolean {
-    return this._loading;
-  }
-
-
-  @Output() maxDate = new EventEmitter<Moment>();
+  @Output() maxDateChanges = new EventEmitter<Moment>();
 
   @ViewChild('metierField') metierField: MatAutocompleteField;
+  @ViewChildren('locationField') locationFields: QueryList<MatAutocompleteField>;
 
   constructor(
     injector: Injector,
@@ -197,8 +184,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
       attributes: programAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      // Increase default size (=3) of 'label' column
+      columnSizes: programAttributes.map(attr => attr === 'label' ? 4 : undefined/*auto*/),
       filter: <ReferentialRefFilter>{
         entityName: 'Program'
       },
@@ -211,9 +198,22 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     );
 
     // Combo location
+    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
     this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
-      filter: this.locationFilter
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+        ...filter,
+        searchAttributes: locationAttributes,
+        levelIds: this.locationLevelIds
+      }),
+      filter: <Partial<ReferentialRefFilter>>{
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        entityName: 'Location'
+      },
+      // Increase default size (=3) of 'label' column
+      columnSizes: locationAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
+      attributes: locationAttributes,
+      showAllOnFocus: false,
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0
     });
 
     // Combo: observers
@@ -240,8 +240,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      // Increase default column size, for 'label'
-      columnSizes: metierAttributes.map(a => a === 'label' ? 3 : undefined/*auto*/),
+      // Increase default size (=3) of 'label' column
+      columnSizes: metierAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
       attributes: metierAttributes,
       mobile: this.mobile
     });
@@ -269,7 +269,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       ])
       .subscribe(([d1, d2]) => {
         const max = DateUtils.max(fromDateISOString(d1), fromDateISOString(d2));
-        this.maxDate.next(max);
+        this.maxDateChanges.next(max);
       })
     );
   }
@@ -294,7 +294,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
-
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
@@ -319,7 +318,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.metiersHelper?.resize(0);
     }
 
-    this.maxDate.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
+    this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
 
     // Send value for form
     super.setValue(data, opts);
@@ -495,6 +494,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   protected updateFormGroup() {
     console.info('[trip-form] Updating form group...');
     this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
+    this.markForCheck(); // Need to toggle return date time to required
   }
 
   protected markForCheck() {

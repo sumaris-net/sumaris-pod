@@ -11,6 +11,7 @@ export const LocationLevelIds = {
 
   // At sea
   ICES_RECTANGLE: 4,
+  GFCM_RECTANGLE: 5,
   ICES_DIVISION: 111,
   LOCATIONS_AREA: [4, 5, 111]
 };
@@ -84,6 +85,7 @@ export const PmfmIds = {
   /* PIFIL pmfms */
   HAS_ACCIDENTAL_CATCHES: 390,
   INDIVIDUAL_ON_DECK: 397,
+  GEAR_LABEL: 120,
 
   /* LOGBOOK-SEA-CUCUMBER (SFA)*/
   GPS_USED: 188

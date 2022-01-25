@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
-import { LandingValidatorService } from '../services/validator/landing.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
+import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
+import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
+import {LandingValidatorService} from '../services/validator/landing.validator';
+import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {ModalController} from '@ionic/angular';
 import {
   ConfigService,
   EntityUtils,
@@ -22,30 +22,29 @@ import {
   PersonUtils,
   ReferentialRef,
   ReferentialUtils,
-  SharedFormArrayValidators,
   StatusIds,
   suggestFromArray,
   toBoolean,
   toDateISOString,
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Landing } from '../services/model/landing.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { VesselModal } from '@app/vessel/modal/vessel-modal';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
-import { TranslateService } from '@ngx-translate/core';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { Program } from '@app/referential/services/model/program.model';
-import { FishingArea } from '@app/trip/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { Trip } from '@app/trip/services/model/trip.model';
-import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
-import { Metier } from '@app/referential/services/model/metier.model';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Landing} from '../services/model/landing.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {VesselModal} from '@app/vessel/modal/vessel-modal';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {TranslateService} from '@ngx-translate/core';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {Program} from '@app/referential/services/model/program.model';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {TripValidatorService} from '@app/trip/services/validator/trip.validator';
+import {Metier} from '@app/referential/services/model/metier.model';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -161,10 +160,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() showStrategy = false;
   @Input() showMetier = false;
   @Input() showFishingArea = false;
+  @Input() showTripDepartureDateTime = false;
   @Input() locationLevelIds: number[];
   @Input() allowAddNewVessel: boolean;
   @Input() allowManyMetiers: boolean = null;
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
+  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
 
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
@@ -315,16 +316,19 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     });
 
     // Combo: fishingAreas
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation', ['label']);
     this.registerAutocompleteField('fishingAreaLocation', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds
+      }),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        levelIds: LocationLevelIds.LOCATIONS_AREA
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: locationAttributes
+      attributes: fishingAreaAttributes
     });
 
     // Propagate program
@@ -380,12 +384,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           withFishingAreas: this.showFishingArea,
           withSale: false,
           withObservers: false,
-          withMeasurements: false
+          withMeasurements: false,
+          departureDateTimeRequired: false
         });
 
         // Excluded some trip's fields
         TRIP_FORM_EXCLUDED_FIELD_NAMES
-          .filter(key => delete tripFormConfig[key]);
+          .filter(key => {
+            if (!this.showTripDepartureDateTime || key != 'departureDateTime') {
+              delete tripFormConfig[key]
+            }
+          });
 
         tripForm = this.formBuilder.group(tripFormConfig);
 
@@ -475,16 +484,18 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     if (this.showTrip) {
-      data.trip = Trip.fromObject({
+      const trip: Trip = Trip.fromObject({
         ...data.trip,
         // Override some editable properties
         program: data.program,
         vesselSnapshot: data.vesselSnapshot,
-        departureDateTime: toDateISOString(data.dateTime),
         returnDateTime: toDateISOString(data.dateTime),
         departureLocation: data.location,
         returnLocation: data.location
       });
+      // INFO CLT : trip departure date time is stored in database for imagine
+      trip.departureDateTime = trip.departureDateTime || data.dateTime;
+      data.trip = trip;
     }
 
     // DEBUG

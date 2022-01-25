@@ -167,9 +167,9 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       if (promiseOrVoid) await promiseOrVoid;
     }
     finally {
+      this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
-      this.enable();
       this.markForCheck();
     }
 

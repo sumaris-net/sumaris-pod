@@ -2,7 +2,7 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDe
 import {Batch, BatchUtils} from '../../services/model/batch.model';
 import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {
   AppFormUtils,
@@ -10,7 +10,7 @@ import {
   firstTruePromise,
   FormArrayHelper,
   IReferentialRef,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   PlatformService,
@@ -20,7 +20,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 
-import {debounceTime, filter} from 'rxjs/operators';
+import { debounceTime, delay, filter } from 'rxjs/operators';
 import {AcquisitionLevelCodes, MethodIds, PmfmIds, PmfmLabelPatterns, QualitativeLabels} from '@app/referential/services/model/model.enum';
 import {BehaviorSubject, Observable, Subscription} from 'rxjs';
 import {MeasurementValuesUtils} from '../../services/model/measurement.model';
@@ -43,6 +43,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected _requiredSampleWeight = false;
   protected _requiredIndividualCount = false;
   protected _initialPmfms: IPmfm[];
+  protected _disableByDefaultControls: AbstractControl[] = [];
 
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
@@ -84,6 +85,9 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Refresh sampling child form
     if (!this.isSampling) this.setIsSampling(this.isSampling);
     if (!this._showWeight) this.disableWeightFormGroup();
+
+    // Other field to disable by default (e.g. discard reason, in SUMARiS program)
+    this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
   get childrenArray(): FormArray {
@@ -167,9 +171,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
-
     // Taxon group combo
-    if (isNotNil(this.availableTaxonGroups)) {
+    if (Array.isArray(this.availableTaxonGroups) ? isNotEmptyArray(this.availableTaxonGroups) : isNotNil(this.availableTaxonGroups)) {
       // Set items (useful to speed up the batch group modal)
       this.registerAutocompleteField('taxonGroup', {
         items: this.availableTaxonGroups,
@@ -178,7 +181,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     } else {
       this.registerAutocompleteField('taxonGroup', {
         suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
-        mobile: this.settings.mobile
+        mobile: this.mobile
       });
 
     }
@@ -199,6 +202,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         )
         .subscribe(taxonGroup => this.updateTaxonNameFilter({taxonGroup}))
     );
+
+    this.ngInitExtension();
   }
 
   ngAfterViewInit() {
@@ -210,6 +215,43 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     super.ngOnDestroy();
     this._$afterViewInit.complete();
     if (this.samplingFormValidator) this.samplingFormValidator.unsubscribe();
+  }
+
+  /* -- protected method -- */
+
+  protected async ngInitExtension() {
+
+    await this.ready();
+
+    const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);
+    const discardOrLandingControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_OR_LANDING);
+
+    // Manage DISCARD_REASON validator
+    if (discardOrLandingControl && discardReasonControl) {
+      // Always disable by default, while discard/Landing not set
+      this._disableByDefaultControls.push(discardReasonControl);
+
+      this.registerSubscription(discardOrLandingControl.valueChanges
+        .pipe(
+          // IMPORTANT: add a delay, to make sure to be executed AFTER the form.enable()
+          delay(200)
+        )
+        .subscribe((value) => {
+          if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
+            if (this.form.enabled) {
+              discardReasonControl.enable();
+            }
+            discardReasonControl.setValidators(Validators.required);
+            discardReasonControl.updateValueAndValidity({ onlySelf: true });
+            this.form.updateValueAndValidity({ onlySelf: true });
+          } else {
+            discardReasonControl.setValue(null);
+            discardReasonControl.setValidators(null);
+            discardReasonControl.disable();
+          }
+        })
+      );
+    }
   }
 
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
@@ -276,36 +318,11 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       this.childrenFormHelper.disable();
     }
 
+
     await super.updateView(data, {
       // Always skip normalization (already done)
       normalizeEntityToForm: false
     });
-  }
-
-  async setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {
-    super.setValue(data, opts);
-
-    await this.waitIdle();
-
-    const discardOrLandingControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_OR_LANDING);
-    const discardReasonControl = this.form.get('measurementValues.' + PmfmIds.DISCARD_REASON);
-
-    // Manage DISCARD_REASON validator
-    if (discardOrLandingControl && discardReasonControl) {
-
-      if (discardOrLandingControl.value?.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
-        if (this.form.enabled) {
-          discardReasonControl.enable();
-        }
-        discardReasonControl.setValidators(Validators.required);
-        discardReasonControl.updateValueAndValidity({onlySelf: true});
-        this.form.updateValueAndValidity({onlySelf: true});
-      } else {
-        discardReasonControl.setValue(null);
-        discardReasonControl.setValidators(null);
-        discardReasonControl.disable();
-      }
-    }
   }
 
   protected getValue(): T {

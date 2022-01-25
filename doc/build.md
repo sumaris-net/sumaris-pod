@@ -10,7 +10,7 @@ This article will explain how to install your environment, then build the applic
 
 2. Install Node (v12) ex: 12.19.1
 ```bash
-nvm install 12.19.1
+nvm install 12.22.8
 ```
 
 3. Install global dependency: 

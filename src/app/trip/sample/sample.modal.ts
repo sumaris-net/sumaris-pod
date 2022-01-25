@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {
   Alerts,
   AppFormUtils,
-  EntityUtils,
+  EntityUtils, FormErrorTranslator,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -26,6 +26,9 @@ import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {Moment} from 'moment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import * as momentImported from 'moment';
+const moment = momentImported;
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
@@ -38,6 +41,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
 
+  availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
 
   // UI Options
@@ -82,6 +86,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
   @Input() enableBurstMode: boolean;
+  @Input() availableTaxonGroups: TaxonGroupRef[] = null;
+  @Input() defaultSampleDate: Moment;
   tagIdPmfm: IPmfm;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
@@ -104,6 +110,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     return this.form.valid;
   }
 
+
+  get isOnFieldMode() {
+    return this.usageMode === 'FIELD';
+  }
+
+
   constructor(
     protected injector: Injector,
     protected platform: PlatformService,
@@ -112,6 +124,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected translateContext: TranslateContextService,
+    protected formErrorTranslator: FormErrorTranslator,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
@@ -181,13 +194,24 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private async setValue(data: Sample) {
 
-    console.debug('[sample-modal] Applying value to form...', this.data);
+    console.debug('[sample-modal] Applying value to form...', data);
     this.form.markAsReady();
-    this.form.error = null;
+    this.resetError();
 
     try {
       // Set form value
       this.data = data || new Sample();
+      const isNew = isNil(this.data.id);
+
+      if (isNew && !this.data.sampleDate) {
+        if (this.defaultSampleDate) {
+          this.data.sampleDate = this.defaultSampleDate.clone();
+        }
+        else if (this.isOnFieldMode) {
+          this.data.sampleDate = moment();
+        }
+      }
+
       let promiseOrVoid = this.form.setValue(this.data);
       if (promiseOrVoid) await promiseOrVoid;
 
@@ -197,12 +221,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         if (promiseOrVoid) await promiseOrVoid;
       }
 
-      this.computeTitle();
+      await this.computeTitle();
     }
     finally {
+      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
-      this.enable();
       this.markForCheck();
     }
   }
@@ -264,7 +288,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
     // Convert and dismiss
     else {
-      const data = this.dirty ? this.getDataToSave() : this.data;
+      const data = this.getDataToSave();
       if (!data) return; // invalid
 
       this.markAsLoading();
@@ -326,13 +350,18 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     if (this.invalid) {
       if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-      this.form.error = 'COMMON.FORM.HAS_ERROR';
+      const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+        controlPathTranslator: this.form,
+        separator: '<br/>'
+      })
+      this.setError(error || 'COMMON.FORM.HAS_ERROR');
       this.form.markAllAsTouched();
       this.scrollToTop();
       return undefined;
     }
 
     this.markAsLoading();
+    this.resetError();
 
     // To force enable, to get computed values
     this.enable();
@@ -408,5 +437,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.form.disable();
   }
 
+  protected setError(error: any) {
+    this.form.error = error;
+  }
+
+  protected resetError() {
+    this.form.error = null;
+  }
 
 }
