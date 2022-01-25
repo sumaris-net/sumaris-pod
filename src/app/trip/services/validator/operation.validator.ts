@@ -23,6 +23,7 @@ import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {merge, Observable, Subscription} from 'rxjs';
 import {map, startWith} from 'rxjs/operators';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
 
 export interface PmfmForm {
@@ -43,6 +44,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withFishingEnd?: boolean;
   withEnd?: boolean;
   trip?: Trip;
+  pmfms?: DenormalizedPmfmStrategy[];
 }
 
 export const OPERATION_MAX_TOTAL_DURATION_DAYS = 100;
@@ -75,9 +77,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Add measurement form
     if (opts.withMeasurements) {
       const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+        .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
       form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
-        isOnFieldMode: opts.isOnFieldMode,
+        forceOptional: opts.isOnFieldMode,
         pmfms
       }));
     }
@@ -90,9 +92,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Add position
     if (opts.withPosition) {
       form.addControl('startPosition', this.positionValidator.getFormGroup(data?.startPosition || null, {required: true}));
-      if (opts.withFishingStart) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(data?.fishingStartPosition || null, {required: false}));
-      if (opts.withFishingEnd) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(data?.fishingEndPosition || null, {required: false}));
-      if (opts.withEnd) form.addControl('endPosition', this.positionValidator.getFormGroup(data?.endPosition || null, {required: false}));
+
+      if (opts.withFishingStart) {
+        form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(data?.fishingStartPosition || null, {required:  opts && !opts.isOnFieldMode}));
+      }
+      if (opts.withFishingEnd){
+        form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(data?.fishingEndPosition || null, {required: opts && !opts.isOnFieldMode}));
+      }
+      if (opts.withEnd) {
+        form.addControl('endPosition', this.positionValidator.getFormGroup(data?.endPosition || null, {required: opts && !opts.isOnFieldMode}));
+      }
     }
 
     // Add position
@@ -194,21 +203,21 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     //Fishing start position
     if (opts.withPosition && opts.withFishingStart) {
-      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
     } else {
       if (form.controls.fishingStartPosition) form.removeControl('fishingStartPosition');
     }
 
     //Fishing end position
     if (opts.withPosition && opts.withFishingEnd) {
-      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
     } else {
       if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
     }
 
     //End position
     if (opts.withPosition && opts.withEnd) {
-      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: false}));
+      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
     } else {
       if (form.controls.endPosition) form.removeControl('endPosition');
     }
@@ -256,7 +265,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         const fishingStartDateTimeValidators = [
           ...tripDatesValidators,
           SharedValidators.dateRangeEnd('startDateTime'),
-          SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')
+          SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'),
         ];
         fishingStartDateTimeControl.setValidators(opts?.isOnFieldMode
           ? Validators.compose(fishingStartDateTimeValidators)
@@ -406,9 +415,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts.withPosition = toBoolean(opts.withPosition, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE), true));
     opts.withFishingAreas = toBoolean(opts.withFishingAreas, true);
     opts.withChildOperation = toBoolean(opts.withChildOperation, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION), false));
-    opts.withFishingStart = toBoolean(opts.withFishingStart, false);
-    opts.withFishingEnd = toBoolean(opts.withFishingEnd, false);
-    opts.withEnd = toBoolean(opts.withEnd, true);
+    opts.withFishingStart = toBoolean(opts.withFishingStart, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE), false));
+    opts.withFishingEnd = toBoolean(opts.withFishingEnd,  toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE), false));
+    opts.withEnd = toBoolean(opts.withEnd,  toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE), true));
 
     // DEBUG
     //console.debug("[operation-validator] Ope Validator will use options:", opts);

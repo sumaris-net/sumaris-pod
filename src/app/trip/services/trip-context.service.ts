@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 
 export type TripContext = {
   trip?: Trip;
+  errors?: any;
 }
 
 @Injectable({providedIn: 'root'})

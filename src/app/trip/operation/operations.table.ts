@@ -12,6 +12,7 @@ import {
   AppTable,
   changeCaseToUnderscore,
   EntitiesTableDataSource,
+  isNilOrBlank,
   isNotNil,
   LatLongPattern,
   LocalSettings,
@@ -62,6 +63,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
   @Input() showQuality = true;
+  @Input() errors: { [key: number]: any } = undefined;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -210,7 +212,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
         from(this.settings.ready()),
         this.settings.onChange
       )
-      .subscribe(_ => this.configureFromSettings())
+        .subscribe(_ => this.configureFromSettings())
     );
   }
 
@@ -333,7 +335,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   resetFilter(event?: UIEvent) {
-    this.setFilter(<OperationFilter>{ tripId: this.tripId }, {emitEvent: true});
+    this.setFilter(<OperationFilter>{tripId: this.tripId}, {emitEvent: true});
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
@@ -360,31 +362,36 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   setError(error: any) {
 
     const formErrors = error?.details?.errors?.operations;
+    this.errors = formErrors
+
     if (formErrors) {
-      let messages = [];
       Object.keys(formErrors).map(id => {
-
         const operationErrors = formErrors[id];
-        messages.push(Object.keys(operationErrors)
-          .map(field => {
-            const fieldErrors = operationErrors[field];
-            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
-            const fieldName = this.translate.instant(fieldI18nKey);
-            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
-              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
-              return this.translate.instant(key, fieldErrors[key]);
-            }).join(', ');
-            //TODO : replace id by rank order ?
-            return fieldName + ' (' + id + '): ' + errorMsg;
-          }).filter(isNotNil));
-      });
 
-      if (messages.length) {
-        error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
-      }
-      this.errorSubject.next(error.details.message);
+        //May have already been translate on service
+        if (isNilOrBlank(operationErrors.message)) {
+          operationErrors.message = Object.keys(operationErrors.errors)
+            .map(field => {
+              const fieldErrors = operationErrors.errors[field];
+              const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
+              const fieldName = this.translate.instant(fieldI18nKey);
+
+              const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+                const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+                return this.translate.instant(key, fieldErrors[key]);
+              }).join(',');
+
+              return fieldName + ': ' + errorMsg;
+            }).join(',');
+        }
+      });
     }
   }
+
+  trackByFn(index: number, row: TableElement<Operation>) {
+    return row.currentData.id;
+  }
+
   /* -- protected methods -- */
 
   protected asFilter(source?: any): OperationFilter {

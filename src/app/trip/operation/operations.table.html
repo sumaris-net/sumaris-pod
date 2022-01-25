@@ -229,7 +229,10 @@
         <ion-label translate>TRIP.OPERATION.LIST.QUALITY</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <app-operation-icon [value]="row.currentData" [allowParentOperation]="allowParentOperation"></app-operation-icon>
+        <app-operation-icon [value]="row.currentData"
+                            [allowParentOperation]="allowParentOperation"
+                            [error]="errors|mapGet: row.currentData.id">
+        </app-operation-icon>
       </td>
     </ng-container>
 

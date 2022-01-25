@@ -188,7 +188,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (error && error.details?.errors?.operations) {
 
       this.operationErrors = error.details.errors.operations;
-      console.debug('Operations errors : ', this.operationErrors);
+      //DEBUG
+      // console.debug('Operations errors : ', this.operationErrors);
       this.operationsTable.setError(error);
 
       const operationFilter = this.operationsTable.filter || new OperationFilter();
@@ -390,16 +391,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.tripContext?.setValue('trip', this.data.clone());
 
       // If operation has form error, propagate it
-      let queryParams = {};
       if (this.operationErrors && this.operationErrors[id]) {
-        queryParams = {
-          error: true
-        };
+        this.tripContext?.setValue('errors', this.operationErrors[id]);
       }
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', id], {
-          queryParams
+          queryParams: {}
         });
 
         this.markAsLoaded();
@@ -420,6 +418,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
       // Store the trip in context
       this.tripContext?.setValue('trip', this.data.clone());
+
+      //Remove error from previous operation
+      this.tripContext?.setValue('errors', null);
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {

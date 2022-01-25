@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
-import { OperationSaveOptions, OperationService } from '../services/operation.service';
-import { OperationForm } from './operation.form';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {ChangeDetectionStrategy, Component, Injector, Input, Optional, ViewChild} from '@angular/core';
+import {OperationSaveOptions, OperationService} from '../services/operation.service';
+import {OperationForm} from './operation.form';
+import {TripService} from '../services/trip.service';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   AppHelpModal, changeCaseToUnderscore,
@@ -14,7 +14,7 @@ import {
   HistoryPageReference,
   Hotkeys,
   IEntity,
-  isNil,
+  isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -24,24 +24,24 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
-import { FormGroup, Validators } from '@angular/forms';
+import {MatTabChangeEvent} from '@angular/material/tabs';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
+import {FormGroup, Validators} from '@angular/forms';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
-import { Program } from '@app/referential/services/model/program.model';
-import { Operation, Trip } from '../services/model/trip.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { BatchTreeComponent } from '../batch/batch-tree.component';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
-import { IonRouterOutlet, ModalController } from '@ionic/angular';
-import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
-import { TripContextService } from '@app/trip/services/trip-context.service';
+import {Moment} from 'moment';
+import {Program} from '@app/referential/services/model/program.model';
+import {Operation, Trip} from '../services/model/trip.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {BatchTreeComponent} from '../batch/batch-tree.component';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
+import {IonRouterOutlet, ModalController} from '@ionic/angular';
+import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
+import {OperationValidators, PmfmForm} from '@app/trip/services/validator/operation.validator';
+import {TripContextService} from '@app/trip/services/trip-context.service';
 
 const moment = momentImported;
 
@@ -94,6 +94,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   allowParentOperation = false;
   autoFillBatch = false;
   autoFillDatesFromTrip = false;
+  forceDeskMode = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -127,6 +128,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  get usageMode(): UsageMode {
+    return this.forceDeskMode ? 'DESK' : super.usageMode;
+  }
+
   constructor(
     injector: Injector,
     hotkeys: Hotkeys,
@@ -152,7 +157,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.registerSubscription(
       hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
         .subscribe((event) => this.openHelpModal(event))
-    )
+    );
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -259,12 +264,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       const queryParams = this.route.snapshot.queryParams;
       const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
       this.selectedSubTabIndex = subTabIndex;
-
-      const error = queryParams['error'] && JSON.parse(queryParams['error']);
-      if (error) {
-        console.debug('[operation-page] Operation has error :', error);
-        this.setError(error);
-      }
     }
   }
 
@@ -447,7 +446,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.markForCheck();
     }
 
-    // Abnormal trip => Change comments as required
+    // Anormal trip => Change comments as required
     const tripProgressControl = formGroup?.controls[PmfmIds.TRIP_PROGRESS];
     if (isNotNil(tripProgressControl)) {
       this._measurementSubscription.add(
@@ -464,6 +463,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.markForCheck();
           })
       );
+    }
+
+    // If has errors from context, applies it on form.
+    const errors = this.tripContext.getValue('errors') || undefined;
+    console.info('[operation-page] Load operation with errors', errors);
+    if (errors) {
+      this.forceDeskMode = true;
+      this.opeForm.usageMode = 'DESK';
+      this.setError({
+        details: {
+          errors: errors
+        }
+      });
     }
   }
 
@@ -568,7 +580,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       }
     }
 
-    if (data.programLabel) this.$programLabel.next(data.programLabel)
+    if (data.programLabel) this.$programLabel.next(data.programLabel);
   }
 
   async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -586,7 +598,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     await this.loadLinkedOperation(data);
 
-    if (data.programLabel) this.$programLabel.next(data.programLabel)
+    if (data.programLabel) this.$programLabel.next(data.programLabel);
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -691,8 +703,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (canContinue) {
       if (this.mobile) {
         return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
-      }
-      else {
+      } else {
         return this.router.navigate(['..', 'new'], {
           relativeTo: this.route,
           replaceUrl: true,
@@ -755,12 +766,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     });
 
     // Display form error on top
-    if (!saved && this.opeForm.invalid) {
-
+    if (!saved) {
       // DEBUG
       console.debug('[operation] Computing form error...');
 
-      this.setError(this.opeForm.formError);
+      let error = '';
+      if (this.opeForm.invalid) {
+        error = this.opeForm.formError;
+      }
+      if (this.measurementsForm.invalid){
+        error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
+      }
+
+      this.setError(error);
       this.scrollToTop();
     }
 
@@ -797,12 +815,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.trip.gears.push(savedPhysicalGear);
 
       return true;
-    }
-    catch(err) {
+    } catch (err) {
       this.setError(err);
       return false;
-    }
-    finally {
+    } finally {
       this.markAsSaved({emitEvent: false});
     }
   }
@@ -818,23 +834,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (error) {
       // Create a details message, from errors in forms (e.g. returned by control())
       const formErrors = error && error.details && error.details.errors;
-      if (formErrors) {
-        const messages = Object.keys(formErrors)
-          .map(field => {
-            const fieldErrors = formErrors[field];
-            const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
-            const fieldName = this.translate.instant(fieldI18nKey);
-            const errorMsg = Object.keys(fieldErrors).map(errorKey => {
-              const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
-              return this.translate.instant(key, fieldErrors[key]);
-            }).join(', ');
-            return fieldName + ": " + errorMsg;
-          }).filter(isNotNil);
-        if (messages.length) {
-          error.details.message = `<ul><li>${messages.join('</li><li>')}</li></ul>`;
+      //Translate error if not already done
+      if (formErrors && isNilOrBlank(formErrors.message)) {
+        const i18FormError = this.errorTranslator.translateErrors(formErrors, {
+          separator: ', '
+        });
+        if (isNotNilOrBlank(i18FormError)) {
+          error.message = i18FormError;
         }
+      } else if (formErrors) {
+        error.message = formErrors.message;
       }
-      await this.opeForm.setError(error);
     }
 
     super.setError(error);
@@ -1026,8 +1036,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Force expected sub tab index
     if (this.showBatchTables && this.batchTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.batchTree.setSelectedTabIndex(this.selectedSubTabIndex);
-    }
-    else if (this.showSamplesTab && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
+    } else if (this.showSamplesTab && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.sampleTree.setSelectedTabIndex(this.selectedSubTabIndex);
     }
 

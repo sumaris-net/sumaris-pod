@@ -1,13 +1,24 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
-import { FloatLabelType } from '@angular/material/form-field';
-import { BehaviorSubject } from 'rxjs';
-import { filter, throttleTime } from 'rxjs/operators';
-import { FormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { AppForm, filterNotNil, firstFalsePromise, firstNotNilPromise, isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
+import {FloatLabelType} from '@angular/material/form-field';
+import {BehaviorSubject} from 'rxjs';
+import {filter, throttleTime} from 'rxjs/operators';
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {
+  AppForm,
+  AppFormUtils,
+  changeCaseToUnderscore,
+  filterNotNil,
+  firstFalsePromise,
+  firstNotNilPromise,
+  FormErrorTranslatorOptions,
+  isNil,
+  isNotNil,
+  isNotNilOrNaN
+} from '@sumaris-net/ngx-components';
+import {Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-form-measurements',
@@ -21,14 +32,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   private _gearId: number;
   private _acquisitionLevel: string;
   private _forceOptional = false;
-   private _loadingPmfms = true; // Important, must be true
+  private _loadingPmfms = true; // Important, must be true
 
   protected data: Measurement[];
   protected applyingValue = false;
   protected keepRankOrder = false;
   protected skipDisabledPmfmControl = true;
   protected skipComputedPmfmControl = true;
-  protected cd: ChangeDetectorRef
+  protected cd: ChangeDetectorRef;
 
   $loadingControls = new BehaviorSubject<boolean>(true);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -36,7 +47,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   @Input() showError = false;
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = "auto";
+  @Input() floatLabel: FloatLabelType = 'auto';
   @Input() requiredGear = false;
   @Input() entityName: MeasurementType;
   @Input() animated = false;
@@ -57,7 +68,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   @Input()
   set acquisitionLevel(value: string) {
-    this.setAcquisitionLevel(value)
+    this.setAcquisitionLevel(value);
   }
 
   get acquisitionLevel(): string {
@@ -70,8 +81,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       this._gearId = value;
       if (this.requiredGear) {
         this.refreshPmfms('set gearId');
-      }
-      else {
+      } else {
         this.refreshPmfmsIfLoaded('set gearId');
       }
     }
@@ -100,6 +110,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
   get forceOptional(): boolean {
     return this._forceOptional;
+  }
+
+  get formError(): string {
+    return this.getFormError(this.form);
   }
 
   constructor(injector: Injector,
@@ -173,6 +187,27 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
   }
 
+  protected getFormError(form: FormGroup): string {
+    const errors = AppFormUtils.getFormErrors(form);
+    return Object.getOwnPropertyNames(errors)
+      .map(field => {
+        let fieldName;
+          const pmfmId = parseInt(field);
+          const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+          if (pmfm) {
+            fieldName = PmfmUtils.getPmfmName(pmfm);
+          }
+
+        const fieldErrors = errors[field];
+        const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+          const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+          return this.translate.instant(key, fieldErrors[key]);
+        }).join(',');
+
+        return fieldName + ': ' + errorMsg;
+      }).join(',');
+  }
+
   /* -- protected methods -- */
 
   /**
@@ -202,7 +237,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     // Find dirty pmfms, to avoid full update
     const form = this.form;
     const filteredPmfms = (this.$pmfms.value || []).filter(pmfm => {
-      const control =  form.controls[pmfm.id];
+      const control = form.controls[pmfm.id];
       return control && (control.dirty
         || (this.skipDisabledPmfmControl === false && control.disabled)
         || (this.skipComputedPmfmControl === false && pmfm.isComputed)
@@ -225,7 +260,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     }
 
     //if (this.debug)
-      console.debug(`${this.logPrefix} refreshPmfms(${event})`);
+    console.debug(`${this.logPrefix} refreshPmfms(${event})`);
 
     this.markAsLoading();
     this._loadingPmfms = true;
@@ -241,8 +276,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
       if (!pmfms.length && this.debug) {
         console.warn(`${this.logPrefix} No pmfm found, for {program: ${this._programLabel}, acquisitionLevel: ${this._acquisitionLevel}, gear: ${this._gearId}}. Make sure programs/strategies are filled`);
-      }
-      else {
+      } else {
 
         // If force to optional, create a copy of each pmfms that should be forced
         if (this._forceOptional) {
@@ -260,13 +294,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
 
       // Apply
       this.setPmfms(pmfms);
-    }
-    catch (err) {
+    } catch (err) {
       console.error(`${this.logPrefix} Error while loading pmfms: ${err && err.message || err}`, err);
       // Reset pmfms
       this.setPmfms(null);
-    }
-    finally {
+    } finally {
       if (this.enabled) this.markAsLoaded();
       this.markForCheck();
     }
@@ -311,9 +343,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
       this.$loadingControls.next(false);
 
       return true;
-    }
-
-    else {
+    } else {
 
       if (this.debug) console.debug(`${this.logPrefix} Updating form controls {event: ${event}, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
@@ -343,7 +373,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     return true;
   }
 
-  protected restoreFormStatus(opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  protected restoreFormStatus(opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
     const form = this.form;
     // Restore enable state (because form.setValue() can change it !)
     if (this._enable) {
@@ -357,8 +387,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
     const acquisitionLevel = this._acquisitionLevel && this._acquisitionLevel.toLowerCase().replace(/[_]/g, '-') || '?';
     return `[meas-form-${acquisitionLevel}]`;
   }
-
-
 
   private async refreshPmfmsIfLoaded(event?: any, reapplyData?: boolean) {
     // Wait previous loading is finished

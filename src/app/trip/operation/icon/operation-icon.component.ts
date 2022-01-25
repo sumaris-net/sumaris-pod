@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
-import { isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { qualityFlagToColor } from '@app/data/services/model/model.utils';
-import { Operation } from '@app/trip/services/model/trip.model';
-import { QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { MatBadgeFill } from '@sumaris-net/ngx-components/src/app/shared/material/badge/badge-icon.directive';
-import { AppColors } from '@app/shared/colors.utils';
-import { QualityIonIcon } from '@app/data/quality/entity-quality-icon.component';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation} from '@angular/core';
+import {isNil, isNotNil} from '@sumaris-net/ngx-components';
+import {qualityFlagToColor} from '@app/data/services/model/model.utils';
+import {Operation} from '@app/trip/services/model/trip.model';
+import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {MatBadgeFill} from '@sumaris-net/ngx-components/src/app/shared/material/badge/badge-icon.directive';
+import {AppColors} from '@app/shared/colors.utils';
+import {QualityIonIcon} from '@app/data/quality/entity-quality-icon.component';
 
 export declare type OperationMatSvgIcons = 'down-arrow' | 'rollback-arrow';
 export declare type OperationIonIcon = 'navigate';
@@ -26,6 +26,17 @@ export class OperationIconComponent {
   badgeIcon: QualityIonIcon = null;
   badgeColor: AppColors = null;
   badgeFill: MatBadgeFill = 'clear';
+
+  @Input() set error(error: any) {
+    if (this._error !== error) {
+      this._error = error;
+      if (this._value) this.setValue(this._value); // Recompute
+    }
+  };
+
+  get error(): any {
+    return this._error;
+  }
 
   @Input() set value(value: Operation) {
     this.setValue(value);
@@ -48,13 +59,14 @@ export class OperationIconComponent {
 
   private _value: Operation;
   private _allowParentOperation: boolean;
+  private _error: any;
 
   constructor(private cd: ChangeDetectorRef) {
   }
 
   setValue(value: Operation) {
+    this.reset();
     if (!value) {
-      this.reset();
       return;
     }
 
@@ -82,10 +94,15 @@ export class OperationIconComponent {
     }
 
     if (isNil(value.controlDate)) {
-      this.badgeIcon = this.badgeIcon || undefined;
       this.color = this.color || 'secondary';
-    }
-    else if (isNil(value.qualificationDate)) {
+      if (this.error) {
+        this.badgeIcon = 'alert';
+        this.badgeColor = 'danger';
+        this.badgeFill = 'solid';
+      } else {
+        this.badgeIcon = this.badgeIcon || undefined;
+      }
+    } else if (isNil(value.qualificationDate)) {
       this.badgeIcon = 'checkmark';
       this.badgeColor = 'tertiary';
     }
