@@ -56,6 +56,7 @@ public class TaxonNameFilterVO implements IReferentialFilter {
     private Integer[] taxonGroupIds;
     private Boolean withSynonyms;
     private Integer referenceTaxonId;
+    private String taxonomicLevelLabel;
 
     private Integer[] includedIds;
     private Integer[] excludedIds;

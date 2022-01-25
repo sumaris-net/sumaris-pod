@@ -30,6 +30,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
@@ -53,6 +54,11 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
     default Specification<TaxonName> withReferenceTaxonId(Integer referentTaxonId) {
         if (referentTaxonId == null) return null;
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), referentTaxonId);
+    }
+
+    default Specification<TaxonName> withTaxonomicLevelLabel(String taxonomicLevelLabel) {
+        if (taxonomicLevelLabel == null) return null;
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaxonName.Fields.TAXONOMIC_LEVEL).get(TaxonomicLevel.Fields.LABEL), taxonomicLevelLabel);
     }
 
     default Specification<TaxonName> withSynonyms(Boolean withSynonyms) {
