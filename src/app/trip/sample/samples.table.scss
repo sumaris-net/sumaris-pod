@@ -84,7 +84,8 @@
       }
 
       .mat-header-cell {
-        background-color: transparent;
+        // IMAGINE-653 Remove transparent attribute for header since values are visible on header row otherwise
+        //background-color: transparent;
 
         &.mat-column-top-start {
           padding-inline-start: 8px !important;
