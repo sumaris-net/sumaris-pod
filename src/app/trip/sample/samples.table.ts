@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
-import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorService } from '../services/validator/sample.validator';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
+import {TableElement} from '@e-is/ngx-material-table';
+import {SampleValidatorService} from '../services/validator/sample.validator';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -20,35 +20,36 @@ import {
   PlatformService,
   ReferentialRef,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, suggestFromArray,
+  RESERVED_START_COLUMNS,
+  suggestFromArray,
   toBoolean,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
-import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
-import { ISampleModalOptions, SampleModal } from './sample.modal';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { Sample, SampleUtils } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { environment } from '@environments/environment';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { SampleFilter } from '../services/filter/sample.filter';
-import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
-import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { MatMenu } from '@angular/material/menu';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { isNilOrNaN } from '@app/shared/functions';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { BatchGroup } from '@app/trip/services/model/batch-group.model';
-import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
-import { MatCellDef } from '@angular/material/table';
-import { OverlayEventDetail } from '@ionic/core';
-import { PmfmForm } from '@app/trip/services/validator/operation.validator';
+import {Moment} from 'moment';
+import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
+import {ISampleModalOptions, SampleModal} from './sample.modal';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {Sample, SampleUtils} from '../services/model/sample.model';
+import {AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {environment} from '@environments/environment';
+import {debounceTime} from 'rxjs/operators';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {SampleFilter} from '../services/filter/sample.filter';
+import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
+import {BehaviorSubject, Subscription} from 'rxjs';
+import {MatMenu} from '@angular/material/menu';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {isNilOrNaN} from '@app/shared/functions';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {BatchGroup} from '@app/trip/services/model/batch-group.model';
+import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
+import {MatCellDef} from '@angular/material/table';
+import {OverlayEventDetail} from '@ionic/core';
+import {PmfmForm} from '@app/trip/services/validator/operation.validator';
 
 const moment = momentImported;
 
@@ -648,11 +649,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     }
 
     // Get the previous sample
-    const previousSample: Sample = await this.getPreviousSampleWithNumericalTagId();
+    const previousSample: Sample = await this.getPreviousSample();
+    const previousSampleWithNumericalTagId: Sample = await this.getPreviousSampleWithNumericalTagId();
 
     // server call for first sample and increment from server call value
     if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
-      const existingTagId = previousSample?.measurementValues[PmfmIds.TAG_ID];
+      const existingTagId = previousSampleWithNumericalTagId?.measurementValues[PmfmIds.TAG_ID];
       const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
       const nextAvailableTagId = Number((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
       const newTagId = (isNilOrNaN(existingTagIdAsNumber)
@@ -665,6 +667,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING) && previousSample) {
       data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
     }
+  }
+
+  protected async getPreviousSample(): Promise<Sample> {
+    if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
+    const row = await this.dataSource.getRow(this.visibleRowCount - 1);
+    return row && row.currentData;
   }
 
   protected async getPreviousSampleWithNumericalTagId(): Promise<Sample> {
