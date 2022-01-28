@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
-import {FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {FormBuilder, FormGroup, ValidationErrors} from '@angular/forms';
 import {BatchValidators, BatchValidatorService} from './batch.validator';
 import {BatchGroup} from '../model/batch-group.model';
-import {AppFormUtils, isNotNil, SharedValidators} from '@sumaris-net/ngx-components';
-import {IPmfm, Pmfm} from '@app/referential/services/model/pmfm.model';
-import {merge, Observable, Subject, Subscription} from 'rxjs';
-import {PmfmIds} from '@app/referential/services/model/model.enum';
-import {debounceTime, filter, map, startWith, tap} from 'rxjs/operators';
+import {SharedValidators} from '@sumaris-net/ngx-components';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {Subject, Subscription} from 'rxjs';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
 import {PmfmForm} from '@app/trip/services/validator/operation.validator';
+import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
 
 @Injectable({providedIn: 'root'})
 export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup> {
@@ -15,12 +15,13 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   qvPmfm: IPmfm;
 
   constructor(
+    protected measurementsValidatorService: MeasurementsValidatorService,
     formBuilder: FormBuilder) {
-    super(formBuilder);
+    super(measurementsValidatorService, formBuilder);
   }
 
   getRowValidator(): FormGroup {
-    return super.getFormGroup(null, {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm});
+    return super.getFormGroup(null, {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm, pmfms:this.pmfms});
   }
 
   getFormGroup(data?: BatchGroup, opts?: {

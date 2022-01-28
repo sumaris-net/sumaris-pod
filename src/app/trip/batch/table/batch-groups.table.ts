@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { FormGroup, Validators } from '@angular/forms';
-import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter } from './batches.table';
+import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {FormGroup, Validators} from '@angular/forms';
+import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from './batches.table';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -11,7 +11,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
-  LoadResult,
   PlatformService,
   propertiesPathComparator,
   ReferentialRef,
@@ -21,13 +20,10 @@ import {
   SETTINGS_DISPLAY_COLUMNS,
   TableSelectColumnsComponent,
   toBoolean,
-  toFloat,
-  toInt,
-  toNumber,
 } from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes, MethodIds} from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, MethodIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MeasurementFormValues, MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {MeasurementValuesUtils} from '../../services/model/measurement.model';
 import {Batch, BatchUtils, BatchWeight} from '../../services/model/batch.model';
 import {BatchGroupModal, IBatchGroupModalOptions} from '../modal/batch-group.modal';
 import {BatchGroup} from '../../services/model/batch-group.model';
@@ -60,9 +56,11 @@ declare interface ColumnDefinition extends FormFieldDefinition {
   isWeight?: boolean;
   isIndividualCount?: boolean;
   isSampling?: boolean;
+  isPmfm?: boolean;
 
   // Column from pmfm
   id?: number;
+  pmfm?: IPmfm;
 }
 
 declare interface GroupColumnDefinition {
@@ -93,6 +91,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maxValue: 10000,
       maximumNumberDecimals: 1,
       isWeight: true,
+      isPmfm: false,
       classList: 'total mat-column-weight',
       path: 'weight.value'
     },
@@ -104,6 +103,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maxValue: 10000,
       maximumNumberDecimals: 2,
       isIndividualCount: true,
+      isPmfm: false,
       classList: 'total',
       path: 'individualCount'
     },
@@ -129,6 +129,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maximumNumberDecimals: 1,
       isWeight: true,
       isSampling: true,
+      isPmfm: false,
       path: 'children.0.weight.value'
     },
     {
@@ -138,6 +139,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       computed: true,
       isIndividualCount: true,
       isSampling: true,
+      isPmfm: false,
       path: 'children.0.individualCount'
     }
   ];
@@ -204,9 +206,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       if (!this.loading && this._initialPmfms) {
         this.computeDynamicColumns(this.qvPmfm, {forceCompute: true});
         this.updateColumns();
-        if (!this._showSamplingBatchColumns) {
-          this.clearSamplingColumns();
-        }
       }
     }
   }
@@ -234,7 +233,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   @Input() showError = true;
 
   get additionalPmfms(): IPmfm[] {
-    return this._initialPmfms.filter(pmfm => (!this.qvPmfm || pmfm.id !== this.qvPmfm.id) && pmfm.id !== this.defaultWeightPmfm.id);
+    return this._initialPmfms.filter(pmfm => (!this.qvPmfm || pmfm.id !== this.qvPmfm.id) && !PmfmUtils.isWeight(pmfm));
   }
 
   @Input() allowSubBatches = true;
@@ -316,12 +315,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   onLoad(data: BatchGroup[]): BatchGroup[] {
-    // if (isNil(this.qvPmfm) || !this.qvPmfm.qualitativeValues) return data; // Skip (pmfms not loaded)
-
     if (this.debug) console.debug('[batch-group-table] Preparing data to be loaded as table rows...');
-
-    // Pmfms to normalize (intialPmfms + fake additionnal pmfms)
-    const pmfms = this._initialPmfms.concat(this.pmfms.filter(p => p.id < 0));
 
     const weightMethodValues = this.qvPmfm ? this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
         res[qvIndex] = false;
@@ -331,7 +325,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Transform entities into object array
     data = data.map(batch => {
-      const measurementValues = {};
 
       if (isNotEmptyArray(batch.children) && this.qvPmfm) {
         // For each group (one by qualitative value)
@@ -342,7 +335,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           if (child) {
 
             // Replace measurement values inside a new map, based on fake pmfms
-            this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
+            this.getFakeMeasurementValuesFromQvChild(child, qvIndex);
 
             // Remember method used for the weight (estimated or not)
             if (!weightMethodValues[qvIndex]) {
@@ -365,7 +358,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         });
       } else if (!this.qvPmfm && batch) {
         // Replace measurement values inside a new map, based on fake pmfms
-        this.getFakeMeasurementValuesFromQvChild(batch, measurementValues, 0);
+        this.getFakeMeasurementValuesFromQvChild(batch, 0);
 
         // Remember method used for the weight (estimated or not)
         if (!weightMethodValues[0]) {
@@ -377,18 +370,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           }
         }
       }
-
-      // Make entity compatible with reactive form
-      batch.measurementValues = measurementValues;
-
-      MeasurementValuesUtils.normalizeEntityToForm(batch, pmfms, null, {keepOtherExistingPmfms: true});
+      MeasurementValuesUtils.normalizeEntityToForm(batch, this._initialPmfms, null, {keepOtherExistingPmfms: true});
 
       return batch;
     });
 
     // Set weight is estimated ?
     if (this.weightMethodForm) {
-      console.debug('[batch-group-table] Set weight form values (is estimated ?)')
+      console.debug('[batch-group-table] Set weight form values (is estimated ?)');
       this.weightMethodForm.patchValue(weightMethodValues);
     }
 
@@ -457,6 +446,29 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
   }
 
+  isComputed(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
+    const batch = row.currentData;
+
+    const computed = col.computed
+        || (col.isWeight && col.isSampling && batch.children[col.qvIndex].children[0].weight.computed) // total weight is computed
+        || (col.isWeight && !col.isSampling && batch.children[col.qvIndex].weight.computed) // sampling weight is computed
+        || (col.key.endsWith('samplingRatio') && (batch.children[col.qvIndex]?.children[0]?.samplingRatioText || '').indexOf('/') !== -1); // sampling ratio is computed
+    //DEBUG
+    // console.debug('[batch-group-table] col computed', col.path, computed);
+    return computed;
+  }
+
+  isSamplingWeightMissing(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
+    if (!col.isWeight || !col.isSampling) return false;
+    const batch = row.currentData;
+
+    const missing = (isNil(batch.children[col.qvIndex].children[0].weight) || isNil( batch.children[col.qvIndex].children[0].weight?.value))
+      && batch.children[col.qvIndex].children[0].individualCount !== null;
+    //DEBUG
+    // console.debug('[batch-group-table] missing sample weight', col.path, missing);
+    return missing;
+  }
+
   /**
    * Use in ngFor, for trackBy
    *
@@ -486,7 +498,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   protected normalizeEntityToRow(batch: BatchGroup, row: TableElement<BatchGroup>) {
     // When batch has the QV value
     if (this.qvPmfm) {
-      const measurementValues = {...(row.currentData.measurementValues)}; // Copy existing measurements
 
       if (isNotEmptyArray(batch.children)) {
         // For each group (one by qualitative value)
@@ -497,71 +508,40 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           if (child) {
 
             // Replace measurement values inside a new map, based on fake pmfms
-            this.getFakeMeasurementValuesFromQvChild(child, measurementValues, qvIndex);
+            this.getFakeMeasurementValuesFromQvChild(child, qvIndex);
           }
         });
       }
-      batch.measurementValues = measurementValues;
     }
 
     // Inherited method
-    super.normalizeEntityToRow(batch, row);
+    super.normalizeEntityToRow(batch, row, {keepOtherExistingPmfms: true});
 
   }
 
-  protected getFakeMeasurementValuesFromQvChild(data: Batch, measurementValues?: MeasurementFormValues, qvIndex?: number): MeasurementFormValues {
-    if (!data) return measurementValues; // skip
-
+  protected getFakeMeasurementValuesFromQvChild(data: Batch, qvIndex?: number) {
     if (isNil(qvIndex)) {
       const qvId = this.qvPmfm && data.measurementValues[this.qvPmfm.id];
       qvIndex = isNotNil(qvId) && this.qvPmfm.qualitativeValues.findIndex(qv => qv.id === +qvId);
       if (qvIndex === -1) throw Error('Invalid batch: no QV value');
     }
 
-    measurementValues = measurementValues || {};
-    let i = qvIndex * this.qvColumnCount;
-
     // Column: total weight
     data.weight = this.getWeight(data.measurementValues) || undefined;
-    measurementValues[i++] = toNumber(data.weight && !data.weight.computed && data.weight.value, null);
 
-    // Column: individual count
-    const individualCount = toNumber(data.individualCount, null);
     /*if (data.qualityFlagId === QualityFlagIds.BAD){
-      //console.log('TODO Invalid individual count !', individualCount);
+    //console.log('TODO Invalid individual count !', individualCount);
     }*/
-    measurementValues[i++] = individualCount;
 
     // Sampling batch
     const samplingChild = BatchUtils.getSamplingChild(data);
     if (samplingChild) {
-      // Column: sampling ratio
-      measurementValues[i++] = isNotNil(samplingChild.samplingRatio) ? samplingChild.samplingRatio * 100 : null;
-
       // Column: sampling weight
       samplingChild.weight = this.getWeight(samplingChild.measurementValues);
-      measurementValues[i++] = samplingChild.weight && !samplingChild.weight.computed && samplingChild.weight.value;
-
-      // Column: sampling individual count
-      const samplingIndividualCount: any = toNumber(samplingChild.individualCount, null);
-      /*if (samplingChild.qualityFlagId === QualityFlagIds.BAD) {
-        //console.log('TODO Invalid sampling individual count !', samplingIndividualCount);
-        //samplingIndividualCount = '~' + samplingIndividualCount;
-      }*/
-      measurementValues[i++] = samplingIndividualCount;
-    }
-    // No sampling batch: clean values
-    else {
-      measurementValues[i++] = undefined; // Column: sampling ratio
-      measurementValues[i++] = undefined; // Column: sampling weight
-      measurementValues[i++] = undefined; // sampling individual count
     }
 
-    // this.additionalPmfms.forEach(pmfm => {
-    //   measurementValues[this.getPmfmFakeIds(pmfm.id, qvIndex)] = data.measurementValues[pmfm.id] || pmfm.defaultValue || undefined;
-    // });
+    data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, this.additionalPmfms, {keepSourceObject: true});
 
-    return measurementValues;
   }
 
   protected prepareEntityToSave(batch: BatchGroup) {
@@ -570,14 +550,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     if (this.qvPmfm) {
       batch.children = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, qvIndex: number) => {
-        return res.concat(this.newPrepareChildToSave(batch, groupColumnValues, qv, qvIndex));
+        return res.concat(this.prepareChildToSave(batch, groupColumnValues, qv, qvIndex));
       }, []);
     } else {
-      this.newPrepareChildToSave(batch, groupColumnValues);
+      this.prepareChildToSave(batch, groupColumnValues);
     }
   }
 
-  protected newPrepareChildToSave(batch: BatchGroup, groupColumnValues: { [key: number]: any }, qv?: ReferentialRef, qvIndex?: number): Batch {
+  protected prepareChildToSave(batch: BatchGroup, groupColumnValues: { [key: number]: any }, qv?: ReferentialRef, qvIndex?: number): Batch {
 
     qvIndex = qvIndex || 0;
     let i = qvIndex * this.qvColumnCount;
@@ -589,12 +569,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // If qv, add sub level at sorting batch for each qv value
     // If no qv, keep measurements in sorting batch level
-    const child: Batch = !qv ? batch : isNotNil(batch.id) && (batch.children || []).find(b => b.label === childLabel) || new Batch();
+    const child: Batch = !qv ? batch : (batch.children || []).find(b => b.label === childLabel) || new Batch();
 
     const weight = child.weight?.value || null;
 
     child.rankOrder = qvIndex + 1;
-    // child.measurementValues = {};
+    child.label = childLabel;
+
     if (qv) {
       child.measurementValues[this.qvPmfm.id.toString()] = qv.id.toString();
     }
@@ -603,7 +584,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // If sampling
     if (isNotEmptyArray(child.children)) {
       const samplingLabel = childLabel + Batch.SAMPLING_BATCH_SUFFIX;
-      const samplingChild: Batch = isNotNil(child.id) && (child.children || []).find(b => b.label === samplingLabel) || new Batch();
+      const samplingChild: Batch = (child.children || []).find(b => b.label === samplingLabel) || new Batch();
       samplingChild.rankOrder = 1;
       samplingChild.label = samplingLabel;
       // samplingChild.measurementValues = {};
@@ -614,68 +595,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     else {
       child.children = [];
     }
-
-    //Additional pmfms
-    this.additionalPmfms.forEach(pmfm => {
-      child.measurementValues[pmfm.id] = groupColumnValues[this.getPmfmFakeIds(pmfm.id, qvIndex)] || pmfm.defaultValue;
-    });
-
-    return child;
-  }
-
-  protected prepareChildToSave(batch: BatchGroup, groupColumnValues: { [key: number]: any }, qv?: ReferentialRef, qvIndex?: number): Batch {
-
-    qvIndex = qvIndex || 0;
-    let i = qvIndex * this.qvColumnCount;
-    const weight = toFloat(groupColumnValues[i++], null);
-    const individualCount = toInt(groupColumnValues[i++], null);
-    const samplingRatio = toInt(groupColumnValues[i++], null);
-    const samplingWeight = toFloat(groupColumnValues[i++], null);
-    const samplingIndividualCount = toFloat(groupColumnValues[i++], null);
-
-    // TODO: compute total weight and nb indiv ?
-
-    const isEstimatedWeight = this.weightMethodForm && this.weightMethodForm.controls[qvIndex].value || false;
-    const weightPmfmId = isEstimatedWeight ? this.estimatedWeightPmfm.id : this.defaultWeightPmfm.id;
-
-    const childLabel = qv ? `${batch.label}.${qv.label}` : batch.label;
-
-    // If qv, add sub level at sorting batch for each qv value
-    // If no qv, keep measurements in sorting batch level
-    const child: Batch = !qv ? batch : isNotNil(batch.id) && (batch.children || []).find(b => b.label === childLabel) || new Batch();
-
-    child.rankOrder = qvIndex + 1;
-    child.measurementValues = {};
-    if (qv) {
-      child.measurementValues[this.qvPmfm.id.toString()] = qv.id.toString();
-    }
-    child.measurementValues[weightPmfmId.toString()] = isNotNilOrNaN(weight) ? weight : undefined;
-    child.individualCount = individualCount;
-    child.label = childLabel;
-
-    // If sampling
-    if (isNotNil(samplingRatio) || isNotNil(samplingIndividualCount) || isNotNil(samplingWeight)) {
-      const samplingLabel = childLabel + Batch.SAMPLING_BATCH_SUFFIX;
-      const samplingChild: Batch = isNotNil(child.id) && (child.children || []).find(b => b.label === samplingLabel) || new Batch();
-      samplingChild.rankOrder = 1;
-      samplingChild.label = samplingLabel;
-      samplingChild.samplingRatio = isNotNil(samplingRatio) ? samplingRatio / 100 : undefined;
-      samplingChild.samplingRatioText = isNotNil(samplingRatio) ? `${samplingRatio}%` : undefined;
-      samplingChild.measurementValues = {};
-      samplingChild.measurementValues[weightPmfmId.toString()] = isNotNilOrNaN(samplingWeight) ? samplingWeight : undefined;
-      samplingChild.individualCount = samplingIndividualCount;
-      child.children = [samplingChild];
-    }
-    // Remove children
-    else {
-      child.children = [];
-    }
-
-    //Additional pmfms
-    this.additionalPmfms.forEach(pmfm => {
-      child.measurementValues[pmfm.id] = groupColumnValues[this.getPmfmFakeIds(pmfm.id, qvIndex)] || pmfm.defaultValue;
-    });
-
     return child;
   }
 
@@ -723,27 +642,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     if (this.validatorService) {
       (this.validatorService as BatchGroupValidatorService).qvPmfm = this.qvPmfm;
+      (this.validatorService as BatchGroupValidatorService).pmfms = this.additionalPmfms;
     }
 
     // Init dynamic columns
     this.computeDynamicColumns(this.qvPmfm);
 
-    // Convert dynamic column to PMFM (to use compatibility with TableMeasurements)
-    const fakePmfms = (this.dynamicColumns || []).map(col => DenormalizedPmfmStrategy.fromObject({
-      ...col,
-      name: col.label,
-      id: col.rankOrder,
-      methodId: col.computed && MethodIds.CALCULATED
-    }));
-
-    this.additionalPmfms.forEach(p => {
-      this.qvPmfm.qualitativeValues.forEach((qv, index) => {
-          const fakePmfm = p.clone();
-          fakePmfm.id = this.getPmfmFakeIds(p.id, index);
-          fakePmfms.push(DenormalizedPmfmStrategy.fromObject(fakePmfm));
-      })
-    });
-    return fakePmfms;
+    //Additionnal pmfms managed by validator on children batch
+    return [];
   }
 
   protected computeDynamicColumns(qvPmfm: IPmfm, opts?: { forceCompute: boolean }): ColumnDefinition[] {
@@ -803,7 +709,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): ColumnDefinition[] {
     qvIndex = qvIndex || 0;
-    const offset = qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length;
+    const offset = qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + this._initialPmfms.filter(pmfm => !pmfm.hidden && !this.mobile).length);
     const hideWeightColumns = !this.showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
     const hideSamplingColumns = !this._showSamplingBatchColumns;
@@ -826,7 +732,28 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         });
       }, []);
 
-    return qvColumns;
+    const pmfmColumns = this.additionalPmfms.filter(pmfm => pmfm.id != PmfmIds.DISCARD_REASON || qvGroup.label === 'DIS')
+      .reduce((res, pmfm, index) => {
+        const key = qvGroup ? `${qvGroup.label}_${pmfm.id}` : pmfm.id;
+        const rankOrder = offset + qvColumns.length + index;
+        const hidden = this.mobile || pmfm.hidden;
+        return res.concat({
+          type: pmfm.type,
+          label: PmfmUtils.getPmfmName(pmfm),
+          key,
+          qvIndex,
+          rankOrder,
+          hidden,
+          computed: false,
+          isIndividualCount: false,
+          isSampling: false,
+          isPmfm: true,
+          pmfm,
+          path: 'children.' + qvIndex + '.measurementValues.' + pmfm.id
+        });
+      }, []);
+
+    return qvColumns.concat(pmfmColumns);
   }
 
   protected getWeight(measurementValues: { [key: number]: any }): BatchWeight | undefined {
@@ -1197,33 +1124,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return taxonGroups;
   }
 
-  protected getPmfmFakeIds(id: number, qvIndex: number): number {
-    // use negative id to be sure it's not a real pmfm id's
-    return id * (-qvIndex - 1);
-  }
-
-  protected async clearSamplingColumns() {
-    if (!this.dynamicColumns) return;
-
-    const rows = await this.dataSource.getRows();
-
-    if (rows && rows.length) {
-      const values = {};
-      this.dynamicColumns.forEach((col, index) => {
-        if (col.isSampling) {
-          values[index] = undefined;
-        }
-      });
-
-      rows.forEach(r => {
-        r.validator.get('measurementValues').patchValue(values);
-      });
-
-    }
-  }
-
   protected async onNewEntity(data: BatchGroup): Promise<void> {
-    console.debug('[sample-table] Initializing new row data...');
+    console.debug('[batch-group-table] Initializing new row data...');
 
     await super.onNewEntity(data);
 

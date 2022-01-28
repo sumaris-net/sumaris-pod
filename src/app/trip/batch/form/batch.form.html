@@ -91,6 +91,7 @@
       <ion-col class="ion-no-padding">
         <app-pmfm-field #matInput
                         [class.computed]="weightForm.controls.computed.value"
+                        [readonly]="weightForm.controls.computed.value"
                         [pmfm]="defaultWeightPmfm"
                         [formControl]="weightForm.controls.value"
                         [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
@@ -194,6 +195,7 @@
 
           <app-pmfm-field #matInput
                           [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
+                          [readonly]="samplingBatchForm.controls.weight.controls.computed.value"
                           [pmfm]="defaultWeightPmfm"
                           [formControl]="samplingBatchForm.controls.weight.controls.value"
                           [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"

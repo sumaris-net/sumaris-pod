@@ -587,12 +587,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     });
   }
 
-  protected normalizeEntityToRow(data: T, row: TableElement<T>) {
+  protected normalizeEntityToRow(data: T, row: TableElement<T>, opts?: {
+    keepOtherExistingPmfms?: boolean;
+    onlyExistingPmfms?: boolean;
+  }) {
     if (!data) return; // skip
 
     // Adapt entity measurement values to reactive form
     const pmfms = this.pmfms || [];
-    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
+    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator, opts);
   }
 }
 
