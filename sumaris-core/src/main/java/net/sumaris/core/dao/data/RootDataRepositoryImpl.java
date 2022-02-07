@@ -31,6 +31,7 @@ import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
+import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
@@ -54,6 +55,7 @@ public abstract class RootDataRepositoryImpl<
         >
         extends DataRepositoryImpl<E, V, F, O>
         implements RootDataRepository<E, V, F, O> {
+
 
     @Autowired
     private PersonRepository personRepository;
@@ -101,13 +103,12 @@ public abstract class RootDataRepositoryImpl<
 
         // Program
         if (source.getProgram() != null) {
-            target.setProgram(programRepository.toVO(source.getProgram(),
-                    ProgramFetchOptions.builder().withProperties(false).build()));
+            target.setProgram(programRepository.toVO(source.getProgram(), ProgramFetchOptions.MINIMAL));
         }
 
         // Recorder person
         if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
-            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
+            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson(), PERSON_FETCH_OPTIONS);
             target.setRecorderPerson(recorderPerson);
         }
 

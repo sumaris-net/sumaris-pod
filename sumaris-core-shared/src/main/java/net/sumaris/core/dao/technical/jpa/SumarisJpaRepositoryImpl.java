@@ -161,7 +161,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
-//            getSessionFactory().getCache().evict(getDomainClass(), vo.getId());
             entity = getById(vo.getId());
         } else {
             entity = createEntity();

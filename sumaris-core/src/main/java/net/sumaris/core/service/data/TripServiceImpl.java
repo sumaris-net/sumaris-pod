@@ -113,12 +113,12 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                SortDirection sortDirection, DataFetchOptions fieldOptions) {
+                                SortDirection sortDirection, TripFetchOptions fieldOptions) {
         return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fieldOptions);
     }
 
     @Override
-    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, DataFetchOptions fieldOptions) {
+    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, TripFetchOptions fieldOptions) {
         return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
     }
 
@@ -129,19 +129,26 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int id) {
-        return get(id, DataFetchOptions.DEFAULT);
+        return get(id, TripFetchOptions.DEFAULT);
     }
 
     @Override
-    public TripVO get(int id, @NonNull DataFetchOptions fetchOptions) {
+    public TripVO get(int id, @NonNull TripFetchOptions fetchOptions) {
         TripVO target = tripRepository.get(id);
 
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDepartureDateTime())));
-            target.setGears(physicalGearService.getAllByTripId(id, fetchOptions));
-            target.setSales(saleService.getAllByTripId(id, fetchOptions));
+
+            DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
+
+            if (fetchOptions.isWithGears()) {
+                target.setGears(physicalGearService.getAllByTripId(id, childrenFetchOptions));
+            }
+            if (fetchOptions.isWithSales()) {
+                target.setSales(saleService.getAllByTripId(id, childrenFetchOptions));
+            }
             if (fetchOptions.isWithExpectedSales()) {
               target.setExpectedSales(expectedSaleService.getAllByTripId(id));
             }
@@ -151,7 +158,7 @@ public class TripServiceImpl implements TripService {
 
             // Operation groups
             if (target.getLandingId() != null || target.getLanding() != null) {
-                target.setOperationGroups(operationGroupService.findAllByTripId(id, fetchOptions));
+                target.setOperationGroups(operationGroupService.findAllByTripId(id, childrenFetchOptions));
                 target.setMetiers(operationGroupService.getMetiersByTripId(id));
             }
 
@@ -192,7 +199,7 @@ public class TripServiceImpl implements TripService {
                     target.setLandingId(landing.getId());
 
                     // Should be not fetch here
-                    //target.setLanding(landingRepository.toVO(landing, DataFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
+                    //target.setLanding(landingRepository.toVO(landing, TripFetchOptions.builder().withRecorderDepartment(false).withObservers(false).build()));
 
                     if (landing.getObservedLocation() != null) {
                         target.setObservedLocationId(landing.getObservedLocation().getId());
@@ -230,6 +237,7 @@ public class TripServiceImpl implements TripService {
         // Create a options clone (to be able to edit it)
         options = TripSaveOptions.defaultIfEmpty(options);
         final boolean withOperationGroup = options.getWithOperationGroup();
+        final boolean withSales = options.getWithSales();
         final boolean withExpectedSales = options.getWithExpectedSales();
 
         // Reset control date
@@ -239,9 +247,9 @@ public class TripServiceImpl implements TripService {
 
         // Update undefined operations (=metiers) on existing trip, dates can be changed
         if (!isNew) {
-            operationGroupService.updateUndefinedOperationDates(source.getId(), source.getDepartureDateTime(), source.getReturnDateTime());
+            operationGroupService.updateUndefinedOperationDates(source.getId(),
+                source.getDepartureDateTime(), source.getReturnDateTime());
         }
-
 
         // Keep source parent information
         options.setLandingId(source.getLandingId());
@@ -334,20 +342,22 @@ public class TripServiceImpl implements TripService {
         }
 
         // Save sales
-        if (CollectionUtils.isNotEmpty(source.getSales())) {
-            List<SaleVO> sales = Beans.getList(source.getSales());
-            sales.forEach(sale -> fillDefaultProperties(target, sale));
-            sales = saleService.saveAllByTripId(target.getId(), sales);
-            target.setSales(sales);
-        } else if (source.getSale() != null) {
-            SaleVO sale = source.getSale();
-            fillDefaultProperties(target, sale);
-            List<SaleVO> sales = saleService.saveAllByTripId(target.getId(), ImmutableList.of(sale));
-            target.setSale(sales.get(0));
-        }
-        // Remove all
-        else if (!isNew) {
-            saleService.saveAllByTripId(target.getId(), ImmutableList.of());
+        if (withSales) {
+            if (CollectionUtils.isNotEmpty(source.getSales())) {
+                List<SaleVO> sales = Beans.getList(source.getSales());
+                sales.forEach(sale -> fillDefaultProperties(target, sale));
+                sales = saleService.saveAllByTripId(target.getId(), sales);
+                target.setSales(sales);
+            } else if (source.getSale() != null) {
+                SaleVO sale = source.getSale();
+                fillDefaultProperties(target, sale);
+                List<SaleVO> sales = saleService.saveAllByTripId(target.getId(), ImmutableList.of(sale));
+                target.setSale(sales.get(0));
+            }
+            // Remove all
+            else if (!isNew) {
+                saleService.saveAllByTripId(target.getId(), ImmutableList.of());
+            }
         }
 
         // Save expected sales (only if asked)
@@ -397,7 +407,7 @@ public class TripServiceImpl implements TripService {
         log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
         TripVO eventData = enableTrash ?
-            get(id, DataFetchOptions.FULL_GRAPH) :
+            get(id, TripFetchOptions.FULL_GRAPH) :
             null;
 
         // Remove link LANDING->TRIP

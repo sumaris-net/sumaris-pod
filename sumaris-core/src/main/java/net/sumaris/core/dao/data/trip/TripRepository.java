@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data.trip;
 
 import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.data.jpa.repository.Modifying;
@@ -34,7 +34,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 
 public interface TripRepository extends
-    RootDataRepository<Trip, TripVO, TripFilterVO, DataFetchOptions>,
+    RootDataRepository<Trip, TripVO, TripFilterVO, TripFetchOptions>,
     TripSpecifications {
 
     @Query("select p.id from Trip t inner join t.program p where t.id = :id")

@@ -43,6 +43,7 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
@@ -102,7 +103,7 @@ public class OperationRepositoryImpl
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
             if (fetchOptions != null && fetchOptions.isWithTrip()){
-                target.setTrip(tripRepository.toVO(source.getTrip(), DataFetchOptions.builder()
+                target.setTrip(tripRepository.toVO(source.getTrip(), TripFetchOptions.builder()
                         .withRecorderDepartment(false)
                         .withRecorderPerson(false)
                         .build()));

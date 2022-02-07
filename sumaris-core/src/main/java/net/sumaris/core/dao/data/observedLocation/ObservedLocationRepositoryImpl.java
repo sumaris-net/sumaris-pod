@@ -26,17 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,13 +86,6 @@ public class ObservedLocationRepositoryImpl
 
         // Location
         target.setLocation(locationRepository.toVO(source.getLocation()));
-
-        // Observers
-        if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(source.getObservers())) {
-            Set<PersonVO> observers = source.getObservers().stream().map(personRepository::toVO).collect(Collectors.toSet());
-            target.setObservers(observers);
-        }
-
     }
 
     @Override
@@ -109,4 +107,17 @@ public class ObservedLocationRepositoryImpl
         }
     }
 
+    @Override
+    protected void configureQuery(TypedQuery<ObservedLocation> query, DataFetchOptions fetchOptions) {
+        super.configureQuery(query, fetchOptions);
+
+        // Prepare load graph
+        EntityManager em = getEntityManager();
+        EntityGraph<?> entityGraph = em.getEntityGraph(ObservedLocation.GRAPH_LOCATION_AND_PROGRAM);
+        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
+        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(ObservedLocation.Fields.OBSERVERS);
+
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+    }
 }

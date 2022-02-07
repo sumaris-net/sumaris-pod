@@ -45,6 +45,7 @@ import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -180,38 +181,15 @@ public class PersonRepositoryImpl
     }
 
     @Override
+    public PersonVO toVO(Person source, PersonFetchOptions fetchOptions) {
+        PersonVO target = createVO();
+        toVO(source, target, PersonFetchOptions.nullToDefault(fetchOptions), true);
+        return target;
+    }
+
+    @Override
     public void toVO(Person source, PersonVO target, boolean copyIfNull) {
-        super.toVO(source, target, copyIfNull);
-
-        // Department
-        if (source.getDepartment() == null || source.getDepartment().getId() == null) {
-            if (copyIfNull) {
-                target.setDepartment(null);
-            }
-        }
-        else {
-            DepartmentVO department = departmentRepository.get(source.getDepartment().getId());
-            target.setDepartment(department);
-        }
-
-        // Status
-        target.setStatusId(source.getStatus().getId());
-
-        // Profiles (keep only label)
-        if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
-            List<String> profiles = source.getUserProfiles().stream()
-                .map(UserProfile::getLabel)
-                // Convert DB label into name of UserProfileEnum
-                .map(label -> UserProfileEnum.findByLabel(label).orElse(null))
-                .filter(Objects::nonNull)
-                .map(Enum::name)
-                .collect(Collectors.toList());
-            target.setProfiles(profiles);
-        }
-
-        // Has avatar
-        target.setHasAvatar(source.getAvatar() != null);
-
+        toVO(source, target, PersonFetchOptions.DEFAULT, copyIfNull);
     }
 
     @Override
@@ -338,5 +316,40 @@ public class PersonRepositoryImpl
         publisher.publishEvent(new EntityDeleteEvent(id, Person.class.getSimpleName(), null));
     }
 
+    protected void toVO(Person source, PersonVO target, PersonFetchOptions fetchOptions, boolean copyIfNull) {
+        super.toVO(source, target, copyIfNull);
 
+        // Department
+        if (fetchOptions.isWithDepartment()) {
+            if (source.getDepartment() == null || source.getDepartment().getId() == null) {
+                if (copyIfNull) {
+                    target.setDepartment(null);
+                }
+            } else {
+                DepartmentVO department = departmentRepository.get(source.getDepartment().getId());
+                target.setDepartment(department);
+            }
+        }
+
+        // Status
+        target.setStatusId(source.getStatus().getId());
+
+        // Profiles (keep only label)
+        if (fetchOptions.isWithUserProfiles()) {
+            if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
+                List<String> profiles = source.getUserProfiles().stream()
+                    .map(UserProfile::getLabel)
+                    // Convert DB label into name of UserProfileEnum
+                    .map(label -> UserProfileEnum.findByLabel(label).orElse(null))
+                    .filter(Objects::nonNull)
+                    .map(Enum::name)
+                    .collect(Collectors.toList());
+                target.setProfiles(profiles);
+            }
+        }
+
+        // Has avatar
+        target.setHasAvatar(source.getAvatar() != null);
+
+    }
 }

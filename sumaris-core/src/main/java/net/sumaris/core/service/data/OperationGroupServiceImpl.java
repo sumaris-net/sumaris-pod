@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -107,10 +108,7 @@ public class OperationGroupServiceImpl implements OperationGroupService {
     }
 
     @Override
-    public void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate) {
-
-        Preconditions.checkNotNull(startDate);
-        Preconditions.checkNotNull(endDate);
+    public void updateUndefinedOperationDates(int tripId, @NonNull Date startDate, @NonNull Date endDate) {
 
         operationGroupRepository.updateUndefinedOperationDates(tripId, startDate, endDate);
     }

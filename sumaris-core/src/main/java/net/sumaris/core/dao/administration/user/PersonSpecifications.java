@@ -31,6 +31,7 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.UserProfile;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -167,4 +168,5 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
 
     void clearCache();
 
+    PersonVO toVO(Person source, PersonFetchOptions fetchOptions);
 }
