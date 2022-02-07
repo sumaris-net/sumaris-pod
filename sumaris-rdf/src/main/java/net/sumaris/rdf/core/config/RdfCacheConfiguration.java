@@ -27,7 +27,6 @@ import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.cache.Caches;
 import org.apache.jena.rdf.model.Model;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,14 +40,14 @@ import org.springframework.context.annotation.Configuration;
 public class RdfCacheConfiguration {
 
     public interface Names {
-        String ONTOLOGY_BY_NAME = "net.sumaris.rdf.core.service.schema.ontologyByName";
+        String ONTOLOGY = "net.sumaris.rdf.core.service.schema.ontologyByName";
     }
 
     @Bean
     public JCacheManagerCustomizer rdfCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {RDF} caches...");
-            Caches.createHeapCache(cacheManager, Names.ONTOLOGY_BY_NAME, Integer.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);
+            Caches.createHeapCache(cacheManager, Names.ONTOLOGY, Integer.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);
         };
     }
 

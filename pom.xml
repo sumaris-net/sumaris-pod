@@ -75,7 +75,7 @@
   </mailingLists>
 
   <prerequisites>
-    <maven>3.3.9</maven>
+    <maven>3.5.4</maven>
   </prerequisites>
 
   <properties>
@@ -113,6 +113,7 @@
     <hibernate-search.version>5.11.9.Final</hibernate-search.version>
     <hibernate-spatial.version>5.4.32.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
+    <hibernate-commons-annotations.version>5.1.2.Final</hibernate-commons-annotations.version>
     <spring.version>5.3.6</spring.version>
     <spring-web.version>5.3.6</spring-web.version>
     <spring-data.version>2.5.0</spring-data.version>
@@ -122,7 +123,6 @@
     <javassist.version>3.27.0-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
     <ehcache.version>3.8.1</ehcache.version>
-    <ehcache-monitor.version>2.7.11</ehcache-monitor.version>
     <lombok.version>1.18.20</lombok.version>
     <xmlquery.version>1.6</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
@@ -153,7 +153,7 @@
     <liquibase-hibernate.version>3.8</liquibase-hibernate.version>
 
     <!-- rdf -->
-    <jena.version>3.14.0</jena.version>
+    <jena.version>3.17.0</jena.version>
     <!-- 0.3.7 failed, because of deps slf4j -->
     <owl2vowl.version>0.3.5</owl2vowl.version>
     <owl-api.version>5.1.16</owl-api.version>
@@ -488,7 +488,7 @@
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
-        <version>1.6.6</version>
+        <version>${micrometer.version}</version>
       </dependency>
 
       <!-- Cryptography -->
@@ -661,7 +661,7 @@
       <dependency>
         <groupId>org.hibernate.common</groupId>
         <artifactId>hibernate-commons-annotations</artifactId>
-        <version>5.1.0.Final</version>
+        <version>${hibernate-commons-annotations.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>

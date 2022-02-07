@@ -27,6 +27,7 @@ package net.sumaris.core.test;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.cache.Caches;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,9 +90,7 @@ public abstract class AbstractDaoTest {
 			}
 		}
 		// Clear all cache, if any
-		if (cacheManager != null) {
-			//cacheManager.clearAll();
-		}
+		if (cacheManager != null) Caches.clearAll(cacheManager);
 	}
 	
 	/**

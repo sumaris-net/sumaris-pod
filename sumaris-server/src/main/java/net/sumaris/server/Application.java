@@ -153,9 +153,6 @@ public class Application extends SpringBootServletInitializer {
     protected static void initCache(SumarisConfiguration config) {
         // Init EHCache directory (see 'ehcache.xml' file)
         System.setProperty(SumarisConfigurationOption.CACHE_DIRECTORY.getKey(), config.getCacheDirectory().getPath() + File.separator);
-
-        // Cache directory
-        //FileUtils.forceMkdir(config.getCacheDirectory());
     }
 
     /**
