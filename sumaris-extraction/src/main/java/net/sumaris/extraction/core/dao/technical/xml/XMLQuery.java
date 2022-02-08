@@ -158,14 +158,6 @@ public class XMLQuery {
 
     /* -- delegated functions -- */
 
-    public boolean isLowercase() {
-        return delegate.isLowercase();
-    }
-
-    public void setLowercase(boolean lowercase) {
-        delegate.setLowercase(lowercase);
-    }
-
     public void manageRootElement() throws XMLQueryException {
         delegate.manageRootElement();
     }
