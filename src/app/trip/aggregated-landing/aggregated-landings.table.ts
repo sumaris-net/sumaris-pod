@@ -9,6 +9,7 @@ import {
   AppTable,
   EntitiesTableDataSource,
   filterNotNil,
+  firstNotNilPromise,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -62,6 +63,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   referentialToString = referentialToString;
   measurementValueToString = MeasurementValuesUtils.valueToString;
 
+  loadingPmfms = false;
+
   private _onRefreshDates = new EventEmitter<any>();
   private _onRefreshPmfms = new EventEmitter<any>();
   private _programLabel: string;
@@ -86,7 +89,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   @Input() set programLabel(value: string) {
     if (this._programLabel !== value && isNotNil(value)) {
       this._programLabel = value;
-      this._onRefreshPmfms.emit();
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
     }
   }
 
@@ -98,7 +101,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      this._onRefreshPmfms.emit();
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
     }
   }
 
@@ -177,6 +180,23 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.registerSubscription(this._onRefreshPmfms.subscribe(() => this.refreshPmfms()));
 
     this.registerSubscription(filterNotNil(this.$dates).subscribe(() => this.updateColumns()));
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$pmfms.complete();
+    this.$pmfms.unsubscribe();
+    this._onRefreshPmfms.complete();
+    this._onRefreshPmfms.unsubscribe();
+    this._onRefreshDates.complete();
+    this._onRefreshDates.unsubscribe();
+  }
+
+  async ready() {
+    await super.ready();
+
+    // Wait pmfms load, and controls load
+    await firstNotNilPromise(this.$pmfms);
   }
 
   setParent(parent: ObservedLocation|undefined) {
@@ -342,6 +362,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   private async refreshPmfms() {
     if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) return;
 
+    this.loadingPmfms = true;
+
+    // DEBUG
+    if (this.debug) console.debug(`[aggregated-landing-table] Loading pmfms... {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}''}̀̀`);
+
     // Load pmfms
     const pmfms = (await this.programRefService.loadProgramPmfms(
       this._programLabel,
@@ -353,10 +378,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       console.debug(`[aggregated-landings-table] No pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
-    this.$pmfms.next(pmfms);
-
     this.showLabelForPmfmIds = [PmfmIds.REFUSED_SURVEY];
 
+    // Apply
+    this.loadingPmfms = false;
+    this.$pmfms.next(pmfms);
 
   }
 
