@@ -27,6 +27,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -66,6 +68,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         String replacement = "$1_$2";
         return value.replaceAll(regex, replacement).toLowerCase();
     }
+
 
     public static String doting(String... strings) {
         return join(strings, '.');

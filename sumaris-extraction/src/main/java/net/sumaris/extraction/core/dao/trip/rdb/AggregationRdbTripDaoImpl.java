@@ -778,7 +778,7 @@ public class AggregationRdbTripDaoImpl<
         String sqlQuery = xmlQuery.getSQLQueryAsString();
 
         // Do column names replacement (e.g. see FREE extraction)
-        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping(), xmlQuery.isLowercase());
+        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping());
 
         return queryUpdate(sqlQuery);
     }
@@ -857,8 +857,7 @@ public class AggregationRdbTripDaoImpl<
                         c -> query(
                             Daos.sqlReplaceColumnNames(
                                 String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c),
-                                context.getColumnNamesMapping(),
-                                xmlQuery.isLowercase()),
+                                context.getColumnNamesMapping()),
                             Object.class)
                                 .stream()
                                 .map(String::valueOf)
