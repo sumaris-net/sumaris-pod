@@ -267,8 +267,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
           acquisitionLevel: this._acquisitionLevel,
         },
       },
-      backdropDismiss: false,
-      // cssClass: 'modal-large'
+      backdropDismiss: false
     });
 
     await modal.present();
