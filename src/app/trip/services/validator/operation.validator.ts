@@ -225,6 +225,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const qualityFlagControl = form.get('qualityFlagId');
     const fishingStartDateTimeControl = form.get('fishingStartDateTime');
     const fishingEndDateTimeControl = form.get('fishingEndDateTime');
+    const startDateTimeControl = form.get('startDateTime');
     const endDateTimeControl = form.get('endDateTime');
     const fishingEndPositionControl = form.get('fishingEndPosition');
     const fishingStartPositionControl = form.get('fishingStartPosition');
@@ -266,6 +267,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         // Enable position
         fishingStartPositionControl?.enable();
       } else {
+        //If not fishing start, make control on start
+        startDateTimeControl.setValidators(Validators.compose([
+          ...tripDatesValidators,
+          Validators.required,
+          SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')
+        ]));
+
         fishingStartDateTimeControl.disable();
         fishingStartDateTimeControl.clearValidators();
 
