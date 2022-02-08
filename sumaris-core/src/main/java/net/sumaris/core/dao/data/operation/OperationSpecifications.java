@@ -58,6 +58,7 @@ public interface OperationSpecifications
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
     String GEAR_IDS_PARAMETER = "gearIds";
+    String PHYSICAL_GEAR_IDS_PARAMETER = "physicalGearIds";
     String TAXON_GROUP_LABELS_PARAM = "targetSpecieIds";
     String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
@@ -144,6 +145,16 @@ public interface OperationSpecifications
                 ).value(param);
             })
             .addBind(GEAR_IDS_PARAMETER, Arrays.asList(gearIds));
+    }
+
+    default Specification<Operation> inPhysicalGearIds(Integer[] physicalGearIds) {
+        if (ArrayUtils.isEmpty(physicalGearIds)) return null;
+        return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
+            Join<Operation, PhysicalGear> physicalGearJoin = Daos.composeJoin(root, Operation.Fields.PHYSICAL_GEAR, JoinType.INNER);
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, PHYSICAL_GEAR_IDS_PARAMETER);
+            return criteriaBuilder.in(physicalGearJoin.get(IEntity.Fields.ID)).value(param);
+        })
+                .addBind(PHYSICAL_GEAR_IDS_PARAMETER, Arrays.asList(physicalGearIds));
     }
 
     default Specification<Operation> inTaxonGroupLabels(String[] taxonGroupLabels) {
