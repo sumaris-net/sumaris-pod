@@ -1230,7 +1230,7 @@
       "NAME": "Nom",
       "EXTERIOR_MARKING": "Marquage extérieur",
       "BASE_PORT_LOCATION": "Port d'attache",
-      "GROSS_TONNAGE_GT": "Tonnage (GT)",
+      "GROSS_TONNAGE_GT": "Tonnage (UMS)",
       "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
       "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
       "LENGTH_OVER_ALL": "Longueur hors tout (m)",
