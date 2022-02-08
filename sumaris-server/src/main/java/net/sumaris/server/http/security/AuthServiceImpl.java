@@ -102,11 +102,11 @@ public class AuthServiceImpl implements AuthService {
     @JmsListener(destination = "updatePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
     protected void onPersonSaved(PersonVO person) {
 
-        if (!StringUtils.isNotBlank(person.getPubkey())) return;
-        List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
-
-        // Clean cache (because user can be disabled)
-        Beans.getStream(tokens).forEach(checkedTokens::remove);
+        // Clean cached tokens (because user can be disabled)
+        if (StringUtils.isNotBlank(person.getPubkey())) {
+            List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
+            Beans.getStream(tokens).forEach(checkedTokens::remove);
+        }
         Optional.ofNullable(person.getUsername()).ifPresent(checkedUsernames::remove);
         Optional.ofNullable(person.getUsernameExtranet()).ifPresent(checkedUsernames::remove);
     }
