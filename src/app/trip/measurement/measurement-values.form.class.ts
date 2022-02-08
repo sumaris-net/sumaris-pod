@@ -3,9 +3,9 @@ import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { filter } from 'rxjs/operators';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
@@ -235,15 +235,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  async ready(): Promise<void> {
-    await super.ready();
-
-    if (this.$loadingStep.value >= MeasurementFormLoadingSteps.FORM_GROUP_READY) return;
-
-    await firstNotNilPromise(this.$loadingStep
+  ready(opts?: WaitForOptions): Promise<void> {
+    return waitForTrue(
+      this._$ready
       .pipe(
-        filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
-      ));
+        filter(value => value === true),
+        switchMap(_ => this.$loadingStep),
+        map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
+      )
+    , opts);
   }
 
 
