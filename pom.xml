@@ -124,7 +124,7 @@
     <cglib.version>3.3.0</cglib.version>
     <ehcache.version>3.8.1</ehcache.version>
     <lombok.version>1.18.20</lombok.version>
-    <xmlquery.version>1.6</xmlquery.version>
+    <xmlquery.version>1.7</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
     <spring-boot.version>2.4.10</spring-boot.version>
