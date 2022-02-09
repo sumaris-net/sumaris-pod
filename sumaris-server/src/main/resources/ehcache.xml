@@ -12,7 +12,7 @@
 	<persistence directory="${sumaris.cache.directory}"/>
 
 	<!-- hibernate caches  -->
-    <cache alias="default-update-timestamps-region" uses-template="default"/>
+	<cache alias="default-update-timestamps-region" uses-template="default"/>
 	<cache alias="default-query-results-region" uses-template="default"/>
 
 	<!-- Default cache template -->

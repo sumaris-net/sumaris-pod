@@ -120,13 +120,14 @@ public class DaosPgsqlTest {
             "WHERE\n" +
             "  0 < S.FISHING_TIME";
         String expectedSql = "SELECT\n" +
-            "  TO_DATE(S.FISHING_DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') AS FISHING_DURATION\n" +
-            "  SUM(S.FISHING_DURATION) AS TRIP_COUNT_BY_FISHING_TIME\n" +
+            "  TO_DATE(S.fishing_date || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') AS fishing_duration\n" +
+            "  SUM(S.fishing_duration) AS TRIP_COUNT_BY_FISHING_TIME\n" +
             "  S.FISHING_TIME_NOT_REPLACED\n" +
             "FROM TRIP T\n" +
             "WHERE\n" +
-            "  0 < S.FISHING_DURATION";
-        String actualSql = Daos.sqlReplaceColumnNames(sql, ImmutableMap.of("date", "fishing_date",
+            "  0 < S.fishing_duration";
+        String actualSql = Daos.sqlReplaceColumnNames(sql, ImmutableMap.of(
+            "date", "fishing_date",
             "fishing_time", "fishing_duration"));
 
         Assert.assertEquals(expectedSql, actualSql);

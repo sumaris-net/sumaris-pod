@@ -312,6 +312,7 @@ public class OperationRepositoryImpl
             .and(hasNoChildOperation(filter.getExcludeChildOperation()))
             .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
             .and(inGearIds(filter.getGearIds()))
+            .and(inPhysicalGearIds(filter.getPhysicalGearIds()))
             .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
             .and(hasQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()));

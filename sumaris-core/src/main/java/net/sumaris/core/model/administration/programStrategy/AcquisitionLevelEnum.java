@@ -30,6 +30,8 @@ public enum AcquisitionLevelEnum {
 
     TRIP(1, "TRIP"),
     OPERATION(3, "OPERATION"),
+    CHILD_OPERATION(20, "CHILD_OPERATION"),
+    PHYSICAL_GEAR(2, "PHYSICAL_GEAR"),
     CATCH_BATCH(4, "CATCH_BATCH"),
     SORTING_BATCH(5, "SORTING_BATCH"),
     /**

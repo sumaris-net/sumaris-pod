@@ -569,15 +569,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>getDatasourceJndiName.</p>
-     *
-     * @return a {@link String} object.
-     */
-    public String getDatasourceJndiName() {
-        return applicationConfig.getOption(SumarisConfigurationOption.DATASOURCE_JNDI_NAME.getKey());
-    }
-
-    /**
      * <p>getJdbcDriver.</p>
      *
      * @return a {@link String} object.

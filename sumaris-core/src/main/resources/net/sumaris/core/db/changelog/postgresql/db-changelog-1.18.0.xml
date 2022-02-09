@@ -57,7 +57,7 @@
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-			<column name="COMMENTS"></column>
+			<column name="COMMENTS"/>
 		</insert>
 	</changeSet>
 </databaseChangeLog>

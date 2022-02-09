@@ -139,18 +139,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         String.class,
         false),
 
-    DATASOURCE_TYPE(
-        "sumaris.persistence.datasource.type",
-        n("sumaris.persistence.datasource.type.description"),
-        "local",
-        String.class),
-
-    DATASOURCE_JNDI_NAME(
-        "sumaris.persistence.jndi-name",
-        n("sumaris.config.option.persistence.jndi-name.description"),
-        "sumaris-ds",
-        String.class),
-
     JDBC_USERNAME(
         "spring.datasource.username",
         n("sumaris.config.option.spring.datasource.username.description"),

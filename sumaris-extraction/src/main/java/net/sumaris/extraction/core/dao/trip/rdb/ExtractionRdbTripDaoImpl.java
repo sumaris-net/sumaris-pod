@@ -51,9 +51,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -547,42 +545,42 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
      */
     protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
                                                            List<String> programLabels,
-                                                           AcquisitionLevelEnum acquisitionLevel) {
+                                                           AcquisitionLevelEnum... acquisitionLevels) {
 
         if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
 
         // Create the map that holds the result
-        Map<AcquisitionLevelEnum, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsByAcquisitionLevel();
+        Map<String, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsCacheMap();
         if (pmfmColumns == null) {
             pmfmColumns = Maps.newHashMap();
-            context.setPmfmsByAcquisitionLevel(pmfmColumns);
+            context.setPmfmsCacheMap(pmfmColumns);
         }
+
+        List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
+            .map(acquisitionLevelEnum -> acquisitionLevelEnum.getId())
+            .collect(Collectors.toList());
+
+        String cacheKey = acquisitionLevelIds.toString();
 
         // Already loaded: use the cached values
-        if (pmfmColumns.containsKey(acquisitionLevel)) return pmfmColumns.get(acquisitionLevel);
+        if (pmfmColumns.containsKey(cacheKey)) return pmfmColumns.get(cacheKey);
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Loading PMFM for {program: %s, acquisitionLevel: %s} ...",
+            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
                 programLabels,
-                acquisitionLevel
-            ));
+                cacheKey
+            );
         }
 
-        // Load strategies
-        List<ExtractionPmfmColumnVO> result = strategyService.findByFilter(StrategyFilterVO.builder()
-                .programLabels(programLabels.toArray(new String[0]))
-                // TODO: filtrer les strategies via la periode du filtre (si présente) ?
-                // .startDate(...).endDate(...)
-                .build(), null, StrategyFetchOptions.DEFAULT)
+        // Load pmfm columns
+        List<ExtractionPmfmColumnVO> result = strategyService.findDenormalizedPmfmsByFilter(
+                PmfmStrategyFilterVO.builder()
+                    .programLabels(programLabels.toArray(new String[programLabels.size()]))
+                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[acquisitionLevelIds.size()]))
+                    .build(),
+                PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
+            )
                 .stream()
-                // Then, load PmfmStretegy
-                .flatMap(strategy ->  strategyService.findDenormalizedPmfmsByFilter(
-                            PmfmStrategyFilterVO.builder()
-                                    .strategyId(strategy.getId())
-                                    .acquisitionLevelId(acquisitionLevel.getId())
-                                    .build(),
-                            PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
-                    ).stream())
                 .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
 
                 // Group by pmfmId
@@ -590,11 +588,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 .values().stream().map(list -> list.get(0))
 
                 // Sort by label
+                // TODO sort by rankOrder ?
                 .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getLabel, String::compareTo))
                 .collect(Collectors.toList());
 
         // save result into the context map
-        pmfmColumns.put(acquisitionLevel, result);
+        pmfmColumns.put(cacheKey, result);
 
         return result;
     }

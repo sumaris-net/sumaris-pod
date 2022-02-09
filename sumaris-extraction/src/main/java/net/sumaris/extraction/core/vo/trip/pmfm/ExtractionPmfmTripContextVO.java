@@ -1,4 +1,4 @@
-package net.sumaris.extraction.core.vo;
+package net.sumaris.extraction.core.vo.trip.pmfm;
 
 /*-
  * #%L
@@ -24,26 +24,20 @@ package net.sumaris.extraction.core.vo;
 
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 
 /**
- * @author peck7 on 18/12/2018.
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@FieldNameConstants
-public class ExtractionPmfmColumnVO {
+@EqualsAndHashCode(callSuper = true)
+public class ExtractionPmfmTripContextVO extends ExtractionRdbTripContextVO {
 
-    int pmfmId;
+    String survivalTestTableName; // ST (survival test) table
 
-    //String name;
-    String alias;
-    String label;
+    String releaseTableName; // RL (release) table
 
-    PmfmValueType type;
-
-    String acquisitionLevel;
-    int rankOrder;
 }

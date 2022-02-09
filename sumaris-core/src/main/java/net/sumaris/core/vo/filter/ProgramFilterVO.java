@@ -32,6 +32,10 @@ import lombok.experimental.FieldNameConstants;
 @AllArgsConstructor
 public class ProgramFilterVO implements IReferentialFilter {
 
+    public static ProgramFilterVO nullToEmpty(ProgramFilterVO filter) {
+        return filter != null ? filter : ProgramFilterVO.builder().build();
+    }
+
     private Integer id;
     private String label;
     private String name;

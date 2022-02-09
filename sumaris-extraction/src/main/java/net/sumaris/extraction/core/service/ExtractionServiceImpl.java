@@ -31,7 +31,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -44,6 +43,19 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.*;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
@@ -64,19 +76,6 @@ import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationLevelEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.core.service.referential.LocationService;
-import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.util.*;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -91,7 +90,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -103,6 +101,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -135,7 +134,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     private CacheManager cacheManager;
 
     @Autowired(required = false)
-    private TaskExecutor taskExecutor;
+    private Executor extractionExecutor;
 
     private boolean enableProduct = false;
     private boolean enableTechnicalTablesUpdate = false;
@@ -848,8 +847,8 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected void clean(ExtractionContextVO context, boolean async) {
         if (context == null) return;
-        if (async && taskExecutor != null) {
-            taskExecutor.execute(() -> self().clean(context));
+        if (async && extractionExecutor != null) {
+            extractionExecutor.execute(() -> self().clean(context));
         }
         else  {
             log.info("Cleaning extraction #{}-{}", context.getRawFormatLabel(), context.getId());

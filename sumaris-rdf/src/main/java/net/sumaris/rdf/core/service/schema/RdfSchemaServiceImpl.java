@@ -56,6 +56,7 @@ import org.reflections.scanners.TypeAnnotationsScanner;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -81,9 +82,6 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     @Autowired
     protected RdfCacheConfiguration cacheConfiguration;
-
-    @javax.annotation.Resource(name = "rdfSchemaService")
-    protected RdfSchemaService self; // Use to call method with cache
 
     protected Bean2Owl beanConverter;
 
@@ -126,6 +124,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     }
 
     @Override
+    @Cacheable(cacheNames = RdfCacheConfiguration.Names.ONTOLOGY, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
     public Model getOntology(RdfSchemaFetchOptions options) {
         Preconditions.checkNotNull(options);
 
@@ -139,7 +138,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         boolean optionsChanged = (cacheKey != fixedCacheKey);
         if (optionsChanged) {
             if (debug) log.debug("Ontology export options was fixed! Will use: " + options.toString());
-            return self.getOntology(options);
+            return getOntology(options);
         }
 
         // Run export

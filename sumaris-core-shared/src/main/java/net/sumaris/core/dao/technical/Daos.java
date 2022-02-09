@@ -1692,7 +1692,7 @@ public class Daos {
     public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
                                                       final Function<T, Boolean> hasNextFn,
                                                       final int pageSize,
-                                                      final long maxPageCount) {
+                                                      final long maxLimit) {
         final Page page = Page.builder().size(pageSize).build();
         final Iterator<T> iterator = new Iterator<T>() {
             boolean hasNext = true;
@@ -1707,7 +1707,7 @@ public class Daos {
                 T pageModel = processPageFn.apply(page);
                 page.setOffset(page.getOffset() + pageSize);
                 hasNext = hasNextFn.apply(pageModel)
-                        && (maxPageCount == -1 || page.getOffset() < maxPageCount);
+                        && (maxLimit == -1 || page.getOffset() < maxLimit);
                 return pageModel;
             }
         };
