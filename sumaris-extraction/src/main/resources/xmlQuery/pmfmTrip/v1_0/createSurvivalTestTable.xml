@@ -31,14 +31,13 @@
         <subselect alias="SAMPLE_DATE" type="date">SA.SAMPLE_DATE</subselect>
         <subselect alias="REFERENCE_TAXON_FK" type="text">SA.REFERENCE_TAXON_FK</subselect>
         <subselect alias="TAXON_GROUP_FK" type="text">SA.TAXON_GROUP_FK</subselect>
-        <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
+        <subselect alias="PMFM_FK" type="number">SM.PMFM_FK</subselect>
         <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
         <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
 
         <from alias="S">&amp;stationTableName</from>
         <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
         <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
-        <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
         <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
 
         <union>
@@ -48,7 +47,7 @@
             <subselect alias="SAMPLE_DATE" type="date">PARENT_SA.SAMPLE_DATE</subselect>
             <subselect alias="REFERENCE_TAXON_FK" type="text">PARENT_SA.REFERENCE_TAXON_FK</subselect>
             <subselect alias="TAXON_GROUP_FK" type="text">PARENT_SA.TAXON_GROUP_FK</subselect>
-            <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
+            <subselect alias="PMFM_FK" type="number">SM.PMFM_FK</subselect>
             <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
             <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
 
@@ -56,7 +55,6 @@
             <from join="true">INNER JOIN SAMPLE PARENT_SA ON PARENT_SA.OPERATION_FK = S.STATION_NUMBER AND PARENT_SA.LABEL LIKE UPPER('SAMPLE#%')</from>
             <from join="true">INNER JOIN SAMPLE SA ON SA.PARENT_SAMPLE_FK = PARENT_SA.ID AND SA.LABEL LIKE UPPER('INDIVIDUAL_MONITORING#%')</from>
             <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
-            <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
             <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
           </subquery>
         </union>
