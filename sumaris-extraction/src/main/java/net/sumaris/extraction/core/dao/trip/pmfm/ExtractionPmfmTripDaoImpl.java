@@ -23,8 +23,11 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
@@ -41,8 +44,10 @@ import net.sumaris.extraction.core.vo.trip.survivalTest.ExtractionSurvivalTestCo
 import org.apache.commons.collections4.CollectionUtils;
 import org.jdom2.Attribute;
 import org.springframework.context.annotation.Lazy;
+
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.net.URL;
 import java.util.*;
@@ -71,17 +76,13 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
-        boolean hasSampleOperation = false;
 
         List<String> programLabels = getTripProgramLabels(context);
 
-        for (String label : programLabels) {
-            if (!hasSampleOperation) {
-                hasSampleOperation = this.programService.hasPropertyValue(label, "sumaris.trip.operation.sample.enable", "true");
-            }
-        }
+        boolean hasSamples = programLabels.stream()
+            .anyMatch(label -> this.programService.hasPropertyValue(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()));
 
-        if (hasSampleOperation) {
+        if (hasSamples) {
             context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
             context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
@@ -140,19 +141,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         XMLQuery xmlQuery = super.createStationQuery(context);
 
-        ArrayList<String> allowParentProgLabels = new ArrayList<>();
-        ArrayList<String> noParentProgLabels = new ArrayList<>();
-
         List<String> programLabels = getTripProgramLabels(context);
-
-        for (String label : programLabels) {
-            boolean allowParent = this.programService.hasPropertyValue(label, "sumaris.trip.operation.allowParent", "true");
-            if (allowParent) {
-                allowParentProgLabels.add(label);
-            } else {
-                noParentProgLabels.add(label);
-            }
-        }
 
         // Special case for COST format:
         // - Hide GearType (not in the COST format)
@@ -167,54 +156,35 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 AcquisitionLevelEnum.PHYSICAL_GEAR
         );
 
-        // Inject physical gear pmfms
-        if (!noParentProgLabels.isEmpty()) {
-            injectPmfmColumns(context, xmlQuery,
-                    noParentProgLabels,
-                    AcquisitionLevelEnum.OPERATION,
-                    "",
-                    "",
-                    true,
-                    // Excluded PMFM (already exists as RDB format columns)
-                    PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-                    PmfmEnum.GEAR_DEPTH_M.getId(),
-                    PmfmEnum.BOTTOM_DEPTH_M.getId(),
-                    PmfmEnum.SELECTIVITY_DEVICE.getId(),
-                    PmfmEnum.TRIP_PROGRESS.getId()
-            );
+        // Compute list of pmfms, depending of acquisition levels used
+        List<ExtractionPmfmColumnVO> pmfmColumns;
+        URL injectionQuery;
+        boolean hasProgramAllowParent = programLabels.stream()
+            .anyMatch(label -> this.programService.hasPropertyValue(label, ProgramPropertyEnum.TRIP_OPERATION_ALLOW_PARENT, Boolean.TRUE.toString()));
+        if (!hasProgramAllowParent) {
+            pmfmColumns = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.OPERATION);
+            injectionQuery = getInjectionQueryByAcquisitionLevel(context, AcquisitionLevelEnum.OPERATION);
+        }
+        else {
+            pmfmColumns = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.OPERATION, AcquisitionLevelEnum.CHILD_OPERATION);
+            injectionQuery = getInjectionQueryByAcquisitionLevel(context, AcquisitionLevelEnum.CHILD_OPERATION);
         }
 
-        if (!allowParentProgLabels.isEmpty()) {
-            injectPmfmColumns(context, xmlQuery,
-                    allowParentProgLabels,
-                    AcquisitionLevelEnum.OPERATION,
-                    "injectionParentOperationPmfm",
-                    "",
-                    true,
-                    // Excluded PMFM (already exists as RDB format columns)
-                    PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-                    PmfmEnum.GEAR_DEPTH_M.getId(),
-                    PmfmEnum.BOTTOM_DEPTH_M.getId(),
-                    PmfmEnum.SELECTIVITY_DEVICE.getId(),
-                    PmfmEnum.TRIP_PROGRESS.getId()
-            );
-
-            // Inject Pmfm columns
-            injectPmfmColumns(context, xmlQuery,
-                    allowParentProgLabels,
-                    AcquisitionLevelEnum.CHILD_OPERATION,
-                    // Excluded PMFM (already exists as RDB format columns)
-                    PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-                    PmfmEnum.GEAR_DEPTH_M.getId(),
-                    PmfmEnum.BOTTOM_DEPTH_M.getId(),
-                    PmfmEnum.SELECTIVITY_DEVICE.getId(),
-                    PmfmEnum.TRIP_PROGRESS.getId()
-            );
-        }
+        injectPmfmColumns(context, xmlQuery,
+            pmfmColumns,
+            injectionQuery,
+            null,
+            // Excluded PMFM (already exists as RDB format columns)
+            PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
+            PmfmEnum.GEAR_DEPTH_M.getId(),
+            PmfmEnum.BOTTOM_DEPTH_M.getId(),
+            PmfmEnum.SELECTIVITY_DEVICE.getId(),
+            PmfmEnum.TRIP_PROGRESS.getId()
+        );
 
         xmlQuery.bind("groupByColumns", groupbyColumns);
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
-        xmlQuery.setGroup("allowParent", !allowParentProgLabels.isEmpty());
+        xmlQuery.setGroup("allowParent", hasProgramAllowParent);
 
         return xmlQuery;
     }
@@ -247,7 +217,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
                 "afterSexInjection",
-                true,
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
                 PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
@@ -369,7 +338,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                                        List<String> programLabels,
                                        AcquisitionLevelEnum acquisitionLevel,
                                        Integer... excludedPmfmIds) {
-        return injectPmfmColumns(context, xmlQuery, programLabels, acquisitionLevel, "", "", false, excludedPmfmIds);
+        return injectPmfmColumns(context, xmlQuery, programLabels, acquisitionLevel, null, null, excludedPmfmIds);
     }
 
 
@@ -377,33 +346,44 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                                        XMLQuery xmlQuery,
                                        List<String> programLabels,
                                        AcquisitionLevelEnum acquisitionLevel,
-                                       String query,
-                                       String injectionPointName,
-                                       Boolean noCache,
+                                       @Nullable String injectionQueryName,
+                                       @Nullable String injectionPointName,
                                        Integer... excludedPmfmIds) {
 
         // Load PMFM columns to inject
-        List<ExtractionPmfmColumnVO> pmfmColumns = loadPmfmColumns(context, programLabels, acquisitionLevel, noCache);
+        List<ExtractionPmfmColumnVO> pmfmColumns = loadPmfmColumns(context, programLabels, acquisitionLevel);
 
         if (CollectionUtils.isEmpty(pmfmColumns)) return ""; // Skip if empty
 
         // Compute the injection query
-        URL injectionQuery = query.equals("")
+        URL injectionQuery = StringUtils.isBlank(injectionQueryName)
                 ? getInjectionQueryByAcquisitionLevel(context, acquisitionLevel)
-                : getXMLQueryURL(context, query);
+                : getXMLQueryURL(context, injectionQueryName);
         if (injectionQuery == null) {
             log.warn("No XML query found, for Pmfm injection on acquisition level: " + acquisitionLevel.name());
             return "";
         }
 
+        return injectPmfmColumns(context, xmlQuery, pmfmColumns, injectionQuery, injectionPointName, excludedPmfmIds);
+    }
+
+    protected String injectPmfmColumns(C context,
+                                       XMLQuery xmlQuery,
+                                       List<ExtractionPmfmColumnVO> pmfmColumns,
+                                       URL injectionQuery,
+                                       @Nullable String injectionPointName,
+                                       Integer... excludedPmfmIds) {
+
+        if (CollectionUtils.isEmpty(pmfmColumns)) return ""; // Skip if empty
+
         List<Integer> excludedPmfmIdsList = Arrays.asList(excludedPmfmIds);
 
         pmfmColumns.stream()
-                .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-                .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfm));
+            .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
+            .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfm));
 
         return pmfmColumns.stream().filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-                .map(ExtractionPmfmColumnVO::getLabel).collect(Collectors.joining(","));
+            .map(ExtractionPmfmColumnVO::getLabel).collect(Collectors.joining(","));
     }
 
     protected URL getInjectionQueryByAcquisitionLevel(C context, AcquisitionLevelEnum acquisitionLevel) {
@@ -411,8 +391,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case TRIP:
                 return getXMLQueryURL(context, "injectionTripPmfm");
             case OPERATION:
-            case CHILD_OPERATION:
                 return getXMLQueryURL(context, "injectionOperationPmfm");
+            case CHILD_OPERATION:
+                return getXMLQueryURL(context, "injectionParentOperationPmfm");
             case PHYSICAL_GEAR:
                 return getXMLQueryURL(context, "injectionPhysicalGearPmfm");
             case SORTING_BATCH:
@@ -427,14 +408,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     protected void injectPmfmColumn(C context,
                                     XMLQuery xmlQuery,
                                     URL injectionPmfmQuery,
-                                    String injectionPointName,
+                                    @Nullable String injectionPointName,
                                     ExtractionPmfmColumnVO pmfm
     ) {
         // Have to be lower case due to postgres compatibility
         String pmfmAlias = this.databaseType == DatabaseType.postgresql ? pmfm.getAlias().toLowerCase() : pmfm.getAlias();
         String pmfmLabel = this.databaseType == DatabaseType.postgresql ? pmfm.getLabel().toLowerCase() : pmfm.getLabel();
 
-        if (injectionPointName.equals("")) {
+        if (StringUtils.isBlank(injectionPointName)) {
             xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias);
         } else {
             xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias, injectionPointName);

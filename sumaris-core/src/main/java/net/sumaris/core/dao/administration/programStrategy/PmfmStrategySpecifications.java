@@ -22,28 +22,51 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import net.sumaris.core.dao.referential.ReferentialEntities;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 
 public interface PmfmStrategySpecifications {
 
     String PROGRAM_ID_PARAM = "programId";
+    String PROGRAM_LABELS_PARAM = "programLabels";
     String ACQUISITION_LEVEL_ID_PARAM = "acquisitionLevelId";
+    String ACQUISITION_LEVEL_IDS_PARAM = "acquisitionLevelIds";
     String STRATEGY_ID_PARAM = "strategyId";
 
     default Specification<PmfmStrategy> hasProgramId(Integer programId) {
         if (programId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PROGRAM_ID_PARAM);
-            return criteriaBuilder.equal(root.get(PmfmStrategy.Fields.STRATEGY).get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), param);
+            Join<?, Program> programJoin = Daos.composeJoin(root, StringUtils.doting(PmfmStrategy.Fields.STRATEGY, Strategy.Fields.PROGRAM));
+            return criteriaBuilder.equal(programJoin.get(Program.Fields.ID), param);
         }).addBind(PROGRAM_ID_PARAM, programId);
+    }
+
+    default Specification<PmfmStrategy> inProgramLabels(String[] programLabels) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(programLabels)) return null;
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, PROGRAM_LABELS_PARAM);
+            Join<?, Program> programJoin = Daos.composeJoin(root, StringUtils.doting(PmfmStrategy.Fields.STRATEGY, Strategy.Fields.PROGRAM));
+            return criteriaBuilder.in(programJoin.get(Program.Fields.LABEL)).value(param);
+        }).addBind(PROGRAM_LABELS_PARAM, Arrays.asList(programLabels));
     }
 
     default Specification<PmfmStrategy> hasAcquisitionLevelId(Integer acquisitionLevelId) {
@@ -54,20 +77,33 @@ public interface PmfmStrategySpecifications {
         }).addBind(ACQUISITION_LEVEL_ID_PARAM, acquisitionLevelId);
     }
 
+
+    default Specification<PmfmStrategy> inAcquisitionLevelIds(Integer[] acquisitionLevelIds) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(acquisitionLevelIds)) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, ACQUISITION_LEVEL_IDS_PARAM);
+            return criteriaBuilder.in(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID)).value(param);
+        }).addBind(ACQUISITION_LEVEL_IDS_PARAM, Arrays.asList(acquisitionLevelIds));
+    }
+
     default Specification<PmfmStrategy> hasStrategyId(Integer strategyId) {
         if (strategyId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, STRATEGY_ID_PARAM);
-            return criteriaBuilder.equal(root.get(PmfmStrategy.Fields.STRATEGY).get(Strategy.Fields.ID), param);
+            Join<?, Strategy> strategyJoin = Daos.composeJoin(root, PmfmStrategy.Fields.STRATEGY);
+            return criteriaBuilder.equal(strategyJoin.get(Strategy.Fields.ID), param);
         }).addBind(STRATEGY_ID_PARAM, strategyId);
     }
 
     default Specification<PmfmStrategy> toSpecification(PmfmStrategyFilterVO filter) {
-
         return BindableSpecification
-                .where(hasProgramId(filter.getProgramId()))
-                .and(hasStrategyId(filter.getStrategyId()))
-                .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()));
+            .where(hasProgramId(filter.getProgramId()))
+            .and(inProgramLabels(filter.getProgramLabels()))
+            .and(hasStrategyId(filter.getStrategyId()))
+            .and(hasAcquisitionLevelId(filter.getAcquisitionLevelId()))
+            .and(inAcquisitionLevelIds(filter.getAcquisitionLevelIds()))
+            ;
     }
 
 }
