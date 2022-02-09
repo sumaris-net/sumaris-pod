@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
@@ -80,7 +81,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             }
         }
 
-        if (hasSampleOperation){
+        if (hasSampleOperation) {
             context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
             context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
 
@@ -95,16 +96,11 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
                 // Release table
                 createReleaseTable(context);
-            }
-            catch (PersistenceException e) {
+            } catch (PersistenceException e) {
                 // If error,clean created tables first, then rethrow the exception
                 clean(context);
                 throw e;
             }
-        }
-        else {
-            context.addRawTableName(context.getSurvivalTestTableName());
-            context.addRawTableName(context.getReleaseTableName());
         }
 
         context.setFormat(LiveFormatEnum.PMFM_TRIP);
@@ -131,8 +127,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             injectPmfmColumns(context, xmlQuery,
                     Collections.singletonList(programLabel),
                     AcquisitionLevelEnum.TRIP,
-                    "",
-                    "",
                     // Excluded PMFM (already exists as RDB format columns)
                     PmfmEnum.NB_OPERATION.getId());
         }
@@ -146,16 +140,18 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         XMLQuery xmlQuery = super.createStationQuery(context);
 
-        boolean hasAllowedParentOperation = false;
-        boolean onlyAllowedParentOperation = true;
+        ArrayList<String> allowParentProgLabels = new ArrayList<>();
+        ArrayList<String> noParentProgLabels = new ArrayList<>();
 
         List<String> programLabels = getTripProgramLabels(context);
 
         for (String label : programLabels) {
-
             boolean allowParent = this.programService.hasPropertyValue(label, "sumaris.trip.operation.allowParent", "true");
-            hasAllowedParentOperation = hasAllowedParentOperation || allowParent;
-            onlyAllowedParentOperation = onlyAllowedParentOperation && hasAllowedParentOperation;
+            if (allowParent) {
+                allowParentProgLabels.add(label);
+            } else {
+                noParentProgLabels.add(label);
+            }
         }
 
         // Special case for COST format:
@@ -168,26 +164,17 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // Inject physical gear pmfms
         injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
-                AcquisitionLevelEnum.PHYSICAL_GEAR,
-                "",
-                "",
-
-                // Excluded PMFM (already exists as RDB format columns)
-                PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-                PmfmEnum.GEAR_DEPTH_M.getId(),
-                PmfmEnum.BOTTOM_DEPTH_M.getId(),
-                PmfmEnum.SELECTIVITY_DEVICE.getId(),
-                PmfmEnum.TRIP_PROGRESS.getId()
+                AcquisitionLevelEnum.PHYSICAL_GEAR
         );
 
         // Inject physical gear pmfms
-        if (!hasAllowedParentOperation || !onlyAllowedParentOperation) {
+        if (!noParentProgLabels.isEmpty()) {
             injectPmfmColumns(context, xmlQuery,
-                    getTripProgramLabels(context),
+                    noParentProgLabels,
                     AcquisitionLevelEnum.OPERATION,
                     "",
                     "",
-
+                    true,
                     // Excluded PMFM (already exists as RDB format columns)
                     PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
                     PmfmEnum.GEAR_DEPTH_M.getId(),
@@ -197,13 +184,13 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             );
         }
 
-        if (hasAllowedParentOperation) {
+        if (!allowParentProgLabels.isEmpty()) {
             injectPmfmColumns(context, xmlQuery,
-                    getTripProgramLabels(context),
+                    allowParentProgLabels,
                     AcquisitionLevelEnum.OPERATION,
                     "injectionParentOperationPmfm",
                     "",
-
+                    true,
                     // Excluded PMFM (already exists as RDB format columns)
                     PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
                     PmfmEnum.GEAR_DEPTH_M.getId(),
@@ -214,10 +201,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
             // Inject Pmfm columns
             injectPmfmColumns(context, xmlQuery,
-                    getTripProgramLabels(context),
+                    allowParentProgLabels,
                     AcquisitionLevelEnum.CHILD_OPERATION,
-                    "",
-                    "",
                     // Excluded PMFM (already exists as RDB format columns)
                     PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
                     PmfmEnum.GEAR_DEPTH_M.getId(),
@@ -227,10 +212,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             );
         }
 
-
         xmlQuery.bind("groupByColumns", groupbyColumns);
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
-        xmlQuery.setGroup("allowParent", hasAllowedParentOperation);
+        xmlQuery.setGroup("allowParent", !allowParentProgLabels.isEmpty());
 
         return xmlQuery;
     }
@@ -238,14 +222,12 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
 
-        String groupbyColumns = String.join(",", xmlQuery.getColumnNames(e ->
-                true));
+        xmlQuery.bind("groupByColumns", String.join(",", xmlQuery.getColumnNames(e ->
+                true)));
 
         injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.SORTING_BATCH,
-                "",
-                "",
                 // Excluded PMFM (already exists as RDB format columns)
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
@@ -254,7 +236,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         );
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
-        xmlQuery.bind("groupByColumns", groupbyColumns);
         return xmlQuery;
     }
 
@@ -266,6 +247,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
                 "afterSexInjection",
+                true,
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
                 PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
@@ -274,6 +256,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"));
 
         xmlQuery.bind("groupByColumns", groupByColumns);
+        xmlQuery.setGroup("addGroupBy", !groupByColumns.equals(""));
 
         return xmlQuery;
     }
@@ -300,9 +283,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
-                AcquisitionLevelEnum.SAMPLE,
-                "",
-                "");
+                AcquisitionLevelEnum.SAMPLE);
 
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
@@ -323,8 +304,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Extraction #%s > Survival test table: %s rows inserted", context.getId(), count));
-        }
-        else {
+        } else {
             context.addRawTableName(context.getSurvivalTestTableName());
         }
         return count;
@@ -353,8 +333,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Extraction #%s > Release table: %s rows inserted", context.getId(), count));
-        }
-        else {
+        } else {
             context.addRawTableName(context.getReleaseTableName());
         }
         return count;
@@ -385,6 +364,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         }
     }
 
+    protected String injectPmfmColumns(C context,
+                                       XMLQuery xmlQuery,
+                                       List<String> programLabels,
+                                       AcquisitionLevelEnum acquisitionLevel,
+                                       Integer... excludedPmfmIds) {
+        return injectPmfmColumns(context, xmlQuery, programLabels, acquisitionLevel, "", "", false, excludedPmfmIds);
+    }
+
 
     protected String injectPmfmColumns(C context,
                                        XMLQuery xmlQuery,
@@ -392,10 +379,11 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                                        AcquisitionLevelEnum acquisitionLevel,
                                        String query,
                                        String injectionPointName,
+                                       Boolean noCache,
                                        Integer... excludedPmfmIds) {
 
         // Load PMFM columns to inject
-        List<ExtractionPmfmColumnVO> pmfmColumns = loadPmfmColumns(context, programLabels, acquisitionLevel);
+        List<ExtractionPmfmColumnVO> pmfmColumns = loadPmfmColumns(context, programLabels, acquisitionLevel, noCache);
 
         if (CollectionUtils.isEmpty(pmfmColumns)) return ""; // Skip if empty
 
@@ -413,6 +401,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         pmfmColumns.stream()
                 .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
                 .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfm));
+
         return pmfmColumns.stream().filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
                 .map(ExtractionPmfmColumnVO::getLabel).collect(Collectors.joining(","));
     }
@@ -441,19 +430,23 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                                     String injectionPointName,
                                     ExtractionPmfmColumnVO pmfm
     ) {
+        // Have to be lower case due to postgres compatibility
+        String pmfmAlias = this.databaseType == DatabaseType.postgresql ? pmfm.getAlias().toLowerCase() : pmfm.getAlias();
+        String pmfmLabel = this.databaseType == DatabaseType.postgresql ? pmfm.getLabel().toLowerCase() : pmfm.getLabel();
+
         if (injectionPointName.equals("")) {
-            xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmAlias%", pmfm.getAlias());
+            xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias);
         } else {
-            xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmAlias%", pmfm.getAlias(), injectionPointName);
+            xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias, injectionPointName);
         }
 
-        xmlQuery.bind("pmfmId" + pmfm.getAlias(), String.valueOf(pmfm.getPmfmId()));
-        xmlQuery.bind("pmfmLabel" + pmfm.getAlias(), pmfm.getLabel());
+        xmlQuery.bind("pmfmId" + pmfmAlias, String.valueOf(pmfm.getPmfmId()));
+        xmlQuery.bind("pmfmlabel" + pmfmAlias, pmfmLabel);
 
         // Disable groups of unused pmfm type
         for (PmfmValueType enumType : PmfmValueType.values()) {
             boolean active = enumType == pmfm.getType();
-            xmlQuery.setGroup(enumType.name().toLowerCase() + pmfm.getAlias(), active);
+            xmlQuery.setGroup(enumType.name().toLowerCase() + pmfmAlias, active);
         }
     }
 }

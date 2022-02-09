@@ -548,6 +548,17 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
                                                            List<String> programLabels,
                                                            AcquisitionLevelEnum acquisitionLevel) {
+        return loadPmfmColumns(context, programLabels, acquisitionLevel, false);
+    }
+
+    /**
+     * Fill the context's pmfm infos (e.g. used to generate
+     * @param context
+     */
+    protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
+                                                           List<String> programLabels,
+                                                           AcquisitionLevelEnum acquisitionLevel,
+                                                           Boolean noCache) {
 
         if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
 
@@ -559,7 +570,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         // Already loaded: use the cached values
-        if (pmfmColumns.containsKey(acquisitionLevel)) return pmfmColumns.get(acquisitionLevel);
+        if (!noCache && pmfmColumns.containsKey(acquisitionLevel)) return pmfmColumns.get(acquisitionLevel);
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Loading PMFM for {program: %s, acquisitionLevel: %s} ...",

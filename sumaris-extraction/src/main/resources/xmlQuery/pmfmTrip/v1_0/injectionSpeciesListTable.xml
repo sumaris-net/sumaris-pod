@@ -22,5 +22,5 @@
 
 <query type="select">
 
-  <groupby>&amp;groupByColumns</groupby>
+  <groupby group="addGroupBy">&amp;groupByColumns</groupby>
 </query>

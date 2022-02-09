@@ -22,9 +22,11 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
+import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
 import net.sumaris.extraction.core.vo.AggregationTypeVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
@@ -189,9 +191,45 @@ public class ExtractionServicePgsqlTest extends AbstractServiceTest {
 
     }
 
+    @Test
+    public void exportPmfmFormat() throws IOException {
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.PMFM_TRIP, null);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveFormatEnum.PMFM_TRIP.getLabel());
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+    }
+
     /* -- protected methods -- */
 
-
+    protected void assertHasColumn(File file, String columnName) throws IOException {
+         Assert.assertTrue(String.format("Missing header '%s' in file: %s", columnName, file.getPath()),
+                hasHeaderInCsvFile(file, columnName));
+    }
 
 
 }

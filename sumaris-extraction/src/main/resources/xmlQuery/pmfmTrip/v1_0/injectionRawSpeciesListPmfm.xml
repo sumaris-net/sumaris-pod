@@ -2,41 +2,41 @@
 
 <query type="select">
     <!-- double -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="double%pmfmAlias%" type="number">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN SM.NUMERICAL_VALUE ELSE NULL END)
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="double%pmfmalias%" type="number">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN SM.NUMERICAL_VALUE ELSE NULL END)
     </select>
 
     <!-- integer -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="integer%pmfmAlias%" type="number">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN CAST(SM.NUMERICAL_VALUE AS INT) ELSE NULL END)
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="integer%pmfmalias%" type="number">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN CAST(SM.NUMERICAL_VALUE AS INT) ELSE NULL END)
     </select>
 
     <!-- text -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="string%pmfmAlias%" type="text">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN SM.ALPHANUMERICAL_VALUE  ELSE NULL END)
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="string%pmfmalias%" type="text">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN SM.ALPHANUMERICAL_VALUE  ELSE NULL END)
     </select>
 
     <!-- qualitative value -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="qualitative_value%pmfmAlias%" type="text">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN QV.LABEL || ' - ' || QV.NAME ELSE NULL END)
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="qualitative_value%pmfmalias%" type="text">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN QV.LABEL || ' - ' || QV.NAME ELSE NULL END)
     </select>
 
     <!-- boolean -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="boolean%pmfmAlias%" type="text">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="boolean%pmfmalias%" type="text">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
         (CASE SM.NUMERICAL_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END)
         ELSE NULL END)
     </select>
 
     <!-- date -->
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%" dbms="hsqldb" type="text">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%" dbms="hsqldb" type="text">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
         TO_CHAR(TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
         ELSE NULL END)
 
     </select>
-    <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%" dbms="oracle,pgsql" type="text">
-        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%" dbms="oracle,pgsql" type="text">
+        MAX(CASE SM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
         TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
         ELSE NULL END)
     </select>

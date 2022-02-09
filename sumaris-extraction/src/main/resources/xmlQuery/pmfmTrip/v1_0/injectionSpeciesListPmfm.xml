@@ -22,7 +22,7 @@
 
 <query type="select">
 
-  <select alias="&amp;pmfmLabel%pmfmAlias%" type="text">
-   SL.&amp;pmfmLabel%pmfmAlias%
+  <select alias="&amp;pmfmlabel%pmfmalias%" type="text">
+   SL.&amp;pmfmlabel%pmfmalias%
   </select>
 </query>
