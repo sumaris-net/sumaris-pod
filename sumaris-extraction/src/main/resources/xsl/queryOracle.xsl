@@ -21,7 +21,10 @@
   #L%
   -->
 
-
+<!--
+ Changes history :
+  - 01/02/2021 - NRA - Remove a parenthesis after 'CREATE TABLE ... AS ...' for compatibility with Oracle used by Ifremer (IMAGINE)
+-->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="text"/>
 

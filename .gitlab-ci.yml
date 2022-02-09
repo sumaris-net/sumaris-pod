@@ -116,7 +116,7 @@ docker:ci:
         - /^feature\/.*/
     artifacts:
         paths:
-            - target/ci/Dockerfile
+            - target/docker
         expire_in: 72 hours
 
 # ---------------------------------------------------------------
