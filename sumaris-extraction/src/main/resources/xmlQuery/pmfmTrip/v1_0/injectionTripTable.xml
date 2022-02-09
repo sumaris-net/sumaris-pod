@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+
+  <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.TRIP_FK = T.ID</from>
+  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
+
+  <groupby>&amp;groupByColumns</groupby>
+</query>

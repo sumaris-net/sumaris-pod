@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
@@ -129,6 +130,15 @@ public class ProgramServiceImpl implements ProgramService {
 		return programRepository.hasDepartmentPrivilege(programId, departmentId, privilege);
 	}
 
+	@Override
+	public boolean hasPropertyValue(String label, String propertyName, String expectedValue){
+		ProgramFilterVO filter = new ProgramFilterVO();
+		filter.setWithProperty(propertyName);
+		filter.setLabel(label);
+		List<ProgramVO> programs = programRepository.findAll(filter, 0, 999, null, null, null).getContent();
+		if (programs.size() != 1) return false;
+		return programs.get(0).getProperties().get(propertyName).equals(expectedValue);
+	}
 
 }
 

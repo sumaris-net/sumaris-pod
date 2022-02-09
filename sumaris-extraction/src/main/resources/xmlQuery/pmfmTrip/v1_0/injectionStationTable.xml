@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+  <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.OPERATION_FK = O.ID</from>
+  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
+  <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR_MEASUREMENT PGM ON PGM.PHYSICAL_GEAR_FK = PG.ID</from>
+  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE PGQV on PGQV.ID = PGM.QUALITATIVE_VALUE_FK</from>
+  <from join="true" group="allowParent">LEFT OUTER JOIN OPERATION O2 ON O2.ID = O.OPERATION_FK</from>
+  <from join="true" group="allowParent">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM2 ON VUM2.OPERATION_FK = O2.ID</from>
+  <from join="true" group="allowParent">LEFT OUTER JOIN QUALITATIVE_VALUE QV2 on QV2.ID = VUM2.QUALITATIVE_VALUE_FK</from>
+
+  <where>O.QUALITY_FLAG_FK != 8</where>
+
+  <groupby>&amp;groupByColumns</groupby>
+</query>

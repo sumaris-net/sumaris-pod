@@ -71,4 +71,6 @@ public interface ProgramService {
 
 	boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
 
+	boolean hasPropertyValue(String label, String propertyName, String expectedValue);
+
 }

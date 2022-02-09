@@ -3,41 +3,41 @@
 <query type="select">
     <!-- double -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="double%pmfmAlias%" type="number">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN VUM.NUMERICAL_VALUE ELSE NULL END)
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN VUM2.NUMERICAL_VALUE ELSE NULL END)
     </select>
 
     <!-- integer -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="integer%pmfmAlias%" type="number">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN CAST(VUM.NUMERICAL_VALUE AS INT) ELSE NULL END)
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN CAST(VUM2.NUMERICAL_VALUE AS INT) ELSE NULL END)
     </select>
 
     <!-- text -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="string%pmfmAlias%" type="text">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN VUM.ALPHANUMERICAL_VALUE  ELSE NULL END)
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN VUM2.ALPHANUMERICAL_VALUE  ELSE NULL END)
     </select>
 
     <!-- qualitative value -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="qualitative_value%pmfmAlias%" type="text">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN QV.LABEL || ' - ' || QV.NAME ELSE NULL END)
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN QV2.LABEL || ' - ' || QV2.NAME ELSE NULL END)
     </select>
 
     <!-- boolean -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="boolean%pmfmAlias%" type="text">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
-        (CASE VUM.NUMERICAL_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END)
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
+        (CASE VUM2.NUMERICAL_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END)
         ELSE NULL END)
     </select>
 
     <!-- date -->
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%" dbms="hsqldb" type="text">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
-        TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
+        TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM2.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
         ELSE NULL END)
 
     </select>
     <select alias="&amp;pmfmLabel%pmfmAlias%" group="date%pmfmAlias%" dbms="oracle,pgsql" type="text">
-        MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
-        TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
+        MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmAlias% THEN
+        TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(VUM2.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
         ELSE NULL END)
     </select>
 </query>
