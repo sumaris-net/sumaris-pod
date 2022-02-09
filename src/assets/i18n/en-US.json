@@ -1178,7 +1178,7 @@
       "NAME": "Name",
       "EXTERIOR_MARKING": "Exterior Marking",
       "BASE_PORT_LOCATION": "Base port",
-      "GROSS_TONNAGE_GT": "Gross tonnage (GT)",
+      "GROSS_TONNAGE_GT": "Gross tonnage (UMS)",
       "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
       "ADMINISTRATIVE_POWER": "Administrative power (kW)",
       "LENGTH_OVER_ALL": "Length over all (m)",

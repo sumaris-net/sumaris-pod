@@ -324,9 +324,8 @@
     <ng-container matColumnDef="footer-tagCount">
       <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2"
           class="mat-cell-content-start-padding">
-        <!-- TODO translateContext: i18nolumnSuffix: ... -->
         <ion-text color="primary" class="text-italic"
-                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translate: {tagCount: (tagCount$|async)}">
+                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translateContext:i18nColumnSuffix:{tagCount: (tagCount$|async)}">
         </ion-text>
       </td>
     </ng-container>

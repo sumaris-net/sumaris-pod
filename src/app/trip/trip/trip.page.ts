@@ -459,7 +459,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       vesselId: vessel.id,
       endDate: date,
       excludeTripId: trip.id,
-      startDate: moment().add(-15, 'day')
+      startDate: moment().add(-1, 'month')
       // TODO startDate : endDate - 6 month ?
     };
     const modal = await this.modalCtrl.create({

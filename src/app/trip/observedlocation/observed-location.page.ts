@@ -11,7 +11,7 @@ import {
   AppTable,
   ConfigService,
   EntityServiceLoadOptions,
-  fadeInOutAnimation,
+  fadeInOutAnimation, firstNotNil, firstNotNilPromise,
   HistoryPageReference,
   isNil,
   isNotNil,
@@ -21,7 +21,7 @@ import {
   StatusIds,
   toBoolean,
   UsageMode,
-  waitFor,
+  waitFor, WaitForOptions, waitForTrue,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
@@ -29,8 +29,8 @@ import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { filter, first, tap } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable } from 'rxjs';
+import { filter, first, map, switchMap, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
@@ -39,6 +39,7 @@ import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
+import { toPromise } from '@apollo/client';
 
 const moment = momentImported;
 
@@ -49,6 +50,7 @@ const ObservedLocationPageTabs = {
 };
 
 type LandingTableType = 'legacy' | 'aggregated';
+type ILandingsTable = AppTable<any> & { setParent(value: ObservedLocation | undefined) };
 
 @Component({
   selector: 'app-observed-location-page',
@@ -69,6 +71,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   mobile: boolean;
   showLandingTab = false;
   $landingTableType = new BehaviorSubject<LandingTableType>(undefined);
+  $table = new BehaviorSubject<ILandingsTable>(undefined);
   allowAddNewVessel: boolean;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
@@ -78,13 +81,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showObservers = true;
   landingEditor: LandingEditor = undefined;
 
-  get table(): AppTable<any> & { setParent(value: ObservedLocation | undefined) } {
-    return this.landingsTable || this.aggregatedLandingsTable;
+  get table(): ILandingsTable {
+    return this.$table.value;
   }
 
   get $ready(): Observable<boolean> {
     return this._$ready.asObservable();
   }
+
 
   constructor(
     injector: Injector,
@@ -328,16 +332,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return false;
   }
 
-  async ready(): Promise<void> {
-    await Promise.all([
-      // Wait child loaded
-      super.ready(),
-
-      // Wait table
-      waitFor(() => !!this.table)
-    ]);
-  }
-
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -354,7 +348,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.data.observers = []; // make sure to reset data observers, if any
       }
       const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
-      this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
       if (aggregatedLandings) {
         // Force some date properties
         this.observedLocationForm.showEndDateTime = true;
@@ -374,9 +367,23 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
 
-      this.cd.detectChanges();
-      if (this.landingsTable) {
-        const landingsTable = this.landingsTable;
+      this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
+
+      // Wait table to be updated (see ngInit in template)
+      const table = await this.$table
+        .pipe(
+          filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable),
+          first()
+        ).toPromise();
+      if (aggregatedLandings) {
+        console.debug("[observed-location] Init aggregated landings table:", table);
+        const aggregatedLandingsTable = table as AggregatedLandingsTable;
+        aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+        aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+      }
+      else {
+        console.debug("[observed-location] Init landings table:", table);
+        const landingsTable = table as LandingsTable;
         landingsTable.i18nColumnSuffix = i18nSuffix;
         landingsTable.detailEditor = this.landingEditor;
 
@@ -388,12 +395,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         landingsTable.showRecorderPersonColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
         landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-      } else if (this.aggregatedLandingsTable) {
-        const aggregatedLandingsTable = this.aggregatedLandingsTable;
-        aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
-        aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+        this.showLandingTab = true;
       }
 
+      this.addChildForm(() => table);
       this.markAsReady();
 
       // Listen program, to reload if changes
@@ -403,6 +408,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.setError(err);
     }
   }
+
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     console.debug("[observed-location] New entity: applying defaults...");
@@ -486,7 +492,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     if (!this.isNewData) {
       // Propagate to table parent
-      this.table?.setParent(data)
+      this.table?.setParent(data);
     }
   }
 
@@ -506,8 +512,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     this.addChildForms([
       this.observedLocationForm,
       // Use landings table as child, only if editable
-      () => this.landingsTable?.canEdit && this.landingsTable,
-      () => this.aggregatedLandingsTable
+      //() => this.landingsTable?.canEdit && this.landingsTable,
+      //() => this.aggregatedLandingsTable
     ]);
   }
 
