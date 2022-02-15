@@ -482,6 +482,7 @@ public class AggregationRdbTripDaoImpl<
         log.debug(String.format("Aggregation #%s > Creating Species List table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesListQuery(source, context);
+        if (xmlQuery == null) return 0;
 
         // aggregate insertion
         execute(context, xmlQuery);
@@ -516,8 +517,10 @@ public class AggregationRdbTripDaoImpl<
 
     protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, C context) {
         String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
+                .orElse(null);
         String stationTableName = context.getStationTableName();
+
+        if (rawSpeciesListTableName == null) return null;
 
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
 
@@ -661,12 +664,12 @@ public class AggregationRdbTripDaoImpl<
 
     protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
         String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
+                .orElse(null);
         String rawSpeciesLengthTableName = source.findTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HL_SHEET_NAME)));
+            .orElse(null);
 
         // No species length raw data: skip
-        if (rawSpeciesLengthTableName == null) return null;
+        if (rawSpeciesLengthTableName == null || rawSpeciesLengthTableName == null) return null;
 
         String stationTableName = context.getStationTableName();
 
