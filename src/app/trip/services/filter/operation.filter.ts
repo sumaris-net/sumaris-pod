@@ -1,9 +1,11 @@
-import { EntityClass, FilterFn, fromDateISOString, isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
-import { Operation } from '@app/trip/services/model/trip.model';
-import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
-import { Moment } from 'moment';
-import { SynchronizationStatus } from '@app/data/services/model/model.utils';
+import {EntityClass, FilterFn, fromDateISOString, isNil, isNotNil, isNotNilOrNaN} from '@sumaris-net/ngx-components';
+import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
+import {Operation} from '@app/trip/services/model/trip.model';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {Moment} from 'moment';
+import {DataQualityStatusIdType, SynchronizationStatus} from '@app/data/services/model/model.utils';
+import {Util} from 'leaflet';
+import isArray = Util.isArray;
 
 @EntityClass({typename: 'OperationFilterVO'})
 export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
@@ -22,6 +24,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   physicalGearIds?: number[];
   taxonGroupLabels?: string[];
   synchronizationStatus?: SynchronizationStatus[];
+  dataQualityStatus?: DataQualityStatusIdType;
 
   static fromObject: (source: any, opts?: any) => OperationFilter;
 
@@ -40,6 +43,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.gearIds = source.gearIds;
     this.physicalGearIds = source.physicalGearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
+    this.dataQualityStatus = source.dataQualityStatus;
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -100,8 +104,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     }
 
     // GearIds;
-    if (isNotNil(this.gearIds) && this.gearIds.length > 0) {
-      const gearIds = this.gearIds;
+    if (isNotNil(this.gearIds) && (isNotNilOrNaN(this.gearIds) || this.gearIds.length > 0)) {
+      const gearIds = (isArray(this.gearIds) ? this.gearIds : [this.gearIds]) as number[];
       filterFns.push((o => isNotNil(o.physicalGear?.gear) && gearIds.includes(o.physicalGear.gear.id)));
     }
 
@@ -115,6 +119,16 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     if (isNotNil(this.taxonGroupLabels) && this.taxonGroupLabels.length > 0) {
       const targetSpecieLabels = this.taxonGroupLabels;
       filterFns.push((o => isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1));
+    }
+
+    // Filter on dataQualityStatus
+    if (isNotNil(this.dataQualityStatus)) {
+      if (this.dataQualityStatus === 'MODIFIED') {
+        filterFns.push((o => (isNil(o.controlDate))));
+      }
+      if (this.dataQualityStatus === 'CONTROLLED') {
+        filterFns.push((o => (isNotNil(o.controlDate))));
+      }
     }
 
     // Filter on parent trip

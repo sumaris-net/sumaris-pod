@@ -1114,7 +1114,14 @@ export class TripService
         const errors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+           return errors;
+      }
+    }
+    // If trip is Valid, control operations
+    else {
+      const errors = await this.operationService.controlByTrip(entity, program);
 
+      if (errors){
         return errors;
       }
     }

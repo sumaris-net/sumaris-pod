@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
-import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from '@angular/core';
+import {OperationValidatorOptions, OperationValidatorService} from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
+import {Moment} from 'moment';
 import {
   AccountService,
   AppForm,
@@ -31,31 +31,31 @@ import {
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
-import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
-import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
-import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Router } from '@angular/router';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { FishingArea } from '@app/trip/services/model/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
-import { TripService } from '@app/trip/services/trip.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {BehaviorSubject, combineLatest, merge, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, map, startWith} from 'rxjs/operators';
+import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {Geolocation} from '@ionic-native/geolocation/ngx';
+import {OperationService} from '@app/trip/services/operation.service';
+import {ModalController} from '@ionic/angular';
+import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/operation/select-operation.modal';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {Router} from '@angular/router';
+import {PositionUtils} from '@app/trip/services/position.utils';
+import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import {LocationLevelIds, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {LatLongPattern} from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import {TripService} from '@app/trip/services/trip.service';
+import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {TaxonGroupTypeIds} from '@app/referential/services/model/taxon-group.model';
 
 const moment = momentImported;
 
-type FilterableFieldName = 'fishingArea'|'metier';
+type FilterableFieldName = 'fishingArea' | 'metier';
 
 type PositionField = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
 
@@ -87,6 +87,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
+  private _usageMode: UsageMode;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -107,7 +108,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     fishingArea: false
   };
 
-  @Input() usageMode: UsageMode;
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
@@ -120,6 +120,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
   @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER_DCF_5];
 
+  @Input() set usageMode(usageMode: UsageMode) {
+    if (this._usageMode != usageMode) {
+      this._usageMode = usageMode;
+      this.updateFormGroup();
+    }
+  }
+
+  get usageMode(): UsageMode {
+    return this._usageMode;
+  }
 
   @Input() set showMetierFilter(value: boolean) {
     this._showMetierFilter = value;
@@ -287,7 +297,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     // Combo: physicalGears
     const physicalGearAttributes = ['rankOrder']
       .concat(this.settings.getFieldDisplayAttributes('gear')
-      .map(key => 'gear.' + key));
+        .map(key => 'gear.' + key));
     this.registerAutocompleteField('physicalGear', {
       items: this._physicalGearsSubject,
       attributes: physicalGearAttributes,
@@ -429,7 +439,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       this.maxDateChanges.emit(DateUtils.max(
         this.fishingEndDateTimeEnable && data.fishingEndDateTime,
         this.endDateTimeEnable && data.endDateTime));
-    })
+    });
 
     // Send value for form
     if (this.debug) console.debug('[operation-form] Updating form (using entity)', data);
@@ -962,10 +972,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (this.allowParentOperation) {
       if (this.isParentOperation) {
         if (!this.fishingStartDateTimeEnable) return;
-        endPosition = this.form.get('fishingStartPosition').value;
+        endPosition = this.form.get('fishingStartPosition')?.value;
       } else if (this.isChildOperation) {
         if (!this.fishingEndDateTimeEnable || !this.endDateTimeEnable) return;
-        startPosition = this.form.get('fishingEndPosition').value;
+        startPosition = this.form.get('fishingEndPosition')?.value;
       }
     }
 

@@ -1,5 +1,5 @@
 <mat-icon [svgIcon]="matSvgIcon"
-          [style.pointer-events]="'none'"
+          [style.pointer-events]="error && error.message ? 'auto' : 'none'"
           [style.color]="'var(--ion-color-'+color+')'"
           matBadge
           [ionBadgeIcon]="badgeIcon"
@@ -7,7 +7,8 @@
           [matBadgeFill]="badgeFill"
           matBadgeSize="small"
           [matBadgeHidden]="!badgeIcon"
->
+          [title]="error && error.message || ''">
+
   <ion-icon *ngIf="icon" slot="icon-only"
             [color]="color"
             [name]="icon"

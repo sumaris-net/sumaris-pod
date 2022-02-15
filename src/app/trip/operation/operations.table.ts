@@ -1,34 +1,36 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { OperationValidatorService } from '../services/validator/operation.validator';
-import { AlertController, ModalController, Platform } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
-import { TranslateService } from '@ngx-translate/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import {AlertController, ModalController, Platform} from '@ionic/angular';
+import {ActivatedRoute, Router} from '@angular/router';
+import {Location} from '@angular/common';
+import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
+import {TranslateService} from '@ngx-translate/core';
 import {
-  AccountService, AppFormUtils,
+  AccountService,
+  AppFormUtils,
   AppTable,
+  changeCaseToUnderscore,
   EntitiesTableDataSource,
+  isNilOrBlank,
   isNotNil,
   LatLongPattern,
   LocalSettings,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, SharedValidators,
+  RESERVED_START_COLUMNS,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
-import { environment } from '@environments/environment';
-import { Operation } from '../services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { from, merge } from 'rxjs';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { debounceTime, filter, tap } from 'rxjs/operators';
-import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
+import {OperationsMap, OperationsMapModalOptions} from './map/operations.map';
+import {environment} from '@environments/environment';
+import {Operation} from '../services/model/trip.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {from, merge} from 'rxjs';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {debounceTime, filter, tap} from 'rxjs/operators';
+import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import {DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList} from '@app/data/services/model/model.utils';
 
 
 @Component({
@@ -60,6 +62,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
+  @Input() showQuality = true;
+  @Input() errors: { [key: number]: any } = undefined;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -208,7 +212,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
         from(this.settings.ready()),
         this.settings.onChange
       )
-      .subscribe(_ => this.configureFromSettings())
+        .subscribe(_ => this.configureFromSettings())
     );
   }
 
@@ -331,7 +335,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   resetFilter(event?: UIEvent) {
-    this.setFilter(<OperationFilter>{ tripId: this.tripId }, {emitEvent: true});
+    this.setFilter(<OperationFilter>{tripId: this.tripId}, {emitEvent: true});
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
@@ -355,6 +359,39 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.filterForm.get(key).reset(null);
   }
 
+  setError(error: any) {
+
+    const formErrors = error?.details?.errors?.operations;
+    this.errors = formErrors
+
+    if (formErrors) {
+      Object.keys(formErrors).map(id => {
+        const operationErrors = formErrors[id];
+
+        //May have already been translate on service
+        if (isNilOrBlank(operationErrors.message)) {
+          operationErrors.message = Object.keys(operationErrors.errors)
+            .map(field => {
+              const fieldErrors = operationErrors.errors[field];
+              const fieldI18nKey = changeCaseToUnderscore(field).toUpperCase();
+              const fieldName = this.translate.instant(fieldI18nKey);
+
+              const errorMsg = Object.keys(fieldErrors).map(errorKey => {
+                const key = 'ERROR.FIELD_' + errorKey.toUpperCase();
+                return this.translate.instant(key, fieldErrors[key]);
+              }).join(',');
+
+              return fieldName + ': ' + errorMsg;
+            }).join(',');
+        }
+      });
+    }
+  }
+
+  trackByFn(index: number, row: TableElement<Operation>) {
+    return row.currentData.id;
+  }
+
   /* -- protected methods -- */
 
   protected asFilter(source?: any): OperationFilter {
@@ -363,7 +400,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   protected configureFromSettings(settings?: LocalSettings) {
-    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...');
     settings = settings || this.settings.settings;
 
     if (settings.accountInheritance) {
