@@ -763,13 +763,13 @@ public class ExtractionServiceImpl implements ExtractionService {
                 // locationService.insertOrUpdateSquares10();
             }
 
-            if (statisticalRectanglesCount == 0 || square10minCount == 0) {
+            //if (statisticalRectanglesCount == 0 || square10minCount == 0) {
                 // Update area
                 locationService.insertOrUpdateRectangleAndSquareAreas();
 
                 // Update location hierarchy
                 locationService.updateLocationHierarchy();
-            }
+            //}
             return true;
 
         } catch (Throwable t) {
