@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormArray, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {PositionValidatorService} from './position.validator';
 import {
   AppFormUtils,
@@ -471,7 +471,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const required = !opts || opts.required !== false;
     return this.formBuilder.array(
       (data && data.fishingAreas || [null]).map(fa => this.fishingAreaValidator.getFormGroup(fa, {required})),
-      required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+      required ? OperationValidators.requiredArrayMinLength(1) : undefined
     );
   }
 
@@ -488,6 +488,17 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 }
 
 export class OperationValidators {
+
+
+  static requiredArrayMinLength(minLength?: number): ValidatorFn {
+    minLength = minLength || 1;
+    return (array: FormArray): ValidationErrors | null => {
+      if (!array || array.length < minLength) {
+        return {required: true};
+      }
+      return null;
+    };
+  }
 
   static addSampleValidators(pmfmForm: PmfmForm): Subscription {
     const {form, pmfms} = pmfmForm;

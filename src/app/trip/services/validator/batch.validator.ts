@@ -1,17 +1,21 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, ValidationErrors, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {Batch, BatchUtils, BatchWeight} from "../model/batch.model";
-import {debounceTime, filter, map, tap} from "rxjs/operators";
-import {isNil, isNotNilOrNaN, toBoolean, toNumber} from "@sumaris-net/ngx-components";
-import {MethodIds} from "../../../referential/services/model/model.enum";
-import {Subject, Subscription} from "rxjs";
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {FormArray, FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, isNotNilOrNaN, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
+import {Batch, BatchUtils, BatchWeight} from '../model/batch.model';
+import {debounceTime, filter, map, tap} from 'rxjs/operators';
+import {MethodIds} from '@app/referential/services/model/model.enum';
+import {Subject, Subscription} from 'rxjs';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
 
 @Injectable({providedIn: 'root'})
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
 
+  pmfms: IPmfm[];
+
   constructor(
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder) {
   }
 
@@ -23,18 +27,36 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     withWeight?: boolean;
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
+    withChildren?: boolean;
+    withMeasurements?: boolean;
+    pmfms?: IPmfm[];
+    qvPmfm?: IPmfm;
   }): FormGroup {
     const form = this.formBuilder.group(this.getFormGroupConfig(data, {...opts}));
+
+    if (opts && ((opts.qvPmfm && opts.qvPmfm.qualitativeValues.length) || opts.withChildren)) {
+      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm});
+
+      formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
+    }
 
     // Add weight sub form
     if (opts && opts.withWeight) {
       form.addControl('weight', this.getWeightFormGroup(data && data.weight));
     }
 
+    if (opts && opts.withMeasurements && opts.pmfms) {
+      if (form.contains('measurementValues')) form.removeControl('measurementValues')
+      form.addControl('measurementValues', this.measurementsValidatorService.getFormGroup(null, {
+        pmfms: opts.pmfms,
+        forceOptional: true
+      }));
+    }
+
     return form;
   }
 
-  protected getFormGroupConfig(data?: T,  opts?: {
+  protected getFormGroupConfig(data?: T, opts?: {
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
   }): { [key: string]: any } {
@@ -68,12 +90,27 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     });
   }
 
+  protected getChildrenFormHelper(form: FormGroup, opts?: { withChildren: boolean }): FormArrayHelper<T> {
+    let arrayControl = form.get('children') as FormArray;
+    if (!arrayControl) {
+      arrayControl = this.formBuilder.array([]);
+      form.addControl('children', arrayControl);
+    }
+    return new FormArrayHelper<T>(
+      arrayControl,
+      (value) => this.getFormGroup(value, {withWeight: true, qvPmfm: undefined, withMeasurements: true, pmfms: this.pmfms, ...opts}),
+      (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
+      (value) => isNil(value),
+      {allowEmptyArray: true}
+    );
+  }
+
   addSamplingFormValidators(form: FormGroup, opts?: {
     requiredSampleWeight?: boolean;
   }): Subscription {
 
     // Sampling ratio: should be a percentage
-    form.get("samplingRatio").setValidators(
+    form.get('samplingRatio').setValidators(
       Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.double({maxDecimals: 2})])
     );
 
@@ -87,7 +124,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
         // Protected against loop
         tap(() => computing = true),
         debounceTime(250),
-        map(() => BatchValidatorService.computeSamplingWeight(form, { ...opts, emitEvent: false, onlySelf: false}))
+        map(() => BatchValidators.computeSamplingWeight(form, {...opts, emitEvent: false, onlySelf: false}))
       ).subscribe((errors) => {
         computing = false;
         $errors.next(errors);
@@ -102,6 +139,46 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
 
     return subscription;
   }
+}
+
+export class BatchValidators {
+  static computeSamplingWeightRow(form: FormGroup, opts?: {
+    requiredSampleWeight?: boolean;
+    emitEvent?: boolean;
+    onlySelf?: boolean;
+    qvPmfm?: IPmfm;
+  }): ValidationErrors | null {
+
+    let errors: ValidationErrors | null;
+    if (opts && opts.qvPmfm) {
+      opts.qvPmfm.qualitativeValues.forEach((qv, index) => {
+        const qvSuffix = 'children.' + index + '.';
+
+        if (form.get(qvSuffix + 'individualCount').disabled) {
+          form.get(qvSuffix + 'individualCount').enable();
+        }
+        if (form.get(qvSuffix + 'children.0.individualCount').disabled) {
+          form.get(qvSuffix + 'children.0.individualCount').enable();
+        }
+        const qvErrors = BatchValidators.computeSamplingWeight(form, {
+          ...opts,
+          weightPath: qvSuffix + 'weight',
+          samplingWeightPath: qvSuffix + 'children.0.weight',
+          samplingRatioPath: qvSuffix + 'children.0.samplingRatio',
+          qvIndex: index
+        });
+
+        if (qvErrors) {
+          if (errors) {
+            errors = {...errors, ...qvErrors};
+          } else {
+            errors = qvErrors;
+          }
+        }
+      });
+    }
+    return errors;
+  }
 
   /**
    * Computing weight, samplingWeight or sampling ratio
@@ -112,41 +189,74 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     requiredSampleWeight?: boolean;
     emitEvent?: boolean;
     onlySelf?: boolean;
+    weightPath?: string;
+    samplingWeightPath?: string;
+    samplingRatioPath?: string;
+    qvIndex?: number;
   }): ValidationErrors | null {
-    const sampleForm = form.get('children.0');
 
-    const batch = form.value;
-    if (!batch.weight) return null;
+    const qvSuffix = opts && isNotNilOrNaN(opts.qvIndex) ? 'children.' + opts.qvIndex.toString() : '';
+    const sampleFormSuffix = qvSuffix + (qvSuffix ? '.' : '') + 'children.0';
 
-    const sampleBatch = BatchUtils.getSamplingChild(batch);
-    if (!sampleBatch || !sampleBatch.weight) return null;
+    const sampleForm = form.get(sampleFormSuffix);
+    if (!sampleForm) return;
 
-    const totalWeight = batch.weight.value;
-    const samplingRatioPct = sampleBatch.samplingRatio;
-    const samplingWeight = sampleBatch.weight.value;
+    const weightPath = opts && opts.weightPath || 'weight';
+    const samplingWeightPath = opts && opts.samplingWeightPath || sampleFormSuffix + '.' + weightPath;
+    const samplingRatioPath = opts && opts.samplingRatioPath || sampleFormSuffix + '.samplingRatio';
+
+    const totalWeightControl = form.get(weightPath);
+    const samplingRatioControl = form.get(samplingRatioPath);
+    const samplingWeightControl = form.get(samplingWeightPath);
+
+    const totalWeight = totalWeightControl.value?.value;
+    const samplingRatioPct = samplingRatioControl.value;
+    const samplingWeight = samplingWeightControl.value?.value;
+
+    if (totalWeightControl.disabled) totalWeightControl.enable(opts);
+    if (samplingRatioControl.disabled) samplingRatioControl.enable(opts);
+    if (samplingWeightControl.disabled) samplingWeightControl.enable(opts);
+
+    const batch = isNotNilOrBlank(qvSuffix) ? form.get(qvSuffix).value : form.value;
+    if (!batch.weight) {
+      batch.weight = {
+        value: totalWeight || 0,
+        computed: false,
+        estimated: false
+      };
+    }
+
+    let sampleBatch = BatchUtils.getSamplingChild(batch);
+    if (!sampleBatch) {
+      sampleBatch = sampleForm.value;
+      batch.children.push(sampleBatch);
+    }
+    if (!sampleBatch.weight) {
+      sampleBatch.weight = {
+        value: samplingWeight || 0,
+        computed: false,
+        estimated: false,
+        methodId: batch.weight.methodId
+      };
+    }
 
     // DEBUG
-    //console.debug("[batch-validator] Start computing: ", [totalWeight, samplingRatioPct, samplingWeight]);
-
-    const totalWeightValueControl = form.get('weight.value');
-    const samplingWeightValueControl = sampleForm.get('weight.value');
-    const samplingRatioControl = sampleForm.get('samplingRatio');
+    console.debug('[batch-validator] Start computing: ', [totalWeight, samplingRatioPct, samplingWeight, sampleForm.get('samplingRatioText')?.value]);
 
     // Compute samplingRatio, using weights
     if (!batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight > 0
       && !sampleBatch.weight.computed && isNotNilOrNaN(samplingWeight) && samplingWeight > 0) {
 
       // Sampling weight must be under total weight
-      if (samplingWeight > totalWeight) {
-        if (!samplingWeightValueControl.hasError('max') || samplingWeightValueControl.errors['max'] !== totalWeight) {
-          samplingWeightValueControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
-          samplingWeightValueControl.markAsTouched({onlySelf: true});
-          samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, max: {max: totalWeight} }, opts);
+      if (toNumber(samplingWeight) > toNumber(totalWeight)) {
+        if (!samplingWeightControl.hasError('max') || samplingWeightControl.errors['max'] !== totalWeight) {
+          samplingWeightControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
+          samplingWeightControl.markAsTouched({onlySelf: true});
+          samplingWeightControl.setErrors({...samplingWeightControl.errors, max: {max: totalWeight}}, opts);
         }
         return {max: {max: totalWeight}} as ValidationErrors;
-      }
-      else {
-        SharedValidators.clearError(samplingWeightValueControl, 'max');
+      } else {
+        SharedValidators.clearError(samplingWeightControl, 'max');
       }
 
       // Update sampling ratio
@@ -154,13 +264,10 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
       if (samplingRatioPct !== computedSamplingRatioPct) {
         sampleForm.patchValue({
           samplingRatio: computedSamplingRatioPct,
-          samplingRatioText: `${totalWeight}/${samplingWeight}`
+          samplingRatioText: `${totalWeight}/${samplingWeight}`,
         }, opts);
       }
-
-      // Disable ratio control
-      samplingRatioControl.disable({...opts, emitEvent: true /*force repaint*/});
-      return;
+     return;
     }
 
     // Compute sample weight using ratio and total weight
@@ -180,9 +287,6 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
             }
           }, opts);
         }
-
-        // Disable sampling weight control
-        samplingWeightValueControl.disable(opts);
         return;
       }
     }
@@ -191,22 +295,18 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
       && !sampleBatch.weight.computed && isNotNilOrNaN(samplingWeight) && samplingWeight >= 0) {
       if (batch.weight.computed || isNil(totalWeight)) {
-        form.patchValue({
-          weight: {
-            computed: true,
-            estimated: false,
-            value: Math.round(samplingWeight * (100 / samplingRatioPct) * 100) / 100,
-            methodId: MethodIds.CALCULATED
-          }
+        totalWeightControl.patchValue({
+          computed: true,
+          estimated: false,
+          value: Math.round(samplingWeight * (100 / samplingRatioPct) * 100) / 100,
+          methodId: MethodIds.CALCULATED
         }, opts);
-
-        // Disable total weight control
-        form.get('weight.value').disable(opts);
-        return;
-      }
-    } else if (isNotNilOrNaN(samplingWeight)) {
-      if (samplingRatioControl.disabled && sampleForm.enabled) {
-        samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
+        sampleForm.patchValue({
+          samplingRatioText: `${samplingRatioPct}%`,
+          weight: {
+            computed: false
+          }});
+           return;
       }
     }
 
@@ -215,15 +315,13 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
 
       // Enable total weight (and remove computed value, if any)
       if (batch.weight.computed) {
-        form.patchValue({
-          weight: {
-            value: null,
-            computed: false,
-            estimated: false
-          }
+        totalWeightControl.patchValue({
+          value: null,
+          computed: false,
+          estimated: false
         }, opts);
       }
-      totalWeightValueControl.enable(opts);
+      totalWeightControl.enable(opts);
 
       if (sampleForm.enabled) {
         // Enable sampling ratio
@@ -231,32 +329,31 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
 
         // Enable sampling weight (and remove computed value, if any)
         if (sampleBatch.weight.computed) {
-          sampleForm.patchValue({
-            weight: {
-              value: null,
-              computed: false,
-              estimated: false
-            }
+          samplingWeightControl.patchValue({
+            value: null,
+            computed: false,
+            estimated: false
           }, opts);
         }
 
         // If sampling weight is required
         if (opts && opts.requiredSampleWeight === true) {
-          if (!samplingWeightValueControl.hasError('required')) {
-            samplingWeightValueControl.setErrors({...samplingWeightValueControl.errors, required: true}, opts);
+          if (!samplingWeightControl.hasError('required')) {
+            samplingWeightControl.setErrors({...samplingWeightControl.errors, required: true}, opts);
           }
         }
 
         // If sampling weight is NOT required
         else {
-          samplingWeightValueControl.setErrors(null, opts);
+          samplingWeightControl.setErrors(null, opts);
         }
-        samplingWeightValueControl.enable(opts);
+        samplingWeightControl.enable(opts);
 
       } else {
         samplingRatioControl.disable({...opts, emitEvent: true/*force repaint*/});
-        samplingWeightValueControl.disable(opts);
+        samplingWeightControl.disable(opts);
       }
     }
   }
+
 }
