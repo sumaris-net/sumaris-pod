@@ -283,12 +283,12 @@ public class SumarisDatabaseMetadata {
 		Preconditions.checkNotNull(qualifiedTableName);
 		Preconditions.checkNotNull(jdbcMeta);
 
-		String fullTableName = qualifiedTableName.render().toLowerCase();
-		SumarisTableMetadata sumarisTableMetadata = tables.get(fullTableName);
+		String qualifiedTableNameStr = qualifiedTableName.render();
+		SumarisTableMetadata sumarisTableMetadata = tables.get(qualifiedTableNameStr);
 		if (sumarisTableMetadata == null) {
 			// Try to retrieve the persistence class
 			if (persistentClass == null) {
-				persistentClass = entities.get(fullTableName);
+				persistentClass = entities.get(qualifiedTableNameStr);
 			}
 
 			// If persistence class exists
@@ -305,11 +305,12 @@ public class SumarisDatabaseMetadata {
 				sumarisTableMetadata = new SumarisTableMetadata(qualifiedTableName, this, jdbcMeta);
 			}
 
-			// Add to cached (if not extraction)
+			// Add to cache (if not an extraction result table)
 			// TODO: use include/exclude pattern, by configuration
-			String tableName = qualifiedTableName.getTableName().getText().toLowerCase();
-			if (!tableName.startsWith("ext_") && !tableName.startsWith("agg_"))  {
-				tables.put(fullTableName, sumarisTableMetadata);
+			String tableName = qualifiedTableName.getTableName().getText();
+			if (!tableName.toUpperCase().startsWith("EXT_")
+				&& !tableName.toUpperCase().startsWith("AGG_"))  {
+				tables.put(qualifiedTableNameStr, sumarisTableMetadata);
 			}
 		}
 		return sumarisTableMetadata;

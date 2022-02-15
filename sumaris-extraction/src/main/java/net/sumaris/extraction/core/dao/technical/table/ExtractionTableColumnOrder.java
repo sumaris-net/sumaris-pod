@@ -186,14 +186,12 @@ public final class ExtractionTableColumnOrder {
      */
     public static void fillRankOrderByTableName(String tableName, List<ExtractionTableColumnVO> columns) {
 
-        String fixTableName = tableName.toUpperCase();
-        
         // Workaround need on SUMARiS DB
-        if (fixTableName.startsWith("P01_ICES")) {
-            fixTableName = fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
+        if (tableName.toUpperCase().startsWith("P01_ICES")) {
+            tableName = tableName.toUpperCase().replaceAll("P01_ICES_", "P01_RDB_");
         }
 
-        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(fixTableName);
+        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
 
         // Important: skip if not known: MUST NOT fill any rankOrder if table not known!
         // This is required to let service apply another rankOrder later (e.g. from format and label)

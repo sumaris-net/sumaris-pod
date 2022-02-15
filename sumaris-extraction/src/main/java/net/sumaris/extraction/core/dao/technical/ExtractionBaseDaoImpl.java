@@ -95,7 +95,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
 
         log.debug(String.format("Dropping extraction table {%s}...", tableName));
         try {
-            String sql = String.format(dropTableQuery, tableName.toUpperCase());
+            String sql = String.format(dropTableQuery, tableName);
             getSession().createSQLQuery(sql).executeUpdate();
 
         } catch (Exception e) {
