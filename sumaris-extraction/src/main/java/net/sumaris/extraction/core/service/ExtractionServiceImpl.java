@@ -748,28 +748,31 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected boolean initRectangleLocations() {
+        boolean updateAreas = false;
         try {
             // Insert missing rectangles
             long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
                 + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_GFCM.getId());
             if (statisticalRectanglesCount == 0) {
                 locationService.insertOrUpdateRectangleLocations();
+                updateAreas = true;
             }
 
+            // FIXME - We don't really need to store square 10x10, because extractions (and map) can compute it dynamically, using lat/long
             // Insert missing squares
-            long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
+            /*long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
             if (square10minCount == 0) {
-                // We don't really need to store square 10x10, because extractions and map can compute it dynamically
-                // locationService.insertOrUpdateSquares10();
-            }
+                locationService.insertOrUpdateSquares10();
+                updateAreas = true;
+            }*/
 
-            //if (statisticalRectanglesCount == 0 || square10minCount == 0) {
+            if (updateAreas) {
                 // Update area
                 locationService.insertOrUpdateRectangleAndSquareAreas();
 
                 // Update location hierarchy
                 locationService.updateLocationHierarchy();
-            //}
+            }
             return true;
 
         } catch (Throwable t) {
