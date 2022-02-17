@@ -55,6 +55,8 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
 
 });
 
+export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
+
 @EntityClass({typename: 'OperationVO'})
 export class Operation
   extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
@@ -88,7 +90,6 @@ export class Operation
   fishingAreas: FishingArea[] = [];
   parentOperationId: number = null;
   parentOperation: Operation = null;
-  qualityFlagId: number = null;
   childOperationId: number = null;
   childOperation: Operation = null;
 

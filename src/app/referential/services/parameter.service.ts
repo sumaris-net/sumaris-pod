@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService, isEmptyArray} from '@sumaris-net/ngx-components';
+import { AccountService, isEmptyArray, ReferentialUtils } from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
@@ -100,6 +100,10 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
         }))
     );
     return res.filter(isNotNil);
+  }
+
+  canUserWrite(data: Parameter, opts?: any): boolean {
+    return this.accountService.isAdmin();
   }
 
   /**

@@ -61,6 +61,7 @@
       }
     }
     .mat-column-id {
+      min-width: 30px;
       max-width: 30px;
     }
 
@@ -74,6 +75,8 @@
       text-align: center;
     }
 
+    .mat-column-LAN_samplingIndividualCount,
+    .mat-column-DIS_samplingIndividualCount,
     .mat-column-samplingIndividualCount {
       max-width: 60px;
     }

@@ -77,6 +77,10 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
       parent: [data && data.parent || null, SharedValidators.entity],
       measurementValues: this.formBuilder.group({}),
       children: this.formBuilder.array([]),
+      // Quality properties
+      controlDate: [data && data.controlDate || null],
+      qualificationDate: [data && data.qualificationDate || null],
+      qualificationComments: [data && data.qualificationComments || null],
       qualityFlagId: [toNumber(data && data.qualityFlagId, 0)]
     };
   }

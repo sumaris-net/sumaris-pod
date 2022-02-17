@@ -52,7 +52,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit {
   @Input() entityName: MeasurementType;
   @Input() animated = false;
   @Input() mobile = false;
+  @Input() maxVisibleButtons: number = 3;
+  @Input() showButtonIcons: boolean;
+
   @Output() valueChanges = new EventEmitter<any>();
+
 
   @Input()
   set programLabel(value: string) {

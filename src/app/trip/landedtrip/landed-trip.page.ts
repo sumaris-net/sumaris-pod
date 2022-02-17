@@ -248,8 +248,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
 
+    // DEBUG
+    //console.debug(options);
+
     // Read options and query params
-    console.info(options);
     if (options && options.observedLocationId) {
 
       console.debug("[landedTrip-page] New entity: settings defaults...");
@@ -525,15 +527,16 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   }
 
+  canUserWrite(data: Trip, opts?: any): boolean {
+    return this.dataService.canUserWrite(data, opts);
+  }
+
   /* -- protected methods -- */
 
   protected get form(): FormGroup {
     return this.tripForm.form;
   }
 
-  protected canUserWrite(data: Trip): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
-  }
 
   protected computeUsageMode(data: Trip): UsageMode {
     return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';

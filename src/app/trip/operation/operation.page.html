@@ -175,7 +175,7 @@
                                   [usageMode]="usageMode"
                                   [tabindex]="1"
                                   (onSubmit)="save($event)"
-                                  (maxDateChanges)="$maxDateChanges.next($event)"
+                                  (lastEndDateChanges)="$lastEndDate.next($event)"
                                   [debug]="debug">
 
 
@@ -188,13 +188,13 @@
                     <ion-col class="measurements-form">
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
-                                             [forceOptional]="usageMode|isOnField"
-                                             [acquisitionLevel]="$acquisitionLevel|async"
-                                             [debug]="debug"
                                              [programLabel]="$programLabel|async"
+                                             [acquisitionLevel]="$acquisitionLevel|async"
+                                             [forceOptional]="usageMode|isOnField"
                                              [tabindex]="30"
                                              [mobile]="mobile"
-                                             [compact]="false">
+                                             [compact]="false"
+                                             [debug]="debug">
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -202,7 +202,11 @@
               </app-form-operation>
             </ion-col>
             <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
-              <app-entity-metadata *ngIf="data?.updateDate" [value]="data"></app-entity-metadata>
+              <app-entity-metadata [value]="data"
+                                   [showRecorder]="data && !!data.updateDate"
+                                   [service]="">
+                <app-entity-quality-form></app-entity-quality-form>
+              </app-entity-metadata>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -255,7 +259,7 @@
 
       <app-sample-tree #sampleTree queryTabIndexParamName="subtab"
                        [selectedTabIndex]="selectedSubTabIndex"
-                       [defaultSampleDate]="$maxDateChanges|async"
+                       [defaultSampleDate]="$lastEndDate|async"
                        [usageMode]="usageMode"
                        (onPrepareRowForm)="onPrepareSampleForm($event)"
                        [useSticky]="mobile"

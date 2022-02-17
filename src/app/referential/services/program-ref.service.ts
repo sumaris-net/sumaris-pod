@@ -168,18 +168,24 @@ export class ProgramRefService
     this._logPrefix = '[program-ref-service] ';
   }
 
-  canUserWrite(data: IWithProgramEntity<any, any>): boolean {
-    if (!data) return false;
+  canUserWrite(data: Program, opts?: any): boolean {
+    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
+    return super.canUserWrite(data, opts);
+  }
+
+  canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
+    if (!entity) return false;
 
     // If the user is the recorder: can write
-    if (data.recorderPerson && this.accountService.isLogin() && this.accountService.account.asPerson().equals(data.recorderPerson)) {
+    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
       return true;
     }
 
-    // TODO: check rights on program (need model changes)
+    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
+    // const program = opts?.program || load()
 
     // Check same department
-    return this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
+    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
   }
 
   /**

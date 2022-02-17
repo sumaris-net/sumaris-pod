@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {ErrorCodes} from './errors';
-import {ReferentialFragments} from './referential.fragments';
+import { Injectable } from '@angular/core';
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ErrorCodes } from './errors';
+import { ReferentialFragments } from './referential.fragments';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -18,23 +18,24 @@ import {
   isNotNil,
   LoadResult,
   NetworkService,
+  Person,
   PlatformService,
   ReferentialAsObjectOptions,
-  ReferentialUtils,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {CacheService} from 'ionic-cache';
-import {ReferentialRefService} from './referential-ref.service';
-import {Program, ProgramPerson} from './model/program.model';
-import {SortDirection} from '@angular/material/sort';
-import {ReferentialService} from './referential.service';
-import {ProgramFragments} from './program.fragments';
-import {ProgramRefService} from './program-ref.service';
-import {BaseReferentialService} from './base-referential-service.class';
-import {StrategyRefService} from './strategy-ref.service';
-import {ProgramFilter} from './filter/program.filter';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
+import { CacheService } from 'ionic-cache';
+import { ReferentialRefService } from './referential-ref.service';
+import { Program, ProgramPerson } from './model/program.model';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialService } from './referential.service';
+import { ProgramFragments } from './program.fragments';
+import { ProgramRefService } from './program-ref.service';
+import { BaseReferentialService } from './base-referential-service.class';
+import { StrategyRefService } from './strategy-ref.service';
+import { ProgramFilter } from './filter/program.filter';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default
@@ -326,10 +327,10 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     throw new Error('Not implemented yet!');
   }
 
-  canUserWrite(entity: Program) {
-    // TODO : check user is in program managers
+  canUserWrite(entity: Program, opts?: any) {
     return this.accountService.isAdmin()
-      || (ReferentialUtils.isNotEmpty(entity) && this.accountService.isSupervisor());
+      // Check program managers (if entity exists)
+      || (isNotNil(entity.id) && this.hasPrivilege(entity, this.accountService.person, ProgramPrivilegeIds.MANAGER));
   }
 
   copyIdAndUpdateDate(source: Program, target: Program) {
@@ -381,4 +382,14 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     });
   }
 
+  protected hasPrivilege(program: Program, person: Person, privilegeId: number): boolean {
+    if (!program || !person || isNil(person.id) || isNil(privilegeId)) return false; // Skip
+    // Lookup on person's privileges
+    return (program.persons || [])
+        .some(p => p.person.id === person.id && p.privilege.id === privilegeId)
+      // Lookup on department's privileges
+      || (isNotNil(person.department?.id) && (program.departments || [])
+        .some(d => d.department.id === person.department.id && d.privilege.id === privilegeId))
+    ;
+  }
 }

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output} from '@angular/core';
-import {OperationValidatorOptions, OperationValidatorService} from '../services/validator/operation.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
+import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
@@ -11,11 +11,13 @@ import {
   EntityUtils,
   firstNotNilPromise,
   FormArrayHelper,
-  fromDateISOString, getPropertyByPath,
+  fromDateISOString,
+  getPropertyByPath,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   LoadResult,
   MatAutocompleteField,
@@ -31,27 +33,27 @@ import {
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
-import {BehaviorSubject, combineLatest, merge, Subscription} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, map, startWith} from 'rxjs/operators';
-import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {OperationService} from '@app/trip/services/operation.service';
-import {ModalController} from '@ionic/angular';
-import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/operation/select-operation.modal';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {Router} from '@angular/router';
-import {PositionUtils} from '@app/trip/services/position.utils';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
-import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
-import {LocationLevelIds, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {LatLongPattern} from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
-import {TripService} from '@app/trip/services/trip.service';
-import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {TaxonGroupTypeIds} from '@app/referential/services/model/taxon-group.model';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
+import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { OperationService } from '@app/trip/services/operation.service';
+import { ModalController } from '@ionic/angular';
+import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { Router } from '@angular/router';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { FishingArea } from '@app/trip/services/model/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import { TripService } from '@app/trip/services/trip.service';
+import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 
 const moment = momentImported;
 
@@ -100,6 +102,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   distanceWarning: boolean;
 
   isParentOperationControl: FormControl;
+  canEditType: boolean;
   $parentOperationLabel = new BehaviorSubject<string>('');
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   fishingAreaFocusIndex = -1;
@@ -249,15 +252,31 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this.getFormError(this.form);
   }
 
-  get getLastActivePositionControl(): AbstractControl {
+  get lastActivePositionControl(): AbstractControl {
     return this.endDateTimeEnable && this.form.get('endPosition')
       || this.fishingEndDateTimeEnable && this.form.get('fishingEndPosition')
       || this.fishingStartDateTimeEnable && this.form.get('fishingStartPosition')
       || this.form.get('startPosition');
   }
 
+  get previousFishingEndDateTimeControl(): AbstractControl {
+    return this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
+      || this.form.get('startDateTime');
+  }
+
+  get previousEndDateTimeControl(): AbstractControl {
+    return this.fishingEndDateTimeEnable && this.form.get('fishingEndDateTime')
+    || this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
+    || this.form.get('startDateTime');
+  }
+
+  get isNewData(): boolean {
+    return isNil(this.form?.controls.id.value);
+  }
+
+
   @Output() onParentChanges = new EventEmitter<Operation>();
-  @Output() maxDateChanges = new EventEmitter<Moment>();
+  @Output() lastEndDateChanges = new EventEmitter<Moment>();
 
   constructor(
     injector: Injector,
@@ -351,13 +370,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           .valueChanges
           .pipe(
             filter(_ => this.fishingEndDateTimeEnable),
-            startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (after filter)
+            startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
           ),
         endDateTimeControl
           .valueChanges
           .pipe(
             filter(_ => this.endDateTimeEnable),
-            startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (after filter)
+            startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (must be after filter)
           )
       ])
       .pipe(
@@ -367,7 +386,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         // DEBUG
         //tap(max => console.debug('[operation-form] max date changed: ' + toDateISOString(max)))
       )
-      .subscribe(max => this.maxDateChanges.next(max))
+      .subscribe(max => this.lastEndDateChanges.next(max))
     );
 
     this.initPositionSubscription();
@@ -380,7 +399,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   ngOnReady() {
-    this.updateFormGroup();
+    if (this.debug) console.debug('[operation-form] Form is ready!');
   }
 
   ngOnDestroy() {
@@ -435,8 +454,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
     }
 
+    this.canEditType = isNew;
+
     setTimeout(() => {
-      this.maxDateChanges.emit(DateUtils.max(
+      this.lastEndDateChanges.emit(DateUtils.max(
         this.fishingEndDateTimeEnable && data.fishingEndDateTime,
         this.endDateTimeEnable && data.endDateTime));
     });
@@ -605,7 +626,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     // Compute parent operation label
     let parentLabel = '';
     if (isNotNil(parentOperation?.id)) {
-      parentLabel = await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
+      parentLabel = await this.translate.get(this.i18nFieldPrefix + 'TITLE_NO_RANK', {
         startDateTime: parentOperation.startDateTime && this.dateFormat.transform(parentOperation.startDateTime, {time: true}) as string
       }).toPromise() as string;
 
@@ -745,10 +766,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   translateControlPath(controlPath: string): string {
-    if (controlPath.match(/^fishingAreas\.[0-9]+\.location$/)) {
-      return this.translate.instant('TRIP.OPERATION.EDIT.FISHING_AREAS');
-    }
-    return super.translateControlPath(controlPath);
+    return this.operationService.translateControlPath(controlPath, {i18nPrefix: this.i18nFieldPrefix});
   }
 
   /* -- protected methods -- */
@@ -883,6 +901,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (this.isParentOperationControl.value !== isParent) {
       this.isParentOperationControl.setValue(isParent, opts);
     }
+
     const emitEvent = (!opts || opts.emitEvent !== false);
 
     // Parent operation (= Filage) (or parent not used)
@@ -894,8 +913,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           endDateTime: null,
           physicalGear: null,
           metier: null,
-          parentOperation: null,
-          qualityFlagId: QualityFlagIds.NOT_COMPLETED
+          parentOperation: null
         });
 
         this.updateFormGroup();
@@ -915,8 +933,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       if (emitEvent) {
         if (!this.parentControl.value) {
           // Copy parent fields -> child fields
-          this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
-          this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
+          const dates = [this.form.get('startDateTime').value, this.form.get('fishingStartDateTime').value].filter(isNotNil);
+          if (this.fishingEndDateTimeEnable && isNotEmptyArray(dates)) {
+            this.form.get('fishingEndDateTime').patchValue(dates.shift());
+          }
+          if (this.endDateTimeEnable && isNotEmptyArray(dates)) {
+            this.form.get('endDateTime').patchValue(dates.shift());
+          }
           if (this.showFishingArea) this.form.get('fishingAreas')?.patchValue(this.form.get('fishingAreas').value);
 
           // Clean parent fields (should be filled after parent selection)
@@ -925,8 +948,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
             fishingStartDateTime: null,
             physicalGear: null,
             metier: null,
-            childOperation: null,
-            qualityFLagId: null
+            childOperation: null
           });
 
           this.updateFormGroup();
@@ -967,7 +989,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (!this._showPosition) return; // Skip
 
     let startPosition = this.form.get('startPosition').value;
-    let endPosition = this.getLastActivePositionControl?.value;
+    let endPosition = this.lastActivePositionControl?.value;
 
     if (this.allowParentOperation) {
       if (this.isParentOperation) {
@@ -1017,7 +1039,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // If some changes detected
     if (this.distanceError !== hasError || this.distanceWarning !== hasWarning) {
-      const endPositionControl = this.getLastActivePositionControl;
+      const endPositionControl = this.lastActivePositionControl;
       const startPositionControl = this.allowParentOperation && this.isChildOperation && this.fishingStartDateTimeEnable
         ? this.form.get('fishingEndPosition')
         : this.form.get('startPosition');

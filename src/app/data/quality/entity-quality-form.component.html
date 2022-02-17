@@ -1,5 +1,10 @@
 <ion-label class="ion-text-wrap status" *ngIf="!loading">
   <br *ngIf="data.updateDate"/>
+  <!-- usage mode -->
+  <ion-text *ngIf="editor.usageMode as usageMode">
+    <ion-icon name="hourglass"></ion-icon>&nbsp;
+    <span>{{'SETTINGS.USAGE_MODE_'+usageMode|translate}}</span>
+  </ion-text>
   <!-- local entity -->
   <ion-text *ngIf="data.id < 0">
     <ion-icon name="warning"></ion-icon>&nbsp;

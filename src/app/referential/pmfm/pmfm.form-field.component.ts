@@ -81,6 +81,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() style: PmfmFormFieldStyle;
+  @Input() showButtonIcons: boolean;
   @Input() maxVisibleButtons: number;
   @Input() acquisitionNumber: number;
   @Input() defaultLatitudeSign: '+' | '-';

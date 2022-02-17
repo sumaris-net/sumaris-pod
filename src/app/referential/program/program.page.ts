@@ -262,12 +262,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
       }));
   }
 
-  protected canUserWrite(data: Program): boolean {
-    // TODO : check user is in program managers
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-  }
-
   protected async getJsonValueToSave(): Promise<any> {
     const data = await super.getJsonValueToSave();
 

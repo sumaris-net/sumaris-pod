@@ -106,8 +106,8 @@
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
-    "NO_RESULT": "Aucun résultat",
     "LOADING_DOTS": "Chargement...",
+    "NO_RESULT": "Aucun résultat",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -375,6 +375,8 @@
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
+    "USAGE_MODE_FIELD": "Mode saisie terrain",
+    "USAGE_MODE_DESK": "Mode saisie bureau",
     "USAGE_MODES":  {
       "FIELD": "Saisie terrain",
       "DESK": "Saisie bureau"
@@ -386,7 +388,7 @@
       "DEPARTMENT": "Liste déroulante > Organismes",
       "LOCATION": "Liste déroulante > Lieux (port, etc.)",
       "FISHING_AREA_LOCATION": "Liste déroulante > Zone de pêche (rectangle, etc.)",
-      "QUALITATIVE_VALUE": "Liste déroulante > Valeurs d'un paramètre",
+      "QUALITATIVE_VALUE": "Liste déroulante > Valeurs qualitative de paramètre",
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
       "GEAR": "Liste déroulante > Engins de pêche",
@@ -524,10 +526,11 @@
     },
     "ERROR": {
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé",
-      "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée"
+      "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée",
+      "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
+      "FEATURE_PLACEHOLDER": "Caractéristique #{{rankOrder}}",
       "ERROR": {
         "DUPLICATE_RANK_ORDER": "Le numero #{{rankOrder}} existe déjà. Impossible de l'ajouter à nouveau."
       }
@@ -1496,11 +1499,12 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Poids : Activer ?",
-      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Capture > Echantillon : Date et heure ?",
-      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
-      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientifiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientifiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
+      "TRIP_SAMPLE_ENABLE": "Échantillon : Activer ?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Échantillon : Date et heure ?",
+      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Échantillon : Espèces commerciales ?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Échantillon : Espèces scientifiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Test de survie : Espèces scientifiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Test de survie : Espèces commerciales ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",

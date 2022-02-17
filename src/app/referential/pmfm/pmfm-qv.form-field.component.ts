@@ -97,6 +97,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() autofocus: boolean;
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
+  @Input() showButtonIcons: boolean;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;

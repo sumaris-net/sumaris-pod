@@ -106,7 +106,9 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
     // Create control for '__typename' (required)
     if (!form.get('__typename')) {
-      console.warn('[measurement-validator] Re add control \'__typename\' to measurement values form group');
+      // DEBUG
+      //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
+
       form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
     }
   }

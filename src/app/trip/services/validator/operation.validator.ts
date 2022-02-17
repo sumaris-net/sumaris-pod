@@ -4,7 +4,7 @@ import {AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormArray, Fo
 import {PositionValidatorService} from './position.validator';
 import {
   AppFormUtils,
-  fromDateISOString,
+  fromDateISOString, isNil,
   isNotNil,
   LocalSettingsService,
   SharedFormArrayValidators,
@@ -35,6 +35,7 @@ export interface PmfmForm {
 export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
   withMeasurements?: boolean;
+  allowParentOperation?: boolean;
   isChild?: boolean;
   isParent?: boolean;
   withPosition?: boolean;
@@ -132,8 +133,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         parentOperation: [data && data.parentOperation || null],
 
         parentOperationId: [toNumber(data && data.parentOperationId, null)],
-        childOperationId: [toNumber(data && data.childOperationId, null)],
-        qualityFlagId: [data && data.qualityFlagId || null]
+        childOperationId: [toNumber(data && data.childOperationId, null)]
       });
 
     return formConfig;
@@ -266,7 +266,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         const fishingStartDateTimeValidators = [
           ...tripDatesValidators,
           SharedValidators.dateRangeEnd('startDateTime'),
-          SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'),
+          opts.withFishingEnd
+            ? SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')
+            : SharedValidators.dateRangeStart('childOperation.endDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'),
         ];
         fishingStartDateTimeControl.setValidators(opts?.isOnFieldMode
           ? Validators.compose(fishingStartDateTimeValidators)
@@ -282,6 +284,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           Validators.required,
           SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION')
         ]));
+        startDateTimeControl.enable();
 
         fishingStartDateTimeControl.disable();
         fishingStartDateTimeControl.clearValidators();
@@ -314,14 +317,18 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // Clear quality flag
       qualityFlagControl.clearValidators();
-      qualityFlagControl.patchValue(null, {emitEvent: false});
+      if (isNil(qualityFlagControl.value) || qualityFlagControl.value === QualityFlagIds.NOT_COMPLETED) {
+        qualityFlagControl.patchValue(QualityFlagIds.NOT_QUALIFIED, {emitEvent: false});
+      }
 
       // fishingEndDateTime = START
       if (opts.withFishingEnd) {
         fishingEndDateTimeControl.setValidators(Validators.compose([
           Validators.required,
           // Should be after parent dates
-          SharedValidators.dateRangeEnd('fishingStartDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
+          opts.withFishingStart
+            ? SharedValidators.dateRangeEnd('fishingStartDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
+            : SharedValidators.dateRangeEnd('startDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
         ]));
         fishingEndDateTimeControl.enable();
 
@@ -359,7 +366,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       }
 
       // Disable unused controls
-      fishingStartDateTimeControl.clearValidators();
+      startDateTimeControl.enable();
+      fishingStartDateTimeControl.enable();
       fishingStartDateTimeControl.updateValueAndValidity();
     }
 
@@ -375,7 +383,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // Clear quality flag
       qualityFlagControl.clearValidators();
-      qualityFlagControl.patchValue(null, {emitEvent: false});
+      if (isNil(qualityFlagControl.value) || qualityFlagControl.value === QualityFlagIds.NOT_COMPLETED) {
+        qualityFlagControl.patchValue(QualityFlagIds.NOT_QUALIFIED, {emitEvent: false});
+      }
 
       if (opts.withEnd) {
         // = END DATE

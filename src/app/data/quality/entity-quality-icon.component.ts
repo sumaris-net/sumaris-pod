@@ -6,7 +6,7 @@ import { qualityFlagToColor } from '@app/data/services/model/model.utils';
 import { IDataEntity } from '@app/data/services/model/data-entity.model';
 
 export declare type SynchronizationIonIcon = 'time-outline'|'hourglass-outline'|'pencil';
-export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert';
+export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert'|'alert-circle'|'alert-circle-outline';
 
 @Component({
   selector: 'app-entity-quality-icon',

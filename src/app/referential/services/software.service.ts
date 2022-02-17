@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {gql} from '@apollo/client/core';
 import {Observable, Subject} from 'rxjs';
 import {ErrorCodes} from './errors';
-import {BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, Software} from '@sumaris-net/ngx-components';
+import { AccountService, BaseGraphqlService, EntityServiceLoadOptions, GraphqlService, IEntityService, isNotNil, Software } from '@sumaris-net/ngx-components';
 import {environment} from '@environments/environment';
 
 /* ------------------------------------
@@ -52,7 +52,8 @@ export class SoftwareService<T extends Software = Software>
   implements IEntityService<Software> {
 
   constructor(
-    protected graphql: GraphqlService
+    protected graphql: GraphqlService,
+    protected accountService: AccountService
   ) {
     super(graphql, {production: environment.production});
 
@@ -73,6 +74,10 @@ export class SoftwareService<T extends Software = Software>
   async existsByLabel(label: string): Promise<boolean> {
     const existingSoftware = await this.loadQuery(LoadQuery, {label}, {fetchPolicy: "network-only"});
     return isNotNil(existingSoftware && existingSoftware.id);
+  }
+
+  canUserWrite(data: Software, opts?: any): boolean {
+    return this.accountService.isAdmin();
   }
 
   /**

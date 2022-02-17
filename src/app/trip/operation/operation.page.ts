@@ -1,20 +1,21 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, Optional, ViewChild} from '@angular/core';
-import {OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
-  AppHelpModal, changeCaseToUnderscore,
+  AppHelpModal,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
+  FormErrors,
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
   IEntity,
-  isNil, isNilOrBlank,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -24,24 +25,26 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap} from 'rxjs/operators';
-import {FormGroup, Validators} from '@angular/forms';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {Program} from '@app/referential/services/model/program.model';
-import {Operation, Trip} from '../services/model/trip.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {BatchTreeComponent} from '../batch/batch-tree.component';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
-import {IonRouterOutlet, ModalController} from '@ionic/angular';
-import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
-import {OperationValidators, PmfmForm} from '@app/trip/services/validator/operation.validator';
-import {TripContextService} from '@app/trip/services/trip-context.service';
+import { Moment } from 'moment';
+import { Program } from '@app/referential/services/model/program.model';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { BatchTreeComponent } from '../batch/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
+import { IonRouterOutlet, ModalController } from '@ionic/angular';
+import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
+import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 
 const moment = momentImported;
 
@@ -52,6 +55,7 @@ const moment = momentImported;
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
+    { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
     {
       provide: IonRouterOutlet,
       useValue: {
@@ -59,17 +63,18 @@ const moment = momentImported;
         canGoBack: () => false,
         nativeEl: '',
       },
-    }
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OperationPage extends AppEntityEditor<Operation, OperationService> {
-
+export class OperationPage
+  extends AppEntityEditor<Operation, OperationService>
+  implements IDataEntityQualityService<Operation> {
 
   private static TABS = {
     GENERAL: 0,
     CATCH: 1,
-    SAMPLE: 2
+    SAMPLE: 2,
   };
 
   private _lastOperationsTripId: number;
@@ -83,7 +88,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   readonly $programLabel = new BehaviorSubject<string>(null);
   readonly $tripId = new BehaviorSubject<number>(null);
   readonly $lastOperations = new BehaviorSubject<Operation[]>(null);
-  readonly $maxDateChanges = new BehaviorSubject<Moment>(null);
+  readonly $lastEndDate = new BehaviorSubject<Moment>(null);
 
   trip: Trip;
   measurements: Measurement[];
@@ -103,14 +108,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
 
-  @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
-  @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
+  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
   // Catch batch, sorting batches, individual measure
-  @ViewChild('batchTree', {static: true}) batchTree: BatchTreeComponent;
+  @ViewChild('batchTree', { static: true }) batchTree: BatchTreeComponent;
 
   // Sample tables
-  @ViewChild('sampleTree', {static: true}) sampleTree: SampleTreeComponent;
+  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
 
   get form(): FormGroup {
     return this.opeForm.form;
@@ -140,12 +145,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     protected tripContext: TripContextService,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
-      autoOpenNextTab: !platform.mobile
+      autoOpenNextTab: !platform.mobile,
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
@@ -155,12 +160,24 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     this.registerSubscription(
-      hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
-        .subscribe((event) => this.openHelpModal(event))
+      hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+        .subscribe((event) => this.openHelpModal(event)),
     );
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+  }
+
+  control(data: Operation, opts?: any): Promise<FormErrors> {
+    opts = {
+      ...opts,
+      trip: this.trip
+    };
+    return this.service.control(data, opts);
+  }
+
+  qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
+      return this.dataService.qualify(data, qualityFlagId);
   }
 
   async openHelpModal(event) {
@@ -466,16 +483,10 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // If has errors from context, applies it on form.
-    const errors = this.tripContext.getValue('errors') || undefined;
-    console.info('[operation-page] Load operation with errors', errors);
-    if (errors) {
-      this.forceDeskMode = true;
-      this.opeForm.usageMode = 'DESK';
-      this.setError({
-        details: {
-          errors: errors
-        }
-      });
+    const error = isNil(this.data?.controlDate) && this.data?.qualificationComments;
+    if (error) {
+      console.info('[operation-page] Operation errors: ', error);
+     // this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
     }
   }
 
@@ -741,7 +752,21 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
       if (this.autoFillBatch) this.batchTree.autoFill({forceIfDisabled: true});
     }
+  }
 
+  updateViewState(data: Operation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.updateViewState(data, opts);
+
+    // Display form error, if  has errors from context, applies it on form.
+    const error = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
+    if (error) {
+      setTimeout(() => {
+        console.info('[operation-page] Operation errors: ', error);
+        this.markAllAsTouched();
+        this.form.updateValueAndValidity();
+        this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
+      });
+    }
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -829,27 +854,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
   }
 
-  async setError(error: any) {
-
-    if (error) {
-      // Create a details message, from errors in forms (e.g. returned by control())
-      const formErrors = error && error.details && error.details.errors;
-      //Translate error if not already done
-      if (formErrors && isNilOrBlank(formErrors.message)) {
-        const i18FormError = this.errorTranslator.translateErrors(formErrors, {
-          separator: ', '
-        });
-        if (isNotNilOrBlank(i18FormError)) {
-          error.message = i18FormError;
-        }
-      } else if (formErrors) {
-        error.message = formErrors.message;
-      }
-    }
-
-    super.setError(error);
-  }
-
   markAsLoaded(opts?: { emitEvent?: boolean }) {
     super.markAsLoaded(opts);
     this.children?.forEach(c => c.markAsLoaded(opts));
@@ -866,8 +870,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Update trip id (will cause last operations to be watched, if need)
     this.$tripId.next(+tripId);
 
-    let trip = this.tripContext.getValue('trip');
-    // Reload
+    let trip = this.tripContext.getValue('trip') as Trip;
+
+    // If not the expected trip: reload
     if (trip?.id !== tripId) {
       trip = await this.tripService.load(tripId, {fullLoad: true});
     }
@@ -904,11 +909,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   }
 
   protected computeUsageMode(operation: Operation): UsageMode {
-    return this.settings.isUsageMode('FIELD') && (
-      isNil(this.trip) || (
-        isNotNil(this.trip.departureDateTime)
-        && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
-      ? 'FIELD' : 'DESK';
+    const contextualUsageMode = this.tripContext?.getValue('usageMode') as UsageMode;
+    if (contextualUsageMode) return contextualUsageMode;
+    // Read the settings
+    return this.settings.isUsageMode('FIELD')
+      && (
+        isNil(this.trip) || (
+          isNotNil(this.trip.departureDateTime)
+          && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
+        ? 'FIELD' : 'DESK';
   }
 
   protected registerForms() {
@@ -974,7 +983,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return json;
   }
 
-  protected canUserWrite(data: Operation): boolean {
+  canUserWrite(data: Operation, opts?: any): boolean {
     return !!data && this.trip && isNil(this.trip.validationDate)
       && this.tripService.canUserWrite(this.trip);
   }

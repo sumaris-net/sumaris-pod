@@ -1,9 +1,8 @@
-import {Injectable, Injector, Optional} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {filter, map} from 'rxjs/operators';
+import { Injectable, Injector, Optional } from '@angular/core';
+import { gql } from '@apollo/client/core';
+import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
-  AccountService,
   AppFormUtils,
   BaseEntityGraphqlQueries,
   chainPromises,
@@ -31,7 +30,7 @@ import {
   toNumber,
   UserEventService,
 } from '@sumaris-net/ngx-components';
-import {DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
+import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
@@ -39,33 +38,32 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
 } from '@app/data/services/model/data-entity.model';
-import {Observable} from 'rxjs';
-import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {OperationService} from './operation.service';
-import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {TripValidatorService} from './validator/trip.validator';
-import {Operation, OperationGroup, PhysicalGear, Trip} from './model/trip.model';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {SortDirection} from '@angular/material/sort';
-import {OverlayEventDetail} from '@ionic/core';
-import {TranslateService} from '@ngx-translate/core';
-import {ToastController} from '@ionic/angular';
-import {TRIP_FEATURE_NAME} from './config/trip.config';
-import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Sample} from './model/sample.model';
-import {ErrorCodes} from '@app/data/services/errors';
-import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
-import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {Packet} from '@app/trip/services/model/packet.model';
-import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
+import { Observable } from 'rxjs';
+import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { OperationService } from './operation.service';
+import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
+import { Operation, OperationGroup, PhysicalGear, Trip } from './model/trip.model';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { SortDirection } from '@angular/material/sort';
+import { OverlayEventDetail } from '@ionic/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ToastController } from '@ionic/angular';
+import { TRIP_FEATURE_NAME } from './config/trip.config';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { environment } from '@environments/environment';
+import { Sample } from './model/sample.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
+import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Packet } from '@app/trip/services/model/packet.model';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
 
 const moment = momentImported;
@@ -403,18 +401,16 @@ export class TripService
   extends RootDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
   implements IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
-    IDataEntityQualityService<Trip>,
+    IRootDataEntityQualityService<Trip>,
     IDataSynchroService<Trip, number, TripLoadOptions> {
 
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected personService: PersonService,
-    protected programRefService: ProgramRefService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected physicalGearService: PhysicalGearService,
@@ -444,6 +440,9 @@ export class TripService
       color: 'primary',
       executeAction: (event, context) => this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
     });
+
+    // Register self (avoid loop dependency)
+    operationService.tripService = this;
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -1090,7 +1089,7 @@ export class TripService
    * @param entity
    * @param opts
    */
-  async control(entity: Trip, opts?: any): Promise<FormErrors> {
+  async control(entity: Trip, opts?: TripValidatorOptions): Promise<FormErrors> {
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
@@ -1100,8 +1099,9 @@ export class TripService
     const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
-      isOnFieldMode: false, // Always disable 'on field mode'
+      ...opts,
       program,
+      isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     });
 
@@ -1119,10 +1119,10 @@ export class TripService
     }
     // If trip is Valid, control operations
     else {
-      const errors = await this.operationService.controlByTrip(entity, program);
+      const errors = await this.operationService.controlAllByTrip(entity, {program});
 
-      if (errors){
-        return errors;
+      if (errors) {
+        return {operations: errors};
       }
     }
 

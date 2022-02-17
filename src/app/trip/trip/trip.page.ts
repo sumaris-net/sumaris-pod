@@ -7,11 +7,11 @@ import {OperationsTable} from '../operation/operations.table';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {PhysicalGearTable} from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import {AcquisitionLevelCodes, PmfmIds} from '../../referential/services/model/model.enum';
-import {AppRootDataEditor} from '../../data/form/root-data-editor.class';
+import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
+import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
 import {FormGroup, Validators} from '@angular/forms';
 import {
-  Alerts,
+  Alerts, AppEntityEditor,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -31,8 +31,8 @@ import {PhysicalGear, Trip} from '../services/model/trip.model';
 import {SelectPhysicalGearModal} from '../physicalgear/select-physical-gear.modal';
 import {ModalController} from '@ionic/angular';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
-import {ProgramProperties} from '../../referential/services/config/program.config';
-import {VesselSnapshot} from '../../referential/services/model/vessel-snapshot.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
 import {debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap} from 'rxjs/operators';
 import {TableElement} from '@e-is/ngx-material-table';
 import {Program} from '@app/referential/services/model/program.model';
@@ -44,6 +44,8 @@ import {OperationService} from '@app/trip/services/operation.service';
 import {ContextService} from '@app/shared/context.service';
 import {TripContextService} from '@app/trip/services/trip-context.service';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { TripValidatorOptions } from '@app/trip/services/validator/trip.validator';
 
 const moment = momentImported;
 
@@ -63,7 +65,7 @@ export const TripPageSettingsEnum = {
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    {provide: AppRootDataEditor, useExisting: TripPage}
+    {provide: APP_ENTITY_EDITOR, useExisting: TripPage}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -77,7 +79,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   forceMeasurementAsOptional = false;
   settingsId: string;
   devAutoFillData = false;
-  operationErrors;
   private _measurementSubscription: Subscription;
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
@@ -181,24 +182,24 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
   }
 
-  setError(error: any) {
+  setError(error: any, opts?: any) {
 
-    // Operations are controlled only if trip doesn't have errors
-    // Propagate errors on operation table
-    if (error && error.details?.errors?.operations) {
+    // If errors in operations
+    if (error?.operations) {
+      this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS');
+      this.operationsTable.showRowError = true;
 
-      this.operationErrors = error.details.errors.operations;
-      //DEBUG
-      // console.debug('Operations errors : ', this.operationErrors);
-      this.operationsTable.setError(error);
-
+      // Filter operations with error (= not controlled)
       const operationFilter = this.operationsTable.filter || new OperationFilter();
-      operationFilter.dataQualityStatus = "MODIFIED";
+      operationFilter.dataQualityStatus = 'MODIFIED';
       this.operationsTable.setFilter(operationFilter);
-      this.tabGroup.selectedIndex = 2;
 
+      // Open the operation tab
+      this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
     } else {
       super.setError(error);
+      this.operationsTable.setFilter(null); // Reset operation filter
+      this.operationsTable.setError(null);
     }
   }
 
@@ -390,10 +391,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Store the trip in context
       this.tripContext?.setValue('trip', this.data.clone());
 
-      // If operation has form error, propagate it
-      if (this.operationErrors && this.operationErrors[id]) {
-        this.tripContext?.setValue('errors', this.operationErrors[id]);
-      }
+      // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+      this.tripContext?.setValue('usageMode', this.usageMode);
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', id], {
@@ -419,8 +418,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Store the trip in context
       this.tripContext?.setValue('trip', this.data.clone());
 
-      //Remove error from previous operation
-      this.tripContext?.setValue('errors', null);
+      // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+      this.tripContext?.setValue('usageMode', this.usageMode);
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
@@ -520,14 +519,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
+  canUserWrite(data: Trip, opts?: TripValidatorOptions): boolean {
+    return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
+  }
+
   /* -- protected methods -- */
 
   protected get form(): FormGroup {
     return this.tripForm.form;
-  }
-
-  protected canUserWrite(data: Trip): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
   }
 
   protected computeUsageMode(data: Trip): UsageMode {

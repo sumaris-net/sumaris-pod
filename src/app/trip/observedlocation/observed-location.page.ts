@@ -500,8 +500,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return this.observedLocationForm.form;
   }
 
-  protected canUserWrite(data: ObservedLocation): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
+  canUserWrite(data: ObservedLocation, opts?: any): boolean {
+    return this.dataService.canUserWrite(data, opts);
   }
 
   protected computeUsageMode(data: ObservedLocation): UsageMode {

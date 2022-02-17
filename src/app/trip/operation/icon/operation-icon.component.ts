@@ -6,6 +6,7 @@ import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {MatBadgeFill} from '@sumaris-net/ngx-components/src/app/shared/material/badge/badge-icon.directive';
 import {AppColors} from '@app/shared/colors.utils';
 import {QualityIonIcon} from '@app/data/quality/entity-quality-icon.component';
+import { MatBadgeSize } from '@angular/material/badge';
 
 export declare type OperationMatSvgIcons = 'down-arrow' | 'rollback-arrow';
 export declare type OperationIonIcon = 'navigate';
@@ -26,17 +27,8 @@ export class OperationIconComponent {
   badgeIcon: QualityIonIcon = null;
   badgeColor: AppColors = null;
   badgeFill: MatBadgeFill = 'clear';
-
-  @Input() set error(error: any) {
-    if (this._error !== error) {
-      this._error = error;
-      if (this._value) this.setValue(this._value); // Recompute
-    }
-  };
-
-  get error(): any {
-    return this._error;
-  }
+  badgeSize: MatBadgeSize = 'small'
+  title: string = null;
 
   @Input() set value(value: Operation) {
     this.setValue(value);
@@ -57,22 +49,34 @@ export class OperationIconComponent {
     return this._allowParentOperation;
   }
 
+  @Input() set showError(value: boolean) {
+    if (this._showError !== value) {
+      this._showError = value;
+      if (this._value) this.setValue(this._value); // Recompute
+    }
+  }
+
+  get showError(): boolean {
+    return this._showError;
+  }
+
   private _value: Operation;
   private _allowParentOperation: boolean;
-  private _error: any;
+  private _showError: boolean;
 
   constructor(private cd: ChangeDetectorRef) {
   }
 
   setValue(value: Operation) {
-    this.reset();
     if (!value) {
+      this.reset();
       return;
     }
 
     // DEBUG
-    //console.debug('[operation-icon] Computing icon for', value);
+    console.debug('[operation-icon] Computing icon for', value);
 
+    this.reset({emitEvent: false});
     this._value = value;
 
     // Is child
@@ -95,10 +99,13 @@ export class OperationIconComponent {
 
     if (isNil(value.controlDate)) {
       this.color = this.color || 'secondary';
-      if (this.error) {
-        this.badgeIcon = 'alert';
+      // The qualification comments is used to store error message
+      if (this.showError && value.qualificationComments) {
+        this.badgeIcon = 'alert' as QualityIonIcon;
         this.badgeColor = 'danger';
         this.badgeFill = 'solid';
+        this.badgeSize = 'small';
+        this.title = value.qualificationComments;
       } else {
         this.badgeIcon = this.badgeIcon || undefined;
       }
@@ -107,32 +114,36 @@ export class OperationIconComponent {
       this.badgeColor = 'tertiary';
     }
     else if (isNil(value.qualityFlagId) || value.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
-        this.badgeIcon='checkmark-circle';
+        this.badgeIcon = 'checkmark-circle';
         this.badgeColor = 'tertiary';
     }
     else {
       if (value.qualityFlagId === QualityFlagIds.BAD) {
-        this.badgeIcon = 'alert';
+        this.badgeIcon = 'alert-circle';
         this.badgeColor = 'danger';
-        this.badgeFill = 'solid';
+        this.badgeFill = 'clear';
+        this.badgeSize = 'medium';
       }
       else {
-        this.badgeIcon='flag';
+        this.badgeIcon = 'flag';
         this.badgeColor = qualityFlagToColor(value.qualityFlagId);
       }
     }
     this.color = this.color || 'dark';
-
     this.cd.markForCheck();
   }
 
-  private reset() {
+  private reset(opts?: {emitEvent: boolean}) {
     this.icon = null;
     this.matSvgIcon = null;
     this.color = null;
     this.badgeIcon = null;
     this.badgeFill = 'clear';
     this.badgeColor = null;
-    this.cd.markForCheck();
+    this.badgeSize = 'small';
+    this.title = null;
+    if (!opts || opts.emitEvent !== false) {
+      this.cd.markForCheck();
+    }
   }
 }

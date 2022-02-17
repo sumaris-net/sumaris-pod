@@ -132,11 +132,6 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
 
   /* -- protected methods -- */
 
-  protected canUserWrite(data: TaxonName): boolean {
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-  }
-
   protected registerForms() {
     this.addChildForms([this.referentialForm]);
   }

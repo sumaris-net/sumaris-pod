@@ -48,8 +48,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
       // Data service
       {
         load: (id: number, options) => productService.load(id, options),
-        delete: (type, _) => productService.deleteAll([type]),
-        save: (type, _) => productService.save(type),
+        canUserWrite: (data: ExtractionProduct, opts?: any) => productService.canUserWrite(data, opts),
+        save: (data, _) => productService.save(data),
+        delete: (data, _) => productService.deleteAll([data]),
         listenChanges: (id, _) => undefined
       },
       // Editor options
@@ -159,16 +160,6 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
   protected registerForms() {
     this.addChildForm(this.productForm);
   }
-
-  protected canUserWrite(data: ExtractionProduct): boolean {
-
-    return this.accountService.isAdmin()
-      // New date allow for supervisors
-      || (this.isNewData && this.accountService.isSupervisor())
-      // Supervisor on existing data, and the same recorder department
-      || (ReferentialUtils.isNotEmpty(data && data.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
-  }
-
 
   protected async onNewEntity(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
