@@ -104,6 +104,7 @@ public class Operation implements IDataEntity<Integer>,
 
     @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class )
     @JoinColumn(name = "operation_fk")
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @ToString.Exclude
     private Operation parentOperation;
 

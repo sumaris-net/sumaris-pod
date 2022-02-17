@@ -154,11 +154,11 @@ public class Trip implements IRootDataEntity<Integer>,
     private List<VesselUseMeasurement> measurements = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
-    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @JoinTable(name = "trip2observer_person", joinColumns = {
             @JoinColumn(name = "trip_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Set<Person> observers = Sets.newHashSet();
 
     public int hashCode() {
