@@ -229,7 +229,8 @@
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
-      "UPDATE_TECHNICAL_TABLES": "Mise à jour auto des tables techniques ?",
+      "UPDATE_TECHNICAL_TABLES": "Pod > Tables techniques : mise à jour auto  ?",
+      "GEOMETRY_SRID": "Pod > Géometries : SRID (0=Aucun, 4326=WGS84)",
       "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
       "AUTH_TOKEN_TYPE": {
