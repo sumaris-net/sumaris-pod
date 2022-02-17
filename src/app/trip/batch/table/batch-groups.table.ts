@@ -701,6 +701,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       this.groupColumns = groupColumns;
       this.showToolbar = true;
     } else {
+      this.groupColumns = [];
       this.dynamicColumns = this.computeDynamicColumnsByQv();
       this.groupColumnStartColSpan += this.dynamicColumns.length;
       this.showToolbar = !this.mobile;
