@@ -291,7 +291,9 @@ public class LandingRepositoryImpl
         EntityGraph<?> entityGraph = em.getEntityGraph(Landing.GRAPH_LOCATION_AND_PROGRAM);
         if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
         if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
-        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
+
+        // WARNING: should not enable this fetch, because page cannot be applied
+        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
 
         query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }

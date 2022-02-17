@@ -114,6 +114,10 @@ public class XMLQuery {
         });
     }
 
+    public Set<String> getAllColumnNames() {
+        return getColumnNames(element -> true);
+    }
+
     public Set<String> getColumnNames(final Predicate<Element> filter) {
         Preconditions.checkNotNull(filter);
 

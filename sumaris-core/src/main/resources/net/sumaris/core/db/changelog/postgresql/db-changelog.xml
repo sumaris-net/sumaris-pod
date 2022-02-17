@@ -5,13 +5,6 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/db-changelog-master.xml">
 
-  <!-- Processing updates -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1557825240100-1" runOnChange="true" runAlways="true">
-    <sqlFile relativeToChangelogFile="true" path="db-create-procedures.sql" endDelimiter="//"
-             splitStatements="true"
-             stripComments="true"/>
-  </changeSet>
-
   <include relativeToChangelogFile="true" file="db-changelog-1.8.7.xml"/>
 
   <include relativeToChangelogFile="true" file="db-changelog-1.8.8.xml"/>
@@ -33,7 +26,11 @@
   <include relativeToChangelogFile="true" file="all/db-changelog-1.16.0.xml"/>
   <include relativeToChangelogFile="true" file="open/db-changelog-1.16.0.xml"/>
 
-
   <include relativeToChangelogFile="true" file="db-changelog-1.18.0.xml"/>
+  <include relativeToChangelogFile="true" file="db-changelog-1.21.0.xml"/>
+  <include relativeToChangelogFile="true" file="open/db-changelog-1.21.0.xml"/>
+
+  <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
+  <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
 
 </databaseChangeLog>

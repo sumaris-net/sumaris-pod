@@ -160,7 +160,7 @@ public class LocationRepositoryImpl
             iterationCounter++;
         }
 
-        log.info("Adding missing LocationHierarchy [OK] in {} - ({} inserts - {} iterations)",
+        log.info("Adding missing LocationHierarchy [OK] {} - ({} inserts - {} iterations)",
             Dates.elapsedTime(startTime),
             counter, iterationCounter);
     }

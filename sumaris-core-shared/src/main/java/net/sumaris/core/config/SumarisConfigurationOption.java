@@ -25,6 +25,8 @@ package net.sumaris.core.config;
  */
 
 import net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect;
+import net.sumaris.core.util.Geometries;
+import org.geolatte.geom.Geometry;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
@@ -395,19 +397,30 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         boolean.class,
         false),
 
+    /* -- Geometry (JTS) -- */
+
+    GEOMETRY_SRID(
+        "sumaris.geometry.srid",
+        n("sumaris.config.option.sumaris.geometry.srid.description"),
+        Geometries.SRID.NONE.toString(),
+        Class.class,
+        false),
+
     /* -- Active MQ options-- */
 
     ACTIVEMQ_POOL_ENABLED(
         "spring.activemq.pool.enabled",
         n("sumaris.config.option.spring.activemq.pool.enabled.description"),
         "false",
-        Boolean.class),
+        Boolean.class,
+        false),
 
     ACTIVEMQ_BROKER_URL(
         "spring.activemq.broker-url",
         n("sumaris.config.option.spring.activemq.broker-url.description"),
         "vm://embedded?broker.persistent=true",
-        String.class),
+        String.class,
+        false),
 
     ACTIVEMQ_BROKER_USERNAME(
         "spring.activemq.broker-username",
@@ -425,7 +438,8 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "spring.activemq.prefetch.limit",
         n("sumaris.config.option.spring.activemq.prefetch.limit.description"),
         "10",
-        Integer.class),
+        Integer.class,
+        false),
 
     /* -- Functional features options-- */
 

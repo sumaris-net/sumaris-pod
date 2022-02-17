@@ -43,8 +43,9 @@
     <select alias="TIME" group="time" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'HH24:MI')</select>
 
     <!-- FISHING TIME -->
-    <select alias="FISHING_TIME" group="fishingTime" dbms="hsqldb,pgsql" type="number">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
-    <select alias="FISHING_TIME" group="fishingTime" dbms="oracle" type="number">CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER)</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="hsqldb">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="oracle">CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER)</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="pgsql">F_DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME))</select>
 
     <select alias="POS_START_LAT" type="number">P_START.LATITUDE</select>
     <select alias="POS_START_LON" type="number">P_START.LONGITUDE</select>
@@ -53,7 +54,13 @@
 
     <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
 
-    <select alias="STATISTICAL_RECTANGLE" dbms="hsqldb,pgsql" type="text">F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)</select>
+    <select alias="STATISTICAL_RECTANGLE" dbms="hsqldb,pgsql" type="text">
+      CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
+        F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
+      ELSE
+        L_AREA.LABEL
+      END
+    </select>
     <select alias="STATISTICAL_RECTANGLE" dbms="oracle" type="text">CAST(null as VARCHAR2(10))</select> <!-- TODO Rewrite function for Oracle -->
 
     <!-- TODO: check if 10'x10' codification is OK
@@ -72,7 +79,8 @@
     (SELECT QV.LABEL FROM PHYSICAL_GEAR_MEASUREMENT PGM
       INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
     WHERE
-      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)]]></select>
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)
+    ]]></select>
 
     <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text" dbms="hsqldb,pgsql">null</select>
 
@@ -82,6 +90,15 @@
     <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.PHYSICAL_GEAR_FK</from>
     <from join="true">LEFT OUTER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
 
+    <!-- TODO
+      <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.OPERATION_FK = O.ID</from>
+      <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
+      <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR_MEASUREMENT PGM ON PGM.PHYSICAL_GEAR_FK = PG.ID</from>
+      <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE PGQV on PGQV.ID = PGM.QUALITATIVE_VALUE_FK</from>
+    -->
+
+    <from join="true">LEFT OUTER JOIN FISHING_AREA FA ON FA.OPERATION_FK = O.ID</from>
+    <from join="true">LEFT OUTER JOIN LOCATION L_AREA ON L_AREA.ID = FA.LOCATION_FK</from>
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_START ON P_START.OPERATION_FK = O.ID and P_START.DATE_TIME=COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</from>
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_END ON P_END.OPERATION_FK = O.ID and P_END.DATE_TIME=COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)</from>
 

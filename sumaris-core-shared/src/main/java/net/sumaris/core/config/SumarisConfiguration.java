@@ -920,6 +920,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_TECHNICAL_TABLES_UPDATE.getKey());
     }
 
+    public int getGeometrySrid() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.GEOMETRY_SRID.getKey());
+    }
+
     public boolean enableBatchHashOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_BATCH_HASH_OPTIMIZATION.getKey());
     }

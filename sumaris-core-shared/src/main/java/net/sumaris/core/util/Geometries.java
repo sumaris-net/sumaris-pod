@@ -35,6 +35,11 @@ import java.util.regex.Pattern;
 
 public class Geometries {
 
+	public interface SRID {
+		Integer NONE = 0;
+		Integer WGS86 = 4326;
+	}
+
 	protected static final double EARTH_RADIUS = 6378288.0;
 	protected static Pattern COORDINATES_PATTERN = Pattern.compile("([0-9]{4})([NS])[\\s\\xA0]+([0-9]{5})([EW])[\\s\\xA0]*");
 	protected final static String WKT_POINT = "POINT(%s %s)";

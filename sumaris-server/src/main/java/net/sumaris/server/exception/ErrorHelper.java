@@ -22,6 +22,8 @@ package net.sumaris.server.exception;
  * #L%
  */
 
+import net.sumaris.core.util.StringUtils;
+
 public final class ErrorHelper {
 
     private ErrorHelper() {
@@ -36,6 +38,13 @@ public final class ErrorHelper {
      * @return a {@link String} object.
      */
     public static String toJsonErrorString(int errorCode, String message) {
-        return String.format("{\"code\": %s, \"message\": \"%s\"}", errorCode, message);
+        if (StringUtils.isBlank(message)) {
+            return String.format("{\"code\": %s}", errorCode);
+        }
+        return String.format("{\"code\": %s, \"message\": \"%s\"}",
+            errorCode,
+            // Escape quotes
+            message.replaceAll("\"", "")
+        );
     }
 }

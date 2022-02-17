@@ -71,7 +71,7 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
             if (enableTechnicalTablesUpdate) {
-                self.updateTaxonGroupHierarchies(); // Use self, to force transaction creation
+                self.updateTaxonGroupHierarchies(); // Force transaction creation, using self
             }
         }
     }

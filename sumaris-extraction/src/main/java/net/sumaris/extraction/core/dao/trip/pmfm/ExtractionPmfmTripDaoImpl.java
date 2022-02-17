@@ -120,7 +120,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         XMLQuery xmlQuery = super.createTripQuery(context);
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
-        String groupbyColumns = String.join(",", xmlQuery.getColumnNames(e -> true));
+
+        // Get columns, BEFORE to add pmfms columns
+        String groupbyColumns = String.join(",", xmlQuery.getAllColumnNames());
 
         // Add PMFM from program, if on program has been set
         String programLabel = context.getTripFilter().getProgramLabel();
