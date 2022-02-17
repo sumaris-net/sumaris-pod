@@ -116,7 +116,9 @@ public class ObservedLocationRepositoryImpl
         EntityGraph<?> entityGraph = em.getEntityGraph(ObservedLocation.GRAPH_LOCATION_AND_PROGRAM);
         if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
         if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
-        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(ObservedLocation.Fields.OBSERVERS);
+
+        // BLA avoid fetching observers (Many2Many)
+        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(ObservedLocation.Fields.OBSERVERS);
 
         query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }

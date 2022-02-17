@@ -291,7 +291,9 @@ public class LandingRepositoryImpl
         EntityGraph<?> entityGraph = em.getEntityGraph(Landing.GRAPH_LOCATION_AND_PROGRAM);
         if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
         if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
-        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
+
+        // BLA avoid fetching observers (Many2Many)
+        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
 
         query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }

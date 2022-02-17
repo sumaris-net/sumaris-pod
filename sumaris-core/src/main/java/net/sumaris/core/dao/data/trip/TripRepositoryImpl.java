@@ -158,7 +158,9 @@ public class TripRepositoryImpl
         EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
         if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
         if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
-        if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
+
+        // BLA avoid fetching observers (Many2Many)
+        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
 
         query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
