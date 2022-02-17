@@ -1429,6 +1429,7 @@ public class DataGraphQLService {
             .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
             .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withGears(fields.contains(StringUtils.slashing(TripVO.Fields.GEARS, IEntity.Fields.ID)))
             .withLanding(fields.contains(StringUtils.slashing(TripVO.Fields.LANDING_ID))
                 || fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, IEntity.Fields.ID))
             )
