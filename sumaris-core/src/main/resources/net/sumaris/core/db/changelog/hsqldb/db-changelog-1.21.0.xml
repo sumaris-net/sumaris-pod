@@ -30,15 +30,25 @@
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-	<!-- TODO check delete cascade works -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-1" runOnChange="true">
-		<preConditions onFail="MARK_RAN">
-			<not><foreignKeyConstraintExists foreignKeyTableName="operation" foreignKeyName="operation_operation_fkc"/></not>
-		</preConditions>
-		<addForeignKeyConstraint baseColumnNames="operation_fk" baseTableName="operation" constraintName="operation_operation_fkc"
+	<!-- Drop old constraints on OPERATION.OPERATION_FK -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-1" runOnChange="true" failOnError="false">
+		<sql endDelimiter=";">
+			alter table OPERATION drop constraint OPERATION;
+		</sql>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-2" runOnChange="true" failOnError="false">
+		<sql endDelimiter=";">
+			alter table OPERATION drop constraint operation_operation_fkc;
+		</sql>
+	</changeSet>
+
+	<!-- Create constraints on OPERATION.OPERATION_FK with cascade SET NULL -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-3" runOnChange="true" failOnError="false">
+		<addForeignKeyConstraint constraintName="operation_operation_fkc"
+														 baseTableName="operation" baseColumnNames="operation_fk"
+														 referencedTableName="operation" referencedColumnNames="id"
 														 deferrable="false" initiallyDeferred="false"
-														 referencedColumnNames="id" referencedTableName="operation"
-														 validate="true"/>
+														 validate="true" onDelete="SET NULL" />
 	</changeSet>
 
 	<!-- update SYSTEM_VERSION -->

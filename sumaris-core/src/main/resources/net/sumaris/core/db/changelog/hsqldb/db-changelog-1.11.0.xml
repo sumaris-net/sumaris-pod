@@ -62,14 +62,14 @@
 		<addForeignKeyConstraint baseColumnNames="parent_parameter_group_fk" baseTableName="parameter_group" constraintName="FK_PARAMETER_GROUP_PARENT_FK" referencedColumnNames="id" referencedTableName="parameter_group"/>
 	</changeSet>
 
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-2">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-2" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<not><columnExists tableName="parameter" columnName="parameter_group_fk"/></not>
 		</preConditions>
 		<addColumn tableName="parameter">
 			<column name="parameter_group_fk" type="INT"/>
 		</addColumn>
-		<addForeignKeyConstraint baseColumnNames="parameter_group_fk" baseTableName="parameter_group" constraintName="FK_PARAMETER_TO_PARAMETER_GROUP" referencedColumnNames="id" referencedTableName="parameter_group"/>
+		<addForeignKeyConstraint baseColumnNames="parameter_group_fk" baseTableName="parameter" constraintName="FK_PARAMETER_TO_PARAMETER_GROUP" referencedColumnNames="id" referencedTableName="parameter_group"/>
 	</changeSet>
 
 	<!-- missing delete cascade on STRATEGY2DEPARTMENT -->
