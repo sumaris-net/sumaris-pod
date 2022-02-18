@@ -321,9 +321,9 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.REFUSED_SURVEY
   },
-  PMFM_GEAR_LABEL: <FormFieldDefinition>{
+  PMFM_GEAR_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.GEAR_LABEL.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.GEAR_LABEL_ID',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GEAR_LABEL_ID',
     type: 'entity',
     autocomplete: {
       filter: {
@@ -332,6 +332,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: PmfmIds.GEAR_LABEL
+  },
+  PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES
   },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
