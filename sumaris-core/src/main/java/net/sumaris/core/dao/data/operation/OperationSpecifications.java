@@ -27,7 +27,10 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -65,7 +68,12 @@ public interface OperationSpecifications
     default Specification<Operation> excludeOperationGroup() {
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
             Join<Operation, Trip> tripJoin = Daos.composeJoin(root, Operation.Fields.TRIP, JoinType.INNER);
-            return criteriaBuilder.notEqual(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME));
+            return criteriaBuilder.not(
+                criteriaBuilder.and(
+                    criteriaBuilder.equal(root.get(Operation.Fields.START_DATE_TIME), tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME)),
+                    criteriaBuilder.equal(root.get(Operation.Fields.END_DATE_TIME), tripJoin.get(Trip.Fields.RETURN_DATE_TIME))
+                )
+            );
         });
     }
 
@@ -150,11 +158,11 @@ public interface OperationSpecifications
     default Specification<Operation> inPhysicalGearIds(Integer[] physicalGearIds) {
         if (ArrayUtils.isEmpty(physicalGearIds)) return null;
         return BindableSpecification.<Operation>where((root, query, criteriaBuilder) -> {
-            Join<Operation, PhysicalGear> physicalGearJoin = Daos.composeJoin(root, Operation.Fields.PHYSICAL_GEAR, JoinType.INNER);
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, PHYSICAL_GEAR_IDS_PARAMETER);
-            return criteriaBuilder.in(physicalGearJoin.get(IEntity.Fields.ID)).value(param);
-        })
-                .addBind(PHYSICAL_GEAR_IDS_PARAMETER, Arrays.asList(physicalGearIds));
+                Join<Operation, PhysicalGear> physicalGearJoin = Daos.composeJoin(root, Operation.Fields.PHYSICAL_GEAR, JoinType.INNER);
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, PHYSICAL_GEAR_IDS_PARAMETER);
+                return criteriaBuilder.in(physicalGearJoin.get(IEntity.Fields.ID)).value(param);
+            })
+            .addBind(PHYSICAL_GEAR_IDS_PARAMETER, Arrays.asList(physicalGearIds));
     }
 
     default Specification<Operation> inTaxonGroupLabels(String[] taxonGroupLabels) {
@@ -167,7 +175,6 @@ public interface OperationSpecifications
             })
             .addBind(TAXON_GROUP_LABELS_PARAM, Arrays.asList(taxonGroupLabels));
     }
-
 
     default Specification<Operation> isBetweenDates(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
