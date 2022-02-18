@@ -985,8 +985,7 @@ export class OperationPage
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {
-    return !!data && this.trip && isNil(this.trip.validationDate)
-      && this.tripService.canUserWrite(this.trip);
+    return this.dataService.canUserWrite(data, {trip: this.trip});
   }
 
   protected async initAvailableTaxonGroups(programLabel: string) {

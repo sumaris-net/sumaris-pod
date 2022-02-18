@@ -62,7 +62,7 @@ export class OperationIconComponent {
 
   private _value: Operation;
   private _allowParentOperation: boolean;
-  private _showError: boolean;
+  private _showError = false;
 
   constructor(private cd: ChangeDetectorRef) {
   }
@@ -74,7 +74,7 @@ export class OperationIconComponent {
     }
 
     // DEBUG
-    console.debug('[operation-icon] Computing icon for', value);
+    //console.debug('[operation-icon] Computing icon for operation #' + value.id);
 
     this.reset({emitEvent: false});
     this._value = value;

@@ -346,7 +346,7 @@ export class EntityQualityFormComponent<
 
       // If local, avoid to check too many properties (for performance in mobile devices)
       const isLocalData = EntityUtils.isLocal(data);
-      const canWrite = isLocalData || this.service.canUserWrite(data);
+      const canWrite = isLocalData || this.editor.canUserWrite(data);
       const isSupervisor = !isLocalData && this.accountService.isSupervisor();
 
       // Quality service

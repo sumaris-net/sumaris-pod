@@ -37,6 +37,11 @@ import {MatExpansionPanel} from '@angular/material/expansion';
 import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 
 
+export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
+  FILTER_KEY: 'filter',
+  COMPACT_ROWS_KEY: 'compactRows'
+};
+
 @Component({
   selector: 'app-referential-page',
   templateUrl: 'referentials.page.html',
@@ -98,6 +103,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return this._entityName;
   }
 
+  @Input() sticky = false;
+  @Input() stickyEnd = false;
+  @Input() compact = false;
+
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
@@ -122,6 +131,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'name',
           'level',
           'status',
+          'creationDate',
           'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
@@ -195,7 +205,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY))
         )
         .subscribe()
       );
@@ -211,6 +221,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       items: this.$levels
     });
 
+    // Restore compact mode
+    this.restoreCompactMode();
+
     if (this.persistFilterInSettings) {
       this.restoreFilterOrLoad();
     }
@@ -222,7 +235,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   async restoreFilterOrLoad() {
     this.markAsLoading();
 
-    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
+    const json = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY);
     console.debug("[referentials] Restoring filter from settings...", json);
 
     if (json && json.entityName) {
@@ -404,6 +417,28 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }), {emitEvent: true});
     this.filterExpansionPanel.close();
   }
+
+  restoreCompactMode(opts?: {emitEvent?: boolean}) {
+    if (!this.compact) {
+      const compact = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
+      if (this.compact !== compact) {
+        this.compact = compact;
+
+        if (!opts || opts.emitEvent !== false) {
+          this.markForCheck();
+        }
+      }
+    }
+  }
+
+  toggleCompactMode() {
+    this.compact = !this.compact;
+    this.markForCheck();
+    this.settings.savePageSetting(this.settingsId, this.compact, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
+  }
+
+  /* -- protected functions -- */
+
 
   protected async openNewRowDetail(): Promise<boolean> {
     const path = this.detailsPath[this._entityName];

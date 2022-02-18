@@ -504,7 +504,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   canUserWrite(data: Operation, opts?: OperationValidatorOptions): boolean {
-    const trip = opts.trip;
+    const trip = opts?.trip;
     if (!trip) throw new Error('Missing required \'opts.trip\' argument');
     return !!data && trip && this.tripService.canUserWrite(trip);
   }
@@ -521,7 +521,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       if (isEmptyArray(data)) return undefined; // Skip if empty
 
       // Prepare validator options
-      const shouldSave = !opts && opts.save !== false;
+      const shouldSave = !opts || opts.save !== false;
       opts = await this.fillValidatorOptionsForTrip(trip.id, opts);
 
       // Prepare error translator
