@@ -397,9 +397,9 @@ export class OperationPage
             if (hasParent) {
               if (this.debug) console.debug('[operation] Enable batch tables');
               this.showBatchTables = this.showBatchTablesByProgram;
-              this.showSamplesTab = this.showSampleTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-              this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+              this.showSamplesTab = this.showSampleTablesByProgram;
+              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
@@ -446,7 +446,7 @@ export class OperationPage
             if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-              this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
             }
           })
       );
@@ -456,9 +456,9 @@ export class OperationPage
     if (defaultTableStates) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
       this.showBatchTables = this.showBatchTablesByProgram;
-      this.showSamplesTab = this.showSampleTablesByProgram;
       this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-      this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+      this.showSamplesTab = this.showSampleTablesByProgram;
+      this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
       this.updateTablesState();
       this.markForCheck();
     }
