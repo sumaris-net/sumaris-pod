@@ -106,9 +106,9 @@
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
+    "LOADING_DOTS": "Loading...",
     "NO_RESULT": "No result",
     "NO_DATA": "No data",
-    "LOADING_DOTS": "Loading...",
     "MISSING": "Missing",
 
     "DISPLAYED_COLUMNS": "Displayed columns",
@@ -134,7 +134,7 @@
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Application Name",
     "DESCRIPTION": "Description (home page)",
-    "STATUS": "Status",
+    "STATUS": "State",
     "PREVIEW_DIVIDER": "Preview",
     "LOGOS": "App logo images",
     "LOGO_PARTNERS": "Partners logo (home page):",
@@ -232,7 +232,7 @@
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
       "UPDATE_TECHNICAL_TABLES": "Automatically update technical tables?",
-      "GEOMETRY_SRID": "Pod > Geometries : SRID (0=None, 4326=WGS84)",
+      "GEOMETRY_SRID": "Pod > Geometries: SRID (0=None, 4326=WGS84)",
       "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?",
       "AUTH_TOKEN_TYPE_PLACEHOLDER": "Security > Authentication type",
       "AUTH_TOKEN_TYPE": {
@@ -377,6 +377,8 @@
     "OFFLINE_MODE": "Force offline mode? (experimental)",
     "DATA_ENTRY_DIVIDER": "Data entry settings",
     "USAGE_MODE": "Usage mode",
+    "USAGE_MODE_FIELD": "Mode on field",
+    "USAGE_MODE_DESK": "Mode in office",
     "USAGE_MODES":  {
       "FIELD": "On field",
       "DESK": "In office"
@@ -386,9 +388,9 @@
     "BTN_ADD_PROPERTY": "Add a entry field",
     "FIELDS": {
       "DEPARTMENT": "Dropdown list > Departments",
-      "LOCATION": "Dropdown list > Locations (e.g. Harbour...)",
-      "FISHING_AREA_LOCATION": "Dropdown list > Fishing areas (e.g. rectangle)",
-      "QUALITATIVE_VALUE": "Dropdown list > Parameters",
+      "LOCATION": "Dropdown list > Locations (e.g. harbour)",
+      "FISHING_AREA_LOCATION": "Dropdown list > Fishing Areas (e.g. rectangle)",
+      "QUALITATIVE_VALUE": "Dropdown list > Parameter's qualitative values",
       "TAXON_GROUP": "Dropdown list > Commercial species",
       "TAXON_NAME": "Dropdown list > Scientific species",
       "GEAR": "Dropdown list > Fishing gears",
@@ -425,7 +427,7 @@
       "LABEL": "Organization code",
       "NAME": "Organization name"
     },
-    "STATUS": "Status",
+    "STATUS": "State",
     "PUBKEY": "Public key",
     "PROFILE": "Profile",
     "PROFILE_ENUM": {
@@ -444,7 +446,6 @@
   "TRIP": {
     "TITLE": "Fishing trip",
     "PROGRAM": "Data collection programme",
-    "VESSEL": "Vessel",
     "VESSEL_SNAPSHOT": "Vessel",
     "BTN_ADD_VESSEL": "Add a vessel",
     "DEPARTURE": "Departure:",
@@ -490,7 +491,7 @@
       "DEPARTURE_LOCATION": "Departure harbour",
       "RETURN_DATE_TIME": "Return date",
       "RETURN_LOCATION": "Return harbour",
-      "QUALITY": "Status",
+      "QUALITY": "State",
       "OBSERVERS": "Observers",
       "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
@@ -501,7 +502,7 @@
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)",
         "VESSEL": "Vessel",
-        "SYNCHRONIZATION_STATUS": "Status",
+        "SYNCHRONIZATION_STATUS": "State",
         "RECORDER_DEPARTMENT": "Recorder department",
         "RECORDER_PERSON": "Recorder user",
         "OBSERVERS": "Observers"
@@ -527,7 +528,8 @@
     },
     "ERROR": {
       "NO_PRACTICED_METIER_FOUND": "No practiced metier found",
-      "ADD_GEAR": "Error while adding gear to the trip"
+      "ADD_GEAR": "Error while adding new physical gear to the trip",
+      "INVALID_OPERATIONS": "Please correct invalid operations below"
     },
     "MEASUREMENT": {
       "FEATURE_PLACEHOLDER": "Feature #{{rankOrder}}",
@@ -620,6 +622,22 @@
           "PARENT" : "Setting",
           "CHILD" : "Hauling"
         },
+        "START_POSITION": {
+          "LATITUDE": "Start latitude",
+          "LONGITUDE": "Start longitude"
+        },
+        "END_POSITION": {
+          "LATITUDE": "End latitude",
+          "LONGITUDE": "End longitude"
+        },
+        "FISHING_START_POSITION": {
+          "LATITUDE": "Fishing start latitude",
+          "LONGITUDE": "Fishing start longitude"
+        },
+        "FISHING_END_POSITION": {
+          "LATITUDE": "Fishing end latitude",
+          "LONGITUDE": "Fishing end longitude"
+        },
         "SURVIVAL_TEST" : {
           "TAB_SAMPLES": "Survival tests"
         },
@@ -656,8 +674,13 @@
         "END_POSITION": "Towing GPS Position",
         "FISHING_AREA": "Fishing Area",
         "COMMENTS": "Comments",
-        "QUALITY": "Status",
-        "QUALITY_FILTER": "Filter on status:"
+        "QUALITY": "State",
+        "QUALITY_FILTER": "Filter by state:"
+      },
+      "FILTER": {
+        "GEAR" : "Gear",
+        "START_DATE" : "Start date",
+        "QUALITY": "State"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
@@ -955,7 +978,7 @@
     "TABLE": {
       "PROGRAM": "Program",
       "START_DATE_TIME": "Date/time",
-      "QUALITY": "Status",
+      "QUALITY": "State",
       "LOCATION": "Location",
       "OBSERVERS": "Observers",
       "RECORDER_PERSON": "Recorder",
@@ -1180,7 +1203,7 @@
   "VESSEL": {
     "VESSEL_ID": "Internal code",
     "VESSEL_TYPE": "Type",
-    "STATUS": "Status",
+    "STATUS": "State",
     "COMMENTS": "Comments",
     "TAB_GENERAL": "General information",
     "TAB_HISTORY": "History",
@@ -1243,7 +1266,7 @@
     "LEVEL": "Level",
     "DESCRIPTION": "Description",
     "COMMENTS": "Comments",
-    "STATUS": "Status",
+    "STATUS": "State",
     "RANK_ORDER": "#",
     "UPDATE_DATE": "Update date",
     "CREATION_DATE": "Creation date",
