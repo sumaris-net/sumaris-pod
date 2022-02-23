@@ -27,6 +27,8 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
+
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.Fraction;
 import net.sumaris.core.model.referential.pmfm.Matrix;

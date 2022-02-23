@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
+import io.reactivex.BackpressureStrategy;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -52,8 +53,8 @@ import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
-import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.administration.DataAccessControlService;
+import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.ChangesPublisherService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -321,7 +322,8 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Trip.class, TripVO.class, id, minIntervalInSecond, true);
+        return changesPublisherService.watch(Trip.class, TripVO.class, id, minIntervalInSecond, false)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     @GraphQLMutation(name = "controlTrip", description = "Control a trip")
@@ -564,7 +566,8 @@ public class DataGraphQLService {
                                                                 @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true);
+        return changesPublisherService.watch(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
@@ -754,7 +757,8 @@ public class DataGraphQLService {
                                                   @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
+        return changesPublisherService.watch(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     /* -- Operation Groups -- */
@@ -1034,7 +1038,8 @@ public class DataGraphQLService {
                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);
+        return changesPublisherService.watch(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     /* -- Aggregated landings -- */

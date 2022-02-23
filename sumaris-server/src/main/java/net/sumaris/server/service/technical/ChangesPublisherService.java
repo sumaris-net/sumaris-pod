@@ -22,43 +22,31 @@ package net.sumaris.server.service.technical;
  * #L%
  */
 
+import io.reactivex.Observable;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import org.reactivestreams.Publisher;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-@Transactional
+
 public interface ChangesPublisherService {
 
-    @Transactional(readOnly = true)
-    <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends List<V>> Publisher<L>
-    getListPublisher(final Function<Date, L> supplier,
-                 Integer minIntervalInSecond,
-                 boolean startWithActualValue);
+    <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends Collection<V>> Observable<L>
+    watchCollection(final Function<Date, L> supplier,
+                   Integer minIntervalInSecond,
+                   boolean startWithActualValue);
 
-    @Transactional(readOnly = true)
-    <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
-    getPublisher(final Function<Date, V> supplier,
-                 Integer minIntervalInSecond,
-                 boolean startWithActualValue);
+    <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Observable<V>
+    watch(final Function<Date, V> supplier,
+          Integer minIntervalInSecond,
+          boolean startWithActualValue);
 
-    @Transactional(readOnly = true)
-    <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Publisher<V>
-    getPublisher(Class<T> entityClass,
+    <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
+    watch(Class<T> entityClass,
                  Class<V> targetClass,
                  K id,
                  Integer intervalInSecond,
                  final boolean startWithActualValue);
-
-    @Transactional(readOnly = true)
-    <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> V
-    getIfNewer(Class<T> entityClass,
-               Class<V> targetClass,
-               K id,
-               Date lastUpdateDate);
 }

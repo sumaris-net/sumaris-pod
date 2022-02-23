@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import io.reactivex.BackpressureStrategy;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -37,7 +38,6 @@ import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.server.http.graphql.GraphQLApi;
-import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
@@ -48,7 +48,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @GraphQLApi
@@ -184,9 +186,10 @@ public class ReferentialGraphQLService {
         Preconditions.checkNotNull(entityName, "Missing 'entityName'");
         Preconditions.checkArgument(id >= 0, "Invalid 'id'");
 
-        return changesPublisherService.getPublisher(
+        return changesPublisherService.watch(
                 ReferentialEntities.getEntityClass(entityName),
-                ReferentialVO.class, id, minIntervalInSecond, true);
+                ReferentialVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     @GraphQLMutation(name = "saveReferentials", description = "Create or update many referential")

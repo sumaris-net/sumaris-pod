@@ -36,19 +36,18 @@ import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
-import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IDownloadController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -202,7 +201,7 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Execute extraction to a file")
-    @Transactional
+    @Transactional(timeout = 10000000)
     public String getExtractionFile(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                     @GraphQLArgument(name = "filter") ExtractionFilterVO filter
     ) throws IOException {
@@ -234,6 +233,7 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLMutation(name = "saveExtraction", description = "Create or update a extraction")
+    @Transactional
     public ExtractionTypeVO saveExtraction(@GraphQLArgument(name = "type") @NonNull ExtractionTypeVO type,
                                            @GraphQLArgument(name = "filter") ExtractionFilterVO filter
     ) {

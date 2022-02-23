@@ -25,6 +25,7 @@ package net.sumaris.server.http.graphql.administration;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
+import io.reactivex.BackpressureStrategy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
@@ -55,8 +56,8 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
@@ -73,7 +74,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -326,12 +326,17 @@ public class ProgramGraphQLService {
                                               @GraphQLEnvironment ResolutionEnvironment env) {
         ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
 
-        return changesPublisherService.getPublisher(updateDate -> {
+        log.info("Checking changes Program#{}, every {} sec", id, minIntervalInSecond);
+
+        return changesPublisherService.watch(updateDate -> {
             // Get actual program
-            if (updateDate == null) return programService.get(id, fetchOptions);
+            if (updateDate == null) {
+                return programService.get(id, fetchOptions);
+            }
             // Get if newer
             return programService.findNewerById(id, updateDate, fetchOptions).orElse(null);
-        }, minIntervalInSecond, true);
+        }, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
 
@@ -346,15 +351,18 @@ public class ProgramGraphQLService {
 
         Preconditions.checkArgument(programId >= 0, "Invalid programId");
 
-        return changesPublisherService.getListPublisher((lastUpdateDate) -> {
+        log.info("Checking strategies changes on Program#{}, every {} sec", programId, minIntervalInSecond);
+
+        return changesPublisherService.watchCollection((lastUpdateDate) -> {
+            // Get actual values
             if (lastUpdateDate == null) {
-                // Get all
                 return strategyService.findByProgram(programId, fetchOptions);
             }
 
             // Get newer strategies
             return strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
-        }, minIntervalInSecond, false /*get only updates, not actual list*/);
+        }, minIntervalInSecond, false /*get only updates, not actual list*/)
+        .toFlowable(BackpressureStrategy.LATEST);
     }
 
     /* -- Mutations -- */

@@ -27,10 +27,10 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
+import io.reactivex.BackpressureStrategy;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -134,7 +134,8 @@ public class AccountGraphQLService {
             @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond) {
 
         PersonVO person = this.authService.getAuthenticatedUser().get();
-        return changesPublisherService.getPublisher(Person.class, AccountVO.class, person.getId(), intervalInSecond, true);
+        return changesPublisherService.watch(Person.class, AccountVO.class, person.getId(), intervalInSecond, false)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
 }
