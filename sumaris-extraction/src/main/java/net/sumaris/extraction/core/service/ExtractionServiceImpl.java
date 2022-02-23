@@ -727,7 +727,11 @@ public class ExtractionServiceImpl implements ExtractionService {
         Set<String> columnNames = table.getColumnNames();
         String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
         if (orderedColumnNames != null) {
-            columnNames = Sets.newLinkedHashSet(Arrays.asList(orderedColumnNames));
+            final Set<String> newOrderedColumns = Sets.newLinkedHashSet();
+            Arrays.stream(orderedColumnNames)
+                .filter(table::hasColumn)
+                .forEach(newOrderedColumns::add);
+            columnNames = newOrderedColumns;
         }
         // Excludes some columns
         if (CollectionUtils.isNotEmpty(filter.getExcludeColumnNames())) {
