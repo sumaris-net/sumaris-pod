@@ -73,6 +73,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -331,10 +332,10 @@ public class ProgramGraphQLService {
         return changesPublisherService.watch(updateDate -> {
             // Get actual program
             if (updateDate == null) {
-                return programService.get(id, fetchOptions);
+                return Optional.of(programService.get(id, fetchOptions));
             }
             // Get if newer
-            return programService.findNewerById(id, updateDate, fetchOptions).orElse(null);
+            return programService.findNewerById(id, updateDate, fetchOptions);
         }, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }

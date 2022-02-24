@@ -131,10 +131,11 @@ public class AccountGraphQLService {
     @IsGuest
     @Transactional(readOnly = true)
     public Publisher<AccountVO> updateAccount(
-            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond) {
+        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond
+    ) {
 
-        PersonVO person = this.authService.getAuthenticatedUser().get();
-        return changesPublisherService.watch(Person.class, AccountVO.class, person.getId(), intervalInSecond, false)
+        Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
+        return changesPublisherService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 

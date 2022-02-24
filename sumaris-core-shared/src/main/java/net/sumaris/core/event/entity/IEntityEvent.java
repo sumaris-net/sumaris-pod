@@ -26,6 +26,8 @@ import java.io.Serializable;
 
 public interface IEntityEvent<ID extends Serializable, V extends Serializable> {
 
+    String JMS_DESTINATION_NAME = "entityEvent";
+
     enum EntityEventOperation {
         INSERT,
         UPDATE,

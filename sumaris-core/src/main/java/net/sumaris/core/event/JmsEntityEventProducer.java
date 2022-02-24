@@ -29,10 +29,9 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessagePostProcessor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -40,6 +39,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Message;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -84,13 +85,25 @@ public class JmsEntityEventProducer {
 
         log.debug("Sending JMS message... {destination: '{}', id: {}}", destinationName, event.getId());
 
+        MessagePostProcessor postProcessor = message -> postProcessMessage(message, event);
+
         // Send data, or ID
         if (event.getData() != null) {
-            jmsTemplate.convertAndSend(destinationName, event.getData());
+            jmsTemplate.convertAndSend(destinationName, event.getData(), postProcessor);
         }
         else {
-            jmsTemplate.convertAndSend(destinationName, event.getId());
+            jmsTemplate.convertAndSend(destinationName, event.getId(), postProcessor);
         }
+        jmsTemplate.convertAndSend(IEntityEvent.JMS_DESTINATION_NAME,
+            event,
+            postProcessor
+        );
     }
 
+    public Message postProcessMessage(final Message message, final IEntityEvent event) throws JMSException {
+        message.setStringProperty("operation", event.getOperation().toString().toLowerCase());
+        message.setStringProperty("entityName", event.getEntityName());
+        message.setStringProperty("id", event.getId().toString());
+        return message;
+    }
 }

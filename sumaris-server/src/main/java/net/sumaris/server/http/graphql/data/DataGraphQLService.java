@@ -322,7 +322,7 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watch(Trip.class, TripVO.class, id, minIntervalInSecond, false)
+        return changesPublisherService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -566,7 +566,7 @@ public class DataGraphQLService {
                                                                 @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watch(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
+        return changesPublisherService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -757,7 +757,7 @@ public class DataGraphQLService {
                                                   @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watch(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
+        return changesPublisherService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -1038,7 +1038,7 @@ public class DataGraphQLService {
                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watch(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
+        return changesPublisherService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 

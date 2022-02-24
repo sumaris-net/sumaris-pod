@@ -197,6 +197,12 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             Locale locale = Beans.getStream(session.getHandshakeHeaders().getAcceptLanguageAsLocales())
                 .findFirst()
                 .orElse(I18n.getDefaultLocale());
+            /*sendResponse(session,
+                ImmutableMap.of(
+                    "type", GqlTypes.GQL_CONNECTION_ERROR,
+                    "payload", Collections.singletonMap("message", I18n.l(locale, "sumaris.error.starting"))
+                ));
+            return;*/
             throw new AuthenticationServiceException(I18n.l(locale, "sumaris.error.starting"));
         }
 

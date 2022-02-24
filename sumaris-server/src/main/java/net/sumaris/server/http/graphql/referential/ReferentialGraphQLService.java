@@ -186,7 +186,7 @@ public class ReferentialGraphQLService {
         Preconditions.checkNotNull(entityName, "Missing 'entityName'");
         Preconditions.checkArgument(id >= 0, "Invalid 'id'");
 
-        return changesPublisherService.watch(
+        return changesPublisherService.watchEntity(
                 ReferentialEntities.getEntityClass(entityName),
                 ReferentialVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);

@@ -44,12 +44,6 @@ import javax.annotation.Resource;
 public class BatchEventListener {
 
     @Resource
-    private OperationService operationService;
-
-    @Resource
-    private ProgramService programService;
-
-    @Resource
     private DenormalizedBatchService denormalizedBatchService;
 
     public BatchEventListener() {

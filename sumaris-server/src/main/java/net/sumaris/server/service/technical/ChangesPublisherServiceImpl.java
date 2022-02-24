@@ -22,11 +22,18 @@ package net.sumaris.server.service.technical;
  * #L%
  */
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.event.entity.IEntityEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.dao.technical.EntityDao;
@@ -35,20 +42,26 @@ import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 @Service("changesPublisherService")
 @Slf4j
 public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
-    private final AtomicLong publisherCount = new AtomicLong(0);
+    @FunctionalInterface
+    interface Listener {
+        void onNext(Object value);
+    }
 
     @Autowired(required = false)
     protected TaskExecutor taskExecutor;
@@ -59,42 +72,87 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
     @Autowired
     private ConversionService conversionService;
 
+    private final AtomicLong observerCount = new AtomicLong(0);
+    private final Map<String, Observable<?>> timerById = Maps.newConcurrentMap();
+    private final Map<String, AtomicLong> timerCountById = Maps.newConcurrentMap();
+    private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
+
+    @Override
+    public <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
+    watchEntity(@NonNull final Class<T> entityClass,
+                @NonNull final Class<V> targetClass,
+                @NonNull final K id,
+                Integer intervalInSecond,
+                boolean startWithActualValue) {
+
+        final AtomicReference<D> lastUpdateDate = new AtomicReference<>();
+
+        // Watch entity, using JMS message
+        Observable<V> result = watchEntity(entityClass, targetClass, id);
+
+        // Add watch at interval
+        if (intervalInSecond != null) {
+            Observable<V> timer = watchEntityAtInterval(
+                entityClass, targetClass, id, lastUpdateDate,
+                intervalInSecond);
+            result = Observable.merge(result, timer);
+        }
+
+        // Keep only more recent
+        result = latest(result, lastUpdateDate);
+
+        // Starting with the actual value
+        if (startWithActualValue) {
+            V initialVO = findAndConvert(entityClass, targetClass, id);
+            lastUpdateDate.set(initialVO.getUpdateDate());
+            result = result.startWith(initialVO);
+        }
+
+        String listenerId = computeListenerId(entityClass, id);
+
+        return result
+            .doOnLifecycle(
+                (subscription) -> log.info("Watching updates {} every {}s (observer count: {})", listenerId, intervalInSecond, observerCount.get() + 1),
+                () -> log.info("Stop watching updates {}. (observer count: {})", listenerId, observerCount.get())
+            );
+
+    }
+
     public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends Collection<V>> Observable<L>
-    watchCollection(final Function<Date, L> getter,
-                    Integer minIntervalInSecond,
+    watchCollection(final Function<D, L> getter,
+                    int intervalInSecond,
                     boolean startWithActualValue) {
 
-        Preconditions.checkArgument(minIntervalInSecond == null || minIntervalInSecond.intValue() >= 10, "minimum interval value should be >= 10 seconds");
-        if (minIntervalInSecond == null) minIntervalInSecond = 30;
+        Preconditions.checkArgument(intervalInSecond >= 10, "Minimum interval is 10 seconds");
 
-        final Calendar lastUpdateDate = Calendar.getInstance();
+        final AtomicReference<D> lastUpdateDate = new AtomicReference<>();
 
         // Create stop event, after a too long delay (to be sure old publisher are closed)
         Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
-        stop.subscribe(o -> log.debug("Closing publisher after a too long delay (1h) (publisher count: {})", publisherCount.get() - 1));
+        Disposable stopSubscription = stop.subscribe(o -> log.debug("Stop watching updates, after a too long delay (1h) (observer count: {})", observerCount.get() - 1));
 
-        Observable<L> observable = Observable
-                .interval(minIntervalInSecond, TimeUnit.SECONDS)
-                .takeUntil(stop)
-                .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
-                .flatMap(n -> {
-                    // Try to find a newer bean
-                    L entities = getter.apply(lastUpdateDate.getTime());
+        Observable<L> result = Observable
+            .interval(intervalInSecond, TimeUnit.SECONDS)
+            .takeUntil(stop)
+            .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
+            .flatMap(n -> {
+                // Try to find a newer bean
+                L entities = getter.apply(lastUpdateDate.get());
 
-                    // Update the date used for comparison
-                    if (CollectionUtils.isNotEmpty(entities)) {
-                        D newUpdateDate = entities.stream()
-                                .map(IUpdateDateEntityBean::getUpdateDate)
-                                .filter(Objects::nonNull)
-                                .max(Comparator.comparingLong(Date::getTime))
-                                .orElse(null);
-                        if (newUpdateDate != null && lastUpdateDate.getTime().before(newUpdateDate)) {
-                            lastUpdateDate.setTime(newUpdateDate);
-                            return Observable.<L>just(entities);
-                        }
+                // Update the date used for comparison
+                if (CollectionUtils.isNotEmpty(entities)) {
+                    D newUpdateDate = entities.stream()
+                            .map(IUpdateDateEntityBean::getUpdateDate)
+                            .filter(Objects::nonNull)
+                            .max(Comparator.comparingLong(Date::getTime))
+                            .orElse(null);
+                    if (newUpdateDate != null && lastUpdateDate.get().before(newUpdateDate)) {
+                        lastUpdateDate.set(newUpdateDate);
+                        return Observable.<L>just(entities);
                     }
-                    return Observable.<L>empty();
-                });
+                }
+                return Observable.<L>empty();
+            });
 
         // Sending the initial value when starting
         if (startWithActualValue) {
@@ -106,109 +164,282 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
                         .filter(Objects::nonNull)
                         .max(Comparator.comparingLong(Date::getTime))
                         .orElse(null);
-                lastUpdateDate.setTime(newUpdateDate);
-                observable = observable.startWith(entities);
+                lastUpdateDate.set(newUpdateDate);
+                result = result.startWith(entities);
             }
         }
 
-        return observable.doOnLifecycle(
-            (subscription) -> publisherCount.incrementAndGet(),
-            () -> publisherCount.decrementAndGet()
-        );
+        return result
+            .doOnLifecycle(
+                (subscription) -> observerCount.incrementAndGet(),
+                () -> {
+                    observerCount.decrementAndGet();
+                    stopSubscription.dispose();
+                }
+            );
     }
 
     @Override
     public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Observable<V>
-    watch(final Function<Date, V> getter,
-          Integer intervalInSec,
+    watch(final Function<D, Optional<V>> getter,
+          int intervalInSecond,
           boolean startWithActualValue) {
 
-        Preconditions.checkArgument(intervalInSec == null || intervalInSec.intValue() >= 10, "minimum interval value should be >= 10 seconds");
-        if (intervalInSec == null) intervalInSec = 30;
+        Preconditions.checkArgument(intervalInSecond >= 10, "Minimum interval is 10 seconds");
 
-        final Calendar lastUpdateDate = Calendar.getInstance();
+        AtomicReference<D> lastUpdateDate = new AtomicReference<>();
 
         // Create stop event, after a too long delay (to be sure old publisher are closed)
-        Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
-        stop.subscribe(o -> log.debug("Closing publisher after a too long delay (1h) (publisher count: {})", publisherCount.get() - 1));
+        Observable<?> stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
+        Disposable stopSubscription = stop.subscribe(o -> log.debug("Stop watching updates, after a too long delay (1h) (observer count: {})", observerCount.get() - 1));
 
-        Observable<V> observable = Observable
-                .interval(intervalInSec, TimeUnit.SECONDS)
-                .takeUntil(stop)
-                .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
-                .flatMap(n -> {
-                    // Try to find a newer bean
-                    V entity = getter.apply(lastUpdateDate.getTime());
+        Observable<V> timer = watchAtInterval(
+            () -> getter.apply(lastUpdateDate.get()),
+            intervalInSecond)
+            .takeUntil(stop);
 
-                    // Update the date used for comparision
-                    if (entity != null && lastUpdateDate.getTime().before(entity.getUpdateDate())) {
-                        lastUpdateDate.setTime(entity.getUpdateDate());
-                        return Observable.<V>just(entity);
-                    }
-                    return Observable.<V>empty();
-                });
+        Observable<V> result = latest(timer, lastUpdateDate);
 
-
-        // Sending the initial value when starting
+        // Starting with the actual value
         if (startWithActualValue) {
-            V initialVO = getter.apply(null);
-            lastUpdateDate.setTime(initialVO.getUpdateDate());
-            observable = observable.startWith(initialVO);
+            V initialVO = getter.apply(null).orElseThrow(() -> new DataNotFoundException("Unable to get actual value: data not found"));
+            lastUpdateDate.set(initialVO.getUpdateDate());
+            result = result.startWith(initialVO);
         }
 
-        return observable.doOnLifecycle(
-                (subscription) -> publisherCount.incrementAndGet(),
-                () -> publisherCount.decrementAndGet()
+        return result.doOnLifecycle(
+                (subscription) -> observerCount.incrementAndGet(),
+                () -> {
+                    observerCount.decrementAndGet();
+                    stopSubscription.dispose();
+                }
             );
     }
 
-    @Override
-    public <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
-    watch(final Class<T> entityClass,
-                 final Class<V> targetClass,
-                 final K id,
-                 Integer intervalInSecond,
-                 boolean startWithActualValue) {
-
-        return watch((lastUpdateDate) -> findNewerById(entityClass, targetClass, id, lastUpdateDate),
-                intervalInSecond,
-                startWithActualValue)
-            .doOnLifecycle(
-                (subscription) -> log.info("Listening changes {}#{} every {}s (publisher count: {})", entityClass.getSimpleName(), id, intervalInSecond, publisherCount.get()),
-                () -> log.info("Stop listening changes {}#{}. (publisher count: {})", entityClass.getSimpleName(), id, publisherCount.get() - 1)
-            );
-    }
 
     /* -- protected functions -- */
 
-    @Transactional(readOnly = true)
-    protected <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> V
-    findNewerById(Class<T> entityClass,
-                  Class<V> targetClass,
-                  K id,
-                  Date lastUpdateDate) {
+    @JmsListener(destination = IEntityEvent.JMS_DESTINATION_NAME,
+        selector = "operation = 'update'",
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    protected void onEntityEvent(IEntityEvent event) {
+        String listenerId = computeListenerId(event);
+        List<Listener> listeners = listenersById.get(listenerId);
+        if (CollectionUtils.isNotEmpty(listeners)) {
+            log.debug("Receiving update {} (listener count: {}}", listenerId, listeners.size());
+            listeners.forEach(c -> c.onNext(event.getData()));
+        }
+    }
 
-        log.info("Checking changes {}#{}...", entityClass.getSimpleName(), id);
+    protected <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>>
+    Observable<V> watchEntity(Class<T> entityClass, Class<V> targetClass, K id) {
+
+        final String listenerId = computeListenerId(entityClass, id);
+
+        return Observable.create(emitter -> {
+            Listener listener = (source) -> {
+                // Already converted into expected type: use source as target
+                if (source != null && source.getClass() == targetClass) {
+                    emitter.onNext((V)source);
+                }
+                // Fetch entity, and transform to target class
+                else {
+                    V target = findAndConvert(entityClass, targetClass, id);
+                    emitter.onNext((V)target);
+                }
+            };
+            registerListener(listenerId, listener);
+            emitter.setCancellable(() -> unregisterListener(listenerId, listener));
+        });
+    }
+
+
+    protected <K extends Serializable,
+        D extends Date,
+        T extends IUpdateDateEntityBean<K, D>,
+        V extends IUpdateDateEntityBean<K, D>>
+    Observable<V> watchEntityAtInterval(final Class<T> entityClass,
+                                        final Class<V> targetClass,
+                                        final K id,
+                                        final AtomicReference<D> lastUpdateDate,
+                                        int intervalInSecond) {
+        String timerId = computeTimerId(entityClass, targetClass, id, intervalInSecond);
+        return watchAtIntervalWithCache(
+            timerId,
+            () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
+            intervalInSecond);
+    }
+
+    protected <K extends Serializable,
+        D extends Date,
+        V extends IUpdateDateEntityBean<K, D>>
+    Observable<V> watchAtIntervalWithCache(
+        @NonNull final String timerId,
+        final Callable<Optional<V>> getter,
+        int intervalInSecond) {
+
+        synchronized (timerById) {
+            final Observable<?> timer = timerById.computeIfAbsent(
+                timerId,
+                (t) -> watchAtInterval(getter, intervalInSecond)
+            );
+            final AtomicLong counter = timerCountById.computeIfAbsent(timerId, (t) -> new AtomicLong(0));
+            return ((Observable<V>)timer)
+                .doOnLifecycle(
+                    (subscription) -> {
+                        counter.incrementAndGet();
+                        log.debug("Subscribe timer {} (observer count: {})", timerId, counter.get());
+                    },
+                    () -> {
+                        counter.decrementAndGet();
+                        log.debug("Dispose timer {} (observer count: {})", timerId, counter.get());
+                        if (counter.get() <= 0) {
+                            synchronized (timerById) {
+                                timerById.remove(timerId, timer);
+                            }
+                        }
+                    });
+        }
+    }
+
+    protected <K extends Serializable,
+        D extends Date,
+        V extends IUpdateDateEntityBean<K, D>>
+    Observable<V> watchAtInterval(@NonNull final Callable<Optional<V>> getter, int intervalInSecond) {
+
+        Preconditions.checkArgument(intervalInSecond > 0, "Invalid interval: " + intervalInSecond);
+
+        return Observable
+            .interval(intervalInSecond, TimeUnit.SECONDS)
+            .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
+            .map(n -> getter.call())
+            .filter(Optional::isPresent)
+            .map(Optional::get);
+    }
+
+    protected <K extends Serializable,
+        D extends Date,
+        V extends IUpdateDateEntityBean<K, D>>
+    Observable<V> latest(@NonNull Observable<V> observable,
+                         @NonNull final AtomicReference<D> lastUpdateDate) {
+        return observable.filter(entity -> {
+            if (lastUpdateDate.get() != null && lastUpdateDate.get().before(entity.getUpdateDate())) {
+                lastUpdateDate.set(entity.getUpdateDate());
+                return true;
+            }
+            return false;
+        });
+    }
+
+    protected String computeTimerId(@NonNull Class<?> entityClass,
+                                    @NonNull Class<?> targetClass,
+                                    @NonNull Serializable id, int intervalInSec) {
+        return Joiner.on('|').join(
+            computeListenerId(entityClass, id),
+            targetClass.getSimpleName(),
+            intervalInSec + "s"
+        );
+    }
+
+    protected String computeListenerId(@NonNull Class<?> entityClass, @NonNull Serializable id) {
+        return computeListenerId(entityClass.getSimpleName(), id);
+    }
+
+    protected String computeListenerId(@NonNull IEntityEvent entityEvent) {
+        return computeListenerId(entityEvent.getEntityName(), entityEvent.getId());
+    }
+
+    protected String computeListenerId(@NonNull String entityName, @NonNull Serializable id) {
+        return entityName + "#" + id;
+    }
+
+    protected <V extends IUpdateDateEntityBean<?, ?>> void registerListener(String key, Listener listener) {
+        synchronized (listenersById) {
+            List<Listener> listeners = listenersById.computeIfAbsent(key, k -> Lists.newCopyOnWriteArrayList());
+
+            log.debug("Listening updates {} (listener count: {})", key, listeners.size() + 1);
+
+            synchronized (listeners) {
+                listeners.add(listener);
+            }
+        }
+    }
+
+    protected void unregisterListener(String key, Listener listener) {
+        synchronized (this.listenersById) {
+            List<Listener> listeners = this.listenersById.get(key);
+            if (listeners == null) return;
+
+            log.debug("Stop listening updates {} (listener count: {})", key, listeners.size() - 1);
+
+            synchronized (listeners) {
+                listeners.remove(listener);
+            }
+        }
+    }
+
+
+    @Transactional(readOnly = true)
+    protected <K extends Serializable,
+        D extends Date,
+        T extends IUpdateDateEntityBean<K, D>,
+        V extends IUpdateDateEntityBean<K, D>>
+    Optional<V> findNewerById(Class<T> entityClass,
+                              Class<V> targetClass,
+                              K id,
+                              Date lastUpdateDate) {
+
+        log.debug("Checking update on {}#{}...", entityClass.getSimpleName(), id);
         T entity = dataChangeDao.find(entityClass, id);
         // Entity has been deleted
         if (entity == null) {
-            throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
+            return Optional.empty();
         }
 
         if (lastUpdateDate == null
             // Entity is newer than last update date
             || entity.getUpdateDate() != null && entity.getUpdateDate().after(lastUpdateDate)) {
+
+            // Check can convert
             if (!conversionService.canConvert(entityClass, targetClass)) {
                 throw new SumarisTechnicalException(I18n.t("sumaris.error.missingConverter", entityClass.getSimpleName()));
             }
-            return conversionService.convert(entity, targetClass);
+
+            // Apply conversion
+            V target = conversionService.convert(entity, targetClass);
+            return Optional.of(target);
         }
-        return null;
+        return Optional.empty();
+    }
+
+    @Transactional(readOnly = true)
+    protected <K extends Serializable, D extends Date,
+        T extends IUpdateDateEntityBean<K, D>,
+        V extends IUpdateDateEntityBean<K, D>
+        > V findAndConvert(
+        Class<T> entityClass,
+        Class<V> targetClass,
+        K id) {
+
+        T entity = dataChangeDao.find(entityClass, id);
+
+        // Entity has been deleted
+        if (entity == null) {
+            throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
+        }
+
+        if (entityClass == targetClass) {
+            return (V)entity;
+        }
+
+        if (!conversionService.canConvert(entityClass, targetClass)) {
+            throw new SumarisTechnicalException(I18n.t("sumaris.error.missingConverter", entityClass.getSimpleName()));
+        }
+        return conversionService.convert(entity, targetClass);
     }
 
     @Transactional(readOnly = true)
     protected <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>> T find(Class<T> entityClass, K id) {
         return dataChangeDao.find(entityClass, id);
     }
-
 }

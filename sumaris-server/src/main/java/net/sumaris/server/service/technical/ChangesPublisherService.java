@@ -25,28 +25,31 @@ package net.sumaris.server.service.technical;
 import io.reactivex.Observable;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Optional;
 import java.util.function.Function;
 
 
 public interface ChangesPublisherService {
 
+    <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
+    watchEntity(Class<T> entityClass,
+                Class<V> targetClass,
+                K id,
+                @Nullable Integer intervalInSecond,
+                boolean startWithActualValue);
+
     <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends Collection<V>> Observable<L>
-    watchCollection(final Function<Date, L> supplier,
-                   Integer minIntervalInSecond,
-                   boolean startWithActualValue);
+    watchCollection(final Function<D, L> supplier,
+                    int intervalInSecond,
+                    boolean startWithActualValue);
 
     <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Observable<V>
-    watch(final Function<Date, V> supplier,
-          Integer minIntervalInSecond,
+    watch(final Function<D, Optional<V>> supplier,
+          int intervalInSecond,
           boolean startWithActualValue);
 
-    <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
-    watch(Class<T> entityClass,
-                 Class<V> targetClass,
-                 K id,
-                 Integer intervalInSecond,
-                 final boolean startWithActualValue);
 }

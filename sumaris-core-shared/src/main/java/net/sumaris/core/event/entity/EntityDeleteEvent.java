@@ -22,11 +22,17 @@
 
 package net.sumaris.core.event.entity;
 
+import lombok.Builder;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
+@Builder
 public class EntityDeleteEvent extends AbstractEntityEvent {
+
+    public EntityDeleteEvent() {
+        super(EntityEventOperation.DELETE);
+    }
 
     public EntityDeleteEvent(Serializable id, String entityName){
         super(EntityEventOperation.DELETE, id, entityName, null);
