@@ -27,8 +27,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;
@@ -57,7 +55,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("authService")
@@ -103,6 +104,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @JmsListener(destination = "updatePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = "deletePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
     public void cleanCacheForUser(@NonNull PersonVO person) {
 
         // Clean cached tokens (because user can be disabled)

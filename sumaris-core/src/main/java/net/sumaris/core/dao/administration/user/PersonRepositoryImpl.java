@@ -310,10 +310,14 @@ public class PersonRepositoryImpl
     public void deleteById(Integer id) {
         log.debug(String.format("Deleting person {id=%s}...", id));
 
+        // Load first (need by event), and mark as deleted
+        PersonVO deletedPerson = get(id);
+        deletedPerson.setStatusId(StatusEnum.DELETED.getId());
+
         super.deleteById(id);
 
         // Emit delete person event
-        publisher.publishEvent(new EntityDeleteEvent(id, Person.class.getSimpleName(), null));
+        publisher.publishEvent(new EntityDeleteEvent(id, Person.class.getSimpleName(), deletedPerson));
     }
 
     protected void toVO(Person source, PersonVO target, PersonFetchOptions fetchOptions, boolean copyIfNull) {
