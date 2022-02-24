@@ -91,7 +91,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         Observable<V> result = watchEntity(entityClass, targetClass, id);
 
         // Add watch at interval
-        if (intervalInSecond != null) {
+        if (intervalInSecond != null && intervalInSecond > 0) {
             Observable<V> timer = watchEntityAtInterval(
                 entityClass, targetClass, id, lastUpdateDate,
                 intervalInSecond);
@@ -307,7 +307,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         V extends IUpdateDateEntityBean<K, D>>
     Observable<V> watchAtInterval(@NonNull final Callable<Optional<V>> getter, int intervalInSecond) {
 
-        Preconditions.checkArgument(intervalInSecond > 0, "Invalid interval: " + intervalInSecond);
+        Preconditions.checkArgument(intervalInSecond >= 10, "Invalid interval: " + intervalInSecond);
 
         return Observable
             .interval(intervalInSecond, TimeUnit.SECONDS)
