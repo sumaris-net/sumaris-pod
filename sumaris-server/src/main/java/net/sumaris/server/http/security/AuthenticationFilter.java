@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -60,10 +61,9 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     private static final String BASIC = "Basic";
 
     private SumarisServerConfiguration configuration;
-    private boolean ready = false;
+    private AtomicBoolean ready = new AtomicBoolean(false);
     private boolean enableAuthBasic;
     private boolean enableAuthToken;
-
 
     protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher, SumarisServerConfiguration configuration) {
         super(requiresAuthenticationRequestMatcher);
@@ -79,8 +79,13 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
         setEnableAuthBasic(configuration.enableAuthBasic());
         setEnableAuthToken(configuration.enableAuthToken());
 
-        log.info("Started authenticated filter, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
-        this.ready = true;
+        if (!this.ready.get()) {
+            log.info("Started authenticated filter, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
+            this.ready.set(true);
+        }
+        else {
+            log.info("Updated authenticated filter, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
+        }
     }
 
     public void setEnableAuthToken(boolean enableAuthToken) {
@@ -95,7 +100,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
         // When not ready, force to stop the security chain
-        if (!this.ready) {
+        if (!this.ready.get()) {
             throw new AuthenticationServiceException(I18n.l(request.getLocale(), "sumaris.error.starting"));
         }
 
