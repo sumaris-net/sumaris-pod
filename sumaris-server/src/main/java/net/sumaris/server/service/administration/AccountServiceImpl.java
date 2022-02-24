@@ -39,6 +39,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
@@ -352,6 +353,15 @@ public class AccountServiceImpl implements AccountService {
         return userTokenRepository.findTokenByPubkey(pubkey).stream()
                 .map(UserTokenRepository.TokenOnly::getToken)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> deleteAllTokensByPubkey(String pubkey) {
+        List<UserToken> tokens = userTokenRepository.findByPubkey(pubkey);
+        userTokenRepository.deleteAll(tokens);
+        return tokens.stream()
+            .map(UserToken::getToken)
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -61,6 +61,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
@@ -86,7 +87,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     private Map<String, Disposable> subscriptions = Maps.newConcurrentMap();
     private final AtomicReference<ScheduledFuture<?>> keepAlive = new AtomicReference<>();
 
-    private boolean ready = false;
+    private final AtomicBoolean ready = new AtomicBoolean(false);
     private final GraphQL graphQL;
     private final ObjectMapper objectMapper;
     private final AuthService authService;
@@ -114,12 +115,12 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                 @Override
                 public void onReady(ConfigurationReadyEvent event) {
                     configuration.removeListener(this);
-                    SubscriptionWebSocketHandler.this.ready = true;
+                    SubscriptionWebSocketHandler.this.ready.set(true);
                 }
             });
         }
         else {
-            ready = true;
+            this.ready.set(true);
         }
     }
 
@@ -192,17 +193,16 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
     protected void handleInitConnection(WebSocketSession session, Map<String, Object> request) {
         // When not ready, force to stop the security chain
-        if (!this.ready) {
+        if (!this.ready.get()) {
             // Get user locale, from the session headers
             Locale locale = Beans.getStream(session.getHandshakeHeaders().getAcceptLanguageAsLocales())
                 .findFirst()
                 .orElse(I18n.getDefaultLocale());
-            /*sendResponse(session,
+            sendResponse(session,
                 ImmutableMap.of(
                     "type", GqlTypes.GQL_CONNECTION_ERROR,
                     "payload", Collections.singletonMap("message", I18n.l(locale, "sumaris.error.starting"))
                 ));
-            return;*/
             throw new AuthenticationServiceException(I18n.l(locale, "sumaris.error.starting"));
         }
 
@@ -215,11 +215,12 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             // try to authenticate
             try {
                 UserDetails authUser = authService.authenticateByToken(token);
-                // If success
+
+                // If success: store authentication in the security context
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(authUser.getUsername(), token, authUser.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // Not auth: send a new challenge
+                // Send an ack
                 sendResponse(session,
                     ImmutableMap.of(
                         "type", GqlTypes.GQL_CONNECTION_ACK
@@ -227,7 +228,10 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                 return;
             }
             catch(AuthenticationException e) {
-                log.warn("Unable to authenticate websocket session, using token: " + e.getMessage());
+                log.warn("WebSocket session {} ({}) cannot authenticate with token '{}'",
+                    session.getId(),
+                    session.getRemoteAddress(),
+                    e.getMessage());
                 // Continue
             }
         }
@@ -384,12 +388,21 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
     private void fatalError(WebSocketSession session, Throwable exception) {
         try {
-            session.close(exception instanceof IOException ? CloseStatus.SESSION_NOT_RELIABLE : CloseStatus.SERVER_ERROR);
+            if (!ready.get()) {
+                session.close(CloseStatus.SERVICE_RESTARTED);
+                log.warn("WebSocket session {} ({}) closed: handler not started", session.getId(), session.getRemoteAddress());
+            }
+            else {
+                session.close(exception instanceof IOException
+                    ? CloseStatus.SESSION_NOT_RELIABLE
+                    : CloseStatus.SERVER_ERROR);
+                log.warn("WebSocket session {} ({}) closed due to an exception", session.getId(), session.getRemoteAddress(), exception);
+            }
         } catch (Exception suppressed) {
             exception.addSuppressed(suppressed);
+            log.warn("WebSocket session {} ({}) closed due to an exception", session.getId(), session.getRemoteAddress(), exception);
         }
         cancelAll();
-        log.warn(String.format("WebSocket session %s (%s) closed due to an exception", session.getId(), session.getRemoteAddress()), exception);
     }
 
     private Runnable keepAliveTask(WebSocketSession session) {
