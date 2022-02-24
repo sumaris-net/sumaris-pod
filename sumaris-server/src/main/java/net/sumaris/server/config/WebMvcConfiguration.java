@@ -24,11 +24,12 @@ package net.sumaris.server.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.server.http.rest.RestPaths;
+import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -101,15 +102,9 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
     }
 
     @Bean
-    public TaskExecutor threadPoolTaskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(500);
-        executor.setThreadNamePrefix("default_task_executor_thread");
-        executor.initialize();
-        return executor;
+    @Lazy
+    public ThreadPoolTaskExecutor taskExecutor(TaskExecutorBuilder builder) {
+        return builder.build();
     }
-
 
 }

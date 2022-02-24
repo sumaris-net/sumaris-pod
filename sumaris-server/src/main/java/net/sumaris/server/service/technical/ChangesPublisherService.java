@@ -35,21 +35,23 @@ import java.util.function.Function;
 
 public interface ChangesPublisherService {
 
+    int MIN_INTERVAL_IN_SECONDS = 10;
+
     <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
     watchEntity(Class<T> entityClass,
                 Class<V> targetClass,
                 K id,
-                @Nullable Integer intervalInSecond,
+                @Nullable Integer intervalInSeconds,
                 boolean startWithActualValue);
 
     <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends Collection<V>> Observable<L>
     watchCollection(final Function<D, L> supplier,
-                    int intervalInSecond,
+                    int intervalInSeconds,
                     boolean startWithActualValue);
 
     <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Observable<V>
     watch(final Function<D, Optional<V>> supplier,
-          int intervalInSecond,
+          int intervalInSeconds,
           boolean startWithActualValue);
 
 }

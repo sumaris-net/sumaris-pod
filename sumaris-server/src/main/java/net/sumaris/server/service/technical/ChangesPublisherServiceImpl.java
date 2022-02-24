@@ -24,6 +24,7 @@ package net.sumaris.server.service.technical;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.reactivex.Observable;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -73,16 +75,15 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
     private ConversionService conversionService;
 
     private final AtomicLong observerCount = new AtomicLong(0);
-    private final Map<String, Observable<?>> timerById = Maps.newConcurrentMap();
-    private final Map<String, AtomicLong> timerCountById = Maps.newConcurrentMap();
     private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
+    private final Map<Integer, Cache<String, Object>> callableCachesByDuration = Maps.newConcurrentMap();
 
     @Override
     public <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
     watchEntity(@NonNull final Class<T> entityClass,
                 @NonNull final Class<V> targetClass,
                 @NonNull final K id,
-                Integer intervalInSecond,
+                Integer intervalInSeconds,
                 boolean startWithActualValue) {
 
         final AtomicReference<D> lastUpdateDate = new AtomicReference<>();
@@ -91,10 +92,10 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         Observable<V> result = watchEntity(entityClass, targetClass, id);
 
         // Add watch at interval
-        if (intervalInSecond != null && intervalInSecond > 0) {
+        if (intervalInSeconds != null && intervalInSeconds > 0) {
             Observable<V> timer = watchEntityAtInterval(
                 entityClass, targetClass, id, lastUpdateDate,
-                intervalInSecond);
+                intervalInSeconds);
             result = Observable.merge(result, timer);
         }
 
@@ -112,7 +113,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
         return result
             .doOnLifecycle(
-                (subscription) -> log.info("Watching updates {} every {}s (observer count: {})", listenerId, intervalInSecond, observerCount.get() + 1),
+                (subscription) -> log.info("Watching updates {} every {}s (observer count: {})", listenerId, intervalInSeconds, observerCount.get() + 1),
                 () -> log.info("Stop watching updates {}. (observer count: {})", listenerId, observerCount.get())
             );
 
@@ -120,20 +121,15 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
     public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends Collection<V>> Observable<L>
     watchCollection(final Function<D, L> getter,
-                    int intervalInSecond,
+                    int intervalInSeconds,
                     boolean startWithActualValue) {
 
-        Preconditions.checkArgument(intervalInSecond >= 10, "Minimum interval is 10 seconds");
+        Preconditions.checkArgument(intervalInSeconds >= MIN_INTERVAL_IN_SECONDS, "Minimum interval is 10 seconds");
 
         final AtomicReference<D> lastUpdateDate = new AtomicReference<>();
 
-        // Create stop event, after a too long delay (to be sure old publisher are closed)
-        Observable stop = Observable.just(Boolean.TRUE).delay(1, TimeUnit.HOURS);
-        Disposable stopSubscription = stop.subscribe(o -> log.debug("Stop watching updates, after a too long delay (1h) (observer count: {})", observerCount.get() - 1));
-
         Observable<L> result = Observable
-            .interval(intervalInSecond, TimeUnit.SECONDS)
-            .takeUntil(stop)
+            .interval(intervalInSeconds, TimeUnit.SECONDS)
             .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
             .flatMap(n -> {
                 // Try to find a newer bean
@@ -172,20 +168,17 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         return result
             .doOnLifecycle(
                 (subscription) -> observerCount.incrementAndGet(),
-                () -> {
-                    observerCount.decrementAndGet();
-                    stopSubscription.dispose();
-                }
+                () -> observerCount.decrementAndGet()
             );
     }
 
     @Override
     public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Observable<V>
     watch(final Function<D, Optional<V>> getter,
-          int intervalInSecond,
+          int intervalInSeconds,
           boolean startWithActualValue) {
 
-        Preconditions.checkArgument(intervalInSecond >= 10, "Minimum interval is 10 seconds");
+        Preconditions.checkArgument(intervalInSeconds >= 10, "Minimum interval is 10 seconds");
 
         AtomicReference<D> lastUpdateDate = new AtomicReference<>();
 
@@ -195,7 +188,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
 
         Observable<V> timer = watchAtInterval(
             () -> getter.apply(lastUpdateDate.get()),
-            intervalInSecond)
+            intervalInSeconds)
             .takeUntil(stop);
 
         Observable<V> result = latest(timer, lastUpdateDate);
@@ -253,7 +246,6 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         });
     }
 
-
     protected <K extends Serializable,
         D extends Date,
         T extends IUpdateDateEntityBean<K, D>,
@@ -263,43 +255,14 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
                                         final K id,
                                         final AtomicReference<D> lastUpdateDate,
                                         int intervalInSecond) {
-        String timerId = computeTimerId(entityClass, targetClass, id, intervalInSecond);
-        return watchAtIntervalWithCache(
-            timerId,
-            () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
+        String cacheKey = computeCacheKey(entityClass, targetClass, id);
+        int cacheDuration = Math.max(MIN_INTERVAL_IN_SECONDS, Math.round(intervalInSecond / 2));
+        return watchAtInterval(
+            cacheable(
+                () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
+                cacheKey, cacheDuration
+            ),
             intervalInSecond);
-    }
-
-    protected <K extends Serializable,
-        D extends Date,
-        V extends IUpdateDateEntityBean<K, D>>
-    Observable<V> watchAtIntervalWithCache(
-        @NonNull final String timerId,
-        final Callable<Optional<V>> getter,
-        int intervalInSecond) {
-
-        synchronized (timerById) {
-            final Observable<?> timer = timerById.computeIfAbsent(
-                timerId,
-                (t) -> watchAtInterval(getter, intervalInSecond)
-            );
-            final AtomicLong counter = timerCountById.computeIfAbsent(timerId, (t) -> new AtomicLong(0));
-            return ((Observable<V>)timer)
-                .doOnLifecycle(
-                    (subscription) -> {
-                        counter.incrementAndGet();
-                        log.debug("Subscribe timer {} (observer count: {})", timerId, counter.get());
-                    },
-                    () -> {
-                        counter.decrementAndGet();
-                        log.debug("Dispose timer {} (observer count: {})", timerId, counter.get());
-                        if (counter.get() <= 0) {
-                            synchronized (timerById) {
-                                timerById.remove(timerId, timer);
-                            }
-                        }
-                    });
-        }
     }
 
     protected <K extends Serializable,
@@ -307,7 +270,7 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         V extends IUpdateDateEntityBean<K, D>>
     Observable<V> watchAtInterval(@NonNull final Callable<Optional<V>> getter, int intervalInSecond) {
 
-        Preconditions.checkArgument(intervalInSecond >= 10, "Invalid interval: " + intervalInSecond);
+        Preconditions.checkArgument(intervalInSecond >= MIN_INTERVAL_IN_SECONDS, "Invalid interval: " + intervalInSecond);
 
         return Observable
             .interval(intervalInSecond, TimeUnit.SECONDS)
@@ -331,13 +294,12 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         });
     }
 
-    protected String computeTimerId(@NonNull Class<?> entityClass,
-                                    @NonNull Class<?> targetClass,
-                                    @NonNull Serializable id, int intervalInSec) {
+    protected String computeCacheKey(@NonNull Class<?> entityClass,
+                                     @NonNull Class<?> targetClass,
+                                     @NonNull Serializable id) {
         return Joiner.on('|').join(
             computeListenerId(entityClass, id),
-            targetClass.getSimpleName(),
-            intervalInSec + "s"
+            targetClass.getSimpleName()
         );
     }
 
@@ -378,6 +340,35 @@ public class ChangesPublisherServiceImpl implements ChangesPublisherService {
         }
     }
 
+
+    /**
+     * Decorare a callable, using a cache with the given duration (in seconds)
+     * @param loader
+     * @param cacheKey
+     * @param cacheDurationInSeconds
+     * @param <R>
+     * @return
+     * @throws ExecutionException
+     */
+
+    protected <R extends Object> Callable<R> cacheable(Callable<R> loader, String cacheKey, Integer cacheDurationInSeconds) {
+        // Get the cache for the expected duration
+        Cache<String, Object> cache = callableCachesByDuration.computeIfAbsent(cacheDurationInSeconds,
+            (d) -> com.google.common.cache.CacheBuilder.newBuilder()
+                .expireAfterWrite(d, TimeUnit.SECONDS)
+                .maximumSize(500)
+                .build());
+
+        // Create a new callable
+        return () -> {
+            try {
+                return (R) cache.get(cacheKey, loader);
+            }
+            catch (ExecutionException e) {
+                throw new SumarisTechnicalException(e.getMessage(), e);
+            }
+        };
+    }
 
     @Transactional(readOnly = true)
     protected <K extends Serializable,
