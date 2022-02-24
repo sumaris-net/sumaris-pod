@@ -344,7 +344,7 @@ public class ProgramGraphQLService {
     @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
     @IsUser
     public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
-                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
                                                                @GraphQLEnvironment ResolutionEnvironment env) {
 
         Set<String> fields = GraphQLUtils.fields(env);
@@ -352,7 +352,7 @@ public class ProgramGraphQLService {
 
         Preconditions.checkArgument(programId >= 0, "Invalid programId");
 
-        log.info("Checking strategies changes on Program#{}, every {} sec", programId, minIntervalInSecond);
+        log.info("Checking strategies changes on Program#{}, every {} sec", programId, intervalInSeconds);
 
         return changesPublisherService.watchCollection((lastUpdateDate) -> {
             // Get actual values
@@ -362,7 +362,7 @@ public class ProgramGraphQLService {
 
             // Get newer strategies
             return strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
-        }, minIntervalInSecond, false /*get only updates, not actual list*/)
+        }, intervalInSeconds, false /*only changes, but not actual list*/)
         .toFlowable(BackpressureStrategy.LATEST);
     }
 

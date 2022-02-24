@@ -194,17 +194,17 @@ public class PersonRepositoryImpl
 
     @Override
     @Caching(put = {
-        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#vo.pubkey", condition = "#vo != null && #vo.id != null && #vo.pubkey != null")
+        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
+        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source != null && #source.id != null && #source.pubkey != null")
     })
-    public PersonVO save(PersonVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getEmail(), "Missing 'email'");
-        Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
-        Preconditions.checkNotNull(vo.getDepartment(), "Missing 'department'");
-        Preconditions.checkNotNull(vo.getDepartment().getId(), "Missing 'department.id'");
+    public PersonVO save(PersonVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getEmail(), "Missing 'email'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
+        Preconditions.checkNotNull(source.getDepartment(), "Missing 'department'");
+        Preconditions.checkNotNull(source.getDepartment().getId(), "Missing 'department.id'");
 
-        Person entity = toEntity(vo);
+        Person entity = toEntity(source);
 
         boolean isNew = entity.getId() == null;
         if (isNew) {
@@ -214,15 +214,15 @@ public class PersonRepositoryImpl
         // If new
         if (isNew) {
             // Set default status to Temporary
-            if (vo.getStatusId() == null) {
-                vo.setStatusId(StatusEnum.TEMPORARY.getId());
+            if (source.getStatusId() == null) {
+                source.setStatusId(StatusEnum.TEMPORARY.getId());
             }
         }
         // If update
         else {
 
             // Check update date
-            Daos.checkUpdateDateForUpdate(vo, entity);
+            Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
             lockForUpdate(entity);
@@ -235,9 +235,9 @@ public class PersonRepositoryImpl
         Person savedEntity = save(entity);
 
         // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
+        onAfterSaveEntity(source, savedEntity, isNew);
 
-        return vo;
+        return source;
 
     }
 

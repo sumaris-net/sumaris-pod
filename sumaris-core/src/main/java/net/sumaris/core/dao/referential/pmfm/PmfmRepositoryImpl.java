@@ -202,16 +202,16 @@ public class PmfmRepositoryImpl
     @Override
     @Caching(
         evict = {
-                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
-                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#vo.id", condition = "#vo != null && #vo.id != null"),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_MATRIX, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true)
         }
     )
-    public PmfmVO save(PmfmVO vo) {
-        PmfmVO savedVO = super.save(vo);
+    public PmfmVO save(PmfmVO source) {
+        PmfmVO savedVO = super.save(source);
         // Force reload
         return get(savedVO.getId(), ReferentialFetchOptions.builder().withInheritance(false).build());
     }
