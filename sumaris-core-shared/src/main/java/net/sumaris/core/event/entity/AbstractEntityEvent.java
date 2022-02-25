@@ -24,6 +24,7 @@ package net.sumaris.core.event.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
@@ -40,13 +41,14 @@ public abstract class AbstractEntityEvent<ID extends Serializable, V extends Ser
 
     private V data;
 
+    private String _type;
+
     protected AbstractEntityEvent(IEntityEvent.EntityEventOperation operation) {
         this.operation = operation;
     }
 
-    @Override
-    public String getJmsDestinationName() {
-        return getOperation().name().toLowerCase() + getEntityName();
+    protected AbstractEntityEvent(IEntityEvent.EntityEventOperation operation, ID id, String entityName, V data){
+        this(operation, id, entityName, data, data != null ? data.getClass().getName() : null);
     }
 
 }

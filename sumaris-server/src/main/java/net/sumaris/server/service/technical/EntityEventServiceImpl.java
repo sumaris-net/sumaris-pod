@@ -35,6 +35,8 @@ import net.sumaris.core.dao.technical.cache.CacheManager;
 import net.sumaris.core.dao.technical.model.Entities;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
@@ -53,6 +55,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.jms.Message;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -320,10 +323,11 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     /* -- Listeners management -- */
 
-    @JmsListener(destination = IEntityEvent.JMS_DESTINATION_NAME,
+    @JmsListener(destination = JmsEntityEvents.DESTINATION,
         selector = "operation = 'update'",
-        containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    protected void onEntityUpdateEvent(EntityUpdateEvent event) {
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    protected void onEntityUpdateEvent(IValueObject data, Message message) {
+        EntityUpdateEvent event = JmsEntityEvents.parse(EntityUpdateEvent.class, message, data);
         // Get listener for this event
         List<Listener> listeners = getListenersByEvent(event);
 
@@ -334,10 +338,11 @@ public class EntityEventServiceImpl implements EntityEventService {
         }
     }
 
-    @JmsListener(destination = IEntityEvent.JMS_DESTINATION_NAME,
+    @JmsListener(destination = JmsEntityEvents.DESTINATION,
         selector = "operation = 'delete'",
-        containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    protected void onEntityDeleteEvent(EntityDeleteEvent event) {
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    protected void onEntityDeleteEvent(IValueObject data, Message message) {
+        EntityDeleteEvent event = JmsEntityEvents.parse(EntityDeleteEvent.class, message, data);
         // Get listener for this event
         List<Listener> listeners = getListenersByEvent(event);
         if (CollectionUtils.isNotEmpty(listeners)) {
@@ -545,5 +550,4 @@ public class EntityEventServiceImpl implements EntityEventService {
     protected <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>> T find(Class<T> entityClass, K id) {
         return dataChangeDao.find(entityClass, id);
     }
-
 }

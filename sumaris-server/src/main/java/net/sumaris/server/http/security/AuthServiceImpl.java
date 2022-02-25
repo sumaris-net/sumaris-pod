@@ -27,6 +27,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.administration.user.PersonRepository;
+import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;
@@ -103,8 +104,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @JmsListener(destination = "updatePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deletePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = JmsEntityEvents.DESTINATION,
+        selector = "entityName = 'Person' AND (operation = 'update' OR operation = 'delete')",
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     public void cleanCacheForUser(@NonNull PersonVO person) {
 
         // Clean cached tokens (because user can be disabled)

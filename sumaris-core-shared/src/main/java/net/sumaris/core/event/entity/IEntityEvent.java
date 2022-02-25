@@ -22,11 +22,20 @@
 
 package net.sumaris.core.event.entity;
 
+import lombok.experimental.FieldNameConstants;
+
 import java.io.Serializable;
+
 
 public interface IEntityEvent<ID extends Serializable, V extends Serializable> {
 
-    String JMS_DESTINATION_NAME = "entityEvent";
+
+    interface Fields {
+        String OPERATION = "operation";
+        String ENTITY_NAME = "entityName";
+        String ID = "id";
+        String _TYPE = "_type";
+    }
 
     enum EntityEventOperation {
         INSERT,
@@ -38,9 +47,17 @@ public interface IEntityEvent<ID extends Serializable, V extends Serializable> {
 
     ID getId();
 
+    void setId(ID id);
+
     String getEntityName();
+
+    void setEntityName(String entityName);
 
     V getData();
 
-    String getJmsDestinationName();
+    void setData(V data);
+
+    String get_type();
+
+    void set_type(String _type);
 }

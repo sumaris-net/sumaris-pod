@@ -48,7 +48,7 @@ import javax.jms.ConnectionFactory;
 @ConditionalOnProperty(name = "spring.jms.enabled", havingValue = "true")
 public class JmsConfiguration {
 
-    public static final String CONTAINER_FACTORY_NAME = "jmsListenerContainerFactory";
+    public static final String CONTAINER_FACTORY = "jmsListenerContainerFactory";
 
     @Bean
     public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory,

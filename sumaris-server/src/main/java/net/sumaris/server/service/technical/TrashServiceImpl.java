@@ -33,6 +33,7 @@ import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -53,7 +54,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -223,10 +223,10 @@ public class TrashServiceImpl implements TrashService {
         }
     }
 
-    @JmsListener(destination = "deleteTrip", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deleteOperation", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deleteObservedLocation", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deleteLanding", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(selector = "entityName = 'Trip' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    @JmsListener(selector = "entityName = 'Operation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    @JmsListener(selector = "entityName = 'ObservedLocation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    @JmsListener(selector = "entityName = 'Landing' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     protected void onEntityDeleted(IValueObject data) throws IOException {
         if (!this.enable) return; // Skip
 

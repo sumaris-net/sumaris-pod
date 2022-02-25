@@ -24,6 +24,7 @@ package net.sumaris.core.event.data;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
+import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.vo.data.TripVO;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -32,13 +33,17 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class TripEventListener {
 
-    @JmsListener(destination = "createTrip", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = JmsEntityEvents.DESTINATION,
+        selector = "operation = 'insert' AND entityName = 'Trip'",
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     public void onTripCreated(TripVO entity) {
         log.info("New trip {id: {}, recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
         // TODO send event for supervisor
     }
 
-    @JmsListener(destination = "updateTrip", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(destination = JmsEntityEvents.DESTINATION,
+        selector = "operation = 'update' AND entityName = 'Trip'",
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     public void onTripUpdated(TripVO entity) {
         log.info("Updated trip {id: {}, recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
         // TODO send event for supervisor
