@@ -172,12 +172,12 @@ public class VesselFeaturesRepositoryImpl
     }
 
     @Override
-    protected void onBeforeSaveEntity(VesselFeaturesVO vo, VesselFeatures entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(VesselFeaturesVO source, VesselFeatures target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // When new entity: set the creation date
-        if (isNew || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
+        if (isNew || target.getCreationDate() == null) {
+            target.setCreationDate(target.getUpdateDate());
         }
     }
 

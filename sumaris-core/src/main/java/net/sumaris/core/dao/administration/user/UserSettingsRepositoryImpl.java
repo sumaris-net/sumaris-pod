@@ -60,12 +60,12 @@ public class UserSettingsRepositoryImpl
     }
 
     @Override
-    public UserSettingsVO save(UserSettingsVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getLocale(), "Missing 'settings.locale'");
-        Preconditions.checkNotNull(vo.getLatLongFormat(), "Missing 'settings.latLongformat'");
+    public UserSettingsVO save(UserSettingsVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLocale(), "Missing 'settings.locale'");
+        Preconditions.checkNotNull(source.getLatLongFormat(), "Missing 'settings.latLongformat'");
 
-        return super.save(vo);
+        return super.save(source);
     }
 
 }

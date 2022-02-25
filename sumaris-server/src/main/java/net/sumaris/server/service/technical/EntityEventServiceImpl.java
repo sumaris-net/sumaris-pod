@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import jdk.nashorn.internal.codegen.CompilerConstants;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
@@ -118,7 +119,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
         // Starting with the actual value
         if (startWithActualValue) {
-            V initialVO = findAndConvert(entityClass, targetClass, id);
+            V initialVO = findAndConvert(entityClass, targetClass, id)
+                .orElseThrow(() -> new DataNotFoundException("Unable to get actual value: data not found"));
             lastUpdateDate.set(initialVO.getUpdateDate());
             result = result.startWith(initialVO);
         }
@@ -127,8 +129,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
         return result
             .doOnLifecycle(
-                (subscription) -> log.info("Watching updates {} every {}s (observer count: {})", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
-                () -> log.info("Stop watching updates {}. (observer count: {})", listenerId, timerObserverCount.get())
+                (subscription) -> log.info("Watching updates on {} every {}s (observer count: {})", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
+                () -> log.info("Stop watching updates on {} (observer count: {})", listenerId, timerObserverCount.get())
             );
 
     }
@@ -139,7 +141,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                 int intervalInSeconds,
                 boolean startWithActualValue) {
 
-        Preconditions.checkArgument(intervalInSeconds >= 10, "Minimum interval is 10 seconds");
+        checkInterval(intervalInSeconds);
 
         AtomicReference<D> lastUpdateDate = new AtomicReference<>();
 
@@ -209,7 +211,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                   int intervalInSeconds,
                   boolean startWithActualValue) {
 
-        Preconditions.checkArgument(intervalInSeconds >= minIntervalInSeconds, "Minimum interval is 10 seconds");
+        checkInterval(intervalInSeconds);
 
         final AtomicReference<D> lastUpdateDate = new AtomicReference<>();
         final AtomicReference<Integer> lastHashCode = new AtomicReference<>();
@@ -265,8 +267,7 @@ public class EntityEventServiceImpl implements EntityEventService {
     public <L extends Collection<?>> Observable<L> watchCollection(final Callable<Optional<L>> loader,
                                                                    int intervalInSeconds,
                                                                    boolean startWithActualValue) {
-
-        Preconditions.checkArgument(intervalInSeconds >= minIntervalInSeconds, "Minimum interval is 10 seconds");
+        checkInterval(intervalInSeconds);
 
         final AtomicReference<Integer> lastHashCode = new AtomicReference();
 
@@ -279,8 +280,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         if (startWithActualValue) {
             try {
                 L initialValue = loader.call().orElseThrow(() -> new DataNotFoundException("Unable to get actual values: data not found"));
-                int newHashCode = initialValue.hashCode();
-                lastHashCode.set(newHashCode);
+                lastHashCode.set(initialValue.hashCode());
                 result = result.startWith(initialValue);
             }
             catch(Exception e) {
@@ -353,26 +353,51 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     /* -- protected functions -- */
 
+
     protected <ID extends Serializable,
         D extends Date,
         T extends IUpdateDateEntityBean<ID, D>,
         V extends IUpdateDateEntityBean<ID, D>>
     Observable<V> watchEntityByUpdateEvent(Class<T> entityClass, Class<V> targetClass, ID id) {
+        String cacheKey = computeCacheKey(entityClass, targetClass, id);
+        int cacheDuration = minIntervalInSeconds / 2;
+        return watchEntityByUpdateEvent(entityClass, targetClass, id,
+            cacheManager.cacheable(
+               () -> findAndConvert(entityClass, targetClass, id),
+                cacheKey, cacheDuration)
+        );
+    }
+
+
+    protected <ID extends Serializable,
+        D extends Date,
+        T extends IUpdateDateEntityBean<ID, D>,
+        V extends IUpdateDateEntityBean<ID, D>>
+    Observable<V> watchEntityByUpdateEvent(Class<T> entityClass,
+                                           Class<V> targetClass,
+                                           ID id,
+                                           Callable<Optional<V>> loader) {
 
         final String listenerId = computeListenerId(entityClass, id);
 
         return Observable.create(emitter -> {
-            Listener listener = (source) -> new Listener() {
+            Listener listener = new Listener() {
                 @Override
                 public void onUpdate(EntityUpdateEvent event) {
+                    Object data = event.getData();
                     // Already converted into expected type: use source as target
-                    if (source != null && source.getClass() == targetClass) {
-                        emitter.onNext((V)source);
+                    if (data != null && targetClass.isAssignableFrom(data.getClass())) {
+                        emitter.onNext((V)data);
                     }
                     // Fetch entity, and transform to target class
                     else {
-                        V target = findAndConvert(entityClass, targetClass, id);
-                        emitter.onNext((V)target);
+                        try {
+                            loader.call()
+                                .ifPresent(emitter::onNext);
+                        }
+                        catch (Exception e) {
+                            throw new SumarisTechnicalException(e);
+                        }
                     }
                 }
 
@@ -397,12 +422,12 @@ public class EntityEventServiceImpl implements EntityEventService {
                                         final K id,
                                         final AtomicReference<D> lastUpdateDate,
                                         int intervalInSecond) {
-        String key = computeCacheKey(entityClass, targetClass, id);
-        int cacheDuration = Math.max(minIntervalInSeconds, Math.round(intervalInSecond / 2));
+        String cacheKey = computeCacheKey(entityClass, targetClass, id);
+        int cacheDuration = Math.round((float) Math.max(minIntervalInSeconds, intervalInSecond) / 2);
         return watchAtInterval(
             cacheManager.cacheable(
                 () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
-                key, cacheDuration
+                cacheKey, cacheDuration
             ),
             intervalInSecond);
     }
@@ -448,7 +473,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         synchronized (listenersById) {
             List<Listener> listeners = listenersById.computeIfAbsent(key, k -> Lists.newCopyOnWriteArrayList());
 
-            log.debug("Listening updates {} (listener count: {})", key, listeners.size() + 1);
+            log.debug("Listening updates on {} (listener count: {})", key, listeners.size() + 1);
 
             synchronized (listeners) {
                 listeners.add(listener);
@@ -461,7 +486,7 @@ public class EntityEventServiceImpl implements EntityEventService {
             List<Listener> listeners = this.listenersById.get(key);
             if (listeners == null) return;
 
-            log.debug("Stop listening updates {} (listener count: {})", key, listeners.size() - 1);
+            log.debug("Stop listening updates on {} (listener count: {})", key, listeners.size() - 1);
 
             synchronized (listeners) {
                 listeners.remove(listener);
@@ -524,7 +549,7 @@ public class EntityEventServiceImpl implements EntityEventService {
     protected <K extends Serializable, D extends Date,
         T extends IUpdateDateEntityBean<K, D>,
         V extends IUpdateDateEntityBean<K, D>
-        > V findAndConvert(
+        > Optional<V> findAndConvert(
         Class<T> entityClass,
         Class<V> targetClass,
         K id) {
@@ -533,21 +558,28 @@ public class EntityEventServiceImpl implements EntityEventService {
 
         // Entity has been deleted
         if (entity == null) {
-            throw new DataNotFoundException(I18n.t("sumaris.error.notFound", entityClass.getSimpleName(), id));
+            return Optional.empty();
         }
 
         if (entityClass == targetClass) {
-            return (V)entity;
+            return Optional.of((V)entity);
         }
 
         if (!conversionService.canConvert(entityClass, targetClass)) {
             throw new SumarisTechnicalException(I18n.t("sumaris.error.missingConverter", entityClass.getSimpleName()));
         }
-        return conversionService.convert(entity, targetClass);
+        // Apply conversion
+        V target = conversionService.convert(entity, targetClass);
+        return Optional.of(target);
     }
 
     @Transactional(readOnly = true)
     protected <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>> T find(Class<T> entityClass, K id) {
         return dataChangeDao.find(entityClass, id);
+    }
+
+    protected void checkInterval(int intervalInSeconds) {
+        Preconditions.checkArgument(intervalInSeconds >= minIntervalInSeconds,
+            String.format("interval must be zero (no timer) or greater than %ss (actual : %ss)", minIntervalInSeconds, intervalInSeconds));
     }
 }

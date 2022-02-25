@@ -48,22 +48,7 @@ public abstract class JmsEntityEvents {
         // Helper class
     }
 
-    public static Message processMessage(final Message message, final IEntityEvent event) throws JMSException {
-        if (log.isDebugEnabled()) {
-            log.debug("Sending JMS message... {destination: '{}', operation: '{}', entityName: '{}', id: {}}",
-                DESTINATION,
-                event.getOperation(),
-                event.getEntityName(),
-                event.getId()
-            );
-        }
 
-        message.setStringProperty(IEntityEvent.Fields.OPERATION, event.getOperation().toString().toLowerCase());
-        message.setStringProperty(IEntityEvent.Fields.ENTITY_NAME, event.getEntityName());
-        message.setStringProperty(IEntityEvent.Fields.ID, event.getId().toString());
-
-        return message;
-    }
 
     public static <ID extends Serializable, V extends Serializable> IEntityEvent<ID, V> parse(final Message message) {
         return parse(message, null);

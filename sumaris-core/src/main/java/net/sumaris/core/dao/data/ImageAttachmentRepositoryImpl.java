@@ -44,15 +44,15 @@ public class ImageAttachmentRepositoryImpl
     }
 
     @Override
-    public ImageAttachmentVO save(ImageAttachmentVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getContent());
-        Preconditions.checkNotNull(vo.getContentType());
-        Preconditions.checkNotNull(vo.getDateTime());
-        Preconditions.checkNotNull(vo.getRecorderDepartment());
-        Preconditions.checkNotNull(vo.getRecorderDepartment().getId());
+    public ImageAttachmentVO save(ImageAttachmentVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getContent());
+        Preconditions.checkNotNull(source.getContentType());
+        Preconditions.checkNotNull(source.getDateTime());
+        Preconditions.checkNotNull(source.getRecorderDepartment());
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId());
 
-        return super.save(vo);
+        return super.save(source);
     }
 
     @Override
@@ -63,12 +63,12 @@ public class ImageAttachmentRepositoryImpl
     }
 
     @Override
-    protected void onBeforeSaveEntity(ImageAttachmentVO vo, ImageAttachment entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(ImageAttachmentVO source, ImageAttachment target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // When new entity: set the creation date
-        if (isNew || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
+        if (isNew || target.getCreationDate() == null) {
+            target.setCreationDate(target.getUpdateDate());
         }
     }
 

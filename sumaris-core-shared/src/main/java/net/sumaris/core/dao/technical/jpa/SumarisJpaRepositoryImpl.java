@@ -172,8 +172,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     @Override
-    public V save(V vo) {
-        return save(vo, isCheckUpdateDate(), isLockForUpdate());
+    public V save(V source) {
+        return save(source, isCheckUpdateDate(), isLockForUpdate());
     }
 
     public E toEntity(V vo) {
@@ -204,17 +204,17 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Beans.copyProperties(source, target);
     }
 
-    public V save(V vo, boolean checkUpdateDate, boolean lockForUpdate) {
-        E entity = toEntity(vo);
+    public V save(V source, boolean checkUpdateDate, boolean lockForUpdate) {
+        E entity = toEntity(source);
 
         boolean isNew = entity.getId() == null;
 
         // Entity has update date
-        if (entity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
+        if (entity instanceof IUpdateDateEntityBean && source instanceof IUpdateDateEntityBean) {
 
             if (!isNew && checkUpdateDate) {
                 // Check update date
-                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) vo, (IUpdateDateEntityBean) entity);
+                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) source, (IUpdateDateEntityBean) entity);
             }
 
             // Update update_dt
@@ -225,20 +225,20 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             lockForUpdate(entity);
         }
 
-        onBeforeSaveEntity(vo, entity, isNew);
+        onBeforeSaveEntity(source, entity, isNew);
 
         // Save entity
         E savedEntity = super.save(entity);
 
         // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
+        onAfterSaveEntity(source, savedEntity, isNew);
 
-        if (publishEvent) publishSaveEvent(vo, isNew);
+        if (publishEvent) publishSaveEvent(source, isNew);
 
-        return vo;
+        return source;
     }
 
-    protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
+    protected void onBeforeSaveEntity(V source, E target, boolean isNew) {
         // can be overridden
     }
 

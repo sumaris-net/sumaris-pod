@@ -444,7 +444,7 @@ public class ProgramGraphQLService {
                     }
 
                     // Fetch VO, by ids
-                    log.debug("Loading programs for Person#{}...", personId);
+                    log.debug("Fetching {} programs for Person#{}...", programIds.size(), personId);
                     return programService.findByFilter(
                         ProgramFilterVO.builder()
                             .includedIds(programIds.toArray(new Integer[0]))

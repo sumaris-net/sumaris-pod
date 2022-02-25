@@ -404,10 +404,10 @@ public class ProgramRepositoryImpl
     /* -- protected functions -- */
 
     @Override
-    protected void onBeforeSaveEntity(ProgramVO vo, Program entity, boolean isNew) {
+    protected void onBeforeSaveEntity(ProgramVO source, Program target, boolean isNew) {
         // Set default status to Temporary
-        if (isNew && vo.getStatusId() == null) {
-            vo.setStatusId(StatusEnum.TEMPORARY.getId());
+        if (isNew && source.getStatusId() == null) {
+            source.setStatusId(StatusEnum.TEMPORARY.getId());
         }
     }
 

@@ -196,54 +196,19 @@ public class PersonRepositoryImpl
             @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source != null && #source.id != null && #source.pubkey != null")
         })
     public PersonVO save(PersonVO source) {
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getEmail(), "Missing 'email'");
-        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
-        Preconditions.checkNotNull(source.getDepartment(), "Missing 'department'");
-        Preconditions.checkNotNull(source.getDepartment().getId(), "Missing 'department.id'");
+        return super.save(source);
+    }
 
-        Person entity = toEntity(source);
-
-        boolean isNew = entity.getId() == null;
+    @Override
+    protected void onBeforeSaveEntity(PersonVO source, Person target, boolean isNew) {
         if (isNew) {
-            entity.setCreationDate(new Date());
-        }
+            target.setCreationDate(new Date());
+            source.setCreationDate(target.getCreationDate());
 
-        // If new
-        if (isNew) {
             // Set default status to Temporary
             if (source.getStatusId() == null) {
                 source.setStatusId(StatusEnum.TEMPORARY.getId());
             }
-        }
-        // If update
-        else {
-
-            // Check update date
-            Daos.checkUpdateDateForUpdate(source, entity);
-
-            // Lock entityName
-            lockForUpdate(entity);
-        }
-
-        // Update update_dt
-        Date newUpdateDate = getDatabaseCurrentDate();
-        entity.setUpdateDate(newUpdateDate);
-
-        Person savedEntity = save(entity);
-
-        // Update VO
-        onAfterSaveEntity(source, savedEntity, isNew);
-
-        return source;
-
-    }
-
-    @Override
-    protected void onAfterSaveEntity(PersonVO vo, Person savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
-        if (isNew) {
-            vo.setCreationDate(savedEntity.getCreationDate());
         }
     }
 

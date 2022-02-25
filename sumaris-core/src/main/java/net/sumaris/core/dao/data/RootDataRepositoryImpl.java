@@ -78,12 +78,12 @@ public abstract class RootDataRepositoryImpl<
     }
 
     @Override
-    protected void onBeforeSaveEntity(V vo, E entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(V source, E target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // When new entity: set the creation date
-        if (isNew || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
+        if (isNew || target.getCreationDate() == null) {
+            target.setCreationDate(target.getUpdateDate());
         }
     }
 

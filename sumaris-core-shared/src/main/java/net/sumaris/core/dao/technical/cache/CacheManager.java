@@ -89,7 +89,7 @@ public class CacheManager {
      * @return
      * @throws ExecutionException
      */
-    public <R extends Object> Callable<R> cacheable(Callable<R> loader, String key, Integer cacheDurationInSeconds) {
+    public <R> Callable<R> cacheable(Callable<R> loader, String key, Integer cacheDurationInSeconds) {
         // Get the cache for the expected duration
         com.google.common.cache.Cache<String, Object> cache = callableCachesByDuration.computeIfAbsent(cacheDurationInSeconds,
             (d) -> com.google.common.cache.CacheBuilder.newBuilder()

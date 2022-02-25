@@ -175,6 +175,5 @@ public class PersonServiceImpl implements PersonService {
 		Preconditions.checkNotNull(person.getLastName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.lastName")));
 		Preconditions.checkNotNull(person.getDepartment(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
 		Preconditions.checkNotNull(person.getDepartment().getId(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
-
 	}
 }

@@ -602,17 +602,17 @@ public class StrategyRepositoryImpl
 
 
     @Override
-    protected void onBeforeSaveEntity(StrategyVO vo, Strategy entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(StrategyVO source, Strategy target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // Verify label is unique by program
         long count = this.findAll(StrategyFilterVO.builder()
-                .programIds(new Integer[]{vo.getProgramId()}).label(vo.getLabel()).build())
+                .programIds(new Integer[]{source.getProgramId()}).label(source.getLabel()).build())
             .stream()
-            .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
+            .filter(s -> isNew || !Objects.equals(s.getId(), source.getId()))
             .count();
         if (count > 0) {
-            throw new NotUniqueException(String.format("Strategy label '%s' already exists", vo.getLabel()));
+            throw new NotUniqueException(String.format("Strategy label '%s' already exists", source.getLabel()));
         }
     }
 
