@@ -64,6 +64,7 @@ export const environment = Object.freeze(<Environment>{
     enableListenChanges: true,
     listenIntervalInSecond: 0
   }
+
 });
 
 /*

@@ -1,7 +1,7 @@
-import {NgModule} from '@angular/core';
+import { ModuleWithProviders, NgModule } from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {TranslateModule} from '@ngx-translate/core';
-import {SharedModule} from '@sumaris-net/ngx-components';
+import { CoreModule, Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 
 @NgModule({
@@ -14,14 +14,22 @@ import { Context, ContextService } from './context.service';
     SharedModule,
     RouterModule,
     TranslateModule,
-  ],
-  providers: [
-    {
-      provide: ContextService,
-      useValue: new ContextService<Context>({})
-    }
-  ],
+  ]
 })
 export class AppSharedModule {
+  static forRoot(environment: Environment): ModuleWithProviders<AppSharedModule> {
 
+    console.debug('[app-shared] Creating module (root)');
+
+    return {
+      ngModule: AppSharedModule,
+      providers: [
+        ...SharedModule.forRoot(environment).providers,
+        {
+          provide: ContextService,
+          useValue: new ContextService<Context>({})
+        }
+      ]
+    };
+  }
 }

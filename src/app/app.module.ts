@@ -38,11 +38,11 @@ import {
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
+  ENVIRONMENT,
   FormFieldDefinitionMap,
   LocalSettings,
-  SharedModule,
   SocialModule,
-  TestingPage,
+  TestingPage
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -116,9 +116,8 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
     }),
 
     // functional modules
+    AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
-    AppSharedModule,
-    SharedModule.forRoot(environment),
     SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule

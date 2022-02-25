@@ -65,17 +65,17 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   account: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSeconds: 0
   },
 
   entityEditor: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSeconds: 0
   },
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSecond: 0
+    listenIntervalInSeconds: 0
   }
 });
 /* tslint:enable */

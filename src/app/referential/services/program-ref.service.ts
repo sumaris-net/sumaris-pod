@@ -198,7 +198,10 @@ export class ProgramRefService
         this.accountService.onLogout
       )
         .pipe(
-          map(_ => this.networkService.online && this.accountService.isLogin()),
+          map(_ => this.networkService.online
+            && this.accountService.isLogin()
+            // Skip watching if admin
+            && !this.accountService.isAdmin()),
           distinctUntilChanged()
         )
         .subscribe((onlineAndLogin) => {
@@ -755,9 +758,7 @@ export class ProgramRefService
   protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number; }) {
     if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
 
-    if (this.accountService.isAdmin()) return; // Skip watching if admin
-
-    console.debug(`${this._logPrefix} Watching authorized programs...`);
+    console.debug(`${this._logPrefix}Watching authorized programs...`);
 
     const variables = {
       interval: Math.max(10, opts?.intervalInSeconds || environment.program?.listenIntervalInSeconds || 10)

@@ -118,12 +118,17 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   account: {
     enableListenChanges: true,
+    listenIntervalInSeconds: 10
+  },
+
+  entityEditor: {
+    enableListenChanges: false,
     listenIntervalInSecond: 10
   },
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSecond: 10
+    listenIntervalInSeconds: 10
   }
 });
 

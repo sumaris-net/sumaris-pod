@@ -361,7 +361,7 @@
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
     "INFO": {
-      "RELOADED": "Votre compte utilisateur a été actualisé !"
+      "RELOADED": "Votre compte utilisateur a été <b>actualisé</b> !"
     },
     "ERROR": {
       "SUBSCRIBE_ERROR": "Échec de l'abonnement distant au compte utilisateur."
@@ -1735,7 +1735,7 @@
       }
     },
     "INFO": {
-      "AUTHORIZED_PROGRAMS_UPDATED": "Vos droits d'accès ont été mis à jour !"
+      "AUTHORIZED_PROGRAMS_UPDATED": "Vos <b>droits d'accès</b> ont été <b>mis à jour</b> !"
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
