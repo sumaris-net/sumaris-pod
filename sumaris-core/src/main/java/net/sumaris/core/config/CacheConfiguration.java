@@ -80,9 +80,10 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Program
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
-        String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
-        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.getProgramIdsByUserId";
+        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
 
+        // Program privilege
+        String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
 
         // Strategy
         String STRATEGY_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategyById";

@@ -41,7 +41,7 @@ import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.EntityEventService;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,7 +67,7 @@ public class ReferentialGraphQLService {
     private MetierRepository metierRepository;
 
     @Autowired
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
 
     @Autowired
     private DataAccessControlService dataSecurityService;
@@ -186,7 +186,7 @@ public class ReferentialGraphQLService {
         Preconditions.checkNotNull(entityName, "Missing 'entityName'");
         Preconditions.checkArgument(id >= 0, "Invalid 'id'");
 
-        return changesPublisherService.watchEntity(
+        return entityEventService.watchEntity(
                 ReferentialEntities.getEntityClass(entityName),
                 ReferentialVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);

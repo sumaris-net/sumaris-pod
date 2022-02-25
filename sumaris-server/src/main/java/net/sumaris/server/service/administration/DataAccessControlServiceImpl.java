@@ -40,6 +40,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Service("dataAccessControlService")
@@ -118,6 +119,11 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     public Optional<Integer[]> getAllAuthorizedProgramIds(Integer[] programIds) {
         return getAuthorizedProgramIdsAsCollection(programIds)
             .map(this::toArray);
+    }
+
+    @Override
+    public List<Integer> getAuthorizedProgramIdsByUserId(int userId) {
+        return programRepository.getProgramIdsByUserId(userId);
     }
 
     @Override

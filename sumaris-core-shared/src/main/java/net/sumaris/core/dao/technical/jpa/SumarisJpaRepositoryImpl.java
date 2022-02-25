@@ -34,6 +34,9 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.dao.technical.model.function.ToEntityFunction;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -48,6 +51,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -81,13 +85,13 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
+    private boolean publishEvent = false;
     private boolean lockForUpdate = false;
     private LockModeType lockForUpdateMode;
     private Map<String, Object> lockForUpdateProperties;
-
     private EntityManager entityManager;
-
     private Class<V> voClass;
+    private final String entityName;
 
     @Autowired
     private DataSource dataSource;
@@ -95,13 +99,16 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     @Autowired
     private SumarisConfiguration configuration;
 
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
     }
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, entityManager);
-
+        this.entityName = domainClass.getSimpleName();
         this.voClass = voClass;
 
         // This is the recommended method for accessing inherited class dependencies.
@@ -137,6 +144,18 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public void setLockForUpdateMode(LockModeType lockForUpdateMode) {
         this.lockForUpdateMode = lockForUpdateMode;
+    }
+
+    public boolean getPublishEvent() {
+        return publishEvent;
+    }
+
+    public void setPublishEvent(boolean publishEvent) {
+        this.publishEvent = publishEvent;
+    }
+
+    public String getEntityName() {
+        return entityName;
     }
 
     public SumarisConfiguration getConfig() {
@@ -214,6 +233,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         // Update VO
         onAfterSaveEntity(vo, savedEntity, isNew);
 
+        if (publishEvent) publishSaveEvent(vo, isNew);
+
         return vo;
     }
 
@@ -227,6 +248,19 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         if (savedEntity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
             ((IUpdateDateEntityBean) vo).setUpdateDate(((IUpdateDateEntityBean) savedEntity).getUpdateDate());
         }
+    }
+
+    protected void publishSaveEvent(V vo, boolean isNew) {
+        // Publish event
+        if (isNew) {
+            publisher.publishEvent(new EntityInsertEvent(vo.getId(), entityName, vo));
+        } else {
+            publisher.publishEvent(new EntityUpdateEvent(vo.getId(), entityName, vo));
+        }
+    }
+
+    protected void publishDeleteEvent(V vo) {
+        publisher.publishEvent(new EntityDeleteEvent(vo.getId(), entityName, vo));
     }
 
     public V toVO(E source) {
@@ -255,10 +289,24 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     @Override
     public void deleteById(ID id) {
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Deleting %s (id=%s)", getDomainClass().getSimpleName(), id));
+        log.debug("Deleting {}#{}", entityName, id);
+
+        // Simple deletion (no event to publish)
+        if (!publishEvent) {
+            super.deleteById(id);
+            return;
         }
+
+        // First, load entity to deleted
+        V vo = findById(id).map(this::toVO).orElse(null);
+
+        if (vo == null) return; // Nothing to delete
+
+        // Do deletion
         super.deleteById(id);
+
+        // Emit delete event
+        publishDeleteEvent(vo);
     }
 
     /* -- protected method -- */

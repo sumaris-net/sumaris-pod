@@ -100,7 +100,7 @@ public class ExtractionJob {
             ExtractionProductFetchOptions.MINIMAL);
 
         if (CollectionUtils.isEmpty(products)) {
-            log.info("No {} extraction found.", frequency.name().toLowerCase());
+            log.info("Updating {} extractions [OK] - No extraction found.", frequency.name().toLowerCase());
             return;
         }
 

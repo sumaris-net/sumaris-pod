@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import io.reactivex.BackpressureStrategy;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -55,7 +56,7 @@ import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.administration.ImageService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.EntityEventService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
@@ -70,9 +71,8 @@ import java.util.*;
 @Service
 @GraphQLApi
 @Transactional
+@Slf4j
 public class DataGraphQLService {
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
     private TripService tripService;
@@ -123,7 +123,7 @@ public class DataGraphQLService {
     private ImageService imageService;
 
     @Autowired
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
 
     @Autowired
     private MetierRepository metierRepository;
@@ -322,7 +322,7 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
+        return entityEventService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -566,7 +566,7 @@ public class DataGraphQLService {
                                                                 @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
+        return entityEventService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -757,7 +757,7 @@ public class DataGraphQLService {
                                                   @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
+        return entityEventService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -1038,7 +1038,7 @@ public class DataGraphQLService {
                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
+        return entityEventService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 

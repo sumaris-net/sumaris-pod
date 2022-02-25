@@ -31,7 +31,6 @@ import io.reactivex.BackpressureStrategy;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.Persons;
@@ -42,7 +41,7 @@ import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.EntityEventService;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.security.access.AccessDeniedException;
@@ -66,7 +65,7 @@ public class AccountGraphQLService {
     private AccountService accountService;
 
     @Resource
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
 
     @Resource
     private ImageService imageService;
@@ -149,7 +148,7 @@ public class AccountGraphQLService {
     ) {
 
         Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
-        return changesPublisherService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
+        return entityEventService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 

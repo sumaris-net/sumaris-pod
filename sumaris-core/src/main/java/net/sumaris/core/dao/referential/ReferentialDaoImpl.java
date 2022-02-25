@@ -214,7 +214,14 @@ public class ReferentialDaoImpl
         }
     }
 
-    @Override
+    public void clearCache() {
+        log.debug("Cleaning all referential cache...");
+
+        ReferentialEntities.REFERENTIAL_CLASSES.stream()
+            .map(Class::getSimpleName)
+            .forEach(this::clearCache);
+    }
+
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
@@ -236,16 +243,23 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id", condition = "#entityName == 'TaxonomicLevel'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#id", condition = "#entityName == 'Gear'")
     })
+    public void clearCache(String entityName) {
+        log.debug("Cleaning {}'s cache...");
+    }
+
+    @Override
     public void delete(final String entityName, int id) {
 
         // Get the entity class
         Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
-        log.debug(String.format("Deleting %s {id=%s}...", entityName, id));
         IReferentialEntity entity = find(entityClass, id);
         if (entity != null) {
+            log.debug("Deleting {}#{}", entityName, id);
             getEntityManager().remove(entity);
-            log.debug(String.format("Deleted %s {id=%s}...", entityName, id));
+
+            // Cleaning entity cache
+            clearCache(entityName);
         }
     }
 

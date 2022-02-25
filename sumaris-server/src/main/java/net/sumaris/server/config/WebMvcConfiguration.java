@@ -101,7 +101,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
         };
     }
 
-    @Bean
+    @Bean(name = {"applicationTaskExecutor", "taskExecutor"})
     @Lazy
     public ThreadPoolTaskExecutor taskExecutor(TaskExecutorBuilder builder) {
         return builder.build();

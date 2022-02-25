@@ -145,6 +145,12 @@
       <artifactId>jnr-ffi</artifactId>
     </dependency>
 
+    <!-- observables -->
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+    </dependency>
+
     <!-- Nuiton-* -->
     <dependency>
       <groupId>org.nuiton</groupId>

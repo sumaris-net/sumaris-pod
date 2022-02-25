@@ -23,6 +23,7 @@
 package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import io.reactivex.BackpressureStrategy;
@@ -46,6 +47,7 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
@@ -64,7 +66,7 @@ import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.EntityEventService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +77,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 @Service
 @Transactional
@@ -104,7 +107,10 @@ public class ProgramGraphQLService {
     private AuthService authService;
 
     @Autowired
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
+
+    @Autowired
+    private DataAccessControlService dataAccessControlService;
 
     @Autowired
     public ProgramGraphQLService() {
@@ -320,52 +326,6 @@ public class ProgramGraphQLService {
             nbDigit == null ? 0 : nbDigit);
     }
 
-    @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
-    @IsUser
-    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final int id,
-                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                              @GraphQLEnvironment ResolutionEnvironment env) {
-        ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
-
-        log.info("Checking changes Program#{}, every {} sec", id, minIntervalInSecond);
-
-        return changesPublisherService.watch(updateDate -> {
-            // Get actual program
-            if (updateDate == null) {
-                return Optional.of(programService.get(id, fetchOptions));
-            }
-            // Get if newer
-            return programService.findNewerById(id, updateDate, fetchOptions);
-        }, minIntervalInSecond, true)
-            .toFlowable(BackpressureStrategy.LATEST);
-    }
-
-
-    @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
-    @IsUser
-    public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
-                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
-                                                               @GraphQLEnvironment ResolutionEnvironment env) {
-
-        Set<String> fields = GraphQLUtils.fields(env);
-        StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
-
-        Preconditions.checkArgument(programId >= 0, "Invalid programId");
-
-        log.info("Checking strategies changes on Program#{}, every {} sec", programId, intervalInSeconds);
-
-        return changesPublisherService.watchCollection((lastUpdateDate) -> {
-            // Get actual values
-            if (lastUpdateDate == null) {
-                return strategyService.findByProgram(programId, fetchOptions);
-            }
-
-            // Get newer strategies
-            return strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
-        }, intervalInSeconds, false /*only changes, but not actual list*/)
-        .toFlowable(BackpressureStrategy.LATEST);
-    }
-
     /* -- Mutations -- */
 
     @GraphQLMutation(name = "saveProgram", description = "Save a program (with strategies)")
@@ -398,6 +358,105 @@ public class ProgramGraphQLService {
         StrategyVO strategy = strategyService.get(id, null);
         checkCanDeleteStrategy(strategy.getProgramId(), id);
         strategyService.delete(id);
+    }
+
+    /* -- Subscriptions -- */
+
+
+
+    @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
+    @IsUser
+    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final int id,
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
+        ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
+
+        log.info("Checking changes Program#{}, every {} sec", id, minIntervalInSecond);
+
+        return entityEventService.watchEntity(updateDate -> {
+                // Get actual program
+                if (updateDate == null) {
+                    return Optional.of(programService.get(id, fetchOptions));
+                }
+                // Get if newer
+                return programService.findNewerById(id, updateDate, fetchOptions);
+            }, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
+    @IsUser
+    public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
+                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
+                                                               @GraphQLEnvironment ResolutionEnvironment env) {
+
+        Set<String> fields = GraphQLUtils.fields(env);
+        StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
+
+        Preconditions.checkArgument(programId >= 0, "Invalid programId");
+
+        log.info("Checking strategies changes on Program#{}, every {} sec", programId, intervalInSeconds);
+
+        return entityEventService.watchEntities((lastUpdateDate) -> {
+                // Get actual values
+                if (lastUpdateDate == null) {
+                    return Optional.of(strategyService.findByProgram(programId, fetchOptions));
+                }
+
+                // Get newer strategies
+                List<StrategyVO> updatedStrategies = strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
+                return CollectionUtils.isEmpty(updatedStrategies) ? Optional.empty() : Optional.of(updatedStrategies);
+            }, intervalInSeconds, false /*only changes, but not actual list*/)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLSubscription(name = "authorizedPrograms", description = "Subscribe to user's authorized programs")
+    @IsUser
+    @Transactional(readOnly = true)
+    public Publisher<List<ProgramVO>> getAuthorizedPrograms(
+        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
+        @GraphQLArgument(name = "startWithActualValue") Boolean startWithActualValue,
+        @GraphQLEnvironment ResolutionEnvironment env
+    ) {
+
+        final Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
+        final ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
+        startWithActualValue = startWithActualValue != null ? startWithActualValue : Boolean.FALSE;
+
+        log.info("Watching programs for Person#{} every {}s", personId, intervalInSeconds);
+
+        // Define a loader, decorate to return only when changes
+        Callable<Optional<List<Integer>>> programIdsLoader = Observables.distinctUntilChanged(() -> {
+            log.debug("Checking programs for Person#{}...", personId);
+            List<Integer> programIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(personId);
+            return Optional.of(programIds);
+        });
+
+        return entityEventService.watchEntities(Program.class,
+            // Call program ids loader
+            () -> programIdsLoader.call()
+                // Then convert to VO
+                .map(programIds -> {
+                    // User has no programs:
+                    if (CollectionUtils.isEmpty(programIds)) {
+                        // return an empty list (because findByFilter will return full list)
+                        return ImmutableList.of();
+                    }
+
+                    // Fetch VO, by ids
+                    log.debug("Loading programs for Person#{}...", personId);
+                    return programService.findByFilter(
+                        ProgramFilterVO.builder()
+                            .includedIds(programIds.toArray(new Integer[0]))
+                            .build(),
+                        Page.builder()
+                            .sortBy(IEntity.Fields.ID).sortDirection(SortDirection.ASC)
+                            .build(),
+                        fetchOptions);
+                }),
+                intervalInSeconds,
+                startWithActualValue)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     /* -- Protected methods -- */

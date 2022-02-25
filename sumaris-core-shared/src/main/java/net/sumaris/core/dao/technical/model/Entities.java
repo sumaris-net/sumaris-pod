@@ -20,25 +20,27 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.cache;
+package net.sumaris.core.dao.technical.model;
 
-import lombok.extern.slf4j.Slf4j;
-import org.ehcache.event.CacheEvent;
-import org.ehcache.event.CacheEventListener;
+import net.sumaris.core.util.Beans;
 
-@Slf4j
-public class CacheEventLogger implements CacheEventListener<Object, Object> {
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Objects;
 
-    public CacheEventLogger() {
-        log.info("Creating cache event logger");
+public abstract class Entities {
+
+    protected Entities() {
+        // helper class does not instantiate
     }
 
-    @Override
-    public void onEvent(CacheEvent cacheEvent) {
-        if (log.isDebugEnabled()) {
-            log.debug("Caching event {} {}", cacheEvent.getType(), cacheEvent.getKey());
-
-            // TODO: send clear cache event to the ActiveMQ event queue
-        }
+    public static <ID extends Serializable, D extends Date, V extends IUpdateDateEntityBean<ID, D>, L extends Collection<V>> D maxUpdateDate(L entities) {
+        return Beans.getStream(entities)
+            .map(IUpdateDateEntityBean::getUpdateDate)
+            .filter(Objects::nonNull)
+            .max(Comparator.comparingLong(Date::getTime))
+            .orElse(null);
     }
 }
