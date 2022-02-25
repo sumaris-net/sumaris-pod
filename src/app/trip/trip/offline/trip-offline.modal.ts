@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, isEmptyArray, PlatformService, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
@@ -10,8 +10,7 @@ import { ProgramRefQueries, ProgramRefService } from '../../../referential/servi
 import { Program } from '../../../referential/services/model/program.model';
 import { TripOfflineFilter } from '@app/trip/services/filter/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { mergeMap } from 'rxjs/internal/operators';
-import { map } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 const moment = momentImported;
@@ -22,11 +21,13 @@ const moment = momentImported;
     './trip-offline.modal.scss'
   ],
   templateUrl: './trip-offline.modal.html',
+  animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnInit{
 
   mobile: boolean;
+  errorSubject = new Subject<string>();
 
   periodDurations: { value: number; unit: DurationConstructor }[] = [
     {value: 1, unit: 'week'},
@@ -56,7 +57,6 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -69,7 +69,7 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
         periodDuration: ['15day', Validators.required],
       }));
     this._enable = false; // Disable by default
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
@@ -109,13 +109,32 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
       vesselSnapshot: null,
       periodDuration: null
     };
+
     // Program
     if (value.programLabel) {
-      json.program = await this.programRefService.loadByLabel(value.programLabel, {query: ProgramRefQueries.loadLight});
+      try {
+        json.program = await this.programRefService.loadByLabel(value.programLabel, {query: ProgramRefQueries.loadLight});
+      }
+      catch (err) {
+        console.error(err);
+        json.program = null;
+        if (err && err.message) {
+          this.errorSubject.next(err.message);
+        }
+      }
     }
 
     if (value.vesselId){
-      json.vesselSnapshot = await this.vesselSnapshotService.load(value.vesselId);
+      try {
+        json.vesselSnapshot = await this.vesselSnapshotService.load(value.vesselId);
+      }
+      catch (err) {
+        console.error(err);
+        json.vesselSnapshot = null;
+        if (err && err.message) {
+          this.errorSubject.next(err.message);
+        }
+      }
     }
 
     // Duration period
@@ -161,6 +180,9 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
   }
 
   async validate(event?: UIEvent) {
+
+    this.errorSubject.next(null);
+
     this.markAllAsTouched();
 
     await AppFormUtils.waitWhilePending(this.form);

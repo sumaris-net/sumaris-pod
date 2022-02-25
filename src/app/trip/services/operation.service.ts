@@ -43,7 +43,7 @@ import {
   MINIFY_OPERATION_FOR_LOCAL_STORAGE,
   Operation,
   OperationAsObjectOptions,
-  OperationFromObjectOptions,
+  OperationFromObjectOptions, POSITIONS_REGEXP,
   Trip,
   VesselPosition,
   VesselPositionUtils,
@@ -511,18 +511,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   async controlAllByTrip(trip: Trip, opts?: OperationControlOptions): Promise<FormErrors> {
 
+    // Increment
     this.progressBarService.increase();
 
     try {
-      // Load all operations
-      const { data } = await this.loadAllByTrip({ tripId: trip.id },
-        { fullLoad: trip.id < 0 || this.network.offline, computeRankOrder: false }); // fullLoad only available for local trip
-
-      if (isEmptyArray(data)) return undefined; // Skip if empty
+      const isLocalTrip = trip.id < 0;
+      const shouldSave = isLocalTrip && (!opts || opts.save !== false);
 
       // Prepare validator options
-      const shouldSave = !opts || opts.save !== false;
-      opts = await this.fillValidatorOptionsForTrip(trip.id, opts);
+      opts = await this.fillValidatorOptionsForTrip(trip.id, {trip, ...opts});
 
       // Prepare error translator
       let translatorOptions: FormErrorTranslatorOptions;
@@ -536,9 +533,19 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         };
       }
 
+      // Load all operations
+      const { data } = await this.loadAllByTrip({ tripId: trip.id },
+        { computeRankOrder: false });
+
+      if (isEmptyArray(data)) return undefined; // Skip if empty
+
       let errorsById: FormErrors = null;
 
-      for (const entity of data) {
+      for (let entity of data) {
+
+        // Load full entity
+        entity = await this.load(entity.id);
+
         const errors = await this.control(entity, {...opts, save: false /*saving later*/});
         if (errors) {
           errorsById = errorsById || {};
@@ -547,17 +554,15 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
             const message = this.formErrorTranslator.translateErrors(errors, translatorOptions);
             entity.controlDate = undefined;
             entity.qualificationComments = message;
+            await this.save(entity);
           }
         } else {
           if (shouldSave) {
             entity.controlDate = entity.controlDate || moment();
-            entity.qualificationComments = undefined;
+            entity.qualificationComments = null;
+            await this.save(entity);
           }
         }
-      }
-
-      if (shouldSave) {
-        await this.saveAll(data);
       }
 
       return errorsById;
@@ -1345,6 +1350,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (FISHING_AREAS_LOCATION_REGEXP.test(path)) {
       return this.translate.instant((opts.i18nPrefix || '') + 'FISHING_AREAS');
     }
+
+    // Translate location, inside any fishing areas
+    if (POSITIONS_REGEXP.test(path)) {
+      return this.translate.instant((opts.i18nPrefix || '') + 'POSITIONS');
+    }
+
     // Default translation
     return this.formErrorTranslator.translateControlPath(path, opts);
   }
@@ -1673,6 +1684,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       withFishingStart: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
       withFishingEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
       withEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+      maxDistance: opts.program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR),
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     };

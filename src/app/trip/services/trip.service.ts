@@ -12,7 +12,7 @@ import {
   EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
-  FormErrors,
+  FormErrors, FormErrorTranslator,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -44,7 +44,7 @@ import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
-import { Operation, OperationGroup, PhysicalGear, Trip } from './model/trip.model';
+import { FISHING_AREAS_LOCATION_REGEXP, Operation, OperationGroup, PhysicalGear, POSITIONS_REGEXP, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
@@ -65,6 +65,8 @@ import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Packet } from '@app/trip/services/model/packet.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 
@@ -418,6 +420,7 @@ export class TripService
     protected validatorService: TripValidatorService,
     protected userEventService: UserEventService,
     protected trashRemoteService: TrashRemoteService,
+    protected formErrorTranslator: FormErrorTranslator,
     @Optional() private translate: TranslateService,
     @Optional() private toastController: ToastController
   ) {
@@ -1117,8 +1120,12 @@ export class TripService
            return errors;
       }
     }
+
     // If trip is Valid, control operations
     else {
+
+      // FIXME: on remote operations, all measurements are loose!
+
       const errors = await this.operationService.controlAllByTrip(entity, {program});
 
       if (errors) {
@@ -1248,22 +1255,27 @@ export class TripService
   }
 
   async copyLocallyById(id: number, opts?: TripLoadOptions): Promise<Trip> {
+    const isLocalTrip = id < 0;
 
     // Load existing data
-    const data = await this.load(id, {...opts, fetchPolicy: 'network-only'});
+    const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
 
     // Add operations
     if (!opts || opts.withOperation !== false) {
-      const res = await this.operationService.loadAllByTrip({tripId: id}, {
-        fetchPolicy: 'network-only',
-        fullLoad: true
+      const { data } = await this.operationService.loadAllByTrip({tripId: id}, {
+        fetchPolicy: !isLocalTrip && 'network-only' || undefined,
+        fullLoad: isLocalTrip
       });
-      data.operations = res.data;
+
+      source.operations = isLocalTrip ? data
+        // Full load entities remotely
+        : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
     }
 
-    await this.copyLocally(data, opts);
+    // Copy remote trip to local storage
+    const target = await this.copyLocally(source, opts);
 
-    return data;
+    return target;
   }
 
   /**
@@ -1460,6 +1472,18 @@ export class TripService
       console.error(`[trip⁻service] Error while adding physical gear to trip: ${err && err.message || err}`, err);
       throw {code: TripErrorCodes.ADD_TRIP_GEAR_ERROR, message: 'TRIP.ERROR.ADD_GEAR'};
     }
+  }
+
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+    opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
+    // Translate PMFM field
+    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
   }
 
   /* -- protected methods -- */

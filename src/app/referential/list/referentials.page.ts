@@ -110,20 +110,14 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
     protected formBuilder: FormBuilder,
     protected translate: TranslateService
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -141,9 +135,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      }),
-      null,
-      injector
+      })
     );
 
     this.i18nColumnPrefix = 'REFERENTIAL.';

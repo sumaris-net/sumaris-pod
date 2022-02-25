@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AlertController, ModalController } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { AlertController } from '@ionic/angular';
 import { FormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -13,9 +11,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   NetworkService,
-  PlatformService,
   referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -114,14 +110,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   @Input() useSticky = true;
 
   constructor(
+    injector: Injector,
     public network: NetworkService,
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: AggregatedLandingService,
     protected referentialRefService: ReferentialRefService,
@@ -133,7 +123,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected cd: ChangeDetectorRef,
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       ['vessel'],
       new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
         prependNewElements: false,
@@ -143,8 +133,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
           saveOnlyDirtyRows: true,
         },
       }),
-      null,
-      injector,
+      null
     );
     this.i18nColumnPrefix = 'AGGREGATED_LANDING.TABLE.';
 
@@ -156,7 +145,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.saveBeforeDelete = false;
     this.autoLoad = false;
     this.defaultPageSize = -1; // Do not use paginator
-    this.mobile = this.settings.mobile;
 
     // default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.LANDING;

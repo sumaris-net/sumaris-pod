@@ -4,7 +4,7 @@ import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
-  AppEntityEditor,
+  AppEntityEditor, AppErrorWithDetails,
   AppHelpModal,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -19,7 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService,
+  LocalSettingsService,
   ReferentialUtils,
   toBoolean,
   toNumber,
@@ -137,6 +137,13 @@ export class OperationPage
     return this.forceDeskMode ? 'DESK' : super.usageMode;
   }
 
+  /**
+   * Allow to override function from OperationService, by passing the trip into options
+   */
+  get entityQualityService(): IDataEntityQualityService<Operation> {
+    return this;
+  }
+
   constructor(
     injector: Injector,
     hotkeys: Hotkeys,
@@ -144,19 +151,19 @@ export class OperationPage
     protected tripService: TripService,
     protected tripContext: TripContextService,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
-      autoOpenNextTab: !platform.mobile,
+      autoOpenNextTab: !settings.mobile,
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
     // Init mobile
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     this.registerSubscription(
@@ -168,12 +175,27 @@ export class OperationPage
     this.debug = !environment.production;
   }
 
-  control(data: Operation, opts?: any): Promise<FormErrors> {
-    opts = {
+  async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
+    const errors = await this.service.control(data, {
       ...opts,
       trip: this.trip
+    });
+    if (!errors) return;
+    const pmfms = await firstNotNilPromise(this.measurementsForm.$pmfms);
+    const errorMessage = this.errorTranslator.translateErrors(errors, {
+      controlPathTranslator: {
+        translateControlPath: (path) => this.service.translateControlPath(path, {
+          i18nPrefix: this.i18nContext.prefix,
+          pmfms
+        })
+      }
+    });
+    return {
+      details: {
+        errors,
+        message: errorMessage
+      }
     };
-    return this.service.control(data, opts);
   }
 
   qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
@@ -545,10 +567,10 @@ export class OperationPage
     // Load available taxon groups (e.g. with taxon groups found in strategies)
     await this.initAvailableTaxonGroups(program.label);
 
-    this.cd.detectChanges();
+   /* this.cd.detectChanges();*/
     this.markAsReady();
 
-    await this.ready();
+    //await this.ready();
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -645,7 +667,7 @@ export class OperationPage
     }
 
     // Existing operation
-    if (this.platform.mobile) {
+    if (this.mobile) {
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
         startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
       }).toPromise()) as string;
@@ -808,14 +830,18 @@ export class OperationPage
       this.scrollToTop();
     }
 
-    if (saved && this.dirty) {
-      let children = this.children.filter(f => f.dirty);
-      if (isNotEmptyArray(children)) {
-
-        children = this.batchTree.children.filter(f => f.dirty);
-        console.debug('[operation] Still dirty children: ', children);
+    else if (this.dirty) {
+      // DEBUG - dump still dirty children
+      if (this.debug) {
+        let children = this.children.filter(f => f.dirty);
+        if (isNotEmptyArray(children)) {
+          children = this.batchTree.children.filter(f => f.dirty);
+          console.debug('[operation] Still dirty children: ', children);
+        }
+        console.debug('[operation] Batch tree ready ? ' + this.batchTree.batchGroupsTable.isReady());
       }
-      console.debug('[operation] Batch tree ready: ', this.batchTree.batchGroupsTable.isReady());
+
+      // Make editor has pristine
       this.batchTree.markAsPristine();
     }
 

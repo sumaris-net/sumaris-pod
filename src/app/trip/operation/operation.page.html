@@ -203,9 +203,8 @@
             </ion-col>
             <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
               <app-entity-metadata [value]="data"
-                                   [showRecorder]="data && !!data.updateDate"
-                                   [service]="">
-                <app-entity-quality-form></app-entity-quality-form>
+                                   [showRecorder]="data && !!data.updateDate">
+                <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
           </ion-row>

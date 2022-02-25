@@ -1,7 +1,7 @@
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, PlatformService, remove, removeAll } from '@sumaris-net/ngx-components';
+import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '../services/model/measurement.model';
@@ -43,11 +43,10 @@ export class TypedExpenseForm extends MeasurementsForm {
     injector: Injector,
     protected validatorService: TypedExpenseValidatorService,
     protected formBuilder: FormBuilder,
-    protected programRefService: ProgramRefService,
-    protected platform: PlatformService
+    protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
   }
 

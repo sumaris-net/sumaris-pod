@@ -83,3 +83,11 @@ mat-form-field {
     font-weight: bold;
   }
 }
+
+ion-toast {
+  &.secondary {
+    --background: var(--ion-color-secondary);
+    --color: var(--ion-color-primary);
+    --button-color: var(--ion-color-tertiary);
+  }
+}

@@ -95,27 +95,22 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
+    formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    formBuilder: FormBuilder,
-    injector: Injector
+    protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
           'status',
           'vesselFeatures.exteriorMarking',
           'vesselRegistrationPeriod.registrationCode'])
-        .concat(platform.mobile ? [] : [
+        .concat(settings.mobile ? [] : [
           'vesselFeatures.startDate',
           'vesselFeatures.endDate'
         ])
@@ -124,7 +119,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
           'vesselType',
           'vesselFeatures.basePortLocation'
         ])
-        .concat(platform.mobile ? [] : [
+        .concat(settings.mobile ? [] : [
           'comments'
         ])
         .concat(RESERVED_END_COLUMNS),
@@ -135,9 +130,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      }),
-      null,
-      injector
+      })
     );
     this.i18nColumnPrefix = 'VESSEL.';
     this.defaultSortBy = 'vesselFeatures.exteriorMarking';

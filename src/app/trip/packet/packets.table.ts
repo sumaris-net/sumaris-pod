@@ -71,19 +71,13 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   private packetSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected validatorService: PacketValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef,
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -97,8 +91,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         suppressErrors: environment.production,
         onRowCreated: (row) => this.onRowCreated(row)
       }),
-      null,
-      injector
+      null // Filter
     );
 
     this.i18nColumnPrefix = 'PACKET.LIST.';

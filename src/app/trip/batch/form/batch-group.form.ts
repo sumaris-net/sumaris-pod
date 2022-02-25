@@ -143,7 +143,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       measurementValidatorService,
       formBuilder,
       programRefService,
-      platform,
       validatorService,
       referentialRefService);
 

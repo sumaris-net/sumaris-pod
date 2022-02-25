@@ -73,6 +73,7 @@ export abstract class DataRootEntityUtils {
   static copyQualificationDateAndFlag(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
     target.qualificationDate = fromDateISOString(source.qualificationDate);
+    target.qualificationComments = source.qualificationComments;
     target.qualityFlagId = source.qualityFlagId;
   }
 

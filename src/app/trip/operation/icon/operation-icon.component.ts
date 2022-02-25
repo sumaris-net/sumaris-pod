@@ -97,9 +97,11 @@ export class OperationIconComponent {
       this.matSvgIcon = undefined;
     }
 
+    // Not controlled
     if (isNil(value.controlDate)) {
       this.color = this.color || 'secondary';
-      // The qualification comments is used to store error message
+
+      // With error (stored in the qualification comments)
       if (this.showError && value.qualificationComments) {
         this.badgeIcon = 'alert' as QualityIonIcon;
         this.badgeColor = 'danger';
@@ -109,9 +111,17 @@ export class OperationIconComponent {
       } else {
         this.badgeIcon = this.badgeIcon || undefined;
       }
-    } else if (isNil(value.qualificationDate)) {
-      this.badgeIcon = 'checkmark';
-      this.badgeColor = 'tertiary';
+    }
+    // Controlled, not qualified
+    else if (isNil(value.qualificationDate)) {
+      if (this.icon == 'navigate') {
+        this.icon = 'checkmark' as OperationIonIcon;
+        this.color = 'tertiary';
+      }
+      else {
+        this.badgeIcon = 'checkmark';
+        this.badgeColor = 'tertiary';
+      }
     }
     else if (isNil(value.qualityFlagId) || value.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
         this.badgeIcon = 'checkmark-circle';
@@ -129,7 +139,7 @@ export class OperationIconComponent {
         this.badgeColor = qualityFlagToColor(value.qualityFlagId);
       }
     }
-    this.color = this.color || 'dark';
+    this.color = this.color || 'primary';
     this.cd.markForCheck();
   }
 

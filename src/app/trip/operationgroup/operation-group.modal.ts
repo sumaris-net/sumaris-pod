@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Alerts, isNil, LocalSettingsService, PlatformService, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
-import {AlertController, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {OperationGroup} from '@app/trip/services/model/trip.model';
-import {OperationGroupForm} from '@app/trip/operationgroup/operation-group.form';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Alerts, isNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AlertController, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { OperationGroup } from '@app/trip/services/model/trip.model';
+import { OperationGroupForm } from '@app/trip/operationgroup/operation-group.form';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-operation-group-modal',
@@ -83,14 +83,13 @@ export class OperationGroupModal implements OnInit, OnDestroy {
     protected injector: Injector,
     protected alertCtrl: AlertController,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;

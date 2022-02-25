@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { AppFormUtils, LocalSettingsService, PlatformService, ReferentialRef, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, LocalSettingsService, ReferentialRef, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { environment } from '../../../environments/environment';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -78,14 +78,13 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   constructor(
     protected injector: Injector,
     protected viewCtrl: ModalController,
-    protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;

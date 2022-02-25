@@ -360,8 +360,11 @@
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
+    "INFO": {
+      "RELOADED": "Votre compte utilisateur a été actualisé !"
+    },
     "ERROR": {
-      "SUBSCRIBE_ACCOUNT_ERROR": "Échec de l'abonnement distant au compte utilisateur."
+      "SUBSCRIBE_ERROR": "Échec de l'abonnement distant au compte utilisateur."
     }
   },
   "SETTINGS": {
@@ -609,13 +612,14 @@
         "END_DATE_TIME": "Fin d'opération",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
-        "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
+        "DISTANCE_DOTS" : "Distance : {{distance}} miles",
         "START_PARENT_OPERATION" : "Début filage :",
         "END_PARENT_OPERATION" : "Fin filage / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
         "END_CHILD_OPERATION" : "Fin virage :",
         "PARENT_OPERATION" : "Opération associée",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
+        "POSITIONS": "Positions",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE" : "Type d'opération :",
@@ -1722,12 +1726,16 @@
         "STRATEGY_HAS_DATA": "La ligne de plan {{ label }} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_DATA": "Les lignes de plan {{ label }} sont liées à une ou plusieurs observations individuelles",
         "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
-        "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
+        "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement",
+        "SUBSCRIBE_AUTHORIZED_PROGRAMS": "Erreur d'abonnement aux programmes de collecte autorisés"
       },
       "CONFIRM": {
         "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
         "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
       }
+    },
+    "INFO": {
+      "AUTHORIZED_PROGRAMS_UPDATED": "Vos droits d'accès ont été mis à jour !"
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
@@ -2147,7 +2155,8 @@
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
-    "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée"
+    "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
+    "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

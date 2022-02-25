@@ -69,6 +69,7 @@ export abstract class BaseRootDataService<
 
   canUserWrite(entity: T, opts?: any): boolean {
     return EntityUtils.isLocal(entity) // For performance, always give write access to local data
+      || this.accountService.isAdmin()
       || (this.programRefService.canUserWriteEntity(entity)
         && (isNil(entity.validationDate) || this.accountService.isSupervisor())
       );

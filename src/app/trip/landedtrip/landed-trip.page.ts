@@ -17,7 +17,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   NetworkService,
-  PlatformService,
   ReferentialRef,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -98,7 +97,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
-    protected platform: PlatformService,
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
@@ -115,7 +113,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
         tabCount: 5
       });
 
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.showCatchFilter = !this.mobile;
 
     // FOR DEV ONLY ----

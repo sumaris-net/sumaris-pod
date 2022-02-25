@@ -360,8 +360,11 @@
       "LOCALE": "Language",
       "LAT_LONG_FORMAT": "Latitude/longitude format"
     },
+    "INFO": {
+      "RELOADED": "Your user account has been updated!"
+    },
     "ERROR": {
-      "SUBSCRIBE_ACCOUNT_ERROR": "Error while listening account's changes."
+      "SUBSCRIBE_ERROR": "Error while listening account's changes."
     }
   },
   "SETTINGS": {
@@ -2062,7 +2065,8 @@
     "SAVE_ERROR": "Error while saving",
     "SUBSCRIBE_ERROR": "Error while subscribe to changes",
     "FIELD_NOT_EXISTS": "Value doesn't exist",
-    "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history"
+    "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
+    "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

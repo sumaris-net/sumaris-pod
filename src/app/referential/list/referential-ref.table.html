@@ -1,7 +1,8 @@
 <mat-toolbar *ngIf="showToolbar">
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light"
+          *ngIf="debug && !mobile && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -23,7 +24,6 @@
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
-
 
 <form *ngIf="showFilter" class="form-container ion-padding-top"
       [formGroup]="filterForm"

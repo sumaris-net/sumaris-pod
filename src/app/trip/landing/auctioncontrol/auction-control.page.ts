@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
-import { debounceTime, distinctUntilKeyChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Landing } from '../../services/model/landing.model';
 import { AuctionControlValidators } from '../../services/validator/auction-control.validators';
@@ -17,7 +17,8 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LoadResult, PlatformService,
+  LoadResult,
+  LocalSettingsService,
   ReferentialUtils,
   SharedValidators,
   toNumber,
@@ -53,13 +54,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   constructor(
     injector: Injector,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      autoOpenNextTab: !platform.mobile,
       tabGroupAnimationDuration: '0s' // Disable tab animation
     });
 
@@ -210,7 +210,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     this.registerSubscription(
       this.taxonGroupControl.valueChanges
-        .pipe(distinctUntilKeyChanged('id'))
+        .pipe(
+          distinctUntilChanged(ReferentialUtils.equals)
+        )
         .subscribe(taxonGroup => {
           const hasTaxonGroup = ReferentialUtils.isNotEmpty(taxonGroup);
           console.debug('[control] Selected taxon group:', taxonGroup);

@@ -109,7 +109,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;
@@ -122,7 +122,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     if (this.disabled) {
       this.disable();
     }
-
 
     // Update title, when form change
     this._subscription.add(

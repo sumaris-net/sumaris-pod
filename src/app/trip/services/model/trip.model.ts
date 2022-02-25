@@ -56,6 +56,7 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
 });
 
 export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
+export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/
 
 @EntityClass({typename: 'OperationVO'})
 export class Operation

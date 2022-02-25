@@ -31,6 +31,6 @@ export interface IRootDataEntityQualityService<
 const RootDataQualityServiceFnName: (keyof IRootDataEntityQualityService<any>)[] = [...DataQualityServiceFnName, 'terminate', 'validate', 'unvalidate'];
 export function isRootDataQualityService(object: any): object is IRootDataEntityQualityService<any> {
   return object && RootDataQualityServiceFnName.filter(fnName => (typeof object[fnName] === 'function'))
-    .length === DataQualityServiceFnName.length || false;
+    .length === RootDataQualityServiceFnName.length || false;
 }
 

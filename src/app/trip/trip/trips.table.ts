@@ -75,13 +75,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
   }
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected dataService: TripService,
     protected userEventService: UserEventService,
     protected personService: PersonService,
@@ -94,7 +88,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat([
           'quality',
@@ -108,9 +102,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           'comments'])
         .concat(RESERVED_END_COLUMNS),
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService),
-      null, // Filter
-      injector
+      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService)
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({

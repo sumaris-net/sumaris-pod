@@ -10,7 +10,7 @@ import {
   chainPromises,
   ConfigService,
   Configuration,
-  EntitiesStorage,
+  EntitiesStorage, firstNotNilPromise,
   firstTruePromise,
   fromDateISOString,
   GraphqlService,
@@ -114,7 +114,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
     IEntitiesService<ReferentialRef, ReferentialRefFilter> {
 
-  private _$ready = new BehaviorSubject<boolean>(false);
   private _importedEntities: string[];
   private static TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
 
@@ -129,14 +128,14 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
   ) {
     super(graphql, environment);
 
-    configService.config.subscribe(config => {
-      this.updateModelEnumerations(config);
-      this._$ready.next(true);
-    });
+    this.start();
   }
 
-  async ready(): Promise<void> {
-    await firstTruePromise(this._$ready);
+  protected async ngOnStart(): Promise<void> {
+    await super.ngOnStart();
+
+    const config = await firstNotNilPromise(this.configService.config);
+    this.updateModelEnumerations(config);
   }
 
   /**

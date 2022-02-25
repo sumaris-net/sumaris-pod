@@ -11,17 +11,15 @@ import {
   AppTable,
   ConfigService,
   EntityServiceLoadOptions,
-  fadeInOutAnimation, firstNotNil, firstNotNilPromise,
+  fadeInOutAnimation,
   HistoryPageReference,
-  isNil,
   isNotNil,
-  PlatformService,
+  LocalSettingsService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
   toBoolean,
   UsageMode,
-  waitFor, WaitForOptions, waitForTrue,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
@@ -29,8 +27,8 @@ import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject, from, Observable } from 'rxjs';
-import { filter, first, map, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, first, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './observed-locations.page';
@@ -39,7 +37,7 @@ import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
 import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { toPromise } from '@apollo/client';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 
 const moment = momentImported;
 
@@ -59,7 +57,7 @@ type ILandingsTable = AppTable<any> & { setParent(value: ObservedLocation | unde
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: AppRootDataEditor, useExisting: ObservedLocationPage}
+    {provide: APP_ENTITY_EDITOR, useExisting: ObservedLocationPage}
   ],
 })
 export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, ObservedLocationService> implements OnInit {
@@ -94,7 +92,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     injector: Injector,
     dataService: ObservedLocationService,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected configService: ConfigService,
     protected accountService: AccountService,
     protected context: ContextService
@@ -105,11 +103,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       {
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
-        autoOpenNextTab: !platform.mobile,
+        autoOpenNextTab: !settings.mobile,
         i18nPrefix: 'OBSERVED_LOCATION.EDIT.'
       });
     this.defaultBackHref = '/observations';
-    this.mobile = this.platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;

@@ -124,8 +124,8 @@ export class PmfmFieldStylePipe implements PipeTransform {
 
   private readonly _mobile: boolean;
 
-  constructor(platform: PlatformService) {
-    this._mobile = platform.mobile;
+  constructor(settings: LocalSettingsService) {
+    this._mobile = settings.mobile;
   }
 
   transform(pmfm: IPmfm, maxVisibleButtons?: number): any {

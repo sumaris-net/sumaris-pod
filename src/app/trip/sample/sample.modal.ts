@@ -1,33 +1,34 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
-  EntityUtils, FormErrorTranslator,
+  EntityUtils,
+  FormErrorTranslator,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  PlatformService,
   referentialToString,
   toBoolean,
   TranslateContextService,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subscription, TeardownLogic} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
-import {SampleForm} from './sample.form';
-import {Sample} from '../services/model/sample.model';
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from '../services/config/trip.config';
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {Moment} from 'moment';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { environment } from '@environments/environment';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { SampleForm } from './sample.form';
+import { Sample } from '../services/model/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import * as momentImported from 'moment';
+import { Moment } from 'moment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+
 const moment = momentImported;
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
@@ -118,7 +119,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   constructor(
     protected injector: Injector,
-    protected platform: PlatformService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
@@ -128,12 +128,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected cd: ChangeDetectorRef
   ) {
     // Default value
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+    this.showComment = !this.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;
-    this.showComment = !this.mobile;
   }
 
   ngOnInit() {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { BehaviorSubject, defer, Observable, Subject, Subscription } from 'rxjs';
-import { filter, finalize, map } from 'rxjs/operators';
+import { BehaviorSubject, defer, merge, Observable, Subject, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, finalize, map, takeUntil } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
 import {
@@ -25,8 +25,10 @@ import {
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
+  ShowToastOptions,
   StatusIds,
   suggestFromArray,
+  Toasts,
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -45,6 +47,10 @@ import { ProgramFilter } from './filter/program.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { environment } from '@environments/environment';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { OverlayEventDetail } from '@ionic/core';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 
 
 export const ProgramRefQueries = {
@@ -113,13 +119,21 @@ export const ProgramRefQueries = {
   ${ReferentialFragments.taxonName}`
 };
 
-const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions = {
+const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions & { listenAuthorizedPrograms: any} = {
   listenChanges: gql`subscription UpdateProgram($id: Int!, $interval: Int){
     data: updateProgram(id: $id, interval: $interval) {
       ...LightProgramFragment
     }
   }
+  ${ProgramFragments.lightProgram}`,
+
+  listenAuthorizedPrograms: gql`subscription UpdateAuthorizedPrograms($interval: Int){
+    data: authorizedPrograms(interval: $interval) {
+      ...LightProgramFragment
+    }
+  }
   ${ProgramFragments.lightProgram}`
+
 };
 
 const ProgramRefCacheKeys = {
@@ -146,6 +160,7 @@ export class ProgramRefService
       subject: Subject<Program>;
       subscription: Subscription;
     }} = {};
+  private _listenAuthorizedSubscription: Subscription = null;
 
   constructor(
     graphql: GraphqlService,
@@ -156,7 +171,11 @@ export class ProgramRefService
     protected entities: EntitiesStorage,
     protected configService: ConfigService,
     protected pmfmService: PmfmService,
-    protected referentialRefService: ReferentialRefService
+    protected networkService: NetworkService,
+    protected referentialRefService: ReferentialRefService,
+    protected toastController: ToastController,
+    protected strategyRefService: StrategyRefService,
+    protected translate: TranslateService
   ) {
     super(graphql, platform, Program, ProgramFilter,
       {
@@ -166,11 +185,36 @@ export class ProgramRefService
 
     this._debug = !environment.production;
     this._logPrefix = '[program-ref-service] ';
+
+    this.start();
+  }
+
+  protected async ngOnStart(): Promise<void> {
+    await super.ngOnStart();
+    this.registerSubscription(
+      merge(
+        this.networkService.onNetworkStatusChanges,
+        this.accountService.onLogin,
+        this.accountService.onLogout
+      )
+        .pipe(
+          map(_ => this.networkService.online && this.accountService.isLogin()),
+          distinctUntilChanged()
+        )
+        .subscribe((onlineAndLogin) => {
+          if (onlineAndLogin) {
+            this.startListenAuthorizedProgram();
+          }
+          else {
+            this.stopListenAuthorizedProgram();
+          }
+        })
+    )
   }
 
   canUserWrite(data: Program, opts?: any): boolean {
-    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
-    return super.canUserWrite(data, opts);
+    console.warn("Make no sense to write using the ProgramRefService. Please use the ProgramService instead.")
+    return false;
   }
 
   canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
@@ -183,6 +227,7 @@ export class ProgramRefService
 
     // TODO: check rights on program (ProgramPerson, ProgramDepartment)
     // const program = opts?.program || load()
+    console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
 
     // Check same department
     return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
@@ -707,4 +752,60 @@ export class ProgramRefService
 
   /* -- protected methods -- */
 
+  protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number; }) {
+    if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
+
+    if (this.accountService.isAdmin()) return; // Skip watching if admin
+
+    console.debug(`${this._logPrefix} Watching authorized programs...`);
+
+    const variables = {
+      interval: Math.max(10, opts?.intervalInSeconds || environment.program?.listenIntervalInSeconds || 10)
+    };
+
+    this._listenAuthorizedSubscription = this.graphql.subscribe<{data: any}>({
+      query: ProgramRefSubscriptions.listenAuthorizedPrograms,
+      variables,
+      error: {
+        code: ErrorCodes.SUBSCRIBE_AUTHORIZED_PROGRAMS_ERROR,
+        message: 'PROGRAM.ERROR.SUBSCRIBE_AUTHORIZED_PROGRAMS'
+      }
+    })
+      .pipe(
+        takeUntil(this.accountService.onLogout),
+        // Map to sorted labels
+        map(({data}) => (data||[]).map(p => p?.label).sort().join(',')),
+        distinctUntilChanged()
+      )
+      .subscribe(async (programLabels) => {
+        console.info(`${this._logPrefix}Authorized programs changed to: ${programLabels}`);
+
+        await Promise.all([
+          // Clear all program/strategies cache
+          this.graphql.clearCache(),
+          this.strategyRefService.clearCache(),
+          // Clear Apollo cache used by autocomplete fields
+          this.clearCache()
+        ]);
+
+        this.showToast({message: 'PROGRAM.INFO.AUTHORIZED_PROGRAMS_UPDATED', type: 'info'});
+      });
+
+    this._listenAuthorizedSubscription.add(() => console.debug(`${this._logPrefix}Stop watching authorized programs`));
+    this.registerSubscription(this._listenAuthorizedSubscription);
+
+    return this._listenAuthorizedSubscription;
+  }
+
+  protected stopListenAuthorizedProgram() {
+    if (this._listenAuthorizedSubscription) {
+      this.unregisterSubscription(this._listenAuthorizedSubscription);
+      this._listenAuthorizedSubscription.unsubscribe();
+      this._listenAuthorizedSubscription = null;
+    }
+  }
+
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
+  }
 }

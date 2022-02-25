@@ -139,7 +139,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
     protected validatorService: BatchValidatorService,
     protected referentialRefService: ReferentialRefService
   ) {
@@ -153,7 +152,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       });
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -176,7 +175,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       // Set items (useful to speed up the batch group modal)
       this.registerAutocompleteField('taxonGroup', {
         items: this.availableTaxonGroups,
-        mobile: this.settings.mobile
+        mobile: this.mobile
       });
     } else {
       this.registerAutocompleteField('taxonGroup', {
@@ -191,7 +190,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonNames(value, filter),
       filter: this.taxonNameFilter,
-      mobile: this.settings.mobile
+      mobile: this.mobile
     });
 
     this.registerSubscription(

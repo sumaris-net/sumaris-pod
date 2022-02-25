@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import { AlertController, ModalController, Platform } from '@ionic/angular';
@@ -137,24 +137,18 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected accountService: AccountService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat(
-          platform.is('mobile') ?
+          settings.mobile ?
             ['quality',
               'physicalGear',
               'targetSpecies',

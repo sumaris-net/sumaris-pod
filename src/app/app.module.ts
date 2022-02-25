@@ -71,6 +71,7 @@ import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
 import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 import { Downloader } from '@ionic-native/downloader/ngx';
+import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
 
 @NgModule({
   declarations: [
@@ -80,7 +81,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot(), // FIXME: After Ionic v6 upgrade, override platform detection (see issue #323)
     CacheModule.forRoot(),
     IonicStorageModule.forRoot({
       name: 'sumaris', // default
@@ -186,6 +187,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
+        ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 

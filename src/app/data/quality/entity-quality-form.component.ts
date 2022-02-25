@@ -12,7 +12,6 @@ import {
   isNotNil,
   LocalSettingsService,
   NetworkService,
-  PlatformService,
   ReferentialRef,
   ShowToastOptions,
   StatusIds,
@@ -104,11 +103,10 @@ export class EntityQualityFormComponent<
     protected userEventService: UserEventService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
-    platform: PlatformService,
     @Optional() @Inject(APP_ENTITY_EDITOR) editor: AppEntityEditor<T, S, ID>
   ) {
     this.editor = editor;
-    this._mobile = platform.mobile;
+    this._mobile = settings.mobile;
 
     // DEBUG
     this._debug = !environment.production;
@@ -158,13 +156,16 @@ export class EntityQualityFormComponent<
   async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
 
     this.busy = true;
+    // Disable the editor
+    this.editor.disable();
+
     let valid = false;
 
     try {
       // Make sure to get valid and saved data
       const data = await this.editor.saveAndGetDataIfValid();
 
-      // no data: skip
+      // no data or invalid: skip
       if (!data) return false;
 
       if (this._debug) console.debug(`[quality] Control ${data.constructor.name}...`);
@@ -190,6 +191,7 @@ export class EntityQualityFormComponent<
       }
     }
     finally {
+      this.editor.enable(opts);
       this.busy = false;
     }
 

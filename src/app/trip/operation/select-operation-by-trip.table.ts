@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {OperationValidatorService} from '../services/validator/operation.validator';
 import {AlertController, ModalController, Platform} from '@ionic/angular';
@@ -101,24 +101,17 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
+    formBuilder: FormBuilder,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
     protected tripService: TripService,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat(
           ['tripId',

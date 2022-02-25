@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
@@ -120,16 +120,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate,
       {
-        tabCount: platform.mobile ? 1 : 3
+        tabCount: settings.mobile ? 1 : 3
       });
 
     // Defaults
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.debug = !environment.production
     this.i18nContext = {
       prefix: '',

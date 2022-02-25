@@ -272,7 +272,8 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-error>
+                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance }}</mat-error>
+                <!--<mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-error>-->
                 <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-hint>
                 <mat-hint align="end" *ngIf="!distanceWarning && distance">
                   {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
@@ -398,9 +399,9 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-error>
-                <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-hint>
-                <mat-hint align="end" *ngIf="!distanceError && !distanceWarning && distance">
+                <mat-error *ngIf="position.hasError('maxDistance'); else hints">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance }}</mat-error>
+                <mat-hint align="end" *ngIf="!position.errors && distance >= 0">
+                  <mat-icon *ngIf="distanceWarning" color="warn">warning</mat-icon>
                   {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
                 </mat-hint>
               </mat-latlong-field>
@@ -411,7 +412,7 @@
     </ion-row>
 
     <!-- Fishing areas -->
-    <ng-container *ngIf='showFishingArea'>
+    <ng-container *ngIf="showFishingArea">
       <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i=index; first as first">
         <ion-col size="0" size-md="3" size-lg="3">
           <ion-label class="ion-float-end" hidden-xs hidden-sm

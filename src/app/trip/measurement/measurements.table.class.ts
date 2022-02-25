@@ -53,7 +53,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected measurementsValidatorService: MeasurementsValidatorService;
 
   protected programRefService: ProgramRefService;
-  protected translate: TranslateService;
   protected pmfmNamePipe: PmfmNamePipe;
   protected formBuilder: FormBuilder;
   protected readonly options: AppMeasurementsTableOptions<T>;
@@ -166,26 +165,18 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   protected constructor(
-    protected injector: Injector,
+    injector: Injector,
     protected dataType: new() => T,
     dataService?: IEntitiesService<T, F>,
     protected validatorService?: ValidatorService,
     @Optional() options?: AppMeasurementsTableOptions<T>
   ) {
-    super(injector.get(ActivatedRoute),
-      injector.get(Router),
-      injector.get(Platform),
-      injector.get(Location),
-      injector.get(ModalController),
-      injector.get(LocalSettingsService),
+    super(injector,
       // Columns:
       RESERVED_START_COLUMNS
         .concat(options && options.reservedStartColumns || [])
         .concat(options && options.reservedEndColumns || [])
-        .concat(RESERVED_END_COLUMNS),
-      null,
-      null,
-      injector
+        .concat(RESERVED_END_COLUMNS)
     );
     // Default options
     this.options = {
@@ -198,14 +189,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
     this.programRefService = injector.get(ProgramRefService);
-    this.translate = injector.get(TranslateService);
     this.pmfmNamePipe = injector.get(PmfmNamePipe);
     this.formBuilder = injector.get(FormBuilder);
     this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.markAsLoaded({emitEvent: false});
 
-    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
+    this.measurementsDataService = new MeasurementsDataService<T, F>(injector, this.dataType, dataService, {
       mapPmfms: options.mapPmfms || undefined,
       requiredStrategy: this.options.requiredStrategy,
       debug: options.debug || false

@@ -10,7 +10,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService,
+  LocalSettingsService,
   toBoolean,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -158,16 +158,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected tripService: TripService,
     protected operationService: OperationService,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate,
       {
-        tabCount: platform.mobile ? 1 : 2
+        tabCount: settings.mobile ? 1 : 2
       });
 
     // Defaults
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;

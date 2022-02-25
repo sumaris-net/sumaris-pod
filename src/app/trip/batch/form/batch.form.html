@@ -38,51 +38,13 @@
     <ion-row class="ion-no-padding" [formGroup]="measurementValuesForm">
       <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
                size="12" class="ion-no-padding">
-        <ng-container [ngSwitch]="pmfm.type">
-
-          <!-- Qualitative value -->
-          <ng-container *ngSwitchCase="'qualitative_value'">
-            <!-- If mobile + qualitative value: force 'button' style -->
-            <ng-container *ngIf="mobile && !pmfm.hidden; else defaultPmfmField">
-              <app-pmfm-qv-field #matInput
-                                 [pmfm]="pmfm"
-                                 [hidden]="pmfm.hidden || matInput.formControl?.disabled"
-                                 [style]="'button'"
-                                 [formControlName]="pmfm.id|toString"
-                                 [compact]="compact"
-                                 [maxVisibleButtons]="maxVisibleButtons"
-                                 [tabindex]="tabindex+2 + i*2">
-              </app-pmfm-qv-field>
-            </ng-container>
-          </ng-container>
-
-          <!-- Boolean -->
-          <ng-container *ngSwitchCase="'boolean'">
-            <!-- If mobile, force 'button' style -->
-            <mat-boolean-field *ngIf="mobile && !pmfm.hidden; else defaultPmfmField"
-                               [style]="'button'"
-                               [placeholder]="pmfm|pmfmName"
-                               [formControlName]="pmfm.id|toString"
-                               [compact]="compact"
-                               [tabindex]="tabindex+2 + i*2">
-            </mat-boolean-field>
-          </ng-container>
-
-          <!-- other PMFM types -->
-          <ng-container *ngSwitchDefault [ngTemplateOutlet]="defaultPmfmField">
-          </ng-container>
-
-        </ng-container>
-
-        <!-- NOT qualitative value -->
-        <ng-template #defaultPmfmField>
           <app-pmfm-field #matInput [pmfm]="pmfm"
-                          [hidden]="pmfm.hidden"
+                          [hidden]="pmfm.hidden || matInput.formControl?.disabled"
                           [formControlName]="pmfm.id|toString"
+                          [style]="pmfm|pmfmFieldStyle"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>
-        </ng-template>
       </ion-col>
     </ion-row>
 

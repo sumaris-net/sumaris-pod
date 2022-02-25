@@ -74,13 +74,7 @@ export class ObservedLocationsPage extends
   }
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -90,7 +84,7 @@ export class ObservedLocationsPage extends
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat([
           'quality',
@@ -103,8 +97,6 @@ export class ObservedLocationsPage extends
         .concat(RESERVED_END_COLUMNS),
       dataService,
       new EntitiesTableDataSource(ObservedLocation, dataService),
-      null, // Filter
-      injector
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({

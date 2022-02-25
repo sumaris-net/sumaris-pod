@@ -13,11 +13,11 @@ import {
   IEntitiesService,
   isNil,
   isNotNil,
-  LoadResult,
+  LoadResult, LocalSettingsService,
   PlatformService,
   Referential,
   ReferentialRef,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import {ReferentialFragments} from './referential.fragments';
 import {environment} from '@environments/environment';
@@ -106,21 +106,18 @@ export class ReferentialService
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
-    protected platform: PlatformService
+    protected settings: LocalSettingsService
   ) {
     super(graphql, environment);
 
-    platform.ready().then(() => {
-      // No limit for updatable watch queries, if desktop
-      if (!platform.mobile) {
-        this._mutableWatchQueriesMaxCount = -1;
-      }
+    this.settings.ready().then(() => {
+      // No limit for updatable watch queries, if desktop. Limit to 3 when mobile
+      this._mutableWatchQueriesMaxCount = this.settings.mobile ? 3 : -1;
     });
 
     // For DEV only
     this._debug = !environment.production;
   }
-
 
   watchAll(offset: number,
            size: number,

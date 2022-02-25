@@ -77,10 +77,9 @@
 
   </ion-grid>
 
-
   <!-- QV children -->
-  <ion-grid *ngIf="qvPmfm">
-    <ion-row>
+  <ion-grid *ngIf="qvPmfm; else noQvPmfm">
+    <ion-row >
       <ion-col *ngFor="let qv of qvPmfm.qualitativeValues; index as i;"
                size="12" size-md="">
 
@@ -114,7 +113,16 @@
         </ion-card>
       </ion-col>
     </ion-row>
+
+
   </ion-grid>
+
+  <!-- NO QV children -->
+  <ng-template #noQvPmfm>
+    <!-- TODO: use a simple batch modal, instead of this complex modal ?? -->
+    <ion-label color="danger" translate>ERROR.FEATURE_NOT_IMPLEMENTED</ion-label>
+  </ng-template>
+
 </form>
 
 

@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  isNotNilOrBlank, LocalSettingsService,
   PlatformService,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -73,7 +73,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected pmfmService: PmfmService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
-  protected platform: PlatformService;
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
@@ -99,7 +98,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   ) {
     super(injector, Landing, injector.get(LandingService), {
       pathIdAttribute: 'landingId',
-      autoOpenNextTab: true,
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
       ...options
@@ -108,10 +107,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
-    this.platform = injector.get(PlatformService);
     this.contextService = injector.get(ContextService);
 
-    this.mobile = this.platform.mobile;
+    this.mobile = this.settings.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }

@@ -313,7 +313,7 @@
   <!-- progress bar -->
   <ion-list *ngIf="importing" lines="none">
     <ion-list-header>
-      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
+      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $progression | async} }}</ion-label>
     </ion-list-header>
     <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
   </ion-list>

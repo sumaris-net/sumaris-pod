@@ -58,7 +58,8 @@ export abstract class AppRootTable<
   offline = false;
 
   importing = false;
-  $importProgression = new BehaviorSubject<number>(0);
+  progressionMessage: string = null;
+  $progression = new BehaviorSubject<number>(0);
   hasOfflineMode = false;
   featureId: string;
 
@@ -82,24 +83,14 @@ export abstract class AppRootTable<
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   protected constructor(
-    route: ActivatedRoute,
-    router: Router,
-    platform: Platform | PlatformService,
-    location: Location,
-    modalCtrl: ModalController,
-    settings: LocalSettingsService,
+    injector: Injector,
     columns: string[],
     protected dataService: IDataSynchroService<T, ID>,
-    _dataSource?: EntitiesTableDataSource<T, F, ID>,
-    _filter?: F,
-    injector?: Injector
+    dataSource?: EntitiesTableDataSource<T, F, ID>,
+    filter?: F
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
-      columns,
-      _dataSource,
-      _filter, injector
-    );
+    super(injector, columns, dataSource, filter || null);
     this.network = injector && injector.get(NetworkService);
     this.accountService = injector && injector.get(AccountService);
     this.userEventService = injector && injector.get(UserEventService);
@@ -165,7 +156,7 @@ export abstract class AppRootTable<
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.$importProgression.unsubscribe();
+    this.$progression.unsubscribe();
 
   }
 
@@ -212,7 +203,8 @@ export abstract class AppRootTable<
       });
     }
 
-    this.$importProgression.next(0);
+    this.progressionMessage = 'NETWORK.INFO.IMPORTATION_PCT_DOTS';
+    this.$progression.next(0);
 
     let success = false;
     try {
@@ -235,7 +227,7 @@ export abstract class AppRootTable<
             }),
             throttleTime(100)
           )
-          .subscribe(progression => this.$importProgression.next(progression))
+          .subscribe(progression => this.$progression.next(progression))
           .add(() => {
             resolve();
           });

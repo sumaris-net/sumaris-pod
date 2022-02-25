@@ -10,7 +10,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrNaN,
+  isNotNilOrNaN, LocalSettingsService,
   PlatformService,
   propertiesPathComparator,
   ReferentialRef,
@@ -243,16 +243,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
-
   @ViewChild(MatMenuTrigger) rowMenuTrigger: MatMenuTrigger;
 
   constructor(
     injector: Injector,
-    protected platform: PlatformService
+    protected settings: LocalSettingsService
   ) {
     super(injector,
       // Force no validator (readonly mode, if mobile)
-      platform.mobile ? null : injector.get(ValidatorService),
+      settings.mobile ? null : injector.get(ValidatorService),
       new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
@@ -668,10 +667,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (!this.weightMethodForm && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER]) {
 
       // Create the form, for each QV value
-      this.weightMethodForm = this.formBuilder.group(qvPmfm.qualitativeValues.reduce((res, qv, index) => {
-        res[index] = [false, Validators.required];
-        return res;
-      }, {}));
+      if (qvPmfm) {
+        this.weightMethodForm = this.formBuilder.group(qvPmfm.qualitativeValues.reduce((res, qv, index) => {
+          res[index] = [false, Validators.required];
+          return res;
+        }, {}));
+      }
+      else {
+        // TODO create weightMethodForm when no QV Pmfm
+      }
     }
 
     this.estimatedWeightPmfm = this.weightPmfmsByMethod && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;

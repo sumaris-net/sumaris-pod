@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, Output, ViewChild } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -8,7 +8,6 @@ import {
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   ObjectMap,
   PersonService,
   PersonUtils,
@@ -20,28 +19,25 @@ import {
   StatusIds,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import {Program} from '../../services/model/program.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds} from '../../services/model/model.enum';
-import {ReferentialFilter} from '../../services/filter/referential.filter';
-import {ReferentialRefService} from '../../services/referential-ref.service';
-import {ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME} from '../../services/config/program.config';
-import {environment} from '@environments/environment';
-import {SamplingStrategy} from '../../services/model/sampling-strategy.model';
-import {SamplingStrategyService} from '../../services/sampling-strategy.service';
-import {StrategyService} from '../../services/strategy.service';
+import { Program } from '../../services/model/program.model';
+import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { ReferentialFilter } from '../../services/filter/referential.filter';
+import { ReferentialRefService } from '../../services/referential-ref.service';
+import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
+import { environment } from '@environments/environment';
+import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
+import { SamplingStrategyService } from '../../services/sampling-strategy.service';
+import { StrategyService } from '../../services/strategy.service';
 import * as momentImported from 'moment';
-import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ParameterService} from '@app/referential/services/parameter.service';
-import {debounceTime, filter, tap} from 'rxjs/operators';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
-import {Subject} from 'rxjs';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-import {StrategyModal} from '@app/referential/strategy/strategy.modal';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ParameterService } from '@app/referential/services/parameter.service';
+import { debounceTime, filter, tap } from 'rxjs/operators';
+import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import { Subject } from 'rxjs';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 
 const moment = momentImported;
 
@@ -97,12 +93,6 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    platform: Platform,
-    location: Location,
-    modalCtrl: ModalController,
-    localSettingsService: LocalSettingsService,
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
     protected strategyService: StrategyService,
@@ -112,12 +102,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-    super(route,
-      router,
-      platform,
-      location,
-      modalCtrl,
-      localSettingsService,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -139,9 +124,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         dataServiceOptions: {
           readOnly: true,
         }
-      }),
-      null,
-      injector);
+      }));
 
     this.parameterGroupLabels = Object.keys(ParameterLabelGroups)
       .filter(label => label !== 'TAG_ID');

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input 
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
@@ -56,10 +56,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -70,7 +68,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         periodDuration: ['15day', Validators.required],
       }));
     this._enable = false; // Disable by default
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');

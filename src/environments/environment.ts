@@ -10,10 +10,11 @@ import { Environment } from '@sumaris-net/ngx-components';
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error';
+import { AppEnvironment } from '@environments/environment.class';
 
 const pkg = require('../../package.json');
 
-export const environment = Object.freeze(<Environment>{
+export const environment = Object.freeze(<AppEnvironment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
@@ -22,9 +23,6 @@ export const environment = Object.freeze(<Environment>{
   defaultLatLongFormat: "DDMM",
   apolloFetchPolicy: "no-cache",
   mock: false,
-
-  // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: false,
 
   // FIXME: enable cache
   persistCache: false,
@@ -116,6 +114,16 @@ export const environment = Object.freeze(<Environment>{
 
     // Token auth (using Person.pubkey)
     username: 'admin@sumaris.net', password: 'admin',
+  },
+
+  account: {
+    enableListenChanges: true,
+    listenIntervalInSecond: 10
+  },
+
+  program: {
+    enableListenChanges: true,
+    listenIntervalInSecond: 10
   }
 });
 
