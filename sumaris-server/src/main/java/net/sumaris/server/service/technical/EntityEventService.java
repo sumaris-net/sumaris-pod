@@ -56,7 +56,7 @@ public interface EntityEventService {
         L extends Collection<V>> Observable<L>
     watchEntities(Class<T> entityClass,
                   Callable<Optional<L>> loader,
-                  Integer intervalInSeconds,
+                  @Nullable Integer intervalInSeconds,
                   boolean startWithActualValue);
 
     <ID extends Serializable, D extends Date, V extends IUpdateDateEntityBean<ID, D>, L extends Collection<V>> Observable<L>
