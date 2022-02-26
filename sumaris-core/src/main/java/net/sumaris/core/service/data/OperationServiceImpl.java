@@ -165,6 +165,11 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
+    public OperationVO control(OperationVO source) {
+        return operationRepository.control(source);
+    }
+
+    @Override
     public List<OperationVO> save(List<OperationVO> operations) {
         Preconditions.checkNotNull(operations);
 
@@ -205,6 +210,9 @@ public class OperationServiceImpl implements OperationService {
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 
+
+        // Reset control date
+        source.setControlDate(null);
     }
 
     protected void saveChildrenEntities(final OperationVO source) {

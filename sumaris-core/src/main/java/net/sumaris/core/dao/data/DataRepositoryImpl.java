@@ -206,13 +206,13 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         // TODO CONTROL PROCESS HERE
         Date newUpdateDate = getDatabaseCurrentDate();
         entity.setControlDate(newUpdateDate);
+        entity.setQualificationComments(vo.getQualificationComments());
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
         getEntityManager().merge(entity);
-
 
         // Update source
         vo.setControlDate(newUpdateDate);

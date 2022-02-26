@@ -761,6 +761,12 @@ public class DataGraphQLService {
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
+    @GraphQLMutation(name = "controlOperation", description = "Control an operation")
+    @IsUser
+    public OperationVO controlOperation(@GraphQLNonNull @GraphQLArgument(name = "operation") OperationVO operation) {
+        return operationService.control(operation);
+    }
+
     /* -- Operation Groups -- */
 
     @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")

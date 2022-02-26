@@ -36,7 +36,7 @@ public class TripEventListener {
     @JmsListener(destination = JmsEntityEvents.DESTINATION,
         selector = "operation = 'insert' AND entityName = 'Trip'",
         containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    public void onTripCreated(TripVO entity) {
+    public void onInsertTrip(TripVO entity) {
         log.info("New trip {id: {}, recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
         // TODO send event for supervisor
     }
@@ -44,7 +44,7 @@ public class TripEventListener {
     @JmsListener(destination = JmsEntityEvents.DESTINATION,
         selector = "operation = 'update' AND entityName = 'Trip'",
         containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    public void onTripUpdated(TripVO entity) {
+    public void onUpdateTrip(TripVO entity) {
         log.info("Updated trip {id: {}, recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
         // TODO send event for supervisor
 
