@@ -460,6 +460,8 @@ type Mutation {
   confirmAccountEmail(code: String, email: String): Boolean!
   "Control an observed location"
   controlObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
+  "Control an operation"
+  controlOperation(operation: OperationVOInput!): OperationVO
   "Control a trip"
   controlTrip(trip: TripVOInput!): TripVO
   "Create an account"

@@ -1,6 +1,6 @@
 import { EntityAsObjectOptions, fromDateISOString,  isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions, IDataEntity} from './data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions, DataEntityUtils, IDataEntity } from './data-entity.model';
 import {IWithProgramEntity, IWithRecorderPersonEntity, SynchronizationStatus} from './model.utils';
 import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
@@ -66,16 +66,11 @@ export abstract class DataRootEntityUtils {
 
   static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
-    target.controlDate = fromDateISOString(source.controlDate);
+    DataEntityUtils.copyControlDate(source, target);
     target.validationDate = fromDateISOString(source.validationDate);
   }
 
-  static copyQualificationDateAndFlag(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
-    if (!source) return;
-    target.qualificationDate = fromDateISOString(source.qualificationDate);
-    target.qualificationComments = source.qualificationComments;
-    target.qualityFlagId = source.qualityFlagId;
-  }
+  static copyQualificationDateAndFlag = DataEntityUtils.copyQualificationDateAndFlag;
 
   static isLocal(entity: RootDataEntity<any, any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);

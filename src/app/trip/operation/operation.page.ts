@@ -359,7 +359,7 @@ export class OperationPage
 
             this.showBatchTables = this.showBatchTablesByProgram;
             this.showSamplesTab = this.showSampleTablesByProgram;
-            this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+            this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 
             // Force first sub tab index, if modification was done from the form
             // This condition avoid to change subtab, when reloading the page
@@ -393,7 +393,7 @@ export class OperationPage
             this.showSampleTablesByProgram = hasAccidentalCatches;
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-            this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+            this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 
             // Force first tab index
             if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
@@ -421,7 +421,7 @@ export class OperationPage
               this.showBatchTables = this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
               this.showSamplesTab = this.showSampleTablesByProgram;
-              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+              this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
@@ -468,7 +468,7 @@ export class OperationPage
             if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+              this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
             }
           })
       );
@@ -480,7 +480,7 @@ export class OperationPage
       this.showBatchTables = this.showBatchTablesByProgram;
       this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
       this.showSamplesTab = this.showSampleTablesByProgram;
-      this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+      this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
       this.updateTablesState();
       this.markForCheck();
     }
@@ -567,10 +567,7 @@ export class OperationPage
     // Load available taxon groups (e.g. with taxon groups found in strategies)
     await this.initAvailableTaxonGroups(program.label);
 
-   /* this.cd.detectChanges();*/
     this.markAsReady();
-
-    //await this.ready();
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -783,6 +780,7 @@ export class OperationPage
     // Display form error, if  has errors from context, applies it on form.
     const error = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
     if (error) {
+      this.form.get('qualificationComments').reset();
       setTimeout(() => {
         console.info('[operation-page] Operation errors: ', error);
         this.markAllAsTouched();

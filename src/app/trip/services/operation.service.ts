@@ -18,7 +18,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
-  FormErrors, FormErrorTranslator,
+  FormErrors, FormErrorTranslator, fromDateISOString,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -34,10 +34,10 @@ import {
   NetworkService,
   QueryVariables,
   toBoolean,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from './model/measurement.model';
-import {DataEntity, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
+import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
 import {
   FISHING_AREAS_LOCATION_REGEXP,
   MINIFY_OPERATION_FOR_LOCAL_STORAGE,
@@ -94,6 +94,8 @@ export const OperationFragments = {
     comments
     hasCatch
     updateDate
+    controlDate
+    qualificationComments
     qualityFlagId
     physicalGearId
     physicalGear {
@@ -134,6 +136,8 @@ export const OperationFragments = {
     fishingStartDateTime
     fishingEndDateTime
     rankOrderOnPeriod
+    controlDate
+    qualificationComments
     qualityFlagId
     physicalGearId
     physicalGear {
@@ -269,9 +273,9 @@ export const OperationQueries = {
   ${OperationFragments.lightOperation}`
 };
 
-const OperationMutations: BaseEntityGraphqlMutations = {
+const OperationMutations: BaseEntityGraphqlMutations & {terminate: any }= {
   // Save many operations
-  saveAll: gql`mutation saveOperations($data:[OperationVOInput]!){
+  saveAll: gql`mutation saveOperations($data:[OperationVOInput]!) {
     data: saveOperations(operations: $data){
       ...OperationFragment
     }
@@ -279,9 +283,17 @@ const OperationMutations: BaseEntityGraphqlMutations = {
   ${OperationFragments.operation}`,
 
   // Delete many operations
-  deleteAll: gql`mutation deleteOperations($ids:[Int]!){
+  deleteAll: gql`mutation deleteOperations($ids:[Int]!) {
     deleteOperations(ids: $ids)
-  }`
+  }`,
+
+  terminate: gql`mutation controlOperation($data:OperationVOInput!) {
+    data: controlOperation(operation: $data) {
+      ...OperationFragment
+    }
+  }
+  ${OperationFragments.operation}`
+
 };
 
 const OperationSubscriptions: BaseEntityGraphqlSubscriptions = {
@@ -322,10 +334,11 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
 }
 
 export declare interface OperationControlOptions extends OperationValidatorOptions {
-  /**
-   * Must save the entity, after the control (update 'controlDate', 'qualificationComments', etc.)
-   */
-  save?: boolean;
+  // Should save entity, after control ? (e.g. update 'controlDate', 'qualificationComments', etc.) - True by default
+  terminate?: boolean;
+
+  // Translator options
+  translatorOptions?: FormErrorTranslatorOptions;
 }
 
 export declare interface OperationMetierFilter {
@@ -515,23 +528,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     this.progressBarService.increase();
 
     try {
-      const isLocalTrip = trip.id < 0;
-      const shouldSave = isLocalTrip && (!opts || opts.save !== false);
 
-      // Prepare validator options
-      opts = await this.fillValidatorOptionsForTrip(trip.id, {trip, ...opts});
-
-      // Prepare error translator
-      let translatorOptions: FormErrorTranslatorOptions;
-      if (shouldSave) {
-        const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-          .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
-        translatorOptions = {
-          controlPathTranslator: {
-            translateControlPath: (path) => this.translateControlPath(path, { pmfms })
-          }
-        };
-      }
+      // Prepare control options
+      opts = await this.fillControlOptionsForTrip(trip.id, {trip, ...opts});
 
       // Load all operations
       const { data } = await this.loadAllByTrip({ tripId: trip.id },
@@ -541,31 +540,40 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       let errorsById: FormErrors = null;
 
+      // For each entity
       for (let entity of data) {
 
         // Load full entity
         entity = await this.load(entity.id);
 
-        const errors = await this.control(entity, {...opts, save: false /*saving later*/});
+        const errors = await this.control(entity, opts);
+
+        // Control failed: save error
         if (errors) {
           errorsById = errorsById || {};
           errorsById[entity.id] = errors;
-          if (shouldSave) {
-            const message = this.formErrorTranslator.translateErrors(errors, translatorOptions);
-            entity.controlDate = undefined;
-            entity.qualificationComments = message;
-            await this.save(entity);
-          }
-        } else {
-          if (shouldSave) {
-            entity.controlDate = entity.controlDate || moment();
-            entity.qualificationComments = null;
-            await this.save(entity);
-          }
+
+          // translate, then save normally
+          const message = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+          entity.controlDate = undefined;
+          entity.qualificationComments = message;
+
+          // Save entity
+          await this.save(entity);
+
+        }
+
+        // OK succeed: terminate
+        else {
+          await this.terminate(entity);
         }
       }
 
       return errorsById;
+    }
+    catch (err) {
+      console.error(err && err.message || err);
+      throw err;
     }
     finally {
       this.progressBarService.decrease();
@@ -584,7 +592,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (this._debug) console.debug(`[operation-service] Control {${entity.id}}...`, entity);
 
     // Fill options (trip, program, etc. )
-    opts = await this.fillValidatorOptionsForTrip(entity.tripId, opts);
+    opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
 
     // Adapt options to the current operation
     if (opts.allowParentOperation) {
@@ -606,17 +614,47 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
-
-        /*if (this._debug)*/
-        console.debug(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
-
+        console.info(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
         return errors;
       }
     }
-    /*if (this._debug)*/
-    console.debug(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
 
-    return undefined;
+    console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+  }
+
+  async terminate(entity: Operation): Promise<Operation> {
+
+    // Clean error
+    entity.qualificationComments = null;
+
+    // Save locally if need
+    if (entity.tripId < 0) {
+      entity.controlDate = entity.controlDate || moment();
+      return this.saveLocally(entity);
+    }
+
+    const json = this.asObject(entity);
+
+    // Or save remotely (using a specific mutation)
+    await this.graphql.mutate<{ data: Operation }>({
+      mutation: OperationMutations.terminate,
+      variables: {
+        data: json
+      },
+      error: { code: ErrorCodes.CONTROL_ENTITY_ERROR, message: "ERROR.CONTROL_ENTITY_ERROR" },
+      update: (cache, {data}) => {
+        const savedEntity = data && data.data;
+
+        // Update (id and updateDate, and controlDate)
+        EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+        DataEntityUtils.copyControlDate(savedEntity, entity);
+
+        // Reset qualification comments, if clean by pod
+        DataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
+      }
+    });
+
+    return entity;
   }
 
   async qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
@@ -735,6 +773,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
           // Copy id and update Date
           this.copyIdAndUpdateDate(savedEntity, entity);
+
+          // Reset qualification comments, if clean by pod
+          DataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
           // Copy gear
           if (savedEntity.metier && !savedEntity.metier.gear) {
@@ -1534,16 +1575,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         target.operationId = savedOperation.id;
 
         const source = sources.find(json => target.equals(json));
-        EntityUtils.copyIdAndUpdateDate(source, target);
-        DataRootEntityUtils.copyControlAndValidationDate(source, target);
+        if (!source) {
+          console.warn('Missing sample sources, equals to target: ', target)
+        }
+        else {
+          EntityUtils.copyIdAndUpdateDate(source, target);
+          DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
-        // Copy parent Id (need for link to parent)
-        target.parentId = source.parentId;
-        target.parent = null;
+          // Copy parent Id (need for link to parent)
+          target.parentId = source.parentId;
+          target.parent = null;
 
-        // Apply to children
-        if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
+          // Apply to children
+          if (target.children && target.children.length) {
+            this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
+          }
         }
       });
     }
@@ -1688,5 +1734,24 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     };
+  }
+
+
+  protected async fillControlOptionsForTrip(tripId: number, opts?: OperationControlOptions): Promise<OperationControlOptions> {
+
+    opts = await this.fillValidatorOptionsForTrip(tripId, opts);
+
+    // Prepare error translator
+    if (!opts.translatorOptions) {
+      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
+        .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+      opts.translatorOptions = {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.translateControlPath(path, { pmfms })
+        }
+      };
+    }
+
+    return opts;
   }
 }

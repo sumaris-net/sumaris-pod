@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
+import { DataEntity, IDataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
   AccountService,
-  AppEntityEditor,
+  AppEntityEditor, AppErrorWithDetails,
   ConfigService,
   EntityUtils,
-  fadeInAnimation,
+  fadeInAnimation, FormErrors, IEntity,
   IEntityService,
   isNil,
   isNotNil,
@@ -16,7 +16,7 @@ import {
   ShowToastOptions,
   StatusIds,
   Toasts,
-  UserEventService,
+  UserEventService
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
 import { QualityFlags } from '@app/referential/services/model/model.enum';
@@ -173,7 +173,8 @@ export class EntityQualityFormComponent<
       valid = isNil(errors);
 
       if (!valid) {
-        errors.message = errors.message || 'QUALITY.ERROR.INVALID_FORM';
+        errors.message = errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM';
+        await this.editor.updateView(data);
         this.editor.setError(errors);
         this.editor.markAllAsTouched();
         if (!opts || opts.emitEvent !== false) {

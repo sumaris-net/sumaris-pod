@@ -1117,17 +1117,13 @@ export class TripService
         const errors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
-           return errors;
+        return errors;
       }
     }
 
     // If trip is Valid, control operations
     else {
-
-      // FIXME: on remote operations, all measurements are loose!
-
       const errors = await this.operationService.controlAllByTrip(entity, {program});
-
       if (errors) {
         return {operations: errors};
       }
