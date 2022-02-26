@@ -775,6 +775,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           this.copyIdAndUpdateDate(savedEntity, entity);
 
           // Reset qualification comments, if clean by pod
+          DataEntityUtils.copyControlDate(savedEntity, entity);
           DataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
           // Copy gear
