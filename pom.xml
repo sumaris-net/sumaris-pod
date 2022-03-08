@@ -148,7 +148,7 @@
     <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
 
     <!-- database version management -->
-    <liquibase.version>3.6.3</liquibase.version>
+    <liquibase.version>4.8.0</liquibase.version>
     <liquibase-hibernate.version>3.8</liquibase-hibernate.version>
 
     <!-- rdf -->
