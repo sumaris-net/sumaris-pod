@@ -9,7 +9,7 @@ import {toDateISOString} from "@sumaris-net/ngx-components";
 
 export abstract class BaseReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,
-  T extends IReferentialRef<T, ID>,
+  T extends IReferentialRef<T, any>,
   ID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
   FO = any>

@@ -59,6 +59,7 @@
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
+    "CSV_SEPARATOR": ",",
     "BTN_DECIMAL_SEPARATOR": ".",
     "EMPTY_OPTION": "(Empty)",
     "All_OPTION": "(All)",

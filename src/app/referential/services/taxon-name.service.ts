@@ -22,7 +22,7 @@ import { ReferentialFragments } from './referential.fragments';
 import { TaxonName } from './model/taxon-name.model';
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
 
-export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any; }= {
+export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any; } = {
   loadAll: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
     data: taxonNames(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...LightTaxonNameFragment
@@ -54,7 +54,7 @@ export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists
   }`
 }
 
-const TaxonNameMutations: BaseEntityGraphqlMutations = {
+const MUTATIONS: BaseEntityGraphqlMutations = {
   save: gql`mutation saveTaxonName($data: TaxonNameVOInput!){
     data: saveTaxonName(taxonName: $data){
     ...FullTaxonNameFragment
@@ -75,7 +75,7 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
     super(graphql, platform,
     TaxonName, TaxonNameFilter, {
       queries: TaxonNameQueries,
-      mutations: TaxonNameMutations
+      mutations: MUTATIONS
     });
   }
 

@@ -29,7 +29,7 @@ import {statusToColor, SynchronizationStatusEnum} from '@app/data/services/model
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {environment} from '@environments/environment';
-import {AppRootTable} from '@app/data/table/root-table.class';
+import {AppRootDataTable} from '@app/data/table/root-table.class';
 import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
 import {VesselFilter} from '../services/filter/vessel.filter';
 import {MatExpansionPanel} from '@angular/material/expansion';
@@ -50,7 +50,7 @@ export const VesselsTableSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
+export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> implements OnInit {
 
   locations: Observable<ReferentialRef[]>;
 

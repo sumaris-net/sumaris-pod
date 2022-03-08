@@ -172,7 +172,7 @@ export class OperationPage
     );
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {

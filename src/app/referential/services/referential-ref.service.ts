@@ -38,7 +38,7 @@ import {
   ProgramLabel,
   TaxonGroupIds,
   TaxonomicLevelIds,
-  UnitIds,
+  UnitIds, UnitLabelGroups
 } from './model/model.enum';
 import { TaxonGroupRef } from './model/taxon-group.model';
 import { TaxonNameRef } from './model/taxon-name.model';
@@ -53,6 +53,10 @@ import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
+import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
+import { WeightLengthConversionService } from '@app/referential/services/weight-length-conversion.service';
+import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/services/model/weight-length-conversion.model';
+import { WeightLengthConversionRefService } from '@app/referential/services/weight-length-conversion-ref.service';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{
@@ -103,6 +107,7 @@ const LoadAllWithTotalTaxonGroupsQuery: any = gql`
   ${ReferentialFragments.taxonName}
 `;
 
+const IMPORT_DEFAULT_ENTITY_NAMES = ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType', 'WeightLengthConversion'];
 
 export const ReferentialRefQueries: BaseEntityGraphqlQueries = {
   loadAll: LoadAllQuery,
@@ -121,6 +126,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     protected graphql: GraphqlService,
     protected referentialService: ReferentialService,
     protected metierService: MetierService,
+    protected weightLengthConversionRefService: WeightLengthConversionRefService,
     protected accountService: AccountService,
     protected configService: ConfigService,
     protected network: NetworkService,
@@ -565,6 +571,23 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return this.metierService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
+
+  async loadAllWeightLengthConversion(offset: number,
+                      size: number,
+                      sortBy?: string,
+                      sortDirection?: SortDirection,
+                      filter?: Partial<WeightLengthConversionFilter>,
+                      opts?: {
+                        [key: string]: any;
+                        fetchPolicy?: FetchPolicy;
+                        debug?: boolean;
+                        toEntity?: boolean;
+                        withTotal?: boolean;
+                      }): Promise<LoadResult<WeightLengthConversionRef>> {
+    return this.weightLengthConversionRefService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
     throw new Error('Not implemented yet');
   }
@@ -646,7 +669,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                         statusIds?: number[];
                       }) {
 
-    const entityNames = opts && opts.entityNames || ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType'];
+    const entityNames = opts && opts.entityNames || IMPORT_DEFAULT_ENTITY_NAMES;
 
     const maxProgression = opts && opts.maxProgression || 100;
     const stepCount = entityNames.length;
@@ -725,6 +748,18 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
             {maxProgression, logPrefix}
           );
           break;
+        case 'WeightLengthConversion':
+          res = await JobUtils.fetchAllPages<any>((offset, size) =>
+              this.loadAllWeightLengthConversion(offset, size, 'id', null,
+                {statusIds}, {
+                  fetchPolicy: 'network-only',
+                  debug: true, // TODO: change to false
+                  toEntity: false
+                }),
+            progression,
+            {maxProgression, logPrefix}
+          );
+          break;
         case 'TaxonGroup':
           filter = {entityName, statusIds, levelIds: [TaxonGroupIds.FAO]};
           break;
@@ -794,7 +829,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
     LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
     LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
-    LocationLevelIds.LOCATIONS_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_LOCATIONS_AREA_ID);
+    LocationLevelIds.LOCATIONS_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_LOCATIONS_AREA_IDS);
+    LocationLevelIds.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
 
     // Taxonomic Levels
     TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);
@@ -811,6 +847,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // Fractions Groups
     FractionIdGroups.CALCIFIED_STRUCTURE = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS);
+
+    // Unit groups
+    UnitLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.UNIT_GROUP_LENGTH_LABELS);
 
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration

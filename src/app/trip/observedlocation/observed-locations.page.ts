@@ -24,7 +24,7 @@ import {
 import {ObservedLocationService} from '../services/observed-location.service';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {ObservedLocation} from '../services/model/observed-location.model';
-import {AppRootTable} from '@app/data/table/root-table.class';
+import {AppRootDataTable} from '@app/data/table/root-table.class';
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {environment} from '@environments/environment';
 import {BehaviorSubject} from 'rxjs';
@@ -51,7 +51,7 @@ export const ObservedLocationsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationsPage extends
-  AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+  AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');

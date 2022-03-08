@@ -10,7 +10,7 @@ import {
   fadeInOutAnimation,
   FormFieldDefinitionMap,
   HistoryPageReference,
-  isNil,
+  isNil, isNotNil,
   joinPropertiesPath,
   MatAutocompleteFieldConfig,
   referentialToString,
@@ -21,10 +21,12 @@ import {TaxonName} from '../services/model/taxon-name.model';
 import {TaxonNameService} from '../services/taxon-name.service';
 import {TaxonNameValidatorService} from '../services/validator/taxon-name.validator';
 import {environment} from '@environments/environment';
+import { WeightLengthConversionTable } from '@app/referential/taxon/weight-length-conversion.table';
 
 @Component({
   selector: 'app-taxon-name',
   templateUrl: 'taxon-name.page.html',
+  styleUrls: ['taxon-name.page.scss'],
   providers: [
     {
       provide: ValidatorService,
@@ -37,6 +39,7 @@ import {environment} from '@environments/environment';
 export class TaxonNamePage extends AppEntityEditor<TaxonName> {
 
   canEdit: boolean;
+  mobile: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
 
@@ -45,6 +48,8 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
   }
 
   @ViewChild('referentialForm', {static: true}) referentialForm: ReferentialForm;
+
+  @ViewChild('weightLengthConversionTable', {static: true}) weightLengthConversionTable: WeightLengthConversionTable;
 
   constructor(
     protected injector: Injector,
@@ -55,14 +60,16 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
   ) {
     super(injector,
       TaxonName,
-      TaxonNameService
+      TaxonNameService,
+      {
+        tabCount: 2
+      }
     );
     this.form = validatorService.getFormGroup();
+    this.mobile = this.settings.mobile;
 
     // default values
-    this.defaultBackHref = "/referential/taxonName";
-    this.canEdit = this.accountService.isAdmin();
-    this.tabCount = 1;
+    this.defaultBackHref = "/referential/list?entity=TaxonName";
 
     this.debug = !environment.production;
 
@@ -130,10 +137,17 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
     }
   }
 
+  canUserWrite(data: TaxonName, opts?: any): boolean {
+    return this.accountService.isAdmin();
+  }
+
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([this.referentialForm]);
+    this.addChildForms([
+      this.referentialForm,
+      this.weightLengthConversionTable
+    ]);
   }
 
   protected setValue(data: TaxonName) {
@@ -142,6 +156,15 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
     const json = data.asObject();
 
     this.form.patchValue(json, {emitEvent: false});
+
+    // Set filter
+    if (isNotNil(json.referenceTaxonId)) {
+      this.weightLengthConversionTable.setFilter({
+        referenceTaxonId: json.referenceTaxonId
+      });
+      this.weightLengthConversionTable.markAsReady();
+    }
+
     this.markAsPristine();
   }
 
@@ -222,8 +245,6 @@ export class TaxonNamePage extends AppEntityEditor<TaxonName> {
 
   protected async onEntityLoaded(data: TaxonName, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
-
-    this.canEdit = this.canUserWrite(data);
 
     this.markAsReady();
   }

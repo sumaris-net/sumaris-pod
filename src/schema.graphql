@@ -506,6 +506,8 @@ type Mutation {
   deleteVessel(id: Int!): Boolean!
   "Delete many vessels (by vessel features ids)"
   deleteVessels(ids: [Int]!): Boolean!
+  "Delete many weight length conversions"
+  deleteWeightLengthConversions(ids: [Int]): Boolean!
   "Qualify an observed location"
   qualifyObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Qualify a trip"
@@ -564,6 +566,8 @@ type Mutation {
   saveVessel(vessel: VesselVOInput!): VesselVO
   "Create or update many vessels"
   saveVessels(vessels: [VesselVOInput]!): [VesselVO]
+  "Create or update a pmfm"
+  saveWeightLengthConversions(data: [WeightLengthConversionVOInput]): [WeightLengthConversionVO]
   "Resent confirmation email"
   sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
   "Unvalidate an observed location"
@@ -997,7 +1001,7 @@ type Query {
   "Preview some extraction rows"
   extractionRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): ExtractionResultVO
   "Get all available extraction types"
-  extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason : "Use liveExtractionTypes and aggregationTypes")
+  extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
   "Check if email exists (from a md5 hash)"
   isEmailExists(email: String, hash: String): Boolean!
   "Get a landing, by id"
@@ -1131,6 +1135,10 @@ type Query {
   vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc"): [VesselVO]
   "Get total vessels count"
   vesselsCount(filter: VesselFilterVOInput): Long!
+  "Search in weight length conversions"
+  weightLengthConversions(filter: WeightLengthConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [WeightLengthConversionVO]
+  "Search in weight length conversions"
+  weightLengthConversionsCount(filter: WeightLengthConversionFilterVOInput): Long
 }
 
 type ReferentialTypeVO {
@@ -1584,6 +1592,35 @@ type VesselVO {
   vesselType: ReferentialVO
 }
 
+type WeightLengthConversionVO {
+  comments: String
+  conversionCoefficientA: Float
+  conversionCoefficientB: Float
+  creationDate: Date
+  description: String
+  endMonth: Int
+  id: Int
+  "Get weight length conversion's length parameter"
+  lengthParameter: ReferentialVO
+  lengthParameterId: Int
+  "Get weight length conversion's length unit"
+  lengthUnit: ReferentialVO
+  lengthUnitId: Int
+  "Get weight length conversion's location"
+  location: LocationVO
+  locationId: Int
+  originItemTypeId: Int
+  rectangleLabels: [String]
+  referenceTaxonId: Int
+  "Get weight length conversion's sex"
+  sex: ReferentialVO
+  sexId: Int
+  startMonth: Int
+  statusId: Int
+  updateDate: Date
+  year: Int
+}
+
 enum DataQualityStatusEnum {
   CONTROLLED
   MODIFIED
@@ -1616,6 +1653,39 @@ enum SortDirection {
   ASC
   DESC
 }
+
+"Built-in java.math.BigDecimal"
+scalar BigDecimal
+
+"Built-in scalar representing an instant in time"
+scalar Date
+
+"Long type"
+scalar Long
+
+"Built-in scalar for map-like structures"
+scalar Map_Integer_StringScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_List_ObjectScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_Map_String_LongScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_ObjectScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_StringScalar
+
+"Built-in scalar for dynamic values"
+scalar ObjectScalar
+
+"Built-in Short as Int"
+scalar Short
+
+"Use SPQR's SchemaPrinter to remove this from SDL"
+scalar UNREPRESENTABLE
 
 input AccountVOInput {
   avatar: String
@@ -3060,36 +3130,37 @@ input VesselVOInput {
   vesselType: ReferentialVOInput
 }
 
+input WeightLengthConversionFilterVOInput {
+  date: Date
+  lengthParameterIds: [Int]
+  lengthUnitIds: [Int]
+  locationIds: [Int]
+  referenceTaxonIds: [Int]
+  sexIds: [Int]
+  statusIds: [Int]
+}
 
-"Built-in java.math.BigDecimal"
-scalar BigDecimal
-
-"Built-in scalar representing an instant in time"
-scalar Date
-
-"Long type"
-scalar Long
-
-"Built-in scalar for map-like structures"
-scalar Map_Integer_StringScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_List_ObjectScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_Map_String_LongScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_ObjectScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_StringScalar
-
-"Built-in scalar for dynamic values"
-scalar ObjectScalar
-
-"Built-in Short as Int"
-scalar Short
-
-"Use SPQR's SchemaPrinter to remove this from SDL"
-scalar UNREPRESENTABLE
+input WeightLengthConversionVOInput {
+  comments: String
+  conversionCoefficientA: Float
+  conversionCoefficientB: Float
+  creationDate: Date
+  description: String
+  endMonth: Int
+  id: Int
+  lengthParameter: ReferentialVOInput
+  lengthParameterId: Int
+  lengthUnit: ReferentialVOInput
+  lengthUnitId: Int
+  location: LocationVOInput
+  locationId: Int
+  originItemTypeId: Int
+  rectangleLabels: [String]
+  referenceTaxonId: Int
+  sex: ReferentialVOInput
+  sexId: Int
+  startMonth: Int
+  statusId: Int
+  updateDate: Date
+  year: Int
+}

@@ -12,8 +12,11 @@ export const LocationLevelIds = {
   // At sea
   ICES_RECTANGLE: 4,
   GFCM_RECTANGLE: 5,
+  ICES_SUB_AREA: 110,
   ICES_DIVISION: 111,
-  LOCATIONS_AREA: [4, 5, 111]
+
+  LOCATIONS_AREA: [4, 5, 111],
+  WEIGHT_LENGTH_CONVERSION_AREA: [110, 111]
 };
 
 export const GearLevelIds = {
@@ -124,7 +127,11 @@ export const MatrixIds = {
 }
 
 export const UnitIds = {
-  NONE: 0
+  NONE: 0,
+}
+
+export const UnitLabelGroups = {
+  LENGTH: ['cm', 'mm'] // Unit used for LENGTH Pmfms, on individual
 }
 
 export const ParameterGroupIds = {

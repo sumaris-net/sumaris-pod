@@ -32,6 +32,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { StrategiesPage } from './strategy/strategies.page';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
+import { WeightLengthConversionTable } from '@app/referential/taxon/weight-length-conversion.table';
 
 @NgModule({
   imports: [
@@ -76,6 +77,7 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
+    WeightLengthConversionTable,
     TaxonNamePage,
     StrategyModal
   ],

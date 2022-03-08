@@ -1,6 +1,6 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import {FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterGroupIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
+import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterGroupIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds, UnitLabelGroups } from '../model/model.enum';
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -111,11 +111,17 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_DIVISION
   },
-  LOCATION_LEVEL_LOCATIONS_AREA_ID: <FormFieldDefinition>{
+  LOCATION_LEVEL_LOCATIONS_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_ID',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_IDS',
     type: 'string',
     defaultValue: LocationLevelIds.LOCATIONS_AREA.join(',')
+  },
+  WEIGHT_LENGTH_CONVERSION_AREA_IDS: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.LocationLevel.WEIGHT_LENGTH_CONVERSION_AREA.ids',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.WEIGHT_LENGTH_CONVERSION_AREA_IDS',
+    type: 'string',
+    defaultValue: LocationLevelIds.WEIGHT_LENGTH_CONVERSION_AREA.join(',')
   },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
@@ -464,7 +470,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS',
     type: 'string',
     defaultValue: FractionIdGroups.CALCIFIED_STRUCTURE.join(',')
-  }
+  },
+  UNIT_GROUP_LENGTH_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.unit.length.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_GROUP_LENGTH_LABELS',
+    type: 'string',
+    defaultValue: UnitLabelGroups.LENGTH.join(',')
+  },
 });
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(

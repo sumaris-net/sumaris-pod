@@ -37,7 +37,7 @@ export const AppRootTableSettingsEnum = {
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class AppRootTable<
+export abstract class AppRootDataTable<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number
@@ -513,7 +513,7 @@ export abstract class AppRootTable<
     this.setFilter(json, {emitEvent: true, ...opts});
   }
 
-  setFilter(filter: F, opts?: { emitEvent: boolean }) {
+  setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
 
     filter = this.asFilter(filter);
 
@@ -529,7 +529,7 @@ export abstract class AppRootTable<
       this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
     }
 
-    super.setFilter(filter, opts);
+    super.setFilter(filter as F, opts);
   }
 
   protected async checkUpdateOfflineNeed() {

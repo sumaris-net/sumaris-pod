@@ -1,19 +1,24 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {TranslateModule} from '@ngx-translate/core';
-import { CoreModule, Environment, SharedModule } from '@sumaris-net/ngx-components';
+import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
+import { FormatPropertyPipe } from './pipes/format-property.pipe';
 
 @NgModule({
   imports: [
     SharedModule
   ],
   declarations: [
+    FormatPropertyPipe
   ],
   exports: [
     SharedModule,
     RouterModule,
     TranslateModule,
+
+    // Pipes
+    FormatPropertyPipe,
   ]
 })
 export class AppSharedModule {

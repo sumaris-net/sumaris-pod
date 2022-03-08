@@ -1,21 +1,16 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {TripValidatorService} from '../services/validator/trip.validator';
-import {TripService} from '../services/trip.service';
-import {TripFilter, TripOfflineFilter} from '../services/filter/trip.filter';
-import {ModalController} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {FormArray, FormBuilder, FormControl} from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { TripValidatorService } from '../services/validator/trip.validator';
+import { TripService } from '../services/trip.service';
+import { TripFilter, TripOfflineFilter } from '../services/filter/trip.filter';
+import { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import {
   ConfigService,
   EntitiesTableDataSource,
   HammerSwipeEvent,
   isNotNil,
-  LocalSettingsService,
   PersonService,
   PersonUtils,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
@@ -23,19 +18,19 @@ import {
   StatusIds,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
-import {TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME} from '../services/config/trip.config';
-import {AppRootTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-import {environment} from '@environments/environment';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
-import {filter, tap} from 'rxjs/operators';
-import {BehaviorSubject} from 'rxjs';
-import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
-import {DataQualityStatusList, DataQualityStatusEnum} from '@app/data/services/model/model.utils';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Trip } from '../services/model/trip.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
+import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.config';
+import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { environment } from '@environments/environment';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
+import { filter, tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { TripOfflineModal } from '@app/trip/trip/offline/trip-offline.modal';
+import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 
@@ -55,7 +50,7 @@ export const TripsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation]
 })
-export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
+export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   $title = new BehaviorSubject<string>('');
   highlightedRow: TableElement<Trip>;
