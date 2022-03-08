@@ -71,7 +71,7 @@
 
 <div class="table-container" [class.has-toolbar]="showToolbar">
 
-  <table *ngIf="columnDefinitions?.length"
+  <table *ngIf="columnDefinitions|isNotEmptyArray"
     mat-table
     matSort
     matSortDisableClear
