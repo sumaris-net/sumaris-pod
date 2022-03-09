@@ -33,6 +33,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -42,8 +43,10 @@ import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
@@ -51,7 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -60,7 +62,7 @@ import java.util.stream.Collectors;
 
 @Service("locationService")
 @Slf4j
-public class LocationServiceImpl implements LocationService{
+public class LocationServiceImpl implements LocationService {
 
     @Autowired
     protected LocationRepository locationRepository;
@@ -104,6 +106,26 @@ public class LocationServiceImpl implements LocationService{
                 self.updateLocationHierarchy(); // Force transaction creation, using self
             }
         }
+    }
+
+    @Override
+    public LocationVO get(int id) {
+        return locationRepository.get(id);
+    }
+
+    @Override
+    public List<LocationVO> findByFilter(LocationFilterVO filter) {
+        return findByFilter(filter, null, ReferentialFetchOptions.builder().build());
+    }
+
+    @Override
+    public List<LocationVO> findByFilter(LocationFilterVO filter, Page page, ReferentialFetchOptions fetchOptions) {
+        return locationRepository.findAll(filter, page, fetchOptions);
+    }
+
+    @Override
+    public long countByFilter(LocationFilterVO filter) {
+        return locationRepository.count(filter);
     }
 
     @Override

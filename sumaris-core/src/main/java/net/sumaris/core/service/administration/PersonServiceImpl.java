@@ -65,13 +65,12 @@ public class PersonServiceImpl implements PersonService {
 
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-	    if (filter == null) filter = new PersonFilterVO();
-		return personRepository.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		return personRepository.findByFilter(PersonFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
-	public Long countByFilter(final PersonFilterVO filter) {
-		return personRepository.countByFilter(filter != null ? filter : new PersonFilterVO());
+	public Long countByFilter(PersonFilterVO filter) {
+		return personRepository.countByFilter(PersonFilterVO.nullToEmpty(filter));
 	}
 
 	@Override

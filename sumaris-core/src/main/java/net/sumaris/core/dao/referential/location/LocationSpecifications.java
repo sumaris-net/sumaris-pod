@@ -23,12 +23,43 @@ package net.sumaris.core.dao.referential.location;
  */
 
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.referential.LocationVO;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.data.jpa.domain.Specification;
+
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author peck7 on 18/08/2020.
  */
 public interface LocationSpecifications extends ReferentialSpecifications<Location> {
+
+    String PARAMETER_ANCESTOR_IDS = "ancestorId";
+
+    default Specification<Location> hasAncestors(Integer... ancestorIds) {
+        if (ArrayUtils.isEmpty(ancestorIds)) return null;
+
+        return BindableSpecification.where((root, query, builder) -> {
+
+            Root<LocationHierarchy> lhRoot = query.from(LocationHierarchy.class);
+            ParameterExpression<Collection> ancestorIdsParam = builder.parameter(Collection.class, PARAMETER_ANCESTOR_IDS);
+            return builder.and(
+                builder.equal(root, lhRoot.get(LocationHierarchy.Fields.CHILD_LOCATION)),
+                builder.in(
+                    Daos.composePath(lhRoot, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)))
+                    .value(ancestorIdsParam)
+                );
+        }).addBind(PARAMETER_ANCESTOR_IDS, Arrays.asList(ancestorIds));
+    }
 
     boolean hasAssociation(int childLocationId, int parentLocationId);
 
@@ -38,5 +69,4 @@ public interface LocationSpecifications extends ReferentialSpecifications<Locati
      * Update technical table LOCATION_HIERARCHY, from child/parent links found in LOCATION
      */
     void updateLocationHierarchy();
-
 }

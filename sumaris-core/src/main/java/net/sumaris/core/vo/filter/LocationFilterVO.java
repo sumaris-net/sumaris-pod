@@ -22,21 +22,18 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 @Data
 @FieldNameConstants
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PersonFilterVO implements IReferentialFilter {
-
-    public static PersonFilterVO nullToEmpty(PersonFilterVO filter) {
-        return filter == null ? new PersonFilterVO() : filter;
-    }
+public class LocationFilterVO implements IReferentialFilter {
 
     private Integer id;
     private String label;
@@ -50,26 +47,14 @@ public class PersonFilterVO implements IReferentialFilter {
     private Integer[] searchJoinLevelIds;
     private String searchText;
     private String searchAttribute;
-    private String[] searchAttributes;
-
-    private Integer userProfileId;
-    private Integer[] userProfileIds;
-    private String[] userProfiles;
-
-    private String email;
-    private String pubkey;
-    private String firstName;
-    private String lastName;
 
     private Integer[] includedIds;
     private Integer[] excludedIds;
-
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
-    }
 
     @Deprecated
     private Integer levelId;
     @Deprecated
     private String levelLabel;
+
+    private Integer[] ancestorIds; // Allow to use location hierarchy
 }

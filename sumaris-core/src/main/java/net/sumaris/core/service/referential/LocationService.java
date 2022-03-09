@@ -22,10 +22,14 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.service.referential.location.LocationByPositionService;
+import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.PrintStream;
+import java.util.List;
 
 @Transactional
 public interface LocationService extends LocationByPositionService  {
@@ -43,5 +47,17 @@ public interface LocationService extends LocationByPositionService  {
      */
     @Deprecated
     void updateRectanglesAndSquares();
+
+    @Transactional(readOnly = true)
+    LocationVO get(int id);
+
+    @Transactional(readOnly = true)
+    List<LocationVO> findByFilter(LocationFilterVO filter);
+
+    @Transactional(readOnly = true)
+    List<LocationVO> findByFilter(LocationFilterVO filter, Page page, ReferentialFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
+    long countByFilter(LocationFilterVO filter);
 
 }

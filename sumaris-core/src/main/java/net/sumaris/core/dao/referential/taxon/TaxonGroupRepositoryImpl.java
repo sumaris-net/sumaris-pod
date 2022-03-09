@@ -103,9 +103,8 @@ public class TaxonGroupRepositoryImpl
 
     @Override
     public void updateTaxonGroupHierarchies() {
-        if (log.isInfoEnabled()) {
-            log.info("Updating technical tables {TAXON_GROUP_HIERARCHY} and {TAXON_GROUP2TAXON_HIERARCHY}...");
-        }
+        log.info("Updating technical tables {TAXON_GROUP_HIERARCHY} and {TAXON_GROUP2TAXON_HIERARCHY}...");
+
         updateTaxonGroupHierarchy();
         updateTaxonGroup2TaxonHierarchy();
     }

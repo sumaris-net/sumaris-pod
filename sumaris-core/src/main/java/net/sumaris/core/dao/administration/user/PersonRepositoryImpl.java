@@ -163,7 +163,7 @@ public class PersonRepositoryImpl
     protected Specification<Person> toSpecification(PersonFilterVO filter) {
 
         return BindableSpecification
-            .where(inStatusIds(filter))
+            .where(inStatusIds(filter.getStatusIds()))
             .and(hasUserProfileIds(filter))
             .and(hasPubkey(filter.getPubkey()))
             .and(hasEmail(filter.getEmail()))

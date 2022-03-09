@@ -44,11 +44,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> {
+public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> extends IEntityWithStatusSpecifications<E> {
 
     String ID_PARAMETER = "id";
-    String STATUS_PARAMETER = "status";
-    String STATUS_SET_PARAMETER = "statusSet";
     String LABEL_PARAMETER = "label";
     String PROPERTY_PARAMETER_PREFIX = "property";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
@@ -62,20 +60,6 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, ID_PARAMETER);
             return criteriaBuilder.equal(root.get(IEntity.Fields.ID), idParam);
         }).addBind(ID_PARAMETER, id);
-    }
-
-    default Specification<E> inStatusIds(IReferentialFilter filter) {
-        Integer[] statusIds = filter.getStatusIds();
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
-            ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
-            return criteriaBuilder.or(
-                criteriaBuilder.isFalse(statusSetParam),
-                criteriaBuilder.in(root.get(IReferentialWithStatusEntity.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
-            );
-        })
-        .addBind(STATUS_SET_PARAMETER, ArrayUtils.isNotEmpty(statusIds))
-        .addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
     }
 
     default Specification<E> hasLabel(String label) {

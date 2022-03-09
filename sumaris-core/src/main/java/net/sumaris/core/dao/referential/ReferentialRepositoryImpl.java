@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
@@ -257,7 +258,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         return toSpecification(filter, null);
     }
 
-    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+    protected Specification<E> toSpecification(@NonNull F filter, O fetchOptions) {
         // Special case when filtering by ID:
         if (filter.getId() != null) {
             return BindableSpecification.where(hasId(filter.getId()));
@@ -266,7 +267,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
         // default specification
         return BindableSpecification
-            .where(inStatusIds(filter))
+            .where(inStatusIds(filter.getStatusIds()))
             .and(hasLabel(filter.getLabel()))
             .and(inLevelIds(clazz, filter.getLevelId() != null ? new Integer[]{filter.getLevelId()} : filter.getLevelIds()))
             .and(inLevelLabels(clazz, filter.getLevelLabel() != null ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels()))
