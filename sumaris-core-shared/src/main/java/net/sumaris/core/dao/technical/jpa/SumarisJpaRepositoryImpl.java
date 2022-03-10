@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
@@ -96,11 +97,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     @Autowired
     private DataSource dataSource;
 
+    private DatabaseType databaseType;
+
     @Autowired
     private SumarisConfiguration configuration;
 
     @Autowired
     private ApplicationEventPublisher publisher;
+
 
     protected SumarisJpaRepositoryImpl(Class<E> domainClass, EntityManager entityManager) {
         this(domainClass, null, entityManager);
@@ -116,10 +120,11 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     @PostConstruct
-    protected void init() {
+    private void setup() {
         // Set lock timeout - see lockForUpdate()
         lockForUpdateProperties = ImmutableMap.of(SumarisConfigurationOption.LOCK_TIMEOUT.getKey(), configuration.getLockTimeout());
         lockForUpdateMode = configuration.getLockModeType();
+        databaseType = configuration.getDatabaseType();
     }
 
     public boolean isCheckUpdateDate() {
@@ -160,6 +165,10 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public SumarisConfiguration getConfig() {
         return configuration;
+    }
+
+    public DatabaseType getDatabaseType() {
+        return databaseType;
     }
 
     @Override

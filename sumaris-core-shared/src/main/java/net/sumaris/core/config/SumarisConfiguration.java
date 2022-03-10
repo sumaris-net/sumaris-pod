@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.env.ConfigurableEnvironments;
 import org.apache.commons.lang3.StringUtils;
@@ -606,6 +607,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public boolean isOracleDatabase() {
         return Daos.isOracleDatabase(getJdbcURL());
+    }
+
+    public DatabaseType getDatabaseType() {
+        return Daos.getDatabaseType(getJdbcURL());
     }
 
     /**

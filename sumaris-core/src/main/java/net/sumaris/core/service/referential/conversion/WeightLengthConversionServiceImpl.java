@@ -33,7 +33,6 @@ import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

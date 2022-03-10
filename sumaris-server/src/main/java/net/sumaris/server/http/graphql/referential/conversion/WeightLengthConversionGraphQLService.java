@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.server.http.graphql.referential;
+package net.sumaris.server.http.graphql.referential.conversion;
 
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
@@ -32,9 +32,9 @@ import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.conversion.WeightLengthConversionService;
-import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.vo.referential.*;
+import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
@@ -59,6 +59,9 @@ public class WeightLengthConversionGraphQLService {
 
     @Resource
     private LocationService locationService;
+
+    @Resource
+    private TaxonNameService taxonNameService;
 
     @Resource
     private ReferentialService referentialService;
@@ -94,7 +97,7 @@ public class WeightLengthConversionGraphQLService {
         return service.countByFilter(filter);
     }
 
-    @GraphQLMutation(name = "saveWeightLengthConversions", description = "Create or update a pmfm")
+    @GraphQLMutation(name = "saveWeightLengthConversions", description = "Save many weight length conversions")
     @IsAdmin
     public List<WeightLengthConversionVO> saveAll(
         @GraphQLArgument(name = "data") List<WeightLengthConversionVO> sources) {
@@ -106,6 +109,13 @@ public class WeightLengthConversionGraphQLService {
     public void deleteAllById(
         @GraphQLArgument(name = "ids") List<Integer> ids) {
         service.deleteAllById(ids);
+    }
+
+    @GraphQLQuery(name = "taxonName", description = "Get round weight conversion's taxon group")
+    public TaxonNameVO getTaxonName(@GraphQLContext WeightLengthConversionVO source) {
+        if (source.getTaxonName() != null) return source.getTaxonName();
+        if (source.getReferenceTaxonId() == null) return null;
+        return taxonNameService.get(source.getReferenceTaxonId(), null);
     }
 
     @GraphQLQuery(name = "location", description = "Get weight length conversion's location")
@@ -138,6 +148,7 @@ public class WeightLengthConversionGraphQLService {
 
     private WeightLengthConversionFetchOptions getFetchOptions(Set<String> fields) {
         return WeightLengthConversionFetchOptions.builder()
+            .withLocation(fields.contains(WeightLengthConversionVO.Fields.LOCATION))
             .withRectangleLabels(fields.contains(WeightLengthConversionVO.Fields.RECTANGLE_LABELS))
             .build();
     }

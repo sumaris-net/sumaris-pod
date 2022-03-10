@@ -33,13 +33,12 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.Unit;
+import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
@@ -48,11 +47,12 @@ import java.util.stream.Collectors;
 public class WeightLengthConversionRepositoryImpl extends SumarisJpaRepositoryImpl<WeightLengthConversion, Integer, WeightLengthConversionVO>
     implements WeightLengthConversionRepository {
 
-    @Resource
-    private LocationRepository locationRepository;
+    private final LocationRepository locationRepository;
 
-    protected WeightLengthConversionRepositoryImpl(EntityManager entityManager) {
+    public WeightLengthConversionRepositoryImpl(EntityManager entityManager,
+                                                LocationRepository locationRepository) {
         super(WeightLengthConversion.class, WeightLengthConversionVO.class, entityManager);
+        this.locationRepository = locationRepository;
     }
 
     @Override
@@ -158,11 +158,11 @@ public class WeightLengthConversionRepositoryImpl extends SumarisJpaRepositoryIm
     public void toEntity(WeightLengthConversionVO source, WeightLengthConversion target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
 
-        // Status
-        Integer statusId = source.getStatusId();
-        if (statusId != null || copyIfNull) {
-            if (statusId == null) target.setStatus(null);
-            else target.setStatus(getReference(Status.class, statusId));
+        // Reference Taxon
+        Integer referenceTaxonId = source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : source.getReferenceTaxonId();
+        if (referenceTaxonId != null || copyIfNull) {
+            if (referenceTaxonId == null) target.setReferenceTaxon(null);
+            else target.setReferenceTaxon(getReference(ReferenceTaxon.class, referenceTaxonId));
         }
 
         // Location
@@ -191,6 +191,13 @@ public class WeightLengthConversionRepositoryImpl extends SumarisJpaRepositoryIm
         if (lengthUnitId != null || copyIfNull) {
             if (lengthUnitId == null) target.setLengthUnit(null);
             else target.setLengthUnit(getReference(Unit.class, lengthUnitId));
+        }
+
+        // Status
+        Integer statusId = source.getStatusId();
+        if (statusId != null || copyIfNull) {
+            if (statusId == null) target.setStatus(null);
+            else target.setStatus(getReference(Status.class, statusId));
         }
     }
 

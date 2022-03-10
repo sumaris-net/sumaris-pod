@@ -20,10 +20,29 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical;
+package net.sumaris.core.vo.referential.conversion;
 
-public enum DatabaseType {
-    oracle,
-    postgresql,
-    hsqldb
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Date;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RoundWeightConversionFilterVO {
+
+    public static RoundWeightConversionFilterVO nullToEmpty(RoundWeightConversionFilterVO filter) {
+        return filter == null ? RoundWeightConversionFilterVO.builder().build() : filter;
+    }
+
+    Integer[] statusIds;
+    Integer[] taxonGroupIds;
+    Integer[] locationIds;
+    Integer[] dressingIds;
+    Integer[] preservingIds;
+    Date date;
 }

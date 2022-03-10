@@ -42,6 +42,9 @@ public interface TaxonGroupService {
     boolean updateTaxonGroupHierarchies();
 
     @Transactional(readOnly = true)
+    TaxonGroupVO get(int id);
+
+    @Transactional(readOnly = true)
     List<TaxonGroupVO> findTargetSpeciesByFilter(IReferentialFilter filter,
                                                  int offset,
                                                  int size,

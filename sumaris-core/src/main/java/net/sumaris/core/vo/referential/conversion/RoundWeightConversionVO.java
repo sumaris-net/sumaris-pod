@@ -28,21 +28,19 @@ import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.TaxonGroupVO;
 
 import java.util.Date;
 
 @Data
 @FieldNameConstants
-public class WeightLengthConversionVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public class RoundWeightConversionVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
 
-    private Double conversionCoefficientA;
-    private Double conversionCoefficientB;
-    private Integer startMonth;
-    private Integer endMonth;
-    private Integer year;
+    private Double conversionCoefficient;
+    private Date startDate;
+    private Date endDate;
 
     private String description;
     private String comments;
@@ -51,24 +49,18 @@ public class WeightLengthConversionVO implements IUpdateDateEntityBean<Integer, 
     private Date creationDate;
     private Date updateDate;
 
-    private Integer referenceTaxonId;
-    private TaxonNameVO taxonName;
-
-    private Integer originItemTypeId;
+    private Integer taxonGroupId;
+    private TaxonGroupVO taxonGroup;
 
     private Integer locationId;
     private LocationVO location;
 
-    private Integer sexId;
-    private ReferentialVO sex;
+    private Integer dressingId;
+    private ReferentialVO dressing;
 
-    private Integer lengthParameterId;
-    private ReferentialVO lengthParameter;
+    private Integer preservingId;
+    private ReferentialVO preserving;
 
-    private Integer lengthUnitId;
-    private ReferentialVO lengthUnit;
-
-
-    private String[] rectangleLabels;
+    //private String[] rectangleLabels;
 
 }

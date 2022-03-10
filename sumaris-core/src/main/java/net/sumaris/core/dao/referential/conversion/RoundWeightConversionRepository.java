@@ -20,10 +20,13 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical;
+package net.sumaris.core.dao.referential.conversion;
 
-public enum DatabaseType {
-    oracle,
-    postgresql,
-    hsqldb
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
+import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
+import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
+
+public interface RoundWeightConversionRepository extends SumarisJpaRepository<RoundWeightConversion, Integer, RoundWeightConversionVO>,
+    RoundWeightConversionSpecifications {
+
 }

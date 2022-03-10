@@ -25,9 +25,9 @@ package net.sumaris.core.dao.data.vessel;
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.model.data.IDataEntity;
@@ -101,26 +101,6 @@ public interface VesselFeaturesSpecifications<
             .addBind(STATUS_IDS_PARAM, statusIds);
     }
 
-    default Expression<Date> nvlFeaturesEndDate(Path<?> root, CriteriaBuilder cb) {
-
-        if (isOracleDatabase()) {
-            // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
-            return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
-                root.get(VesselFeatures.Fields.END_DATE)
-            );
-        }
-        return cb.coalesce(root.get(VesselFeatures.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
-    }
-
-    default Expression<Date> nvlRegistrationEndDate(Path<VesselRegistrationPeriod> vrp, CriteriaBuilder cb) {
-        if (isOracleDatabase()) {
-            // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
-            return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
-                vrp.get(VesselRegistrationPeriod.Fields.END_DATE)
-            );
-        }
-        return cb.coalesce(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME);
-    }
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
@@ -129,7 +109,7 @@ public interface VesselFeaturesSpecifications<
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(nvlFeaturesEndDate(root, cb), startDate),
+                        cb.lessThan(Daos.nvlEndDate(root, cb, VesselFeatures.Fields.END_DATE, getDatabaseType()), startDate),
                         cb.greaterThan(root.get(VesselFeatures.Fields.START_DATE), endDate)
                     )
                 );
@@ -137,7 +117,7 @@ public interface VesselFeaturesSpecifications<
 
             // Start date only
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(nvlFeaturesEndDate(root, cb), startDate);
+                return cb.greaterThanOrEqualTo(Daos.nvlEndDate(root, cb, VesselFeatures.Fields.END_DATE, getDatabaseType()), startDate);
             }
 
             // End date only
@@ -158,7 +138,7 @@ public interface VesselFeaturesSpecifications<
                 // NOT outside the start/end period
                 return cb.not(
                     cb.or(
-                        cb.lessThan(nvlRegistrationEndDate(vrp, cb), startDate),
+                        cb.lessThan(Daos.nvlEndDate(vrp, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), startDate),
                         cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
@@ -167,7 +147,7 @@ public interface VesselFeaturesSpecifications<
             // Start date only
             else if (startDate != null) {
                 // VRP.end_date >= filter.startDate
-                return cb.greaterThanOrEqualTo(nvlRegistrationEndDate(vrp, cb), startDate);
+                return cb.greaterThanOrEqualTo(Daos.nvlEndDate(vrp, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), startDate);
             }
 
             // End date only
@@ -276,5 +256,5 @@ public interface VesselFeaturesSpecifications<
         return result.get().findFirst();
     }
 
-    boolean isOracleDatabase();
+    DatabaseType getDatabaseType();
 }
