@@ -1542,8 +1542,8 @@
           <fetchRemote>false</fetchRemote>
           <skipTestProject>true</skipTestProject>
           <gitFlowConfig>
-            <productionBranch>master</productionBranch>
-            <developmentBranch>develop</developmentBranch>
+            <productionBranch>imagine/master</productionBranch>
+            <developmentBranch>imagine/develop</developmentBranch>
             <releaseBranchPrefix>release/</releaseBranchPrefix>
             <versionTagPrefix></versionTagPrefix>
           </gitFlowConfig>
