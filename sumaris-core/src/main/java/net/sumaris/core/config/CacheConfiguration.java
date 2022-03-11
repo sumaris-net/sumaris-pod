@@ -97,6 +97,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PMFM_HAS_SUFFIX = "net.sumaris.core.dao.referential.pmfmHasSuffix";
         String PMFM_HAS_MATRIX = "net.sumaris.core.dao.referential.pmfmHasMatrix";
         String PMFM_HAS_PARAMETER_GROUP = "net.sumaris.core.dao.referential.pmfmHasParameterGroup";
+
+        // Pmfm strategies
         String PMFM_STRATEGIES_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.pmfmStrategiesByFilter";
         String DENORMALIZED_PMFM_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.denormalizedPmfmByFilter";
 

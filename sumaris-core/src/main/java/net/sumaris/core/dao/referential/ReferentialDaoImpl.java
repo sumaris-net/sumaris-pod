@@ -30,6 +30,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
@@ -224,13 +225,42 @@ public class ReferentialDaoImpl
 
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true, condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true, condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, allEntries = true, condition = "#entityName == 'Department'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, allEntries = true, condition = "#entityName == 'Department'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, allEntries = true, condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, allEntries = true, condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true, condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true, condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true, condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true, condition = "#entityName == 'Program'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, allEntries = true, condition = "#entityName == 'ProgramPrivilege'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, allEntries = true, condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, allEntries = true, condition = "#entityName == 'TaxonName'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true, condition = "#entityName == 'TaxonName'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'ReferenceTaxon'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'TaxonGroup'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, allEntries = true, condition = "#entityName == 'TaxonomicLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, allEntries = true, condition = "#entityName == 'Gear'")
+    })
+    public void clearCache(String entityName) {
+        log.debug("Cleaning {}'s cache...", entityName);
+    }
+
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, allEntries = true, condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true, condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true, condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true, condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
@@ -243,11 +273,22 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id", condition = "#entityName == 'TaxonomicLevel'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#id", condition = "#entityName == 'Gear'")
     })
-    public void clearCache(String entityName) {
-        log.debug("Cleaning {}'s cache...");
+    public void clearCache(String entityName, int id) {
+        log.debug("Cleaning {}#{} cache...", entityName, id);
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id", condition = "#entityName == 'TaxonName'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id", condition = "#entityName == 'TaxonomicLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#id", condition = "#entityName == 'Gear'")
+    })
     public void delete(final String entityName, int id) {
 
         // Get the entity class
@@ -259,7 +300,7 @@ public class ReferentialDaoImpl
             getEntityManager().remove(entity);
 
             // Cleaning entity cache
-            clearCache(entityName);
+            clearCache(entityName, id);
         }
     }
 
@@ -301,7 +342,7 @@ public class ReferentialDaoImpl
 
         TypedQuery<Long> query = getEntityManager().createQuery(criteriaQuery);
         if (levelClause != null) {
-            query.setParameter(levelIdsParam, Arrays.asList(levelIds));
+            query.setParameter(levelIdsParam, ImmutableList.copyOf(levelIds));
         }
 
         return query.getSingleResult();
@@ -367,7 +408,7 @@ public class ReferentialDaoImpl
         Timestamp newUpdateDate = getDatabaseCurrentTimestamp();
         entity.setUpdateDate(newUpdateDate);
 
-        // Save entity
+        // (Save) entity
         if (isNew) {
             // Force creation date
             entity.setCreationDate(newUpdateDate);
@@ -447,6 +488,25 @@ public class ReferentialDaoImpl
                 throw new SumarisTechnicalException(e);
             }
         });
+
+        // Parent
+        if (source instanceof ITreeNodeEntityBean) {
+            IEntity<?> parent = ((ITreeNodeEntityBean<?, ?>) source).getParent();
+            Object parentId = parent != null ? parent.getId() : null;
+            if (parentId == null) {
+                target.setParentId(null);
+            }
+            else {
+                try {
+                    target.setParentId(Integer.parseInt(parentId.toString()));
+                } catch (Exception e) {
+                    log.error("Cannot cast to integer the property '{}.parent.id'. Actual value is {}", entityName, parentId, e);
+                    target.setParentId(null);
+                }
+            }
+        } else {
+            target.setParentId(null);
+        }
 
         // EntityName (as metadata)
         target.setEntityName(entityName);

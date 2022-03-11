@@ -141,7 +141,7 @@ public class TaxonGroupRepositoryImpl
                             childId));
                 }
 
-                TaxonGroup parent = tg.getParentTaxonGroup();
+                TaxonGroup parent = tg.getParent();
                 while (parent != null) {
                     Integer parentId = parent.getId();
                     if (!existingLinksToRemove.remove(parentId, childId)
@@ -156,7 +156,7 @@ public class TaxonGroupRepositoryImpl
                                 parentId,
                                 childId));
                     }
-                    parent = parent.getParentTaxonGroup();
+                    parent = parent.getParent();
                 }
             });
 

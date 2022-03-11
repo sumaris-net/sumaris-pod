@@ -164,12 +164,6 @@ public class ReferentialGraphQLService {
         return referentialService.getAllLevels(entityName);
     }
 
-    @GraphQLQuery(name = "level", description = "Get the level from a referential entity")
-    @Transactional(readOnly = true)
-    public ReferentialVO getReferentialLevel(
-            @GraphQLContext ReferentialVO referential) {
-        return referentialService.getLevelById(referential.getEntityName(), referential.getLevelId());
-    }
 
     @GraphQLMutation(name = "saveReferential", description = "Create or update a referential")
     @IsAdmin
@@ -213,6 +207,21 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "entityName") String entityName,
             @GraphQLArgument(name = "ids") List<Integer> ids) {
         referentialService.delete(entityName, ids);
+    }
+
+    /* -- Fetch sub properties (level, parent) -- */
+
+    @GraphQLQuery(name = "level", description = "Get the level from a referential entity")
+    @Transactional(readOnly = true)
+    public ReferentialVO getReferentialLevel(@GraphQLContext ReferentialVO referential) {
+        return referentialService.getLevelById(referential.getEntityName(), referential.getLevelId());
+    }
+
+    @GraphQLQuery(name = "parent", description = "Get referential's parent")
+    public ReferentialVO getReferentialParent(@GraphQLContext ReferentialVO entity) {
+        if (entity.getParent() != null) return entity.getParent();
+        if (entity.getParentId() == null || entity.getEntityName() == null) return null;
+        return referentialService.get(entity.getEntityName(), entity.getParentId());
     }
 
     /* -- taxon -- */

@@ -119,12 +119,13 @@ public class TaxonName implements IItemReferentialEntity,
 
     /* -- Tree link -- */
 
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
+    @JoinColumn(name = "parent_taxon_name_fk")
+    private TaxonName parent;
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonName> children = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
-    @JoinColumn(name = "parent_taxon_name_fk")
-    private TaxonName parent;
 
 }
