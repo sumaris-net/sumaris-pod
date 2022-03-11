@@ -1,19 +1,27 @@
 import { AfterViewInit, Directive, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppFormUtils,
-  changeCaseToUnderscore,
+  changeCaseToUnderscore, CryptoService,
   EntitiesServiceWatchOptions,
   Entity,
-  EntityFilter,
-  FileEvent, FileResponse, FilesUtils, firstNotNilPromise,
+  EntityFilter, EntityUtils,
+  FileEvent,
+  FileResponse,
+  FilesUtils,
+  firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
-  IEntitiesService, isEmptyArray, isNotNil, joinProperties, sleep,
-  StartableService, SuggestFn, suggestFromArray, UploadFile
+  IEntitiesService,
+  isEmptyArray,
+  isNotNil,
+  joinProperties,
+  LoadResult,
+  StartableService,
+  suggestFromArray, toNumber
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableOptions } from '@app/shared/table/base.table';
 import { FormBuilder } from '@angular/forms';
-import { debounceTime, filter, flatMap, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { ValidatorService } from '@e-is/ngx-material-table';
@@ -22,7 +30,6 @@ import { CsvUtils } from '@app/shared/csv.utils';
 import { FormatPropertyPipe } from '@app/shared/pipes/format-property.pipe';
 import { isObservable, Observable, of, Subject } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
-import { LoadResult } from '@sumaris-net/ngx-components';
 
 export class BaseReferentialTableOptions<
   T extends Entity<T, ID>,
@@ -76,6 +83,7 @@ export abstract class BaseReferentialTable<
   protected popoverController: PopoverController;
   protected formatPropertyPipe: FormatPropertyPipe;
   protected referentialRefService: ReferentialRefService;
+  protected cryptoService: CryptoService;
 
   protected constructor(
     injector: Injector,
@@ -98,6 +106,7 @@ export abstract class BaseReferentialTable<
     this.referentialRefService = injector.get(ReferentialRefService);
     this.formatPropertyPipe = injector.get(FormatPropertyPipe);
     this.popoverController = injector.get(PopoverController);
+    this.cryptoService = injector.get(CryptoService);
     this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;
@@ -211,6 +220,7 @@ export abstract class BaseReferentialTable<
   }
 
   protected getColumnType(key: string): FormFieldType {
+    if (key === 'id' || key.endsWith('Id')) return 'integer';
     key = key.toLowerCase();
     if (key.endsWith('date')) return 'date';
     if (key.endsWith('month') || key.endsWith('year')) return 'integer';
@@ -309,7 +319,7 @@ export abstract class BaseReferentialTable<
 
     this.parseCsvRowsToEntities(headers, rows)
       .then(entities => this.fillEntities(headers, entities))
-      .then(entities => this.excludeExistingEntities(headers, entities))
+      .then(entities => this.excludeExistingEntities(entities))
       .then(entities => {
         $progress.next(new FileResponse({body: entities}));
         $progress.complete();
@@ -335,7 +345,15 @@ export abstract class BaseReferentialTable<
         }
         // Parse simple field
         else {
-          res[fieldDef.key] = value
+          if (fieldDef.type === 'integer') {
+            res[fieldDef.key] = parseInt(value);
+          }
+          else if (fieldDef.type === 'double') {
+            res[fieldDef.key] = parseFloat(value);
+          }
+          else {
+            res[fieldDef.key] = value
+          }
         }
         return res;
       }, {});
@@ -406,7 +424,45 @@ export abstract class BaseReferentialTable<
     return result;
   }
 
-  protected async excludeExistingEntities(headers: FormFieldDefinition[], entities: E[]): Promise<E[]> {
-    return entities;
+  protected async excludeExistingEntitiesByHash(entities: E[]): Promise<E[]> {
+    const toHash = (entity: E) => {
+      const json = EntityUtils.isEntity(entity) ? entity.asObject() : entity as any;
+      delete json.id;
+      delete json.updateDate;
+      json.statusId = toNumber(json.statusId, 1);
+      const str = JSON.stringify(json);
+      return this.cryptoService.sha256(str);
+    }
+
+    const existingHash = (await this.dataSource.getData())
+      .map(toHash)
+
+    return entities.filter(entity => {
+      const hash = toHash(entity);
+      return !existingHash.includes(hash)
+    });
+  }
+
+  protected async excludeExistingEntities(entities: E[]): Promise<E[]> {
+    const existingEntities = (await this.dataSource.getData())
+
+      // TODO: remove this
+      .slice(0,1);
+    entities = entities.slice(0,1);
+    console.log(existingEntities[0])
+    console.log(entities[0]);
+
+    console.log('TODO: equals = ' + entities[0].equals(existingEntities[0]));
+
+    return entities.filter(entity => {
+      entity.id = -1 as any; // Avoid using ID in equals()
+      return !existingEntities.some(other => this.equals(entity, other))
+    });
+  }
+
+  protected equals(d1: E, d2: E): boolean {
+    return EntityUtils.isEntity(d1)
+      ? d1.equals(d2)
+      : super.equals(d1, d2);
   }
 }

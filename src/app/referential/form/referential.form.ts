@@ -43,12 +43,13 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
     @Optional() protected validatorService: ValidatorService,
     @Optional() protected formGroupDirective: FormGroupDirective
   ) {
-    super(injector, formGroupDirective?.form || validatorService?.getRowValidator());
+    super(injector, !!formGroupDirective && validatorService?.getRowValidator());
     this.cd = injector.get(ChangeDetectorRef);
   }
 
   ngOnInit() {
     super.ngOnInit();
+    if (this.formGroupDirective) this.setForm(this.formGroupDirective.form);
 
     // Fill statusById, if not set by input
     if (this._statusList && !this.statusById) {

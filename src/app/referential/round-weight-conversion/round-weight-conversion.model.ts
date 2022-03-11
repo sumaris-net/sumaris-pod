@@ -1,4 +1,16 @@
-import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  DateUtils,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityUtils,
+  fromDateISOString,
+  IEntity,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString,
+  toFloat, toInt
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
@@ -13,7 +25,7 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T, number, Enti
 
   taxonGroupId: number = null;
 
-  statusId: number;
+  statusId: number = null;
   description: string = null;
   comments: string = null;
   creationDate: Moment = null;
@@ -27,8 +39,8 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T, number, Enti
 
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.conversionCoefficient = source.conversionCoefficient;
-    this.taxonGroupId = source.taxonGroupId;
+    this.conversionCoefficient = toFloat(source.conversionCoefficient);
+    this.taxonGroupId = toInt(source.taxonGroupId);
     this.description = source.description;
     this.comments = source.comments;
 
@@ -96,5 +108,17 @@ export class RoundWeightConversion
     target.dressing = this.dressing?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.preserving = this.preserving?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     return target;
+  }
+
+  equals(other: RoundWeightConversion): boolean {
+    console.log('TODO check equals', other);
+    return super.equals(other)
+      || (this.conversionCoefficient === other.conversionCoefficient
+        && DateUtils.isSame(this.startDate, other.startDate)
+        && DateUtils.isSame(this.endDate, other.endDate)
+        && ReferentialUtils.equals(this.location, other.location)
+        && ReferentialUtils.equals(this.dressing, other.dressing)
+        && ReferentialUtils.equals(this.preserving, other.preserving)
+      );
   }
 }

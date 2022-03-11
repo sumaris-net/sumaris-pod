@@ -154,7 +154,7 @@
           <input matInput
                  autocomplete="off"
                  [formControl]="row.validator.controls.individualCount"
-                 [autofocus]="row.editing && focusColumn === 'individualCount'"
+                 [appAutofocus]="row.editing && focusColumn === 'individualCount'"
                  min="1"
                  type="number"
                  step="1"
