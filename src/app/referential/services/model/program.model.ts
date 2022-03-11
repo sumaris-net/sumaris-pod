@@ -17,6 +17,7 @@ import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {
 
+  static ENTITY_NAME = 'Program';
   static fromObject: (source: any, opts?: any) => Program;
 
   properties: PropertiesMap = {};

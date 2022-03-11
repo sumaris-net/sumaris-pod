@@ -490,6 +490,8 @@ type Mutation {
   deleteReferential(entityName: String, id: Int!): Boolean!
   "Delete many referential (by ids)"
   deleteReferentials(entityName: String, ids: [Int]): Boolean!
+  "Delete many round weight conversions"
+  deleteRoundWeightConversions(ids: [Int]): Boolean!
   "Delete a strategy"
   deleteStrategy(id: Int!): Boolean!
   "Delete an entity from the trash"
@@ -548,6 +550,8 @@ type Mutation {
   saveReferential(referential: ReferentialVOInput): ReferentialVO
   "Create or update many referential"
   saveReferentials(referentials: [ReferentialVOInput]): [ReferentialVO]
+  "Save many round weight conversions"
+  saveRoundWeightConversions(data: [RoundWeightConversionVOInput]): [RoundWeightConversionVO]
   "Save user settings"
   saveSettings(settings: UserSettingsVOInput): UserSettingsVO
   "Save a software configuration"
@@ -566,7 +570,7 @@ type Mutation {
   saveVessel(vessel: VesselVOInput!): VesselVO
   "Create or update many vessels"
   saveVessels(vessels: [VesselVOInput]!): [VesselVO]
-  "Create or update a pmfm"
+  "Save many weight length conversions"
   saveWeightLengthConversions(data: [WeightLengthConversionVOInput]): [WeightLengthConversionVO]
   "Resent confirmation email"
   sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
@@ -1001,7 +1005,7 @@ type Query {
   "Preview some extraction rows"
   extractionRows(filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", type: ExtractionTypeVOInput): ExtractionResultVO
   "Get all available extraction types"
-  extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
+  extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason : "Use liveExtractionTypes and aggregationTypes")
   "Check if email exists (from a md5 hash)"
   isEmailExists(email: String, hash: String): Boolean!
   "Get a landing, by id"
@@ -1064,6 +1068,10 @@ type Query {
   referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
   "Get referentials count"
   referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
+  "Search in round weight conversions"
+  roundWeightConversions(filter: RoundWeightConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [RoundWeightConversionVO]
+  "Search in round weight conversions"
+  roundWeightConversionsCount(filter: RoundWeightConversionFilterVOInput): Long
   "Get total number of samples"
   samplesCount(filter: SampleFilterVOInput): Long!
   "A software config"
@@ -1161,6 +1169,30 @@ type ReferentialVO {
   statusId: Int
   updateDate: Date
   validityStatusId: Int
+}
+
+type RoundWeightConversionVO {
+  comments: String
+  conversionCoefficient: Float
+  creationDate: Date
+  description: String
+  "Get round weight conversion's dressing"
+  dressing: ReferentialVO
+  dressingId: Int
+  endDate: Date
+  id: Int
+  "Get round weight conversion's location"
+  location: LocationVO
+  locationId: Int
+  "Get round weight conversion's preserving"
+  preserving: ReferentialVO
+  preservingId: Int
+  startDate: Date
+  statusId: Int
+  "Get round weight conversion's taxon group"
+  taxonGroup: TaxonGroupVO
+  taxonGroupId: Int
+  updateDate: Date
 }
 
 type SaleVO {
@@ -1617,6 +1649,8 @@ type WeightLengthConversionVO {
   sexId: Int
   startMonth: Int
   statusId: Int
+  "Get round weight conversion's taxon group"
+  taxonName: TaxonNameVO
   updateDate: Date
   year: Int
 }
@@ -1653,39 +1687,6 @@ enum SortDirection {
   ASC
   DESC
 }
-
-"Built-in java.math.BigDecimal"
-scalar BigDecimal
-
-"Built-in scalar representing an instant in time"
-scalar Date
-
-"Long type"
-scalar Long
-
-"Built-in scalar for map-like structures"
-scalar Map_Integer_StringScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_List_ObjectScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_Map_String_LongScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_ObjectScalar
-
-"Built-in scalar for map-like structures"
-scalar Map_String_StringScalar
-
-"Built-in scalar for dynamic values"
-scalar ObjectScalar
-
-"Built-in Short as Int"
-scalar Short
-
-"Use SPQR's SchemaPrinter to remove this from SDL"
-scalar UNREPRESENTABLE
 
 input AccountVOInput {
   avatar: String
@@ -2664,6 +2665,35 @@ input ReferentialVOInput {
   validityStatusId: Int
 }
 
+input RoundWeightConversionFilterVOInput {
+  date: Date
+  dressingIds: [Int]
+  locationIds: [Int]
+  preservingIds: [Int]
+  statusIds: [Int]
+  taxonGroupIds: [Int]
+}
+
+input RoundWeightConversionVOInput {
+  comments: String
+  conversionCoefficient: Float
+  creationDate: Date
+  description: String
+  dressing: ReferentialVOInput
+  dressingId: Int
+  endDate: Date
+  id: Int
+  location: LocationVOInput
+  locationId: Int
+  preserving: ReferentialVOInput
+  preservingId: Int
+  startDate: Date
+  statusId: Int
+  taxonGroup: TaxonGroupVOInput
+  taxonGroupId: Int
+  updateDate: Date
+}
+
 input SaleVOInput {
   comments: String
   controlDate: Date
@@ -3161,6 +3191,41 @@ input WeightLengthConversionVOInput {
   sexId: Int
   startMonth: Int
   statusId: Int
+  taxonName: TaxonNameVOInput
   updateDate: Date
   year: Int
 }
+
+
+"Built-in java.math.BigDecimal"
+scalar BigDecimal
+
+"Built-in scalar representing an instant in time"
+scalar Date
+
+"Long type"
+scalar Long
+
+"Built-in scalar for map-like structures"
+scalar Map_Integer_StringScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_List_ObjectScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_Map_String_LongScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_ObjectScalar
+
+"Built-in scalar for map-like structures"
+scalar Map_String_StringScalar
+
+"Built-in scalar for dynamic values"
+scalar ObjectScalar
+
+"Built-in Short as Int"
+scalar Short
+
+"Use SPQR's SchemaPrinter to remove this from SDL"
+scalar UNREPRESENTABLE
