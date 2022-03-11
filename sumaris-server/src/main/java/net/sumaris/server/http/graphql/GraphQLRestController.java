@@ -24,7 +24,6 @@ package net.sumaris.server.http.graphql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import graphql.*;
-import graphql.schema.GraphQLSchema;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.service.technical.ConfigurationService;
@@ -51,10 +50,10 @@ public class GraphQLRestController {
     private final ConfigurationService configurationService;
 
     @Autowired
-    public GraphQLRestController(GraphQLSchema graphQLSchema,
+    public GraphQLRestController(GraphQL graphQL,
                                  ObjectMapper objectMapper,
                                  ConfigurationService configurationService) {
-        this.graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+        this.graphQL = graphQL;
         this.objectMapper = objectMapper;
         this.configurationService = configurationService;
         log.info("Starting GraphQL endpoint {{}}...", GraphQLPaths.BASE_PATH);

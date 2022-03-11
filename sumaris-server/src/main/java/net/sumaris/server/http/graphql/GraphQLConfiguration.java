@@ -125,7 +125,7 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
     }
 
     @Bean
-    public GraphQL webSocketGraphQL() {
+    public GraphQL graphQL() {
         return GraphQL.newGraphQL(graphQLSchema())
             .subscriptionExecutionStrategy(new SubscriptionExecutionStrategy())
             .build();
