@@ -33,9 +33,9 @@ import { ProgramRefService } from './program-ref.service';
 import { BaseReferentialService } from './base-referential-service.class';
 import { StrategyRefService } from './strategy-ref.service';
 import { ProgramFilter } from './filter/program.filter';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default

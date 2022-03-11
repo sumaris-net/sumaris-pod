@@ -24,11 +24,11 @@ import { Sample } from './sample.model';
 import { Batch } from './batch.model';
 import { IWithProductsEntity, Product } from './product.model';
 import { IWithPacketsEntity, Packet } from './packet.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { SortDirection } from '@angular/material/sort';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 /* -- Helper function -- */
 

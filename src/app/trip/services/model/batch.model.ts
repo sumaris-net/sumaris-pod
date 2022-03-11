@@ -18,8 +18,8 @@ import {
 import { TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { PmfmValueUtils } from '../../../referential/services/model/pmfm-value.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';

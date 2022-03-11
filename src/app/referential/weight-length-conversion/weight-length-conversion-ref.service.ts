@@ -1,9 +1,9 @@
-import { BaseEntityGraphqlQueries, BaseEntityService, EntityAsObjectOptions, GraphqlService, IEntityService, PlatformService } from '@sumaris-net/ngx-components';
+import { BaseEntityGraphqlQueries, BaseEntityService, GraphqlService, IEntityService, PlatformService } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
-import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/services/model/weight-length-conversion.model';
+import { WeightLengthConversionRef } from './weight-length-conversion.model';
 import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
 import { gql } from '@apollo/client/core';
-import { WeightLengthConversionFragments } from '@app/referential/services/weight-length-conversion.fragments';
+import { WeightLengthConversionFragments } from './weight-length-conversion.fragments';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){

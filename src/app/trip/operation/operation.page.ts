@@ -172,7 +172,7 @@ export class OperationPage
     );
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
@@ -1112,5 +1112,11 @@ export class OperationPage
 
     return this.showCatchTab ? OperationPage.TABS.CATCH :
       (this.showSamplesTab ? OperationPage.TABS.SAMPLE : undefined);
+  }
+
+  startListenRemoteChanges() {
+    if (EntityUtils.isLocalId(this.data?.id as any)) return; // Skip if local entity
+
+    super.startListenRemoteChanges();
   }
 }

@@ -1,6 +1,6 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
-import {RouterModule} from '@angular/router';
-import {TranslateModule} from '@ngx-translate/core';
+import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 import { FormatPropertyPipe } from './pipes/format-property.pipe';
@@ -30,6 +30,8 @@ export class AppSharedModule {
       ngModule: AppSharedModule,
       providers: [
         ...SharedModule.forRoot(environment).providers,
+
+        // A context service
         {
           provide: ContextService,
           useValue: new ContextService<Context>({})

@@ -32,11 +32,12 @@
         "src/environments/*"
       ],
       "@sumaris-net/ngx-components/*": [
-        "ngx-sumaris-components/src/app/public_api.ts"
+        "ngx-sumaris-components/*"
       ],
       // Force using the RxJS project's version
       "rxjs": ["node_modules/rxjs"],
-      "rxjs/*": ["node_modules/rxjs/*"]
+      "rxjs/*": ["node_modules/rxjs/*"],
+      "@ionic/*": ["node_modules/@ionic/*"]
     }
   },
   "angularCompilerOptions": {

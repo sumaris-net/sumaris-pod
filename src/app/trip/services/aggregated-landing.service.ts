@@ -2,6 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { AggregatedLanding, AggregatedLandingUtils } from './model/aggregated-landing.model';
 import {
   BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
   BaseGraphqlService,
   chainPromises,
   EntitiesServiceWatchOptions,
@@ -14,7 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  NetworkService,
+  NetworkService
 } from '@sumaris-net/ngx-components';
 import { gql } from '@apollo/client/core';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -24,10 +25,9 @@ import { filter, map } from 'rxjs/operators';
 import { SortDirection } from '@angular/material/sort';
 import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import { environment } from '@environments/environment';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
-import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
 import { ErrorCodes } from '@app/data/services/errors';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
   __typename

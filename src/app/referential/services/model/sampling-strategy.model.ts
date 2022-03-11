@@ -2,7 +2,7 @@ import { AppliedPeriod, Strategy } from './strategy.model';
 import { Moment } from 'moment';
 import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNil, isNotEmptyArray, isNotNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOptions {
   keepEffort: boolean; // false by default

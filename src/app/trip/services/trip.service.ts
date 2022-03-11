@@ -58,7 +58,6 @@ import { Sample } from './model/sample.model';
 import { ErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -67,6 +66,7 @@ import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-ser
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
+import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 const moment = momentImported;
 

@@ -6,7 +6,7 @@ import {
   AppEditorOptions,
   AppEntityEditor,
   changeCaseToUnderscore,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityUtils,
   firstNotNilPromise,
   HistoryPageReference,
   IEntityService,
@@ -18,7 +18,7 @@ import {
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils
 } from '@sumaris-net/ngx-components';
 import { distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { Program } from '../../referential/services/model/program.model';
@@ -26,7 +26,7 @@ import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { Strategy } from '../../referential/services/model/strategy.model';
 import { StrategyRefService } from '../../referential/services/strategy-ref.service';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { mergeMap } from 'rxjs/internal/operators';
+import { mergeMap } from 'rxjs/operators';
 import { Moment } from 'moment';
 import { FormControl } from '@angular/forms';
 
@@ -171,6 +171,12 @@ export abstract class AppRootDataEditor<
         }))
       ).subscribe()
     );
+  }
+
+  startListenRemoteChanges() {
+    if (EntityUtils.isLocalId(this.data?.id as any)) return; // Skip if local entity
+
+    super.startListenRemoteChanges();
   }
 
   ngOnDestroy() {

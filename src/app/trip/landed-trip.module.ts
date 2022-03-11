@@ -28,7 +28,7 @@ import {AggregatedLandingModal} from './aggregated-landing/aggregated-landing.mo
 import {TripModule} from './trip.module';
 import {CoreModule} from '@sumaris-net/ngx-components';
 import {SelectVesselsModal} from './observedlocation/vessels/select-vessel.modal';
-import {AppDataModule} from '../data/app-data.module';
+import {AppDataModule} from '../data/data.module';
 import {TranslateModule} from '@ngx-translate/core';
 import {SamplesModal} from './sample/samples.modal';
 import {SamplingLandingPage} from './landing/sampling/sampling-landing.page';

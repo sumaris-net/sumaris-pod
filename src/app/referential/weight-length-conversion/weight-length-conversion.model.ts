@@ -1,9 +1,9 @@
 import { EntityAsObjectOptions, EntityClass, IEntity, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
-import { Entity } from '../../../../../ngx-sumaris-components/src/app/core/services/model/entity.model';
+import { Entity } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { fromDateISOString } from '../../../../../ngx-sumaris-components/src/app/shared/dates';
+import { fromDateISOString } from '@sumaris-net/ngx-components';
 import { StoreObject } from '@apollo/client/core';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export abstract class BaseWeightLengthConversion<T extends Entity<T, number, EntityAsObjectOptions>>
   extends Entity<T, number, EntityAsObjectOptions>
@@ -22,8 +22,8 @@ export abstract class BaseWeightLengthConversion<T extends Entity<T, number, Ent
   comments: string = null;
   creationDate: Moment = null;
 
-  protected constructor() {
-    super(WeightLengthConversion.TYPENAME);
+  protected constructor(__typename: string) {
+    super(__typename);
   }
 
   fromObject(source: any, opts?: any) {
@@ -62,7 +62,7 @@ export class WeightLengthConversionRef
   lengthUnitId: number = null;
 
   constructor() {
-    super();
+    super(WeightLengthConversionRef.TYPENAME);
   }
 
   fromObject(source: any, opts?: any) {
@@ -87,7 +87,7 @@ export class WeightLengthConversion
   lengthUnit: ReferentialRef = null;
 
   constructor() {
-    super();
+    super(WeightLengthConversion.TYPENAME);
   }
 
   fromObject(source: any, opts?: any) {

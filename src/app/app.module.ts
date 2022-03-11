@@ -12,10 +12,7 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Keyboard } from '@ionic-native/keyboard/ngx';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Vibration } from '@ionic-native/vibration/ngx';
-import { ImagePicker } from '@ionic-native/image-picker/ngx';
-import { MediaCapture } from '@ionic-native/media-capture/ngx';
-import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
-import { File } from '@ionic-native/file/ngx';
+
 
 // App modules
 import { AppComponent } from './app.component';
@@ -33,12 +30,11 @@ import {
   APP_LOCALES,
   APP_MENU_ITEMS,
   APP_TESTING_PAGES,
-  AppGestureConfig,
   CORE_CONFIG_OPTIONS,
   DATE_ISO_PATTERN,
+  AppGestureConfig,
   Department,
   EntitiesStorageTypePolicies,
-  ENVIRONMENT,
   FormFieldDefinitionMap,
   LocalSettings,
   SocialModule,
@@ -72,6 +68,8 @@ import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
+import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
+import { AppImageModule } from '@app/image/image.module';
 
 @NgModule({
   declarations: [
@@ -118,6 +116,7 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
     // functional modules
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
+    AppImageModule.forRoot(),
     SocialModule.forRoot(),
     HammerModule,
     AppRoutingModule
@@ -132,10 +131,6 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
     Vibration,
     InAppBrowser,
     AudioManagement,
-    ImagePicker,
-    File,
-    MediaCapture,
-    PhotoViewer,
     Downloader,
 
     {provide: APP_BASE_HREF, useFactory: function () {
@@ -199,7 +194,7 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
       }
     },
 
-    // Settings options definition
+    // Setting options definition
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
         ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
         ...VESSEL_LOCAL_SETTINGS_OPTIONS,
@@ -343,8 +338,10 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
 
     // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
-        ...TRIP_TESTING_PAGES, ...REFERENTIAL_TESTING_PAGES
-    ]},
+        ...REFERENTIAL_TESTING_PAGES,
+        ...IMAGE_TESTING_PAGES,
+        ...TRIP_TESTING_PAGES
+      ]},
 
     // Custom identicon style
     // https://jdenticon.com/icon-designer.html?config=4451860010ff320028501e5a

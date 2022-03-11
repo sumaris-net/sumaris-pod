@@ -21,6 +21,7 @@ import { Observable, of } from 'rxjs';
 import { ReferentialFragments } from './referential.fragments';
 import { TaxonName } from './model/taxon-name.model';
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
+import { mergeMap } from 'rxjs/internal/operators';
 
 export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any; } = {
   loadAll: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
@@ -64,7 +65,8 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
 }
 
 @Injectable({providedIn: 'root'})
-export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilter> implements IEntityService<TaxonName> {
+export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilter>
+  implements IEntityService<TaxonName> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -107,10 +109,13 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
     await this.referentialService.deleteAll([entity]);
   }
 
+  canUserWrite(data: TaxonName, opts?: any): boolean {
+    return this.accountService.isAdmin();
+  }
+
   listenChanges(id: number, options?: any): Observable<TaxonName | undefined> {
-    // TODO
-    console.warn("TODO: implement listen changes on taxon name");
-    return of();
+    return this.referentialService.listenChanges(id, {entityName: TaxonName.ENTITY_NAME, ...options})
+      .pipe(mergeMap(data => this.load(id, {...options, fetchPolicy: 'network-only'})));
   }
 
   copyIdAndUpdateDate(source: TaxonName, target: TaxonName) {

@@ -5,7 +5,6 @@ import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
-  AppFormUtils,
   DateFormatPipe,
   DateUtils,
   EntityUtils,
@@ -19,19 +18,17 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  LatLongPattern,
   LoadResult,
   MatAutocompleteField,
   OnReady,
-  PlatformService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
-  SharedFormArrayValidators,
-  SharedValidators,
   StatusIds,
   suggestFromArray,
   toBoolean,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
@@ -49,7 +46,6 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
 import { TripService } from '@app/trip/services/trip.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';

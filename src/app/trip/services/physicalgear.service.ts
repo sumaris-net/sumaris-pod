@@ -26,7 +26,7 @@ import moment from 'moment';
 import {TripFilter} from '@app/trip/services/filter/trip.filter';
 import {ErrorCodes} from '@app/data/services/errors';
 import {mergeLoadResult} from '@app/shared/functions';
-import {mergeMap} from 'rxjs/internal/operators';
+import {mergeMap} from 'rxjs/operators';
 
 
 const LoadAllQuery: any = gql`

@@ -11,10 +11,11 @@ import { BatchGroupFormTestPage } from '@app/trip/batch/form/testing/batch-group
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SampleTreeTestPage } from '@app/trip/sample/testing/sample-tree.test';
 
-export const TRIP_TESTING_PAGES = [
-  <TestingPage>{label: 'Batch tree', page: '/testing/trip/batchTree'},
-  <TestingPage>{label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
-  <TestingPage>{label: 'Sample tree', page: '/testing/trip/sampleTree'}
+export const TRIP_TESTING_PAGES: TestingPage[] = [
+  {label: 'Trip module', divider: true},
+  {label: 'Batch tree', page: '/testing/trip/batchTree'},
+  {label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
+  {label: 'Sample tree', page: '/testing/trip/sampleTree'}
 ];
 
 const routes: Routes = [

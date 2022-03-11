@@ -5,7 +5,7 @@ import {Sample} from './sample.model';
 import {Measurement, MeasurementUtils} from './measurement.model';
 import {IWithProductsEntity, Product} from './product.model';
 import {DataRootVesselEntity} from '../../../data/services/model/root-vessel-entity.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 @EntityClass({typename: 'SaleVO'})
 export class Sale extends DataRootVesselEntity<Sale>

@@ -52,6 +52,10 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
     return this.form.valid;
   }
 
+  get modalName(): string {
+    return this.constructor.name;
+  }
+
   constructor(
     injector: Injector,
     protected viewCtrl: ModalController,

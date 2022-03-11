@@ -35,15 +35,18 @@
 
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
-              <!-- base form-->
-              <app-referential-form #referentialForm
-                                    [form]="form"
-                                    [showError]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
 
-                <!-- Other fields -->
-                <form [formGroup]="form" class="form-container">
+              <form [formGroup]="form">
+
+                <!-- base form -->
+                <app-referential-form #referentialForm
+                                      [form]="form"
+                                      [entityName]="entityName"
+                                      [showError]="false"
+                                      [debug]="debug"
+                                      (onSubmit)="save($event)">
+
+                  <!-- Other fields -->
                   <ion-row>
                     <ion-col>
                       <!-- Taxonomic Level -->
@@ -109,9 +112,9 @@
                       </app-form-field>
                     </ion-col>
                   </ion-row>
-                </form>
 
-              </app-referential-form>
+                </app-referential-form>
+              </form>
             </ion-col>
 
             <!-- entity metadata-->
@@ -126,30 +129,27 @@
 
     <!-- TAB: Weight/Length relation -->
     <mat-tab label="{{'REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION'|translate}}"
-             [disabled]="!weightLengthConversionTable.ready()">
+             [disabled]="!(wlcTable.readySubject|async)">
       <ng-template mat-tab-label>
         <mat-icon>list</mat-icon>
         <ion-label translate>REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION</ion-label>
-        <!--<ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && weightLengthTable.invalid"></ion-icon>-->
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && wlcTable.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="mobile && weightLengthConversionTable.error" lines="none">
+        <ion-item *ngIf="mobile && wlcTable.error" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="weightLengthConversionTable.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="wlcTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-weight-length-conversion-table #weightLengthConversionTable
-          [referenceTaxonId]="this.form.controls.referenceTaxonId.valueChanges|async"
-          [showReferenceTaxonIdColumn]="false">
+        <app-weight-length-conversion-table #wlcTable
+                                            [referenceTaxonId]="this.form.controls.referenceTaxonId.valueChanges|async"
+                                            [showReferenceTaxonIdColumn]="false"
+                                            [canDownload]="true"
+                                            [canUpload]="true">
 
-          <button mat-icon-button matToolbarEnd
-                  [title]="'COMMON.BTN_OPTIONS'|translate"
-                  [matMenuTriggerFor]="tableOptionsMenu">
-            <mat-icon>more_vert</mat-icon>
-          </button>
         </app-weight-length-conversion-table>
 
       </div>
@@ -158,23 +158,6 @@
 
 </ion-content>
 
-
-<mat-menu #tableOptionsMenu="matMenu" xPosition="after">
-
-  <!-- download data -->
-  <button mat-menu-item
-          (click)="weightLengthConversionTable.exportToCsv($event)">
-    <mat-icon>download</mat-icon>
-    <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
-  </button>
-
-  <!-- import file -->
-  <button mat-menu-item
-          (click)="weightLengthConversionTable.upload($event)">
-    <mat-icon>upload</mat-icon>
-    <ion-label translate>REFERENTIAL.TAXON_NAME.WEIGHT_LENGTH_CONVERSION.BTN_IMPORT_FILE</ion-label>
-  </button>
-</mat-menu>
 <ion-footer hidden-xs hidden-sm hidden-mobile>
 
   <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"

@@ -69,8 +69,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     'Software': '/referential/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
     'Parameter': '/referential/parameter/:id?label=:label',
-    'ExtractionProduct': '/extraction/product/:id?label=:label',
-    'TaxonName': '/referential/taxonName/:id?label=:label'
+    'TaxonName': '/referential/taxonName/:id?label=:label',
+    'TaxonGroup': '/referential/taxonGroup/:id?label=:label',
+    // Extraction (special case)
+    'ExtractionProduct': '/extraction/product/:id?label=:label'
   };
 
   readonly statusList = StatusList;

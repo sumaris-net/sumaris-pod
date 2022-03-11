@@ -39,7 +39,6 @@ import {SortDirection} from '@angular/material/sort';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 import {LandingFilter} from './filter/landing.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
 import {TripFragments, TripService} from '@app/trip/services/trip.service';
 import {Trip} from '@app/trip/services/model/trip.model';
@@ -47,6 +46,7 @@ import {environment} from '@environments/environment';
 import {ErrorCodes} from '@app/data/services/errors';
 import {TripFilter} from '@app/trip/services/filter/trip.filter';
 import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
+import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 const moment = momentImported;
 

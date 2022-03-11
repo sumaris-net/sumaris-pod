@@ -12,7 +12,7 @@ import {
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { Strategy } from './strategy.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {

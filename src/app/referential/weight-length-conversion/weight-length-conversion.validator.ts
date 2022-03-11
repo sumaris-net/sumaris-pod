@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {ReferentialValidatorService} from "./referential.validator";
-import {TaxonName} from "../model/taxon-name.model";
+import {ReferentialValidatorService} from "../services/validator/referential.validator";
+import {TaxonName} from "../services/model/taxon-name.model";
 import { AppValidatorService, toBoolean } from '@sumaris-net/ngx-components';
 import {SharedValidators} from "@sumaris-net/ngx-components";
-import { WeightLengthConversion } from '@app/referential/services/model/weight-length-conversion.model';
+import { WeightLengthConversion } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
 
 @Injectable({providedIn: 'root'})
 export class WeightLengthConversionValidatorService extends AppValidatorService<WeightLengthConversion> {
@@ -36,7 +36,7 @@ export class WeightLengthConversionValidatorService extends AppValidatorService<
       comments: [data?.comments || null],
       updateDate: [data?.updateDate || null],
       creationDate: [data?.creationDate || null],
-      statusId: [data?.statusId || null, Validators.required],
+      statusId: [data?.statusId || null, Validators.required]
     };
   }
 

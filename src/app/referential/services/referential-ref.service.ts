@@ -54,9 +54,9 @@ import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
 import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { WeightLengthConversionService } from '@app/referential/services/weight-length-conversion.service';
-import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/services/model/weight-length-conversion.model';
-import { WeightLengthConversionRefService } from '@app/referential/services/weight-length-conversion-ref.service';
+import { WeightLengthConversionService } from '@app/referential/weight-length-conversion/weight-length-conversion.service';
+import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
 
 const LastUpdateDate: any = gql`
   query LastUpdateDate{

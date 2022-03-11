@@ -22,8 +22,8 @@ import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.mode
 import {ErrorCodes} from './errors';
 import {IWithRecorderDepartmentEntity} from './model/model.utils';
 import {RootDataEntityFilter} from './model/root-data-filter.model';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {

@@ -15,6 +15,7 @@
     "BTN_COMPACT_ROWS": "Compacter les lignes",
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
+    "BTN_IMPORT": "Importer",
     "BTN_DUPLICATE": "Dupliquer",
     "BTN_DELETE": "Supprimer",
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
@@ -59,7 +60,6 @@
     "BTN_LOGOUT": "Quitter",
     "CREATED_ON": "Créé le ",
     "COMMENTS": "Commentaires",
-    "CSV_SEPARATOR": ";",
     "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
     "All_OPTION": "(Tous)",
@@ -1315,7 +1315,30 @@
     },
     "TAXON_GROUP": {
       "LABEL": "Code espèce commerciale",
-      "NAME": "Libellé espèce commerciale"
+      "NAME": "Libellé espèce commerciale",
+      "PARENT": "Espèce commerciale parente",
+      "TAXON_GROUP_TYPE": "Type de groupe",
+      "TAB_ROUND_WEIGHT_CONVERSION": "Equivalents Poids Vif",
+      "NEW": {
+        "TITLE": "Nouvelle espèce commerciale"
+      },
+      "EDIT": {
+        "TITLE": "Espèce commerciale {{label}} - {{name}}"
+      },
+      "ROUND_WEIGHT_CONVERSION": {
+        "EXPORT_CSV_FILENAME": "Equiv_poids_vifs-{{taxonGroupId}}.csv",
+        "CONVERSION_COEFFICIENT": "Coef. conversion",
+        "COMMENTS": "Commentaires",
+        "CREATION_DATE": "Date création",
+        "DESCRIPTION": "Description",
+        "START_DATE": "Date début",
+        "END_DATE": "Date fin",
+        "LOCATION": "Pays",
+        "TAXON_GROUP_ID": "Espèce commerciale",
+        "DRESSING": "Présentation",
+        "PRESERVING": "État",
+        "STATUS_ID": "État"
+      }
     },
     "TAXON_NAME": {
       "LABEL": "Code espèce scientifique",
@@ -1337,10 +1360,9 @@
         "TITLE": "Espèce scientifique {{label}} - {{name}}"
       },
       "WEIGHT_LENGTH_CONVERSION": {
-        "BTN_IMPORT_FILE": "Importer depuis un fichier...",
         "EXPORT_CSV_FILENAME": "RTP-{{referenceTaxonId}}.csv",
-        "CONVERSION_COEFFICIENT_A": "Coeff. A",
-        "CONVERSION_COEFFICIENT_B": "Coeff. B",
+        "CONVERSION_COEFFICIENT_A": "Coef. A",
+        "CONVERSION_COEFFICIENT_B": "Coef. B",
         "COMMENTS": "Commentaires",
         "CREATION_DATE": "Date création",
         "DESCRIPTION": "Description",
@@ -2090,6 +2112,23 @@
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",
       "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde du message utilisateur"
+    }
+  },
+  "FILE": {
+    "CSV": {
+      "SEPARATOR": ";",
+      "ENCODING": "UTF-8",
+      "ERROR": {
+        "EMPTY_FILE": "Fichier vide, ou ligne d'entête manquante",
+        "NO_HEADER_OR_INVALID_SEPARATOR": "Ligne d'entête invalide. vérifier que le séparateur '{{separator}}' est utilisé.",
+        "UNKNOWN_HEADERS": "Entête(s) de colonne invalide(s): {{headers}}"
+      }
+    },
+    "UPLOAD": {
+      "DRAG_AND_DROP": "Glisser et déposer un fichier{{ extension }} ici<br/>ou",
+      "BROWSE": "Parcourir",
+      "IMPORTING": "Importation en cours",
+      "ERROR": "Erreur durant l'envoi de fichier"
     }
   },
   "ERROR": {

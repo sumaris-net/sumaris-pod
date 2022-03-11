@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
+import { IonicModule } from '@ionic/angular';
 
 const routes: Routes = [
   // Core path
@@ -106,6 +107,11 @@ const routes: Routes = [
       {
         path: 'referential',
         loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule)
+      },
+      // Image module
+      {
+        path: 'image',
+        loadChildren: () => import('./image/image.testing.module').then(m => m.ImageTestingModule)
       }
     ]
   },

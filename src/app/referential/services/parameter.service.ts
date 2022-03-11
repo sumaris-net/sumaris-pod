@@ -146,7 +146,7 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
 
     entity.entityName = 'Parameter';
 
-    await this.referentialService.deleteAll([entity]);
+    await this.referentialService.delete(entity);
   }
 
   listenChanges(id: number, options?: any): Observable<Parameter | undefined> {

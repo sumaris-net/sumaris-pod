@@ -1,107 +1,115 @@
-import {Injectable} from '@angular/core';
-import {DocumentNode, FetchPolicy, gql, MutationUpdaterFn} from '@apollo/client/core';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {ErrorCodes} from './errors';
+import { Injectable } from '@angular/core';
+import { DocumentNode, FetchPolicy, gql, MutationUpdaterFn } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ErrorCodes } from './errors';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseGraphqlService, EntitySaveOptions,
+  BaseEntityGraphqlSubscriptions,
+  BaseGraphqlService,
+  EntitiesServiceWatchOptions,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
   GraphqlService,
   IEntitiesService,
+  IEntityService,
   isNil,
   isNotNil,
-  LoadResult, LocalSettingsService,
-  PlatformService,
+  LoadResult,
+  LocalSettingsService,
   Referential,
   ReferentialRef,
   StatusIds,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import {ReferentialFragments} from './referential.fragments';
-import {environment} from '@environments/environment';
-import {SortDirection} from '@angular/material/sort';
-import {ReferentialFilter} from './filter/referential.filter';
-
+import { ReferentialFragments } from './referential.fragments';
+import { environment } from '@environments/environment';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialFilter } from './filter/referential.filter';
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export interface ReferentialType {
   id: string;
   level?: string;
 }
-const LoadAllWithTotalQuery: any = gql`
-  query ReferentialsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
-    data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...FullReferentialFragment
-    }
-    total: referentialsCount(entityName: $entityName, filter: $filter)
-  }
-  ${ReferentialFragments.fullReferential}
-`;
-const LoadAllQuery: any = gql`
-  query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+
+const QUERIES: BaseEntityGraphqlQueries & {count: any; loadTypes: any; loadLevels: any; } = {
+  // Load all
+  loadAll: gql`query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...FullReferentialFragment
     }
   }
-  ${ReferentialFragments.fullReferential}
-`;
-const CountQuery: any = gql`
-  query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
+  ${ReferentialFragments.fullReferential}`,
+
+  // Load all with total
+  loadAllWithTotal: gql`query ReferentialsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
+      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
+        ...FullReferentialFragment
+      }
+      total: referentialsCount(entityName: $entityName, filter: $filter)
+    }
+    ${ReferentialFragments.fullReferential}`,
+
+  count: gql`query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput){
     total: referentialsCount(entityName: $entityName, filter: $filter)
-  }
-`;
-const LoadReferentialTypes: any = gql`
-  query ReferentialTypes{
+  }`,
+
+  loadTypes: gql`query ReferentialTypes{
     data: referentialTypes {
-       id
-       level
+      id
+      level
       __typename
     }
-  }
-`;
+  }`,
 
-const LoadReferentialLevels: any = gql`
-  query ReferentialLevels($entityName: String) {
+  loadLevels: gql`query ReferentialLevels($entityName: String) {
     data: referentialLevels(entityName: $entityName){
       ...ReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}
-`;
+  ${ReferentialFragments.referential}`
+};
 
-const SaveAllQuery: any = gql`
-  mutation SaveReferentials($data:[ReferentialVOInput]){
+const MUTATIONS: BaseEntityGraphqlMutations = {
+  saveAll: gql`mutation SaveReferentials($data:[ReferentialVOInput]){
     data: saveReferentials(referentials: $data){
       ...FullReferentialFragment
     }
   }
-  ${ReferentialFragments.fullReferential}
-`;
+  ${ReferentialFragments.fullReferential}`,
 
-const DeleteAll: any = gql`
-  mutation deleteReferentials($entityName: String, $ids:[Int]){
-    deleteReferentials(entityName: $entityName, ids: $ids)
+  deleteAll: gql`
+    mutation deleteReferentials($entityName: String!, $ids:[Int]){
+      deleteReferentials(entityName: $entityName, ids: $ids)
+    }`
+};
+
+const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription UpdateReferential($entityName: String!, $id: Int!, $interval: Int){
+    data: updateReferential(entityName: $entityName, id: $id, interval: $interval) {
+      ...FullReferentialFragment
+    }
   }
-`;
+  ${ReferentialFragments.fullReferential}`,
+};
 
-const REFERENTIAL_QUERIES: BaseEntityGraphqlQueries & {count: any} = {
-  loadAll: LoadAllQuery,
-  loadAllWithTotal: LoadAllWithTotalQuery,
-  count: CountQuery
-};
-const REFERENTIAL_MUTATIONS: BaseEntityGraphqlMutations = {
-  saveAll: SaveAllQuery,
-  deleteAll: DeleteAll
-};
+interface ReferentialServiceLoadOptions extends EntityServiceLoadOptions {
+  entityName: string;
+}
 
 @Injectable({providedIn: 'root'})
 export class ReferentialService
   extends BaseGraphqlService<Referential, ReferentialFilter>
-  implements IEntitiesService<Referential, ReferentialFilter> {
+  implements IEntitiesService<Referential, ReferentialFilter>,
+    IEntityService<Referential, number, ReferentialServiceLoadOptions>{
 
-  private queries = REFERENTIAL_QUERIES;
-  private mutations = REFERENTIAL_MUTATIONS;
+  private queries = QUERIES;
+  private mutations = MUTATIONS;
+  private subscriptions = SUBSCRIPTIONS;
 
   constructor(
     protected graphql: GraphqlService,
@@ -124,14 +132,12 @@ export class ReferentialService
            sortBy?: string,
            sortDirection?: SortDirection,
            filter?: Partial<ReferentialFilter>,
-           opts?: {
-      fetchPolicy?: FetchPolicy;
-      withTotal: boolean;
-    }): Observable<LoadResult<Referential>> {
+           opts?: EntitiesServiceWatchOptions): Observable<LoadResult<Referential>> {
 
     if (!filter || !filter.entityName) {
-      console.error("[referential-service] Missing filter.entityName");
-      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" };
+      console.error('[referential-service] Missing filter.entityName');
+      // eslint-disable-next-line no-throw-literal
+      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
     }
 
     filter = this.asFilter(filter);
@@ -159,13 +165,14 @@ export class ReferentialService
       totalFieldName: withTotal ? 'total' : undefined,
       insertFilterFn: (d: Referential) => d.entityName === entityName,
       variables,
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     })
       .pipe(
         map(({data, total}) => {
-          const entities = (data || []).map(Referential.fromObject);
+          const entities = (data || []).map(FullReferential.fromObject);
           entities.forEach(r => r.entityName = uniqueEntityName);
+
           if (now) {
             console.debug(`[referential-service] ${uniqueEntityName} loaded in ${Date.now() - now}ms`, entities);
             now = null;
@@ -182,18 +189,13 @@ export class ReferentialService
                 size: number,
                 sortBy?: string,
                 sortDirection?: SortDirection,
-                filter?: ReferentialFilter,
-                opts?: {
-                  [key: string]: any;
-                  fetchPolicy?: FetchPolicy;
-                  debug?: boolean;
-                  withTotal?: boolean;
-                  toEntity?: boolean;
-                }): Promise<LoadResult<Referential>> {
+                filter?: Partial<ReferentialFilter>,
+                opts?: EntityServiceLoadOptions): Promise<LoadResult<Referential>> {
 
     if (!filter || !filter.entityName) {
-      console.error("[referential-service] Missing filter.entityName");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[referential-service] Missing filter.entityName');
+      // eslint-disable-next-line no-throw-literal
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     filter = this.asFilter(filter);
@@ -202,7 +204,7 @@ export class ReferentialService
     const debug = this._debug && (!opts || opts.debug !== false);
 
     const variables: any = {
-      entityName: entityName,
+      entityName,
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
@@ -213,23 +215,24 @@ export class ReferentialService
     const now = Date.now();
     if (debug) console.debug(`[referential-service] Loading ${uniqueEntityName} items...`, variables);
 
-    const query = (!opts || opts.withTotal !== false) ? this.queries.loadAllWithTotal : this.queries.loadAll;
+    const withTotal = (!opts || opts.withTotal !== false)
+    const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
     const res = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
-      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"},
+      error: {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
-    let data = (res && res.data || []) as Referential[];
+    let data = (res && res.data || []) as FullReferential[];
 
     // Always use unique entityName, if need
     if (filter.entityName !== uniqueEntityName) {
-      data = data.map(r => <Referential>{...r, entityName: uniqueEntityName});
+      data = data.map(r => <FullReferential>{...r, entityName: uniqueEntityName});
     }
 
     // Convert to entities
     if (!opts || opts.toEntity !== false) {
-      data = data.map(Referential.fromObject);
+      data = data.map(FullReferential.fromObject);
     }
 
     if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
@@ -248,13 +251,13 @@ export class ReferentialService
 
     const entityName = entities[0].entityName;
     if (!entityName) {
-      console.error("[referential-service] Could not save referential: missing entityName");
-      throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" };
+      console.error('[referential-service] Could not save referential: missing entityName');
+      throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' };
     }
 
     if (entities.length !== entities.filter(e => e.entityName === entityName).length) {
-      console.error("[referential-service] Could not save referential: more than one entityName found in the array to save!");
-      throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" };
+      console.error('[referential-service] Could not save referential: more than one entityName found in the array to save!');
+      throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' };
     }
 
     const json = entities.map(t => t.asObject());
@@ -267,12 +270,13 @@ export class ReferentialService
       variables: {
         data: json
       },
-      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
       update: (cache, {data}) => {
-        if (data && data.data) {
+        const savedEntities = data?.data;
+        if (savedEntities) {
           // Update entities (id and update date)
           entities.forEach(entity => {
-            const savedEntity = data.data.find(e => (e.id === entity.id || e.label === entity.label));
+            const savedEntity = savedEntities.find(e => (e.id === entity.id || e.label === entity.label));
             if (savedEntity !== entity) {
               EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
             }
@@ -281,7 +285,7 @@ export class ReferentialService
           // Update the cache
           this.insertIntoMutableCachedQueries(cache, {
             queries: this.getLoadQueries(),
-            data: data.data
+            data: savedEntities
           });
         }
 
@@ -294,6 +298,64 @@ export class ReferentialService
     return entities;
   }
 
+  load(id: number, opts?: ReferentialServiceLoadOptions): Promise<Referential> {
+    return this.loadAll(0,1,null, null, {
+      includedIds: [id],
+        entityName: opts.entityName
+      },
+      {withTotal: false, ...opts})
+      .then(res => {
+        if (res && res.data) return res.data[0];
+        return undefined;
+      });
+  }
+
+  delete(data: Referential, opts?: any): Promise<any> {
+    return this.deleteAll([data], opts);
+  }
+
+  canUserWrite(data: Referential, opts?: any): boolean {
+    return this.accountService.isAdmin();
+  }
+
+  listenChanges(id: number, opts?: {
+      entityName: string,
+      variables?: any;
+      interval?: number;
+      toEntity?: boolean;
+    }): Observable<Referential> {
+    if (isNil(id)) throw Error('Missing argument \'id\' ');
+    if (isNil(opts.entityName)) throw Error('Missing argument \'opts.entityName\' ');
+
+    const variables = {
+      id,
+      entityName: opts.entityName,
+      interval: toNumber(opts && opts.interval, 0), // no timer by default
+      ...opts?.variables
+    };
+    if (this._debug) console.debug(this._logPrefix + `[WS] Listening for changes on ${opts.entityName}#${id}...`);
+
+    return this.graphql.subscribe<{data: any}>({
+      query: SUBSCRIPTIONS.listenChanges,
+      variables,
+      error: {
+        code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
+        message: 'ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
+      }
+    })
+      .pipe(
+        map(({data}) => {
+          const entity = (!opts || opts.toEntity !== false) ? data && FullReferential.fromObject(data) : data;
+          if (entity && this._debug) console.debug(this._logPrefix + `[WS] Received changes on ${opts.entityName}#${id}`, entity);
+
+          // TODO: missing = deleted ?
+          if (!entity) console.warn(this._logPrefix + `[WS] Received deletion on ${opts.entityName}#${id} - TODO check implementation`);
+
+          return entity;
+        })
+      );
+  }
+
   async existsByLabel(label: string,
                       filter?: Partial<ReferentialFilter>,
                       opts?: {
@@ -301,8 +363,8 @@ export class ReferentialService
                       }): Promise<boolean> {
 
     if (!filter || !filter.entityName || !label) {
-      console.error("[referential-service] Missing 'filter.entityName' or 'label'");
-      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR"};
+      console.error('[referential-service] Missing \'filter.entityName\' or \'label\'');
+      throw {code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR'};
     }
 
     filter = this.asFilter(filter);
@@ -314,7 +376,7 @@ export class ReferentialService
         entityName: filter.entityName,
         filter: filter.asPodObject()
       },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
       fetchPolicy: opts && opts.fetchPolicy || 'network-only'
     });
 
@@ -323,13 +385,15 @@ export class ReferentialService
 
   /**
    * Save a referential entity
+   *
    * @param entity
+   * @param options
    */
   async save(entity: Referential, options?: EntitySaveOptions): Promise<Referential> {
 
     if (!entity.entityName) {
-      console.error("[referential-service] Missing entityName");
-      throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" };
+      console.error('[referential-service] Missing entityName');
+      throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' };
     }
 
     // Transform into json
@@ -339,16 +403,16 @@ export class ReferentialService
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Saving ${entity.entityName}...`, json);
 
-    await this.graphql.mutate<{ data: any }>({
+    await this.graphql.mutate<LoadResult<any>>({
       mutation: this.mutations.saveAll,
       variables: {
         data: [json]
       },
-      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR" },
+      error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
       update: (cache, {data}) => {
         // Update entity
         const savedEntity = data && data.data && data.data[0];
-        if (savedEntity === entity) {
+        if (savedEntity !== entity) {
           if (this._debug) console.debug(`[referential-service] ${entity.entityName} saved in ${Date.now() - now}ms`, entity);
           EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
         }
@@ -400,8 +464,8 @@ export class ReferentialService
     await this.graphql.mutate<any>({
       mutation: this.mutations.deleteAll,
       variables: {
-        entityName: entityName,
-        ids: ids
+        entityName,
+        ids
       },
       error: { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR" },
       update: (proxy) => {
@@ -426,7 +490,7 @@ export class ReferentialService
   loadTypes(): Observable<ReferentialType[]> {
     if (this._debug) console.debug("[referential-service] Loading referential types...");
     return this.graphql.watchQuery<LoadResult<ReferentialType>>({
-      query: LoadReferentialTypes,
+      query: this.queries.loadTypes,
       variables: null,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR" }
     })
@@ -446,8 +510,8 @@ export class ReferentialService
     const now = Date.now();
     if (this._debug) console.debug(`[referential-service] Loading levels for ${entityName}...`);
 
-    const {data} = await this.graphql.query<LoadResult<Referential>>({
-      query: LoadReferentialLevels,
+    const {data} = await this.graphql.query<LoadResult<any[]>>({
+      query: this.queries.loadLevels,
       variables: {
         entityName
       },

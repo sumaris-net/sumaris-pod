@@ -1,6 +1,6 @@
 import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
 import { EntityClass, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 @EntityClass({typename: 'FishingAreaVO'})
 export class FishingArea extends DataEntity<FishingArea> {

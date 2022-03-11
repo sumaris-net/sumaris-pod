@@ -32,7 +32,9 @@ import { AppCoreModule } from '@app/core/core.module';
 import { StrategiesPage } from './strategy/strategies.page';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
-import { WeightLengthConversionTable } from '@app/referential/taxon/weight-length-conversion.table';
+import { WeightLengthConversionTable } from '@app/referential/weight-length-conversion/weight-length-conversion.table';
+import { TaxonGroupPage } from '@app/referential/taxon-group/taxon-group.page';
+import { RoundWeightConversionTable } from '@app/referential/round-weight-conversion/round-weight-conversion.table';
 
 @NgModule({
   imports: [
@@ -78,7 +80,9 @@ import { WeightLengthConversionTable } from '@app/referential/taxon/weight-lengt
     PmfmsTable,
     SelectPmfmModal,
     WeightLengthConversionTable,
+    RoundWeightConversionTable,
     TaxonNamePage,
+    TaxonGroupPage,
     StrategyModal
   ],
   exports: [
@@ -116,6 +120,7 @@ import { WeightLengthConversionTable } from '@app/referential/taxon/weight-lengt
     PmfmsTable,
     SelectPmfmModal,
     TaxonNamePage,
+    TaxonGroupPage,
     StrategyModal
   ],
 })

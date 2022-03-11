@@ -1,20 +1,21 @@
-import { WeightLengthConversion } from '../services/model/weight-length-conversion.model';
+import { WeightLengthConversion } from './weight-length-conversion.model';
 import { WeightLengthConversionFilter } from '../services/filter/weight-length-conversion.filter';
 import { Component, Injector, Input } from '@angular/core';
-import { BaseReferentialTable, BaseReferentialTableOptions } from '@app/referential/table/base-referential.table';
-import { WeightLengthConversionService } from '@app/referential/services/weight-length-conversion.service';
+import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
+import { WeightLengthConversionService } from '@app/referential/weight-length-conversion/weight-length-conversion.service';
 import { Validators } from '@angular/forms';
-import { firstNotNilPromise, FormFieldDefinition, isNotNil, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
-import { WeightLengthConversionValidatorService } from '@app/referential/services/validator/weight-length-conversion.validator';
+import { FileEvent, FileResponse, firstNotNilPromise, isNotNil, ReferentialRef, SharedValidators, sleep, StatusIds } from '@sumaris-net/ngx-components';
+import { WeightLengthConversionValidatorService } from '@app/referential/weight-length-conversion/weight-length-conversion.validator';
 import { TableElement } from '@e-is/ngx-material-table';
 import moment from 'moment';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { LocationLevelIds, ParameterLabelGroups, UnitLabelGroups } from '@app/referential/services/model/model.enum';
-import { Parameter } from '@app/referential/services/model/parameter.model';
 import { ParameterService } from '@app/referential/services/parameter.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { ErrorCodes } from '@app/referential/services/errors';
+import { HttpEventType } from '@angular/common/http';
+import { filter, mergeMap } from 'rxjs/operators';
+import { CsvUtils } from '@app/shared/csv.utils';
 
 @Component({
   selector: 'app-weight-length-conversion-table',
@@ -58,7 +59,8 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       entityService,
       validatorService,
       {
-        i18nColumnPrefix: 'REFERENTIAL.TAXON_NAME.WEIGHT_LENGTH_CONVERSION.'
+        i18nColumnPrefix: 'REFERENTIAL.TAXON_NAME.WEIGHT_LENGTH_CONVERSION.',
+        canUpload: true
       }
       );
     this.showTitle = false;
@@ -77,11 +79,6 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
   async ready(): Promise<void> {
     await super.ready();
     await firstNotNilPromise(this._$lengthParameters);
-  }
-
-
-  async upload(event: UIEvent) {
-
   }
 
 
@@ -181,4 +178,5 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       ))
       .then(items => this._$lengthUnits.next(items.filter(isNotNil)));
   }
+
 }

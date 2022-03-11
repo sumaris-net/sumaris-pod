@@ -5,12 +5,12 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
 import { map } from 'rxjs/operators';
-import { mergeMap } from 'rxjs/internal/operators';
-import { ProgramProperties } from '../../../referential/services/config/program.config';
-import { Program } from '../../../referential/services/model/program.model';
+import { mergeMap } from 'rxjs/operators';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
@@ -49,6 +49,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
   get valid(): boolean {
     return this.form.valid;
+  }
+
+  get modalName(): string {
+    return this.constructor.name;
   }
 
   constructor(

@@ -17,10 +17,10 @@ import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, 
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { sampleTime } from 'rxjs/internal/operators';
+import { sampleTime } from 'rxjs/operators';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;

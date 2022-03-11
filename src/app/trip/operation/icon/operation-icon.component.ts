@@ -1,9 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation} from '@angular/core';
-import {isNil, isNotNil} from '@sumaris-net/ngx-components';
+import {isNil, isNotNil, MatBadgeFill} from '@sumaris-net/ngx-components';
 import {qualityFlagToColor} from '@app/data/services/model/model.utils';
 import {Operation} from '@app/trip/services/model/trip.model';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {MatBadgeFill} from '@sumaris-net/ngx-components/src/app/shared/material/badge/badge-icon.directive';
 import {AppColors} from '@app/shared/colors.utils';
 import {QualityIonIcon} from '@app/data/quality/entity-quality-icon.component';
 import { MatBadgeSize } from '@angular/material/badge';
