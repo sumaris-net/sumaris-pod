@@ -28,15 +28,26 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.vo.data.LandingFetchOptions;
+import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 
@@ -50,44 +61,54 @@ import java.util.stream.Collectors;
 public class ReferentialServiceImpl implements ReferentialService {
 
 	@Autowired
-	protected ReferentialDao referentialDao;
+	protected ReferentialDao dao;
 
 	@Autowired
 	protected GenericConversionService conversionService;
 
+	@Autowired
+	private ApplicationEventPublisher publisher;
+
+	private boolean enableTrash = false;
+
+	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+	public void onConfigurationReady(ConfigurationEvent event) {
+		this.enableTrash = event.getConfiguration().enableEntityTrash();
+	}
+
 	@Override
 	public Date getLastUpdateDate() {
-		return referentialDao.getLastUpdateDate();
+		return dao.getLastUpdateDate();
 	}
 
 	@Override
 	public List<ReferentialTypeVO> getAllTypes() {
-		return referentialDao.getAllTypes();
+		return dao.getAllTypes();
 	}
 
 	@Override
 	public ReferentialVO get(String entityName, int id) {
-		return referentialDao.get(entityName, id);
+		return dao.get(entityName, id);
 	}
 
 	@Override
 	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id) {
-		return referentialDao.get(entityClass, id);
+		return dao.get(entityClass, id);
 	}
 
 	@Override
 	public List<ReferentialVO> getAllLevels(final String entityName) {
-		return referentialDao.getAllLevels(entityName);
+		return dao.getAllLevels(entityName);
 	}
 
 	@Override
 	public ReferentialVO getLevelById(String entityName, int levelId) {
-		return referentialDao.getLevelById(entityName, levelId);
+		return dao.getLevelById(entityName, levelId);
 	}
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
+		return dao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
 				sortDirection);
 	}
 
@@ -104,20 +125,28 @@ public class ReferentialServiceImpl implements ReferentialService {
 		if (filter == null) {
 			return count(entityName);
 		}
-		return referentialDao.countByFilter(entityName, filter);
+		return dao.countByFilter(entityName, filter);
 	}
 
 	@Override
 	public ReferentialVO findByUniqueLabel(String entityName, String label) {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
-		return referentialDao.findByUniqueLabel(entityName, label)
+		return dao.findByUniqueLabel(entityName, label)
 			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityName, label)));
 	}
 
 	@Override
 	public void delete(final String entityName, int id) {
-		referentialDao.delete(entityName, id);
+		log.info("Delete {}}#{} {trash: {}}", entityName, id, enableTrash);
+
+		// Create events (before deletion, to be able to join VO)
+		ReferentialVO eventData = enableTrash ? get(entityName, id) : null;
+
+		dao.delete(entityName, id);
+
+		// Emit event
+		publisher.publishEvent(new EntityDeleteEvent(id, entityName, eventData));
 	}
 
 	@Override
@@ -125,19 +154,19 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(ids);
 
-		ids.stream().forEach(id -> delete(entityName, id));
+		ids.forEach(id -> delete(entityName, id));
 	}
 
 	@Override
 	public Long count(String entityName) {
 		Preconditions.checkNotNull(entityName);
-		return referentialDao.count(entityName);
+		return dao.count(entityName);
 	}
 
 	@Override
 	public Long countByLevelId(String entityName, Integer... levelIds) {
 		Preconditions.checkNotNull(entityName);
-		return referentialDao.countByLevelId(entityName, levelIds);
+		return dao.countByLevelId(entityName, levelIds);
 	}
 
 	@Override
@@ -146,7 +175,18 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(source.getStatusId(), "Missing statusId");
 		Preconditions.checkNotNull(source.getEntityName(), "Missing entityName");
 
-		return referentialDao.save(source);
+		boolean isNew = source.getId() == null;
+
+		ReferentialVO target = dao.save(source);
+
+		// Emit event
+		if (isNew) {
+			publisher.publishEvent(new EntityInsertEvent(target.getId(), source.getEntityName(), target));
+		} else {
+			publisher.publishEvent(new EntityUpdateEvent(target.getId(), source.getEntityName(), target));
+		}
+
+		return target;
 	}
 
 	@Override
@@ -163,7 +203,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 		// Entity->ReferentialVO converters
 		ReferentialEntities.REFERENTIAL_CLASSES.forEach(entityClass -> {
-			conversionService.addConverter(entityClass, ReferentialVO.class, referentialDao::toVO);
+			conversionService.addConverter(entityClass, ReferentialVO.class, dao::toVO);
 		});
 	}
 }
