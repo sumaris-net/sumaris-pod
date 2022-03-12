@@ -80,8 +80,9 @@ export class CsvUtils {
       );
   }
 
-  static parseCSV(body: string, opts?: {separator?: string}): string[][] {
+  static parseCSV(body: string, opts?: {separator?: string; skipEmptyLine?: boolean}): string[][] {
     const separator = opts?.separator || ',';
+    const skipEmptyLine = !opts || opts.skipEmptyLine !== false;
 
     // Protect special characters (quote and /n)
     body = body.replace('""', '<quote>') // Protect double quote
@@ -92,8 +93,9 @@ export class CsvUtils {
     const headers = headerAndRows[0].split(separator);
 
     return body.split('\n') // split into rows
-      .map(row => {
-        const cells = row.split(separator, headers.length) // split into cells
+      .filter(line => !skipEmptyLine || line.trim().length > 0) // Skip empty line
+      .map(line => {
+        const cells = line.split(separator, headers.length) // split into cells
           .map(cell => cell.replace(/^"([^"]*)"$/, '$1')) // Clean trailing quotes
           .map(cell => cell.replace('<quote>', '"')) // restore protected quote
           .map(cell => cell.replace('<br>', '\n')) // restore protected br

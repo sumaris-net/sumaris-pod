@@ -58,6 +58,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() usageMode: UsageMode;
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
+  @Input() enableWeightLengthConversion: boolean;
 
   @Input() set allowSamplingBatches(allow: boolean) {
     this.batchGroupsTable.showSamplingBatchColumns = allow;

@@ -19,7 +19,7 @@ import {
   selectInputContent,
   startsWithUpperCase,
   toBoolean,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
@@ -337,16 +337,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     for (const b of batches) {
       await this.addEntityToTable(b);
     }
-  }
-
-  async setValueFromParent(parents: BatchGroup[], groupQvPmfm?: IPmfm) {
-
-    this.qvPmfm = groupQvPmfm;
-    const subBatches = SubBatchUtils.fromBatchGroups(parents, {groupQvPmfm});
-
-    await this.setAvailableParents(parents, {emitEvent: false, linkDataToParent: false});
-
-    this.setValue(subBatches);
   }
 
   markAsPristine(opts?: {onlySelf?: boolean}) {

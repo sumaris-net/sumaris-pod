@@ -400,13 +400,10 @@ export abstract class BaseReferentialTable<
         }
         return res;
       }, {});
-      // Convert to entity
-      const target: E = new this.dataType();
-      target.fromObject({
+      return {
         ...defaultValue,
         ...source
-      });
-      return target;
+      };
     });
   }
 
@@ -470,7 +467,12 @@ export abstract class BaseReferentialTable<
       if (!incomplete) result.push(entity)
     }
 
-    return result;
+    // Convert to entity
+    return result.map(source => {
+      const target: E = new this.dataType();
+      target.fromObject(source);
+      return target
+    });
   }
 
   protected async fillEntitiesId(entities: E[]): Promise<E[]> {

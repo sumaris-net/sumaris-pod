@@ -15,7 +15,7 @@ export abstract class BaseWeightLengthConversion<T extends Entity<T, number, Ent
 
   referenceTaxonId: number = null;
 
-  statusId: number;
+  statusId: number = null;
   description: string = null;
   comments: string = null;
   creationDate: Moment = null;
@@ -43,9 +43,12 @@ export abstract class BaseWeightLengthConversion<T extends Entity<T, number, Ent
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
+    if (opts.minify) {
+      // Convert statusId object into integer
+      target.statusId = (typeof this.statusId === 'object') ? this.statusId['id'] : this.statusId;
+    }
     return target;
   }
-
 
 }
 
@@ -102,10 +105,10 @@ export class WeightLengthConversion
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts);
 
-    target.location = this.location?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.sex = this.sex?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.lengthParameter = this.lengthParameter?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
-    target.lengthUnit = this.lengthUnit?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.location = this.location && this.location.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.sex = this.sex && this.sex.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.lengthParameter = this.lengthParameter && this.lengthParameter.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.lengthUnit = this.lengthUnit && this.lengthUnit.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     return target;
   }
 

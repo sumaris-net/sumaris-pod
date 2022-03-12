@@ -6,6 +6,7 @@ import { gql } from '@apollo/client/core';
 import { WeightLengthConversionFragments } from '@app/referential/weight-length-conversion/weight-length-conversion.fragments';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { ReferentialRefQueries } from '@app/referential/services/referential-ref.service';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
@@ -54,4 +55,7 @@ export class WeightLengthConversionService extends BaseEntityService<WeightLengt
       });
   }
 
+  protected asObject(entity: WeightLengthConversion, opts?: EntityAsObjectOptions): any {
+    return super.asObject(entity, {...MINIFY_OPTIONS, ...opts});
+  }
 }
