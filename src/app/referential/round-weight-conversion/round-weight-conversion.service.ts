@@ -1,9 +1,19 @@
-import { BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityService, GraphqlService, IEntityService, PlatformService } from '@sumaris-net/ngx-components';
+import {
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityService,
+  EntityAsObjectOptions,
+  GraphqlService,
+  IEntityService,
+  MINIFY_ENTITY_FOR_POD,
+  PlatformService
+} from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { RoundWeightConversion } from './round-weight-conversion.model';
 import { RoundWeightConversionFilter } from './round-weight-conversion.filter';
 import { gql } from '@apollo/client/core';
 import { RoundWeightConversionFragments } from './round-weight-conversion.fragments';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query RoundWeightConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: RoundWeightConversionFilterVOInput){
@@ -52,4 +62,8 @@ export class RoundWeightConversionService extends BaseEntityService<RoundWeightC
       });
   }
 
+  protected asObject(entity: RoundWeightConversion, opts?: EntityAsObjectOptions): any {
+    // Can be override by subclasses
+    return entity.asObject({...MINIFY_OPTIONS, ...opts});
+  }
 }

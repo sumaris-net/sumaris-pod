@@ -128,6 +128,14 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
     return data;
   }
 
+  protected async onEntitySaved(data: TaxonName): Promise<void> {
+
+    // Save table
+    if (this.wlcTable.dirty) {
+      await this.wlcTable.save();
+    }
+  }
+
   protected getFirstInvalidTabIndex(): number {
     if (this.referentialForm.invalid) return 0;
     if (this.wlcTable.invalid) return 1;

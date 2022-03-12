@@ -4,7 +4,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { RoundWeightConversionService } from './round-weight-conversion.service';
 import { Validators } from '@angular/forms';
-import { StatusIds } from '@sumaris-net/ngx-components';
+import { StatusIds, StatusList } from '@sumaris-net/ngx-components';
 import { RoundWeightConversionValidatorService } from './round-weight-conversion.validator';
 import { TableElement } from '@e-is/ngx-material-table';
 import moment from 'moment';
@@ -30,6 +30,10 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
      if (this.taxonGroupIdControl.value !== value) {
        this.taxonGroupIdControl.setValue(value);
      }
+  }
+
+  get taxonGroupId(): number {
+    return this.taxonGroupIdControl.value;
   }
 
   @Input() set showTaxonGroupIdColumn(show: boolean) {
@@ -120,17 +124,15 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
     };
   }
 
-  protected onDefaultRowCreated(row: TableElement<RoundWeightConversion>) {
-    super.onDefaultRowCreated(row);
-
+  protected defaultNewRowValue(): any {
     const creationDate = moment(new Date());
-    row.validator.patchValue({
+    return {
+      ...super.defaultNewRowValue(),
       startDate: null,
       endDate: null,
-      statusId: StatusIds.ENABLE,
+      taxonGroupId: this.taxonGroupId,
       creationDate
-    })
+    };
   }
-
 
 }

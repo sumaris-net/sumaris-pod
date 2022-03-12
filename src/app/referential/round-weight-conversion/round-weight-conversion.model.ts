@@ -5,7 +5,7 @@ import {
   EntityClass,
   EntityUtils,
   fromDateISOString,
-  IEntity,
+  IEntity, isNotNil,
   ReferentialRef,
   ReferentialUtils,
   toDateISOString,
@@ -37,8 +37,9 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T, number, Enti
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
 
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.endDate);
+    // WARN: round to hour, because CSV import can have +1 second (e.g. local time '01/01/1970' can become '01/01/1970 00:00:01')
+    this.startDate = fromDateISOString(source.startDate)?.startOf('day');
+    this.endDate = fromDateISOString(source.endDate)?.startOf('day');
     this.conversionCoefficient = toFloat(source.conversionCoefficient);
     this.taxonGroupId = toInt(source.taxonGroupId);
     this.description = source.description;
@@ -51,6 +52,11 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T, number, Enti
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
+
+    if (opts.minify) {
+      // Convert statusId object into integer
+      target.statusId = (typeof this.statusId === 'object') ? this.statusId['id'] : this.statusId;
+    }
     return target;
   }
 }
@@ -107,15 +113,27 @@ export class RoundWeightConversion
     target.location = this.location?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.dressing = this.dressing?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.preserving = this.preserving?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+
+    if (opts.minify) {
+
+    }
     return target;
   }
 
   equals(other: RoundWeightConversion): boolean {
-    console.log('TODO check equals', other);
-    return super.equals(other)
-      || (this.conversionCoefficient === other.conversionCoefficient
+
+    // -- DEV only
+    /*if (this.conversionCoefficient !== other.conversionCoefficient) console.log('DIFF conversionCoefficient');
+    if (!DateUtils.isSame(this.startDate, other.startDate)) console.log('DIFF startDate');
+    if (!DateUtils.isSame(this.endDate, other.endDate)) console.log('DIFF endDate');
+    if (!ReferentialUtils.equals(this.location, other.location)) console.log('DIFF location');
+    if (!ReferentialUtils.equals(this.dressing, other.dressing)) console.log('DIFF dressing');
+    if (!ReferentialUtils.equals(this.preserving, other.preserving)) console.log('DIFF preserving');*/
+
+    return (super.equals(other) && isNotNil(this.id)) ||
+      // Functional unique key
+      ((this.taxonGroupId === other.taxonGroupId)
         && DateUtils.isSame(this.startDate, other.startDate)
-        && DateUtils.isSame(this.endDate, other.endDate)
         && ReferentialUtils.equals(this.location, other.location)
         && ReferentialUtils.equals(this.dressing, other.dressing)
         && ReferentialUtils.equals(this.preserving, other.preserving)

@@ -1,6 +1,6 @@
 import { AfterViewInit, Directive, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppFormUtils,
+  AppFormUtils, chainPromises,
   changeCaseToUnderscore, CryptoService,
   EntitiesServiceWatchOptions,
   Entity,
@@ -11,25 +11,27 @@ import {
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
-  IEntitiesService,
-  isEmptyArray,
-  isNotNil,
+  IEntitiesService, IEntity,
+  isEmptyArray, isNil,
+  isNotNil, isNotNilOrBlank, IStatus,
   joinProperties,
-  LoadResult,
-  StartableService,
+  LoadResult, sleep,
+  StartableService, StatusById, StatusList,
   suggestFromArray, toNumber
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableOptions } from '@app/shared/table/base.table';
 import { FormBuilder } from '@angular/forms';
-import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { CsvUtils } from '@app/shared/csv.utils';
 import { FormatPropertyPipe } from '@app/shared/pipes/format-property.pipe';
-import { isObservable, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, isObservable, Observable, of, Subject } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
+import { DebugUtils } from '@app/shared/debug.utils';
+import { Sample } from '@app/trip/services/model/sample.model';
 
 export class BaseReferentialTableOptions<
   T extends Entity<T, ID>,
@@ -85,6 +87,9 @@ export abstract class BaseReferentialTable<
   protected referentialRefService: ReferentialRefService;
   protected cryptoService: CryptoService;
 
+  protected $status = new BehaviorSubject<IStatus[]>(null);
+  private readonly withStatusId: boolean
+
   protected constructor(
     injector: Injector,
     dataType: new () => E,
@@ -110,6 +115,7 @@ export abstract class BaseReferentialTable<
     this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;
+    this.withStatusId = this.columns.includes('statusId');
 
     const config = this.getFilterFormConfig();
     this.filterForm = config && injector.get(FormBuilder).group(config);
@@ -117,6 +123,29 @@ export abstract class BaseReferentialTable<
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Status
+    if (this.withStatusId) {
+      this.registerSubscription(
+        this.translate.get(StatusList.map(status => status.label))
+          .subscribe(translations => {
+            const items = StatusList.map(status => ({ ...status, label: translations[status.label] }));
+            this.$status.next(items);
+          })
+      );
+      this.registerAutocompleteField('statusId', {
+        showAllOnFocus: false,
+        items: this.$status,
+        attributes: ['label'],
+        displayWith: (statusId) => {
+          if (typeof statusId === 'object') {
+            return statusId['label'];
+          }
+          return this.translate.instant(StatusById[statusId].label)
+        },
+        mobile: this.mobile
+      });
+    }
 
     // Register autocomplete fields, BEFORE loading column definitions
     this.registerAutocompleteFields();
@@ -188,6 +217,16 @@ export abstract class BaseReferentialTable<
     if (isEmptyArray(entities)) return; // No entities: skip
 
     console.info(this.logPrefix + `Importing ${entities.length} entities...`, entities);
+
+    // Keep non exists entities
+    const newEntities = entities.filter(entity => isNil(entity.id));
+
+    // Add entities, one by one
+    await this.dataSource.dataService.saveAll(newEntities);
+
+    await sleep(1000);
+
+    this.onRefresh.emit();
   }
 
   /* -- protected functions -- */
@@ -318,9 +357,9 @@ export abstract class BaseReferentialTable<
     const headers = headerNames.map(key => this.columnDefinitions.find(def => def.key === key));
 
     this.parseCsvRowsToEntities(headers, rows)
-      .then(entities => this.fillEntities(headers, entities))
-      .then(entities => this.excludeExistingEntities(entities))
-      .then(entities => {
+      .then(entities => this.resolveEntitiesFields(headers, entities))
+      .then(entities => this.fillEntitiesId(entities))
+      .then((entities) => {
         $progress.next(new FileResponse({body: entities}));
         $progress.complete();
       });
@@ -329,15 +368,19 @@ export abstract class BaseReferentialTable<
   }
 
   protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<E[]> {
-    return rows.map(cells => {
-      // Convert to object
-      const source = headers.reduce((res, fieldDef, i) => {
+    const defaultValue = this.defaultNewRowValue();
+    return rows
+      .filter(cells => cells?.length === headers.length)
+      .map(cells => {
+
+        // Convert to object
+        const source: any = headers.reduce((res, fieldDef, i) => {
         const value = cells[i];
 
         // Parse sub-object
         const attributes = fieldDef.autocomplete?.attributes;
         if (attributes?.length) {
-          res[fieldDef.key] = value.split(' - ', attributes.length)
+          res[fieldDef.key] = value?.split(' - ', attributes.length)
             .reduce((o, v, j) => {
               o[attributes[j]] = v;
               return o;
@@ -352,32 +395,38 @@ export abstract class BaseReferentialTable<
             res[fieldDef.key] = parseFloat(value);
           }
           else {
-            res[fieldDef.key] = value
+            res[fieldDef.key] = isNotNilOrBlank(value) ? value : undefined;
           }
         }
         return res;
       }, {});
       // Convert to entity
       const target: E = new this.dataType();
-      target.fromObject(source);
+      target.fromObject({
+        ...defaultValue,
+        ...source
+      });
       return target;
     });
   }
 
-  protected async fillEntities(headers: FormFieldDefinition[], entities: E[]): Promise<E[]> {
+  protected async resolveEntitiesFields(headers: FormFieldDefinition[], entities: E[]): Promise<E[]> {
 
     const autocompleteFields = headers.filter(def => def.autocomplete && (!!def.autocomplete.suggestFn || def.autocomplete.items));
     if (isEmptyArray(autocompleteFields)) return entities;
 
-    // Preapre resulve function
+    // Prepare suggest functions, from  autocomplete field
     const suggestFns = autocompleteFields
       .map(def => def.autocomplete)
       .map(autocomplete => {
       return autocomplete.suggestFn
-        || (isObservable(autocomplete.items) && ((v, o) => firstNotNilPromise(autocomplete.items as Observable<any[]>)
-            .then(items => suggestFromArray(items, v, o))
-            ))
-        || ((v, o) => suggestFromArray(autocomplete.items as any[], v, o));
+        || (isObservable(autocomplete.items)
+          && (async (value, opts) => {
+            const items = await firstNotNilPromise(autocomplete.items as Observable<any[]>);
+            return suggestFromArray(items, value, opts);
+            })
+          )
+        || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts));
     });
 
     const result: E[] = [];
@@ -411,7 +460,7 @@ export abstract class BaseReferentialTable<
         // Not resolved: warn
         else {
           incomplete = true;
-          console.warn(this.logPrefix + `Cannot resolve field ${obj.__typename}: ${joinProperties(obj, attributes)}`);
+          console.warn(this.logPrefix + `Cannot resolve field ${field.key}`, obj);
         }
 
         if (incomplete) break; // Stop if incomplete
@@ -424,45 +473,34 @@ export abstract class BaseReferentialTable<
     return result;
   }
 
-  protected async excludeExistingEntitiesByHash(entities: E[]): Promise<E[]> {
-    const toHash = (entity: E) => {
-      const json = EntityUtils.isEntity(entity) ? entity.asObject() : entity as any;
-      delete json.id;
-      delete json.updateDate;
-      json.statusId = toNumber(json.statusId, 1);
-      const str = JSON.stringify(json);
-      return this.cryptoService.sha256(str);
-    }
+  protected async fillEntitiesId(entities: E[]): Promise<E[]> {
+    // TODO: manage pagination - using JobUtils.fetchAllPages() ?
+    const existingEntities = (await this.dataSource.getData());
 
-    const existingHash = (await this.dataSource.getData())
-      .map(toHash)
-
-    return entities.filter(entity => {
-      const hash = toHash(entity);
-      return !existingHash.includes(hash)
-    });
-  }
-
-  protected async excludeExistingEntities(entities: E[]): Promise<E[]> {
-    const existingEntities = (await this.dataSource.getData())
-
-      // TODO: remove this
-      .slice(0,1);
-    entities = entities.slice(0,1);
-    console.log(existingEntities[0])
-    console.log(entities[0]);
-
-    console.log('TODO: equals = ' + entities[0].equals(existingEntities[0]));
-
-    return entities.filter(entity => {
+    // DEBUG - DEV only
+    /*entities.forEach((entity, i) => {
       entity.id = -1 as any; // Avoid using ID in equals()
-      return !existingEntities.some(other => this.equals(entity, other))
+      const other = existingEntities[i];
+      if (!entity.equals(other)) {
+        console.debug('[diff] There is diff between: ', entity, other);
+        DebugUtils.logEntityDiff(entity, other);
+      }
+    });*/
+
+    entities.forEach(entity => {
+      entity.id = -1 as any; // Avoid equals() to use function unique key, instead of id
+      const existingEntity = existingEntities.find(other => entity.equals(other));
+      // Copy ID, or unset
+      entity.id = isNotNil(existingEntity) ? existingEntity.id : undefined;
     });
+
+    return entities;
   }
 
-  protected equals(d1: E, d2: E): boolean {
-    return EntityUtils.isEntity(d1)
-      ? d1.equals(d2)
-      : super.equals(d1, d2);
+  protected defaultNewRowValue(): any {
+    const statusId = this.withStatusId && (this.$status.value || [])[0] || undefined;
+    return {
+      statusId
+    };
   }
 }

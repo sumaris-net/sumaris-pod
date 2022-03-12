@@ -5,6 +5,7 @@ import { RoundWeightConversionTable } from '@app/referential/round-weight-conver
 import { TaxonGroupValidatorService } from '@app/referential/taxon-group/taxon-group.validator';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
+import { TaxonName } from '@app/referential/services/model/taxon-name.model';
 
 @Component({
   selector: 'app-taxon-group',
@@ -91,6 +92,14 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
         taxonGroupId: data.id
       });
       this.rwcTable.markAsReady();
+    }
+  }
+
+  protected async onEntitySaved(data: TaxonName): Promise<void> {
+
+    // Save table
+    if (this.rwcTable.dirty) {
+      await this.rwcTable.save();
     }
   }
 

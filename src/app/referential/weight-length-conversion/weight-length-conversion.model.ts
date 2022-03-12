@@ -1,7 +1,5 @@
-import { EntityAsObjectOptions, EntityClass, IEntity, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
-import { Entity } from '@sumaris-net/ngx-components';
+import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { fromDateISOString } from '@sumaris-net/ngx-components';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
@@ -47,6 +45,8 @@ export abstract class BaseWeightLengthConversion<T extends Entity<T, number, Ent
     target.creationDate = toDateISOString(this.creationDate);
     return target;
   }
+
+
 }
 
 
@@ -107,5 +107,20 @@ export class WeightLengthConversion
     target.lengthParameter = this.lengthParameter?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.lengthUnit = this.lengthUnit?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     return target;
+  }
+
+  equals(other: WeightLengthConversion): boolean {
+
+    return (super.equals(other) && isNotNil(this.id)) ||
+      // Function unique key
+      ((this.referenceTaxonId === other.referenceTaxonId)
+        && (this.year === other.year)
+        && (this.startMonth === other.startMonth)
+        && (this.endMonth === other.endMonth)
+        && ReferentialUtils.equals(this.location, other.location)
+        && ReferentialUtils.equals(this.sex, other.sex)
+        && ReferentialUtils.equals(this.lengthParameter, other.lengthParameter)
+        && ReferentialUtils.equals(this.lengthUnit, other.lengthUnit)
+      );
   }
 }

@@ -37,6 +37,10 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
      }
   }
 
+  get referenceTaxonId(): number {
+    return this.referenceTaxonIdControl.value;
+  }
+
   @Input() set showReferenceTaxonIdColumn(show: boolean) {
     this.setShowColumn('referenceTaxonId', show);
   }
@@ -137,23 +141,23 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
   protected getFilterFormConfig(): any {
     console.debug(this.logPrefix + ' Creating filter form group...');
     return {
-      year: [null, Validators.compose([SharedValidators.integer, Validators.min(1970)])],
+      // Not used
+      //year: [null, Validators.compose([SharedValidators.integer, Validators.min(1970)])],
       referenceTaxonId: [null, Validators.required]
     };
   }
 
-  protected onDefaultRowCreated(row: TableElement<WeightLengthConversion>) {
-    super.onDefaultRowCreated(row);
-
+  protected defaultNewRowValue(): any {
     const creationDate = moment(new Date());
     const year = creationDate.get('year');
-    row.validator.patchValue({
+    return {
+      ...super.defaultNewRowValue(),
+      referenceTaxonId: this.referenceTaxonId,
       year,
       startMonth: 1,
       endMonth: 12,
-      statusId: StatusIds.ENABLE,
       creationDate
-    })
+    };
   }
 
   protected async loadLengthParameters() {
