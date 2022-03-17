@@ -399,7 +399,7 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="position.hasError('maxDistance'); else hints">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance }}</mat-error>
+                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance }}</mat-error>
                 <mat-hint align="end" *ngIf="!position.errors && distance >= 0">
                   <mat-icon *ngIf="distanceWarning" color="warn">warning</mat-icon>
                   {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
