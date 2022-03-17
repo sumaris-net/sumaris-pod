@@ -320,7 +320,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // Combo: fishingAreas
     const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation',
-      ['label', 'name'] // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
+      // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
+      // Est-ce que la SFA a besoin des deux info, label et name ? Par ACSOT/PIFIL non, sur les rect stats
+      ['label', 'name']
     );
     this.registerAutocompleteField('fishingAreaLocation', {
       suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
