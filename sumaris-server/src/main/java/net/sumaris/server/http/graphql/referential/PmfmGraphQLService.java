@@ -89,7 +89,7 @@ public class PmfmGraphQLService {
             @GraphQLArgument(name = "label") String label,
             @GraphQLArgument(name = "id") Integer id
     ) {
-        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label), "Required 'id' or 'label' to get a pmfm");
         if (id != null) {
             return pmfmService.get(id);
         }

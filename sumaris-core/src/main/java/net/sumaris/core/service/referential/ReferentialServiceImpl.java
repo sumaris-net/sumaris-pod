@@ -146,6 +146,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		dao.delete(entityName, id);
 
 		// Emit event
+		// TODO: move this into the HibernateDaoSupport ? See SumarisJpaRepositoryImpl
 		publisher.publishEvent(new EntityDeleteEvent(id, entityName, eventData));
 	}
 
@@ -180,6 +181,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		ReferentialVO target = dao.save(source);
 
 		// Emit event
+		// TODO: move this into the HibernateDaoSupport ? See SumarisJpaRepositoryImpl
 		if (isNew) {
 			publisher.publishEvent(new EntityInsertEvent(target.getId(), source.getEntityName(), target));
 		} else {
