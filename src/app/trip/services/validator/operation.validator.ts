@@ -368,6 +368,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       }
 
       // Disable unused controls
+      // Remove tripDatesValidators set on these controls on first page load as parent operation (allow startDateTime and fishingStartDateTime to be before tripDepartureDateTime)
       startDateTimeControl.clearValidators();
       fishingStartDateTimeControl.clearValidators();
       startDateTimeControl.enable();
