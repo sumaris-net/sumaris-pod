@@ -62,7 +62,6 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() allowParentOperation = false;
   @Input() showQuality = true;
   @Input() showRowError = false;
-  @Input() errors: { [key: number]: any } = undefined;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -352,13 +351,35 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.filterForm.get(key).reset(null);
   }
 
-  /**
-   * Change visibility to public
-   * @param error
-   * @param opts
-   */
-  setError(error: string, opts?: {emitEvent?: boolean}) {
+  // Change visibility to public
+  setError(error: string, opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
     super.setError(error, opts);
+
+    // If error
+    if (error) {
+      // Add filter on invalid rows (= not controlled)
+      if (!opts || opts.showOnlyInvalidRows !== false) {
+        this.showRowError = true;
+        const filter = this.filter || new OperationFilter();
+        filter.dataQualityStatus = 'MODIFIED';
+        this.setFilter(filter);
+      }
+    }
+    // No errors
+    else {
+      // Remove filter on invalid rows
+      if (!opts || opts.showOnlyInvalidRows !== true) {
+        this.showRowError = false;
+        const filter = this.filter || new OperationFilter();
+        filter.dataQualityStatus = undefined;
+        this.setFilter(filter);
+      }
+    }
+  }
+
+  // Change visibility to public
+  resetError(opts?: {emitEvent?: boolean}) {
+    this.setError(undefined, opts);
   }
 
   trackByFn(index: number, row: TableElement<Operation>) {

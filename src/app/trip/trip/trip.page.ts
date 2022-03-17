@@ -182,25 +182,28 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
   }
 
-  setError(error: any, opts?: any) {
+  setError(error: any, opts?: {emitEvent?: boolean}) {
 
     // If errors in operations
     if (error?.operations) {
-      this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS');
-      this.operationsTable.showRowError = true;
-
-      // Filter operations with error (= not controlled)
-      const operationFilter = this.operationsTable.filter || new OperationFilter();
-      operationFilter.dataQualityStatus = 'MODIFIED';
-      this.operationsTable.setFilter(operationFilter);
+      // Show error in operation table
+      this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
+        showOnlyInvalidRows: true
+      });
 
       // Open the operation tab
       this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
     } else {
       super.setError(error);
-      this.operationsTable.setFilter(null); // Reset operation filter
-      this.operationsTable.setError(null);
+
+      // Reset operation filter and error
+      this.operationsTable.resetError();
     }
+  }
+
+  // change visibility
+  resetError(opts?:  {emitEvent?: boolean}) {
+    this.setError(undefined, opts);
   }
 
   translateControlPath(controlPath: string): string {
@@ -515,7 +518,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
-  canUserWrite(data: Trip, opts?: TripValidatorOptions): boolean {
+  canUserWrite(data: Trip, opts?: any): boolean {
     return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
   }
 

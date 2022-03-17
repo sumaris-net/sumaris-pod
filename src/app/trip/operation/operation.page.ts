@@ -198,8 +198,12 @@ export class OperationPage
     };
   }
 
+  canUserWrite(data: Operation, opts?: any): boolean {
+    return isNil(this.trip?.validationDate) && this.dataService.canUserWrite(data, {...opts, trip: this.trip});
+  }
+
   qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
-      return this.dataService.qualify(data, qualityFlagId);
+    return this.dataService.qualify(data, qualityFlagId);
   }
 
   async openHelpModal(event) {
@@ -1006,10 +1010,6 @@ export class OperationPage
     json.measurements = this.measurementsForm.value;
     json.tripId = this.trip.id;
     return json;
-  }
-
-  canUserWrite(data: Operation, opts?: any): boolean {
-    return this.dataService.canUserWrite(data, {trip: this.trip});
   }
 
   protected async initAvailableTaxonGroups(programLabel: string) {

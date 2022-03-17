@@ -358,9 +358,9 @@ export class EntityQualityFormComponent<
 
       if (this._enableQualityProcess) {
         this.canValidate = canWrite && isSupervisor && !isLocalData && this._isRootDataQualityService && isNotNil(data.controlDate) && isNil(data.validationDate);
-        this.canUnvalidate = canWrite && isSupervisor && this._isRootDataQualityService && isNotNil(data.controlDate) && isNotNil(data.validationDate);
-        this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
-        this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+        this.canUnvalidate = !canWrite && isSupervisor && this._isRootDataQualityService && isNotNil(data.controlDate) && isNotNil(data.validationDate);
+        this.canQualify = !canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
+        this.canUnqualify = !canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
       } else {
         this.canValidate = false;
         this.canUnvalidate = false;

@@ -12,14 +12,14 @@ import {
   ConfigService,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
-  HistoryPageReference,
+  HistoryPageReference, isNil,
   isNotNil,
   LocalSettingsService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
   toBoolean,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
@@ -124,10 +124,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.markForCheck();
       })
     );
-
   }
 
-  /* -- protected methods  -- */
+  canUserWrite(data: ObservedLocation, opts?: any): boolean {
+    return isNil(data.validationDate)
+      && this.dataService.canUserWrite(data, opts);
+  }
 
   updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data);
@@ -496,10 +498,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
   protected get form(): FormGroup {
     return this.observedLocationForm.form;
-  }
-
-  canUserWrite(data: ObservedLocation, opts?: any): boolean {
-    return this.dataService.canUserWrite(data, opts);
   }
 
   protected computeUsageMode(data: ObservedLocation): UsageMode {

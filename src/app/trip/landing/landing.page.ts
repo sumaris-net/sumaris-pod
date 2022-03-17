@@ -155,14 +155,60 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     );
   }
 
-  protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable]);
+  canUserWrite(data: Landing, opts?: any): boolean {
+    return isNil(data.validationDate)
+      && isNil(this.parent?.validationDate)
+      && this.dataService.canUserWrite(data, opts);
   }
 
   async reload(): Promise<void> {
     this.markAsLoading();
     const route = this.route.snapshot;
     await this.load(this.data && this.data.id, route.params);
+  }
+
+
+  onPrepareSampleForm({form, pmfms}) {
+    console.debug('[landing-page] Initializing sample form (validators...)');
+
+    // Add computation and validation
+    this._rowValidatorSubscription?.unsubscribe();
+    this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
+  }
+
+  async updateView(data: Landing | null, opts?: {
+    emitEvent?: boolean;
+    openTabIndex?: number;
+    updateRoute?: boolean;
+  }) {
+    await super.updateView(data, opts);
+
+    if (this.parent) {
+      if (this.parent instanceof ObservedLocation) {
+        this.landingForm.showProgram = false;
+        this.landingForm.showVessel = true;
+
+      } else if (this.parent instanceof Trip) {
+
+        // Hide some fields
+        this.landingForm.showProgram = false;
+        this.landingForm.showVessel = false;
+
+      }
+    } else {
+
+      this.landingForm.showVessel = true;
+      this.landingForm.showLocation = true;
+      this.landingForm.showDateTime = true;
+
+      this.showQualityForm = true;
+    }
+  }
+
+  /* -- protected methods  -- */
+
+  protected registerForms() {
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -287,43 +333,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Emit program, strategy
     if (programLabel) this.$programLabel.next(programLabel);
     if (strategyLabel) this.$strategyLabel.next(strategyLabel);
-  }
-
-  onPrepareSampleForm({form, pmfms}) {
-    console.debug('[landing-page] Initializing sample form (validators...)');
-
-    // Add computation and validation
-    this._rowValidatorSubscription?.unsubscribe();
-    this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
-  }
-
-  async updateView(data: Landing | null, opts?: {
-    emitEvent?: boolean;
-    openTabIndex?: number;
-    updateRoute?: boolean;
-  }) {
-    await super.updateView(data, opts);
-
-    if (this.parent) {
-      if (this.parent instanceof ObservedLocation) {
-        this.landingForm.showProgram = false;
-        this.landingForm.showVessel = true;
-
-      } else if (this.parent instanceof Trip) {
-
-        // Hide some fields
-        this.landingForm.showProgram = false;
-        this.landingForm.showVessel = false;
-
-      }
-    } else {
-
-      this.landingForm.showVessel = true;
-      this.landingForm.showLocation = true;
-      this.landingForm.showDateTime = true;
-
-      this.showQualityForm = true;
-    }
   }
 
   protected async setProgram(program: Program) {
