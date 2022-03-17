@@ -615,7 +615,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
   }
 
   static sameAsComparator(gear: PhysicalGear, sortDirection?: SortDirection): (g1: PhysicalGear, g2: PhysicalGear) => number {
-    const direction = !sortDirection || sortDirection === 'desc' ? 1 : -1;
+    const direction = !sortDirection || sortDirection === 'desc' ? -1 : 1;
     return (g1, g2) => {
       const score1 = this.computeSameAsScore(gear, g1);
       const score2 = this.computeSameAsScore(gear, g2);
