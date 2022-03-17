@@ -21,21 +21,21 @@ import {
   LocalSettingsService,
   ReferentialUtils,
   SharedValidators,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
-import { AppRootDataEditor } from '../../../data/form/root-data-editor.class';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{provide: AppRootDataEditor, useExisting: AuctionControlPage}],
+  providers: [{provide: APP_ENTITY_EDITOR, useExisting: AuctionControlPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
@@ -84,7 +84,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   }
 
-  async ngAfterViewInit() {
+  ngAfterViewInit() {
     super.ngAfterViewInit();
 
     // Get program taxon groups
@@ -162,7 +162,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         }),
         map(qv => {
           return ReferentialUtils.isNotEmpty(qv)
-            && this.$taxonGroups.getValue().find(tg => tg.label === qv.label)
+            && this.$taxonGroups.value.find(tg => tg.label === qv.label)
             || undefined;
         })
       );

@@ -18,7 +18,7 @@ import {
   isNotNilOrBlank,
   NetworkService,
   ReferentialRef,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
 import { BehaviorSubject } from 'rxjs';
@@ -47,6 +47,7 @@ import { Sample } from '../services/model/sample.model';
 import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
 import { TableElement } from '@e-is/ngx-material-table';
 import { LandingService } from '@app/trip/services/landing.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 
 const moment = momentImported;
 
@@ -55,7 +56,7 @@ const moment = momentImported;
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{provide: AppRootDataEditor, useExisting: LandedTripPage}],
+  providers: [{provide: APP_ENTITY_EDITOR, useExisting: LandedTripPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
@@ -110,7 +111,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       dataService,
       {
         pathIdAttribute: 'tripId',
-        tabCount: 5
+        tabCount: 5,
+        enableListenChanges: true
       });
 
     this.mobile = this.settings.mobile;
@@ -526,7 +528,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   }
 
   canUserWrite(data: Trip, opts?: any): boolean {
-    return this.dataService.canUserWrite(data, opts);
+    return isNil(data.validationDate)
+      // TODO: check observedLocation validationDate ?
+      && this.dataService.canUserWrite(data, opts);
   }
 
   /* -- protected methods -- */

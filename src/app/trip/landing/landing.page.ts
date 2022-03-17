@@ -101,6 +101,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
+      enableListenChanges: true,
       ...options
     });
     this.observedLocationService = injector.get(ObservedLocationService);
@@ -326,13 +327,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.showQualityForm = this.showEntityMetadata;
     }
 
-
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
     if (programLabel) this.$programLabel.next(programLabel);
-    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
+    if (strategyLabel) this.$strategyLabel.next('20LEUCCIR003');
   }
 
   protected async setProgram(program: Program) {

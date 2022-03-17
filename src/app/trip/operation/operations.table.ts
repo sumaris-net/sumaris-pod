@@ -330,6 +330,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.setFilter(<OperationFilter>{tripId: this.tripId}, {emitEvent: true});
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.resetError();
   }
 
   toggleFilterPanelFloating() {
@@ -371,14 +372,16 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       if (!opts || opts.showOnlyInvalidRows !== true) {
         this.showRowError = false;
         const filter = this.filter || new OperationFilter();
-        filter.dataQualityStatus = undefined;
-        this.setFilter(filter);
+        if (filter.dataQualityStatus === 'MODIFIED') {
+          filter.dataQualityStatus = undefined;
+          this.setFilter(filter);
+        }
       }
     }
   }
 
   // Change visibility to public
-  resetError(opts?: {emitEvent?: boolean}) {
+  resetError(opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
     this.setError(undefined, opts);
   }
 

@@ -104,7 +104,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         pathIdAttribute: 'observedLocationId',
         tabCount: 2,
         autoOpenNextTab: !settings.mobile,
-        i18nPrefix: 'OBSERVED_LOCATION.EDIT.'
+        i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
+        enableListenChanges: true
       });
     this.defaultBackHref = '/observations';
     this.mobile = this.settings.mobile;

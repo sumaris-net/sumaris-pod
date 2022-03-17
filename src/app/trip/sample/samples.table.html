@@ -514,7 +514,7 @@
           <!-- open individual release -->
           <button mat-icon-button
                   *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
-                  [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) ? 'primary': 'dark'"
+                  [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) && 'primary'"
                   [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
                   (click)="onIndividualReleaseClick($event, row)">
             <mat-icon>room</mat-icon>

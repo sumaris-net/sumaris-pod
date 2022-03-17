@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
 import {FormGroup, ValidationErrors} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ParameterLabelGroups, PmfmIds} from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {
   AccountService,
@@ -54,6 +54,13 @@ export class SamplingLandingPage extends LandingPage {
       pathIdAttribute: 'samplingId',
       autoOpenNextTab: true
     });
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    // Configure sample table
+    this.samplesTable.inlineEdition = !this.mobile;
   }
 
   ngAfterViewInit() {
@@ -163,13 +170,20 @@ export class SamplingLandingPage extends LandingPage {
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
+
     // By default, set location to parent location
-    if (this.parent && this.parent instanceof ObservedLocation) {
+    if (this.parent instanceof ObservedLocation) {
       this.landingForm.form.get('location').patchValue(data.location);
     }
-    if (this.parent && this.parent instanceof Trip) {
+    else if (this.parent instanceof Trip) {
       data.trip = this.parent;
     }
+  }
+
+  protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
+    console.log('onEntityLoaded', data);
+    await super.onEntityLoaded(data, options);
+
   }
 
   protected async getValue(): Promise<Landing> {

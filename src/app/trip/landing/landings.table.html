@@ -255,12 +255,13 @@
           <mat-icon>check</mat-icon>
         </button>
 
-        <!-- edit trip -->
-        <button mat-icon-button color="light"
+        <!-- Edit trip button -->
+        <button mat-icon-button
                 *ngIf="!row.editing && row.id !== -1 && isTripDetailEditor"
+                [color]="row.currentData.tripId && 'primary'"
                 [title]="'COMMON.BTN_EDIT'|translate"
                 (click)="confirmAndEditTrip($event, row)">
-          <ion-icon name="boat" slot="icon-only" [color]="row.currentData.tripId ? undefined : 'medium'"></ion-icon>
+          <ion-icon name="boat" slot="icon-only" ></ion-icon>
         </button>
       </td>
     </ng-container>
