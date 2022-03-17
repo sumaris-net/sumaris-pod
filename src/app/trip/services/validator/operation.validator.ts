@@ -27,7 +27,7 @@ import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-str
 import { PositionUtils } from '@app/trip/services/position.utils';
 
 
-export interface PmfmForm {
+export interface IPmfmForm {
   form: FormGroup;
   pmfms: IPmfm[];
   markForCheck: () => void;
@@ -524,7 +524,7 @@ export class OperationValidators {
     };
   }
 
-  static addSampleValidators(pmfmForm: PmfmForm): Subscription {
+  static addSampleValidators(pmfmForm: IPmfmForm): Subscription {
     const {form, pmfms} = pmfmForm;
     if (!form) {
       console.warn('Argument \'form\' required');
@@ -550,7 +550,7 @@ export class OperationValidators {
    * Validate and compute
    * @param event
    */
-  static listenIndividualOnDeck(event: PmfmForm): Observable<any> | null {
+  static listenIndividualOnDeck(event: IPmfmForm): Observable<any> | null {
     const {form, pmfms, markForCheck} = event;
     const measFormGroup = form.controls['measurementValues'] as FormGroup;
 

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {EntityFilter, FilterFn, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode} from '@sumaris-net/ngx-components';
-import {AppMeasurementsTable} from '../../measurement/measurements.table.class';
+import { EntityFilter, FilterFn, firstArrayValue, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode } from '@sumaris-net/ngx-components';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {Batch} from '../../services/model/batch.model';
 import {Landing} from '../../services/model/landing.model';
@@ -12,6 +12,7 @@ import {BatchModal} from '../modal/batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
 import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
+import { splitByProperty } from '@sumaris-net/ngx-components';
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
@@ -61,6 +62,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   qvPmfm: IPmfm;
   defaultWeightPmfm: IPmfm;
+  weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
 
   @Input()
@@ -104,13 +106,15 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     injector: Injector,
     validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
-    @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T
+    @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T,
+    @Optional() options?: AppMeasurementsTableOptions<T>
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),
       memoryDataService,
       validatorService,
       {
+        ...options,
         prependNewElements: false,
         suppressErrors: environment.production,
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
@@ -271,16 +275,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     this._initialPmfms = pmfms; // Copy original pmfms list
 
-    this.defaultWeightPmfm = undefined;
-    this.weightPmfmsByMethod = pmfms.reduce((res, p) => {
-      const matches = PmfmLabelPatterns.BATCH_WEIGHT.exec(p.label);
-      if (matches) {
-        const methodId = p.methodId;
-        res[methodId] = p;
-        if (isNil(this.defaultWeightPmfm)) this.defaultWeightPmfm = p;
-      }
-      return res;
-    }, {});
+    this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.test(p.label));
+    this.defaultWeightPmfm = firstArrayValue(this.weightPmfms); // First as default
+    this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
 
     // Find the first qualitative PMFM
     this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);

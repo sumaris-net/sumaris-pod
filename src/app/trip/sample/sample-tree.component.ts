@@ -16,7 +16,7 @@ import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/oper
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 
@@ -112,7 +112,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @ViewChild('individualMonitoringTable', {static: false}) individualMonitoringTable: IndividualMonitoringTable;
   @ViewChild('individualReleaseTable', {static: false}) individualReleasesTable: IndividualReleasesTable;
 
-  @Output() onPrepareRowForm = new EventEmitter<PmfmForm>();
+  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   constructor(
     protected route: ActivatedRoute,

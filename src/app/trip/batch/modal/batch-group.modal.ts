@@ -4,14 +4,13 @@ import { Alerts, AppFormUtils, IReferentialRef, isNil, LocalSettingsService, Pla
 import { AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BatchGroupForm } from '../form/batch-group.form';
 import { debounceTime, filter, map, startWith } from 'rxjs/operators';
 import { BatchGroup } from '../../services/model/batch-group.model';
-import { environment } from '../../../../environments/environment';
+import { environment } from '@environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { Sample } from '@app/trip/services/model/sample.model';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {

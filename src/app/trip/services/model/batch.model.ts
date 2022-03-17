@@ -433,6 +433,7 @@ export class BatchUtils {
     indent?: string;
     nextIndent?: string;
     showAll?: boolean;
+    showWeight?: boolean;
     showParent?: boolean;
     showTaxon?: boolean;
     showMeasure?: boolean;
@@ -491,10 +492,18 @@ export class BatchUtils {
         if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
           message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
         }
-        const weight = batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
-          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
+        const weight = batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]
+          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
+          || batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT];
         if (isNotNil(weight)) {
           message += ' weight:' + weight + 'kg';
+        }
+        if (BatchUtils.isSampleBatch(batch)) {
+          const samplingRatio = batch.samplingRatio;
+          const samplingRatioText = batch.samplingRatio;
+          if (isNotNil(samplingRatio)) {
+            message += ` ${samplingRatio}: ${samplingRatio} (${samplingRatioText})`;
+          }
         }
       }
     }

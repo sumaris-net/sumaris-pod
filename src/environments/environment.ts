@@ -128,7 +128,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 0
+    listenIntervalInSeconds: 30
   }
 });
 

@@ -49,7 +49,7 @@ import {BatchGroup} from '@app/trip/services/model/batch-group.model';
 import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 import {MatCellDef} from '@angular/material/table';
 import {OverlayEventDetail} from '@ionic/core';
-import {PmfmForm} from '@app/trip/services/validator/operation.validator';
+import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
 
 const moment = momentImported;
 
@@ -98,7 +98,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
-  protected currentSample: Sample; // require to preset presentation on new row
   protected currentTagId: string;
 
   // Top group header
@@ -198,7 +197,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return super.getRowError(row, opts);
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<PmfmForm>();
+  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 

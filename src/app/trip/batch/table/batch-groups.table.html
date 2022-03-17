@@ -159,18 +159,20 @@
           class="mat-cell-content-start-padding"
           (click)="focusColumn=col.key">
 
-        <app-form-field *ngIf="!col.isPmfm else pmfm" floatLabel="never"
+        <app-form-field *ngIf="!col.pmfm; else pmfm"
+                        floatLabel="never"
                         [definition]="col"
                         [readonly]="!row.editing || isComputed(col, row)"
                         [tabindex]="col.computed && -1"
-                        [formControl]="row.validator.get(col.path)"
+                        [formControl]="row.validator|formGet: col.path"
                         [autofocus]="row.editing && focusColumn === col.key"
                         [compact]="true">
         </app-form-field>
+
         <ng-template #pmfm>
           <app-pmfm-field floatLabel="never"
                           [pmfm]="col.pmfm"
-                          [control]="row.validator.get(col.path)"
+                          [control]="row.validator|formGet: col.path"
                           [tabindex]="col.computed && -1"
                           [autofocus]="row.editing && focusColumn === col.key"
                           [readonly]="!row.editing"

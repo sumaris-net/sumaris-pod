@@ -292,13 +292,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   onPrepareSampleForm({form, pmfms}) {
     console.debug('[landing-page] Initializing sample form (validators...)');
 
-    // Remove previous subscription
-    if (this._rowValidatorSubscription) {
-      this._rowValidatorSubscription.unsubscribe();
-    }
-
     // Add computation and validation
-    this._rowValidatorSubscription = this.computeSampleRowValidator(form, pmfms);
+    this._rowValidatorSubscription?.unsubscribe();
+    this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
   }
 
   async updateView(data: Landing | null, opts?: {
@@ -543,7 +539,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return this.landingForm.value.asObject();
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     console.warn('[landing-page] No row validator override');
     return null;

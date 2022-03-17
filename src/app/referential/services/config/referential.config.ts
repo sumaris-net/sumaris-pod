@@ -1,6 +1,18 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
-import { FractionIdGroups, LocationLevelIds, MatrixIds, MethodIds, ParameterGroupIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds, UnitLabelGroups } from '../model/model.enum';
+import {
+  FractionIdGroups,
+  LocationLevelIds,
+  MatrixIds,
+  MethodIds,
+  ParameterGroupIds,
+  ParameterLabelGroups,
+  PmfmIds,
+  ProgramLabel,
+  QualitativeValueIds,
+  TaxonomicLevelIds,
+  UnitLabelGroups
+} from '../model/model.enum';
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -206,6 +218,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: PmfmIds.DRESSING
+  },
+  PMFM_PRESERVATION: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PRESERVATION.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PRESERVATION',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.PRESERVATION
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
@@ -423,18 +447,6 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: MatrixIds.INDIVIDUAL
   },
-  UNIT_NONE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Unit.NONE.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_NONE_ID',
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'Unit',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
-    defaultValue: MatrixIds.INDIVIDUAL
-  },
   PARAMETER_GROUP_AGE_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.parameter.age.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_AGE_LABELS',
@@ -471,11 +483,71 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'string',
     defaultValue: FractionIdGroups.CALCIFIED_STRUCTURE.join(',')
   },
+  UNIT_NONE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Unit.NONE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_NONE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Unit',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MatrixIds.INDIVIDUAL
+  },
   UNIT_GROUP_LENGTH_LABELS: <FormFieldDefinition>{
     key: 'sumaris.list.unit.length.labels',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_GROUP_LENGTH_LABELS',
     type: 'string',
     defaultValue: UnitLabelGroups.LENGTH.join(',')
+  },
+  QUALITATIVE_VALUE_LANDING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.LANDING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_LANDING_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.LANDING
+  },
+  QUALITATIVE_VALUE_DISCARD_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.DISCARD.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DISCARD_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+  },
+  QUALITATIVE_VALUE_DRESSING_WHOLE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.DRESSING_WHOLE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DRESSING_WHOLE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.DRESSING.WHOLE
+  },
+  QUALITATIVE_VALUE_PRESERVATION_FRESH_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.PRESERVATION_FRESH.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_PRESERVATION_FRESH_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.PRESERVATION.FRESH
   },
 });
 

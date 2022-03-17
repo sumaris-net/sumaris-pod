@@ -213,7 +213,8 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
         "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
-        "PMFM_DRESSING": "Référentiel > PSFM > Présentation",
+        "PMFM_DRESSING": "Référentiel > PSFM > Présentation de l'espèce (Entier, ...)",
+        "PMFM_PRESERVATION": "Référentiel > PSFM > État de l'espèce (Frais, ...)",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
@@ -230,7 +231,10 @@
         "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
         "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
-        "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)"
+        "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
+        "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
+        "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
+        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",

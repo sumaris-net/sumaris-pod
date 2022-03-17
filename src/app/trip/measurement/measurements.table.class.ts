@@ -248,6 +248,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (this._strategyLabel && !this.measurementsDataService.strategyLabel) {
       this.measurementsDataService.strategyLabel = this._strategyLabel;
     }
+
+    if (this.inlineEdition && this.options.onRowCreated) {
+      this.registerSubscription(this.onStartEditingRow.subscribe(row => {
+        console.log('TODO: call onRowCreated when onStartEditingRow. Check if this is correct')
+        this.options.onRowCreated(row);
+      }));
+    }
   }
 
   ngOnDestroy() {
@@ -433,7 +440,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   private async onRowCreated(row: TableElement<T>) {
-
     // Execute function from constructor's options (is any)
     // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
     if (this.options.onRowCreated) {
@@ -469,7 +475,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; keepEditing?: boolean }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
@@ -509,6 +515,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!opts || opts.confirmCreate !== false) {
       this.confirmEditCreate(null, row);
       this.editedRow = null;
+    }
+    else if (!opts || opts.keepEditing !== false) {
+      row.editing = false;
+      this.editedRow = undefined;
     }
     else {
       this.editedRow = row;
@@ -587,5 +597,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     const pmfms = this.pmfms || [];
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator, opts);
   }
+
+
 }
 

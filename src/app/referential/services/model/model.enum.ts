@@ -47,6 +47,7 @@ export const PmfmIds = {
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
   DRESSING: 151,
+  PRESERVATION: 150,
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
@@ -111,7 +112,14 @@ export const QualitativeLabels = {
 
 export const QualitativeValueIds = {
   DISCARD_OR_LANDING: {
-    LANDING: 190
+    LANDING: 190,
+    DISCARD: 191
+  },
+  DRESSING: {
+    WHOLE: 381
+  },
+  PRESERVATION: {
+    FRESH: 332
   }
 };
 

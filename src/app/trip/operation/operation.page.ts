@@ -41,7 +41,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { OperationValidators, IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
@@ -873,7 +873,7 @@ export class OperationPage
     }
   }
 
-  onPrepareSampleForm(pmfmForm: PmfmForm) {
+  onPrepareSampleForm(pmfmForm: IPmfmForm) {
     console.debug('[operation-page] Initializing sample form (validators...)');
     this._sampleRowSubscription?.unsubscribe();
     this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
@@ -886,7 +886,7 @@ export class OperationPage
 
   /* -- protected method -- */
 
-  protected computeSampleRowValidator(pmfmForm: PmfmForm): Subscription {
+  protected computeSampleRowValidator(pmfmForm: IPmfmForm): Subscription {
     return OperationValidators.addSampleValidators(pmfmForm);
   }
 

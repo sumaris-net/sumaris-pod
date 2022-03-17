@@ -126,28 +126,32 @@
       </ion-row>
 
       <ion-row class="ion-no-padding"
-               *ngFor="let samplingBatchForm of childrenArray.controls; let i=index"
-               [formGroupName]="i">
+               *ngFor="let samplingBatchForm of childrenArray.controls">
 
         <!-- Sampling ratio -->
-        <ion-col size="4" class="ion-no-padding">
-          <mat-form-field>
+        <ion-col size="4" class="ion-no-padding"
+                 *ngVar="(samplingBatchForm|formGetControl:'samplingRatio') as control">
+          <mat-form-field
+              *ngVar="((samplingBatchForm|formGetControl: 'samplingRatioText').valueChanges|async|strIncludes:'/') as computed"
+              [class.computed]="computed">
             <input matInput
-                   formControlName="samplingRatio"
+                   autocomplete="off"
+                   [formControl]="control"
+                   [readonly]="computed"
                    type="number"
                    step="1"
                    pattern="[0-9]{1,3}"
                    (click)="selectInputContent($event)"
                    [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_RATIO'|translate"
                    [tabindex]="tabindex + 32">
-            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('min')">
-              {{'ERROR.FIELD_MIN' | translate: samplingBatchForm.controls.samplingRatio.errors['min'] }}</mat-error>
-            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('max')">
-              {{'ERROR.FIELD_MAX' | translate: samplingBatchForm.controls.samplingRatio.errors['max'] }}</mat-error>
-            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('pattern')">
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="control.hasError('min')">
+              {{'ERROR.FIELD_MIN' | translate: control.errors['min'] }}</mat-error>
+            <mat-error *ngIf="control.hasError('max')">
+              {{'ERROR.FIELD_MAX' | translate: control.errors['max'] }}</mat-error>
+            <mat-error *ngIf="control.hasError('pattern')">
               {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-            <mat-error *ngIf="samplingBatchForm.controls.samplingRatio.hasError('integer')">
+            <mat-error *ngIf="control.hasError('integer')">
               {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
           </mat-form-field>
         </ion-col>
@@ -156,10 +160,11 @@
         <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm && showSampleWeight">
 
           <app-pmfm-field #matInput
-                          [class.computed]="samplingBatchForm.controls.weight.controls.computed.value"
-                          [readonly]="samplingBatchForm.controls.weight.controls.computed.value"
+                          *ngVar="(samplingBatchForm|formGet: 'weight.computed') as isComputedControl"
+                          [class.computed]="isComputedControl.valueChanges|async"
+                          [readonly]="isComputedControl.value"
                           [pmfm]="defaultWeightPmfm"
-                          [formControl]="samplingBatchForm.controls.weight.controls.value"
+                          [formControl]="samplingBatchForm|formGetControl: 'weight.value'"
                           [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
                           [compact]="compact"
                           [required]="requiredSampleWeight"
@@ -172,7 +177,8 @@
         <ion-col size="4" class="ion-no-padding" *ngIf="showSampleIndividualCount">
           <mat-form-field>
             <input matInput
-                   formControlName="individualCount"
+                   autocomplete="off"
+                   [formControl]="samplingBatchForm|formGetControl: 'individualCount'"
                    type="number"
                    step="1"
                    pattern="[0-9]*"

@@ -239,10 +239,10 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`
-  /* TODO BLA: review this Imagine code:
-  ${Fragments.metier}
-  ${DataFragments.fishingArea}*/
+  ${TripFragments.embeddedLandedTrip}
+  ${ReferentialFragments.metier}
+  ${DataFragments.fishingArea}
+  `
 };
 
 

@@ -1,13 +1,14 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {FormArray, FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
-import {EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, isNotNilOrNaN, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
-import {Batch, BatchUtils, BatchWeight} from '../model/batch.model';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {MethodIds} from '@app/referential/services/model/model.enum';
-import {Subject, Subscription} from 'rxjs';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, isNotNilOrNaN, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { Batch, BatchUtils, BatchWeight } from '../model/batch.model';
+import { MethodIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { Subscription } from 'rxjs';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { SharedAsyncValidators } from '@sumaris-net/ngx-components/src/app/shared/validator/validators';
+import { toFloat } from '@sumaris-net/ngx-components/src/app/shared/functions';
 
 @Injectable({providedIn: 'root'})
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
@@ -109,90 +110,126 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     );
   }
 
-  addSamplingFormValidators(form: FormGroup, opts?: {
+  enableSamplingWeightComputation(form: FormGroup, opts?: {
     requiredSampleWeight?: boolean;
+    markForCheck?: () => void;
   }): Subscription {
 
     // Sampling ratio: should be a percentage
-    form.get('samplingRatio').setValidators(
+    form.get('samplingRatio')?.setValidators(
       Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.double({maxDecimals: 2})])
     );
 
-    const $errors = new Subject<ValidationErrors | null>();
-    form.setAsyncValidators((control) => $errors);
+    return SharedAsyncValidators.registerAsyncValidator(form,
+      BatchValidators.samplingWeightComputation(opts),
+      {markForCheck: opts?.markForCheck}
+    );
+  }
 
-    let computing = false;
-    const subscription = form.valueChanges
-      .pipe(
-        filter(() => !computing),
-        // Protected against loop
-        tap(() => computing = true),
-        debounceTime(250),
-        map(() => BatchValidators.computeSamplingWeight(form, {...opts, emitEvent: false, onlySelf: false}))
-      ).subscribe((errors) => {
-        computing = false;
-        $errors.next(errors);
-      });
+  enableWeightLengthConversion(form: FormGroup, opts?: {
+    requiredWeight?: boolean;
+    markForCheck?: () => void;
+  }): Subscription {
 
-    // When unsubscribe, remove async validator
-    subscription.add(() => {
-      $errors.next(null);
-      $errors.complete();
-      form.clearAsyncValidators();
-    });
+    return SharedAsyncValidators.registerAsyncValidator(form,
+      BatchValidators.weightLengthConversion(opts),
+      {markForCheck: opts?.markForCheck}
+    );
+  }
 
-    return subscription;
+  enableRoundWeightConversion(form: FormGroup, opts?: {
+    requiredWeight?: boolean;
+    markForCheck?: () => void;
+  }): Subscription {
+
+    return SharedAsyncValidators.registerAsyncValidator(form,
+      BatchValidators.roundWeightConversion(opts),
+      {markForCheck: opts?.markForCheck}
+    );
   }
 }
 
 export class BatchValidators {
-  static computeSamplingWeightRow(form: FormGroup, opts?: {
+
+  /**
+   * Computing weight, sampling weight and/or sampling ratio
+   * @param opts
+   */
+  static samplingWeightComputation(opts?: {
     requiredSampleWeight?: boolean;
-    emitEvent?: boolean;
-    onlySelf?: boolean;
+  }): ValidatorFn {
+    return (control) => BatchValidators.computeSamplingWeight(control as FormGroup, {...opts, emitEvent: false, onlySelf: false})
+  }
+
+  /**
+   * Same, but on a batch group
+   * @param opts
+   */
+  static samplingWeightRowComputation(opts: {
+    requiredSampleWeight?: boolean;
     qvPmfm?: IPmfm;
-  }): ValidationErrors | null {
+  }): ValidatorFn {
+    if (!opts?.qvPmfm) {
+      let showError = true;
+      return (control) => {
+        if (showError) {
+          console.error('Please check implementation for sample row validator, when no qvPmfm', control);
+          showError = false;
+        }
+        return null;
+      };
+    }
 
-    let errors: ValidationErrors | null;
-    if (opts && opts.qvPmfm) {
-      opts.qvPmfm.qualitativeValues.forEach((qv, index) => {
-        const qvSuffix = 'children.' + index + '.';
-
+    const validators = (opts.qvPmfm.qualitativeValues || []).map((qv, qvIndex) => {
+      const qvSuffix = `children.${qvIndex}.`;
+      const qvOpts = {
+        ...opts,
+        weightPath: qvSuffix + 'weight',
+        samplingWeightPath: qvSuffix + 'children.0.weight',
+        samplingRatioPath: qvSuffix + 'children.0.samplingRatio',
+        qvIndex
+      };
+      return (control) => {
+        const form = control as FormGroup;
         if (form.get(qvSuffix + 'individualCount').disabled) {
           form.get(qvSuffix + 'individualCount').enable();
         }
         if (form.get(qvSuffix + 'children.0.individualCount').disabled) {
           form.get(qvSuffix + 'children.0.individualCount').enable();
         }
-        const qvErrors = BatchValidators.computeSamplingWeight(form, {
-          ...opts,
-          weightPath: qvSuffix + 'weight',
-          samplingWeightPath: qvSuffix + 'children.0.weight',
-          samplingRatioPath: qvSuffix + 'children.0.samplingRatio',
-          qvIndex: index
-        });
-
-        if (qvErrors) {
-          if (errors) {
-            errors = {...errors, ...qvErrors};
-          } else {
-            errors = qvErrors;
-          }
-        }
-      });
-    }
-    return errors;
+        return BatchValidators.computeSamplingWeight(form, {...qvOpts, emitEvent: false, onlySelf: false});
+      }
+    })
+    return Validators.compose(validators);
   }
 
-  /**
-   * Computing weight, samplingWeight or sampling ratio
-   * @param form
-   * @param opts
-   */
-  static computeSamplingWeight(form: FormGroup, opts?: {
-    requiredSampleWeight?: boolean;
+  static weightLengthConversion(opts?: {
+    // Weight
+    requiredWeight?: boolean;
+    weightPath?: string;
+    // Length
+    lengthPath?: string;
+    lengthPmfmId?: number;
+  }): ValidatorFn {
+    return (control) => BatchValidators.computeWeightLengthConversion(control as FormGroup, {...opts, emitEvent: false, onlySelf: false})
+  }
+
+  static roundWeightConversion(opts?: {
+    // Weight
+    requiredWeight?: boolean;
+    weightPath?: string;
+  }): ValidatorFn {
+    return (control) => BatchValidators.computeRoundWeightConversion(control as FormGroup, {...opts, emitEvent: false, onlySelf: false})
+  }
+
+  /* -- internal function -- */
+  private static computeSamplingWeight(form: FormGroup, opts?: {
+    // Event propagation
     emitEvent?: boolean;
     onlySelf?: boolean;
+    // Weight
+    requiredSampleWeight?: boolean;
+    // Control path (used by batch group row validator)
     weightPath?: string;
     samplingWeightPath?: string;
     samplingRatioPath?: string;
@@ -203,7 +240,7 @@ export class BatchValidators {
     const sampleFormSuffix = qvSuffix + (qvSuffix ? '.' : '') + 'children.0';
 
     const sampleForm = form.get(sampleFormSuffix);
-    if (!sampleForm) return;
+    if (!sampleForm) return; // No sample batch: skip
 
     const weightPath = opts && opts.weightPath || 'weight';
     const samplingWeightPath = opts && opts.samplingWeightPath || sampleFormSuffix + '.' + weightPath;
@@ -211,11 +248,15 @@ export class BatchValidators {
 
     const totalWeightControl = form.get(weightPath);
     const samplingRatioControl = form.get(samplingRatioPath);
+    const samplingRatioTextControl = form.get(samplingRatioPath + 'Text');
     const samplingWeightControl = form.get(samplingWeightPath);
 
-    const totalWeight = totalWeightControl.value?.value;
-    const samplingRatioPct = samplingRatioControl.value;
-    const samplingWeight = samplingWeightControl.value?.value;
+    const totalWeight = toFloat(totalWeightControl.value?.value);
+    const samplingRatioPct = toNumber(samplingRatioControl.value);
+    const samplingRatioText = samplingRatioTextControl?.value;
+    const samplingRatioComputed = samplingRatioText && samplingRatioText.includes('/') || false;
+
+    const samplingWeight = toFloat(samplingWeightControl.value?.value);
 
     if (totalWeightControl.disabled) totalWeightControl.enable(opts);
     if (samplingRatioControl.disabled) samplingRatioControl.enable(opts);
@@ -254,11 +295,11 @@ export class BatchValidators {
       // Sampling weight must be under total weight
       if (toNumber(samplingWeight) > toNumber(totalWeight)) {
         if (!samplingWeightControl.hasError('max') || samplingWeightControl.errors['max'] !== totalWeight) {
-          samplingWeightControl.markAsPending({onlySelf: true, emitEvent: true}); //{onlySelf: true, emitEvent: false});
-          samplingWeightControl.markAsTouched({onlySelf: true});
-          samplingWeightControl.setErrors({...samplingWeightControl.errors, max: {max: totalWeight}}, opts);
+          samplingWeightControl.markAsPending({ onlySelf: true, emitEvent: true }); //{onlySelf: true, emitEvent: false});
+          samplingWeightControl.markAsTouched({ onlySelf: true });
+          samplingWeightControl.setErrors({ ...samplingWeightControl.errors, max: { max: totalWeight } }, opts);
         }
-        return {max: {max: totalWeight}} as ValidationErrors;
+        return { max: { max: totalWeight } } as ValidationErrors;
       } else {
         SharedValidators.clearError(samplingWeightControl, 'max');
       }
@@ -268,14 +309,14 @@ export class BatchValidators {
       if (samplingRatioPct !== computedSamplingRatioPct) {
         sampleForm.patchValue({
           samplingRatio: computedSamplingRatioPct,
-          samplingRatioText: `${totalWeight}/${samplingWeight}`,
+          samplingRatioText: `${samplingWeight}/${totalWeight}`,
         }, opts);
       }
-     return;
+      return;
     }
 
     // Compute sample weight using ratio and total weight
-    else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
+    else if (!samplingRatioComputed && isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
       && !batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight >= 0) {
 
       if (sampleBatch.weight.computed || isNil(samplingWeight)) {
@@ -296,21 +337,25 @@ export class BatchValidators {
     }
 
     // Compute total weight using ratio and sample weight
-    else if (isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
+    else if (!samplingRatioComputed && isNotNilOrNaN(samplingRatioPct) && samplingRatioPct <= 100 && samplingRatioPct > 0
       && !sampleBatch.weight.computed && isNotNilOrNaN(samplingWeight) && samplingWeight >= 0) {
       if (batch.weight.computed || isNil(totalWeight)) {
-        totalWeightControl.patchValue({
-          computed: true,
-          estimated: false,
-          value: Math.round(samplingWeight * (100 / samplingRatioPct) * 100) / 100,
-          methodId: MethodIds.CALCULATED
-        }, opts);
-        sampleForm.patchValue({
-          samplingRatioText: `${samplingRatioPct}%`,
-          weight: {
-            computed: false
-          }});
-           return;
+        const computedTotalWeight = Math.round(samplingWeight * (100 / samplingRatioPct) * 100) / 100
+        if (totalWeight !== computedTotalWeight) {
+          totalWeightControl.patchValue({
+            computed: true,
+            estimated: false,
+            value: computedTotalWeight,
+            methodId: MethodIds.CALCULATED
+          }, opts);
+          sampleForm.patchValue({
+            samplingRatioText: `${samplingRatioPct}%`,
+            weight: {
+              computed: false
+            }
+          }, opts);
+          return;
+        }
       }
     }
 
@@ -325,11 +370,16 @@ export class BatchValidators {
           estimated: false
         }, opts);
       }
-      totalWeightControl.enable(opts);
+      if (totalWeightControl.disabled) totalWeightControl.enable(opts);
 
       if (sampleForm.enabled) {
+        // Clear computed sampling ratio
+        if (samplingRatioComputed) {
+          samplingRatioTextControl?.patchValue(null, opts);
+          samplingRatioControl.patchValue(null, opts);
+        }
         // Enable sampling ratio
-        samplingRatioControl.enable({...opts, emitEvent: true/*force repaint*/});
+        if (samplingRatioControl.disabled) samplingRatioControl.enable({ ...opts, emitEvent: true/*force repaint*/ });
 
         // Enable sampling weight (and remove computed value, if any)
         if (sampleBatch.weight.computed) {
@@ -343,7 +393,7 @@ export class BatchValidators {
         // If sampling weight is required
         if (opts && opts.requiredSampleWeight === true) {
           if (!samplingWeightControl.hasError('required')) {
-            samplingWeightControl.setErrors({...samplingWeightControl.errors, required: true}, opts);
+            samplingWeightControl.setErrors({ ...samplingWeightControl.errors, required: true }, opts);
           }
         }
 
@@ -351,13 +401,111 @@ export class BatchValidators {
         else {
           samplingWeightControl.setErrors(null, opts);
         }
-        samplingWeightControl.enable(opts);
+        if (!samplingWeightControl.enabled) {
+          samplingWeightControl.enable(opts);
+        }
 
-      } else {
-        samplingRatioControl.disable({...opts, emitEvent: true/*force repaint*/});
-        samplingWeightControl.disable(opts);
+      }
+      // Disable sampling fields
+      else {
+        if (samplingRatioControl.enabled) samplingRatioControl.disable({ ...opts, emitEvent: true/*force repaint*/ });
+        if (samplingWeightControl.enabled) samplingWeightControl.disable(opts);
       }
     }
   }
 
+  /**
+   * Converting length into a weight
+   * @param form
+   * @param opts
+   */
+  private static computeWeightLengthConversion(form: FormGroup, opts?: {
+    emitEvent?: boolean;
+    onlySelf?: boolean;
+    // Weight
+    requiredWeight?: boolean;
+    weightPath?: string;
+    // Length
+    lengthPath?: string;
+    lengthPmfmId?: number;
+  }) : ValidationErrors | null {
+
+    const weightPath = opts?.weightPath || 'weight';
+    const lengthPath = opts?.lengthPath || toNumber(opts?.lengthPmfmId, PmfmIds.LENGTH_TOTAL_CM).toString();
+
+    let weightControl = form.get(weightPath);
+    const lengthControl = form.get(lengthPath);
+
+    if (!lengthControl) throw Error(`Cannot resolve control with path: '${lengthPath}'`);
+
+    // Create weight control - should not occur ??
+    if (!weightControl) {
+      console.warn('Creating missing weight control - Please add it to the validator instead')
+      const weightValidators = opts?.requiredWeight ? Validators.required : undefined;
+      weightControl = new FormControl(null, weightValidators);
+      form.addControl(weightPath, weightControl);
+    }
+
+    if (weightControl.disabled) weightControl.enable(opts);
+    if (lengthControl.disabled) lengthControl.enable(opts);
+
+    const length = lengthControl.value;
+    const weight = weightControl.value;
+    // DEBUG
+    console.debug('[batch-validator] Start computing weight from length: ', [length]);
+
+
+    // Compute weight, using length
+    if (!weight.computed && isNotNilOrNaN(length) && length > 0) {
+
+      // TODO
+      const computedWeight = length * 20 ;
+
+      if (weight.value !== computedWeight) {
+        weightControl.patchValue({
+          value: computedWeight,
+          computed: true,
+          estimated: false
+        }, opts);
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Converting length into a weight
+   * @param form
+   * @param opts
+   */
+  private static computeRoundWeightConversion(form: FormGroup, opts?: {
+    emitEvent?: boolean;
+    onlySelf?: boolean;
+    // Weight
+    requiredWeight?: boolean;
+    weightPath?: string;
+  }) : ValidationErrors | null {
+
+    const weightPath = opts?.weightPath || 'weight';
+
+    let weightControl = form.get(weightPath);
+
+    // Create weight control - should not occur ??
+    if (!weightControl) {
+      console.warn('Creating missing weight control - Please add it to the validator instead')
+      const weightValidators = opts?.requiredWeight ? Validators.required : undefined;
+      weightControl = new FormControl(null, weightValidators);
+      form.addControl(weightPath, weightControl);
+    }
+
+    if (weightControl.disabled) weightControl.enable(opts);
+
+    const weight = weightControl.value;
+    // DEBUG
+    console.debug('[batch-validator] Start computing round weight: ');
+
+    // TODO
+
+    return null;
+  }
 }

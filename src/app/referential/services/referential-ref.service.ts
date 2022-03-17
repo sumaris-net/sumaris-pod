@@ -10,8 +10,8 @@ import {
   chainPromises,
   ConfigService,
   Configuration,
-  EntitiesStorage, firstNotNilPromise,
-  firstTruePromise,
+  EntitiesStorage,
+  firstNotNilPromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
@@ -24,7 +24,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService,
+  SuggestService
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import {
@@ -36,9 +36,11 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramLabel,
+  QualitativeValueIds,
   TaxonGroupIds,
   TaxonomicLevelIds,
-  UnitIds, UnitLabelGroups
+  UnitIds,
+  UnitLabelGroups
 } from './model/model.enum';
 import { TaxonGroupRef } from './model/taxon-group.model';
 import { TaxonNameRef } from './model/taxon-name.model';
@@ -54,7 +56,6 @@ import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
 import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { WeightLengthConversionService } from '@app/referential/weight-length-conversion/weight-length-conversion.service';
 import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
 import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
 
@@ -855,6 +856,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     // TODO generefy this, using Object.keys(PmfmIds) iteration
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
     PmfmIds.DRESSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DRESSING);
+    PmfmIds.PRESERVATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PRESERVATION);
     PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
@@ -883,6 +885,12 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // ParameterGroups
     ParameterGroupIds.SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_SURVEY_ID);
+
+    // Qualitative value
+    QualitativeValueIds.DISCARD_OR_LANDING.LANDING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_LANDING_ID);
+    QualitativeValueIds.DISCARD_OR_LANDING.DISCARD = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_DISCARD_ID);
+    QualitativeValueIds.DRESSING.WHOLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_DRESSING_WHOLE_ID);
+    QualitativeValueIds.PRESERVATION.FRESH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_PRESERVATION_FRESH_ID);
 
     // Taxon group
     // TODO: add all enumerations
