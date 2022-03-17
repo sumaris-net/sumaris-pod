@@ -2,9 +2,9 @@
 
 import { BaseReferential, capitalizeFirstLetter, Department, Entity, EntityAsObjectOptions, EntityClass, isNil, isNotEmptyArray, isNotNilOrBlank, Person } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import { ExtractionProduct } from '@app/extraction/services/model/extraction-product.model';
 import { TranslateService } from '@ngx-translate/core';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {

@@ -11,8 +11,7 @@ import { SubSampleValidatorService } from '@app/trip/services/validator/sub-samp
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';
-import { mergeMap } from 'rxjs/internal/operators';
-import { distinctUntilChanged, filter } from 'rxjs/operators';
+import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
 
 
 @Component({

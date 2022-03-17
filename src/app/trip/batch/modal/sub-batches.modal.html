@@ -73,8 +73,12 @@
       <!-- table -->
       <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3"
                class="table-container ion-no-padding">
-        <mat-table [dataSource]="dataSource" class="table-sub-batches" [trackBy]="trackByFn"
-                   matSort matSortActive="id" matSortDirection="desc"
+        <mat-table [dataSource]="dataSource"
+                   class="table-sub-batches"
+                   [trackBy]="trackByFn"
+                   matSort
+                   matSortActive="id"
+                   matSortDirection="desc"
                    matSortDisableClear>
 
           <ng-container matColumnDef="select">

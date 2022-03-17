@@ -2,7 +2,7 @@ import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, isN
 import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
 import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
 import { MethodIds, UnitIds } from './model.enum';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 @EntityClass({typename: "PmfmStrategyVO"})

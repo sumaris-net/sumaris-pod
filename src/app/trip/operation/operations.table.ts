@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import { AlertController, ModalController, Platform } from '@ionic/angular';
@@ -7,7 +7,8 @@ import { Location } from '@angular/common';
 import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  AccountService, AppFormUtils,
+  AccountService,
+  AppFormUtils,
   AppTable,
   EntitiesTableDataSource,
   isNotNil,
@@ -15,7 +16,7 @@ import {
   LocalSettings,
   LocalSettingsService,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, SharedValidators,
+  RESERVED_START_COLUMNS,
   toBoolean,
 } from '@sumaris-net/ngx-components';
 import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
@@ -28,7 +29,6 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
 
 
 @Component({
@@ -60,6 +60,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
+  @Input() showQuality = true;
+  @Input() showRowError = false;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -134,24 +136,18 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected accountService: AccountService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat(
-          platform.is('mobile') ?
+          settings.mobile ?
             ['quality',
               'physicalGear',
               'targetSpecies',
@@ -208,7 +204,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
         from(this.settings.ready()),
         this.settings.onChange
       )
-      .subscribe(_ => this.configureFromSettings())
+        .subscribe(_ => this.configureFromSettings())
     );
   }
 
@@ -331,9 +327,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   resetFilter(event?: UIEvent) {
-    this.setFilter(<OperationFilter>{ tripId: this.tripId }, {emitEvent: true});
+    this.setFilter(<OperationFilter>{tripId: this.tripId}, {emitEvent: true});
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.resetError();
   }
 
   toggleFilterPanelFloating() {
@@ -355,6 +352,43 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.filterForm.get(key).reset(null);
   }
 
+  // Change visibility to public
+  setError(error: string, opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+    super.setError(error, opts);
+
+    // If error
+    if (error) {
+      // Add filter on invalid rows (= not controlled)
+      if (!opts || opts.showOnlyInvalidRows !== false) {
+        this.showRowError = true;
+        const filter = this.filter || new OperationFilter();
+        filter.dataQualityStatus = 'MODIFIED';
+        this.setFilter(filter);
+      }
+    }
+    // No errors
+    else {
+      // Remove filter on invalid rows
+      if (!opts || opts.showOnlyInvalidRows !== true) {
+        this.showRowError = false;
+        const filter = this.filter || new OperationFilter();
+        if (filter.dataQualityStatus === 'MODIFIED') {
+          filter.dataQualityStatus = undefined;
+          this.setFilter(filter);
+        }
+      }
+    }
+  }
+
+  // Change visibility to public
+  resetError(opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+    this.setError(undefined, opts);
+  }
+
+  trackByFn(index: number, row: TableElement<Operation>) {
+    return row.currentData.id;
+  }
+
   /* -- protected methods -- */
 
   protected asFilter(source?: any): OperationFilter {
@@ -363,7 +397,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   protected configureFromSettings(settings?: LocalSettings) {
-    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...');
     settings = settings || this.settings.settings;
 
     if (settings.accountInheritance) {

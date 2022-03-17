@@ -21,6 +21,14 @@ export const ReferentialFragments = {
     statusId
     validityStatusId
     levelId
+    parentId
+    parent {
+      id
+      label
+      name
+      entityName
+      __typename
+    }
     rankOrder
     entityName
     __typename

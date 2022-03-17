@@ -26,16 +26,11 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
   @Input() showFilter = true;
 
   constructor(
-    protected injector: Injector,
+    injector: Injector,
     formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
-    super(injector.get(ActivatedRoute),
-      injector.get(Router),
-      injector.get(Platform),
-      injector.get(Location),
-      injector.get(ModalController),
-      injector.get(LocalSettingsService),
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -45,10 +40,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
           'fraction',
           'method',
           'status'])
-        .concat(RESERVED_END_COLUMNS),
-      null,
-      null,
-      injector);
+        .concat(RESERVED_END_COLUMNS));
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = false;

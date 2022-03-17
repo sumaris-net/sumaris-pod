@@ -2,15 +2,15 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input 
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
 import { map } from 'rxjs/operators';
-import { mergeMap } from 'rxjs/internal/operators';
-import { ProgramProperties } from '../../../referential/services/config/program.config';
-import { Program } from '../../../referential/services/model/program.model';
+import { mergeMap } from 'rxjs/operators';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
@@ -51,15 +51,17 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return this.form.valid;
   }
 
+  get modalName(): string {
+    return this.constructor.name;
+  }
+
   constructor(
     injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -70,7 +72,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         periodDuration: ['15day', Validators.required],
       }));
     this._enable = false; // Disable by default
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');

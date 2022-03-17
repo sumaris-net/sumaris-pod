@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService, isEmptyArray} from '@sumaris-net/ngx-components';
+import { AccountService, isEmptyArray, ReferentialUtils } from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
@@ -102,6 +102,10 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
     return res.filter(isNotNil);
   }
 
+  canUserWrite(data: Parameter, opts?: any): boolean {
+    return this.accountService.isAdmin();
+  }
+
   /**
    * Save a parameter entity
    * @param entity
@@ -142,7 +146,7 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
 
     entity.entityName = 'Parameter';
 
-    await this.referentialService.deleteAll([entity]);
+    await this.referentialService.delete(entity);
   }
 
   listenChanges(id: number, options?: any): Observable<Parameter | undefined> {

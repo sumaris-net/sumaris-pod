@@ -127,7 +127,8 @@
                      [required]="required"
                      [compact]="compact"
                      [tabindex]="tabindex"
-                     [buttonsColCount]="maxVisibleButtons">
+                     [buttonsColCount]="maxVisibleButtons"
+                     [showButtonIcons]="showButtonIcons">
     <div matSuffix>
       <!-- Add a fake fab button, to have same alignment as a pmfm QV field -->
       <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
@@ -180,6 +181,7 @@
                      [style]="style"
                      [maxVisibleButtons]="maxVisibleButtons"
                      [buttonsColCount]="maxVisibleButtons"
+                     [showButtonIcons]="showButtonIcons"
                      (keyup.enter)="onPressEnter.emit($event)">
     <div matAfter>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>

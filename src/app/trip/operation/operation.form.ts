@@ -5,31 +5,30 @@ import { Moment } from 'moment';
 import {
   AccountService,
   AppForm,
-  AppFormUtils,
   DateFormatPipe,
   DateUtils,
   EntityUtils,
   firstNotNilPromise,
   FormArrayHelper,
-  fromDateISOString, getPropertyByPath,
+  fromDateISOString,
+  getPropertyByPath,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
+  LatLongPattern,
   LoadResult,
   MatAutocompleteField,
   OnReady,
-  PlatformService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
-  SharedFormArrayValidators,
-  SharedValidators,
   StatusIds,
   suggestFromArray,
   toBoolean,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Operation, PhysicalGear, Trip, VesselPosition } from '../services/model/trip.model';
@@ -47,7 +46,6 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/trip/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
 import { TripService } from '@app/trip/services/trip.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -55,7 +53,7 @@ import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.m
 
 const moment = momentImported;
 
-type FilterableFieldName = 'fishingArea'|'metier';
+type FilterableFieldName = 'fishingArea' | 'metier';
 
 type PositionField = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
 
@@ -87,18 +85,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
+  private _usageMode: UsageMode;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
   latLongFormat: LatLongPattern;
   mobile: boolean;
   distance: number;
-  maxDistanceWarning: number;
-  maxDistanceError: number;
   distanceError: boolean;
   distanceWarning: boolean;
 
   isParentOperationControl: FormControl;
+  canEditType: boolean;
   $parentOperationLabel = new BehaviorSubject<string>('');
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   fishingAreaFocusIndex = -1;
@@ -107,7 +105,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     fishingArea: false
   };
 
-  @Input() usageMode: UsageMode;
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
@@ -119,7 +116,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
   @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
   @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER_DCF_5];
+  @Input() maxDistanceWarning: number;
+  @Input() maxDistanceError: number;
 
+  @Input() set usageMode(usageMode: UsageMode) {
+    if (this._usageMode != usageMode) {
+      this._usageMode = usageMode;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get usageMode(): UsageMode {
+    return this._usageMode;
+  }
 
   @Input() set showMetierFilter(value: boolean) {
     this._showMetierFilter = value;
@@ -239,15 +248,31 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this.getFormError(this.form);
   }
 
-  get getLastActivePositionControl(): AbstractControl {
+  get lastActivePositionControl(): AbstractControl {
     return this.endDateTimeEnable && this.form.get('endPosition')
       || this.fishingEndDateTimeEnable && this.form.get('fishingEndPosition')
       || this.fishingStartDateTimeEnable && this.form.get('fishingStartPosition')
       || this.form.get('startPosition');
   }
 
+  get previousFishingEndDateTimeControl(): AbstractControl {
+    return this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
+      || this.form.get('startDateTime');
+  }
+
+  get previousEndDateTimeControl(): AbstractControl {
+    return this.fishingEndDateTimeEnable && this.form.get('fishingEndDateTime')
+    || this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
+    || this.form.get('startDateTime');
+  }
+
+  get isNewData(): boolean {
+    return isNil(this.form?.controls.id.value);
+  }
+
+
   @Output() onParentChanges = new EventEmitter<Operation>();
-  @Output() maxDateChanges = new EventEmitter<Moment>();
+  @Output() lastEndDateChanges = new EventEmitter<Moment>();
 
   constructor(
     injector: Injector,
@@ -261,14 +286,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     protected physicalGearService: PhysicalGearService,
     protected tripService: TripService,
     protected pmfmService: PmfmService,
-    protected platform: PlatformService,
     protected formBuilder: FormBuilder,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() protected geolocation: Geolocation
   ) {
     super(injector, validatorService.getFormGroup());
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.i18nFieldPrefix = 'TRIP.OPERATION.EDIT.';
 
     // A boolean control, to store if parent is a parent or child operation
@@ -287,7 +311,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     // Combo: physicalGears
     const physicalGearAttributes = ['rankOrder']
       .concat(this.settings.getFieldDisplayAttributes('gear')
-      .map(key => 'gear.' + key));
+        .map(key => 'gear.' + key));
     this.registerAutocompleteField('physicalGear', {
       items: this._physicalGearsSubject,
       attributes: physicalGearAttributes,
@@ -295,7 +319,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     });
 
     // Combo: fishingAreas
-    this.initFishingAreas(this.form);
     const fishingAreaAttributes = this.settings.getFieldDisplayAttributes('fishingAreaLocation',
       ['label', 'name'] // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
     );
@@ -341,13 +364,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           .valueChanges
           .pipe(
             filter(_ => this.fishingEndDateTimeEnable),
-            startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (after filter)
+            startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
           ),
         endDateTimeControl
           .valueChanges
           .pipe(
             filter(_ => this.endDateTimeEnable),
-            startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (after filter)
+            startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (must be after filter)
           )
       ])
       .pipe(
@@ -357,10 +380,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         // DEBUG
         //tap(max => console.debug('[operation-form] max date changed: ' + toDateISOString(max)))
       )
-      .subscribe(max => this.maxDateChanges.next(max))
+      .subscribe(max => this.lastEndDateChanges.next(max))
     );
-
-    this.initPositionSubscription();
 
     this.registerSubscription(
       this.isParentOperationControl.valueChanges
@@ -370,7 +391,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   ngOnReady() {
-    this.updateFormGroup();
+    if (this.debug) console.debug('[operation-form] Form is ready!');
+    if (!this.allowParentOperation) this.updateFormGroup();
   }
 
   ngOnDestroy() {
@@ -425,11 +447,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       data.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
     }
 
+    this.canEditType = isNew;
+
     setTimeout(() => {
-      this.maxDateChanges.emit(DateUtils.max(
+      this.lastEndDateChanges.emit(DateUtils.max(
         this.fishingEndDateTimeEnable && data.fishingEndDateTime,
         this.endDateTimeEnable && data.endDateTime));
-    })
+    });
 
     // Send value for form
     if (this.debug) console.debug('[operation-form] Updating form (using entity)', data);
@@ -595,7 +619,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     // Compute parent operation label
     let parentLabel = '';
     if (isNotNil(parentOperation?.id)) {
-      parentLabel = await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
+      parentLabel = await this.translate.get(this.i18nFieldPrefix + 'TITLE_NO_RANK', {
         startDateTime: parentOperation.startDateTime && this.dateFormat.transform(parentOperation.startDateTime, {time: true}) as string
       }).toPromise() as string;
 
@@ -735,10 +759,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   translateControlPath(controlPath: string): string {
-    if (controlPath.match(/^fishingAreas\.[0-9]+\.location$/)) {
-      return this.translate.instant('TRIP.OPERATION.EDIT.FISHING_AREAS');
-    }
-    return super.translateControlPath(controlPath);
+    return this.operationService.translateControlPath(controlPath, {i18nPrefix: this.i18nFieldPrefix});
   }
 
   /* -- protected methods -- */
@@ -754,7 +775,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       withFishingAreas: this.showFishingArea,
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
-      withEnd: this.endDateTimeEnable
+      withEnd: this.endDateTimeEnable,
+      maxDistance: this.maxDistanceError
     };
 
     // DEBUG
@@ -762,9 +784,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     this.validatorService.updateFormGroup(this.form, validatorOpts);
 
-    if (!opts || opts.emitEvent !== false) {
-      this.initPositionSubscription();
+    if (validatorOpts.withFishingAreas) this.initFishingAreas(this.form);
 
+    this.initPositionSubscription();
+
+    if (!opts || opts.emitEvent !== false) {
       this.form.updateValueAndValidity();
       this.markForCheck();
     }
@@ -873,6 +897,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (this.isParentOperationControl.value !== isParent) {
       this.isParentOperationControl.setValue(isParent, opts);
     }
+
     const emitEvent = (!opts || opts.emitEvent !== false);
 
     // Parent operation (= Filage) (or parent not used)
@@ -884,8 +909,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           endDateTime: null,
           physicalGear: null,
           metier: null,
-          parentOperation: null,
-          qualityFlagId: QualityFlagIds.NOT_COMPLETED
+          parentOperation: null
         });
 
         this.updateFormGroup();
@@ -905,8 +929,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       if (emitEvent) {
         if (!this.parentControl.value) {
           // Copy parent fields -> child fields
-          this.form.get('fishingEndDateTime').patchValue(this.form.get('startDateTime').value);
-          this.form.get('endDateTime').patchValue(this.form.get('fishingStartDateTime').value);
+          const dates = [this.form.get('startDateTime').value, this.form.get('fishingStartDateTime').value].filter(isNotNil);
+          if (this.fishingEndDateTimeEnable && isNotEmptyArray(dates)) {
+            this.form.get('fishingEndDateTime').patchValue(dates.shift());
+          }
+          if (this.endDateTimeEnable && isNotEmptyArray(dates)) {
+            this.form.get('endDateTime').patchValue(dates.shift());
+          }
           if (this.showFishingArea) this.form.get('fishingAreas')?.patchValue(this.form.get('fishingAreas').value);
 
           // Clean parent fields (should be filled after parent selection)
@@ -915,8 +944,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
             fishingStartDateTime: null,
             physicalGear: null,
             metier: null,
-            childOperation: null,
-            qualityFLagId: null
+            childOperation: null
           });
 
           this.updateFormGroup();
@@ -956,82 +984,22 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   protected updateDistance(opts?: { emitEvent?: boolean }) {
     if (!this._showPosition) return; // Skip
 
+    this.distanceWarning = false;
     let startPosition = this.form.get('startPosition').value;
-    let endPosition = this.getLastActivePositionControl?.value;
-
-    if (this.allowParentOperation) {
-      if (this.isParentOperation) {
-        if (!this.fishingStartDateTimeEnable) return;
-        endPosition = this.form.get('fishingStartPosition').value;
-      } else if (this.isChildOperation) {
-        if (!this.fishingEndDateTimeEnable || !this.endDateTimeEnable) return;
-        startPosition = this.form.get('fishingEndPosition').value;
-      }
-    }
-
+    let endPosition = this.lastActivePositionControl?.value;
     if (!startPosition || !endPosition) return;
 
     const distance = PositionUtils.computeDistanceInMiles(startPosition, endPosition);
     if (this.debug) console.debug('[operation-form] Distance between position: ' + distance);
 
-    this.distance = distance;
-    this.updateDistanceValidity(distance, {emitEvent: false});
-    if (!opts || opts.emitEvent !== false) this.markForCheck();
-  }
-
-  protected updateDistanceValidity(distance?: number, opts?: { emitEvent?: boolean }) {
-    distance = distance || this.distance;
-    if (isNotNilOrNaN(distance)) {
-      // Distance > max error distance
-      if (this.maxDistanceError > 0 && distance > this.maxDistanceError) {
-        console.error('Too long distance (> ' + this.maxDistanceError + ') between start and end positions');
-        this.setPositionError(true, false);
-        return;
-      }
-
-      // Distance > max warn distance
-      if (this.maxDistanceWarning > 0 && distance > this.maxDistanceWarning) {
-        console.warn('Too long distance (> ' + this.maxDistanceWarning + ') between start and end positions');
-        this.setPositionError(false, true);
-        return;
-      }
+    // Distance > max warn distance
+    if (isNotNilOrNaN(distance) && this.maxDistanceWarning > 0 && distance > this.maxDistanceWarning) {
+      console.warn('Too long distance (> ' + this.maxDistanceWarning + ') between start and end positions');
+      this.distanceWarning = true;
     }
-
-    // No error
-    this.setPositionError(false, false);
+    this.distance = distance;
 
     if (!opts || !opts.emitEvent !== false) this.markForCheck();
-  }
-
-  protected setPositionError(hasError: boolean, hasWarning: boolean) {
-
-    // If some changes detected
-    if (this.distanceError !== hasError || this.distanceWarning !== hasWarning) {
-      const endPositionControl = this.getLastActivePositionControl;
-      const startPositionControl = this.allowParentOperation && this.isChildOperation && this.fishingStartDateTimeEnable
-        ? this.form.get('fishingEndPosition')
-        : this.form.get('startPosition');
-
-      if (endPositionControl && hasError) {
-        endPositionControl.get('longitude').setErrors({tooLong: true});
-        endPositionControl.get('latitude').setErrors({tooLong: true});
-        startPositionControl.get('longitude').setErrors({tooLong: true});
-        startPositionControl.get('latitude').setErrors({tooLong: true});
-      } else {
-        SharedValidators.clearError(endPositionControl.get('longitude'), 'tooLong');
-        SharedValidators.clearError(endPositionControl.get('latitude'), 'tooLong');
-        SharedValidators.clearError(startPositionControl.get('longitude'), 'tooLong');
-        SharedValidators.clearError(startPositionControl.get('latitude'), 'tooLong');
-      }
-
-      this.distanceError = hasError;
-      this.distanceWarning = hasWarning;
-
-      // To force error display: mark as touched
-      if (this.distanceError) {
-        AppFormUtils.markAllAsTouched(endPositionControl);
-      }
-    }
   }
 
   protected async suggestMetiers(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
@@ -1088,23 +1056,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (this.fishingAreasHelper.size() === 0) {
       this.fishingAreasHelper.resize(1);
     }
-    this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
+    //this.fishingAreasHelper.formArray.setValidators(SharedFormArrayValidators.requiredArrayMinLength(1));
   }
 
   protected initPositionSubscription() {
-    if (!this.showPosition) return;
     if (this._positionSubscription) this._positionSubscription.unsubscribe();
-
-    const positionValueChanges = [];
-
-    if (this.fishingStartDateTimeEnable) positionValueChanges.push(this.form.get('fishingStartPosition').valueChanges);
-    if (this.fishingEndDateTimeEnable) positionValueChanges.push(this.form.get('fishingEndPosition').valueChanges);
-    if (this.endDateTimeEnable) positionValueChanges.push(this.form.get('endPosition').valueChanges);
+    if (!this.showPosition) return;
 
     this._positionSubscription = (
       merge(
         this.form.get('startPosition').valueChanges,
-        ...positionValueChanges
+        this.lastActivePositionControl.valueChanges
       )
         .pipe(debounceTime(200))
         .subscribe(_ => this.updateDistance())

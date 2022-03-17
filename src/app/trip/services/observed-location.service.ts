@@ -233,7 +233,10 @@ const ObservedLocationSubscriptions = {
       ...ObservedLocationFragment
     }
   }
-  ${ObservedLocationFragments.observedLocation}`
+  ${ObservedLocationFragments.observedLocation}
+  ${DataCommonFragments.lightDepartment}
+  ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.location}`
 };
 
 const CountSamples: any = gql`

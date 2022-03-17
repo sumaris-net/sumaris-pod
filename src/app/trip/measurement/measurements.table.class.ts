@@ -53,7 +53,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   protected measurementsValidatorService: MeasurementsValidatorService;
 
   protected programRefService: ProgramRefService;
-  protected translate: TranslateService;
   protected pmfmNamePipe: PmfmNamePipe;
   protected formBuilder: FormBuilder;
   protected readonly options: AppMeasurementsTableOptions<T>;
@@ -166,26 +165,18 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   protected constructor(
-    protected injector: Injector,
+    injector: Injector,
     protected dataType: new() => T,
     dataService?: IEntitiesService<T, F>,
     protected validatorService?: ValidatorService,
     @Optional() options?: AppMeasurementsTableOptions<T>
   ) {
-    super(injector.get(ActivatedRoute),
-      injector.get(Router),
-      injector.get(Platform),
-      injector.get(Location),
-      injector.get(ModalController),
-      injector.get(LocalSettingsService),
+    super(injector,
       // Columns:
       RESERVED_START_COLUMNS
         .concat(options && options.reservedStartColumns || [])
         .concat(options && options.reservedEndColumns || [])
-        .concat(RESERVED_END_COLUMNS),
-      null,
-      null,
-      injector
+        .concat(RESERVED_END_COLUMNS)
     );
     // Default options
     this.options = {
@@ -198,14 +189,13 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
     this.programRefService = injector.get(ProgramRefService);
-    this.translate = injector.get(TranslateService);
     this.pmfmNamePipe = injector.get(PmfmNamePipe);
     this.formBuilder = injector.get(FormBuilder);
     this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.markAsLoaded({emitEvent: false});
 
-    this.measurementsDataService = new MeasurementsDataService<T, F>(this.injector, this.dataType, dataService, {
+    this.measurementsDataService = new MeasurementsDataService<T, F>(injector, this.dataType, dataService, {
       mapPmfms: options.mapPmfms || undefined,
       requiredStrategy: this.options.requiredStrategy,
       debug: options.debug || false
@@ -257,6 +247,15 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     // Make sure to copy strategyLabel to the data service
     if (this._strategyLabel && !this.measurementsDataService.strategyLabel) {
       this.measurementsDataService.strategyLabel = this._strategyLabel;
+    }
+
+    if (this.inlineEdition && this.options.onRowCreated) {
+      this.registerSubscription(this.onStartEditingRow.subscribe(row => {
+        if (row.id !== -1) {
+          if (this.debug) console.warn('Call onRowCreated() inside onStartEditingRow. TODO rename this options into onPrepareRowForm ?');
+          this.options.onRowCreated(row);
+        }
+      }));
     }
   }
 
@@ -443,7 +442,6 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
   }
 
   private async onRowCreated(row: TableElement<T>) {
-
     // Execute function from constructor's options (is any)
     // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
     if (this.options.onRowCreated) {
@@ -479,7 +477,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; keepEditing?: boolean }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
@@ -519,6 +517,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (!opts || opts.confirmCreate !== false) {
       this.confirmEditCreate(null, row);
       this.editedRow = null;
+    }
+    else if (!opts || opts.keepEditing !== false) {
+      row.editing = false;
+      this.editedRow = undefined;
     }
     else {
       this.editedRow = row;
@@ -587,12 +589,17 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     });
   }
 
-  protected normalizeEntityToRow(data: T, row: TableElement<T>) {
+  protected normalizeEntityToRow(data: T, row: TableElement<T>, opts?: {
+    keepOtherExistingPmfms?: boolean;
+    onlyExistingPmfms?: boolean;
+  }) {
     if (!data) return; // skip
 
     // Adapt entity measurement values to reactive form
     const pmfms = this.pmfms || [];
-    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator);
+    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator, opts);
   }
+
+
 }
 

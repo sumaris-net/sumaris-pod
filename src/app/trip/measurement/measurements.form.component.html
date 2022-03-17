@@ -15,7 +15,9 @@
     <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                     [pmfm]="pmfm"
                     [compact]="compact"
-                    [style]="mobile && pmfm.type === 'boolean' && 'button'"
+                    [style]="pmfm|pmfmFieldStyle: maxVisibleButtons"
+                    [maxVisibleButtons]="maxVisibleButtons"
+                    [showButtonIcons]="showButtonIcons"
                     [tabindex]="(tabindex || 0) + i*2"
                     [floatLabel]="floatLabel">
     </app-pmfm-field>

@@ -3,7 +3,7 @@ import { IWithPacketsEntity, Packet } from '../services/model/packet.model';
 import { ModalController } from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
 import { PacketForm } from './packet.form';
-import { AppFormUtils, isNil, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNil, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment.prod';
 
@@ -54,10 +54,10 @@ export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
   constructor(
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
-    protected platform: PlatformService
+    protected settings: LocalSettingsService
   ) {
 
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.debug = !environment.production;
   }
 

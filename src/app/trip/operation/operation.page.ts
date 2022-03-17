@@ -4,12 +4,13 @@ import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
-  AppEntityEditor,
+  AppEntityEditor, AppErrorWithDetails,
   AppHelpModal,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
+  FormErrors,
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
@@ -18,7 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService,
+  LocalSettingsService,
   ReferentialUtils,
   toBoolean,
   toNumber,
@@ -40,8 +41,10 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { OperationValidators, PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { OperationValidators, IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { TripContextService } from '@app/trip/services/trip-context.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 
 const moment = momentImported;
 
@@ -52,6 +55,7 @@ const moment = momentImported;
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
+    { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
     {
       provide: IonRouterOutlet,
       useValue: {
@@ -59,17 +63,18 @@ const moment = momentImported;
         canGoBack: () => false,
         nativeEl: '',
       },
-    }
+    },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OperationPage extends AppEntityEditor<Operation, OperationService> {
-
+export class OperationPage
+  extends AppEntityEditor<Operation, OperationService>
+  implements IDataEntityQualityService<Operation> {
 
   private static TABS = {
     GENERAL: 0,
     CATCH: 1,
-    SAMPLE: 2
+    SAMPLE: 2,
   };
 
   private _lastOperationsTripId: number;
@@ -83,7 +88,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   readonly $programLabel = new BehaviorSubject<string>(null);
   readonly $tripId = new BehaviorSubject<number>(null);
   readonly $lastOperations = new BehaviorSubject<Operation[]>(null);
-  readonly $maxDateChanges = new BehaviorSubject<Moment>(null);
+  readonly $lastEndDate = new BehaviorSubject<Moment>(null);
 
   trip: Trip;
   measurements: Measurement[];
@@ -94,6 +99,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   allowParentOperation = false;
   autoFillBatch = false;
   autoFillDatesFromTrip = false;
+  forceDeskMode = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -102,14 +108,14 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
 
-  @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
-  @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
+  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
+  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
   // Catch batch, sorting batches, individual measure
-  @ViewChild('batchTree', {static: true}) batchTree: BatchTreeComponent;
+  @ViewChild('batchTree', { static: true }) batchTree: BatchTreeComponent;
 
   // Sample tables
-  @ViewChild('sampleTree', {static: true}) sampleTree: SampleTreeComponent;
+  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
 
   get form(): FormGroup {
     return this.opeForm.form;
@@ -127,6 +133,17 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
   }
 
+  get usageMode(): UsageMode {
+    return this.forceDeskMode ? 'DESK' : super.usageMode;
+  }
+
+  /**
+   * Allow to override function from OperationService, by passing the trip into options
+   */
+  get entityQualityService(): IDataEntityQualityService<Operation> {
+    return this;
+  }
+
   constructor(
     injector: Injector,
     hotkeys: Hotkeys,
@@ -134,28 +151,59 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     protected tripService: TripService,
     protected tripContext: TripContextService,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
-    protected modalCtrl: ModalController
+    protected settings: LocalSettingsService,
+    protected modalCtrl: ModalController,
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
-      autoOpenNextTab: !platform.mobile
+      autoOpenNextTab: !settings.mobile,
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
     // Init mobile
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     this.registerSubscription(
-      hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
-        .subscribe((event) => this.openHelpModal(event))
-    )
+      hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+        .subscribe((event) => this.openHelpModal(event)),
+    );
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+  }
+
+  async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
+    const errors = await this.service.control(data, {
+      ...opts,
+      trip: this.trip
+    });
+    if (!errors) return;
+    const pmfms = await firstNotNilPromise(this.measurementsForm.$pmfms);
+    const errorMessage = this.errorTranslator.translateErrors(errors, {
+      controlPathTranslator: {
+        translateControlPath: (path) => this.service.translateControlPath(path, {
+          i18nPrefix: this.i18nContext.prefix,
+          pmfms
+        })
+      }
+    });
+    return {
+      details: {
+        errors,
+        message: errorMessage
+      }
+    };
+  }
+
+  canUserWrite(data: Operation, opts?: any): boolean {
+    return isNil(this.trip?.validationDate) && this.dataService.canUserWrite(data, {...opts, trip: this.trip});
+  }
+
+  qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
+    return this.dataService.qualify(data, qualityFlagId);
   }
 
   async openHelpModal(event) {
@@ -315,7 +363,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
             this.showBatchTables = this.showBatchTablesByProgram;
             this.showSamplesTab = this.showSampleTablesByProgram;
-            this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+            this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 
             // Force first sub tab index, if modification was done from the form
             // This condition avoid to change subtab, when reloading the page
@@ -349,7 +397,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.showSampleTablesByProgram = hasAccidentalCatches;
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-            this.tabCount = 2 + (this.showSamplesTab ? 3 : 0);
+            this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 
             // Force first tab index
             if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
@@ -377,7 +425,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
               this.showBatchTables = this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
               this.showSamplesTab = this.showSampleTablesByProgram;
-              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+              this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
             } else {
               if (this.debug) console.debug('[operation] Disable batch tables');
@@ -424,7 +472,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+              this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
             }
           })
       );
@@ -436,12 +484,12 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.showBatchTables = this.showBatchTablesByProgram;
       this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
       this.showSamplesTab = this.showSampleTablesByProgram;
-      this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+      this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
       this.updateTablesState();
       this.markForCheck();
     }
 
-    // Abnormal trip => Change comments as required
+    // Anormal trip => Change comments as required
     const tripProgressControl = formGroup?.controls[PmfmIds.TRIP_PROGRESS];
     if (isNotNil(tripProgressControl)) {
       this._measurementSubscription.add(
@@ -458,6 +506,13 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
             this.markForCheck();
           })
       );
+    }
+
+    // If has errors from context, applies it on form.
+    const error = isNil(this.data?.controlDate) && this.data?.qualificationComments;
+    if (error) {
+      console.info('[operation-page] Operation errors: ', error);
+     // this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
     }
   }
 
@@ -516,10 +571,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Load available taxon groups (e.g. with taxon groups found in strategies)
     await this.initAvailableTaxonGroups(program.label);
 
-    this.cd.detectChanges();
     this.markAsReady();
-
-    await this.ready();
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -563,7 +615,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       }
     }
 
-    if (data.programLabel) this.$programLabel.next(data.programLabel)
+    if (data.programLabel) this.$programLabel.next(data.programLabel);
   }
 
   async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -581,7 +633,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     await this.loadLinkedOperation(data);
 
-    if (data.programLabel) this.$programLabel.next(data.programLabel)
+    if (data.programLabel) this.$programLabel.next(data.programLabel);
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -616,7 +668,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     }
 
     // Existing operation
-    if (this.platform.mobile) {
+    if (this.mobile) {
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
         startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
       }).toPromise()) as string;
@@ -686,8 +738,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     if (canContinue) {
       if (this.mobile) {
         return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
-      }
-      else {
+      } else {
         return this.router.navigate(['..', 'new'], {
           relativeTo: this.route,
           replaceUrl: true,
@@ -725,7 +776,22 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
       if (this.autoFillBatch) this.batchTree.autoFill({forceIfDisabled: true});
     }
+  }
 
+  updateViewState(data: Operation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.updateViewState(data, opts);
+
+    // Display form error, if  has errors from context, applies it on form.
+    const error = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
+    if (error) {
+      this.form.get('qualificationComments').reset();
+      setTimeout(() => {
+        console.info('[operation-page] Operation errors: ', error);
+        this.markAllAsTouched();
+        this.form.updateValueAndValidity();
+        this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
+      });
+    }
   }
 
   isCurrentData(other: IEntity<any>): boolean {
@@ -750,23 +816,34 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     });
 
     // Display form error on top
-    if (!saved && this.opeForm.invalid) {
-
+    if (!saved) {
       // DEBUG
       console.debug('[operation] Computing form error...');
 
-      this.setError(this.opeForm.formError);
+      let error = '';
+      if (this.opeForm.invalid) {
+        error = this.opeForm.formError;
+      }
+      if (this.measurementsForm.invalid){
+        error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
+      }
+
+      this.setError(error);
       this.scrollToTop();
     }
 
-    if (saved && this.dirty) {
-      let children = this.children.filter(f => f.dirty);
-      if (isNotEmptyArray(children)) {
-
-        children = this.batchTree.children.filter(f => f.dirty);
-        console.debug('[operation] Still dirty children: ', children);
+    else if (this.dirty) {
+      // DEBUG - dump still dirty children
+      if (this.debug) {
+        let children = this.children.filter(f => f.dirty);
+        if (isNotEmptyArray(children)) {
+          children = this.batchTree.children.filter(f => f.dirty);
+          console.debug('[operation] Still dirty children: ', children);
+        }
+        console.debug('[operation] Batch tree ready ? ' + this.batchTree.batchGroupsTable.isReady());
       }
-      console.debug('[operation] Batch tree ready: ', this.batchTree.batchGroupsTable.isReady());
+
+      // Make editor has pristine
       this.batchTree.markAsPristine();
     }
 
@@ -792,22 +869,19 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
       this.trip.gears.push(savedPhysicalGear);
 
       return true;
-    }
-    catch(err) {
+    } catch (err) {
       this.setError(err);
       return false;
-    }
-    finally {
+    } finally {
       this.markAsSaved({emitEvent: false});
     }
   }
 
-  onPrepareSampleForm(pmfmForm: PmfmForm) {
+  onPrepareSampleForm(pmfmForm: IPmfmForm) {
     console.debug('[operation-page] Initializing sample form (validators...)');
     this._sampleRowSubscription?.unsubscribe();
     this._sampleRowSubscription = this.computeSampleRowValidator(pmfmForm);
   }
-
 
   markAsLoaded(opts?: { emitEvent?: boolean }) {
     super.markAsLoaded(opts);
@@ -816,7 +890,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
   /* -- protected method -- */
 
-  protected computeSampleRowValidator(pmfmForm: PmfmForm): Subscription {
+  protected computeSampleRowValidator(pmfmForm: IPmfmForm): Subscription {
     return OperationValidators.addSampleValidators(pmfmForm);
   }
 
@@ -825,8 +899,9 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Update trip id (will cause last operations to be watched, if need)
     this.$tripId.next(+tripId);
 
-    let trip = this.tripContext.getValue('trip');
-    // Reload
+    let trip = this.tripContext.getValue('trip') as Trip;
+
+    // If not the expected trip: reload
     if (trip?.id !== tripId) {
       trip = await this.tripService.load(tripId, {fullLoad: true});
     }
@@ -863,11 +938,15 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
   }
 
   protected computeUsageMode(operation: Operation): UsageMode {
-    return this.settings.isUsageMode('FIELD') && (
-      isNil(this.trip) || (
-        isNotNil(this.trip.departureDateTime)
-        && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
-      ? 'FIELD' : 'DESK';
+    const contextualUsageMode = this.tripContext?.getValue('usageMode') as UsageMode;
+    if (contextualUsageMode) return contextualUsageMode;
+    // Read the settings
+    return this.settings.isUsageMode('FIELD')
+      && (
+        isNil(this.trip) || (
+          isNotNil(this.trip.departureDateTime)
+          && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
+        ? 'FIELD' : 'DESK';
   }
 
   protected registerForms() {
@@ -933,11 +1012,6 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     return json;
   }
 
-  protected canUserWrite(data: Operation): boolean {
-    return !!data && this.trip && isNil(this.trip.validationDate)
-      && this.tripService.canUserWrite(this.trip);
-  }
-
   protected async initAvailableTaxonGroups(programLabel: string) {
     if (this.debug) console.debug('[operation] Setting available taxon groups...');
 
@@ -995,8 +1069,7 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
     // Force expected sub tab index
     if (this.showBatchTables && this.batchTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.batchTree.setSelectedTabIndex(this.selectedSubTabIndex);
-    }
-    else if (this.showSamplesTab && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
+    } else if (this.showSamplesTab && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.sampleTree.setSelectedTabIndex(this.selectedSubTabIndex);
     }
 
@@ -1039,5 +1112,11 @@ export class OperationPage extends AppEntityEditor<Operation, OperationService> 
 
     return this.showCatchTab ? OperationPage.TABS.CATCH :
       (this.showSamplesTab ? OperationPage.TABS.SAMPLE : undefined);
+  }
+
+  startListenRemoteChanges() {
+    if (EntityUtils.isLocalId(this.data?.id as any)) return; // Skip if local entity
+
+    super.startListenRemoteChanges();
   }
 }

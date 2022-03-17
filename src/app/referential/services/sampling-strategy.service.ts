@@ -34,7 +34,7 @@ import {Moment} from 'moment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ExtractionCacheDurationType} from '@app/extraction/services/model/extraction-type.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){

@@ -1,9 +1,9 @@
-import { Environment } from '@sumaris-net/ngx-components';
+import { AppEnvironment } from '@environments/environment.class';
 
 const pkg = require('../../package.json')
 
 /* tslint:disable */
-export const environment = Object.freeze(<Environment>{
+export const environment = Object.freeze(<AppEnvironment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
@@ -15,9 +15,6 @@ export const environment = Object.freeze(<Environment>{
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
   peerMinVersion: '1.19.0',
-
-  // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: false,
 
   // FIXME: enable cache
   persistCache: false,
@@ -64,6 +61,21 @@ export const environment = Object.freeze(<Environment>{
   // Storage
   storage: {
     driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  },
+
+  account: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 0
+  },
+
+  entityEditor: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 0
+  },
+
+  program: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 0
   }
 });
 /* tslint:enable */

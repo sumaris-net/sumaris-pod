@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, Optional, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -7,8 +7,8 @@ import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 import * as momentImported from 'moment';
-import { AcquisitionLevelCodes, PmfmIds } from '../../referential/services/model/model.enum';
-import { AppRootDataEditor } from '../../data/form/root-data-editor.class';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
 import {
   Alerts,
@@ -20,8 +20,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LocalSettingsService,
   NetworkService,
-  PlatformService,
   PromiseEvent,
   ReferentialRef,
   UsageMode,
@@ -31,8 +31,8 @@ import { PhysicalGear, Trip } from '../services/model/trip.model';
 import { SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
-import { ProgramProperties } from '../../referential/services/config/program.config';
-import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
@@ -43,6 +43,9 @@ import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { TripValidatorOptions } from '@app/trip/services/validator/trip.validator';
 
 const moment = momentImported;
 
@@ -52,7 +55,7 @@ const TripPageTabs = {
   OPERATIONS: 2
 };
 export const TripPageSettingsEnum = {
-  PAGE_ID: "trip",
+  PAGE_ID: 'trip',
   FEATURE_ID: TRIP_FEATURE_NAME
 };
 
@@ -62,7 +65,7 @@ export const TripPageSettingsEnum = {
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    {provide: AppRootDataEditor, useExisting: TripPage}
+    {provide: APP_ENTITY_EDITOR, useExisting: TripPage}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -78,11 +81,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   devAutoFillData = false;
   private _measurementSubscription: Subscription;
 
-  @ViewChild('tripForm', { static: true }) tripForm: TripForm;
-  @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
-  @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
-  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
-  @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
+  @ViewChild('tripForm', {static: true}) tripForm: TripForm;
+  @ViewChild('saleForm', {static: true}) saleForm: SaleForm;
+  @ViewChild('physicalGearsTable', {static: true}) physicalGearsTable: PhysicalGearTable;
+  @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
+  @ViewChild('operationsTable', {static: true}) operationsTable: OperationsTable;
 
   get dirty(): boolean {
     // Ignore operation table, when computing dirty state
@@ -93,7 +96,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     injector: Injector,
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected programRef: ProgramRefService,
     protected operationService: OperationService,
     protected context: ContextService,
@@ -106,12 +109,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       {
         pathIdAttribute: 'tripId',
         tabCount: 3,
-        autoOpenNextTab: !platform.mobile,
+        autoOpenNextTab: !settings.mobile,
         enableListenChanges: true,
         i18nPrefix: 'TRIP.'
       });
     this.defaultBackHref = "/trips";
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.settingsId = TripPageSettingsEnum.PAGE_ID;
 
     // FOR DEV ONLY ----
@@ -179,6 +182,34 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
   }
 
+  setError(error: any, opts?: {emitEvent?: boolean}) {
+
+    // If errors in operations
+    if (error?.operations) {
+      // Show error in operation table
+      this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
+        showOnlyInvalidRows: true
+      });
+
+      // Open the operation tab
+      this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
+    } else {
+      super.setError(error);
+
+      // Reset operation filter and error
+      this.operationsTable.resetError();
+    }
+  }
+
+  // change visibility
+  resetError(opts?:  {emitEvent?: boolean}) {
+    this.setError(undefined, opts);
+  }
+
+  translateControlPath(controlPath: string): string {
+    return super.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix});
+  }
+
   protected registerForms() {
     this.addChildForms([
       this.tripForm,
@@ -187,14 +218,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.physicalGearsTable,
       this.operationsTable
     ]);
-  }
-
-  translateControlPath(controlPath: string): string {
-    if (controlPath && controlPath.startsWith('measurement')){
-      // TODO
-      console.warn('[trip] TODO: translate PMFM control name (from the program pmfms ?)', controlPath);
-    }
-    return super.translateControlPath(controlPath);
   }
 
   protected async setProgram(program: Program) {
@@ -229,7 +252,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
       const subscription = this.network.onNetworkStatusChanges
-        .pipe(filter(status => status === "none"))
+        .pipe(filter(status => status === 'none'))
         .subscribe(status => {
           this.operationsTable.showMap = false;
           this.markForCheck();
@@ -367,12 +390,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Store the trip in context
       this.tripContext?.setValue('trip', this.data.clone());
 
+      // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+      this.tripContext?.setValue('usageMode', this.usageMode);
+
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', id], {
           queryParams: {}
         });
 
-       this.markAsLoaded();
+        this.markAsLoaded();
       });
     }
   }
@@ -390,6 +416,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
       // Store the trip in context
       this.tripContext?.setValue('trip', this.data.clone());
+
+      // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+      this.tripContext?.setValue('usageMode', this.usageMode);
 
       setTimeout(async () => {
         await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
@@ -478,7 +507,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // On dismiss
     const res = await modal.onDidDismiss();
 
-    console.debug("[trip] Result of select gear modal:", res);
+    console.debug('[trip] Result of select gear modal:', res);
     if (res && res.data && isNotEmptyArray(res.data)) {
       // Cal resolve callback
       event.detail.success(res.data[0]);
@@ -489,22 +518,22 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
+  canUserWrite(data: Trip, opts?: any): boolean {
+    return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
+  }
+
   /* -- protected methods -- */
 
   protected get form(): FormGroup {
     return this.tripForm.form;
   }
 
-  protected canUserWrite(data: Trip): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
-  }
-
   protected computeUsageMode(data: Trip): UsageMode {
-    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY'  ? 'FIELD' : 'DESK';
+    return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';
   }
 
   protected computeNextTabIndex(): number | undefined {
-    return super.computeNextTabIndex() || this.selectedTabIndex;
+    return super.computeNextTabIndex() || this.selectedTabIndex;
   }
 
   protected computeTitle(data: Trip): Promise<string> {
@@ -523,7 +552,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
-      ... (await super.computePageHistory(title)),
+      ...(await super.computePageHistory(title)),
       icon: 'boat'
     };
   }
@@ -547,7 +576,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.tripForm.invalid || this.measurementsForm.invalid,
       this.showGearTable && this.physicalGearsTable.invalid,
       this.showOperationTable && this.operationsTable.invalid
-    ]
+    ];
 
     return invalidTabs.findIndex(invalid => invalid === true);
   }

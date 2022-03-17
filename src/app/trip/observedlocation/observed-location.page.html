@@ -104,9 +104,9 @@
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="table?.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="($table|async)?.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="table?.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="($table|async)?.error|translate"></ion-label>
         </ion-item>
 
         <ng-container [ngSwitch]='$landingTableType|async'>

@@ -76,7 +76,7 @@ const FindStrategiesReferentials: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
+const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -133,7 +133,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
     }`
 };
 
-const StrategyMutations: BaseEntityGraphqlMutations = {
+const MUTATIONS: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveStrategy($data: StrategyVOInput!){
     data: saveStrategy(strategy: $data){
       ...StrategyFragment
@@ -157,7 +157,7 @@ const StrategyMutations: BaseEntityGraphqlMutations = {
   }`,
 };
 
-const strategySubscriptions: BaseEntityGraphqlSubscriptions = {
+const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($entityName: String!, $id: Int!, $interval: Int){
     updateReferential(entityName: $entityName, id: $id, interval: $interval) {
       ...ReferentialFragment
@@ -182,9 +182,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
   ) {
     super(graphql, platform, Strategy, StrategyFilter,
       {
-        queries: StrategyQueries,
-        mutations: StrategyMutations,
-        subscriptions: strategySubscriptions
+        queries: QUERIES,
+        mutations: MUTATIONS,
+        subscriptions: SUBSCRIPTIONS
       });
   }
 
@@ -201,7 +201,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     };
     const {total} = await this.graphql.query<{ total: number }>({
-      query: StrategyQueries.count,
+      query: QUERIES.count,
       variables: { filter },
       error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined

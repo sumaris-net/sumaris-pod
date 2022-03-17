@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
-import { AppFormUtils, isNil, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -62,14 +62,13 @@ export class SubBatchModal implements OnInit, OnDestroy {
   constructor(
     protected injector: Injector,
     protected modalCtrl: ModalController,
-    protected platform: PlatformService,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
 
     // TODO: for DEV only
     //this.debug = !environment.production;

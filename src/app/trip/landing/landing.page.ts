@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  isNotNilOrBlank, LocalSettingsService,
   PlatformService,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -73,7 +73,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected pmfmService: PmfmService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
-  protected platform: PlatformService;
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
@@ -99,19 +98,19 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   ) {
     super(injector, Landing, injector.get(LandingService), {
       pathIdAttribute: 'landingId',
-      autoOpenNextTab: true,
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       tabCount: 2,
       i18nPrefix: 'LANDING.EDIT.',
+      enableListenChanges: true,
       ...options
     });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
-    this.platform = injector.get(PlatformService);
     this.contextService = injector.get(ContextService);
 
-    this.mobile = this.platform.mobile;
+    this.mobile = this.settings.mobile;
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -157,14 +156,60 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     );
   }
 
-  protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable]);
+  canUserWrite(data: Landing, opts?: any): boolean {
+    return isNil(data.validationDate)
+      && isNil(this.parent?.validationDate)
+      && this.dataService.canUserWrite(data, opts);
   }
 
   async reload(): Promise<void> {
     this.markAsLoading();
     const route = this.route.snapshot;
     await this.load(this.data && this.data.id, route.params);
+  }
+
+
+  onPrepareSampleForm({form, pmfms}) {
+    console.debug('[landing-page] Initializing sample form (validators...)');
+
+    // Add computation and validation
+    this._rowValidatorSubscription?.unsubscribe();
+    this._rowValidatorSubscription = this.registerSampleRowValidator(form, pmfms);
+  }
+
+  async updateView(data: Landing | null, opts?: {
+    emitEvent?: boolean;
+    openTabIndex?: number;
+    updateRoute?: boolean;
+  }) {
+    await super.updateView(data, opts);
+
+    if (this.parent) {
+      if (this.parent instanceof ObservedLocation) {
+        this.landingForm.showProgram = false;
+        this.landingForm.showVessel = true;
+
+      } else if (this.parent instanceof Trip) {
+
+        // Hide some fields
+        this.landingForm.showProgram = false;
+        this.landingForm.showVessel = false;
+
+      }
+    } else {
+
+      this.landingForm.showVessel = true;
+      this.landingForm.showLocation = true;
+      this.landingForm.showDateTime = true;
+
+      this.showQualityForm = true;
+    }
+  }
+
+  /* -- protected methods  -- */
+
+  protected registerForms() {
+    this.addChildForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -282,54 +327,12 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.showQualityForm = this.showEntityMetadata;
     }
 
-
     const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
     this.landingForm.canEditStrategy = isNil(strategyLabel) || isEmptyArray(data.samples);
 
     // Emit program, strategy
     if (programLabel) this.$programLabel.next(programLabel);
-    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
-  }
-
-  onPrepareSampleForm({form, pmfms}) {
-    console.debug('[landing-page] Initializing sample form (validators...)');
-
-    // Remove previous subscription
-    if (this._rowValidatorSubscription) {
-      this._rowValidatorSubscription.unsubscribe();
-    }
-
-    // Add computation and validation
-    this._rowValidatorSubscription = this.computeSampleRowValidator(form, pmfms);
-  }
-
-  async updateView(data: Landing | null, opts?: {
-    emitEvent?: boolean;
-    openTabIndex?: number;
-    updateRoute?: boolean;
-  }) {
-    await super.updateView(data, opts);
-
-    if (this.parent) {
-      if (this.parent instanceof ObservedLocation) {
-        this.landingForm.showProgram = false;
-        this.landingForm.showVessel = true;
-
-      } else if (this.parent instanceof Trip) {
-
-        // Hide some fields
-        this.landingForm.showProgram = false;
-        this.landingForm.showVessel = false;
-
-      }
-    } else {
-
-      this.landingForm.showVessel = true;
-      this.landingForm.showLocation = true;
-      this.landingForm.showDateTime = true;
-
-      this.showQualityForm = true;
-    }
+    if (strategyLabel) this.$strategyLabel.next('20LEUCCIR003');
   }
 
   protected async setProgram(program: Program) {
@@ -545,7 +548,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return this.landingForm.value.asObject();
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     console.warn('[landing-page] No row validator override');
     return null;

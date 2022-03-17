@@ -17,9 +17,8 @@ import {
   isNotNil,
   isNotNilOrBlank,
   NetworkService,
-  PlatformService,
   ReferentialRef,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
 import { BehaviorSubject } from 'rxjs';
@@ -48,6 +47,7 @@ import { Sample } from '../services/model/sample.model';
 import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
 import { TableElement } from '@e-is/ngx-material-table';
 import { LandingService } from '@app/trip/services/landing.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 
 const moment = momentImported;
 
@@ -56,7 +56,7 @@ const moment = momentImported;
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{provide: AppRootDataEditor, useExisting: LandedTripPage}],
+  providers: [{provide: APP_ENTITY_EDITOR, useExisting: LandedTripPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
@@ -98,7 +98,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
-    protected platform: PlatformService,
     protected dataService: TripService,
     protected observedLocationService: ObservedLocationService,
     protected vesselService: VesselSnapshotService,
@@ -112,10 +111,11 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       dataService,
       {
         pathIdAttribute: 'tripId',
-        tabCount: 5
+        tabCount: 5,
+        enableListenChanges: true
       });
 
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.showCatchFilter = !this.mobile;
 
     // FOR DEV ONLY ----
@@ -248,8 +248,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
 
+    // DEBUG
+    //console.debug(options);
+
     // Read options and query params
-    console.info(options);
     if (options && options.observedLocationId) {
 
       console.debug("[landedTrip-page] New entity: settings defaults...");
@@ -525,15 +527,18 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   }
 
+  canUserWrite(data: Trip, opts?: any): boolean {
+    return isNil(data.validationDate)
+      // TODO: check observedLocation validationDate ?
+      && this.dataService.canUserWrite(data, opts);
+  }
+
   /* -- protected methods -- */
 
   protected get form(): FormGroup {
     return this.tripForm.form;
   }
 
-  protected canUserWrite(data: Trip): boolean {
-    return isNil(data.validationDate) && this.dataService.canUserWrite(data);
-  }
 
   protected computeUsageMode(data: Trip): UsageMode {
     return this.settings.isUsageMode('FIELD') || data.synchronizationStatus === 'DIRTY' ? 'FIELD' : 'DESK';

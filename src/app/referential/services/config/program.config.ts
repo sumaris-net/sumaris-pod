@@ -155,7 +155,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
-
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',

@@ -29,7 +29,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
-  PlatformService,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
@@ -41,7 +40,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { PmfmStrategy } from '../services/model/pmfm-strategy.model';
 import { IonButton } from '@ionic/angular';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
@@ -97,6 +95,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() autofocus: boolean;
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
+  @Input() showButtonIcons: boolean;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -122,12 +121,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @ViewChildren('button') buttons: QueryList<IonButton>;
 
   constructor(
-    private platform: PlatformService,
     private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {

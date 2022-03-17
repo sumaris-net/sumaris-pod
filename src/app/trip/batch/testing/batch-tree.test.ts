@@ -5,7 +5,7 @@ import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../batch-tree.component';
-import { EntitiesStorage, EntityUtils, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { EntitiesStorage, EntityUtils, firstNotNilPromise, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 
@@ -190,7 +190,8 @@ export class BatchTreeTestPage implements OnInit {
 
 
     this.form.patchValue({
-      program: {id: 1, label: 'SUMARiS' },
+      //program: {id: 1, label: 'SUMARiS' },
+      program: {id: 10, label: 'ADAP-MER' },
       gear: {id: 6, label: 'OTB'},
       example: {id: 1, label: 'default'}
     });
@@ -201,6 +202,13 @@ export class BatchTreeTestPage implements OnInit {
 
   // Load data into components
   async updateView(data: Batch) {
+
+    // Load program's taxon groups
+    const programLabel = await firstNotNilPromise(this.$programLabel);
+    let availableTaxonGroups = await this.programRefService.loadTaxonGroups(programLabel);
+
+    this.mobileBatchTree.availableTaxonGroups = availableTaxonGroups;
+    this.desktopBatchTree.availableTaxonGroups = availableTaxonGroups;
 
     this.markAsReady();
 
@@ -335,6 +343,11 @@ export class BatchTreeTestPage implements OnInit {
       source.enable();
       target.enable();
     }
+  }
+
+  async save(event: UIEvent, table: BatchTreeComponent, outputName: string) {
+    await table.save(event);
+    this.dumpBatchTree(table, outputName);
   }
 
   /* -- protected methods -- */

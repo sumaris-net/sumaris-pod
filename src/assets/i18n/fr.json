@@ -12,8 +12,10 @@
     "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
     "BTN_CLEAR": "Vider",
     "BTN_CLOSE": "Fermer",
+    "BTN_COMPACT_ROWS": "Compacter les lignes",
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
+    "BTN_IMPORT": "Importer",
     "BTN_DUPLICATE": "Dupliquer",
     "BTN_DELETE": "Supprimer",
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
@@ -106,8 +108,8 @@
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
-    "NO_RESULT": "Aucun résultat",
     "LOADING_DOTS": "Chargement...",
+    "NO_RESULT": "Aucun résultat",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -203,14 +205,16 @@
         "LOCATION_LEVEL_AUCTION_ID": "Référentiel > Niveau de lieu > Criée",
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
-        "LOCATION_LEVEL_LOCATIONS_AREA_ID": "Stratégie > Niveau(x) de lieu pour les zones de pêche (ids)",
+        "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Référentiel > Niveau(x) de lieu pour les zones de pêche (ids)",
+        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Stratégie > Niveau(x) de lieu pour les zones des RTP (ids)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
         "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
-        "PMFM_DRESSING": "Référentiel > PSFM > Présentation",
+        "PMFM_DRESSING": "Référentiel > PSFM > Présentation de l'espèce (Entier, ...)",
+        "PMFM_PRESERVATION": "Référentiel > PSFM > État de l'espèce (Frais, ...)",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
@@ -227,7 +231,10 @@
         "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
         "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturité",
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
-        "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)"
+        "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
+        "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
+        "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
+        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
@@ -359,8 +366,11 @@
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
+    "INFO": {
+      "RELOADED": "Votre compte utilisateur a été <b>actualisé</b> !"
+    },
     "ERROR": {
-      "SUBSCRIBE_ACCOUNT_ERROR": "Échec de l'abonnement distant au compte utilisateur."
+      "SUBSCRIBE_ERROR": "Échec de l'abonnement distant au compte utilisateur."
     }
   },
   "SETTINGS": {
@@ -377,6 +387,8 @@
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
     "USAGE_MODE": "Mode de saisie",
+    "USAGE_MODE_FIELD": "Mode saisie <b>terrain</b>",
+    "USAGE_MODE_DESK": "Mode saisie <b>bureau</b>",
     "USAGE_MODES":  {
       "FIELD": "Saisie terrain",
       "DESK": "Saisie bureau"
@@ -388,7 +400,7 @@
       "DEPARTMENT": "Liste déroulante > Organismes",
       "LOCATION": "Liste déroulante > Lieux (port, etc.)",
       "FISHING_AREA_LOCATION": "Liste déroulante > Zone de pêche (rectangle, etc.)",
-      "QUALITATIVE_VALUE": "Liste déroulante > Valeurs d'un paramètre",
+      "QUALITATIVE_VALUE": "Liste déroulante > Valeurs qualitative de paramètre",
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
       "GEAR": "Liste déroulante > Engins de pêche",
@@ -526,10 +538,11 @@
     },
     "ERROR": {
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé",
-      "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée"
+      "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée",
+      "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
     "MEASUREMENT": {
-      "FEATURE_PLACEHOLDER" : "Caractéristique #{{rankOrder}}",
+      "FEATURE_PLACEHOLDER": "Caractéristique #{{rankOrder}}",
       "ERROR": {
         "DUPLICATE_RANK_ORDER": "Le numero #{{rankOrder}} existe déjà. Impossible de l'ajouter à nouveau."
       }
@@ -589,6 +602,7 @@
         "TAB_SAMPLES": "Prélèvements",
         "TAB_BATCH_SPECIES": "Lots par espèce",
         "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
+        "METIER": "Espèce cible",
         "TARGET_SPECIES": "Espèce cible",
         "PHYSICAL_GEAR": "Engin utilisé",
         "START": "Début pêche :",
@@ -605,13 +619,14 @@
         "END_DATE_TIME": "Fin d'opération",
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
-        "DISTANCE_DOTS" : "Dist. : {{distance}} miles",
+        "DISTANCE_DOTS" : "Distance : {{distance}} miles",
         "START_PARENT_OPERATION" : "Début filage :",
         "END_PARENT_OPERATION" : "Fin filage / Début pêche :",
         "START_CHILD_OPERATION" : "Fin pêche / Début virage :",
         "END_CHILD_OPERATION" : "Fin virage :",
         "PARENT_OPERATION" : "Opération associée",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
+        "POSITIONS": "Positions",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE" : "Type d'opération :",
@@ -672,6 +687,11 @@
         "COMMENTS": "Commentaires",
         "QUALITY": "État",
         "QUALITY_FILTER": "Filtrer par état :"
+      },
+      "FILTER": {
+        "GEAR" : "Engin",
+        "START_DATE" : "Début de période",
+        "QUALITY": "État"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -1299,7 +1319,30 @@
     },
     "TAXON_GROUP": {
       "LABEL": "Code espèce commerciale",
-      "NAME": "Libellé espèce commerciale"
+      "NAME": "Libellé espèce commerciale",
+      "PARENT": "Espèce commerciale parente",
+      "TAXON_GROUP_TYPE": "Type de groupe",
+      "TAB_ROUND_WEIGHT_CONVERSION": "Equivalents Poids Vif",
+      "NEW": {
+        "TITLE": "Nouvelle espèce commerciale"
+      },
+      "EDIT": {
+        "TITLE": "Espèce commerciale {{label}} - {{name}}"
+      },
+      "ROUND_WEIGHT_CONVERSION": {
+        "EXPORT_CSV_FILENAME": "Equiv_poids_vifs-{{taxonGroupId}}.csv",
+        "CONVERSION_COEFFICIENT": "Coef. conversion",
+        "COMMENTS": "Commentaires",
+        "CREATION_DATE": "Date création",
+        "DESCRIPTION": "Description",
+        "START_DATE": "Date début",
+        "END_DATE": "Date fin",
+        "LOCATION": "Pays",
+        "TAXON_GROUP_ID": "Espèce commerciale",
+        "DRESSING": "Présentation",
+        "PRESERVING": "État",
+        "STATUS_ID": "État"
+      }
     },
     "TAXON_NAME": {
       "LABEL": "Code espèce scientifique",
@@ -1313,11 +1356,29 @@
       "TAXONOMIC_LEVEL": "Niveau taxonomique",
       "START_DATE": "Date de début",
       "END_DATE": "Date de fin",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Relations Taille/Poids",
       "NEW": {
         "TITLE": "Nouvelle espèce scientifique"
       },
       "EDIT": {
         "TITLE": "Espèce scientifique {{label}} - {{name}}"
+      },
+      "WEIGHT_LENGTH_CONVERSION": {
+        "EXPORT_CSV_FILENAME": "RTP-{{referenceTaxonId}}.csv",
+        "CONVERSION_COEFFICIENT_A": "Coef. A",
+        "CONVERSION_COEFFICIENT_B": "Coef. B",
+        "COMMENTS": "Commentaires",
+        "CREATION_DATE": "Date création",
+        "DESCRIPTION": "Description",
+        "END_MONTH": "Mois fin",
+        "LOCATION": "Zone FAO",
+        "REFERENCE_TAXON_ID": "Espèce scientifique",
+        "SEX": "Sexe",
+        "LENGTH_PARAMETER": "Paramètre de longueur",
+        "LENGTH_UNIT": "Unité de longueur",
+        "STATUS_ID": "État",
+        "START_MONTH": "Mois début",
+        "YEAR": "Année"
       }
     },
     "GEAR": {
@@ -1488,16 +1549,16 @@
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
       "TRIP_BATCH_ENABLE": "Capture > Lots pas espèces: Activer ?",
-      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lots pas espèces: Activer les mesures individuelles ?",
+      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lots pas espèces: activer les mesures individuelles ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
-      "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Poids : Activer ?",
-      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Capture > Echantillon : Date et heure ?",
-      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Capture > Echantillon : Espèces commerciales ?",
-      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Capture > Echantillon : Espèces scientifiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Capture > Test de survie : Espèces scientifiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Capture > Test de survie : Espèces commerciales ?",
+      "TRIP_SAMPLE_ENABLE": "Échantillon : Activer ?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Échantillon : Date et heure ?",
+      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Échantillon : Espèces commerciales ?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Échantillon : Espèces scientifiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Test de survie : Espèces scientifiques ?",
+      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Test de survie : Espèces commerciales ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
@@ -1712,12 +1773,16 @@
         "STRATEGY_HAS_DATA": "La ligne de plan {{ label }} est liée à une ou plusieurs observations individuelles",
         "STRATEGIES_HAS_DATA": "Les lignes de plan {{ label }} sont liées à une ou plusieurs observations individuelles",
         "CANNOT_COMPUTE_TAXON_CODE": "Veuillez saisir manuellement le code espèce du code de la ligne de plan",
-        "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement"
+        "NOT_UNIQUE_TAXON_CODE": "Le code espèce généré n'est pas unique, veuillez le saisir manuellement",
+        "SUBSCRIBE_AUTHORIZED_PROGRAMS": "Erreur d'abonnement aux programmes de collecte autorisés"
       },
       "CONFIRM": {
         "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
         "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
       }
+    },
+    "INFO": {
+      "AUTHORIZED_PROGRAMS_UPDATED": "Vos <b>droits d'accès</b> ont été <b>mis à jour</b> !"
     },
     "ERROR": {
       "LOAD_PROGRAM_ERROR": "Erreur lors de chargement du programme",
@@ -2053,6 +2118,23 @@
       "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde du message utilisateur"
     }
   },
+  "FILE": {
+    "CSV": {
+      "SEPARATOR": ";",
+      "ENCODING": "UTF-8",
+      "ERROR": {
+        "EMPTY_FILE": "Fichier vide, ou ligne d'entête manquante",
+        "NO_HEADER_OR_INVALID_SEPARATOR": "Ligne d'entête invalide. vérifier que le séparateur '{{separator}}' est utilisé.",
+        "UNKNOWN_HEADERS": "Entête(s) de colonne invalide(s): {{headers}}"
+      }
+    },
+    "UPLOAD": {
+      "DRAG_AND_DROP": "Glisser et déposer un fichier{{ extension }} ici<br/>ou",
+      "BROWSE": "Parcourir",
+      "IMPORTING": "Importation en cours",
+      "ERROR": "Erreur durant l'envoi de fichier"
+    }
+  },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
@@ -2137,7 +2219,8 @@
     "SAVE_ERROR": "Erreur de sauvegarde",
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
-    "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée"
+    "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
+    "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

@@ -62,17 +62,11 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
 
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Referential, ReferentialFilter>,
-    protected cd: ChangeDetectorRef,
-    protected injector: Injector
+    protected cd: ChangeDetectorRef
   ) {
     super(injector,
       // columns

@@ -12,6 +12,10 @@ import {ProgramsPage} from "./program/programs.page";
 import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
 import {TaxonNamePage} from "./taxon/taxon-name.page";
 import {StrategiesPage} from "./strategy/strategies.page";
+import { IonicModule } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { BrowserModule } from '@angular/platform-browser';
+import { TaxonGroupPage } from '@app/referential/taxon-group/taxon-group.page';
 
 const routes: Routes = [
   {
@@ -130,6 +134,19 @@ const routes: Routes = [
         path: '',
         pathMatch: 'full',
         component: TaxonNamePage,
+        data: {
+          profile: 'ADMIN'
+        }
+      }
+    ]
+  },
+  {
+    path: 'taxonGroup/:id',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: TaxonGroupPage,
         data: {
           profile: 'ADMIN'
         }

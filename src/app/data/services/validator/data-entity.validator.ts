@@ -1,10 +1,8 @@
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControlOptions, FormBuilder, FormGroup} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {DataEntity} from "../model/data-entity.model";
-import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Optional} from "@angular/core";
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControlOptions, FormBuilder, FormGroup } from '@angular/forms';
+import { LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { DataEntity } from '../model/data-entity.model';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 export interface DataEntityValidatorOptions {
   isOnFieldMode?: boolean;
@@ -40,10 +38,12 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
     return {
       id: [toNumber(data && data.id, null)],
       updateDate: [data && data.updateDate || null],
+      recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity],
+      // Quality properties
       controlDate: [data && data.controlDate || null],
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
-      recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity]
+      qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)]
     };
   }
 

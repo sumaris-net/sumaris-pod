@@ -176,7 +176,8 @@
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
-          translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
+          translate>TRIP.TAB_PHYSICAL_GEAR
+        </ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="physicalGearsTable.invalid"></ion-icon>
       </ng-template>
 
@@ -206,12 +207,15 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label [matBadge]="operationsTable.totalRowCount"
-                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount"
+                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || operationsTable.error"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"
-                   translate>TRIP.TAB_OPERATIONS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.invalid && operationsTable.dirty"></ion-icon>
+                   translate>TRIP.TAB_OPERATIONS
+        </ion-label>
+        <mat-icon>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.error || (operationsTable.invalid && operationsTable.dirty)"></ion-icon>
+        </mat-icon>
       </ng-template>
 
       <app-operations-table #operationsTable

@@ -13,7 +13,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { environment } from '@environments/environment';
 import { SamplesModal } from '../sample/samples.modal';
 import { ProductModal } from '@app/trip/product/product.modal';
-import { mergeMap } from 'rxjs/internal/operators';
+import { mergeMap } from 'rxjs/operators';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo

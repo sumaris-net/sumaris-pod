@@ -18,16 +18,10 @@ export const environment = Object.freeze(<Environment>{
   apolloFetchPolicy: "cache-first",
   mock: false,
 
-  // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: false,
-
   // FIXME: enable cache
   persistCache: false,
 
   peerMinVersion: '1.19.0',
-
-  // TODO: make this works
-  //offline: true,
 
   defaultPeer: {
     host: 'localhost',
@@ -54,7 +48,23 @@ export const environment = Object.freeze(<Environment>{
   // Storage
   storage: {
     driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  },
+
+  account: {
+    enableListenChanges: true,
+    listenIntervalInSecond: 0
+  },
+
+  entityEditor: {
+    enableListenChanges: true,
+    listenIntervalInSecond: 0
+  },
+
+  program: {
+    enableListenChanges: true,
+    listenIntervalInSecond: 0
   }
+
 });
 
 /*

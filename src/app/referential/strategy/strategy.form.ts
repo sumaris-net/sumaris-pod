@@ -187,6 +187,13 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     this.$allAcquisitionLevels.unsubscribe();
   }
 
+  canUserWrite(data: Strategy): boolean {
+    // TODO test user is a program's manager
+    return this.enabled && this.accountService.isAdmin();
+  }
+
+  /* -- protected functions -- */
+
   protected registerForms() {
     this.addChildForms([
       this.referentialForm,
@@ -205,10 +212,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
   protected async computeTitle(data: Strategy): Promise<string> {
     return data && referentialToString(data) || 'PROGRAM.STRATEGY.NEW.TITLE';
-  }
-
-  protected canUserWrite(data: Strategy): boolean {
-    return this.enabled && this.accountService.isAdmin(); // TODO test user is a program's manager
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {

@@ -337,6 +337,14 @@ export class ExtractionProductService extends BaseGraphqlService {
     return res && { min: 0, max: 0, ...res.aggregationTechMinMax} || null;
   }
 
+  canUserWrite(entity: ExtractionProduct, opts?: any) {
+    return this.accountService.isAdmin()
+      // New date allow for supervisors
+      || (isNil(entity.id) && this.accountService.isSupervisor())
+      // Supervisor on existing data, and the same recorder department
+      || (ReferentialUtils.isNotEmpty(entity && entity.recorderDepartment) && this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment));
+  }
+
   async save(entity: ExtractionProduct,
              filter?: ExtractionFilter): Promise<ExtractionProduct> {
     const now = Date.now();

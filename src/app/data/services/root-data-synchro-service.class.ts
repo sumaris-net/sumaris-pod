@@ -1,4 +1,4 @@
-import {concat, defer, Observable, of, timer} from 'rxjs';
+import { concat, defer, Observable, of, Subject, timer } from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.model';
 import {
@@ -114,10 +114,10 @@ export abstract class RootDataSynchroService<
   executeImport(opts?: {
     maxProgression?: number;
   }): Observable<number>{
-    if (this.$importationProgress) return this.$importationProgress; // Skip to may call
+    if (this.$importationProgress) return this.$importationProgress; // Avoid many call
 
     const totalProgression = opts && opts.maxProgression || 100;
-    const jobOpts = { maxProgression: undefined};
+    const jobOpts = { maxProgression: undefined /* set when jobs length is known */};
     const jobDefers: Observable<number>[] = [
       // Clear caches
       defer(() => timer()
@@ -149,7 +149,6 @@ export abstract class RootDataSynchroService<
       ...jobDefers.map((jobDefer: Observable<number>, index) => {
         return jobDefer
           .pipe(
-            //switchMap(() => jobDefer),
             map(jobProgression => {
               jobIndex = index;
               if (this._debug && jobProgression > jobOpts.maxProgression) {

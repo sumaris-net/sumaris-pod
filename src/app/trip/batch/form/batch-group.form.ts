@@ -1,32 +1,27 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, QueryList, ViewChildren } from '@angular/core';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { AbstractControl, FormBuilder, FormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { AppForm, AppFormUtils, AppTable, fadeInAnimation, InputElement, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorService } from '../../services/validator/batch-group.validator';
 import { BehaviorSubject } from 'rxjs';
 import { BatchForm } from './batch.form';
 import { filter } from 'rxjs/operators';
-import { BatchGroup } from '../../services/model/batch-group.model';
+import { BatchGroup, BatchGroupUtils } from '../../services/model/batch-group.model';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { createAnimation } from '@ionic/core';
-import { Animation } from '@ionic/angular';
 
 @Component({
   selector: 'app-batch-group-form',
   templateUrl: 'batch-group.form.html',
   styleUrls: ['batch-group.form.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [fadeInAnimation]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
-  private _childrenAnimation: Animation;
-
-  $childrenPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  $childrenPmfmsByQvId = new BehaviorSubject<{[key: number]: IPmfm[]}>(undefined);
   hasSubBatchesControl: AbstractControl;
 
   @Input() qvPmfm: IPmfm;
@@ -36,7 +31,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input() showChildrenSamplingBatch = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
-  @Input() animated = false; // Animate children card
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
   @ViewChildren('childForm') childrenList !: QueryList<BatchForm>;
@@ -143,7 +137,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       measurementValidatorService,
       formBuilder,
       programRefService,
-      platform,
       validatorService,
       referentialRefService);
 
@@ -182,22 +175,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe((batch) => this.computeShowTotalIndividualCount(batch)));
 
-
-    // Create animation to display children forms
-    if (this.animated) {
-      this._childrenAnimation = createAnimation()
-        .duration(300)
-        .direction('normal')
-        .iterations(1)
-        .beforeStyles({
-          'transition-timing-function': 'ease-in',
-          transform: 'scale(0.5)',
-          opacity: '0'
-        })
-        .keyframes([
-          { offset: 1, transform: 'scale(1)', opacity: '1' }
-        ]);
-    }
   }
 
   focusFirstInput() {
@@ -248,8 +225,14 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       this.qvPmfm.hidden = true;
       this.qvPmfm.required = true;
 
-      // Replace in the list
-      this.$childrenPmfms.next(pmfms.map(p => p.id === this.qvPmfm.id ? this.qvPmfm : p));
+      // Replace QV in the list, by current instance
+      const childrenPmfms = pmfms.map(p => (p.id === this.qvPmfm.id ? this.qvPmfm : p))
+
+      const childrenPmfmsByQvId = this.qvPmfm.qualitativeValues.reduce((res, qv ) => {
+        res[qv.id] = BatchGroupUtils.computeChildrenPmfmsByQvPmfm(qv.id, childrenPmfms)
+        return res;
+      }, {});
+      this.$childrenPmfmsByQvId.next(childrenPmfmsByQvId);
 
       // Do not display PMFM in the root batch
       pmfms = [];
@@ -322,12 +305,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       this.computeShowTotalIndividualCount(data);
 
-      // Play animation
-      if (this.animated) {
-        await this._childrenAnimation
-          .addElement(document.querySelectorAll('ion-card.qv'))
-          .play();
-      }
     }
 
     // Apply computed value
@@ -346,11 +323,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     const data = super.getValue();
     if (!data) return; // No set yet
 
-    // If has children form
     if (this.qvPmfm) {
-      data.children = this.childrenList.map((form, index) => {
+      // FOr each children
+      data.children = this.childrenList.map((childForm, index) => {
         const qv = this.qvPmfm.qualitativeValues[index];
-        const child = form.value;
+        const child = childForm.value;
         if (!child) return; // No set yet
 
         child.rankOrder = index + 1;
@@ -358,17 +335,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         child.measurementValues = child.measurementValues || {};
         child.measurementValues[this.qvPmfm.id.toString()] = '' + qv.id;
 
-        // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
-        const sampleBatch = BatchUtils.getSamplingChild(child);
-        if (sampleBatch && !form.showWeight && isNotNil(sampleBatch.individualCount) && isNotNil(child.individualCount)) {
-          sampleBatch.samplingRatio = sampleBatch.individualCount / child.individualCount;
-          sampleBatch.samplingRatioText = `${sampleBatch.individualCount}/${child.individualCount}`;
-        }
-
-        // Other Pmfms
-        Object.keys(form.measurementValuesForm.value).filter(key => !child.measurementValues[key]).forEach(key =>{
-          child.measurementValues[key] = form.measurementValuesForm.value[key];
-        });
+        // Copy other pmfms
+        const childMeasurementValues = childForm.measurementValuesForm.value;
+        Object.keys(childMeasurementValues)
+          .filter(key => isNil(child.measurementValues[key]))
+          .forEach(key => child.measurementValues[key] = childMeasurementValues[key]);
 
         return child;
       });

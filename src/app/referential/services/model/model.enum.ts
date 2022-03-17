@@ -12,8 +12,11 @@ export const LocationLevelIds = {
   // At sea
   ICES_RECTANGLE: 4,
   GFCM_RECTANGLE: 5,
+  ICES_SUB_AREA: 110,
   ICES_DIVISION: 111,
-  LOCATIONS_AREA: [4, 5, 111]
+
+  LOCATIONS_AREA: [4, 5, 111],
+  WEIGHT_LENGTH_CONVERSION_AREA: [110, 111]
 };
 
 export const GearLevelIds = {
@@ -44,6 +47,7 @@ export const PmfmIds = {
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
   DRESSING: 151,
+  PRESERVATION: 150,
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
@@ -108,7 +112,14 @@ export const QualitativeLabels = {
 
 export const QualitativeValueIds = {
   DISCARD_OR_LANDING: {
-    LANDING: 190
+    LANDING: 190,
+    DISCARD: 191
+  },
+  DRESSING: {
+    WHOLE: 381
+  },
+  PRESERVATION: {
+    FRESH: 332
   }
 };
 
@@ -124,7 +135,11 @@ export const MatrixIds = {
 }
 
 export const UnitIds = {
-  NONE: 0
+  NONE: 0,
+}
+
+export const UnitLabelGroups = {
+  LENGTH: ['cm', 'mm'] // Unit used for LENGTH Pmfms, on individual
 }
 
 export const ParameterGroupIds = {
@@ -146,7 +161,10 @@ export const ParameterLabelGroups = {
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
-  AGE: ['AGE']
+  AGE: ['AGE'],
+
+  DRESSING: ['DRESSING'],
+  PRESERVATION: ['PRESERVATION']
 };
 
 export const FractionIdGroups = {

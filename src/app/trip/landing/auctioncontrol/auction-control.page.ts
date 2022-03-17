@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
-import { debounceTime, distinctUntilKeyChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Landing } from '../../services/model/landing.model';
 import { AuctionControlValidators } from '../../services/validator/auction-control.validators';
@@ -17,24 +17,25 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LoadResult, PlatformService,
+  LoadResult,
+  LocalSettingsService,
   ReferentialUtils,
   SharedValidators,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
-import { AppRootDataEditor } from '../../../data/form/root-data-editor.class';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{provide: AppRootDataEditor, useExisting: AuctionControlPage}],
+  providers: [{provide: APP_ENTITY_EDITOR, useExisting: AuctionControlPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
@@ -53,13 +54,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   constructor(
     injector: Injector,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      autoOpenNextTab: !platform.mobile,
       tabGroupAnimationDuration: '0s' // Disable tab animation
     });
 
@@ -84,7 +84,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   }
 
-  async ngAfterViewInit() {
+  ngAfterViewInit() {
     super.ngAfterViewInit();
 
     // Get program taxon groups
@@ -162,7 +162,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         }),
         map(qv => {
           return ReferentialUtils.isNotEmpty(qv)
-            && this.$taxonGroups.getValue().find(tg => tg.label === qv.label)
+            && this.$taxonGroups.value.find(tg => tg.label === qv.label)
             || undefined;
         })
       );
@@ -210,7 +210,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     this.registerSubscription(
       this.taxonGroupControl.valueChanges
-        .pipe(distinctUntilKeyChanged('id'))
+        .pipe(
+          distinctUntilChanged(ReferentialUtils.equals)
+        )
         .subscribe(taxonGroup => {
           const hasTaxonGroup = ReferentialUtils.isNotEmpty(taxonGroup);
           console.debug('[control] Selected taxon group:', taxonGroup);
@@ -358,7 +360,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+    console.log('[auction-control-page] Adding row validator');
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 

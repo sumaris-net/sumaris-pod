@@ -1,32 +1,33 @@
 import { Injectable } from '@angular/core';
-import { ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { ApolloCache, FetchPolicy, gql } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {
-  AccountService, BaseEntityGraphqlMutations, BaseEntityGraphqlQueries, BaseEntityService,
-  BaseGraphqlService, EntitySaveOptions, EntityServiceLoadOptions,
+  AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityService,
+  EntitiesServiceWatchOptions,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
-  firstNotNilPromise,
   GraphqlService,
   isNil,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  Person, PlatformService,
-  trimEmptyToNull,
+  Person,
+  PlatformService,
+  trimEmptyToNull
 } from '@sumaris-net/ngx-components';
 import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType } from './model/extraction-type.model';
 import { DataCommonFragments } from '../../trip/services/trip.queries';
 import { SortDirection } from '@angular/material/sort';
-import { environment } from '../../../environments/environment';
 import { DataEntityAsObjectOptions } from '../../data/services/model/data-entity.model';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { ExtractionErrorCodes } from '@app/extraction/services/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/services/filter/extraction-type.filter';
-import { DocumentNode } from 'graphql';
-import { EntitiesServiceWatchOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 
 export const ExtractionFragments = {

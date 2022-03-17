@@ -1,6 +1,7 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import { EntityClass, EntityUtils } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
+import { EntityClass, EntityUtils, ReferentialRef } from '@sumaris-net/ngx-components';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {
@@ -66,5 +67,28 @@ export class BatchGroupUtils {
   static equals(batchGroup1: BatchGroup, batchGroup2: BatchGroup) {
     return EntityUtils.equals(batchGroup1, batchGroup2, 'rankOrder')
       && EntityUtils.equals(batchGroup1, batchGroup2, 'parentId');
+  }
+
+  static computeChildrenPmfmsByQvPmfm(qvId: number, pmfms: IPmfm[]) {
+    return pmfms
+      // Exclude DISCARD_REASON if NOT on DISCARD
+      .filter(pmfm => qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD || pmfm.id !== PmfmIds.DISCARD_REASON)
+      // If DISCARD
+      .map(pmfm => {
+        if (qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD) {
+          // Hide pmfm DRESSING or PRESERVATION
+          if (pmfm.id === PmfmIds.DRESSING) {
+            pmfm = pmfm.clone();
+            pmfm.hidden = true;
+            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.DRESSING.WHOLE, label: 'WHL' });
+          }
+          if (pmfm.id === PmfmIds.PRESERVATION) {
+            pmfm = pmfm.clone();
+            pmfm.hidden = true;
+            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.PRESERVATION.FRESH, label: 'FRE' });
+          }
+        }
+        return pmfm;
+      })
   }
 }

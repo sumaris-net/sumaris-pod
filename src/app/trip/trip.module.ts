@@ -28,7 +28,7 @@ import { AppReferentialModule } from '../referential/referential.module';
 import { SampleForm } from './sample/sample.form';
 import { SampleModal } from './sample/sample.modal';
 import { SelectPhysicalGearModal } from './physicalgear/select-physical-gear.modal';
-import { AppDataModule } from '../data/app-data.module';
+import { AppDataModule } from '../data/data.module';
 import { OperationsMap } from './operation/map/operations.map';
 import { SocialModule } from '@sumaris-net/ngx-components';
 import { BatchModal } from './batch/modal/batch.modal';

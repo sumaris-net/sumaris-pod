@@ -231,6 +231,10 @@ export class PmfmService
     return entity;
   }
 
+  canUserWrite(entity: Pmfm, opts?: any): boolean {
+    return this.accountService.isAdmin();
+  }
+
   /**
    * Save a pmfm entity
    * @param entity

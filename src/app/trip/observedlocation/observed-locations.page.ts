@@ -24,7 +24,7 @@ import {
 import {ObservedLocationService} from '../services/observed-location.service';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {ObservedLocation} from '../services/model/observed-location.model';
-import {AppRootTable} from '@app/data/table/root-table.class';
+import {AppRootDataTable} from '@app/data/table/root-table.class';
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {environment} from '@environments/environment';
 import {BehaviorSubject} from 'rxjs';
@@ -51,7 +51,7 @@ export const ObservedLocationsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationsPage extends
-  AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+  AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
   highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
@@ -74,13 +74,7 @@ export class ObservedLocationsPage extends
   }
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -90,7 +84,7 @@ export class ObservedLocationsPage extends
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat([
           'quality',
@@ -103,8 +97,6 @@ export class ObservedLocationsPage extends
         .concat(RESERVED_END_COLUMNS),
       dataService,
       new EntitiesTableDataSource(ObservedLocation, dataService),
-      null, // Filter
-      injector
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({

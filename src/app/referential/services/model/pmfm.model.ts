@@ -3,6 +3,7 @@ import { MethodIds, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns, We
 import { Parameter, ParameterType } from './parameter.model';
 import { PmfmValue } from './pmfm-value.model';
 import { Moment } from 'moment';
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -95,7 +96,7 @@ export class UnitConversion {
 }
 
 @EntityClass({typename: 'PmfmVO'})
-export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
+export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
 
   static ENTITY_NAME = 'Pmfm';
   static fromObject: (source: any, opts?: any) => Pmfm;

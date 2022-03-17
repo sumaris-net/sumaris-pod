@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { ErrorCodes } from './errors';
 import {
+  BaseEntityGraphqlQueries,
   BaseGraphqlService,
   ConfigService,
   EntitiesStorage,
@@ -18,7 +19,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
-  SuggestService,
+  SuggestService
 } from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from './referential.fragments';
 import { BehaviorSubject, merge, Observable } from 'rxjs';
@@ -76,7 +77,7 @@ export const VesselSnapshotFragments = {
   }`
 };
 
-const LoadQueries = {
+const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any; } = {
   // Load all
   loadAll: gql`query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
     data: vesselSnapshots(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -92,6 +93,15 @@ const LoadQueries = {
       ...LightVesselSnapshotFragment
     }
     total: vesselSnapshotsCount(filter: $filter)
+  }
+  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ReferentialFragments.referential}`,
+
+  // Load one item
+  load: gql`query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {
+    data: vesselSnapshots(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
+      ...LightVesselSnapshotFragment
+    }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.referential}`,
@@ -115,14 +125,6 @@ const LoadQueries = {
   }
   ${VesselSnapshotFragments.lightVesselSnapshotWithPort}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`,
-
-  load: gql`query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {
-    data: vesselSnapshots(filter: {vesselId: $vesselId, vesselFeaturesId: $vesselFeaturesId}) {
-      ...LightVesselSnapshotFragment
-    }
-  }
-  ${VesselSnapshotFragments.lightVesselSnapshot}
   ${ReferentialFragments.referential}`
 };
 
@@ -237,8 +239,8 @@ export class VesselSnapshotService
     // Online: use GraphQL
     else {
       const query = withTotal
-        ? (opts?.withBasePortLocation ? LoadQueries.loadAllWithPortAndTotal : LoadQueries.loadAllWithTotal)
-        : (opts?.withBasePortLocation ? LoadQueries.loadAllWithPort : LoadQueries.loadAll);
+        ? (opts?.withBasePortLocation ? QUERIES.loadAllWithPortAndTotal : QUERIES.loadAllWithTotal)
+        : (opts?.withBasePortLocation ? QUERIES.loadAllWithPort : QUERIES.loadAll);
       res = await this.graphql.query<LoadResult<any>>({
         query,
         variables: {
@@ -313,7 +315,7 @@ export class VesselSnapshotService
     }
 
     const {data} = await this.graphql.query<{ data: any[] }>({
-      query: LoadQueries.load,
+      query: QUERIES.load,
       variables: {
         vesselId: id,
         vesselFeaturesId: null

@@ -22,8 +22,7 @@ export class StrategyFilter extends ReferentialFilter {
   //entityName: 'Strategy';
 }
 
-
-const StrategyRefQueries: BaseEntityGraphqlQueries = {
+const QUERIES: BaseEntityGraphqlQueries = {
   load: gql`query StrategyRef($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyRefFragment
@@ -96,7 +95,7 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${ReferentialFragments.taxonName}`
 };
 
-const StrategySubscriptions = {
+const SUBSCRIPTIONS = {
   listenChangesByProgram: gql`subscription UpdateProgramStrategies($programId: Int!, $interval: Int){
     data: updateProgramStrategies(programId: $programId, interval: $interval) {
       ...StrategyRefFragment
@@ -142,7 +141,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   ) {
     super(graphql, platform, Strategy, StrategyFilter,
       {
-        queries: StrategyRefQueries
+        queries: QUERIES
       });
   }
 
@@ -255,7 +254,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
       cache = {
         subject,
         subscription: this.graphql.subscribe<{data: any}>({
-          query: StrategySubscriptions.listenChangesByProgram,
+          query: SUBSCRIPTIONS.listenChangesByProgram,
           fetchPolicy: 'network-only',
           variables,
           error: {

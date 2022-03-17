@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
-import {LandingValidatorService} from '../services/validator/landing.validator';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ModalController} from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { LandingValidatorService } from '../services/validator/landing.validator';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ModalController } from '@ionic/angular';
 import {
   ConfigService,
   EntityUtils,
@@ -28,23 +28,22 @@ import {
   toDateISOString,
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Landing} from '../services/model/landing.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {VesselModal} from '@app/vessel/modal/vessel-modal';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {TranslateService} from '@ngx-translate/core';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Program} from '@app/referential/services/model/program.model';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
-import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {TripValidatorService} from '@app/trip/services/validator/trip.validator';
-import {Metier} from '@app/referential/services/model/metier.model';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Landing } from '../services/model/landing.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { TranslateService } from '@ngx-translate/core';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Program } from '@app/referential/services/model/program.model';
+import { FishingArea } from '@app/trip/services/model/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
+import { Metier } from '@app/referential/services/model/metier.model';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -211,7 +210,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected samplingStrategyService: SamplingStrategyService,
     protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,

@@ -18,7 +18,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  PlatformService,
   ReferentialUtils,
   SharedValidators,
   startsWithUpperCase,
@@ -162,7 +161,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected platform: PlatformService,
     protected translate: TranslateService
   ) {
     super(injector, measurementValidatorService, formBuilder, programRefService,
@@ -177,7 +175,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.form.controls.label.setValidators(null);
     this.form.controls.rankOrder.setValidators(null);
 
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this._enable = false;
 
     // Set default values

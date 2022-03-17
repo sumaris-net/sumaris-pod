@@ -55,13 +55,21 @@
   <app-root>
     <div class="loading-page">
       <div class="spinner">
-        <p>Loading...</p>
+        <p id="loadingText"></p>
         <div class="sk-cube1 sk-cube"></div>
         <div class="sk-cube2 sk-cube"></div>
         <div class="sk-cube4 sk-cube"></div>
         <div class="sk-cube3 sk-cube"></div>
       </div>
     </div>
+
+    <!-- Translate the loading text -->
+    <script type="text/javascript">
+      var userLang = navigator.language || navigator.userLanguage;
+      var loadingText = userLang && userLang.startsWith('fr') ? 'Chargement...' : 'Loading...';
+      document.getElementById('loadingText').innerText = loadingText;
+      document.getElementById('appTitle').innerText = loadingText;
+    </script>
   </app-root>
 
 </body>

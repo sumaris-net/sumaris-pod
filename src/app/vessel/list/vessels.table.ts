@@ -29,7 +29,7 @@ import {statusToColor, SynchronizationStatusEnum} from '@app/data/services/model
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {environment} from '@environments/environment';
-import {AppRootTable} from '@app/data/table/root-table.class';
+import {AppRootDataTable} from '@app/data/table/root-table.class';
 import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
 import {VesselFilter} from '../services/filter/vessel.filter';
 import {MatExpansionPanel} from '@angular/material/expansion';
@@ -50,7 +50,7 @@ export const VesselsTableSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
+export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> implements OnInit {
 
   locations: Observable<ReferentialRef[]>;
 
@@ -95,27 +95,22 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
+    formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    formBuilder: FormBuilder,
-    injector: Injector
+    protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
           'status',
           'vesselFeatures.exteriorMarking',
           'vesselRegistrationPeriod.registrationCode'])
-        .concat(platform.mobile ? [] : [
+        .concat(settings.mobile ? [] : [
           'vesselFeatures.startDate',
           'vesselFeatures.endDate'
         ])
@@ -124,7 +119,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
           'vesselType',
           'vesselFeatures.basePortLocation'
         ])
-        .concat(platform.mobile ? [] : [
+        .concat(settings.mobile ? [] : [
           'comments'
         ])
         .concat(RESERVED_END_COLUMNS),
@@ -135,9 +130,7 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      }),
-      null,
-      injector
+      })
     );
     this.i18nColumnPrefix = 'VESSEL.';
     this.defaultSortBy = 'vesselFeatures.exteriorMarking';

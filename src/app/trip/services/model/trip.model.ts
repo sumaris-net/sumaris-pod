@@ -24,11 +24,11 @@ import { Sample } from './sample.model';
 import { Batch } from './batch.model';
 import { IWithProductsEntity, Product } from './product.model';
 import { IWithPacketsEntity, Packet } from './packet.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { SortDirection } from '@angular/material/sort';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 /* -- Helper function -- */
 
@@ -54,6 +54,9 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
   keepTrip: true // Trip is needed to apply filter on it
 
 });
+
+export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
+export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/
 
 @EntityClass({typename: 'OperationVO'})
 export class Operation
@@ -88,7 +91,6 @@ export class Operation
   fishingAreas: FishingArea[] = [];
   parentOperationId: number = null;
   parentOperation: Operation = null;
-  qualityFlagId: number = null;
   childOperationId: number = null;
   childOperation: Operation = null;
 
@@ -613,7 +615,7 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
   }
 
   static sameAsComparator(gear: PhysicalGear, sortDirection?: SortDirection): (g1: PhysicalGear, g2: PhysicalGear) => number {
-    const direction = !sortDirection || sortDirection === 'desc' ? 1 : -1;
+    const direction = !sortDirection || sortDirection === 'desc' ? -1 : 1;
     return (g1, g2) => {
       const score1 = this.computeSameAsScore(gear, g1);
       const score2 = this.computeSameAsScore(gear, g2);

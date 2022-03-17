@@ -77,27 +77,28 @@
 
   </ion-grid>
 
-
   <!-- QV children -->
-  <ion-grid *ngIf="qvPmfm">
-    <ion-row>
+  <ion-grid *ngIf="qvPmfm; else noQvPmfm">
+    <ion-row >
       <ion-col *ngFor="let qv of qvPmfm.qualitativeValues; index as i;"
                size="12" size-md="">
 
         <ion-card class="qv ion-no-margin ion-no-padding"
                   [class.even]="i % 2 === 0"
-                  [class.odd]="i % 2 !== 0"
-                  [style.opacity]="animated ? 0 : 1">
+                  [class.odd]="i % 2 !== 0">
 
           <ion-card-header>
-            <ion-card-title>{{ qv.name }}</ion-card-title>
+            <ion-card-title>{{ qv.name }}
+              <ion-icon slot="end" name="alert-circle" color="danger"
+                        *ngIf="childForm.invalid"></ion-icon>
+            </ion-card-title>
           </ion-card-header>
 
           <ion-card-content>
             <app-batch-form #childForm
                             [tabindex]="tabindex + 10 + 10*i"
                             [acquisitionLevel]="acquisitionLevel"
-                            [pmfms]="$childrenPmfms | async"
+                            [pmfms]="$childrenPmfmsByQvId | async | mapGet: qv.id"
                             [showTaxonName]="false"
                             [showTaxonGroup]="false"
                             [availableTaxonGroups]="[]"
@@ -114,7 +115,16 @@
         </ion-card>
       </ion-col>
     </ion-row>
+
+
   </ion-grid>
+
+  <!-- NO QV children -->
+  <ng-template #noQvPmfm>
+    <!-- TODO: use a simple batch modal, instead of this complex modal ?? -->
+    <ion-label color="danger" translate>ERROR.FEATURE_NOT_IMPLEMENTED</ion-label>
+  </ng-template>
+
 </form>
 
 

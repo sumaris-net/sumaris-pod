@@ -13,6 +13,10 @@ import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
+export const MEASUREMENT_PMFM_ID_REGEXP = /measurements\.\d+$/;
+export const MEASUREMENT_VALUES_PMFM_ID_REGEXP = /measurementValues\.\d+$/;
+
+
 export const MeasurementValuesTypes = {
   MeasurementModelValues: 'MeasurementModelValues',
   MeasurementFormValue: 'MeasurementFormValue'

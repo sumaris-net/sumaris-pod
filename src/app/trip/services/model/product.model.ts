@@ -11,7 +11,7 @@ import {IEntity}  from "@sumaris-net/ngx-components";
 import {Sample} from "./sample.model";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export interface IWithProductsEntity<T, ID = number>
   extends IEntity<T, ID> {

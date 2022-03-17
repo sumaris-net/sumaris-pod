@@ -4,7 +4,7 @@ import { AcquisitionLevelCodes } from '../../referential/services/model/model.en
 import { PhysicalGearForm } from './physical-gear.form';
 import { BehaviorSubject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, PlatformService } from '@sumaris-net/ngx-components';
+import { Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '../services/model/trip.model';
 
 export interface PhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear, M = PhysicalGearModal> {
@@ -56,13 +56,13 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
     protected alertCtrl: AlertController,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
 
     // Default values
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {

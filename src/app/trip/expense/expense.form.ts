@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
-import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, PlatformService, remove, removeAll, round } from '@sumaris-net/ngx-components';
+import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
@@ -93,11 +93,10 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     injector: Injector,
     protected validatorService: ExpenseValidatorService,
     protected formBuilder: FormBuilder,
-    protected programRefService: ProgramRefService,
-    protected platform: PlatformService
+    protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
     this.tabindex = 0;
   }

@@ -1,9 +1,8 @@
-import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
-import {EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import {Trip} from '../model/trip.model';
-import {VesselSnapshot} from '../../../referential/services/model/vessel-snapshot.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
+import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { Trip } from '../model/trip.model';
+import { VesselSnapshot } from '../../../referential/services/model/vessel-snapshot.model';
 import moment from 'moment/moment';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 

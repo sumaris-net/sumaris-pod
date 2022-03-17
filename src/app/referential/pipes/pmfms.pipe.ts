@@ -2,7 +2,7 @@ import {Injectable, Pipe, PipeTransform} from '@angular/core';
 import {MethodIds} from '../services/model/model.enum';
 import {PmfmValueUtils} from '../services/model/pmfm-value.model';
 import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
-import {DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService} from '@sumaris-net/ngx-components';
+import { DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, PlatformService, TranslateContextService } from '@sumaris-net/ngx-components';
 import {TranslateService} from '@ngx-translate/core';
 
 @Pipe({
@@ -113,5 +113,25 @@ export class IsMultiplePmfmPipe implements PipeTransform {
 
   transform(pmfm: IPmfm): any {
     return pmfm && pmfm.isMultiple;
+  }
+}
+
+@Pipe({
+  name: 'pmfmFieldStyle'
+})
+@Injectable({providedIn: 'root'})
+export class PmfmFieldStylePipe implements PipeTransform {
+
+  private readonly _mobile: boolean;
+
+  constructor(settings: LocalSettingsService) {
+    this._mobile = settings.mobile;
+  }
+
+  transform(pmfm: IPmfm, maxVisibleButtons?: number): any {
+    return pmfm && this._mobile && (
+      pmfm.type === 'boolean'
+      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxVisibleButtons || 3))
+    ) ? 'button' : undefined /*default*/;
   }
 }
