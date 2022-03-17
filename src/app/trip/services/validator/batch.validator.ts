@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, isNotNilOrNaN, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, isNotNilOrNaN, SharedAsyncValidators, SharedValidators, toBoolean, toFloat, toNumber } from '@sumaris-net/ngx-components';
 import { Batch, BatchUtils, BatchWeight } from '../model/batch.model';
 import { MethodIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
-import { SharedAsyncValidators } from '@sumaris-net/ngx-components/src/app/shared/validator/validators';
-import { toFloat } from '@sumaris-net/ngx-components/src/app/shared/functions';
 
 @Injectable({providedIn: 'root'})
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
