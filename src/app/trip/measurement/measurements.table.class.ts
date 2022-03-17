@@ -251,8 +251,10 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
     if (this.inlineEdition && this.options.onRowCreated) {
       this.registerSubscription(this.onStartEditingRow.subscribe(row => {
-        console.log('TODO: call onRowCreated when onStartEditingRow. Check if this is correct')
-        this.options.onRowCreated(row);
+        if (row.id !== -1) {
+          if (this.debug) console.warn('Call onRowCreated() inside onStartEditingRow. TODO rename this options into onPrepareRowForm ?');
+          this.options.onRowCreated(row);
+        }
       }));
     }
   }

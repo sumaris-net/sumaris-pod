@@ -88,7 +88,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
           dataServiceOptions: {
             saveOnlyDirtyRows: true,
           },
-          ...options,
+          ...options
         }),
         null
     );
