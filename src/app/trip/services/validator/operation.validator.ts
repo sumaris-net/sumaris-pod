@@ -571,7 +571,7 @@ export class OperationValidators {
           map((individualOnDeck) => {
             if (individualOnDeck) {
               if (form.enabled) {
-                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
+                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                   .map(pmfm => {
                     const control = measFormGroup.controls[pmfm.id];
                     if (pmfm.required) {
@@ -583,7 +583,7 @@ export class OperationValidators {
               }
             } else {
               if (form.enabled) {
-                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
+                pmfms.filter(pmfm => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                   .map(pmfm => {
                     const control = measFormGroup.controls[pmfm.id];
                     control.disable();
