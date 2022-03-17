@@ -112,13 +112,14 @@ import { AppImageModule } from '@app/image/image.module';
         },
       }
     }),
+    // FIXME
+    //HammerModule
 
     // functional modules
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
     AppImageModule.forRoot(),
     SocialModule.forRoot(),
-    HammerModule,
     AppRoutingModule
   ],
   providers: [
@@ -186,7 +187,8 @@ import { AppImageModule } from '@app/image/image.module';
     }},
 
     // Configure hammer gesture
-    {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
+    // FIXME: not working well on tab
+    //{provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 
     // Settings default values
     { provide: APP_LOCAL_SETTINGS, useValue: <Partial<LocalSettings>>{
