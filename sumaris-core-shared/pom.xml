@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.20.2</version>
+    <version>1.21.0</version>
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
@@ -143,6 +143,12 @@
     <dependency>
       <groupId>com.github.jnr</groupId>
       <artifactId>jnr-ffi</artifactId>
+    </dependency>
+
+    <!-- observables -->
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
     </dependency>
 
     <!-- Nuiton-* -->

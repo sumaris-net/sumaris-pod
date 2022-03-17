@@ -25,9 +25,8 @@ package net.sumaris.core.event.data;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
-import net.sumaris.core.service.administration.programStrategy.ProgramService;
+import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.service.data.DenormalizedBatchService;
-import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
@@ -44,19 +43,14 @@ import javax.annotation.Resource;
 public class BatchEventListener {
 
     @Resource
-    private OperationService operationService;
-
-    @Resource
-    private ProgramService programService;
-
-    @Resource
     private DenormalizedBatchService denormalizedBatchService;
 
     public BatchEventListener() {
         log.info("Listening Batch save event, to execute denormalization on each changes");
     }
 
-    @JmsListener(destination = "updateBatch", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(selector = "entityName = 'Batch' AND operation = 'update'",
+        destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     public void onUpdateBatch(BatchVO batch) {
 
         BatchVO catchBatch = batch != null && batch.getParent() == null && batch.getParentId() == null ? batch : null;

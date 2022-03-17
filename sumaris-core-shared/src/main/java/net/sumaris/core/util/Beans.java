@@ -29,6 +29,7 @@ import com.google.common.collect.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -524,5 +525,12 @@ public class Beans {
             if (predicate.test(iter.previous()))
                 return iter.nextIndex();
         return -1;
+    }
+
+    public static Integer hashCode(Collection<?> beans) {
+        return getStream(beans)
+            .map(item -> item.hashCode())
+            .reduce((h1, h2) -> h1 * h2)
+            .orElse(null);
     }
 }

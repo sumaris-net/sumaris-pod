@@ -185,24 +185,24 @@ public class TaxonNameRepositoryImpl
     @Override
     @Caching(
             evict = {
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#source.id", condition = "#source.id != null"),
                     @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true)
             }
     )
-    public TaxonNameVO save(TaxonNameVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getReferenceTaxonId(), "Missing 'ReferenceTaxonId'");
-        Preconditions.checkNotNull(vo.getTaxonomicLevelId(), "Missing 'TaxonomicLevelId'");
-        Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
-        Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
-        Preconditions.checkNotNull(vo.getIsNaming(), "Missing 'IsNaming'");
-        Preconditions.checkNotNull(vo.getIsReferent(), "Missing 'IsReferent'");
-        Preconditions.checkNotNull(vo.getIsVirtual(), "Missing 'IsVirtual'");
+    public TaxonNameVO save(TaxonNameVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getReferenceTaxonId(), "Missing 'ReferenceTaxonId'");
+        Preconditions.checkNotNull(source.getTaxonomicLevelId(), "Missing 'TaxonomicLevelId'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
+        Preconditions.checkNotNull(source.getIsNaming(), "Missing 'IsNaming'");
+        Preconditions.checkNotNull(source.getIsReferent(), "Missing 'IsReferent'");
+        Preconditions.checkNotNull(source.getIsVirtual(), "Missing 'IsVirtual'");
 
-        if (vo.getId() == null && vo.getStatusId() == null)
+        if (source.getId() == null && source.getStatusId() == null)
             // Set default status to Temporary
-            vo.setStatusId(StatusEnum.TEMPORARY.getId());
+            source.setStatusId(StatusEnum.TEMPORARY.getId());
 
-        return super.save(vo);
+        return super.save(source);
     }
 }

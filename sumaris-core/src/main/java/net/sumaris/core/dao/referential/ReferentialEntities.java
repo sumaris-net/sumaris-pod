@@ -31,6 +31,8 @@ import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.referential.conversion.UnitConversion;
+import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.grouping.Grouping;
@@ -57,6 +59,7 @@ import org.springframework.beans.BeanUtils;
 import java.beans.PropertyDescriptor;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Helper class
@@ -102,6 +105,8 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.originItemType");
         I18n.n("sumaris.persistence.table.strategy");
         I18n.n("sumaris.persistence.table.processingFrequency");
+        I18n.n("sumaris.persistence.table.weightLengthConversion");
+        I18n.n("sumaris.persistence.table.roundWeightConversion");
     }
 
     public static final List<Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES = ImmutableList.of(
@@ -165,6 +170,12 @@ public class ReferentialEntities {
             REFERENTIAL_CLASSES,
             Class::getSimpleName);
 
+
+    public static final List<Class<?>> CONVERSION_CLASSES = ImmutableList.of(
+        WeightLengthConversion.class,
+        UnitConversion.class
+    );
+
     public static final List<Class<? extends IReferentialEntity>> LAST_UPDATE_DATE_CLASSES_EXCLUDES = ImmutableList.of(
         // Grouping
         GroupingClassification.class,
@@ -180,8 +191,10 @@ public class ReferentialEntities {
     );
 
 
-    public static final Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = REFERENTIAL_CLASSES
-            .stream().filter(c -> !LAST_UPDATE_DATE_CLASSES_EXCLUDES.contains(c))
+    public static final Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = Stream.concat(
+            REFERENTIAL_CLASSES.stream(),
+            CONVERSION_CLASSES.stream()
+        ).filter(c -> !LAST_UPDATE_DATE_CLASSES_EXCLUDES.contains(c))
             .map(Class::getSimpleName)
             .collect(Collectors.toList());
 

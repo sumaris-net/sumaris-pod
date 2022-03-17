@@ -29,6 +29,7 @@ import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -68,27 +69,17 @@ public class VesselSnapshotRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
-    private final SumarisConfiguration configuration;
-    private boolean isOracleDatabase  = false;
     private boolean enableRegistrationCodeSearchAsPrefix = false;
 
     @Autowired
     public VesselSnapshotRepositoryImpl(EntityManager entityManager,
                                         VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository,
                                         LocationRepository locationRepository,
-                                        ReferentialDao referentialDao,
-                                        SumarisConfiguration configuration) {
+                                        ReferentialDao referentialDao) {
         super(VesselFeatures.class, VesselSnapshotVO.class, entityManager);
         this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
-        this.configuration = configuration;
-    }
-
-
-    @PostConstruct
-    private void setup() {
-        isOracleDatabase = Daos.isOracleDatabase(configuration.getJdbcURL());
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -335,10 +326,5 @@ public class VesselSnapshotRepositoryImpl
                 }
             }
         }
-    }
-
-    @Override
-    public boolean isOracleDatabase() {
-        return isOracleDatabase;
     }
 }

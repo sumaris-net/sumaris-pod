@@ -230,8 +230,8 @@ public class ExtractionProductRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER, allEntries = true),
         }
     )
-    public ExtractionProductVO save(ExtractionProductVO vo) {
-        return super.save(vo);
+    public ExtractionProductVO save(ExtractionProductVO source) {
+        return super.save(source);
     }
 
     @Override

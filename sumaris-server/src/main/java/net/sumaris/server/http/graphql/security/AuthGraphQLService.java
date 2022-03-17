@@ -25,6 +25,8 @@ package net.sumaris.server.http.graphql.security;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.administration.user.UserToken;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.util.security.AuthTokenVO;
@@ -32,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.text.ParseException;
 
 @Service
 @GraphQLApi
@@ -51,6 +55,15 @@ public class AuthGraphQLService {
             return true;
         }
         catch (AuthenticationException e) {
+            try {
+                String pubkey = AuthTokenVO.parse(token).getPubkey();
+                if (StringUtils.isNotBlank(pubkey)) {
+                    log.warn("Cannot authenticate user with pubkey {{}}: {}", pubkey, e.getMessage());
+                }
+                return false;
+            } catch(ParseException pe) {
+                // continue
+            }
             log.warn(e.getMessage());
             return false;
         }

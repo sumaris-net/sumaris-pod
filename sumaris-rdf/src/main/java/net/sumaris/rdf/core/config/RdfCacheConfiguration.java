@@ -44,7 +44,7 @@ public class RdfCacheConfiguration {
     }
 
     @Bean
-    public JCacheManagerCustomizer rdfCacheCustomizer() {
+    public JCacheManagerCustomizer rdfCacheManagerCustomizer() {
         return cacheManager -> {
             log.info("Adding {RDF} caches...");
             Caches.createHeapCache(cacheManager, Names.ONTOLOGY, Integer.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);

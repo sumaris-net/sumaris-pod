@@ -113,7 +113,7 @@ public class SumarisDatabaseMetadata {
 
 	@Cacheable(cacheNames = CacheConfiguration.Names.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisTableMetadata getTable(String name) throws HibernateException {
-		return getTable(name.toLowerCase(), defaultSchemaName, defaultCatalogName);
+		return getTable(name, defaultSchemaName, defaultCatalogName);
 	}
 
 

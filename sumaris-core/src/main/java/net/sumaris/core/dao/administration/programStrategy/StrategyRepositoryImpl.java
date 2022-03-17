@@ -129,23 +129,23 @@ public class StrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
-    public StrategyVO save(StrategyVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getProgramId(), "Missing 'programId'");
-        Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
-        Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
+    public StrategyVO save(StrategyVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getProgramId(), "Missing 'programId'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
 
-        if (vo.getId() == null && vo.getStatusId() == null)
+        if (source.getId() == null && source.getStatusId() == null)
             // Set default status to Temporary
-            vo.setStatusId(StatusEnum.TEMPORARY.getId());
+            source.setStatusId(StatusEnum.TEMPORARY.getId());
 
-        return super.save(vo);
+        return super.save(source);
     }
 
     @Override
@@ -198,8 +198,8 @@ public class StrategyRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
-    public void deleteById(Integer integer) {
-        super.deleteById(integer);
+    public void deleteById(Integer id) {
+        super.deleteById(id);
     }
 
     @Override
@@ -602,17 +602,17 @@ public class StrategyRepositoryImpl
 
 
     @Override
-    protected void onBeforeSaveEntity(StrategyVO vo, Strategy entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(StrategyVO source, Strategy target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // Verify label is unique by program
         long count = this.findAll(StrategyFilterVO.builder()
-                .programIds(new Integer[]{vo.getProgramId()}).label(vo.getLabel()).build())
+                .programIds(new Integer[]{source.getProgramId()}).label(source.getLabel()).build())
             .stream()
-            .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
+            .filter(s -> isNew || !Objects.equals(s.getId(), source.getId()))
             .count();
         if (count > 0) {
-            throw new NotUniqueException(String.format("Strategy label '%s' already exists", vo.getLabel()));
+            throw new NotUniqueException(String.format("Strategy label '%s' already exists", source.getLabel()));
         }
     }
 

@@ -103,9 +103,8 @@ public class TaxonGroupRepositoryImpl
 
     @Override
     public void updateTaxonGroupHierarchies() {
-        if (log.isInfoEnabled()) {
-            log.info("Updating technical tables {TAXON_GROUP_HIERARCHY} and {TAXON_GROUP2TAXON_HIERARCHY}...");
-        }
+        log.info("Updating technical tables {TAXON_GROUP_HIERARCHY} and {TAXON_GROUP2TAXON_HIERARCHY}...");
+
         updateTaxonGroupHierarchy();
         updateTaxonGroup2TaxonHierarchy();
     }
@@ -142,7 +141,7 @@ public class TaxonGroupRepositoryImpl
                             childId));
                 }
 
-                TaxonGroup parent = tg.getParentTaxonGroup();
+                TaxonGroup parent = tg.getParent();
                 while (parent != null) {
                     Integer parentId = parent.getId();
                     if (!existingLinksToRemove.remove(parentId, childId)
@@ -157,7 +156,7 @@ public class TaxonGroupRepositoryImpl
                                 parentId,
                                 childId));
                     }
-                    parent = parent.getParentTaxonGroup();
+                    parent = parent.getParent();
                 }
             });
 

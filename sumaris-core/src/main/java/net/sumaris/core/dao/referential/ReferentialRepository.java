@@ -51,7 +51,6 @@ public interface ReferentialRepository<
 
     List<V> findAll(F filter);
 
-
     List<V> findAll(F filter, @Nullable O fetchOptions);
 
     List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions);

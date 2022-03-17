@@ -63,16 +63,16 @@ public class SoftwareServiceImpl implements SoftwareService {
 
         boolean isNew = source.getId() == null;
 
-        SoftwareVO result = dao.save(source);
+        SoftwareVO target = dao.save(source);
 
         // Emit event
         if (isNew) {
-            publisher.publishEvent(new EntityInsertEvent(result.getId(), Software.class.getSimpleName(), result));
+            publisher.publishEvent(new EntityInsertEvent(target.getId(), Software.class.getSimpleName(), target));
         } else {
-            publisher.publishEvent(new EntityUpdateEvent(result.getId(), Software.class.getSimpleName(), result));
+            publisher.publishEvent(new EntityUpdateEvent(target.getId(), Software.class.getSimpleName(), target));
         }
 
-        return result;
+        return target;
     }
 
 

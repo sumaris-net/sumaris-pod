@@ -37,7 +37,6 @@ import javax.persistence.EntityManager;
 /**
  * @author blavenie
  */
-@Slf4j
 public class GearRepositoryImpl
     extends ReferentialRepositoryImpl<Gear, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 

@@ -30,6 +30,7 @@ import net.sumaris.server.util.security.AuthTokenVO;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -82,4 +83,6 @@ public interface AuthService extends IAuthService<PersonVO> {
     @Transactional
     UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void cleanCacheForUser(PersonVO user);
 }

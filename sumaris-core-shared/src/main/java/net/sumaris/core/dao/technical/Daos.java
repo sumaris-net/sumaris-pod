@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jdbc.PostgresqlStatements;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
@@ -1881,5 +1882,18 @@ public class Daos {
             default:
                 throw new SumarisTechnicalException("Daos.getHashCodeString() not implemented for DBMS: " + databaseType.name());
         }
+    }
+
+    public static Expression<Date> nvlEndDate(Path<?> root, CriteriaBuilder cb,
+                                              String endDateFieldName,
+                                              DatabaseType databaseType) {
+
+        if (databaseType == DatabaseType.oracle) {
+            // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
+            return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
+                root.get(endDateFieldName)
+            );
+        }
+        return cb.coalesce(root.get(endDateFieldName), Daos.DEFAULT_END_DATE_TIME);
     }
 }

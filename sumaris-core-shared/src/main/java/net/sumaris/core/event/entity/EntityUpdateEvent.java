@@ -22,11 +22,17 @@
 
 package net.sumaris.core.event.entity;
 
+import lombok.Builder;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
+@Builder
 public class EntityUpdateEvent extends AbstractEntityEvent {
+
+    public EntityUpdateEvent() {
+        super(EntityEventOperation.UPDATE);
+    }
 
     public EntityUpdateEvent(Serializable id, String entityName, IValueObject data){
         super(EntityEventOperation.UPDATE, id, entityName, data);

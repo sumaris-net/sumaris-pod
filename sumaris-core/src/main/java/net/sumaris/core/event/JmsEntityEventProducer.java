@@ -23,15 +23,14 @@
 package net.sumaris.core.event;
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -40,6 +39,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Message;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -79,18 +80,40 @@ public class JmsEntityEventProducer {
         Preconditions.checkNotNull(event.getEntityName());
         Preconditions.checkNotNull(event.getId());
 
-        // Compute a destination name
-        String destinationName = event.getJmsDestinationName();
-
-        log.debug("Sending JMS message... {destination: '{}', id: {}}", destinationName, event.getId());
 
         // Send data, or ID
         if (event.getData() != null) {
-            jmsTemplate.convertAndSend(destinationName, event.getData());
+            jmsTemplate.convertAndSend(
+                JmsEntityEvents.DESTINATION,
+                event.getData(),
+                message -> processMessage(message, event)
+            );
         }
         else {
-            jmsTemplate.convertAndSend(destinationName, event.getId());
+            jmsTemplate.convertAndSend(
+                JmsEntityEvents.DESTINATION,
+                event.getId(),
+                message -> processMessage(message, event)
+            );
         }
     }
 
+    private Message processMessage(final Message message, @NonNull final IEntityEvent event) throws JMSException {
+        String operation = event.getOperation().toString().toLowerCase();
+        if (log.isDebugEnabled()) {
+            log.debug("Sending JMS message... {destination: '{}', operation: '{}', entityName: '{}', id: {}}",
+                JmsEntityEvents.DESTINATION,
+                operation,
+                event.getEntityName(),
+                event.getId()
+            );
+        }
+
+        // Add properties to be able to rebuild an event - @see EntityEvents
+        message.setStringProperty(IEntityEvent.Fields.OPERATION, operation);
+        message.setStringProperty(IEntityEvent.Fields.ENTITY_NAME, event.getEntityName());
+        message.setStringProperty(IEntityEvent.Fields.ID, event.getId().toString());
+
+        return message;
+    }
 }

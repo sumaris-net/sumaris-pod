@@ -22,27 +22,22 @@ package net.sumaris.core.dao.referential.pmfm;
  * #L%
  */
 
+import net.sumaris.core.dao.referential.IEntityWithStatusSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/08/2020.
  */
-public interface PmfmSpecifications {
-
-    String STATUS_PARAMETER = "status";
-    String STATUS_SET_PARAMETER = "statusSet";
+public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Pmfm> {
 
     default Specification<Pmfm> hasPmfmPart(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
         BindableSpecification<Pmfm> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -79,21 +74,6 @@ public interface PmfmSpecifications {
     default Specification<Pmfm> inStatusIds(StatusEnum... status) {
         Integer[] statusIds = Arrays.stream(status).map(StatusEnum::getId).toArray(Integer[]::new);
         return inStatusIds(statusIds);
-    }
-
-    default Specification<Pmfm> inStatusIds(Integer... statusIds) {
-        BindableSpecification<Pmfm> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.distinct(true); // Set distinct here because inStatusIds is always used (usually ...)
-            ParameterExpression<Collection> statusParam = criteriaBuilder.parameter(Collection.class, STATUS_PARAMETER);
-            ParameterExpression<Boolean> statusSetParam = criteriaBuilder.parameter(Boolean.class, STATUS_SET_PARAMETER);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isFalse(statusSetParam),
-                    criteriaBuilder.in(root.get(Pmfm.Fields.STATUS).get(Status.Fields.ID)).value(statusParam)
-            );
-        });
-        specification.addBind(STATUS_SET_PARAMETER, ArrayUtils.isNotEmpty(statusIds));
-        specification.addBind(STATUS_PARAMETER, ArrayUtils.isEmpty(statusIds) ? null : Arrays.asList(statusIds));
-        return specification;
     }
 
     List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId);

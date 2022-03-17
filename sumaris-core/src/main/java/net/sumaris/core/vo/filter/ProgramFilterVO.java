@@ -25,6 +25,8 @@ package net.sumaris.core.vo.filter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Date;
+
 @Data
 @FieldNameConstants
 @Builder
@@ -53,6 +55,8 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private Integer[] includedIds;
     private Integer[] excludedIds;
+
+    private Date minUpdateDate;
 
     @Deprecated
     private Integer levelId;

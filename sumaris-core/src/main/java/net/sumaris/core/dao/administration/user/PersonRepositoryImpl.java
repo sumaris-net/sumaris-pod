@@ -35,8 +35,6 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
@@ -55,7 +53,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Pageable;
@@ -80,11 +77,9 @@ public class PersonRepositoryImpl
     @Autowired
     protected DepartmentRepository departmentRepository;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
-
     protected PersonRepositoryImpl(EntityManager entityManager) {
         super(Person.class, PersonVO.class, entityManager);
+        setPublishEvent(true);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -130,7 +125,6 @@ public class PersonRepositoryImpl
             .stream()
             .map(this::toVO)
             .collect(Collectors.toList());
-
     }
 
     @Override
@@ -169,7 +163,7 @@ public class PersonRepositoryImpl
     protected Specification<Person> toSpecification(PersonFilterVO filter) {
 
         return BindableSpecification
-            .where(inStatusIds(filter))
+            .where(inStatusIds(filter.getStatusIds()))
             .and(hasUserProfileIds(filter))
             .and(hasPubkey(filter.getPubkey()))
             .and(hasEmail(filter.getEmail()))
@@ -193,66 +187,28 @@ public class PersonRepositoryImpl
     }
 
     @Override
-    @Caching(put = {
-        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#vo.pubkey", condition = "#vo != null && #vo.id != null && #vo.pubkey != null")
-    })
-    public PersonVO save(PersonVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getEmail(), "Missing 'email'");
-        Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
-        Preconditions.checkNotNull(vo.getDepartment(), "Missing 'department'");
-        Preconditions.checkNotNull(vo.getDepartment().getId(), "Missing 'department.id'");
-
-        Person entity = toEntity(vo);
-
-        boolean isNew = entity.getId() == null;
-        if (isNew) {
-            entity.setCreationDate(new Date());
-        }
-
-        // If new
-        if (isNew) {
-            // Set default status to Temporary
-            if (vo.getStatusId() == null) {
-                vo.setStatusId(StatusEnum.TEMPORARY.getId());
-            }
-        }
-        // If update
-        else {
-
-            // Check update date
-            Daos.checkUpdateDateForUpdate(vo, entity);
-
-            // Lock entityName
-            lockForUpdate(entity);
-        }
-
-        // Update update_dt
-        Date newUpdateDate = getDatabaseCurrentDate();
-        entity.setUpdateDate(newUpdateDate);
-
-        Person savedEntity = save(entity);
-
-        // Update VO
-        onAfterSaveEntity(vo, savedEntity, isNew);
-
-        return vo;
-
+    @Caching(
+        evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key = "#source.id", condition = "#source != null && #source.id != null")
+        },
+        put = {
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source != null && #source.id != null && #source.pubkey != null")
+        })
+    public PersonVO save(PersonVO source) {
+        return super.save(source);
     }
 
     @Override
-    protected void onAfterSaveEntity(PersonVO vo, Person savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
+    protected void onBeforeSaveEntity(PersonVO source, Person target, boolean isNew) {
         if (isNew) {
-            vo.setCreationDate(savedEntity.getCreationDate());
-        }
+            target.setCreationDate(new Date());
+            source.setCreationDate(target.getCreationDate());
 
-        // Publish event
-        if (isNew) {
-            publisher.publishEvent(new EntityInsertEvent(vo.getId(), Person.class.getSimpleName(), vo));
-        } else {
-            publisher.publishEvent(new EntityUpdateEvent(vo.getId(), Person.class.getSimpleName(), vo));
+            // Set default status to Temporary
+            if (source.getStatusId() == null) {
+                source.setStatusId(StatusEnum.TEMPORARY.getId());
+            }
         }
     }
 
@@ -305,15 +261,17 @@ public class PersonRepositoryImpl
     @Override
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key = "#id")
     })
     public void deleteById(Integer id) {
-        log.debug(String.format("Deleting person {id=%s}...", id));
-
         super.deleteById(id);
+    }
 
-        // Emit delete person event
-        publisher.publishEvent(new EntityDeleteEvent(id, Person.class.getSimpleName(), null));
+    @Override
+    protected void publishDeleteEvent(PersonVO vo) {
+        vo.setStatusId(StatusEnum.DELETED.getId());
+        super.publishDeleteEvent(vo);
     }
 
     protected void toVO(Person source, PersonVO target, PersonFetchOptions fetchOptions, boolean copyIfNull) {

@@ -299,11 +299,11 @@ public class SampleRepositoryImpl
     }
 
     @Override
-    protected void onBeforeSaveEntity(SampleVO vo, Sample entity, boolean isNew) {
-        if (!isNew && entity.getCreationDate() == null) {
-            log.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", entity.getId(), entity.getLabel()));
+    protected void onBeforeSaveEntity(SampleVO source, Sample target, boolean isNew) {
+        if (!isNew && target.getCreationDate() == null) {
+            log.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", target.getId(), target.getLabel()));
         }
-        super.onBeforeSaveEntity(vo, entity, isNew);
+        super.onBeforeSaveEntity(source, target, isNew);
     }
 
     @Override

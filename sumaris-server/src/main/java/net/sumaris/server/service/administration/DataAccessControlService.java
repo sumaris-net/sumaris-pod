@@ -25,6 +25,7 @@ package net.sumaris.server.service.administration;
 import net.sumaris.core.vo.data.IRootDataVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
@@ -50,6 +51,9 @@ public interface DataAccessControlService {
 
     @Transactional(readOnly = true)
     Optional<Integer[]> getAllAuthorizedProgramIds(Integer[] programIds);
+
+    @Transactional(readOnly = true)
+    List<Integer> getAuthorizedProgramIdsByUserId(int userId);
 
     @Transactional(readOnly = true)
     Optional<Integer[]> getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds);

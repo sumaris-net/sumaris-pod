@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.20.2</version>
+    <version>1.21.0</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -282,6 +282,7 @@
 
                   ConfigurationBuilder builder = new ConfigurationBuilder();
                   builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}"));
+                  builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}.referential"));
                   builder.addUrls(ClasspathHelper.forPackage("net.sumaris.core.vo"));
                   new org.reflections.Reflections(builder)
                       .save("${escapedOutputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")

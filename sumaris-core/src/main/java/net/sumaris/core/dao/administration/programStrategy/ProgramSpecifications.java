@@ -85,4 +85,6 @@ public interface ProgramSpecifications {
     List<ProgramDepartmentVO> saveDepartmentsByProgramId(int programId, List<ProgramDepartmentVO> sources);
 
     List<ProgramPersonVO> savePersonsByProgramId(int programId, List<ProgramPersonVO> sources);
+
+    void clearCache();
 }

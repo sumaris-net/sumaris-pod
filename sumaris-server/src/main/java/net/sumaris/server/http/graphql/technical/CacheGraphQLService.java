@@ -25,38 +25,28 @@ package net.sumaris.server.http.graphql.technical;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.cache.Caches;
+import net.sumaris.core.dao.technical.cache.CacheManager;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.ext.com.google.common.collect.Maps;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
-import javax.cache.Cache;
-import javax.cache.CacheManager;
+import javax.annotation.Resource;
 import java.util.Map;
 
 @Slf4j
 @Component
 @GraphQLApi
-@ConditionalOnProperty(
-    prefix = "spring",
-    name = {"cache.enabled"},
-    havingValue = "true",
-    matchIfMissing = true
-)
+@ConditionalOnBean({CacheManager.class})
 public class CacheGraphQLService {
 
-    @Autowired(required = false)
+    @Resource(name = "applicationCacheManager")
     private CacheManager cacheManager;
 
     @GraphQLQuery(name = "cacheStatistics", description = "Get cache statistics")
     @IsAdmin
     public Map<String, Map<String, Long>> getCacheStats() {
-        if (cacheManager == null) return Maps.newHashMap();
-        return Caches.getStatistics(cacheManager);
+        return cacheManager.getCacheStats();
     }
 
     @GraphQLQuery(name = "clearCache", description = "Clear a single cache or all caches")
@@ -64,24 +54,7 @@ public class CacheGraphQLService {
     public boolean clearCache(
         @GraphQLArgument(name = "name") String name
     ) {
-        if (cacheManager == null) return false;
-
-        try {
-            if (StringUtils.isBlank(name)) {
-                log.info("Clearing caches...");
-                Caches.clearAll(cacheManager);
-
-            } else {
-                log.info(String.format("Clearing cache (%s)...", name));
-                Cache cache = cacheManager.getCache(name);
-                if (cache != null) cache.removeAll();
-            }
-        } catch (RuntimeException e) {
-            log.error("Error while clearing caches", e);
-            return false;
-        }
-        log.info("Caches cleared.");
-        return true;
+        return cacheManager.clearCache(name);
     }
 
 }

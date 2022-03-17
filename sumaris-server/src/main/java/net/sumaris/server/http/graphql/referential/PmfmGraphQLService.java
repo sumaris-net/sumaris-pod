@@ -27,6 +27,8 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
+
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.Fraction;
 import net.sumaris.core.model.referential.pmfm.Matrix;
@@ -87,7 +89,7 @@ public class PmfmGraphQLService {
             @GraphQLArgument(name = "label") String label,
             @GraphQLArgument(name = "id") Integer id
     ) {
-        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label), "Required 'id' or 'label' to get a pmfm");
         if (id != null) {
             return pmfmService.get(id);
         }

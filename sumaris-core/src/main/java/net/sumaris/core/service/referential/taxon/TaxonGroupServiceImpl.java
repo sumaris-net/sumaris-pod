@@ -77,6 +77,11 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     }
 
     @Override
+    public TaxonGroupVO get(int id) {
+        return taxonGroupRepository.get(id);
+    }
+
+    @Override
     public boolean updateTaxonGroupHierarchies() {
 
         try {

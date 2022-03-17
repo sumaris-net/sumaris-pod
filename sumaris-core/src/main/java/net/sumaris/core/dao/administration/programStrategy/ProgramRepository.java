@@ -55,7 +55,7 @@ public interface ProgramRepository
             "               inner join PERSON P on S2D.DEPARTMENT_FK = P.DEPARTMENT_FK" +
             "           where p.ID = :id";
     @Query(value = findQuery, nativeQuery = true)
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, unless="#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key="#p0", unless="#result==null")
     List<Integer> getProgramIdsByUserId(@Param("id") int id);
 
 }

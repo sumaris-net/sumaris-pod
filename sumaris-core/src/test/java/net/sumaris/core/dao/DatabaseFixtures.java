@@ -250,6 +250,15 @@ public class DatabaseFixtures {
 		return 1122; // MNZ - Baudroie
 	}
 
+	public Integer getReferenceTaxonId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		return 1001 + index;
+	}
+
+	public Integer getReferenceTaxonIdCOD() {
+		return 1061; // Gadus Morhua
+	}
+
     public ProgramVO getDefaultProgram() {
 		ProgramVO program = new ProgramVO();
 		program.setId(1);

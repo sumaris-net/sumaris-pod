@@ -20,25 +20,13 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.cache;
+package net.sumaris.core.dao.referential.conversion;
 
-import lombok.extern.slf4j.Slf4j;
-import org.ehcache.event.CacheEvent;
-import org.ehcache.event.CacheEventListener;
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
+import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
+import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
 
-@Slf4j
-public class CacheEventLogger implements CacheEventListener<Object, Object> {
+public interface RoundWeightConversionRepository extends SumarisJpaRepository<RoundWeightConversion, Integer, RoundWeightConversionVO>,
+    RoundWeightConversionSpecifications {
 
-    public CacheEventLogger() {
-        log.info("Creating cache event logger");
-    }
-
-    @Override
-    public void onEvent(CacheEvent cacheEvent) {
-        if (log.isDebugEnabled()) {
-            log.debug("Caching event {} {}", cacheEvent.getType(), cacheEvent.getKey());
-
-            // TODO: send clear cache event to the ActiveMQ event queue
-        }
-    }
 }

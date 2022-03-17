@@ -37,6 +37,9 @@ import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -63,6 +66,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -100,10 +104,16 @@ public class ProgramRepositoryImpl
     @Autowired
     protected ProgramPrivilegeRepository programPrivilegeRepository;
 
-
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
         setLockForUpdate(true);
+        setPublishEvent(true);
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        // Force clear cache, because authorized programs can depends on the configuration
+        clearCache();
     }
 
     @Override
@@ -209,22 +219,32 @@ public class ProgramRepositoryImpl
     }
 
     @Override
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
+    })
+    public void clearCache() {
+        log.debug("Cleaning Program's cache...");
+    }
+
+    @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         },
         put = {
-            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#vo.id", condition = " #vo.id != null"),
-            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#vo.label", condition = "#vo.label != null")
+            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = " #source.id != null"),
+            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null")
         }
     )
-    public ProgramVO save(ProgramVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getLabel(), "Missing 'label'");
-        Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
-        return super.save(vo);
+    public ProgramVO save(ProgramVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel(), "Missing 'label'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        return super.save(source);
     }
 
     @Override
@@ -384,16 +404,15 @@ public class ProgramRepositoryImpl
     /* -- protected functions -- */
 
     @Override
-    protected void onBeforeSaveEntity(ProgramVO vo, Program entity, boolean isNew) {
+    protected void onBeforeSaveEntity(ProgramVO source, Program target, boolean isNew) {
         // Set default status to Temporary
-        if (isNew && vo.getStatusId() == null) {
-            vo.setStatusId(StatusEnum.TEMPORARY.getId());
+        if (isNew && source.getStatusId() == null) {
+            source.setStatusId(StatusEnum.TEMPORARY.getId());
         }
     }
 
     @Override
     protected void onAfterSaveEntity(final ProgramVO vo, final Program savedEntity, boolean isNew) {
-        EntityManager em = getEntityManager();
 
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
@@ -401,6 +420,7 @@ public class ProgramRepositoryImpl
         saveProperties(vo.getProperties(), savedEntity, savedEntity.getUpdateDate());
 
         // Flush
+        EntityManager em = getEntityManager();
         em.flush();
         em.clear();
     }

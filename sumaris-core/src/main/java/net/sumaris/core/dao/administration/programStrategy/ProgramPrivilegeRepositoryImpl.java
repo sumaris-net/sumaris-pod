@@ -25,11 +25,17 @@ package net.sumaris.core.dao.administration.programStrategy;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.context.event.EventListener;
 
 import javax.persistence.EntityManager;
 
@@ -49,5 +55,19 @@ public class ProgramPrivilegeRepositoryImpl
     public ReferentialVO get(int id) {
         return super.get(id);
     }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        // Force clear cache, because Program Privilege enum may have changed
+        clearCache();
+    }
+
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, allEntries = true)
+    })
+    protected void clearCache() {
+        log.debug("Cleaning Program privilege's cache...", createEntity());
+    }
+
 
 }

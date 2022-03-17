@@ -27,12 +27,13 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
+import io.reactivex.BackpressureStrategy;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.administration.user.Persons;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
@@ -40,7 +41,8 @@ import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.EntityEventService;
+import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,7 +65,7 @@ public class AccountGraphQLService {
     private AccountService accountService;
 
     @Resource
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
 
     @Resource
     private ImageService imageService;
@@ -77,8 +79,19 @@ public class AccountGraphQLService {
             log.warn("Deprecated used of GraphQL 'account' query. Since version 1.8.0, the 'pubkey' argument has been deprecated, and will be ignored.");
         }
 
-        PersonVO person = this.authService.getAuthenticatedUser()
-            .orElseThrow(() -> new UnauthorizedException("Accès refusé"));
+        PersonVO person = this.authService.getAuthenticatedUser().orElse(null);
+
+        // Check if user exists
+        if (person == null) {
+            throw new UnauthorizedException(I18n.t("sumaris.error.account.unauthorized"));
+        }
+
+        // Check if user has been disabled
+        if (Persons.isDisableOrDeleted(person)) {
+            authService.cleanCacheForUser(person);
+            throw new UnauthorizedException(I18n.t("sumaris.error.account.unauthorized"));
+        }
+
         AccountVO result = accountService.getById(person.getId());
         imageService.fillAvatar(result);
         return result;
@@ -131,10 +144,12 @@ public class AccountGraphQLService {
     @IsGuest
     @Transactional(readOnly = true)
     public Publisher<AccountVO> updateAccount(
-            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond) {
+        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond
+    ) {
 
-        PersonVO person = this.authService.getAuthenticatedUser().get();
-        return changesPublisherService.getPublisher(Person.class, AccountVO.class, person.getId(), intervalInSecond, true);
+        Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
+        return entityEventService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
 }

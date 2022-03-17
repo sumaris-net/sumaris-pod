@@ -58,6 +58,9 @@ public interface AccountService {
     @Transactional(readOnly = true)
     List<String> getAllTokensByPubkey(String pubkey);
 
+    @Transactional(readOnly = false)
+    List<String> deleteAllTokensByPubkey(String pubkey);
+
     @Transactional(readOnly = true)
     boolean isStoredToken(String token, String pubkey);
 

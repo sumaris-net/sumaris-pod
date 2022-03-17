@@ -80,16 +80,16 @@ public class DepartmentRepositoryImpl
 
     @Override
     @Caching(put = {
-        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_LABEL, key="#vo.label", condition = "#vo != null && #vo.id != null && #vo.label != null")
+        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
+        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_LABEL, key="#source.label", condition = "#source != null && #source.id != null && #source.label != null")
     })
-    public DepartmentVO save(DepartmentVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getLabel());
-        Preconditions.checkNotNull(vo.getName());
-        Preconditions.checkNotNull(vo.getSiteUrl());
+    public DepartmentVO save(DepartmentVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
+        Preconditions.checkNotNull(source.getName());
+        Preconditions.checkNotNull(source.getSiteUrl());
 
-        return super.save(vo);
+        return super.save(source);
     }
 
     @Override
