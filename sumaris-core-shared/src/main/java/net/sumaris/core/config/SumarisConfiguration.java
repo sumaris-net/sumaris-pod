@@ -268,7 +268,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     protected void initTimeZone(ApplicationConfig applicationConfig) {
 
-        String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
+        String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey());
         if (StringUtils.isNotBlank(dbTimeZone)) {
             if (log.isInfoEnabled()) {
                 log.info("Using timezone {{}} for database", dbTimeZone);
@@ -277,7 +277,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             log.info("Using default timezone {{}} for database", System.getProperty("user.timezone"));
         }
         // Set to system properties (need by JPA)
-        System.setProperty(SumarisConfigurationOption.DB_TIMEZONE.getKey(), dbTimeZone);
+        System.setProperty(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey(), dbTimeZone);
     }
 
 
@@ -483,7 +483,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * @return a {@link TimeZone} object.
      */
     public TimeZone getDbTimezone() {
-        String tz = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
+        String tz = applicationConfig.getOption(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey());
         return StringUtils.isNotBlank(tz) ? TimeZone.getTimeZone(tz) : TimeZone.getDefault();
     }
 

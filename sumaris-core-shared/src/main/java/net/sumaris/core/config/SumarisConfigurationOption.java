@@ -26,7 +26,6 @@ package net.sumaris.core.config;
 
 import net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect;
 import net.sumaris.core.util.Geometries;
-import org.geolatte.geom.Geometry;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
@@ -127,17 +126,17 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "SELECT COUNT(*) FROM SYSTEM_VERSION",
         String.class),
 
+    DB_TIMEZONE(
+        "sumaris.persistence.db.timezone", // /!\ key uused by sumaris-app - DO NOT CHANGED
+        n("sumaris.config.option.db.timezone.description"),
+        "${user.timezone}",
+        String.class,
+        true),
+
     DB_CREATE_SCRIPT_PATH(
         "sumaris.persistence.db.script",
         n("sumaris.config.option.db.script.description"),
         "classpath:net/sumaris/core/db/changelog/sumaris.script",
-        String.class,
-        false),
-
-    DB_TIMEZONE(
-        "spring.jpa.properties.hibernate.jdbc.time_zone",
-        n("sumaris.config.option.spring.jpa.properties.hibernate.jdbc.time_zone.description"),
-        "${user.timezone}",
         String.class,
         false),
 
@@ -194,6 +193,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.persistence.hibernate.entities.package.description"),
         "net.sumaris.core.model",
         Class.class),
+
+    HIBERNATE_JDBC_TIMEZONE(
+        "spring.jpa.properties.hibernate.jdbc.time_zone",
+        n("sumaris.config.option.spring.jpa.properties.hibernate.jdbc.time_zone.description"),
+        "${sumaris.persistence.db.timezone}", // Redirection to db timezone
+        String.class,
+        false),
 
     DEBUG_ENTITY_LOAD(
         "sumaris.persistence.hibernate.load.debug",
