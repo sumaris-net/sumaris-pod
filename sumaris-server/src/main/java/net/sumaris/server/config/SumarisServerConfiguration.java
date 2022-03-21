@@ -350,7 +350,7 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
             log.info("Using default timezone {{}}", System.getProperty("user.timezone"));
         }
 
-        String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey());
+        String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
         if (StringUtils.isNotBlank(dbTimeZone)) {
             log.info("Using timezone {{}} for database", dbTimeZone);
         } else {

@@ -483,7 +483,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * @return a {@link TimeZone} object.
      */
     public TimeZone getDbTimezone() {
-        String tz = applicationConfig.getOption(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey());
+        String tz = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
         return StringUtils.isNotBlank(tz) ? TimeZone.getTimeZone(tz) : TimeZone.getDefault();
     }
 
