@@ -78,6 +78,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final VesselService vesselService;
     private final ProgramRepository programRepository;
     private final TimeZone dbTimeZone;
+    private final boolean enableVesselActivityDateCheck;
 
     public AggregatedLandingServiceImpl(SumarisConfiguration configuration,
                                         LandingService landingService,
@@ -97,6 +98,10 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         this.vesselService = vesselService;
         this.programRepository = programRepository;
         this.dbTimeZone = configuration.getDbTimezone();
+        this.enableVesselActivityDateCheck = this.dbTimeZone.equals(configuration.getTimezone());
+        if (!this.enableVesselActivityDateCheck) {
+            log.warn("Disabling aggregated landing dates check, because server and DB have NOT the same time zone.");
+        }
     }
 
     @Override
@@ -222,16 +227,18 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             Preconditions.checkNotNull(aggregatedLanding.getVesselSnapshot());
             Preconditions.checkNotNull(aggregatedLanding.getVesselSnapshot().getId());
         });
-        // Check all activity have date without time
-        aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
-            .forEach(activity -> {
-                // TODO review this code
-                Date expectedDate = Dates.resetTime(activity.getDate(), dbTimeZone);
-                Preconditions.checkArgument(
-                    activity.getDate().equals(expectedDate),
-                    String.format("Invalid date. Expected %s - Actual %s", expectedDate, activity.getDate())
-                );
-            }));
+
+        // Check all activity have date without time (if DB TZ = Server TZ)
+        if (this.enableVesselActivityDateCheck) {
+            aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
+                .forEach(activity -> {
+                    Date expectedDate = Dates.resetTime(activity.getDate(), dbTimeZone);
+                    Preconditions.checkArgument(
+                        activity.getDate().equals(expectedDate),
+                        String.format("Invalid date. Expected %s - Actual %s", expectedDate, activity.getDate())
+                    );
+                }));
+        }
 
         // Load VesselSnapshot Entity
         aggregatedLandings.parallelStream()

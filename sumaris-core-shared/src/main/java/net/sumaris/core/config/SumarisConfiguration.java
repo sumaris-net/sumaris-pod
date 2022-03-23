@@ -488,6 +488,16 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>getDbTimezone.</p>
+     *
+     * @return a {@link TimeZone} object.
+     */
+    public TimeZone getTimezone() {
+        String tz = applicationConfig.getOption(SumarisConfigurationOption.TIMEZONE.getKey());
+        return StringUtils.isNotBlank(tz) ? TimeZone.getTimeZone(tz) : TimeZone.getDefault();
+    }
+
+    /**
      * <p>getDbAttachmentDirectory.</p>
      *
      * @return a {@link File} object.

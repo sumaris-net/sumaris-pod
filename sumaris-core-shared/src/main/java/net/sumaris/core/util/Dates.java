@@ -124,15 +124,9 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         if (date == null) {
             return null;
         }
-        Calendar localCalendar = Calendar.getInstance();
-        localCalendar.setTime(date);
-
         Calendar calendar = timezone != null ? Calendar.getInstance(timezone) : Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_MONTH, localCalendar.get(Calendar.DAY_OF_MONTH));
-        calendar.set(Calendar.MONTH, localCalendar.get(Calendar.MONTH));
-        calendar.set(Calendar.YEAR, localCalendar.get(Calendar.YEAR));
+        calendar.setTime(date);
         resetTime(calendar);
-
         return calendar.getTime();
     }
 
@@ -223,9 +217,21 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
      * @return a {@link String} object.
      */
     public static String formatDate(Date date, String pattern) {
+        return formatDate(date, pattern, null);
+    }
+
+    /**
+     * <p>formatDate.</p>
+     *
+     * @param date a {@link Date} object.
+     * @param pattern a {@link String} object.
+     * @return a {@link String} object.
+     */
+    public static String formatDate(Date date, String pattern, TimeZone tz) {
         if (date == null) return null;
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-        return simpleDateFormat.format(date);
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        if (tz != null) sdf.setTimeZone(tz);
+        return sdf.format(date);
     }
 
     /**
@@ -239,8 +245,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         Date result = null;
         if (StringUtils.isNotBlank(date)) {
             try {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-                result = simpleDateFormat.parse(date);
+                SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+                result = sdf.parse(date);
             } catch (ParseException ignored) {
             }
         }
@@ -259,8 +265,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         if (StringUtils.isNotBlank(date)) {
             for (String pattern: patterns) {
                 try {
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-                    result = simpleDateFormat.parse(date);
+                    SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+                    result = sdf.parse(date);
                 } catch (ParseException ignored) {
                     // Continue: try next pattern
                 }
@@ -508,7 +514,11 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     }
 
     public static String toISODateTimeString(Date date) {
-        return formatDate(date, ISO_TIMESTAMP_SPEC);
+        return formatDate(date, ISO_TIMESTAMP_SPEC, null);
+    }
+
+    public static String toISODateTimeString(Date date, TimeZone tz) {
+        return formatDate(date, ISO_TIMESTAMP_SPEC, tz);
     }
 
     public static Date fromISODateTimeString(String dateStr) {

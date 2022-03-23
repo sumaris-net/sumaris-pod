@@ -60,9 +60,12 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler implements SubProtocolCapable {
@@ -342,10 +345,14 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     }
 
     protected void sendResponse(WebSocketSession session, Object value)  {
+        sendResponse(session, value, (e) -> fatalError(session, e));
+    }
+
+    protected void sendResponse(WebSocketSession session, Object value, Consumer<Exception> errorHandler)  {
         try {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(value)));
-        } catch (IOException e) {
-            fatalError(session, e);
+        } catch (IllegalStateException | IOException e) {
+            errorHandler.accept(e);
         }
     }
 
@@ -411,7 +418,12 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                 sendResponse(session,
                     ImmutableMap.of(
                         "type", GqlTypes.GQL_CONNECTION_KEEP_ALIVE
-                    ));
+                    ),
+                    // Error handler
+                    (e) -> {
+                        if (e instanceof IllegalStateException) return; // Silent (continue without close the session)
+                        fatalError(session, e);
+                    });
             }
         };
     }
