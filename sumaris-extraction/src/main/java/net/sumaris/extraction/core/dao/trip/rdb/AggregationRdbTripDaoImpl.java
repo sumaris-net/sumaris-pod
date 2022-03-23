@@ -277,11 +277,11 @@ public class AggregationRdbTripDaoImpl<
 
     protected void fillContextTableNames(C context) {
         // Set unique table names
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthMapTableName(String.format(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
-        context.setLandingTableName(String.format(CL_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(getFinalTableNameDbms(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(getFinalTableNameDbms(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(getFinalTableNameDbms(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthMapTableName(getFinalTableNameDbms(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
+        context.setLandingTableName(getFinalTableNameDbms(CL_TABLE_NAME_PATTERN, context.getId()));
     }
 
     protected long createStationTable(ExtractionProductVO source, C context) {

@@ -61,8 +61,8 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
 
         // Override some context properties
         context.setFormat(LiveFormatEnum.SURVIVAL_TEST);
-        context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
-        context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSurvivalTestTableName(getFinalTableNameDbms(ST_TABLE_NAME_PATTERN, context.getId()));
+        context.setReleaseTableName(getFinalTableNameDbms(RL_TABLE_NAME_PATTERN, context.getId()));
 
         // Stop here, if sheet already filled
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
