@@ -28,16 +28,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
-import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
-import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
@@ -53,6 +43,16 @@ import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrate
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.extraction.core.dao.technical.Daos;
+import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
+import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
+import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
+import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.vo.ExtractionFilterVO;
+import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -223,12 +223,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected void fillContextTableNames(C context) {
 
         // Set unique table names
-        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setRawSpeciesListTableName(String.format(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
+        context.setTripTableName(getFinalTableNameDbms(TR_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(getFinalTableNameDbms(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setRawSpeciesListTableName(getFinalTableNameDbms(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(getFinalTableNameDbms(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(getFinalTableNameDbms(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSampleTableName(getFinalTableNameDbms(CA_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheetname
         context.setTripSheetName(RdbSpecification.TR_SHEET_NAME);
@@ -433,6 +433,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
 
         return xmlQuery;
     }
