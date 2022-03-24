@@ -22,27 +22,30 @@
 
 package net.sumaris.core.dao.referential;
 
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
-import net.sumaris.core.model.referential.IWithStatusEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
-import net.sumaris.core.model.referential.pmfm.Unit;
-import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.model.referential.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 
-public interface IEntityWithStatusSpecifications<E extends IWithStatusEntity<?, Status>>
-    extends IEntityWithJoinSpecifications<E> {
+public interface IEntityWithJoinSpecifications<E extends IWithStatusEntity<?, Status>> {
 
-    default Specification<E> inStatusIds(Integer... ids) {
-        return hasJoinIds(IReferentialWithStatusEntity.Fields.STATUS, ids);
+    default Specification<E> hasJoinIds(final String joinPropertyName, Integer... ids) {
+        if (ArrayUtils.isEmpty(ids)) return null;
+
+        String paramName = joinPropertyName + "Id";
+
+        return BindableSpecification.where((root, query, cb) -> {
+            Join<?,?> join = Daos.composeJoin(root, joinPropertyName, JoinType.INNER);
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, paramName);
+            return cb.in(join.get(IEntity.Fields.ID)).value(parameter);
+        }).addBind(paramName, Arrays.asList(ids));
     }
 }

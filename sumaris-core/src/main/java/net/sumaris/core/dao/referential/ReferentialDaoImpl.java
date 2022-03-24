@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.util.Beans;
@@ -151,7 +152,7 @@ public class ReferentialDaoImpl
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.REFERENTIAL_TYPES)
     public List<ReferentialTypeVO> getAllTypes() {
-        return ReferentialEntities.REFERENTIAL_CLASSES_BY_NAME.keySet().stream()
+        return ReferentialEntities.CLASSES_BY_NAME.keySet().stream()
             .map(this::getTypeByEntityName)
             .collect(Collectors.toList());
     }
@@ -218,7 +219,7 @@ public class ReferentialDaoImpl
     public void clearCache() {
         log.debug("Cleaning all referential cache...");
 
-        ReferentialEntities.REFERENTIAL_CLASSES.stream()
+        ReferentialEntities.ROOT_CLASSES.stream()
             .map(Class::getSimpleName)
             .forEach(this::clearCache);
     }
@@ -434,10 +435,10 @@ public class ReferentialDaoImpl
 
         try {
             // Get entity class from entityName
-            Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
+            Class<? extends IUpdateDateEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
             String hql = String.format("SELECT max(%s) FROM %s",
-                    IReferentialEntity.Fields.UPDATE_DATE,
+                IUpdateDateEntity.Fields.UPDATE_DATE,
                     entityClass.getSimpleName());
 
             return (Timestamp)getEntityManager().createQuery(hql).getSingleResult();

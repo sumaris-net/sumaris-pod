@@ -36,9 +36,9 @@ public abstract class Entities {
         // helper class does not instantiate
     }
 
-    public static <ID extends Serializable, D extends Date, V extends IUpdateDateEntityBean<ID, D>, L extends Collection<V>> D maxUpdateDate(L entities) {
+    public static <ID extends Serializable, D extends Date, V extends IUpdateDateEntity<ID, D>, L extends Collection<V>> D maxUpdateDate(L entities) {
         return Beans.getStream(entities)
-            .map(IUpdateDateEntityBean::getUpdateDate)
+            .map(IUpdateDateEntity::getUpdateDate)
             .filter(Objects::nonNull)
             .max(Comparator.comparingLong(Date::getTime))
             .orElse(null);

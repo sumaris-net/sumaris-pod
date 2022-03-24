@@ -25,7 +25,7 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 
@@ -33,7 +33,7 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-public class VesselPositionVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public class VesselPositionVO implements IUpdateDateEntity<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
     private Date dateTime;

@@ -80,8 +80,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             .anyMatch(label -> this.programService.hasPropertyValue(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()));
 
         if (hasSamples) {
-            context.setSurvivalTestTableName(getFinalTableNameDbms(ST_TABLE_NAME_PATTERN, context.getId()));
-            context.setReleaseTableName(getFinalTableNameDbms(RL_TABLE_NAME_PATTERN, context.getId()));
+            context.setSurvivalTestTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
+            context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
             // Stop here, if sheet already filled
             String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;

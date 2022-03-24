@@ -24,7 +24,7 @@ package net.sumaris.server.service.technical;
 
 import io.reactivex.Observable;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.event.entity.IEntityEvent;
 
 import javax.annotation.Nullable;
@@ -38,28 +38,28 @@ import java.util.function.Function;
 
 public interface EntityEventService {
 
-    <ID extends Serializable, D extends Date, T extends IUpdateDateEntityBean<ID, D>, V extends IUpdateDateEntityBean<ID, D>> Observable<V>
+    <ID extends Serializable, D extends Date, T extends IUpdateDateEntity<ID, D>, V extends IUpdateDateEntity<ID, D>> Observable<V>
     watchEntity(Class<T> entityClass,
                 Class<V> targetClass,
                 ID id,
                 @Nullable Integer intervalInSeconds,
                 boolean startWithActualValue);
 
-    <ID extends Serializable, D extends Date, V extends IUpdateDateEntityBean<ID, D>> Observable<V>
+    <ID extends Serializable, D extends Date, V extends IUpdateDateEntity<ID, D>> Observable<V>
     watchEntity(Function<D, Optional<V>> getter,
                 int intervalInSeconds,
                 boolean startWithActualValue);
 
     <ID extends Serializable, D extends Date,
-        T extends IUpdateDateEntityBean<ID, D>,
-        V extends IUpdateDateEntityBean<ID, D>,
+        T extends IUpdateDateEntity<ID, D>,
+        V extends IUpdateDateEntity<ID, D>,
         L extends Collection<V>> Observable<L>
     watchEntities(Class<T> entityClass,
                   Callable<Optional<L>> loader,
                   @Nullable Integer intervalInSeconds,
                   boolean startWithActualValue);
 
-    <ID extends Serializable, D extends Date, V extends IUpdateDateEntityBean<ID, D>, L extends Collection<V>> Observable<L>
+    <ID extends Serializable, D extends Date, V extends IUpdateDateEntity<ID, D>, L extends Collection<V>> Observable<L>
     watchEntities(Function<D, Optional<L>> loader,
                   int intervalInSeconds,
                   boolean startWithActualValue);

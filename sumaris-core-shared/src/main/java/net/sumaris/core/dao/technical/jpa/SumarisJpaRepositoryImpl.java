@@ -32,7 +32,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.dao.technical.model.function.ToEntityFunction;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
@@ -195,16 +195,16 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         }
 
         // Remember the entity's update date
-        boolean keepEntityUpdateDate = entity instanceof IUpdateDateEntityBean;
+        boolean keepEntityUpdateDate = entity instanceof IUpdateDateEntity;
         Date entityUpdateDate = keepEntityUpdateDate
-            ? ((IUpdateDateEntityBean) entity).getUpdateDate()
+            ? ((IUpdateDateEntity) entity).getUpdateDate()
             : null;
 
         toEntity(vo, entity, true);
 
         // Restore the update date (can be override by Beans.copyProperties())
         if (keepEntityUpdateDate)
-            ((IUpdateDateEntityBean) entity).setUpdateDate(entityUpdateDate);
+            ((IUpdateDateEntity) entity).setUpdateDate(entityUpdateDate);
 
         return entity;
     }
@@ -219,15 +219,15 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         boolean isNew = entity.getId() == null;
 
         // Entity has update date
-        if (entity instanceof IUpdateDateEntityBean && source instanceof IUpdateDateEntityBean) {
+        if (entity instanceof IUpdateDateEntity && source instanceof IUpdateDateEntity) {
 
             if (!isNew && checkUpdateDate) {
                 // Check update date
-                Daos.checkUpdateDateForUpdate((IUpdateDateEntityBean) source, (IUpdateDateEntityBean) entity);
+                Daos.checkUpdateDateForUpdate((IUpdateDateEntity) source, (IUpdateDateEntity) entity);
             }
 
             // Update update_dt
-            ((IUpdateDateEntityBean) entity).setUpdateDate(getDatabaseCurrentDate());
+            ((IUpdateDateEntity) entity).setUpdateDate(getDatabaseCurrentDate());
         }
 
         if (!isNew && lockForUpdate) {
@@ -254,8 +254,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     protected void onAfterSaveEntity(V vo, E savedEntity, boolean isNew) {
         vo.setId(savedEntity.getId());
         // copy updateDate to source vo
-        if (savedEntity instanceof IUpdateDateEntityBean && vo instanceof IUpdateDateEntityBean) {
-            ((IUpdateDateEntityBean) vo).setUpdateDate(((IUpdateDateEntityBean) savedEntity).getUpdateDate());
+        if (savedEntity instanceof IUpdateDateEntity && vo instanceof IUpdateDateEntity) {
+            ((IUpdateDateEntity) vo).setUpdateDate(((IUpdateDateEntity) savedEntity).getUpdateDate());
         }
     }
 
@@ -639,7 +639,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return query;
     }
 
-    protected <ID extends Serializable, CV extends IValueObject<ID>, CT extends IEntity<ID>, PT extends IUpdateDateEntityBean<?, Date>>
+    protected <ID extends Serializable, CV extends IValueObject<ID>, CT extends IEntity<ID>, PT extends IUpdateDateEntity<?, Date>>
         List<CV> saveChildren(List<CV> sources,
                               List<CT> targets,
                               Class<CT> targetClass,
@@ -665,8 +665,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                 }
 
                 // Copy update, from parent
-                if (updateDate != null && source instanceof IUpdateDateEntityBean) {
-                    ((IUpdateDateEntityBean<ID, Date>)source).setUpdateDate(updateDate);
+                if (updateDate != null && source instanceof IUpdateDateEntity) {
+                    ((IUpdateDateEntity<ID, Date>)source).setUpdateDate(updateDate);
                 }
 
                 // Convert to entity

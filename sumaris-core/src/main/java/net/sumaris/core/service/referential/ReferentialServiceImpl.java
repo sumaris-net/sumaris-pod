@@ -37,11 +37,8 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
-import net.sumaris.core.vo.data.LandingFetchOptions;
-import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.nuiton.i18n.I18n;
@@ -204,7 +201,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	private void initConverters() {
 
 		// Entity->ReferentialVO converters
-		ReferentialEntities.REFERENTIAL_CLASSES.forEach(entityClass -> {
+		ReferentialEntities.ROOT_CLASSES.forEach(entityClass -> {
 			conversionService.addConverter(entityClass, ReferentialVO.class, dao::toVO);
 		});
 	}

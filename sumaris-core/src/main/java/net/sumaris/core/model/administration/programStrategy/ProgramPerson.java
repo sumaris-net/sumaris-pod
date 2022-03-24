@@ -24,7 +24,7 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
@@ -47,7 +47,7 @@ import java.util.Date;
                 "        AND (:privilegeId is null OR  t.privilege.id = :privilegeId)"
         )
 })
-public class ProgramPerson implements IUpdateDateEntityBean<Integer, Date> {
+public class ProgramPerson implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PROGRAM2PERSON_SEQ")

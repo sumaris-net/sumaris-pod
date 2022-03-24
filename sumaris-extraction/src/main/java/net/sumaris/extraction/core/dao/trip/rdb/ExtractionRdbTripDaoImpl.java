@@ -223,12 +223,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected void fillContextTableNames(C context) {
 
         // Set unique table names
-        context.setTripTableName(getFinalTableNameDbms(TR_TABLE_NAME_PATTERN, context.getId()));
-        context.setStationTableName(getFinalTableNameDbms(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setRawSpeciesListTableName(getFinalTableNameDbms(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(getFinalTableNameDbms(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(getFinalTableNameDbms(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSampleTableName(getFinalTableNameDbms(CA_TABLE_NAME_PATTERN, context.getId()));
+        context.setTripTableName(formatTableName(TR_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(formatTableName(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setRawSpeciesListTableName(formatTableName(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(formatTableName(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(formatTableName(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSampleTableName(formatTableName(CA_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheetname
         context.setTripSheetName(RdbSpecification.TR_SHEET_NAME);

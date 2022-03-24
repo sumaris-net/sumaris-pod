@@ -23,23 +23,33 @@
 package net.sumaris.core.dao.referential.conversion;
 
 import net.sumaris.core.dao.referential.IEntityWithStatusSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
-import net.sumaris.core.model.referential.pmfm.Unit;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
+import net.sumaris.core.model.referential.location.LocationLevel;
+import net.sumaris.core.model.referential.location.LocationLevels;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Root;
 import java.util.*;
 
-public interface WeightLengthConversionSpecifications extends IEntityWithStatusSpecifications<WeightLengthConversion> {
+public interface WeightLengthConversionSpecifications
+    extends IEntityWithStatusSpecifications<WeightLengthConversion> {
 
     String MONTH_PARAMETER = "month";
+    String RECTANGLE_LABELS_PARAMETER = "rectangleLabels";
+    String RECTANGLE_LEVEL_IDS_PARAMETER = "rectangleLevelIds";
 
     default Specification<WeightLengthConversion> hasReferenceTaxonIds(Integer... ids) {
         return hasJoinIds(WeightLengthConversion.Fields.REFERENCE_TAXON, ids);
@@ -48,6 +58,38 @@ public interface WeightLengthConversionSpecifications extends IEntityWithStatusS
     default Specification<WeightLengthConversion> hasLocationIds(Integer... ids) {
         return hasJoinIds(WeightLengthConversion.Fields.LOCATION, ids);
     }
+
+    default Specification<WeightLengthConversion> hasRectangleLabels(String... rectangleLabels) {
+        if (ArrayUtils.isEmpty(rectangleLabels)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> labelsParam = cb.parameter(Collection.class, RECTANGLE_LABELS_PARAMETER);
+                ParameterExpression<Collection> levelIdsParam = cb.parameter(Collection.class, RECTANGLE_LEVEL_IDS_PARAMETER);
+
+                Join<WeightLengthConversion, Location> locationJoin = Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER);
+                Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
+                Root<Location> rectangleLocation =  query.from(Location.class);
+
+                return cb.and(
+                    // LH.PARENT_LOCATION_FK = <ROOT>.LOCATION_FK
+                    cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), locationJoin),
+
+                    // AND CHILD_LOCATION.LOCATION_LEVEL_FK in -:locationLevelIds)
+                    cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), rectangleLocation),
+
+                    // Rectngal location levels
+                    Daos.composePath(rectangleLocation, StringUtils.doting(Location.Fields.LOCATION_LEVEL, LocationLevel.Fields.ID))
+                        .in(levelIdsParam),
+
+                    // AND CHILD_LOCATION.LABEL in (:locationLabels)
+                    rectangleLocation.get(Location.Fields.LABEL).in(labelsParam)
+                );
+            })
+            .addBind(RECTANGLE_LABELS_PARAMETER, Arrays.asList(rectangleLabels))
+            .addBind(RECTANGLE_LEVEL_IDS_PARAMETER, Arrays.asList(LocationLevels.getStatisticalRectangleLevelIds()))
+            ;
+    }
+
 
     default Specification<WeightLengthConversion> hasSexIds(Integer... ids) {
         return hasJoinIds(WeightLengthConversion.Fields.SEX, ids);

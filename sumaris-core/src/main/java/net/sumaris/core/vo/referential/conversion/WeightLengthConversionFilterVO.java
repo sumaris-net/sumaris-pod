@@ -45,5 +45,7 @@ public class WeightLengthConversionFilterVO {
     Integer[] sexIds;
     Integer[] lengthParameterIds;
     Integer[] lengthUnitIds;
+
     Date date;
+    String[] rectangleLabels;
 }

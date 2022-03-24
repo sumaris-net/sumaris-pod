@@ -269,7 +269,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         }
     }
 
-    protected String getFinalTableNameDbms(String tableName, long id){
+    protected String formatTableName(String tableName, long id){
         String finalTableName = String.format(tableName, id);
         if (this.databaseType != null) {
             switch (this.databaseType) {
@@ -277,6 +277,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
                 case oracle:
                     break;
                 case postgresql:
+                    // IMPORTANT: PostgreSQL is always in lowercase. This is required to get metadata with the exact (final) name
                     finalTableName = finalTableName.toLowerCase();
                     break;
             }

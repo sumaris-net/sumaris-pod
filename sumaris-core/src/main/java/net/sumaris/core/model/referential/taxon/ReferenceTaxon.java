@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
@@ -44,7 +44,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "reference_taxon")
-public class ReferenceTaxon implements IUpdateDateEntityBean<Integer, Date> {
+public class ReferenceTaxon implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
