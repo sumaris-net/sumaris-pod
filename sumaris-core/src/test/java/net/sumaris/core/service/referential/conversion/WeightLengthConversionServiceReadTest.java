@@ -95,6 +95,19 @@ public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 
 			assertAllValid(result, fetchOptions);
 		}
+
+		// Filter on rectangle
+		{
+			List<WeightLengthConversionVO> result = service.findByFilter(WeightLengthConversionFilterVO.builder()
+					.rectangleLabels(fixtures.getRectangleLabels())
+				.build(), null, fetchOptions);
+			Assert.assertNotNull(result);
+			int count = result.size();
+			Assert.assertTrue(count > 0);
+			Assert.assertTrue(count < countAll);
+
+			assertAllValid(result, fetchOptions);
+		}
 	}
 
 	protected void assertAllValid(List<WeightLengthConversionVO> sources, WeightLengthConversionFetchOptions fetchOptions) {

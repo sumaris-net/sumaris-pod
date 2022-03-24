@@ -63,31 +63,31 @@ public interface WeightLengthConversionSpecifications
         if (ArrayUtils.isEmpty(rectangleLabels)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Collection> labelsParam = cb.parameter(Collection.class, RECTANGLE_LABELS_PARAMETER);
-                ParameterExpression<Collection> levelIdsParam = cb.parameter(Collection.class, RECTANGLE_LEVEL_IDS_PARAMETER);
+            ParameterExpression<Collection> labelsParam = cb.parameter(Collection.class, RECTANGLE_LABELS_PARAMETER);
+            ParameterExpression<Collection> levelIdsParam = cb.parameter(Collection.class, RECTANGLE_LEVEL_IDS_PARAMETER);
 
-                Join<WeightLengthConversion, Location> locationJoin = Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER);
-                Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
-                Root<Location> rectangleLocation =  query.from(Location.class);
+            Join<WeightLengthConversion, Location> locationJoin = Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER);
+            Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
+            Root<Location> rectangleLocation =  query.from(Location.class);
 
-                return cb.and(
-                    // LH.PARENT_LOCATION_FK = <ROOT>.LOCATION_FK
-                    cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), locationJoin),
+            return cb.and(
+                // LH.PARENT_LOCATION_FK = <ROOT>.LOCATION_FK
+                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), locationJoin),
 
-                    // AND CHILD_LOCATION.LOCATION_LEVEL_FK in -:locationLevelIds)
-                    cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), rectangleLocation),
+                // AND CHILD_LOCATION.LOCATION_LEVEL_FK in -:locationLevelIds)
+                cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), rectangleLocation),
 
-                    // Rectngal location levels
-                    Daos.composePath(rectangleLocation, StringUtils.doting(Location.Fields.LOCATION_LEVEL, LocationLevel.Fields.ID))
-                        .in(levelIdsParam),
+                // Rectngal location levels
+                Daos.composePath(rectangleLocation, StringUtils.doting(Location.Fields.LOCATION_LEVEL, LocationLevel.Fields.ID))
+                    .in(levelIdsParam),
 
-                    // AND CHILD_LOCATION.LABEL in (:locationLabels)
-                    rectangleLocation.get(Location.Fields.LABEL).in(labelsParam)
-                );
-            })
-            .addBind(RECTANGLE_LABELS_PARAMETER, Arrays.asList(rectangleLabels))
-            .addBind(RECTANGLE_LEVEL_IDS_PARAMETER, Arrays.asList(LocationLevels.getStatisticalRectangleLevelIds()))
-            ;
+                // AND CHILD_LOCATION.LABEL in (:locationLabels)
+                rectangleLocation.get(Location.Fields.LABEL).in(labelsParam)
+            );
+        })
+        .addBind(RECTANGLE_LABELS_PARAMETER, Arrays.asList(rectangleLabels))
+        .addBind(RECTANGLE_LEVEL_IDS_PARAMETER, Arrays.asList(LocationLevels.getStatisticalRectangleLevelIds()))
+        ;
     }
 
 
