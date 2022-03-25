@@ -24,9 +24,11 @@ package net.sumaris.core.service.referential.conversion;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.LocationLevels;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.vo.filter.LocationFilterVO;
@@ -39,8 +41,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 
 	@ClassRule
@@ -69,6 +73,7 @@ public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 
 		WeightLengthConversionFetchOptions fetchOptions = WeightLengthConversionFetchOptions.builder()
 			.withRectangleLabels(true)
+			.withLengthPmfmIds(true)
 			.withLocation(true)
 			.build();
 
@@ -110,6 +115,27 @@ public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 		}
 	}
 
+	@Test
+	public void convertWeight() {
+
+		List<WeightLengthConversionVO> conversions = service.findByFilter(WeightLengthConversionFilterVO.builder()
+				.referenceTaxonIds(new Integer[]{fixtures.getReferenceTaxonIdCOD()})
+				.lengthPmfmIds(new Integer[]{PmfmEnum.LENGTH_TOTAL_CM.getId()})
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+			.build(), null, WeightLengthConversionFetchOptions.builder()
+				.withLengthPmfmIds(true)
+			.build());
+		Assert.assertNotNull(conversions);
+		Assert.assertTrue(conversions.size() > 0);
+
+		WeightLengthConversionVO conversion = conversions.get(0);
+
+		BigDecimal weight = service.computedWeight(conversion, 15d, 3, 1d);
+		log.info("Computed weight ofr COD (15cm): {}kg", weight);
+	}
+
+	/* -- internal function -- */
+
 	protected void assertAllValid(List<WeightLengthConversionVO> sources, WeightLengthConversionFetchOptions fetchOptions) {
 		sources.forEach(s -> this.assertValid(s, fetchOptions));
 	}
@@ -130,6 +156,14 @@ public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 			// Make no sens to have no rectangle
 			long rectangleCount = source.getRectangleLabels().length;
 			Assert.assertTrue(rectangleCount > 0 || hasNoRectangle(source.getLocationId()));
+		}
+
+		if (fetchOptions.isWithLengthPmfmIds()) {
+			Assert.assertNotNull(source.getLengthPmfmIds());
+
+			// Make no sens to have no rectangle
+			long pmfmCount = source.getLengthPmfmIds().length;
+			Assert.assertTrue(pmfmCount > 0);
 		}
 	}
 

@@ -149,6 +149,7 @@ public class WeightLengthConversionGraphQLService {
     private WeightLengthConversionFetchOptions getFetchOptions(Set<String> fields) {
         return WeightLengthConversionFetchOptions.builder()
             .withLocation(fields.contains(WeightLengthConversionVO.Fields.LOCATION))
+            .withLengthPmfmIds(fields.contains(WeightLengthConversionVO.Fields.LENGTH_PMFM_IDS))
             .withRectangleLabels(fields.contains(WeightLengthConversionVO.Fields.RECTANGLE_LABELS))
             .build();
     }

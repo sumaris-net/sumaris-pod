@@ -22,8 +22,7 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 

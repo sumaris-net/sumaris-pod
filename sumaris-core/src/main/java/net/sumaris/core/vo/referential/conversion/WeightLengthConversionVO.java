@@ -68,7 +68,7 @@ public class WeightLengthConversionVO implements IUpdateDateEntity<Integer, Date
     private Integer lengthUnitId;
     private ReferentialVO lengthUnit;
 
-
-    private String[] rectangleLabels;
+    private Integer[] lengthPmfmIds; // Computed from lengthParameterId and lengthUnitId
+    private String[] rectangleLabels; // Computed from locationId
 
 }

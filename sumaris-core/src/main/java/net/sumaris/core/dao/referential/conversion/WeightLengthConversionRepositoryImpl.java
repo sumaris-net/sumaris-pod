@@ -204,13 +204,15 @@ public class WeightLengthConversionRepositoryImpl extends SumarisJpaRepositoryIm
     protected Specification<WeightLengthConversion> toSpecification(@NonNull WeightLengthConversionFilterVO filter) {
         return BindableSpecification
             .where(inStatusIds(filter.getStatusIds()))
+            .and(atMonth(filter.getMonth()))
+            .and(atYear(filter.getYear()))
             .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
             .and(hasLocationIds(filter.getLocationIds()))
             .and(hasRectangleLabels(filter.getRectangleLabels()))
-            .and(hasSexIds(filter.getSexIds()))
             .and(hasLengthParameterIds(filter.getLengthParameterIds()))
             .and(hasLengthUnitIds(filter.getLengthUnitIds()))
-            .and(atDate(filter.getDate()))
+            .and(hasLengthPmfmIds(filter.getLengthPmfmIds()))
+            .and(hasSexIds(filter.getSexIds()))
             ;
     }
 

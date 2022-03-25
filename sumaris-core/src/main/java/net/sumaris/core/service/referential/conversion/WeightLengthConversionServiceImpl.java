@@ -22,20 +22,32 @@
 
 package net.sumaris.core.service.referential.conversion;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.conversion.WeightLengthConversionRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.LocationLevels;
 import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +58,9 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
     private WeightLengthConversionRepository weightLengthConversionRepository;
 
     @Resource
+    private PmfmService pmfmService;
+
+    @Resource
     private LocationService locationService;
 
     @Override
@@ -54,21 +69,56 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
                                                        WeightLengthConversionFetchOptions fetchOptions) {
         List<WeightLengthConversionVO> result = weightLengthConversionRepository.findAll(filter, page, fetchOptions);
 
-        // Add rectangles
+        // Add length pmfm Ids
         if (fetchOptions != null && fetchOptions.isWithRectangleLabels()) {
+            // Group by [parameter, unit]
+            Joiner mapKeyJoiner = Joiner.on('|');
+            Splitter mapKeySplitter = Splitter.on('|').limit(2);
+            ListMultimap<String, WeightLengthConversionVO> groupByLengthParts = result.stream().collect(
+                ArrayListMultimap::create, (m, vo) -> {
+                    String key = mapKeyJoiner.join(vo.getLengthParameterId(), vo.getLengthUnitId());
+                    m.put(key, vo);
+                }, Multimap::putAll);
+
+            groupByLengthParts.keys().forEach(key -> {
+                // Parse the group key
+                Iterator<String> parts = mapKeySplitter.split(key).iterator();
+                Integer parameterId = Integer.parseInt(parts.next());
+                Integer unitId = Integer.parseInt(parts.next());
+
+                // Get Pmfm IDS
+                Integer[] pmfmIds = pmfmService.findIdsByParts(PmfmPartsVO.builder()
+                    .parameterId(parameterId)
+                    .unitId(unitId)
+                    .statusId(StatusEnum.ENABLE.getId())
+                    .build()).toArray(new Integer[0]);
+
+                // Update vos
+                if (ArrayUtils.isNotEmpty(pmfmIds)) {
+                    groupByLengthParts.get(key).forEach(vo -> vo.setLengthPmfmIds(pmfmIds));
+                }
+            });
+        }
+
+        // Add rectangle labels
+        if (fetchOptions != null && fetchOptions.isWithRectangleLabels()) {
+            // Group by location id
             ListMultimap<Integer, WeightLengthConversionVO> groupByLocationId = Beans.splitByNotUniqueProperty(result,
                 WeightLengthConversionVO.Fields.LOCATION_ID);
             groupByLocationId.keySet().forEach(locationId -> {
+                // Get rectangle labels
                 String[] rectangleLabels = locationService.findByFilter(LocationFilterVO.builder()
                     .ancestorIds(new Integer[]{locationId})
                     .levelIds(LocationLevels.getStatisticalRectangleLevelIds())
                     .statusIds(filter.getStatusIds())
-                    .build()).stream().map(LocationVO::getLabel)
-                    .collect(Collectors.toList())
-                    .toArray(new String[0]);
+                    .build()).stream()
+                    .map(LocationVO::getLabel)
+                    .toArray(String[]::new);
                 
-                // Update 
-                groupByLocationId.get(locationId).forEach(item -> item.setRectangleLabels(rectangleLabels));
+                // Update vos
+                if (ArrayUtils.isNotEmpty(rectangleLabels)) {
+                    groupByLocationId.get(locationId).forEach(item -> item.setRectangleLabels(rectangleLabels));
+                }
             });
         }
 
@@ -78,6 +128,28 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
     @Override
     public long countByFilter(WeightLengthConversionFilterVO filter) {
         return weightLengthConversionRepository.count(filter);
+    }
+
+    @Override
+    public BigDecimal computedWeight(@NonNull WeightLengthConversionVO conversion,
+                                     @NonNull Number length,
+                                     int scale,
+                                     Number individualCount) {
+
+        // CoefA * length ^ CoefB
+        BigDecimal result = new BigDecimal(conversion.getConversionCoefficientA().toString())
+            .multiply(new BigDecimal(
+                Math.pow(length.doubleValue(), conversion.getConversionCoefficientB().doubleValue())
+            ))
+            // * individual count
+            .multiply(new BigDecimal(individualCount != null ? individualCount.toString() : "1"));
+
+        // Compute alive weight
+
+        // Round to scale
+        result = result.divide(new BigDecimal(1), scale, RoundingMode.HALF_UP);
+
+        return result;
     }
 
     @Override

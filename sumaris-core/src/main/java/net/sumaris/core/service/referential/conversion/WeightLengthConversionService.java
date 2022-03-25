@@ -28,6 +28,7 @@ import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Transactional
@@ -40,4 +41,9 @@ public interface WeightLengthConversionService {
     List<WeightLengthConversionVO> saveAll(List<WeightLengthConversionVO> source);
 
     void deleteAllById(List<Integer> ids);
+
+    BigDecimal computedWeight(WeightLengthConversionVO conversion,
+                              Number length,
+                              int scale,
+                              Number individualCount);
 }

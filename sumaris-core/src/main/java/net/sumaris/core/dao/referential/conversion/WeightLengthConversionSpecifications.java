@@ -31,6 +31,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevels;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
@@ -50,6 +51,7 @@ public interface WeightLengthConversionSpecifications
     String MONTH_PARAMETER = "month";
     String RECTANGLE_LABELS_PARAMETER = "rectangleLabels";
     String RECTANGLE_LEVEL_IDS_PARAMETER = "rectangleLevelIds";
+    String LEANGTH_PMFM_IDS_PARAMETER = "lengthPmfmIds";
 
     default Specification<WeightLengthConversion> hasReferenceTaxonIds(Integer... ids) {
         return hasJoinIds(WeightLengthConversion.Fields.REFERENCE_TAXON, ids);
@@ -62,10 +64,11 @@ public interface WeightLengthConversionSpecifications
     default Specification<WeightLengthConversion> hasRectangleLabels(String... rectangleLabels) {
         if (ArrayUtils.isEmpty(rectangleLabels)) return null;
 
+        if (ArrayUtils.isNotEmpty(rectangleLabels)) return null;
+
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> labelsParam = cb.parameter(Collection.class, RECTANGLE_LABELS_PARAMETER);
             ParameterExpression<Collection> levelIdsParam = cb.parameter(Collection.class, RECTANGLE_LEVEL_IDS_PARAMETER);
-
             Join<WeightLengthConversion, Location> locationJoin = Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER);
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
             Root<Location> rectangleLocation =  query.from(Location.class);
@@ -77,7 +80,7 @@ public interface WeightLengthConversionSpecifications
                 // AND CHILD_LOCATION.LOCATION_LEVEL_FK in -:locationLevelIds)
                 cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), rectangleLocation),
 
-                // Rectngal location levels
+                // Rectangle location levels
                 Daos.composePath(rectangleLocation, StringUtils.doting(Location.Fields.LOCATION_LEVEL, LocationLevel.Fields.ID))
                     .in(levelIdsParam),
 
@@ -102,20 +105,41 @@ public interface WeightLengthConversionSpecifications
     default Specification<WeightLengthConversion> hasLengthUnitIds(Integer... ids) {
         return hasJoinIds(WeightLengthConversion.Fields.LENGTH_UNIT, ids);
     }
+    default Specification<WeightLengthConversion> hasLengthPmfmIds(Integer... lengthPmfmIds) {
+        if (ArrayUtils.isEmpty(lengthPmfmIds)) return null;
+        if (ArrayUtils.isNotEmpty(lengthPmfmIds)) return null;
 
-    default Specification<WeightLengthConversion> atDate(Date aDate) {
-        if (aDate == null) return null;
-        Calendar aCalendar = Calendar.getInstance();
-        aCalendar.setTime(aDate);
-        Integer month = aCalendar.get(Calendar.MONTH);
-        return BindableSpecification.where((root, query, builder) -> {
+        return BindableSpecification.<WeightLengthConversion>where((root, query, cb) -> {
+                ParameterExpression<Collection> pmfmIdsParam = cb.parameter(Collection.class, LEANGTH_PMFM_IDS_PARAMETER);
+                //query.select();
+                Root<Pmfm> pmfm = query.from(Pmfm.class);
+                return cb.and(
+                    pmfm.get(Pmfm.Fields.ID).in(pmfmIdsParam),
+                    cb.equal(root.get(WeightLengthConversion.Fields.LENGTH_PARAMETER), pmfm.get(Pmfm.Fields.PARAMETER)),
+                    cb.equal(root.get(WeightLengthConversion.Fields.LENGTH_UNIT), pmfm.get(Pmfm.Fields.UNIT))
+                );
+            })
+            .addBind(LEANGTH_PMFM_IDS_PARAMETER, Arrays.asList(lengthPmfmIds));
+    }
 
-            ParameterExpression<Integer> monthParam = builder.parameter(Integer.class, MONTH_PARAMETER);
-            return builder.and(
-                builder.lessThanOrEqualTo(root.get(WeightLengthConversion.Fields.START_MONTH), monthParam),
-                builder.greaterThanOrEqualTo(root.get(WeightLengthConversion.Fields.END_MONTH), monthParam)
+
+    default Specification<WeightLengthConversion> atMonth(Integer month) {
+        if (month == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> monthParam = cb.parameter(Integer.class, MONTH_PARAMETER);
+            return cb.and(
+                cb.lessThanOrEqualTo(root.get(WeightLengthConversion.Fields.START_MONTH), monthParam),
+                cb.greaterThanOrEqualTo(root.get(WeightLengthConversion.Fields.END_MONTH), monthParam)
             );
         }).addBind(MONTH_PARAMETER, month);
+    }
+
+    default Specification<WeightLengthConversion> atYear(Integer year) {
+        if (year == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> monthParam = cb.parameter(Integer.class, WeightLengthConversion.Fields.YEAR);
+            return cb.equal(root.get(WeightLengthConversion.Fields.YEAR), monthParam);
+        }).addBind(WeightLengthConversion.Fields.YEAR, year);
     }
 
     List<WeightLengthConversionVO> findAll(WeightLengthConversionFilterVO filter, Page page, WeightLengthConversionFetchOptions fetchOptions);

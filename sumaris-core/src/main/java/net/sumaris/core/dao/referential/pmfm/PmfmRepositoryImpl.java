@@ -23,16 +23,17 @@ package net.sumaris.core.dao.referential.pmfm;
  */
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
@@ -112,22 +113,11 @@ public class PmfmRepositoryImpl
         });
     }
 
-    @Override
-    public List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
-        Preconditions.checkArgument(parameterId != null || matrixId != null
-                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
-        return findAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
-                // ONlY enabled PMFM
-                .and(inStatusIds(StatusEnum.ENABLE)));
-    }
-
-    @Override
-    public Stream<Pmfm> streamByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
-        Preconditions.checkArgument(parameterId != null || matrixId != null
-                || fractionId != null || methodId != null, "At least on argument (parameterId, matrixId, fractionId, methodId) must be not null");
-        return streamAll(hasPmfmPart(parameterId, matrixId, fractionId, methodId)
-                // ONlY enabled PMFM
-                .and(inStatusIds(StatusEnum.ENABLE)));
+    public List<Integer> findIdsByParts(@NonNull PmfmPartsVO parts) {
+        return streamAll(BindableSpecification.where(hasPmfmPart(parts))
+                .and(inStatusIds(parts.getStatusId())))
+            .map(Pmfm::getId)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -169,7 +159,7 @@ public class PmfmRepositoryImpl
         Unit unit = source.getUnit();
         if (unit != null && unit.getId() != null) {
             target.setUnitId(unit.getId());
-            if (UnitEnum.NONE.getId() != unit.getId()) {
+            if (!Objects.equals(UnitEnum.NONE.getId(), unit.getId())) {
                 target.setUnitLabel(unit.getLabel());
             }
         }
@@ -251,7 +241,6 @@ public class PmfmRepositoryImpl
 
     @Override
     protected Specification<Pmfm> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
-
         return super.toSpecification(filter, fetchOptions);
     }
 
