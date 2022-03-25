@@ -302,6 +302,7 @@ public class OperationRepositoryImpl
     @Override
     protected Specification<Operation> toSpecification(OperationFilterVO filter, OperationFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(distinct())
             .and(excludeOperationGroup())
             .and(hasTripId(filter.getTripId()))
             .and(hasProgramLabel(filter.getProgramLabel()))

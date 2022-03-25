@@ -79,6 +79,13 @@ public interface OperationSpecifications
         });
     }
 
+    default Specification<Operation> distinct() {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true);
+            return criteriaBuilder.conjunction();
+        });
+    }
+
     default Specification<Operation> hasTripId(Integer tripId) {
         if (tripId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
@@ -133,7 +140,7 @@ public interface OperationSpecifications
     default Specification<Operation> excludeChildOperation(Boolean excludeChildOperation) {
         if (excludeChildOperation == null || !excludeChildOperation) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) ->
-            criteriaBuilder.isNull(root.get(Operation.Fields.PARENT_OPERATION))
+            criteriaBuilder.isNull(Daos.composePath(root, Operation.Fields.PARENT_OPERATION))
         );
     }
 
