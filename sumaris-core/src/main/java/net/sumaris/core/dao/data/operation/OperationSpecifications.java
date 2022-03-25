@@ -60,6 +60,8 @@ public interface OperationSpecifications
     String PROGRAM_LABEL_PARAM = "programLabel";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
+    String START_DATE_PARAM_IS_NULL = "startDateIsNull";
+    String END_DATE_PARAM_IS_NULL = "endDateIsNull";
     String GEAR_IDS_PARAMETER = "gearIds";
     String PHYSICAL_GEAR_IDS_PARAMETER = "physicalGearIds";
     String TAXON_GROUP_LABELS_PARAM = "targetSpecieIds";
@@ -74,6 +76,13 @@ public interface OperationSpecifications
                     criteriaBuilder.equal(root.get(Operation.Fields.END_DATE_TIME), tripJoin.get(Trip.Fields.RETURN_DATE_TIME))
                 )
             );
+        });
+    }
+
+    default Specification<Operation> distinct() {
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            query.distinct(true);
+            return criteriaBuilder.conjunction();
         });
     }
 
@@ -131,7 +140,7 @@ public interface OperationSpecifications
     default Specification<Operation> excludeChildOperation(Boolean excludeChildOperation) {
         if (excludeChildOperation == null || !excludeChildOperation) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) ->
-            criteriaBuilder.isNull(root.get(Operation.Fields.PARENT_OPERATION))
+            criteriaBuilder.isNull(Daos.composePath(root, Operation.Fields.PARENT_OPERATION))
         );
     }
 
@@ -180,14 +189,16 @@ public interface OperationSpecifications
         if (startDate == null && endDate == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
                 ParameterExpression<Date> startDateParam = criteriaBuilder.parameter(Date.class, START_DATE_PARAM);
+                ParameterExpression<Boolean> startDateParamIsNull = criteriaBuilder.parameter(Boolean.class, START_DATE_PARAM_IS_NULL);
                 ParameterExpression<Date> endDateParam = criteriaBuilder.parameter(Date.class, END_DATE_PARAM);
+                ParameterExpression<Boolean> endDateParamIsNull = criteriaBuilder.parameter(Boolean.class, END_DATE_PARAM_IS_NULL);
 
                 // TODO BLA: review this code
                 // - use NOT(condition) ?
                 // - Use fishingStartDate only if parent Operation ? or make sure to store
                 return criteriaBuilder.and(
                     criteriaBuilder.or(
-                        criteriaBuilder.isNull(startDateParam.as(String.class)),
+                        criteriaBuilder.isTrue(startDateParamIsNull),
                         criteriaBuilder.or(
                             criteriaBuilder.and(
                                 criteriaBuilder.isNotNull(root.get(Operation.Fields.END_DATE_TIME)),
@@ -200,7 +211,7 @@ public interface OperationSpecifications
                         )
                     ),
                     criteriaBuilder.or(
-                        criteriaBuilder.isNull(endDateParam.as(String.class)),
+                        criteriaBuilder.isTrue(endDateParamIsNull),
                         criteriaBuilder.or(
                             criteriaBuilder.and(
                                 criteriaBuilder.isNotNull(root.get(Operation.Fields.END_DATE_TIME)),
@@ -215,7 +226,9 @@ public interface OperationSpecifications
                 );
             })
             .addBind(START_DATE_PARAM, startDate)
-            .addBind(END_DATE_PARAM, endDate);
+            .addBind(START_DATE_PARAM_IS_NULL, startDate == null ? Boolean.TRUE : Boolean.FALSE)
+            .addBind(END_DATE_PARAM, endDate)
+            .addBind(END_DATE_PARAM_IS_NULL, endDate == null ? Boolean.TRUE : Boolean.FALSE);
     }
 
     default Specification<Operation> hasQualityFlagIds(Integer[] qualityFlagIds) {
