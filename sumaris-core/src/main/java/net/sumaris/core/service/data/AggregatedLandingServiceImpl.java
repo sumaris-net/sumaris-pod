@@ -182,22 +182,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                     // Get trip's metier
                     List<MetierVO> metiers = operationGroupRepository.getMetiersByTripId(landing.getTripId());
                     metiers.forEach(metier -> activity.getMetiers().add(metier));
-
-                    // Get operation metier
-//                    List<OperationGroupVO> operationGroups = operationGroupDao.getAllByTripId(landing.getTripId());
-//                    operationGroups.forEach(operationGroup -> {
-//
-//                        activity.getMetiers().add(operationGroup.getMetier());
-//
-//                        // Set comments from operation
-//                        if (StringUtils.isNotBlank(operationGroup.getComments())) {
-//                            if (StringUtils.isBlank(activity.getComments())) {
-//                                activity.setComments(operationGroup.getComments());
-//                            } else if (!Objects.equals(activity.getComments(), operationGroup.getComments())) {
-//                                activity.setComments(activity.getComments() + "\n" + operationGroup.getComments());
-//                            }
-//                        }
-//                    });
                 }
 
                 // Add this activity
