@@ -55,7 +55,7 @@
 			<where>LABEL='1.22.1'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
-			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
 			<column name="LABEL">1.22.1</column>
 			<column name="DESCRIPTION">
 				- Change unique constraints on OPERATION.OPERATION_FK
