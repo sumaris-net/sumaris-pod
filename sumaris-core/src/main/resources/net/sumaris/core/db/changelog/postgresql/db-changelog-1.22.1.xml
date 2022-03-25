@@ -36,12 +36,12 @@
 			<not><indexExists indexName="ix_operation_operation" tableName="operation"/></not>
 		</preConditions>
 		<sql endDelimiter=";">
-			CREATE UNIQUE INDEX CONCURRENTLY ix_operation_operation ON operation (operation_fk);
+			CREATE UNIQUE INDEX ix_operation_operation ON operation (operation_fk);
 		</sql>
 	</changeSet>
 
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229075629-002" failOnError="false">
-		<preConditions onFail="MARK_RAN">
+		<preConditions>
 			<indexExists indexName="ix_operation_operation" tableName="operation"/>
 		</preConditions>
 		<sql endDelimiter=";">
