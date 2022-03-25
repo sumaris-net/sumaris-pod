@@ -27,6 +27,8 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
+import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -39,12 +41,15 @@ import java.util.stream.Stream;
  */
 public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Pmfm> {
 
-    default Specification<Pmfm> hasPmfmPart(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId) {
-        BindableSpecification<Pmfm> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> parameterParam = criteriaBuilder.parameter(Integer.class, PmfmStrategyVO.Fields.PARAMETER_ID);
-            ParameterExpression<Integer> matrixParam = criteriaBuilder.parameter(Integer.class, PmfmStrategyVO.Fields.MATRIX_ID);
-            ParameterExpression<Integer> fractionParam = criteriaBuilder.parameter(Integer.class, PmfmStrategyVO.Fields.FRACTION_ID);
-            ParameterExpression<Integer> methodParam = criteriaBuilder.parameter(Integer.class, PmfmStrategyVO.Fields.METHOD_ID);
+    default Specification<Pmfm> hasPmfmPart(PmfmPartsVO filter) {
+        if (filter == null || filter.isEmpty()) return null; // Skip
+
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Integer> parameterParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.PARAMETER_ID);
+            ParameterExpression<Integer> matrixParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.MATRIX_ID);
+            ParameterExpression<Integer> fractionParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.FRACTION_ID);
+            ParameterExpression<Integer> methodParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.METHOD_ID);
+            ParameterExpression<Integer> unitParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.UNIT_ID);
             return criteriaBuilder.and(
                     criteriaBuilder.or(
                             criteriaBuilder.isNull(parameterParam),
@@ -61,24 +66,22 @@ public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Pmfm
                     criteriaBuilder.or(
                             criteriaBuilder.isNull(methodParam),
                             criteriaBuilder.equal(root.get(Pmfm.Fields.METHOD).get(Method.Fields.ID), methodParam)
+                    ),
+                    criteriaBuilder.or(
+                        criteriaBuilder.isNull(methodParam),
+                        criteriaBuilder.equal(root.get(Pmfm.Fields.UNIT).get(Method.Fields.ID), unitParam)
                     )
             );
-        });
-        specification.addBind(PmfmStrategyVO.Fields.PARAMETER_ID, parameterId);
-        specification.addBind(PmfmStrategyVO.Fields.MATRIX_ID, matrixId);
-        specification.addBind(PmfmStrategyVO.Fields.FRACTION_ID, fractionId);
-        specification.addBind(PmfmStrategyVO.Fields.METHOD_ID, methodId);
-        return specification;
+        })
+        .addBind(PmfmVO.Fields.PARAMETER_ID, filter.getParameterId())
+        .addBind(PmfmVO.Fields.MATRIX_ID, filter.getMatrixId())
+        .addBind(PmfmVO.Fields.FRACTION_ID, filter.getFractionId())
+        .addBind(PmfmVO.Fields.METHOD_ID, filter.getMethodId())
+        .addBind(PmfmVO.Fields.UNIT_ID, filter.getUnitId());
     }
 
-    default Specification<Pmfm> inStatusIds(StatusEnum... status) {
-        Integer[] statusIds = Arrays.stream(status).map(StatusEnum::getId).toArray(Integer[]::new);
-        return inStatusIds(statusIds);
-    }
 
-    List<Pmfm> findByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId);
-
-    Stream<Pmfm> streamByPmfmParts(Integer parameterId, Integer matrixId, Integer fractionId, Integer methodId);
+    List<Integer> findIdsByParts(PmfmPartsVO parts);
 
     boolean hasLabelPrefix(int pmfmId, String... labelPrefixes);
 

@@ -25,7 +25,7 @@ package net.sumaris.rdf.core.model.adapter.schema;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
@@ -93,10 +93,10 @@ public class RdfSchemaEquivalences extends AbstractSchemaVisitor {
                     .addProperty(equivalentProperty, DCTerms.identifier);
 
             // Update entity
-            if (IUpdateDateEntityBean.class.isAssignableFrom(clazz)) {
+            if (IUpdateDateEntity.class.isAssignableFrom(clazz)) {
 
                 // Update date
-                model.getResource(classUri + "#" + IUpdateDateEntityBean.Fields.UPDATE_DATE)
+                model.getResource(classUri + "#" + IUpdateDateEntity.Fields.UPDATE_DATE)
                         .addProperty(equivalentProperty, org.purl.DC.modified)
                         .addProperty(equivalentProperty, DCTerms.modified);
 

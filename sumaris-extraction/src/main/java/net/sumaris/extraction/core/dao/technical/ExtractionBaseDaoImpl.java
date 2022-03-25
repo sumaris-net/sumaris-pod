@@ -208,7 +208,7 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         Preconditions.checkNotNull(tableName);
         if (filter == null || CollectionUtils.isEmpty(filter.getCriteria())) return 0;
 
-        SumarisTableMetadata table = databaseMetadata.getTable(tableName.toLowerCase());
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table);
 
         String whereClauseContent = SumarisTableMetadatas.getInverseSqlWhereClauseContent(table, filter, sheetName, table.getAlias(), true);
@@ -267,5 +267,21 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
                     break;
             }
         }
+    }
+
+    protected String formatTableName(String tableName, long id){
+        String finalTableName = String.format(tableName, id);
+        if (this.databaseType != null) {
+            switch (this.databaseType) {
+                case hsqldb:
+                case oracle:
+                    break;
+                case postgresql:
+                    // IMPORTANT: PostgreSQL is always in lowercase. This is required to get metadata with the exact (final) name
+                    finalTableName = finalTableName.toLowerCase();
+                    break;
+            }
+        }
+        return finalTableName;
     }
 }

@@ -23,11 +23,13 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
@@ -36,21 +38,16 @@ import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.pmfm.ExtractionPmfmTripContextVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.referential.PmfmValueType;
-import net.sumaris.extraction.core.vo.trip.survivalTest.ExtractionSurvivalTestContextVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jdom2.Attribute;
 import org.springframework.context.annotation.Lazy;
-
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -83,8 +80,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             .anyMatch(label -> this.programService.hasPropertyValue(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()));
 
         if (hasSamples) {
-            context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
-            context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
+            context.setSurvivalTestTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
+            context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
             // Stop here, if sheet already filled
             String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;

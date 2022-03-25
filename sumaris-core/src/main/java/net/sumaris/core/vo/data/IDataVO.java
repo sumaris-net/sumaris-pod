@@ -22,7 +22,7 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -32,7 +32,7 @@ import java.util.Date;
 
 public interface IDataVO<ID extends Serializable>
         extends IValueObject<ID>,
-        IUpdateDateEntityBean<ID, Date>,
+    IUpdateDateEntity<ID, Date>,
         IWithRecorderDepartmentEntity<ID, DepartmentVO> {
 
     Date getControlDate();

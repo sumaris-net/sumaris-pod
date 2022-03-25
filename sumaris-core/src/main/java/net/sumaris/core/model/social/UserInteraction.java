@@ -25,7 +25,7 @@ package net.sumaris.core.model.social;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ISignedEntityBean;
+import net.sumaris.core.dao.technical.model.ISignedEntity;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.ObjectType;
 
@@ -39,7 +39,7 @@ import java.util.Date;
 @Entity
 @Table(name = "user_interaction")
 @Cacheable
-public class UserInteraction implements ISignedEntityBean<Integer, Date> {
+public class UserInteraction implements ISignedEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_INTERACTION_SEQ")

@@ -25,7 +25,7 @@ package net.sumaris.core.vo.administration.user;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.util.Date;
@@ -34,7 +34,7 @@ import java.util.List;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class PersonVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public class PersonVO implements IUpdateDateEntity<Integer, Date>, IValueObject<Integer> {
 
     @EqualsAndHashCode.Include
     private Integer id;

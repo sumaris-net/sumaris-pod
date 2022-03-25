@@ -24,7 +24,7 @@ package net.sumaris.core.util.reactive;
 
 import io.reactivex.Observable;
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -63,14 +63,14 @@ public class Observables {
 
     public static <K extends Serializable,
         D extends Date,
-        V extends IUpdateDateEntityBean<K, D>>
+        V extends IUpdateDateEntity<K, D>>
     Observable<V> latest(@NonNull Observable<V> observable) {
         return latest(observable, new AtomicReference<>());
     }
 
     public static <K extends Serializable,
         D extends Date,
-        V extends IUpdateDateEntityBean<K, D>>
+        V extends IUpdateDateEntity<K, D>>
     Observable<V> latest(@NonNull Observable<V> observable,
                          @NonNull final AtomicReference<D> previousUpdateDate) {
         return observable.filter(entity -> {

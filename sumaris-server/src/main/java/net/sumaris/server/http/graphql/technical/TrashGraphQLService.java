@@ -29,7 +29,7 @@ import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.service.technical.TrashService;
@@ -56,7 +56,7 @@ public class TrashGraphQLService {
         @GraphQLArgument(name = "entityName") String entityName,
         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-        @GraphQLArgument(name = "sortBy", defaultValue = IUpdateDateEntityBean.Fields.UPDATE_DATE) String sort,
+        @GraphQLArgument(name = "sortBy", defaultValue = IUpdateDateEntity.Fields.UPDATE_DATE) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction
         ) {
         Pageable pageable = Pageables.create(offset, size, sort, direction != null ? SortDirection.fromString(direction) : null);

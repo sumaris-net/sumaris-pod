@@ -37,4 +37,7 @@ public class WeightLengthConversionFetchOptions implements IFetchOptions {
 
     @Builder.Default
     private boolean withRectangleLabels = false;
+
+    @Builder.Default
+    private boolean withLengthPmfmIds = false;
 }

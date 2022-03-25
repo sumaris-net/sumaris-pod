@@ -41,9 +41,16 @@ public class WeightLengthConversionFilterVO {
 
     Integer[] statusIds;
     Integer[] referenceTaxonIds;
+
     Integer[] locationIds;
+    String[] rectangleLabels;
+
     Integer[] sexIds;
+
     Integer[] lengthParameterIds;
     Integer[] lengthUnitIds;
-    Date date;
+    Integer[] lengthPmfmIds;
+
+    Integer month;
+    Integer year;
 }

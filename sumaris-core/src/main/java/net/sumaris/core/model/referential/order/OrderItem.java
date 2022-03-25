@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.order;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;
@@ -36,7 +36,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "order_item")
-public class OrderItem implements IUpdateDateEntityBean<Integer, Date> {
+public class OrderItem implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ORDER_ITEM_SEQ")

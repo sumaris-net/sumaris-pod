@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -40,7 +40,7 @@ import java.util.Date;
 @Entity
 @Cacheable
 @Table(name="validity_status")
-public class ValidityStatus implements IUpdateDateEntityBean<Integer, Date> {
+public class ValidityStatus implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VALIDITY_STATUS_SEQ")

@@ -28,6 +28,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
@@ -76,8 +77,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final MetierRepository metierRepository;
     private final VesselService vesselService;
     private final ProgramRepository programRepository;
+    private final TimeZone dbTimeZone;
+    private final boolean enableVesselActivityDateCheck;
 
-    public AggregatedLandingServiceImpl(LandingService landingService,
+    public AggregatedLandingServiceImpl(SumarisConfiguration configuration,
+                                        LandingService landingService,
                                         TripService tripService,
                                         ObservedLocationService observedLocationService,
                                         OperationGroupRepository operationGroupRepository,
@@ -93,6 +97,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         this.metierRepository = metierRepository;
         this.vesselService = vesselService;
         this.programRepository = programRepository;
+        this.dbTimeZone = configuration.getDbTimezone();
+        this.enableVesselActivityDateCheck = this.dbTimeZone.equals(configuration.getTimezone());
+        if (!this.enableVesselActivityDateCheck) {
+            log.warn("Disabling aggregated landing dates check, because server and DB have NOT the same time zone.");
+        }
     }
 
     @Override
@@ -173,22 +182,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                     // Get trip's metier
                     List<MetierVO> metiers = operationGroupRepository.getMetiersByTripId(landing.getTripId());
                     metiers.forEach(metier -> activity.getMetiers().add(metier));
-
-                    // Get operation metier
-//                    List<OperationGroupVO> operationGroups = operationGroupDao.getAllByTripId(landing.getTripId());
-//                    operationGroups.forEach(operationGroup -> {
-//
-//                        activity.getMetiers().add(operationGroup.getMetier());
-//
-//                        // Set comments from operation
-//                        if (StringUtils.isNotBlank(operationGroup.getComments())) {
-//                            if (StringUtils.isBlank(activity.getComments())) {
-//                                activity.setComments(operationGroup.getComments());
-//                            } else if (!Objects.equals(activity.getComments(), operationGroup.getComments())) {
-//                                activity.setComments(activity.getComments() + "\n" + operationGroup.getComments());
-//                            }
-//                        }
-//                    });
                 }
 
                 // Add this activity
@@ -218,13 +211,18 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             Preconditions.checkNotNull(aggregatedLanding.getVesselSnapshot());
             Preconditions.checkNotNull(aggregatedLanding.getVesselSnapshot().getId());
         });
-        // Check all activity have date without time
-        aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
-            .forEach(activity ->
-                Preconditions.checkArgument(
-                    activity.getDate().equals(Dates.resetTime(activity.getDate())),
-                    String.format("Must have a date without time : %s", activity.getDate())
-                )));
+
+        // Check all activity have date without time (if DB TZ = Server TZ)
+        if (this.enableVesselActivityDateCheck) {
+            aggregatedLandings.forEach(aggregatedLanding -> aggregatedLanding.getVesselActivities()
+                .forEach(activity -> {
+                    Date expectedDate = Dates.resetTime(activity.getDate(), dbTimeZone);
+                    Preconditions.checkArgument(
+                        activity.getDate().equals(expectedDate),
+                        String.format("Invalid date. Expected %s - Actual %s", expectedDate, activity.getDate())
+                    );
+                }));
+        }
 
         // Load VesselSnapshot Entity
         aggregatedLandings.parallelStream()
@@ -244,8 +242,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         // Get parent observed location
         ObservedLocationVO parent = observedLocationService.get(filter.getObservedLocationId());
         // Get existing observations
-        final Date startDate = Dates.resetTime(filter.getStartDate());
-        final Date endDate = Dates.lastSecondOfTheDay(filter.getEndDate());
+        final Date startDate = Dates.resetTime(filter.getStartDate(), this.dbTimeZone);
+        final Date endDate = Dates.lastSecondOfTheDay(Dates.resetTime(filter.getEndDate(), this.dbTimeZone));
         List<ObservedLocationVO> observedLocations = observedLocationService.findAll(
             ObservedLocationFilterVO.builder()
                 .programLabel(filter.getProgramLabel())
@@ -257,7 +255,9 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             DataFetchOptions.copy(defaultFetchOption));
 
         // Create observed location if missing
-        Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime).map(Dates::resetTime).collect(Collectors.toSet());
+        Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime)
+            .map(Dates::resetTime)
+            .collect(Collectors.toSet());
         if (observedLocations.size() != existingDates.size()) {
             throw new SumarisTechnicalException("There are several observations on same day. This is not implemented for now.");
         }

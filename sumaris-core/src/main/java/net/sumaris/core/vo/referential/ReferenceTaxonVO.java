@@ -23,14 +23,14 @@
 package net.sumaris.core.vo.referential;
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.util.Date;
 
 @Data
 public class ReferenceTaxonVO implements IValueObject<Integer>,
-        IUpdateDateEntityBean<Integer, Date> {
+    IUpdateDateEntity<Integer, Date> {
 
     private Integer id;
     private Date updateDate;

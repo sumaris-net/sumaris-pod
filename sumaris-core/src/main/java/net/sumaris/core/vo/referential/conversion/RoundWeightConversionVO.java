@@ -24,7 +24,7 @@ package net.sumaris.core.vo.referential.conversion;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -34,7 +34,7 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
-public class RoundWeightConversionVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public class RoundWeightConversionVO implements IUpdateDateEntity<Integer, Date>, IValueObject<Integer> {
 
     private Integer id;
 

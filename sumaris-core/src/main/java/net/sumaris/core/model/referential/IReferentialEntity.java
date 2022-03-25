@@ -22,16 +22,16 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 
 import java.util.Date;
 
 public interface IReferentialEntity
-        extends IUpdateDateEntityBean<Integer, Date> {
+        extends IUpdateDateEntity<Integer, Date> {
 
     int SEQUENCE_ALLOCATION_SIZE = 1;
 
-    interface Fields extends IUpdateDateEntityBean.Fields {
+    interface Fields extends IUpdateDateEntity.Fields {
         String CREATION_DATE = "creationDate";
     }
 

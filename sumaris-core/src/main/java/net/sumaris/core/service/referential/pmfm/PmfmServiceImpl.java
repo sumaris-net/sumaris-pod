@@ -23,6 +23,7 @@
 package net.sumaris.core.service.referential.pmfm;
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
@@ -32,6 +33,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.model.referential.pmfm.ParameterGroupEnum;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.PmfmVO;
@@ -66,6 +68,11 @@ public class PmfmServiceImpl implements PmfmService {
     @Override
     public Optional<PmfmVO> findByLabel(final String label) {
         return pmfmRepository.findByLabel(label);
+    }
+
+    @Override
+    public List<Integer> findIdsByParts(@NonNull PmfmPartsVO filter) {
+        return pmfmRepository.findIdsByParts(filter);
     }
 
     @Override

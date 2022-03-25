@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -82,14 +82,14 @@ public class TrashServiceImpl implements TrashService {
         // Make sure sort attribute is updateDate
         // This is because we don't want to deserialize all files, then sort, but we prefer sort on file date,
         // then only deserialize files from the current page
-        String sortAttribute = IUpdateDateEntityBean.Fields.UPDATE_DATE;
+        String sortAttribute = IUpdateDateEntity.Fields.UPDATE_DATE;
         if (pageable.getSort() != null && pageable.getSort().isSorted()) {
             sortAttribute = pageable.getSort().stream().map(Sort.Order::getProperty)
                 .findFirst()
-                .orElse(IUpdateDateEntityBean.Fields.UPDATE_DATE);
+                .orElse(IUpdateDateEntity.Fields.UPDATE_DATE);
         }
-        Preconditions.checkArgument(IUpdateDateEntityBean.Fields.UPDATE_DATE.equals(sortAttribute),
-                String.format("Trash data can only be sorted on '%s'", IUpdateDateEntityBean.Fields.UPDATE_DATE));
+        Preconditions.checkArgument(IUpdateDateEntity.Fields.UPDATE_DATE.equals(sortAttribute),
+                String.format("Trash data can only be sorted on '%s'", IUpdateDateEntity.Fields.UPDATE_DATE));
 
         // Get sort direction
         boolean isDescending = SortDirection.fromSort(pageable.getSort()).orElse(SortDirection.DESC) == SortDirection.DESC;
@@ -382,9 +382,9 @@ public class TrashServiceImpl implements TrashService {
                 if (clazz != null && !clazz.isInstance(vo)) return null;
 
                 // Override update date, with file date (=deletion date)
-                if (vo instanceof IUpdateDateEntityBean) {
+                if (vo instanceof IUpdateDateEntity) {
                     Date lastModified = new Date(file.lastModified());
-                    ((IUpdateDateEntityBean<?, Date>) vo).setUpdateDate(lastModified);
+                    ((IUpdateDateEntity<?, Date>) vo).setUpdateDate(lastModified);
                 }
 
                 return (V)vo;

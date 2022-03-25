@@ -192,6 +192,10 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public String[] getRectangleLabels() {
+		return new String[]{"65F1", "65F2", "65F3", "65F4","65F5"};
+	}
+
 	public Integer getDepartmentId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

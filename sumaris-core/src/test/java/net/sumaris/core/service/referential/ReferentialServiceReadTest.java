@@ -61,7 +61,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
     public void getAllTypes() {
         List<ReferentialTypeVO> types = service.getAllTypes();
         Assert.assertNotNull(types);
-        Assert.assertEquals(ReferentialEntities.REFERENTIAL_CLASSES.size(), types.size());
+        Assert.assertEquals(ReferentialEntities.ROOT_CLASSES.size(), types.size());
     }
 
     @Test

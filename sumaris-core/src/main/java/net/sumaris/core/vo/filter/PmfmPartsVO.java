@@ -20,22 +20,31 @@
  * #L%
  */
 
-package net.sumaris.core.vo.data.batch;
+package net.sumaris.core.vo.filter;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
 @Data
+@Builder
+@AllArgsConstructor
 @FieldNameConstants
 @EqualsAndHashCode
-public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
+public class PmfmPartsVO {
 
-    private Double elevateFactor;
+    // Link to other entities
+    private Integer parameterId;
+    private Integer matrixId;
+    private Integer fractionId;
+    private Integer methodId;
+    private Integer unitId;
 
-    //private Double contextWeight;
-    //private Double sumChildContextWeight;
-    //private Double sumChildRoundWeight;
-    //private Double sumChildRTPWeight;
+    private Integer statusId;
 
+    public boolean isEmpty() {
+        return (parameterId == null && matrixId == null && fractionId == null && methodId == null && unitId == null);
+    }
 }

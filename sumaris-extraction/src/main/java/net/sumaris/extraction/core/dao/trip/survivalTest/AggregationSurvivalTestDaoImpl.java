@@ -72,8 +72,8 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
 
         // Override some context properties
         context.setFormat(ProductFormatEnum.AGG_SURVIVAL_TEST);
-        context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
-        context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSurvivalTestTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
+        context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
         // Stop here, if sheet already filled
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;

@@ -28,14 +28,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
-import jdk.nashorn.internal.codegen.CompilerConstants;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.cache.CacheManager;
 import net.sumaris.core.dao.technical.model.Entities;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.event.JmsEntityEvents;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
@@ -94,7 +93,7 @@ public class EntityEventServiceImpl implements EntityEventService {
     private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
 
     @Override
-    public <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>, V extends IUpdateDateEntityBean<K, D>> Observable<V>
+    public <K extends Serializable, D extends Date, T extends IUpdateDateEntity<K, D>, V extends IUpdateDateEntity<K, D>> Observable<V>
     watchEntity(@NonNull final Class<T> entityClass,
                 @NonNull final Class<V> targetClass,
                 @NonNull final K id,
@@ -136,7 +135,7 @@ public class EntityEventServiceImpl implements EntityEventService {
     }
 
     @Override
-    public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>> Observable<V>
+    public <K extends Serializable, D extends Date, V extends IUpdateDateEntity<K, D>> Observable<V>
     watchEntity(final Function<D, Optional<V>> getter,
                 int intervalInSeconds,
                 boolean startWithActualValue) {
@@ -167,8 +166,8 @@ public class EntityEventServiceImpl implements EntityEventService {
     @Override
     public <ID extends Serializable,
         D extends Date,
-        T extends IUpdateDateEntityBean<ID, D>,
-        V extends IUpdateDateEntityBean<ID, D>,
+        T extends IUpdateDateEntity<ID, D>,
+        V extends IUpdateDateEntity<ID, D>,
         L extends Collection<V>>
     Observable<L> watchEntities(Class<T> entityClass,
                                 Callable<Optional<L>> loader,
@@ -206,7 +205,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         return result;
     }
 
-    public <K extends Serializable, D extends Date, V extends IUpdateDateEntityBean<K, D>, L extends Collection<V>> Observable<L>
+    public <K extends Serializable, D extends Date, V extends IUpdateDateEntity<K, D>, L extends Collection<V>> Observable<L>
     watchEntities(final Function<D, Optional<L>> loader,
                   int intervalInSeconds,
                   boolean startWithActualValue) {
@@ -356,8 +355,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     protected <ID extends Serializable,
         D extends Date,
-        T extends IUpdateDateEntityBean<ID, D>,
-        V extends IUpdateDateEntityBean<ID, D>>
+        T extends IUpdateDateEntity<ID, D>,
+        V extends IUpdateDateEntity<ID, D>>
     Observable<V> watchEntityByUpdateEvent(Class<T> entityClass, Class<V> targetClass, ID id) {
         String cacheKey = computeCacheKey(entityClass, targetClass, id);
         int cacheDuration = minIntervalInSeconds / 2;
@@ -371,8 +370,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     protected <ID extends Serializable,
         D extends Date,
-        T extends IUpdateDateEntityBean<ID, D>,
-        V extends IUpdateDateEntityBean<ID, D>>
+        T extends IUpdateDateEntity<ID, D>,
+        V extends IUpdateDateEntity<ID, D>>
     Observable<V> watchEntityByUpdateEvent(Class<T> entityClass,
                                            Class<V> targetClass,
                                            ID id,
@@ -415,8 +414,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     protected <K extends Serializable,
         D extends Date,
-        T extends IUpdateDateEntityBean<K, D>,
-        V extends IUpdateDateEntityBean<K, D>>
+        T extends IUpdateDateEntity<K, D>,
+        V extends IUpdateDateEntity<K, D>>
     Observable<V> watchEntityAtInterval(final Class<T> entityClass,
                                         final Class<V> targetClass,
                                         final K id,
@@ -469,7 +468,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         return id == null ? entityName : entityName + "#" + id;
     }
 
-    protected <V extends IUpdateDateEntityBean<?, ?>> void registerListener(String key, Listener listener) {
+    protected <V extends IUpdateDateEntity<?, ?>> void registerListener(String key, Listener listener) {
         synchronized (listenersById) {
             List<Listener> listeners = listenersById.computeIfAbsent(key, k -> Lists.newCopyOnWriteArrayList());
 
@@ -515,8 +514,8 @@ public class EntityEventServiceImpl implements EntityEventService {
     @Transactional(readOnly = true)
     protected <K extends Serializable,
         D extends Date,
-        T extends IUpdateDateEntityBean<K, D>,
-        V extends IUpdateDateEntityBean<K, D>>
+        T extends IUpdateDateEntity<K, D>,
+        V extends IUpdateDateEntity<K, D>>
     Optional<V> findNewerById(Class<T> entityClass,
                               Class<V> targetClass,
                               K id,
@@ -547,8 +546,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     @Transactional(readOnly = true)
     protected <K extends Serializable, D extends Date,
-        T extends IUpdateDateEntityBean<K, D>,
-        V extends IUpdateDateEntityBean<K, D>
+        T extends IUpdateDateEntity<K, D>,
+        V extends IUpdateDateEntity<K, D>
         > Optional<V> findAndConvert(
         Class<T> entityClass,
         Class<V> targetClass,
@@ -574,7 +573,7 @@ public class EntityEventServiceImpl implements EntityEventService {
     }
 
     @Transactional(readOnly = true)
-    protected <K extends Serializable, D extends Date, T extends IUpdateDateEntityBean<K, D>> T find(Class<T> entityClass, K id) {
+    protected <K extends Serializable, D extends Date, T extends IUpdateDateEntity<K, D>> T find(Class<T> entityClass, K id) {
         return dataChangeDao.find(entityClass, id);
     }
 

@@ -31,7 +31,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -76,7 +76,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         .withUserProfiles(false)
         .build();
 
-    private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
+    private String[] copyExcludeProperties = new String[]{IUpdateDateEntity.Fields.UPDATE_DATE};
 
     @Autowired
     private PersonRepository personRepository;

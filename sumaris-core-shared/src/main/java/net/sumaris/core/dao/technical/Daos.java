@@ -31,7 +31,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jdbc.PostgresqlStatements;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
@@ -1622,8 +1622,8 @@ public class Daos {
         }
     }
 
-    public static void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
-                                                IUpdateDateEntityBean<?, ? extends Date> entity) {
+    public static void checkUpdateDateForUpdate(IUpdateDateEntity<?, ? extends Date> source,
+                                                IUpdateDateEntity<?, ? extends Date> entity) {
         // Check update date
         if (entity.getUpdateDate() != null) {
             Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());

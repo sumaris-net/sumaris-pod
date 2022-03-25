@@ -25,7 +25,7 @@ package net.sumaris.core.vo.social;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.util.Date;
@@ -36,7 +36,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntityBean<Integer, Date>  {
+public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Integer, Date> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
