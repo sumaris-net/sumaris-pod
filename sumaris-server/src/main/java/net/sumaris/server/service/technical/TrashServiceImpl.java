@@ -211,7 +211,7 @@ public class TrashServiceImpl implements TrashService {
             try {
                 FileUtils.forceMkdir(this.trashDirectory);
                 checkTrashDirectory();
-                if (changed) log.info(String.format("Started trash service at {%s}", this.trashDirectory.getAbsolutePath()));
+                if (changed) log.info("Started trash service at {}", this.trashDirectory.getAbsolutePath());
             } catch (Exception e) {
                 log.error("Cannot enable trash service: " + e.getMessage());
                 this.enable = false;
