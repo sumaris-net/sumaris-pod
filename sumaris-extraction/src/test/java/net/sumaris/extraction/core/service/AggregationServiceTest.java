@@ -87,8 +87,8 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
 
         // HL.csv
-//        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
-//        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
     @Test
