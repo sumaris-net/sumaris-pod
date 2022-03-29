@@ -53,7 +53,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -392,14 +391,16 @@ public class SampleRepositoryImpl
                 target = sourcesIdsToProcess.remove(source.getId());
             }
             // Check if batch save can be skipped
-            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            boolean skip = enableSaveUsingHash && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
                 source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
                 skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
 
                 // If not changed, add children to the skip list
                 if (skip) {
-                    getAllChildren(source).forEach(b -> sourcesIdsToSkip.add(b.getId()));
+                    streamRecursiveChildren(source)
+                        .map(SampleVO::getId)
+                        .forEach(sourcesIdsToSkip::add);
                 }
             }
             if (skip && trace) {
@@ -418,7 +419,7 @@ public class SampleRepositoryImpl
                 try {
                     this.deleteById(sampleId);
                 } catch (EmptyResultDataAccessException e) {
-                    // Continue (can occur because of delete cascade
+                    // Continue (can occur because of delete cascade)
                 }
             });
             dirty = true;
@@ -503,11 +504,11 @@ public class SampleRepositoryImpl
 
 
 
-    protected Stream<SampleVO> getAllChildren(SampleVO source) {
+    protected Stream<SampleVO> streamRecursiveChildren(SampleVO source) {
         if (CollectionUtils.isEmpty(source.getChildren())) {
             return Stream.empty();
         }
-        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), getAllChildren(c)));
+        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), streamRecursiveChildren(c)));
     }
 
 }

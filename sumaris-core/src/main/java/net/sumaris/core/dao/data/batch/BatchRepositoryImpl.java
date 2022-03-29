@@ -41,6 +41,7 @@ import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
@@ -286,9 +287,10 @@ public class BatchRepositoryImpl
     protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
 
         // Load existing entities
-        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.HASH);
-        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.LABEL);
-        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(Beans.getList(parent.getBatches()));
+        final List<Batch> nonNullBatches = Beans.getList(parent.getBatches());
+        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(nonNullBatches, Batch.Fields.HASH, 0);
+        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(nonNullBatches, Batch.Fields.LABEL, "!!MISSING_LABEL!!");
+        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(nonNullBatches);
         final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
 
         // Save each batches
@@ -305,7 +307,7 @@ public class BatchRepositoryImpl
                 // Try to find it by hash code
                 Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
                 // Not found by hash code: try by label
-                if (CollectionUtils.isEmpty(existingBatchs)) {
+                if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null) {
                     existingBatchs = sourcesByLabelMap.get(source.getLabel());
                 }
                 // If one on match => use it
@@ -318,7 +320,7 @@ public class BatchRepositoryImpl
             }
 
             // Check if batch save can be skipped
-            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            boolean skip = enableSaveUsingHash && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
 
                 // Save the batch (using a dedicated function)
@@ -347,7 +349,7 @@ public class BatchRepositoryImpl
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
             // Delete linked produces first (ie. Sales of packets)
             productRepository.deleteProductsByBatchIdIn(sourcesIdsToProcess.keySet());
-            sourcesIdsToProcess.values().forEach(this::delete);
+            this.deleteAll(sourcesIdsToProcess.values());
             dirty = true;
         }
 
