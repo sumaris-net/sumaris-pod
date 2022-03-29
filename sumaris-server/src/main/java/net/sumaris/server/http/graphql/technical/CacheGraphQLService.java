@@ -26,6 +26,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.cache.CacheManager;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -52,8 +53,11 @@ public class CacheGraphQLService {
     @GraphQLQuery(name = "clearCache", description = "Clear a single cache or all caches")
     @IsAdmin
     public boolean clearCache(
-        @GraphQLArgument(name = "name") String name
+        @GraphQLArgument(name = "name", defaultValue = "") String name
     ) {
+        if (StringUtils.isBlank(name)) {
+            return cacheManager.clearAllCaches();
+        }
         return cacheManager.clearCache(name);
     }
 
