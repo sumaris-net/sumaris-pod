@@ -46,13 +46,13 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 
 	@Transactional(readOnly = true)
 	List<TripVO> findAll(TripFilterVO filter, Page page,
-						 TripFetchOptions fieldOptions);
+						 TripFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<TripVO> findAll(TripFilterVO filter, int offset, int size,
 						 String sortAttribute,
 						 SortDirection sortDirection,
-						 TripFetchOptions fieldOptions);
+						 TripFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	long countByFilter(TripFilterVO filter);
