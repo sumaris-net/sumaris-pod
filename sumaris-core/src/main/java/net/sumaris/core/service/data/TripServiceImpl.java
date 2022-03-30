@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
@@ -113,13 +112,13 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                SortDirection sortDirection, TripFetchOptions fieldOptions) {
-        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fieldOptions);
+                                SortDirection sortDirection, TripFetchOptions fetchOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
-    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, TripFetchOptions fieldOptions) {
-        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
+    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, TripFetchOptions fetchOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fetchOptions);
     }
 
     @Override

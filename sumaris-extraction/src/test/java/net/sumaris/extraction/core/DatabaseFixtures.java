@@ -65,6 +65,15 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public String getProgramLabelForPmfmExtraction(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+			default:
+				return "SUMARiS";
+		}
+	}
+
 	public int getYearRawData() {
 		return 2018;
 	}

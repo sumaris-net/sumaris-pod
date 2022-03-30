@@ -60,8 +60,6 @@ import net.sumaris.server.service.technical.EntityEventService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -319,11 +317,16 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")
     @IsUser
     public Publisher<TripVO> updateTrip(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                        @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
+
+        Set<String> fields = GraphQLUtils.fields(env);
+
         return entityEventService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
-            .toFlowable(BackpressureStrategy.LATEST);
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(t -> fillTripFields(t, fields));
     }
 
     @GraphQLMutation(name = "controlTrip", description = "Control a trip")
@@ -563,11 +566,14 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateObservedLocation", description = "Subscribe to changes on an observed location")
     @IsUser
     public Publisher<ObservedLocationVO> updateObservedLocation(@GraphQLArgument(name = "id") final int id,
-                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                                                @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
+        Set<String> fields = GraphQLUtils.fields(env);
         return entityEventService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
-            .toFlowable(BackpressureStrategy.LATEST);
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(ol -> fillObservedLocationFields(ol, fields));
     }
 
     @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
@@ -754,7 +760,8 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateOperation", description = "Subscribe to changes on an operation")
     @IsUser
     public Publisher<OperationVO> updateOperation(@GraphQLArgument(name = "id") final int id,
-                                                  @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                                  @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond
+    ) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return entityEventService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
@@ -900,7 +907,7 @@ public class DataGraphQLService {
     public long countSamplesByLanding(@GraphQLContext LandingVO landing) {
         // Avoid a reloading (e.g. when saving)
         if (landing.getSamplesCount() != null) return landing.getSamplesCount();
-        if (landing.getId() == null) return 0l;
+        if (landing.getId() == null) return 0L;
 
         // Get samples by operation if a main undefined operation group exists
         SampleFilterVO filter = SampleFilterVO.builder().withTagId(true).build();
@@ -1041,11 +1048,14 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateLanding", description = "Subscribe to changes on an landing")
     @IsUser
     public Publisher<LandingVO> updateLanding(@GraphQLArgument(name = "id") final int id,
-                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
+        Set<String> fields = GraphQLUtils.fields(env);
         return entityEventService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
-            .toFlowable(BackpressureStrategy.LATEST);
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(l -> fillLandingFields(l, fields));
     }
 
     /* -- Aggregated landings -- */
@@ -1336,7 +1346,7 @@ public class DataGraphQLService {
 
     /* -- protected methods -- */
 
-    protected void fillTripFields(TripVO trip, Set<String> fields) {
+    protected TripVO fillTripFields(TripVO trip, Set<String> fields) {
         // Add image if need
         fillImages(trip, fields);
 
@@ -1348,9 +1358,11 @@ public class DataGraphQLService {
                 || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
+
+        return trip;
     }
 
-    protected void fillTrips(List<TripVO> trips, Set<String> fields) {
+    protected List<TripVO> fillTrips(List<TripVO> trips, Set<String> fields) {
         // Add image if need
         fillImages(trips, fields);
 
@@ -1362,32 +1374,42 @@ public class DataGraphQLService {
         if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID)) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripsLandingLinks(trips);
         }
+
+        return trips;
     }
 
-    protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
+    protected ObservedLocationVO fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
         // Add image if need
         fillImages(observedLocation, fields);
+
+        return observedLocation;
     }
 
-    protected void fillObservedLocationsFields(List<ObservedLocationVO> observedLocations, Set<String> fields) {
+    protected List<ObservedLocationVO> fillObservedLocationsFields(List<ObservedLocationVO> observedLocations, Set<String> fields) {
         // Add image if need
         fillImages(observedLocations, fields);
+
+        return observedLocations;
     }
 
-    protected void fillLandingFields(LandingVO landing, Set<String> fields) {
+    protected LandingVO fillLandingFields(LandingVO landing, Set<String> fields) {
         // Add image if need
         fillImages(landing, fields);
 
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(landing, fields);
+
+        return landing;
     }
 
-    protected void fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
+    protected List<LandingVO> fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
         // Add image if need
         fillImages(landings, fields);
 
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(landings, fields);
+
+        return landings;
     }
 
     protected boolean hasImageField(Set<String> fields) {

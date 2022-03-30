@@ -89,6 +89,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
 
         // HL.csv
+        // TODO FIXME CCotonnec
 //        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
 //        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }

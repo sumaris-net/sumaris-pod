@@ -192,12 +192,18 @@ public class AggregationGraphQLService {
         // Make sure strata has been filled
         if (strata == null || strata.getSpatialColumnName() == null) throw new SumarisTechnicalException(String.format("No strata or spatial column found, in type '%s'", type.getLabel()));
 
+        // Sort by spatial column, by default
+        // This is import, to get all pages
+        if (StringUtils.isBlank(sort)) {
+            sort = strata.getSpatialColumnName();
+        }
+
         // Get data
         AggregationResultVO data = aggregationService.getAggBySpace(type, filter, strata, Page.builder()
             .offset(offset)
             .size(size)
             .sortBy(sort)
-            .sortDirection(SortDirection.fromString(direction))
+            .sortDirection(SortDirection.fromString(direction, SortDirection.ASC))
             .build());
 
 
