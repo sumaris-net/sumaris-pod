@@ -29,8 +29,10 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
@@ -44,19 +46,19 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, Trip.Fields.VESSEL);
-            return criteriaBuilder.equal(
-                Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP)).get(Trip.Fields.VESSEL), param);
-        }).addBind(Trip.Fields.VESSEL, vesselId);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearFilterVO.Fields.VESSEL_ID);
+            Join<PhysicalGear, Vessel> vesselJoin = Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL));
+            return criteriaBuilder.equal(vesselJoin.get(Vessel.Fields.ID), param);
+        }).addBind(PhysicalGearFilterVO.Fields.VESSEL_ID, vesselId);
     }
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {
         if (tripId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearVO.Fields.TRIP_ID);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearFilterVO.Fields.TRIP_ID);
             return criteriaBuilder.equal(Daos.composeJoin(root, PhysicalGear.Fields.TRIP)
                 .get(IEntity.Fields.ID), param);
-        }).addBind(PhysicalGearVO.Fields.TRIP_ID, tripId);
+        }).addBind(PhysicalGearFilterVO.Fields.TRIP_ID, tripId);
     }
 
     default Specification<PhysicalGear> hasProgramLabel(String programLabel) {
