@@ -76,6 +76,11 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public Long countByFilter(@Nullable ProgramFilterVO filter) {
+		return programRepository.count(ProgramFilterVO.nullToEmpty(filter));
+	}
+
+	@Override
 	public ProgramVO get(int id) {
 		return programRepository.get(id);
 	}

@@ -152,7 +152,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "programsCount", description = "Get programs count")
     @Transactional(readOnly = true)
     public Long getProgramCount(@GraphQLArgument(name = "filter") ProgramFilterVO filter) {
-        return referentialService.countByFilter(Program.class.getSimpleName(), filter);
+        return programService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "strategy", description = "Get a strategy")

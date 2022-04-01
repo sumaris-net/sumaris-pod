@@ -40,15 +40,14 @@ import java.util.List;
 
 public interface PhysicalGearSpecifications extends RootDataSpecifications<PhysicalGear> {
 
-    String VESSEL_ID_PARAM = "vesselId";
 
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.equal(Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL))
-                .get(IEntity.Fields.ID), param);
-        }).addBind(VESSEL_ID_PARAM, vesselId);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, Trip.Fields.VESSEL);
+            return criteriaBuilder.equal(
+                Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP)).get(Trip.Fields.VESSEL), param);
+        }).addBind(Trip.Fields.VESSEL, vesselId);
     }
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {

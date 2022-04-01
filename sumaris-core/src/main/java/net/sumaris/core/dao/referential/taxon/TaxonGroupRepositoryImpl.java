@@ -79,7 +79,7 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    public List<TaxonGroupVO> findTargetSpeciesByFilter(
+    public List<TaxonGroupVO> findAll(
             IReferentialFilter filter,
             int offset,
             int size,
@@ -339,19 +339,4 @@ public class TaxonGroupRepositoryImpl
             .getResultList();
     }
 
-    @Override
-    protected Specification<TaxonGroup> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
-        Preconditions.checkNotNull(filter);
-        Integer[] gearIds = filter.getLevelIds();
-        filter.setLevelIds(null);
-
-        Specification<TaxonGroup> result = super.toSpecification(filter, fetchOptions)
-            .and(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
-            .and(inGearIds(gearIds));
-
-        // restore levelIds
-        filter.setLevelIds(gearIds);
-
-        return result;
-    }
 }

@@ -43,6 +43,8 @@ import java.util.stream.Stream;
 @Slf4j
 public final class EntityEnums {
 
+    public static final int UNRESOLVED_ENUMERATION_ID = -1;
+
     private static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
 
     private EntityEnums(){

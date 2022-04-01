@@ -390,7 +390,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             entityClassName,
                             enumContentBuilder.length() > 2 ? enumContentBuilder.substring(2) : "null",
                             configKeysBuilder.length() > 2 ? configKeysBuilder.substring(2) : "<unknown>"));
-                    Beans.setProperty(enumValue, IEntity.Fields.ID, -1);
+                    Beans.setProperty(enumValue, IEntity.Fields.ID, EntityEnums.UNRESOLVED_ENUMERATION_ID);
                 }
             });
         });

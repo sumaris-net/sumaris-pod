@@ -310,7 +310,7 @@ public class OperationRepositoryImpl
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludeChildOperation(filter.getExcludeChildOperation()))
-            .and(hasNoChildOperation(filter.getExcludeChildOperation()))
+            .and(hasNoChildOperation(filter.getHasNoChildOperation()))
             .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
             .and(inGearIds(filter.getGearIds()))
             .and(inPhysicalGearIds(filter.getPhysicalGearIds()))

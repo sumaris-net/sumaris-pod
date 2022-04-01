@@ -61,6 +61,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -104,6 +105,10 @@ public class ProgramRepositoryImpl
     @Autowired
     protected ProgramPrivilegeRepository programPrivilegeRepository;
 
+    public Logger getLogger() {
+        return log;
+    }
+
     public ProgramRepositoryImpl(EntityManager entityManager) {
         super(Program.class, ProgramVO.class, entityManager);
         setLockForUpdate(true);
@@ -118,9 +123,10 @@ public class ProgramRepositoryImpl
 
     @Override
     public Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
-        return getQuery(BindableSpecification
-            .where(hasId(id))
-            .and(newerThan(updateDate)), Program.class, Sort.by(Program.Fields.ID))
+        return getQuery(
+                BindableSpecification.where(hasId(id)).and(newerThan(updateDate)),
+                Program.class, Sort.by(Program.Fields.ID)
+            )
             .getResultStream()
             .findFirst()
             .map(source -> toVO(source, fetchOptions));
@@ -141,7 +147,10 @@ public class ProgramRepositoryImpl
     @Override
     protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasProperty(filter.getWithProperty()));
+            .and(newerThan(filter.getMinUpdateDate()))
+            .and(hasProperty(filter.getWithProperty()))
+            .and(hasAcquisitionLevels(filter.getAcquisitionLevels()))
+            ;
     }
 
     @Override

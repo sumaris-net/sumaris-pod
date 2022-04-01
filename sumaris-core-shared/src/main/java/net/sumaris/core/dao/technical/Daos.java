@@ -1841,6 +1841,33 @@ public class Daos {
         return result;
     }
 
+    public static <S, T> ListJoin<S, T> composeJoinList(From<?, ?> root, String attributePath, JoinType joinType) {
+
+        String[] attributes = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+
+        for (int i = 0; i < attributes.length; i++) {
+            String attribute = attributes[i];
+            try {
+                // copy into a final var
+                final From<?, ?> finalForm = from;
+                // find a join (find it from existing joins of from)
+                from = from.getJoins().stream()
+                    .filter(j -> j.getAttribute().getName().equals(attribute) && (j instanceof ListJoin))
+                    .findFirst()
+                    .orElseGet(() -> finalForm.joinList(attribute, joinType));
+            } catch (IllegalArgumentException ignored) {
+                throw new IllegalArgumentException(String.format("the join or attribute [%s] from [%s] doesn't exists", attribute, from.getJavaType()));
+            }
+        }
+
+        if (!(from instanceof ListJoin)) {
+            throw new IllegalArgumentException(String.format("Invalid join list [%s] : expected a ListJoin class but found type [%s]", attributePath, from.getJavaType()));
+        }
+
+        return (ListJoin<S, T>)from;
+    }
+
     public static <T, X> Root<X> getRoot(CriteriaQuery<T> query, Class<X> entityClass) {
         return Beans.getStream(query.getRoots())
             .filter(root -> root.getJavaType() == entityClass)
