@@ -73,22 +73,23 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
     default Specification<PhysicalGear> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
+            Join<PhysicalGear, Trip> tripJoin = Daos.composeJoin(root, PhysicalGear.Fields.TRIP);
             // Start + end date
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME), startDate),
-                        cb.greaterThan(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME), endDate)
+                        cb.lessThan(tripJoin.get(Trip.Fields.RETURN_DATE_TIME), startDate),
+                        cb.greaterThan(tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME), endDate)
                     )
                 );
             }
             // Start date
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME), startDate);
+                return cb.greaterThanOrEqualTo(tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME), startDate);
             }
             // End date
             else {
-                return cb.lessThanOrEqualTo(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME), endDate);
+                return cb.lessThanOrEqualTo(tripJoin.get(Trip.Fields.RETURN_DATE_TIME), endDate);
             }
         };
     }
