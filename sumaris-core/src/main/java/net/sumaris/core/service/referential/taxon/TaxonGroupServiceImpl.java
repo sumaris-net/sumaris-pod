@@ -25,7 +25,6 @@ package net.sumaris.core.service.referential.taxon;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonGroupSpecifications;
 import net.sumaris.core.dao.schema.DatabaseSchemaDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service("taxonGroupService")
 @Slf4j
@@ -106,21 +104,21 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     }
 
     @Override
-    public List<TaxonGroupVO> findTargetSpeciesByFilter(IReferentialFilter filter,
-                                                        int offset,
-                                                        int size,
-                                                        String sortAttribute,
-                                                        SortDirection sortDirection) {
-        return taxonGroupRepository.findTargetSpeciesByFilter(filter, offset, size, sortAttribute, sortDirection);
+    public List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter) {
+        return taxonGroupRepository.findAll(ReferentialFilterVO.nullToEmpty(filter), ReferentialFetchOptions.builder().build());
+    }
+
+    @Override
+    public List<TaxonGroupVO> findByFilter(ReferentialFilterVO filter,
+                                           int offset,
+                                           int size,
+                                           String sortAttribute,
+                                           SortDirection sortDirection) {
+        return taxonGroupRepository.findAll(filter, offset, size, sortAttribute, sortDirection);
     }
 
     @Override
     public List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate) {
         return taxonGroupRepository.getAllIdByReferenceTaxonId(referenceTaxonId, startDate, endDate);
-    }
-
-    @Override
-    public List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter) {
-        return taxonGroupRepository.findAll(ReferentialFilterVO.nullToEmpty(filter), ReferentialFetchOptions.builder().build());
     }
 }

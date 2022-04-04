@@ -270,7 +270,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			.map(String::trim)
 			.map(label -> taxonGroupService.findAllByFilter(ReferentialFilterVO.builder()
 				.label(label)
-				.levelId(TaxonGroupTypeEnum.FAO.getId())
+				.levelIds(new Integer[]{TaxonGroupTypeEnum.FAO.getId()})
 				.statusIds(new Integer[]{ StatusEnum.ENABLE.getId() })
 				.build()).stream().findFirst().orElse(null))
 			.filter(Objects::nonNull)

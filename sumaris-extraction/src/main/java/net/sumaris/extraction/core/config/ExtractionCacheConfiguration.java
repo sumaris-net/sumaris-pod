@@ -35,6 +35,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
+
 @Configuration
 @ConditionalOnBean({CacheConfiguration.class})
 @ConditionalOnProperty(
@@ -62,10 +64,9 @@ public class ExtractionCacheConfiguration {
             Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, AggregationTypeVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createHeapCache(cacheManager, Names.AGGREGATION_TYPE_BY_FORMAT, String.class, AggregationTypeVO.class, CacheTTL.DEFAULT.asDuration(), 100);
 
-            for (CacheTTL ttl: CacheTTL.values()) {
-                Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
-                    Integer.class, ExtractionResultVO.class, ttl.asDuration(), 10);
-            }
+            Arrays.stream(CacheTTL.values())
+                .forEach(ttl -> Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
+                    Integer.class, ExtractionResultVO.class, ttl.asDuration(), 10));
         };
     }
 }

@@ -23,6 +23,7 @@ package net.sumaris.core.model.social;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -41,8 +42,7 @@ public enum EventTypeEnum implements Serializable {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown EventTypeEnum: " + id));
     }
 
-    public static EventTypeEnum byLabel(final String label) {
-        Preconditions.checkNotNull(label);
+    public static EventTypeEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
                 .filter(level -> label.equals(level.label))
                 .findFirst()

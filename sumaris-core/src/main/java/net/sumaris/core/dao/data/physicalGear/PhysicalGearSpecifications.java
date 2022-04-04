@@ -29,8 +29,10 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
@@ -40,24 +42,23 @@ import java.util.List;
 
 public interface PhysicalGearSpecifications extends RootDataSpecifications<PhysicalGear> {
 
-    String VESSEL_ID_PARAM = "vesselId";
 
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.equal(Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL))
-                .get(IEntity.Fields.ID), param);
-        }).addBind(VESSEL_ID_PARAM, vesselId);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearFilterVO.Fields.VESSEL_ID);
+            Join<PhysicalGear, Vessel> vesselJoin = Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL));
+            return criteriaBuilder.equal(vesselJoin.get(Vessel.Fields.ID), param);
+        }).addBind(PhysicalGearFilterVO.Fields.VESSEL_ID, vesselId);
     }
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {
         if (tripId == null) return null;
         return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearVO.Fields.TRIP_ID);
+            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearFilterVO.Fields.TRIP_ID);
             return criteriaBuilder.equal(Daos.composeJoin(root, PhysicalGear.Fields.TRIP)
                 .get(IEntity.Fields.ID), param);
-        }).addBind(PhysicalGearVO.Fields.TRIP_ID, tripId);
+        }).addBind(PhysicalGearFilterVO.Fields.TRIP_ID, tripId);
     }
 
     default Specification<PhysicalGear> hasProgramLabel(String programLabel) {
@@ -72,22 +73,23 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
     default Specification<PhysicalGear> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
+            Join<PhysicalGear, Trip> tripJoin = Daos.composeJoin(root, PhysicalGear.Fields.TRIP);
             // Start + end date
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME), startDate),
-                        cb.greaterThan(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME), endDate)
+                        cb.lessThan(tripJoin.get(Trip.Fields.RETURN_DATE_TIME), startDate),
+                        cb.greaterThan(tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME), endDate)
                     )
                 );
             }
             // Start date
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME), startDate);
+                return cb.greaterThanOrEqualTo(tripJoin.get(Trip.Fields.DEPARTURE_DATE_TIME), startDate);
             }
             // End date
             else {
-                return cb.lessThanOrEqualTo(root.get(PhysicalGear.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME), endDate);
+                return cb.lessThanOrEqualTo(tripJoin.get(Trip.Fields.RETURN_DATE_TIME), endDate);
             }
         };
     }

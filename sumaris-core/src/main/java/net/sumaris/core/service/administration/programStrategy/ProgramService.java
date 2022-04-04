@@ -29,7 +29,9 @@ import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnu
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -71,6 +73,9 @@ public interface ProgramService {
 	@Transactional(readOnly = true)
 	List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+	@Transactional(readOnly = true)
+	Long countByFilter(ProgramFilterVO filter);
+
 	ProgramVO save(ProgramVO program, ProgramSaveOptions options);
 
 	void delete(int id);
@@ -84,4 +89,5 @@ public interface ProgramService {
 	@Transactional(readOnly = true)
 	boolean hasPropertyValue(String label, ProgramPropertyEnum property, String expectedValue);
 
+    List<ReferentialVO> getAcquisitionLevelsById(int id);
 }

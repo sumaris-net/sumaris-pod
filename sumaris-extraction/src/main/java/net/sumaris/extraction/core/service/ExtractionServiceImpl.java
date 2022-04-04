@@ -87,7 +87,9 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -196,16 +198,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        this.enableProduct = configuration.enableExtractionProduct();
-        this.cacheDefaultTtl = configuration.getExtractionCacheDefaultTtl();
-        if (this.cacheDefaultTtl == null) {
-            this.cacheDefaultTtl = CacheTTL.DEFAULT;
-        }
-
-        log.info("Extraction configured with {cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
-            this.cacheDefaultTtl.name(),
-            DurationFormatUtils.formatDuration(this.cacheDefaultTtl.asDuration().toMillis(), "H:mm:ss", true),
-            this.enableProduct);
 
         // Update technical tables (if option changed)
         if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
@@ -215,6 +207,49 @@ public class ExtractionServiceImpl implements ExtractionService {
             if (this.enableTechnicalTablesUpdate) initRectangleLocations();
         }
 
+        CacheTTL cacheDefaultTtl = configuration.getExtractionCacheDefaultTtl();
+        if (cacheDefaultTtl == null) {
+            cacheDefaultTtl = CacheTTL.DEFAULT;
+        }
+        boolean enableProduct = configuration.enableExtractionProduct();
+
+        // Update if need
+        if (this.enableProduct != enableProduct || this.cacheDefaultTtl != cacheDefaultTtl) {
+            this.enableProduct = enableProduct;
+            this.cacheDefaultTtl = cacheDefaultTtl;
+
+            log.info("Extraction configured with {cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
+                this.cacheDefaultTtl.name(),
+                DurationFormatUtils.formatDuration(this.cacheDefaultTtl.asDuration().toMillis(), "H:mm:ss", true),
+                enableProduct);
+
+            this.clearCache();
+        }
+    }
+
+    @Caching(evict = {
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true)
+    })
+    protected void clearCache() {
+        if (this.cacheManager == null) return; // Skip
+
+        log.debug("Cleaning {Extraction} caches...");
+
+        // Clear all rows cache (by TTL)
+        Arrays.stream(CacheTTL.values())
+            .map(ttl -> {
+                try {
+                    return cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+                }
+                catch (Exception e) {
+                    // Cache not exists: skip
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .forEach(Cache::clear);
     }
 
     @Override
@@ -299,14 +334,15 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkNotNull(this.cacheManager, "Cache has been disabled by configuration. Please enable cache before retry");
 
         filter = ExtractionFilterVO.nullToEmpty(filter);
-        ttl = CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl);
+        ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
         if (ttl == null) throw new IllegalArgumentException("Missing required 'ttl' argument");
 
         Integer cacheKey = new HashCodeBuilder(17, 37)
             .append(type)
             .append(filter)
             .append(page)
-            .append(ttl)
+            // Not need to use TTL in cache key, because using a cache by TTL
+            //.append(ttl)
             .build();
 
         // Get cache (if exists)

@@ -30,6 +30,7 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -38,6 +39,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
@@ -54,18 +56,23 @@ public class JmsEntityEventProducer {
     @Autowired(required = false)
     private JmsTemplate jmsTemplate;
 
+    @Value("${spring.jms.enabled:false}")
+    private boolean jmsEnabled;
+
     @PostConstruct
     protected void init() {
-        if (jmsTemplate != null) {
-            log.info("Starting JMS entity events producer... {destinationPattern: '({})<EntityName>'}", Arrays.stream(IEntityEvent.EntityEventOperation.values())
-                .map(Enum::name)
-                .map(String::toLowerCase)
-                .collect(Collectors.joining("|"))
-            );
+        if (jmsTemplate == null) {
+            // Display a warn log, if should be enabled. Otherwise: silent
+            if (jmsEnabled) log.warn("Cannot start JMS entity events producer: missing a bean of class {}", JmsTemplate.class.getName());
+            return;
         }
-        else {
-            log.warn("Cannot start JMS entity events producer: missing a bean of class {}", JmsTemplate.class.getName());
-        }
+
+        // Start log
+        log.info("Starting JMS entity events producer... {destinationPattern: '({})<EntityName>'}", Arrays.stream(IEntityEvent.EntityEventOperation.values())
+            .map(Enum::name)
+            .map(String::toLowerCase)
+            .collect(Collectors.joining("|"))
+        );
     }
 
     @Async

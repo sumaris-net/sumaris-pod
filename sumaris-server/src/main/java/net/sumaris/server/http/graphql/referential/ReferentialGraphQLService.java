@@ -235,18 +235,18 @@ public class ReferentialGraphQLService {
         return null;
     }
 
-    @GraphQLQuery(name = "taxonGroups", description = "Get taxon groups from a taxon name")
+    @GraphQLQuery(name = "taxonGroups", description = "Search in taxon groups")
     public List<TaxonGroupVO> getTaxonGroupByFilter(@GraphQLArgument(name = "filter") ReferentialFilterVO filter,
                                                     @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                     @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
                                                     @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        return taxonGroupService.findTargetSpeciesByFilter(
+        return taxonGroupService.findByFilter(
                 ReferentialFilterVO.nullToEmpty(filter),
                 offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
-    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxonGroups")
+    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxon groups")
     @Transactional(readOnly = true)
     public Long countTaxonGroups(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
         return referentialService.countByFilter("TaxonGroup", filter);

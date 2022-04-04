@@ -141,6 +141,9 @@ public class TripServiceReadTest extends AbstractServiceTest{
             0);
     }
 
+    /**
+     * /!\ Test need for trash : when deleted a trip, should fetch all the trip, and sub-entities
+     */
     @Test
     public void getFullGraph() {
 
@@ -169,8 +172,9 @@ public class TripServiceReadTest extends AbstractServiceTest{
 
             // Check positions
             {
-                Assert.assertTrue(trip.getOperations()
-                        .stream().map(OperationVO::getPositions).anyMatch(CollectionUtils::isNotEmpty));
+                Assert.assertTrue("Positions not fetched", trip.getOperations()
+                    .stream().map(OperationVO::getPositions)
+                    .anyMatch(CollectionUtils::isNotEmpty));
             }
 
             // Measurements

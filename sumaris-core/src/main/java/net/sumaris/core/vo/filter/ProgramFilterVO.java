@@ -38,6 +38,8 @@ public class ProgramFilterVO implements IReferentialFilter {
         return filter != null ? filter : ProgramFilterVO.builder().build();
     }
 
+    // IReferentialFilter properties
+
     private Integer id;
     private String label;
     private String name;
@@ -51,15 +53,20 @@ public class ProgramFilterVO implements IReferentialFilter {
     private String searchText;
     private String searchAttribute;
 
-    private String withProperty;
 
     private Integer[] includedIds;
     private Integer[] excludedIds;
 
-    private Date minUpdateDate;
 
     @Deprecated
     private Integer levelId;
     @Deprecated
     private String levelLabel;
+
+    // Specific to ProgramFilterVO
+
+    private String withProperty;
+    private Date minUpdateDate;
+    private String[] acquisitionLevelLabels;
+
 }

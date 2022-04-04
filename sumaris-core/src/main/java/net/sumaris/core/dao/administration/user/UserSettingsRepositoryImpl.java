@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.administration.user.UserSettings;
@@ -48,9 +49,8 @@ public class UserSettingsRepositoryImpl
     }
 
     @Override
-    public Optional<UserSettingsVO> findByIssuer(String issuer) {
-        List<UserSettings> settings = findAll(BindableSpecification.where((root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get(UserSettingsVO.Fields.ISSUER), issuer)));
+    public Optional<UserSettingsVO> findByIssuer(@NonNull String issuer) {
+        List<UserSettings> settings = findAll(hasIssuer(issuer));
         if (CollectionUtils.isEmpty(settings)) {
             return Optional.empty();
         }

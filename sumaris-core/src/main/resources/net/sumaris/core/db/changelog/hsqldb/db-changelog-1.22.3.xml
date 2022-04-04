@@ -25,21 +25,38 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.22.2.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.22.3.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
+	<!-- Rename some software property labels -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229075829-001" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<or>
+				<not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM SOFTWARE_PROPERTY WHERE LABEL='sumaris.auth.notSelfDataAccess.role'</sqlCheck></not>
+				<not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM SOFTWARE_PROPERTY WHERE LABEL='sumaris.auth.notSelfExtractionAccess.role'</sqlCheck></not>
+			</or>
+		</preConditions>
+		<sql endDelimiter=";">
+			UPDATE SOFTWARE S set UPDATE_DATE=current_timestamp where exists (select * from SOFTWARE_PROPERTY where SOFTWARE_FK=S.ID and LABEL in ('sumaris.auth.notSelfDataAccess.role', 'sumaris.auth.notSelfExtractionAccess.role'));
+			UPDATE SOFTWARE_PROPERTY set LABEL='sumaris.data.accessNotSelfData.role' where LABEL='sumaris.auth.notSelfDataAccess.role';
+			UPDATE SOFTWARE_PROPERTY set LABEL='sumaris.extraction.accessNotSelfExtraction.role' where LABEL='sumaris.auth.notSelfExtractionAccess.role';
+			commit;
+		</sql>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229075729-200" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229075829-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.22.2'</where>
+			<where>LABEL='1.22.3'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
 			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-			<column name="LABEL">1.22.2</column>
+			<column name="LABEL">1.22.3</column>
 			<column name="DESCRIPTION">
-				- Add default option to SUMARiS program (if exists)
+				- Rename some software_property label;
+				- Configure default enumeration for ADAP;
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
