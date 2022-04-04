@@ -151,8 +151,8 @@ public class ProgramRepositoryImpl
     protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
+            .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevelLabels()))
             .and(hasProperty(filter.getWithProperty()))
-            .and(hasAcquisitionLevels(filter.getAcquisitionLevels()))
             ;
     }
 

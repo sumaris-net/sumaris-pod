@@ -24,7 +24,6 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnums;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramDepartmentVO;
@@ -36,14 +35,12 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.StreamUtils;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -72,7 +69,7 @@ public interface ProgramSpecifications {
         .addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
     }
 
-    default Specification<Program> hasAcquisitionLevels(String... acquisitionLevels) {
+    default Specification<Program> hasAcquisitionLevelLabels(String... acquisitionLevels) {
         if (ArrayUtils.isEmpty(acquisitionLevels)) return null;
         return BindableSpecification.where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, ACQUISITION_LEVELS_PARAM);
