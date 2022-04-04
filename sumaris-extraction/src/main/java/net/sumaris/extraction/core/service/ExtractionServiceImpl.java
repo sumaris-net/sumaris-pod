@@ -233,7 +233,9 @@ public class ExtractionServiceImpl implements ExtractionService {
         @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true)
     })
     protected void clearCache() {
-        log.debug("Cleaning Extraction types cache...");
+        if (this.cacheManager == null) return; // Skip
+
+        log.debug("Cleaning {Extraction} caches...");
 
         // Clear all rows cache (by TTL)
         Arrays.stream(CacheTTL.values())
