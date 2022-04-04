@@ -237,7 +237,15 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Clear all rows cache (by TTL)
         Arrays.stream(CacheTTL.values())
-            .map(ttl -> cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name()))
+            .map(ttl -> {
+                try {
+                    return cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+                }
+                catch (Exception e) {
+                    // Cache not exists: skip
+                    return null;
+                }
+            })
             .filter(Objects::nonNull)
             .forEach(Cache::clear);
     }
@@ -324,7 +332,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkNotNull(this.cacheManager, "Cache has been disabled by configuration. Please enable cache before retry");
 
         filter = ExtractionFilterVO.nullToEmpty(filter);
-        ttl = CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl);
+        ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
         if (ttl == null) throw new IllegalArgumentException("Missing required 'ttl' argument");
 
         Integer cacheKey = new HashCodeBuilder(17, 37)
