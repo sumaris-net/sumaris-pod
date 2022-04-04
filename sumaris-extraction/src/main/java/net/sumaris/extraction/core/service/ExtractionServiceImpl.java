@@ -199,7 +199,6 @@ public class ExtractionServiceImpl implements ExtractionService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
 
-
         // Update technical tables (if option changed)
         if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             this.enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
@@ -214,8 +213,10 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
         boolean enableProduct = configuration.enableExtractionProduct();
 
+        // Update if need
         if (this.enableProduct != enableProduct || this.cacheDefaultTtl != cacheDefaultTtl) {
             this.enableProduct = enableProduct;
+            this.cacheDefaultTtl = cacheDefaultTtl;
 
             log.info("Extraction configured with {cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
                 this.cacheDefaultTtl.name(),
