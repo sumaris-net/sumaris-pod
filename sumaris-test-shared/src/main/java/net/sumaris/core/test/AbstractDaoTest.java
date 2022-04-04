@@ -58,7 +58,7 @@ public abstract class AbstractDaoTest {
 
 		@Override
 		public int getIsolationLevel() {
-			return TransactionDefinition.ISOLATION_DEFAULT;
+			return ISOLATION_DEFAULT;
 		}
 	};
 
@@ -132,7 +132,7 @@ public abstract class AbstractDaoTest {
 	}
 
 	/**
-	 * <p>commit.</p>
+	 * <p>rollback.</p>
 	 */
 	protected void rollback() {
 		// Rollback
