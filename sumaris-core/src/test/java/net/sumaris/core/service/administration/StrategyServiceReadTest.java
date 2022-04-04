@@ -163,7 +163,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
 
         label = service.computeNextSampleLabelByStrategy("20LEUCCIR001", "-", 4);
         // FIXME: data need to have an LANDING -> TRIP -> OPERATION -> SAMPLE
-        // => devrait etre "20LEUCCIR001-0005", mais il manque des entitéss (TRIP, OPE, etc.)
+        // => devrait etre "20LEUCCIR001-0005", mais il manque des entitées (TRIP, OPE, etc.)
         //Assert.assertEquals("20LEUCCIR001-0005", label);
         Assert.assertEquals("20LEUCCIR001-0001", label);
     }
