@@ -169,8 +169,9 @@ public class TripServiceReadTest extends AbstractServiceTest{
 
             // Check positions
             {
-                Assert.assertTrue(trip.getOperations()
-                        .stream().map(OperationVO::getPositions).anyMatch(CollectionUtils::isNotEmpty));
+                Assert.assertTrue("Positions not fetched", trip.getOperations()
+                    .stream().map(OperationVO::getPositions)
+                    .anyMatch(CollectionUtils::isNotEmpty));
             }
 
             // Measurements

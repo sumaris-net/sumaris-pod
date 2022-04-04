@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class StrategyServiceWriteTest extends AbstractServiceTest{
+public class StrategyServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -57,15 +57,21 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void saveExisting() {
+        Integer strategyId = null;
         StrategyVO strategy = service.getByLabel("20LEUCCIR001",
-                StrategyFetchOptions.builder().withPmfms(true).build());
+                StrategyFetchOptions.builder()
+                    .withPmfms(true)
+                    .withTaxonNames(true)
+                    .withPmfms(true)
+                    .withDepartments(true)
+                    .build());
         Assert.assertNotNull(strategy);
         Assert.assertNotNull(strategy.getId());
-        Assert.assertEquals(30, strategy.getId().intValue());
+        strategyId = strategy.getId();
         Assert.assertNotNull(strategy.getTaxonNames());
         Assert.assertEquals(1, strategy.getTaxonNames().size());
         Assert.assertNotNull(strategy.getPmfms());
-        Assert.assertEquals(11, strategy.getPmfms().size());
+        Assert.assertEquals(12, strategy.getPmfms().size());
         Assert.assertNotNull(strategy.getAppliedStrategies());
         Assert.assertEquals(3, strategy.getAppliedStrategies().size());
         Assert.assertNotNull(strategy.getDepartments());
@@ -95,7 +101,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest{
         service.save(strategy);
 
         // reload by id
-        strategy = service.get(30);
+        strategy = service.get(strategyId);
         Assert.assertNotNull(strategy);
         Assert.assertEquals("Strategy Name changed", strategy.getName());
 

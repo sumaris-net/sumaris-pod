@@ -103,10 +103,8 @@ public class OperationRepositoryImpl
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
             if (fetchOptions != null && fetchOptions.isWithTrip()){
-                target.setTrip(tripRepository.toVO(source.getTrip(), TripFetchOptions.builder()
-                        .withRecorderDepartment(false)
-                        .withRecorderPerson(false)
-                        .build()));
+                // We use MINIMAL fetch, because only root attributes are usually expected by the APP
+                target.setTrip(tripRepository.toVO(source.getTrip(), TripFetchOptions.MINIMAL));
             }
         }
 

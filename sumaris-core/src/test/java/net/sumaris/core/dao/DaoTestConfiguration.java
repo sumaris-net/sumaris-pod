@@ -24,6 +24,7 @@ package net.sumaris.core.dao;
 
 import net.sumaris.core.TestConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
@@ -36,6 +37,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
             LiquibaseAutoConfiguration.class,
             FreeMarkerAutoConfiguration.class,
             JmsAutoConfiguration.class,
+            CacheAutoConfiguration.class,
         },
         scanBasePackages = {
                 "net.sumaris.core.dao",

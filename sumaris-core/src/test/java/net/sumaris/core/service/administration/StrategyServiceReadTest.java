@@ -243,12 +243,13 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         // Filter by periods
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
-                    .periods(new PeriodVO[]{PeriodVO.builder()
-                            .startDate(Dates.safeParseDate("2020-01-01", "yyyy-MM-dd"))
-                            .endDate(Dates.safeParseDate("2020-03-31", "yyyy-MM-dd"))
-                            .build(),
-                    })
-                    .build();
+                .programIds(new Integer[]{40}) // SIH-OBSBIO
+                .periods(new PeriodVO[]{PeriodVO.builder()
+                        .startDate(Dates.safeParseDate("2020-01-01", "yyyy-MM-dd"))
+                        .endDate(Dates.safeParseDate("2020-03-31", "yyyy-MM-dd"))
+                        .build(),
+                })
+                .build();
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
             Assert.assertEquals(1, strategies.size());

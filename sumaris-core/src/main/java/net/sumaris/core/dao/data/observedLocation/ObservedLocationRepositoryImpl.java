@@ -39,6 +39,7 @@ import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -108,14 +109,14 @@ public class ObservedLocationRepositoryImpl
     }
 
     @Override
-    protected void configureQuery(TypedQuery<ObservedLocation> query, DataFetchOptions fetchOptions) {
+    protected void configureQuery(TypedQuery<ObservedLocation> query, @Nullable DataFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
         // Prepare load graph
         EntityManager em = getEntityManager();
         EntityGraph<?> entityGraph = em.getEntityGraph(ObservedLocation.GRAPH_LOCATION_AND_PROGRAM);
-        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
-        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
+        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
 
         // WARNING: should not enable this fetch, because page cannot be applied
         //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(ObservedLocation.Fields.OBSERVERS);
