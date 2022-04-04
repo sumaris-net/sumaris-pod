@@ -675,6 +675,20 @@ public class TripServiceImpl implements TripService {
         }
 
         sale.setTripId(parent.getId());
+
+        // Also set trip recorder department to expected sale's products, because expected sale don't have it
+        if (CollectionUtils.isNotEmpty(sale.getProducts())) {
+            sale.getProducts().stream()
+                .filter(product -> product.getRecorderDepartment() == null)
+                .forEach(product -> product.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
+
+        // Also set trip recorder department to measurements
+        if (CollectionUtils.isNotEmpty(sale.getMeasurements())) {
+            sale.getMeasurements().stream()
+                .filter(meas -> meas.getRecorderDepartment() == null)
+                .forEach(meas -> meas.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
     }
 
     protected void fillDefaultProperties(TripVO parent, ExpectedSaleVO expectedSale) {
@@ -695,8 +709,15 @@ public class TripServiceImpl implements TripService {
         // Also set trip recorder department to expected sale's products, because expected sale don't have it
         if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
             expectedSale.getProducts().stream()
-                .filter(productVO -> productVO.getRecorderDepartment() == null)
-                .forEach(productVO -> productVO.setRecorderDepartment(parent.getRecorderDepartment()));
+                .filter(product -> product.getRecorderDepartment() == null)
+                .forEach(product -> product.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
+
+        // Also set trip recorder department to expected measurements
+        if (CollectionUtils.isNotEmpty(expectedSale.getMeasurements())) {
+            expectedSale.getMeasurements().stream()
+                .filter(meas -> meas.getRecorderDepartment() == null)
+                .forEach(meas -> meas.setRecorderDepartment(parent.getRecorderDepartment()));
         }
     }
 
