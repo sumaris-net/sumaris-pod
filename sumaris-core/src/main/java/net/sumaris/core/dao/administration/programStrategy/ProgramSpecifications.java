@@ -108,6 +108,8 @@ public interface ProgramSpecifications {
 
     List<ProgramPersonVO> savePersonsByProgramId(int programId, List<ProgramPersonVO> sources);
 
+    List<ReferentialVO> getAcquisitionLevelsByProgramId(int programId);
+
     void clearCache();
 
     Logger getLogger();

@@ -36,7 +36,9 @@ import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.hibernate.cache.jcache.ConfigSettings;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
@@ -45,12 +47,14 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.cache.CacheManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Configuration
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
+@ConditionalOnBean({CacheAutoConfiguration.class})
 @ConditionalOnProperty(
     prefix = "spring",
     name = {"cache.enabled"},
@@ -126,11 +130,13 @@ public class CacheConfiguration extends CachingConfigurerSupport {
     }
 
     @Bean
+    @ConditionalOnBean({javax.cache.CacheManager.class})
     public HibernatePropertiesCustomizer hibernatePropertiesCustomizer(javax.cache.CacheManager cacheManager) {
         return hibernateProperties -> hibernateProperties.put(ConfigSettings.CACHE_MANAGER, cacheManager);
     }
 
     @Bean
+    @ConditionalOnBean({javax.cache.CacheManager.class})
     public JCacheManagerCustomizer cacheManagerCustomizer(SumarisConfiguration config) {
 
         return cacheManager -> {

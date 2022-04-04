@@ -31,6 +31,7 @@ import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -88,4 +89,5 @@ public interface ProgramService {
 	@Transactional(readOnly = true)
 	boolean hasPropertyValue(String label, ProgramPropertyEnum property, String expectedValue);
 
+    List<ReferentialVO> getAcquisitionLevelsById(int id);
 }

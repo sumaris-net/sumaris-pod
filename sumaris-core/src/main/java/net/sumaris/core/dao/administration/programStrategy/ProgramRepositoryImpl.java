@@ -105,6 +105,9 @@ public class ProgramRepositoryImpl
     @Autowired
     protected ProgramPrivilegeRepository programPrivilegeRepository;
 
+    @Autowired
+    protected AcquisitionLevelRepository acquisitionLevelRepository;
+
     public Logger getLogger() {
         return log;
     }
@@ -224,6 +227,16 @@ public class ProgramRepositoryImpl
         // Persons
         if (fetchOptions != null && fetchOptions.isWithPersons()) {
             target.setPersons(getPersons(source));
+        }
+
+        // AcquisitionLevels
+        if (fetchOptions != null && fetchOptions.isWithAcquisitionLevels()) {
+            if (target.getId() != null) {
+                target.setAcquisitionLevels(getAcquisitionLevelsByProgramId(target.getId()));
+            }
+            else {
+                target.setAcquisitionLevels(null);
+            }
         }
     }
 
@@ -558,6 +571,14 @@ public class ProgramRepositoryImpl
 
                 return target;
             })
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ReferentialVO> getAcquisitionLevelsByProgramId(int programId) {
+        return acquisitionLevelRepository.getDistinctAcquisitionLevelsByProgramId(programId)
+            .stream()
+            .map(acquisitionLevelRepository::toVO)
             .collect(Collectors.toList());
     }
 

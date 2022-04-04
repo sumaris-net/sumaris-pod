@@ -67,4 +67,7 @@ public class ProgramVO implements IReferentialVO {
     private List<ProgramDepartmentVO> departments;
     private List<ProgramPersonVO> persons;
 
+    private List<String> acquisitionLevelLabels;
+    private List<ReferentialVO> acquisitionLevels;
+
 }

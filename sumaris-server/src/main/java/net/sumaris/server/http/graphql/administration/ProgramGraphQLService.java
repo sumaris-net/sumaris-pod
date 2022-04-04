@@ -46,6 +46,7 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.*;
@@ -75,9 +76,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -222,6 +225,23 @@ public class ProgramGraphQLService {
                                                    @GraphQLEnvironment ResolutionEnvironment env) {
         if (program.getStrategies() != null) return program.getStrategies();
         return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(GraphQLUtils.fields(env)));
+    }
+
+
+    @GraphQLQuery(name = "acquisitionLevels", description = "Get program's acquisition levels")
+    public List<ReferentialVO> getProgramAcquisitionLevels(@GraphQLContext ProgramVO program) {
+        if (program.getAcquisitionLevels() != null) return program.getAcquisitionLevels();
+        if (program.getId() == null) return null;
+        return programService.getAcquisitionLevelsById(program.getId());
+    }
+
+    @GraphQLQuery(name = "acquisitionLevelLabels", description = "Get program acquisition level's labels")
+    public List<String> getProgramAcquisitionLevelLabels(@GraphQLContext ProgramVO program) {
+        if (program.getAcquisitionLevelLabels() != null) return program.getAcquisitionLevelLabels();
+        return Beans.getStream(getProgramAcquisitionLevels(program))
+            .map(ReferentialVO::getLabel)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toList());
     }
 
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
@@ -483,6 +503,10 @@ public class ProgramGraphQLService {
             )
             .withPersons(
                 fields.contains(StringUtils.slashing(ProgramVO.Fields.PERSONS, ReferentialVO.Fields.ID))
+            )
+            .withAcquisitionLevels(
+                fields.contains(StringUtils.slashing(ProgramVO.Fields.ACQUISITION_LEVELS, ReferentialVO.Fields.ID))
+                || fields.contains(ProgramVO.Fields.ACQUISITION_LEVEL_LABELS)
             )
             .build();
     }

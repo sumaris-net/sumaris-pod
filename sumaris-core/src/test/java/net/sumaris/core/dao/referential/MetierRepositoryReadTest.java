@@ -80,7 +80,7 @@ public class MetierRepositoryReadTest extends AbstractDaoTest{
 
             List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
             Assert.assertNotNull(metiers);
-            Assert.assertEquals(2, metiers.size());
+            Assert.assertEquals(3, metiers.size());
         }
 
         // With program

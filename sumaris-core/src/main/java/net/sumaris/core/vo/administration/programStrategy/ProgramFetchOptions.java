@@ -61,4 +61,6 @@ public class ProgramFetchOptions implements IFetchOptions {
     @Builder.Default
     private boolean withPersons = false;
 
+    @Builder.Default
+    private boolean withAcquisitionLevels = false;
 }
