@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.19.2-SNAPSHOT</version>
+  <version>1.19.5</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -1542,8 +1542,8 @@
           <fetchRemote>false</fetchRemote>
           <skipTestProject>true</skipTestProject>
           <gitFlowConfig>
-            <productionBranch>master</productionBranch>
-            <developmentBranch>develop</developmentBranch>
+            <productionBranch>imagine/master</productionBranch>
+            <developmentBranch>imagine/develop</developmentBranch>
             <releaseBranchPrefix>release/</releaseBranchPrefix>
             <versionTagPrefix></versionTagPrefix>
           </gitFlowConfig>
