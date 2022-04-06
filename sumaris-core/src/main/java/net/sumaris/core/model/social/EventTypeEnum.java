@@ -22,7 +22,6 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 
 import java.io.Serializable;

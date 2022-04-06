@@ -33,12 +33,15 @@ import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.social.UserMessageService;
+import net.sumaris.server.util.social.MessageVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +62,9 @@ public class SocialGraphQLService {
 
     @Autowired
     private UserEventService userEventService;
+
+    @Autowired
+    private UserMessageService userMessageService;
 
     @Autowired
     private AuthService authService;
@@ -142,6 +148,15 @@ public class SocialGraphQLService {
     @IsAdmin
     public void deleteUserEvents(@GraphQLArgument(name = "ids") List<Integer> ids) {
         userEventService.delete(ids);
+    }
+
+
+    @GraphQLMutation(name = "sentMessage", description = "Sent a email message, to users")
+    @IsAdmin
+    public void sentMessage(@GraphQLArgument(name = "filter") PersonFilterVO filter,
+                            @GraphQLArgument(name = "filter") MessageVO message) {
+
+        userMessageService.send(message);
     }
 
 
