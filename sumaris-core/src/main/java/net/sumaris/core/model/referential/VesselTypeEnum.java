@@ -22,6 +22,7 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 
@@ -43,7 +44,7 @@ public enum VesselTypeEnum implements Serializable {
             .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + id));
     }
 
-    public static VesselTypeEnum byLabel(final String label) {
+    public static VesselTypeEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(level -> label.equals(level.label))
             .findFirst()

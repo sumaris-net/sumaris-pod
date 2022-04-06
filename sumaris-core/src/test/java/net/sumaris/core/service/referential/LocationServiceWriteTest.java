@@ -60,25 +60,25 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
     public void b_updateLocationHierarchy() throws FileNotFoundException {
         service.updateLocationHierarchy();
 
-        PrintStream ps = new PrintStream(new File("target/location_ports_tree-"+System.nanoTime()+".txt"));
+        PrintStream ps = new PrintStream("target/location_ports_tree-"+System.nanoTime()+".txt");
         printLocationPorts(ps, " - ");
         ps.close();
     }
 
     /**
-     * must be run in LocationServiceWriteTest because insertOrUpdateRectangleLocations must be run first
+     * /!\ Must be inside LocationServiceWriteTest because insertOrUpdateRectangleLocations must be run first
      */
     @Test
     public void getLocationIdByLatLong() {
         // Check label with a position inside the Atlantic sea
         Integer locationId = service.getLocationIdByLatLong(47.6f, -5.05f);
-        assertNotNull("Location Id could not found in Allegro DB, in the Atlantic Sea. Bad enumeration value for RECTANGLE_STATISTIQUE ?", locationId);
-        assertEquals(new Integer(1837), locationId); // =id of location '24E4'
+        assertNotNull("Location Id could not found in DB, in the Atlantic Sea. Bad enumeration value for LocationLevelEnum.RECTANGLE_ICES ?", locationId);
+        assertEquals(new Integer(115), locationId); // =id of location '24E4'
 
         // Check label with a position inside the Mediterranean sea
         locationId = service.getLocationIdByLatLong(42.27f, 5.4f);
-        assertNotNull("Location Id could not found in Allegro DB, in the Mediterranean Sea. Bad enumeration value for RECTANGLE_STATISTIQUE_MED ?", locationId);
-        assertEquals(new Integer(8545), locationId); // =id of location 'M24C2'
+        assertNotNull("Location Id could not found in DB, in the Mediterranean Sea. Bad enumeration value for LocationLevelEnum.RECTANGLE_GFCM ?", locationId);
+        assertEquals(new Integer(140), locationId); // =id of location 'M24C2'
     }
 
     protected void printLocationPorts(PrintStream out, String indentation) {

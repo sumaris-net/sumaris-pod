@@ -26,6 +26,7 @@ package net.sumaris.core.service.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.administration.programStrategy.AcquisitionLevelRepository;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
@@ -36,6 +37,7 @@ import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,7 @@ import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service("programService")
 @Slf4j
@@ -76,6 +79,11 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public Long countByFilter(@Nullable ProgramFilterVO filter) {
+		return programRepository.count(ProgramFilterVO.nullToEmpty(filter));
+	}
+
+	@Override
 	public ProgramVO get(int id) {
 		return programRepository.get(id);
 	}
@@ -95,6 +103,11 @@ public class ProgramServiceImpl implements ProgramService {
 	public ProgramVO getByLabel(String label, ProgramFetchOptions fetchOptions) {
 		Preconditions.checkNotNull(label);
 		return programRepository.getByLabel(label, fetchOptions);
+	}
+
+	@Override
+	public List<ReferentialVO> getAcquisitionLevelsById(int id) {
+		return programRepository.getAcquisitionLevelsByProgramId(id);
 	}
 
 	@Override

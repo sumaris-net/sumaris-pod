@@ -30,6 +30,7 @@ import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -47,13 +48,14 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void getById() {
-        ProgramVO program = service.get(1);
+        int programId = fixtures.getDefaultProgram().getId();
+        ProgramVO program = service.get(programId);
         Assert.assertNotNull(program);
         Assert.assertNotNull(program.getId());
         Assert.assertEquals(1, program.getId().intValue());
 
         Assert.assertNotNull(program.getProperties());
-        Assert.assertEquals(6, program.getProperties().size());
+        Assert.assertTrue(program.getProperties().size() > 9);
 
         Assert.assertNotNull(program.getGearClassificationId());
         Assert.assertNotNull(program.getTaxonGroupTypeId());
@@ -116,8 +118,17 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         List<ProgramVO> programs = service.getAll();
         Assert.assertNotNull(programs);
-        Assert.assertEquals(10, programs.size());
+        Assert.assertTrue(programs.size() >= 11);
 
+    }
+
+    @Test
+    public void getAcquisitionLevelsById() {
+        int programId = fixtures.getDefaultProgram().getId();
+        List<ReferentialVO> acquisitionLevels = service.getAcquisitionLevelsById(programId);
+
+        Assert.assertNotNull(acquisitionLevels);
+        Assert.assertTrue(acquisitionLevels.size() > 0);
     }
 
 }

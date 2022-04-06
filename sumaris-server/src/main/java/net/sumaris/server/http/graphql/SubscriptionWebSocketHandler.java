@@ -349,10 +349,14 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     }
 
     protected void sendResponse(WebSocketSession session, Object value, Consumer<Exception> errorHandler)  {
-        try {
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(value)));
-        } catch (IllegalStateException | IOException e) {
-            errorHandler.accept(e);
+        // /!\ Many threads can use the same session, so need to use 'synchronized' on session
+        // This avoid to have the exception "The remote endpoint was in state [TEXT_PARTIAL_WRITING] which is an invalid state for called method"
+        synchronized (session) {
+            try {
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(value)));
+            } catch (IllegalStateException | IOException e) {
+                errorHandler.accept(e);
+            }
         }
     }
 

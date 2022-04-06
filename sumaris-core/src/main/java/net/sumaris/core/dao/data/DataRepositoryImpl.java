@@ -51,8 +51,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.lang.Nullable;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
@@ -346,7 +346,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         this.copyExcludeProperties = excludedProperties;
     }
 
-    protected void configureQuery(TypedQuery<E> query, O fetchOptions) {
+    protected void configureQuery(TypedQuery<E> query, @Nullable O fetchOptions) {
         // Can be override by subclasses
     }
 

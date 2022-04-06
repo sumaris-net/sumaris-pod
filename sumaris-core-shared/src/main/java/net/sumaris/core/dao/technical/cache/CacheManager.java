@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import javax.cache.Cache;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -59,25 +60,32 @@ public class CacheManager {
         return Caches.getStatistics(cacheManager);
     }
 
-    public boolean clearCache(@NonNull String name) {
+    public boolean clearAllCaches() {
         if (cacheManager == null) return false;
-
         try {
-            if (StringUtils.isBlank(name)) {
-                log.info("Clearing caches...");
-                Caches.clearAll(cacheManager);
-
-            } else {
-                log.info(String.format("Clearing cache (%s)...", name));
-                Cache cache = cacheManager.getCache(name);
-                if (cache != null) cache.removeAll();
-            }
+            log.info("Clearing caches...");
+            Caches.clearAll(cacheManager);
+            log.info("Caches cleared");
+            return true;
         } catch (RuntimeException e) {
             log.error("Error while clearing caches", e);
             return false;
         }
-        log.info("Caches cleared.");
-        return true;
+    }
+
+    public boolean clearCache(@NonNull String name) {
+        if (cacheManager == null) return false;
+
+        try {
+            log.info("Clearing cache ({})...", name);
+            Cache cache = cacheManager.getCache(name);
+            if (cache != null) cache.removeAll();
+            log.info("Cache cleared ({})", name);
+            return true;
+        } catch (RuntimeException e) {
+            log.error("Error while clearing cache ({})...", name, e);
+            return false;
+        }
     }
 
     /**

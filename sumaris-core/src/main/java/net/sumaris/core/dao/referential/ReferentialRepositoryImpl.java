@@ -58,7 +58,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @NoRepositoryBean
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends IReferentialFilter, O extends IFetchOptions>
+public abstract class ReferentialRepositoryImpl<
+    E extends IItemReferentialEntity,
+    V extends IReferentialVO,
+    F extends IReferentialFilter,
+    O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
     implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
 

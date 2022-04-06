@@ -56,7 +56,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
+import net.sumaris.core.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -299,22 +299,20 @@ public class StrategyRepositoryImpl
      * @return next strategy sample label for this strategy (ex: 20LEUCCIR001-0001)
      */
     @Override
-    public String computeNextSampleLabelByStrategy(String strategyLabel, String separator, int nbDigit) {
-        Preconditions.checkNotNull(strategyLabel);
-        separator = net.sumaris.core.util.StringUtils.nullToEmpty(separator);
-        final String prefix = strategyLabel.concat(separator);
+    public String computeNextSampleLabelByStrategy(@NonNull String strategyLabel, String separator, int nbDigit) {
+        final String prefix = strategyLabel.concat(StringUtils.nullToEmpty(separator));
 
         EntityManager em = getEntityManager();
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<String> query = builder.createQuery(String.class);
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<String> query = cb.createQuery(String.class);
         Root<Sample> root = query.from(Sample.class);
 
-        ParameterExpression<Integer> tagIdPmfmIdParam = builder.parameter(Integer.class);
-        ParameterExpression<String> tagLikeParam = builder.parameter(String.class);
-        ParameterExpression<Integer> strategyPmfmIdParam = builder.parameter(Integer.class);
-        ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
-        ParameterExpression<Integer> lpadSizeParam = builder.parameter(Integer.class);
-        ParameterExpression<String> lpadFillParam = builder.parameter(String.class);
+        ParameterExpression<Integer> tagIdPmfmIdParam = cb.parameter(Integer.class);
+        ParameterExpression<String> tagLikeParam = cb.parameter(String.class);
+        ParameterExpression<Integer> strategyPmfmIdParam = cb.parameter(Integer.class);
+        ParameterExpression<String> strategyLabelParam = cb.parameter(String.class);
+        ParameterExpression<Integer> lpadSizeParam = cb.parameter(Integer.class);
+        ParameterExpression<String> lpadFillParam = cb.parameter(String.class);
 
         Join<Sample, Operation> operationJoin = root.join(Sample.Fields.OPERATION, JoinType.INNER);
         Join<Operation, Trip> tripJoin = operationJoin.join(Operation.Fields.TRIP, JoinType.INNER);
@@ -322,8 +320,8 @@ public class StrategyRepositoryImpl
         Join<Landing, LandingMeasurement> landingMeasurementJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
         Join<Sample, SampleMeasurement> sampleMeasurementJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 
-        Expression<String> lpadValue = builder.function(AdditionalSQLFunctions.lpad.name(), String.class,
-            builder.substring(
+        Expression<String> lpadValue = cb.function(AdditionalSQLFunctions.lpad.name(), String.class,
+            cb.substring(
                 sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE),
                 prefix.length()+1
             ),
@@ -333,15 +331,15 @@ public class StrategyRepositoryImpl
 
         query.select(lpadValue)
             .where(
-                    builder.and(
+                    cb.and(
                         // Sample measurement: select Pmfm = Tag id
-                        builder.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
-                        builder.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
+                        cb.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                        cb.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
                         // Sample measurement: select Pmfm = Strategy label
-                        builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
-                        builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
+                        cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
+                        cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
                     ))
-            .orderBy(builder.desc(lpadValue));
+            .orderBy(cb.desc(lpadValue));
 
         List<String> results = em
             .createQuery(query)

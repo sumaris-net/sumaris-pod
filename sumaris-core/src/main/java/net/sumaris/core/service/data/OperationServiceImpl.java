@@ -107,7 +107,7 @@ public class OperationServiceImpl implements OperationService {
     @Override
     public List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
                                              @NonNull OperationFetchOptions fetchOptions) {
-        return operationRepository.findAll(filter != null ? filter : OperationFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fetchOptions);
+        return operationRepository.findAll(OperationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override

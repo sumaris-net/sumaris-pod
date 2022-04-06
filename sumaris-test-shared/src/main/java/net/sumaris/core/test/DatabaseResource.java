@@ -316,6 +316,7 @@ public abstract class DatabaseResource implements TestRule {
         props.setProperty(key, value);
         BufferedWriter writer = Files.newWriter(file, Charsets.UTF_8);
         props.store(writer, "");
+        writer.flush();
         writer.close();
     }
 
@@ -536,15 +537,13 @@ public abstract class DatabaseResource implements TestRule {
         // Check validity
         if (result == null && StringUtils.isNotBlank(defaultValue)) {
             result = defaultValue;
-            log.warn("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [" +
-                    testClass + "] will use default environment : " + defaultValue);
+            log.debug("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [{}] will use default environment : {}", testClass, defaultValue);
         } else if (!"hsqldb".equals(result)
                 && !"oracle".equals(result)
                 && !"pgsql".equals(result)) {
 
             if (log.isWarnEnabled()) {
-                log.warn("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [" +
-                        testClass + "] will be skipped.");
+                log.warn("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [{}] will be skipped.", testClass);
             }
             Assume.assumeTrue(false);
         }
@@ -569,7 +568,7 @@ public abstract class DatabaseResource implements TestRule {
             configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.SEQUENCE_START_WITH.getKey(), String.valueOf(1000)));
         }
 
-        return configArgs.toArray(new String[configArgs.size()]);
+        return configArgs.toArray(new String[0]);
     }
 
     /**

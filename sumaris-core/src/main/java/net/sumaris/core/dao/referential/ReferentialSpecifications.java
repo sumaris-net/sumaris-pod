@@ -29,7 +29,6 @@ import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
-import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -154,7 +153,9 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
 
             // Avoid duplication, for 'one to many' join
-            query.distinct(shouldQueryDistinct(joinProperty));
+            if (shouldQueryDistinct(joinProperty)) {
+                query.distinct(true);
+            }
 
             // Get the class join, using properties
             Join<Object, Object> join = Daos.composeJoin(root, joinProperty, JoinType.INNER);

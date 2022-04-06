@@ -31,7 +31,8 @@ import java.util.Arrays;
 public enum TaxonGroupTypeEnum implements Serializable {
 
     FAO(2, "FAO"),
-    METIER_SPECIES(3, "METIER_SPECIES");
+    DCF_METIER_LVL_5(3, "DCF_METIER_LVL_5"),
+    NATIONAL(4, "NATIONAL");
 
     private Integer id;
     private String label;

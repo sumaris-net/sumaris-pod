@@ -102,8 +102,8 @@ public class Operation implements IDataEntity<Integer>,
     @ToString.Exclude
     private Trip trip;
 
-    @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class )
-    @JoinColumn(name = "operation_fk")
+    @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
+    @JoinColumn(name = "operation_fk", unique = true)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @ToString.Exclude
     private Operation parentOperation;

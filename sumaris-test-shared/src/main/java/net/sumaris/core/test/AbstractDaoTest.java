@@ -32,6 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 
 import javax.cache.CacheManager;
@@ -43,6 +44,23 @@ import javax.persistence.EntityManager;
 
 @Slf4j
 public abstract class AbstractDaoTest {
+
+	static final TransactionDefinition WRITE_TRANSACTION = new TransactionDefinition() {
+		@Override
+		public boolean isReadOnly() {
+			return false;
+		}
+
+		@Override
+		public int getPropagationBehavior() {
+			return PROPAGATION_REQUIRED;
+		}
+
+		@Override
+		public int getIsolationLevel() {
+			return ISOLATION_DEFAULT;
+		}
+	};
 
 	private TransactionStatus status;
 	
@@ -68,7 +86,7 @@ public abstract class AbstractDaoTest {
 	@Before
 	public void setUp() throws Exception {
 		if (transactionManager != null) {
-			status = transactionManager.getTransaction(null);
+			status = transactionManager.getTransaction(WRITE_TRANSACTION);
 			if (log.isDebugEnabled()) {
 				log.debug("Transaction initialized");
 			}
@@ -107,9 +125,19 @@ public abstract class AbstractDaoTest {
 	 */
 	protected void commit() {
 		// Commit
+		status.flush();
 		transactionManager.commit(status);
 		// Then open a new transaction
-		status = transactionManager.getTransaction(null);
+		status = transactionManager.getTransaction(WRITE_TRANSACTION);
 	}
 
+	/**
+	 * <p>rollback.</p>
+	 */
+	protected void rollback() {
+		// Rollback
+		transactionManager.rollback(status);
+		// Then open a new transaction
+		status = transactionManager.getTransaction(WRITE_TRANSACTION);
+	}
 }

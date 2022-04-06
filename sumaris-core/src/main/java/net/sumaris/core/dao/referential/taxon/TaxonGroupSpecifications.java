@@ -22,15 +22,14 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -38,7 +37,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -46,11 +47,17 @@ import java.util.List;
 public interface TaxonGroupSpecifications
     extends ReferentialSpecifications<TaxonGroup> {
 
-    default Specification<TaxonGroup> hasType(Integer taxonGroupTypeId) {
-        if (taxonGroupTypeId == null) return null;
-        return (root, query, cb) -> cb.equal(
-                root.get(TaxonGroup.Fields.TAXON_GROUP_TYPE).get(Status.Fields.ID),
-                taxonGroupTypeId);
+    default Specification<TaxonGroup> inLevelIds(Integer... levelIds) {
+        return inTypes(levelIds);
+    }
+
+    default Specification<TaxonGroup> inTypes(Integer... taxonGroupTypeIds) {
+        if (ArrayUtils.isEmpty(taxonGroupTypeIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, TaxonGroup.Fields.TAXON_GROUP_TYPE);
+            return cb.in(root.get(TaxonGroup.Fields.TAXON_GROUP_TYPE).get(Status.Fields.ID)).value(param);
+        })
+        .addBind(ID_PARAMETER, Arrays.asList(taxonGroupTypeIds));
     }
 
     default Specification<TaxonGroup> inGearIds(Integer[] gearIds) {
@@ -70,7 +77,7 @@ public interface TaxonGroupSpecifications
 
     long countTaxonGroupHierarchy();
 
-    List<TaxonGroupVO> findTargetSpeciesByFilter(
+    List<TaxonGroupVO> findAll(
             IReferentialFilter filter,
             int offset,
             int size,

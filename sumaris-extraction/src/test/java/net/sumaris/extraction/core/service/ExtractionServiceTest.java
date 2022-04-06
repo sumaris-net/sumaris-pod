@@ -23,6 +23,7 @@ package net.sumaris.extraction.core.service;
  */
 
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
@@ -35,6 +36,7 @@ import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -156,8 +158,11 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     @Test
     public void exportPmfmFormat() throws IOException {
 
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(fixtures.getProgramLabelForPmfmExtraction(0));
+
         // Test the RDB format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.PMFM_TRIP, null);
+        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.PMFM_TRIP, filter);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, LiveFormatEnum.PMFM_TRIP.getLabel());
 
@@ -183,6 +188,34 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
             // Make sure this column exists (column with a 'dbms' attribute)
             assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+
+            assertHasColumn(speciesLengthFile, "sex");
+        }
+
+        // ST.csv
+        {
+            File survivalTestFile = new File(root, PmfmTripSpecification.ST_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(survivalTestFile) > 1);
+
+            assertHasColumn(survivalTestFile, "picking_time");
+            assertHasColumn(survivalTestFile, "injuries_body");
+            assertHasColumn(survivalTestFile, "reflex_body_flex");
+        }
+
+        // RL.csv
+        {
+            File releaseFile = new File(root, PmfmTripSpecification.ST_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
+
+            assertHasColumn(releaseFile, "measure_time");
+            assertHasColumn(releaseFile, "latitude");
+            assertHasColumn(releaseFile, "longitude");
         }
     }
 

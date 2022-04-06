@@ -159,7 +159,9 @@ public class AggregationRdbTripDaoImpl<
 
                 // Species length map table
                 if (rowCount != 0) {
-                    rowCount = createSpeciesLengthMapTable(source, context);
+                    long mapRowCount = createSpeciesLengthMapTable(source, context);
+                    // Optional: if -1 then ignore result (= map table not need)
+                    if (mapRowCount != -1) rowCount = mapRowCount;
                 }
 
                 // Species Length
@@ -561,7 +563,7 @@ public class AggregationRdbTripDaoImpl<
         log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthMapQuery(source, context);
-        if (xmlQuery == null) return 0; // Skip
+        if (xmlQuery == null) return -1; // Skip
 
         // Create the table
         execute(context, xmlQuery);
@@ -588,9 +590,9 @@ public class AggregationRdbTripDaoImpl<
 
         // Skip if SL.SAMPLE_IDS exists
         SumarisTableMetadata rawSpeciesListTable = databaseMetadata.getTable(rawSpeciesListTableName);
-        if (rawSpeciesListTable.hasColumn(COLUMN_SAMPLE_IDS)) return null;
+        if (rawSpeciesListTable.hasColumn(COLUMN_SAMPLE_IDS)) return null; // Skip (map table not need)
 
-        // Check column SL.ID exists (e.g when rax tables comes from the 'P01_RDB' product)
+        // Check column SL.ID exists (e.g when raw tables comes from the 'P01_RDB' product)
         if (!rawSpeciesListTable.hasColumn(COLUMN_ID)) {
             throw new SumarisTechnicalException(String.format("Cannot aggregate. Missing columns '%s' or '%s' in table '%s'",
                     COLUMN_SAMPLE_IDS, COLUMN_ID, rawSpeciesListTableName));
