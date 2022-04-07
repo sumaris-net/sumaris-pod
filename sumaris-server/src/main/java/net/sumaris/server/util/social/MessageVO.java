@@ -22,19 +22,36 @@
 
 package net.sumaris.server.util.social;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.social.UserEventVO;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@FieldNameConstants
+@ToString(onlyExplicitlyIncluded = true)
 public class MessageVO {
 
     String subject;
     String body;
 
+    // Recipient
+    Integer recipientId;
+    PersonVO recipient;
+    PersonVO[] recipients;
+    PersonFilterVO recipientFilter;
+
+    // Issuer
+    Integer issuerId;
+    PersonVO issuer;
+
+    // Message type
+    @ToString.Include(rank = 1)
+    MessageTypeEnum type;
 
 }

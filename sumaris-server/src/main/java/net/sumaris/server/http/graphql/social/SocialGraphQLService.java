@@ -26,8 +26,10 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.service.social.UserEventService;
@@ -41,7 +43,9 @@ import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.social.UserMessageService;
+import net.sumaris.server.util.social.MessageTypeEnum;
 import net.sumaris.server.util.social.MessageVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -151,12 +155,43 @@ public class SocialGraphQLService {
     }
 
 
-    @GraphQLMutation(name = "sentMessage", description = "Sent a email message, to users")
-    @IsAdmin
-    public void sentMessage(@GraphQLArgument(name = "filter") PersonFilterVO filter,
-                            @GraphQLArgument(name = "filter") MessageVO message) {
+    @GraphQLMutation(name = "sendMessage", description = "Sent a message")
+    @IsUser
+    public boolean sendMessage(@GraphQLArgument(name = "message") @NonNull MessageVO message) {
+
+        boolean isAdmin = authService.isAdmin();
+        boolean isSupervisor = isAdmin || authService.isSupervisor();
+
+        // Force type, when not supervisor and not admin
+        if (!isSupervisor) {
+            message.setType(MessageTypeEnum.INBOX_MESSAGE);
+        }
+
+        // If not admin: use the authenticated user has issuer
+        boolean forceIssuer = !isAdmin
+            || (message.getIssuerId() == null && message.getIssuer() == null);
+
+        // Use current authenticated user, as issuer
+        if (forceIssuer){
+            PersonVO user = authService.getAuthenticatedUser().orElseThrow(UnauthorizedException::new);
+            message.setIssuer(user);
+            message.setIssuerId(null);
+        }
+
+        // Only admin can use recipientFilter
+        if (message.getRecipientFilter() != null && !isSupervisor) {
+            throw new UnauthorizedException("Only admin or supervisor can use " + MessageVO.Fields.recipientFilter);
+        }
+
+        // Limit number of recipients, if not admin
+        // - limit to 1 for not supervisor
+        boolean toManyRecipients = !isAdmin
+            && (!isSupervisor && ArrayUtils.getLength(message.getRecipients()) > 1);
+        if (toManyRecipients) throw new UnauthorizedException("Too many recipients");
 
         userMessageService.send(message);
+
+        return true;
     }
 
 

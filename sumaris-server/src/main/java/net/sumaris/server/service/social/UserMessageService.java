@@ -25,8 +25,10 @@ package net.sumaris.server.service.social;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import net.sumaris.server.util.social.MessageVO;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.mail.internet.InternetAddress;
+
 
 public interface UserMessageService {
 
@@ -36,6 +38,7 @@ public interface UserMessageService {
 
     String getEmailSubjectPrefix();
 
+    @Transactional
     void send(MessageVO message);
 
     void send(DefaultEmail.DefaultEmailBuilder email);

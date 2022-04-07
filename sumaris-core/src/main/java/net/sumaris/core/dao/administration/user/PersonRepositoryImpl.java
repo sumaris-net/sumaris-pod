@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
@@ -34,7 +33,6 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.Status;
@@ -55,6 +53,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -128,6 +127,12 @@ public class PersonRepositoryImpl
     }
 
     @Override
+    public Page<PersonVO> findByFilter(@NonNull PersonFilterVO filter, Pageable pageable){
+        return super.findAll(toSpecification(filter), pageable)
+            .map(this::toVO);
+    }
+
+    @Override
     public long countByFilter(PersonFilterVO filter) {
         return count(toSpecification(filter));
     }
@@ -147,18 +152,6 @@ public class PersonRepositoryImpl
             .collect(Collectors.toList());
     }
 
-    // not used
-    protected List<PersonVO> findByFilter(PersonFilterVO filter, Pageable pageable) {
-        Preconditions.checkNotNull(filter);
-        Preconditions.checkNotNull(pageable);
-
-        TypedQuery<Person> query = getQuery(toSpecification(filter), pageable);
-
-        return query.getResultStream()
-            .map(this::toVO)
-            .collect(Collectors.toList());
-
-    }
 
     protected Specification<Person> toSpecification(PersonFilterVO filter) {
 
@@ -171,7 +164,8 @@ public class PersonRepositoryImpl
             .and(hasLastName(filter.getLastName()))
             .and(searchText(filter))
             .and(includedIds(filter.getIncludedIds()))
-            .and(excludedIds(filter.getExcludedIds()));
+            .and(excludedIds(filter.getExcludedIds()))
+            ;
     }
 
     @Override
@@ -278,7 +272,7 @@ public class PersonRepositoryImpl
         super.toVO(source, target, copyIfNull);
 
         // Department
-        if (fetchOptions.isWithDepartment()) {
+        if (fetchOptions == null || fetchOptions.isWithDepartment()) {
             if (source.getDepartment() == null || source.getDepartment().getId() == null) {
                 if (copyIfNull) {
                     target.setDepartment(null);
