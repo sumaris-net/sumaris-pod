@@ -1,8 +1,8 @@
-package net.sumaris.core.exception;
+package net.sumaris.server.exception;
 
 /*-
  * #%L
- * SUMARiS:: Core shared
+ * SUMARiS:: Server
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,49 +22,38 @@ package net.sumaris.core.exception;
  * #L%
  */
 
+import net.sumaris.core.exception.SumarisBusinessException;
 
-import net.sumaris.shared.exception.ErrorCodes;
-import org.nuiton.i18n.I18n;
+public class InvalidMessageException extends SumarisBusinessException {
 
-import java.util.List;
+    public static final int ERROR_CODE = ErrorCodes.INVALID_MESSAGE;
 
-/**
- * Throw when a deletion is not allowed
- */
-public class UnauthorizedException extends SumarisTechnicalException {
-
-    public static final int ERROR_CODE = ErrorCodes.UNAUTHORIZED;
-
-    public UnauthorizedException(){
-        super(ERROR_CODE, I18n.t("sumaris.error.account.unauthorized"));
-    }
 
     /**
-     * <p>Constructor for UnauthorizedException.</p>
+     * <p>Constructor for InvalidMessageException.</p>
      *
      * @param message a {@link String} object.
      */
-    public UnauthorizedException(String message) {
+    public InvalidMessageException(String message) {
         super(ERROR_CODE, message);
     }
 
     /**
-     * <p>Constructor for DeleteForbiddenException.</p>
+     * <p>Constructor for InvalidMessageException.</p>
      *
      * @param message a {@link String} object.
      * @param cause a {@link Throwable} object.
      */
-    public UnauthorizedException(String message, Throwable cause) {
+    public InvalidMessageException(String message, Throwable cause) {
         super(ERROR_CODE, message, cause);
     }
 
     /**
-     * <p>Constructor for DeleteForbiddenException.</p>
+     * <p>Constructor for InvalidMessageException.</p>
      *
      * @param cause a {@link Throwable} object.
      */
-    public UnauthorizedException(Throwable cause) {
+    public InvalidMessageException(Throwable cause) {
         super(ERROR_CODE, cause);
     }
-
 }

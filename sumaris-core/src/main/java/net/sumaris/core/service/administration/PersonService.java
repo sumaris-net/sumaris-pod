@@ -28,6 +28,8 @@ import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,12 +48,26 @@ public interface PersonService {
 	@Transactional(readOnly = true)
 	List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
+	@Transactional(readOnly = true)
+	Page<PersonVO> findByFilter(PersonFilterVO filter, Pageable page);
+
+	@Transactional(readOnly = true)
+	Page<String> findEmailsByFilter(PersonFilterVO filter, Pageable page);
+
+	@Transactional(readOnly = true)
+	Page<String> findPubkeysByFilter(PersonFilterVO filter, Pageable page);
 
 	@Transactional(readOnly = true)
 	Long countByFilter(PersonFilterVO filter);
 
 	@Transactional(readOnly = true)
-	PersonVO getById(int userId);
+	PersonVO getById(int id);
+
+	@Transactional(readOnly = true)
+	String getEmailById(int id);
+
+	@Transactional(readOnly = true)
+	String getPubkeyById(int id);
 
 	@Transactional(readOnly = true)
 	PersonVO getByPubkey(String pubkey);
@@ -61,6 +77,9 @@ public interface PersonService {
 
 	@Transactional(readOnly = true)
 	PersonVO getByUsername(String username);
+
+	@Transactional(readOnly = true)
+	PersonVO getByEmail(String email);
 
 	@Transactional(readOnly = true)
 	Optional<PersonVO> findByUsername(String username);
