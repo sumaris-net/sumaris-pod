@@ -71,6 +71,8 @@ public class DenormalizedPmfmStrategyVO implements IUpdateDateEntity<Integer, Da
     private String completeName; // Full name, with parameter, matrix, fraction and method name
     private Integer maximumNumberDecimals;
     private Integer signifFiguresNumber;
+    private Double detectionThreshold;
+    private Double precision;
     // ****
 
     private List<ReferentialVO> qualitativeValues;

@@ -41,6 +41,8 @@ public class PmfmVO extends ReferentialVO {
     private Double maxValue;
     private Integer maximumNumberDecimals;
     private Integer signifFiguresNumber;
+    private Double detectionThreshold;
+    private Double precision;
     private Double defaultValue;
 
     private Boolean isEstimated; // from the method
