@@ -28,6 +28,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @FieldNameConstants
@@ -49,6 +50,8 @@ public class TaxonNameVO extends ReferentialVO {
 
     private ReferentialVO taxonomicLevel;
     private TaxonNameVO parentTaxonName;
+
+    private List<Integer> taxonGroupIds;
 
     public TaxonNameVO() {
         this.setEntityName(TaxonName.class.getSimpleName()); // Need by client (e.f. GraphQL cache)

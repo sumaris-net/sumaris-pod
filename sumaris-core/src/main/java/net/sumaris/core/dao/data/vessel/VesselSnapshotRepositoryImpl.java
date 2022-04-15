@@ -287,43 +287,43 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Vessel
-        if (copyIfNull || vessel != null) {
-            if (vessel != null) {
-                target.setId(vessel.getId());
-                target.setVesselStatusId(vessel.getStatus().getId());
-                target.setQualityFlagId(vessel.getQualityFlag().getId());
+        if (vessel != null) {
+            target.setId(vessel.getId());
+            target.setVesselStatusId(vessel.getStatus().getId());
+            target.setQualityFlagId(vessel.getQualityFlag().getId());
 
-                // Vessel type
+            // Vessel type
+            if (vessel.getVesselType() != null) {
                 ReferentialVO vesselType = referentialDao.toVO(vessel.getVesselType());
                 target.setVesselType(vesselType);
-            }
-            else {
-                target.setId(null);
-                target.setVesselStatusId(null);
-                target.setQualityFlagId(null);
+            } else if (copyIfNull) {
                 target.setVesselType(null);
             }
+        }
+        else if (copyIfNull) {
+            target.setId(null);
+            target.setVesselStatusId(null);
+            target.setQualityFlagId(null);
+            target.setVesselType(null);
         }
 
         // Registration period
         if (fetchOptions.isWithVesselRegistrationPeriod()) {
-            if (copyIfNull || registrationPeriod != null) {
-                if (registrationPeriod != null) {
-                    // Registration code
-                    target.setRegistrationCode(registrationPeriod.getRegistrationCode());
+            if (registrationPeriod != null) {
+                // Registration code
+                target.setRegistrationCode(registrationPeriod.getRegistrationCode());
 
-                    // International registration code
-                    target.setIntRegistrationCode(registrationPeriod.getIntRegistrationCode());
+                // International registration code
+                target.setIntRegistrationCode(registrationPeriod.getIntRegistrationCode());
 
-                    // Registration location
-                    LocationVO location = locationRepository.toVO(registrationPeriod.getRegistrationLocation());
-                    target.setRegistrationLocation(location);
-                }
-                else {
-                    target.setRegistrationCode(null);
-                    target.setIntRegistrationCode(null);
-                    target.setRegistrationLocation(null);
-                }
+                // Registration location
+                LocationVO location = locationRepository.toVO(registrationPeriod.getRegistrationLocation());
+                target.setRegistrationLocation(location);
+            }
+            else if (copyIfNull) {
+                target.setRegistrationCode(null);
+                target.setIntRegistrationCode(null);
+                target.setRegistrationLocation(null);
             }
         }
     }

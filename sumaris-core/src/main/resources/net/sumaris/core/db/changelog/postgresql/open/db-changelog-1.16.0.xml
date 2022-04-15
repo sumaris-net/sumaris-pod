@@ -110,7 +110,7 @@
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
         </insert>
         <insert tableName="taxon_name">
-            <column name="ID" valueComputed="nextval('TAXON_NAME_SEQ')"/>
+            <column name="ID" valueComputed="nextval('taxon_name_seq')"/>
             <column name="LABEL">ODN</column>
             <column name="NAME">Baleines odontocètes nca</column>
             <column name="START_DATE" valueComputed="current_timestamp"/>
@@ -129,7 +129,7 @@
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
         </insert>
         <insert tableName="taxon_name">
-            <column name="ID" valueComputed="nextval('TAXON_NAME_SEQ')"/>
+            <column name="ID" valueComputed="nextval('taxon_name_seq')"/>
             <column name="LABEL">DLP</column>
             <column name="NAME">Dauphins nca</column>
             <column name="START_DATE" valueComputed="current_timestamp"/>

@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
@@ -51,16 +52,14 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.filter.ProgramFilterVO;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
@@ -69,6 +68,7 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityEventService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -76,7 +76,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -146,15 +145,20 @@ public class ProgramGraphQLService {
         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
         @GraphQLArgument(name = "sortBy", defaultValue = ProgramVO.Fields.LABEL) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        if (filter == null) {
-            return programService.getAll();
-        }
+
+        // Add access restriction
+        filter = restrictProgramFilter(filter);
+
         return programService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLQuery(name = "programsCount", description = "Get programs count")
     @Transactional(readOnly = true)
     public Long getProgramCount(@GraphQLArgument(name = "filter") ProgramFilterVO filter) {
+        // Add access restriction
+        filter = restrictProgramFilter(filter);
+
+        // Count
         return programService.countByFilter(filter);
     }
 
@@ -306,20 +310,16 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "method", description = "Get strategy method")
     public ReferentialVO getPmfmStrategyMethod(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
-        if (pmfmStrategy.getMethod() != null) {
-            return pmfmStrategy.getMethod();
-        } else if (pmfmStrategy.getMethodId() != null) {
-            return referentialService.get(Method.class, pmfmStrategy.getMethodId());
-        }
-        return null;
+        if (pmfmStrategy.getMethod() != null) return pmfmStrategy.getMethod();
+        if (pmfmStrategy.getMethodId() == null) return null;
+        return referentialService.get(Method.class, pmfmStrategy.getMethodId());
     }
 
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
     public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
-        if (taxonGroup.getId() != null) {
-            return taxonNameService.findAllByTaxonGroupId(taxonGroup.getId());
-        }
-        return null;
+        if (taxonGroup.getTaxonNames() != null) return taxonGroup.getTaxonNames();
+        if (taxonGroup.getId() == null) return null;
+        return taxonNameService.findAllByTaxonGroupId(taxonGroup.getId());
     }
 
     @GraphQLQuery(name = "strategyNextLabel", description = "Get next label for strategy")
@@ -553,19 +553,25 @@ public class ProgramGraphQLService {
 
     protected void checkCanEditProgram(Integer programId) {
 
+        // New program
         if (programId == null) {
-            checkIsAdmin("Cannot create a program. Not an admin.");
-            return;
+            // Only admin can create a program
+            dataAccessControlService.checkIsAdmin("Cannot create a program. Not an admin.");
         }
 
-        // Admin can create a program
-        if (authService.isAdmin()) return; // OK
+        // Edit an existing program
+        else {
 
-        PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+            // Admin can edit
+            if (authService.isAdmin()) return; // OK
 
-        boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
-            || programService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
-        if (!isManager) throw new AccessDeniedException("Forbidden");
+            PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+
+            // Manager can edit
+            boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || programService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
+            if (!isManager) throw new AccessDeniedException("Forbidden");
+        }
     }
 
     protected void checkCanEditStrategy(int programId, Integer strategyId) {
@@ -593,13 +599,6 @@ public class ProgramGraphQLService {
 
     protected void checkCanDeleteStrategy(int programId, Integer strategyId) {
         checkCanEditStrategy(programId, strategyId);
-    }
-
-    /**
-     * Check user is admin
-     */
-    protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Access forbidden");
     }
 
     /**
@@ -633,5 +632,26 @@ public class ProgramGraphQLService {
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
         List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
+    }
+
+    protected ProgramFilterVO restrictProgramFilter(@NonNull ProgramFilterVO filter) {
+        filter = ProgramFilterVO.nullToEmpty(filter);
+
+        Integer[] programIds = filter.getId() != null ? new Integer[]{filter.getId()} : filter.getIncludedIds();
+
+        // Limit to authorized ids
+        Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIds(programIds)
+            .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+
+        // Reset id, as it has been deprecated
+        if (filter.getId() != null) {
+            filter.setId(null);
+            GraphQLHelper.logDeprecatedUse(authService, "ProgramFilterVO.id", "1.24.0");
+        }
+
+        // Apply limitations
+        filter.setIncludedIds(authorizedProgramIds);
+
+        return filter;
     }
 }
