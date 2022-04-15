@@ -36,6 +36,8 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -161,6 +163,8 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
     Optional<PersonVO> findByUsername(String username);
 
     List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    Page<PersonVO> findByFilter(PersonFilterVO filter, Pageable pageable);
 
     long countByFilter(PersonFilterVO filter);
 

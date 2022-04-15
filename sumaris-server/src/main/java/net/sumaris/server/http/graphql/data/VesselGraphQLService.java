@@ -39,10 +39,14 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
-import net.sumaris.core.vo.filter.*;
+import net.sumaris.core.vo.filter.IRootDataFilter;
+import net.sumaris.core.vo.filter.VesselFeaturesFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
@@ -50,7 +54,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,11 +163,11 @@ public class VesselGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public VesselVO getVesselById(@GraphQLArgument(name = "id") Integer id,
-                                  @GraphQLArgument(name = "vesselId") Integer vesselId // /!\ Deprecated !
+                                  @GraphQLArgument(name = "vesselId", description = "@deprecated Use 'id'") Integer vesselId // /!\ Deprecated !
     ) {
         if (id == null && vesselId != null) {
             id = vesselId;
-            logDeprecatedUse("vessel(vesselId)", "1.11.0");
+            GraphQLHelper.logDeprecatedUse(authService,"vessel(vesselId)", "1.11.0");
         }
         return vesselService.get(id);
     }
@@ -376,16 +379,4 @@ public class VesselGraphQLService {
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
     }
 
-    /**
-     * Check user is admin
-     */
-    protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Access forbidden");
-    }
-
-    protected void logDeprecatedUse(String functionName, String appVersion) {
-        Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);
-        log.warn("User {id: {}} used service {{}} that is deprecated since {appVersion: {}}.", userId, functionName, appVersion);
-
-    }
 }

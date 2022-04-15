@@ -71,7 +71,7 @@ public class RoundWeightConversionGraphQLService {
 
     @GraphQLQuery(name = "roundWeightConversions", description = "Search in round weight conversions")
     @Transactional(readOnly = true)
-    public List<RoundWeightConversionVO> findRoundWeightConversionsByFilter(
+    public List<RoundWeightConversionVO> findByFilter(
             @GraphQLArgument(name = "filter") RoundWeightConversionFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -92,8 +92,7 @@ public class RoundWeightConversionGraphQLService {
 
     @GraphQLQuery(name = "roundWeightConversionsCount", description = "Search in round weight conversions")
     @Transactional(readOnly = true)
-    public Long count(
-        @GraphQLArgument(name = "filter") RoundWeightConversionFilterVO filter) {
+    public Long countByFilter(@GraphQLArgument(name = "filter") RoundWeightConversionFilterVO filter) {
 
         return service.countByFilter(filter);
     }
