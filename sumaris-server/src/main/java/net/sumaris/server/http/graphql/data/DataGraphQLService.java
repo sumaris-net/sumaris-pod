@@ -50,6 +50,7 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
@@ -243,20 +244,22 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip,
-                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
-                           @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
                            @GraphQLArgument(name = "options") TripSaveOptions options,
+                           // Deprecated attributes
+                           @GraphQLArgument(name = "saveOptions", description = "@deprecated Use options") TripSaveOptions saveOptions,
+                           @GraphQLArgument(name = "withOperation", defaultValue = "false", description = "@deprecated Use options") Boolean withOperation,
+                           // Env
                            @GraphQLEnvironment ResolutionEnvironment env) {
 
         if (options == null) {
             // For compat prior to 1.7
             if (saveOptions != null) {
-                logDeprecatedUse("saveTrip(TripVO, saveOptions)", "1.7.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, saveOptions)", "1.7.0");
                 options = saveOptions;
             }
             // For compat prior to 1.5
             else if (withOperation != null) {
-                logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, withOperation)", "1.5.0");
                 options = TripSaveOptions.builder()
                         .withOperation(withOperation)
                         .build();
@@ -274,20 +277,22 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     @IsUser
     public List<TripVO> saveTrips(@GraphQLNonNull @GraphQLArgument(name = "trips") List<TripVO> trips,
-                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
-                                  @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
                                   @GraphQLArgument(name = "options") TripSaveOptions options,
+                                  // Deprecated
+                                  @GraphQLArgument(name = "saveOptions", description = "@deprecated Use options") TripSaveOptions saveOptions, // Deprecated
+                                  @GraphQLArgument(name = "withOperation", defaultValue = "false", description = "@deprecated Use options") Boolean withOperation, // Deprecated
+                                  // Env
                                   @GraphQLEnvironment ResolutionEnvironment env) {
 
         if (options == null) {
             // For compat prior to 1.7
             if (saveOptions != null) {
-                logDeprecatedUse("saveTrip(TripVO, saveOptions)", "1.7.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, saveOptions)", "1.7.0");
                 options = saveOptions;
             }
             // For compat prior to 1.5
             else if (withOperation != null) {
-                logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, withOperation)", "1.5.0");
                 options = TripSaveOptions.builder()
                         .withOperation(withOperation)
                         .build();
@@ -1553,12 +1558,6 @@ public class DataGraphQLService {
             filter.setRecorderDepartmentId(depId);
         }
         return filter;
-    }
-
-    protected void logDeprecatedUse(String functionName, String appVersion) {
-        Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);
-        log.warn(String.format("User {id: %s} used service {%s} that is deprecated since {appVersion: %s}.", userId, functionName, appVersion));
-
     }
 
     private Integer getMainUndefinedOperationGroupId(LandingVO landing) {
