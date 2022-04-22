@@ -60,6 +60,7 @@
 
   <!-- strategies -->
   <STRATEGY ID="20" PROGRAM_FK="30" LABEL="OBSDEB" NAME="Stratégie adaptée à la saisie sous Obsdeb" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
+  <STRATEGY ID="21" PROGRAM_FK="31" LABEL="META-OBSDEB" NAME="Stratégie adaptée à la saisie aggregée, sous Obsdeb" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>
 
   <!-- PmfmStrategy / Trip -->
   <!--  nb fishermen -->
@@ -70,6 +71,7 @@
   <!-- PmfmStrategy / Landing -->
   <!-- vessel port state -->
   <PMFM_STRATEGY ID="405" STRATEGY_FK="20" ACQUISITION_LEVEL_FK="11" PMFM_FK="136" RANK_ORDER="1" ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
+  <PMFM_STRATEGY ID="406" STRATEGY_FK="21" ACQUISITION_LEVEL_FK="11" PMFM_FK="136" RANK_ORDER="1" ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
 
   <!-- PmfmStrategy / Operation -->
   <!-- fishing duration -->
