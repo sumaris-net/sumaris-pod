@@ -37,6 +37,8 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
@@ -54,7 +56,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -91,19 +98,20 @@ public class LocationServiceImpl implements LocationService {
     @Autowired
     protected SumarisConfiguration configuration;
 
-    @Autowired
-    protected LocationService self;
-
     private boolean enableTechnicalTablesUpdate = false;
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    @Async
+    @TransactionalEventListener(
+        value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
+        phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     protected void onConfigurationReady(ConfigurationEvent event) {
 
         // Update technical tables (if option changed)
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
             if (enableTechnicalTablesUpdate) {
-                self.updateLocationHierarchy(); // Force transaction creation, using self
+                updateLocationHierarchy();
             }
         }
     }
