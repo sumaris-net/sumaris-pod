@@ -114,7 +114,11 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         // Fraction, Matrix, method
         if (pmfm.getFraction() != null) target.setFractionId(pmfm.getFraction().getId());
         if (pmfm.getMatrix() != null) target.setMatrixId(pmfm.getMatrix().getId());
-        if (pmfm.getMethod() != null) target.setMethodId(pmfm.getMethod().getId());
+        if (pmfm.getMethod() != null) {
+            target.setMethodId(pmfm.getMethod().getId());
+            target.setIsComputed(pmfm.getMethod().getIsCalculated());
+            target.setIsEstimated(pmfm.getMethod().getIsEstimated());
+        }
 
         // Apply default values from Pmfm (only if NOT already defined)
         if (target.getMinValue() == null) {

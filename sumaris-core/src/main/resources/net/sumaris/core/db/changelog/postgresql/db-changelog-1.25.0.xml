@@ -25,14 +25,13 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.24.0.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-1.25.0.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-
 	<!-- Add column PMFM.DETECTION_THRESHOLD -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-1">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-001">
 		<preConditions onFail="MARK_RAN">
 			<not><columnExists tableName="pmfm" columnName="detection_threshold"/></not>
 		</preConditions>
@@ -42,7 +41,7 @@
 	</changeSet>
 
 	<!-- Add column PMFM.PRECISION -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-2">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-002">
 		<preConditions onFail="MARK_RAN">
 			<not><columnExists tableName="pmfm" columnName="precision"/></not>
 		</preConditions>
@@ -51,14 +50,25 @@
 		</addColumn>
 	</changeSet>
 
+	<!-- Fix Kilogram unit symbol -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-003">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="1">select count(*) from UNIT where label in ('Kg', 'KG')</sqlCheck>
+		</preConditions>
+		<sql endDelimiter=";">
+			update UNIT set label='kg' where label in ('Kg', 'KG');
+			commit;
+		</sql>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.24.0'</where>
+			<where>LABEL='1.25.0'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
-			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-			<column name="LABEL">1.24.0</column>
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
+			<column name="LABEL">1.25.0</column>
 			<column name="DESCRIPTION">
 				- PMFM: Add columns DETECTION_THRESHOLD and PRECISION;
 				- Add round weight conversion (ADAP instance only);
