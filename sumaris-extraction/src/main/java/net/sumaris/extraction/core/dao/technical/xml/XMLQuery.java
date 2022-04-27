@@ -30,6 +30,7 @@ import fr.ifremer.common.xmlquery.*;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
 import org.jdom2.Attribute;
@@ -139,6 +140,20 @@ public class XMLQuery {
         } catch (Exception e) {
             throw new SumarisTechnicalException(e);
         }
+    }
+
+    public String getAttributeValue(final Element element, String attrName, boolean forceLowerCase) {
+        Attribute attr = element.getAttribute(attrName);
+        if (attr == null) return null;
+        String value = attr.getValue();
+        if (forceLowerCase) return value.toLowerCase();
+        return value;
+    }
+
+    public boolean hasGroup(final Element element, String groupName) {
+        String attrValue = getAttributeValue(element, "group", false);
+        if (StringUtils.isBlank(attrValue)) return false;
+        return Arrays.asList(attrValue.split(",")).contains(groupName);
     }
 
     /**

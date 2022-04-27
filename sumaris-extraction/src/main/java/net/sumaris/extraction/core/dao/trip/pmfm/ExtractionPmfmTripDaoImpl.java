@@ -23,6 +23,7 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
@@ -34,11 +35,13 @@ import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.pmfm.ExtractionPmfmTripContextVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jdom2.Attribute;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -48,6 +51,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -128,7 +132,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                     Collections.singletonList(programLabel),
                     AcquisitionLevelEnum.TRIP,
                     // Excluded PMFM (already exists as RDB format columns)
-                    PmfmEnum.NB_OPERATION.getId());
+                    PmfmEnum.NB_OPERATION.getId()
+                );
         }
 
         xmlQuery.bind("groupByColumns", groupbyColumns);
@@ -146,13 +151,19 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // - Hide GearType (not in the COST format)
         xmlQuery.setGroup("gearType", false);
 
-        String groupbyColumns = String.join(",", xmlQuery.getColumnNames(e ->
-                !e.getAttribute("alias").getValue().equalsIgnoreCase("gear_type")));
+        // Bind groupBy columns
+        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE);
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
+            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         // Inject physical gear pmfms
         injectPmfmColumns(context, xmlQuery,
-                getTripProgramLabels(context),
-                AcquisitionLevelEnum.PHYSICAL_GEAR
+            getTripProgramLabels(context),
+            AcquisitionLevelEnum.PHYSICAL_GEAR,
+            // Excluded Pmfms (already exists as RDB format columns)
+            PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
+            PmfmEnum.SELECTIVITY_DEVICE.getId()
         );
 
         // Compute list of pmfms, depending of acquisition levels used
@@ -174,14 +185,11 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             injectionQuery,
             null,
             // Excluded PMFM (already exists as RDB format columns)
-            PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
             PmfmEnum.GEAR_DEPTH_M.getId(),
             PmfmEnum.BOTTOM_DEPTH_M.getId(),
-            PmfmEnum.SELECTIVITY_DEVICE.getId(),
             PmfmEnum.TRIP_PROGRESS.getId()
         );
 
-        xmlQuery.bind("groupByColumns", groupbyColumns);
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
         xmlQuery.setGroup("allowParent", hasProgramAllowParent);
 
@@ -224,7 +232,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"));
 
         xmlQuery.bind("groupByColumns", groupByColumns);
-        xmlQuery.setGroup("addGroupBy", !groupByColumns.equals(""));
+        xmlQuery.setGroup("addGroupBy", StringUtils.isNotBlank(groupByColumns));
 
         return xmlQuery;
     }

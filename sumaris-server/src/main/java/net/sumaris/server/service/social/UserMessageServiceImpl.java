@@ -216,13 +216,6 @@ public class UserMessageServiceImpl implements UserMessageService {
 
     protected void send(@NonNull List<UserEventVO> userEvents) {
         Preconditions.checkArgument(CollectionUtils.isNotEmpty(userEvents));
-
-        // Get issuer (should be same in all user events)
-        String issuer = userEvents.get(0).getIssuer();
-        Preconditions.checkArgument(StringUtils.isNotBlank(issuer) && issuer.length() > 8, "Invalid issuer: not a pubkey");
-
-        log.info("Sending a message to {} users, from {} ...", userEvents.size(), issuer.substring(0, 8));
-
         userEvents.forEach(userEventService::save);
     }
 

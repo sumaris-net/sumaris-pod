@@ -136,8 +136,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
 
             else {
-                // Update the config, from the software properties
-                applySoftwareProperties();
+                // Version < 1.10.0 => Skip applying software properties (will fail on SOFTWARE, because of missing columns)
+                if (dbVersion.beforeOrequals(VersionBuilder.create("1.10.0").build())) {
+                    log.warn("DB version is prior to 1.10.0 - Cannot applying software properties. Please restart pod, after DB upgrade");
+                }
+                else {
+                    // Update the config, from the software properties
+                    applySoftwareProperties();
+                }
 
                 // Publish ready event
                 if (event instanceof SchemaReadyEvent) {

@@ -57,6 +57,7 @@
     <include relativeToChangelogFile="true" file="all/db-changelog-0.19.0.xml"/>
 
     <include relativeToChangelogFile="true" file="db-changelog-0.19.8.xml"/>
+    <include relativeToChangelogFile="true" file="all/db-changelog-0.19.8.xml"/>
     <include relativeToChangelogFile="true" file="db-changelog-0.21.1.xml"/>
     <include relativeToChangelogFile="true" file="db-changelog-1.1.0.xml"/>
 
@@ -129,6 +130,10 @@
 
     <include relativeToChangelogFile="true" file="db-changelog-1.22.3.xml"/>
     <include relativeToChangelogFile="true" file="adap/db-changelog-1.22.3.xml"/>
+
+    <include relativeToChangelogFile="true" file="db-changelog-1.25.0.xml"/>
+    <include relativeToChangelogFile="true" file="all/db-changelog-1.25.0.xml"/>
+    <include relativeToChangelogFile="true" file="adap/db-changelog-1.25.0.xml"/>
 
     <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
     <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
