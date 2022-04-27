@@ -57,5 +57,5 @@ public class OperationFilterVO implements IDataFilter {
     private String[] taxonGroupLabels;
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
-
+    private Integer[] boundingBox;
 }

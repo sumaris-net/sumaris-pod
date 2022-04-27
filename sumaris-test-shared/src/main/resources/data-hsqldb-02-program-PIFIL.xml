@@ -33,25 +33,27 @@
   <PROGRAM2DEPARTMENT ID="61" PROGRAM_FK="60" DEPARTMENT_FK="13" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2021-11-18"/>
   <PROGRAM2DEPARTMENT ID="62" PROGRAM_FK="60" DEPARTMENT_FK="3"  PROGRAM_PRIVILEGE_FK="3" UPDATE_DATE="2021-11-18"/> <!-- Ifremer as OBservers -->
 
-  <PROGRAM_PROPERTY ID="100" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.gear.rankOrder.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="101" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.observers.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="102" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.sale.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="103" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.map.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="104" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.metier.filter" NAME="true"/>
-  <PROGRAM_PROPERTY ID="105" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.metiers.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="106" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.allowParent" NAME="true"/>
-  <PROGRAM_PROPERTY ID="107" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.distanceMaxError" NAME="200"/>
-  <PROGRAM_PROPERTY ID="108" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150"/>
-  <PROGRAM_PROPERTY ID="109" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.latitude.defaultSign" NAME="+"/>
-  <PROGRAM_PROPERTY ID="110" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
-  <PROGRAM_PROPERTY ID="111" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.batch.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="112" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.sample.dateTime.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="113" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.sample.taxonName.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="114" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.sample.taxonGroup.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="115" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.i18nSuffix" NAME="ACCIDENTAL_CATCH."/>
-  <PROGRAM_PROPERTY ID="116" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.location.filter.searchText.minLength" NAME="2"/>
-  <PROGRAM_PROPERTY ID="117" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4"/>
-  <PROGRAM_PROPERTY ID="118" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.operation.sample.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="100" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.gear.rankOrder.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="101" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.observers.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="102" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.sale.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="103" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.map.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="104" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.metier.filter" NAME="true"/>
+  <PROGRAM_PROPERTY ID="105" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.metiers.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="106" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.allowParent" NAME="true"/>
+  <PROGRAM_PROPERTY ID="107" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.distanceMaxError" NAME="200"/>
+  <PROGRAM_PROPERTY ID="108" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150"/>
+  <PROGRAM_PROPERTY ID="109" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.latitude.defaultSign" NAME="+"/>
+  <PROGRAM_PROPERTY ID="110" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
+  <PROGRAM_PROPERTY ID="111" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="112" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.dateTime.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="113" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.taxonName.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="114" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.taxonGroup.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="115" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.i18nSuffix" NAME="ACCIDENTAL_CATCH."/>
+  <PROGRAM_PROPERTY ID="116" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.location.filter.searchText.minLength" NAME="2"/>
+  <PROGRAM_PROPERTY ID="117" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4"/>
+  <PROGRAM_PROPERTY ID="118" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="119" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.maxShootingDurationInHours" NAME="12"/><!-- 12 hours -->
+  <PROGRAM_PROPERTY ID="120" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.maxTotalDurationInHours" NAME="2400"/><!-- 100 days -->
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="60" LOCATION_CLASSIFICATION_FK="2"/>
 

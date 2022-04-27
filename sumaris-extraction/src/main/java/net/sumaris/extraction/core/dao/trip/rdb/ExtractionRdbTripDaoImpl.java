@@ -349,6 +349,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("date", true);
         xmlQuery.setGroup("time", true);
         xmlQuery.setGroup("fishingTime", true);
+        xmlQuery.setGroup("agg", true);
+
+        // Compute groupBy (exclude columns with the 'agg' group)
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         return xmlQuery;
     }

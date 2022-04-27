@@ -262,8 +262,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             throw new SumarisTechnicalException("There are several observations on same day. This is not implemented for now.");
         }
         Set<Integer> observationIdsToCheck = new HashSet<>();
-        Map<Date, ObservedLocationVO> observedLocationByDate = new HashMap<>();
-        observedLocations.forEach(observedLocation -> observedLocationByDate.put(Dates.resetTime(observedLocation.getStartDateTime()), observedLocation));
+        Map<Date, ObservedLocationVO> observedLocationByDate = observedLocations.stream()
+            .collect(Collectors.toMap(
+                ol -> Dates.resetTime(ol.getStartDateTime()),
+                ol -> ol
+            ));
         aggregatedLandingsByDate.keySet().forEach(date -> {
             if (!observedLocationByDate.containsKey(date)) {
                 observedLocationByDate.put(date, createObservedLocation(parent, date, filter.getProgramLabel()));
@@ -395,16 +398,18 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             defaultFetchOption);
     }
 
-    private void saveLanding(@Nonnull ObservedLocationVO parent, @Nonnull LandingVO landing) {
+    private LandingVO saveLanding(@Nonnull ObservedLocationVO parent, @Nonnull LandingVO landing) {
 
         // Set default value for recorder department and person
         DataBeans.setDefaultRecorderDepartment(landing, parent.getRecorderDepartment());
         DataBeans.setDefaultRecorderPerson(landing, parent.getRecorderPerson());
 
-        LandingVO savedLanding = landingService.save(landing);
-//        if (landing.getMeasurementValues() != null)
-//            measurementDao.saveLandingMeasurementsMap(savedLanding.getId(), landing.getMeasurementValues());
+        // Make sure to return a valid landing VO
+        if (landing.getObservedLocationId() == null) {
+            landing.setObservedLocationId(parent.getId());
+        }
 
+        return landingService.save(landing);
     }
 
     private void updateOrDeleteEmptyObservedLocations(Collection<Integer> observationIds) {
