@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -128,6 +129,10 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("onDeckDateTimePmfmId", String.valueOf(PmfmEnum.ON_DECK_DATE_TIME.getId()));
         xmlQuery.bind("sortingDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_START_DATE_TIME.getId()));
         xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
+
+        // Compute groupBy (exclude columns with the 'agg' group)
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         return xmlQuery;
     }

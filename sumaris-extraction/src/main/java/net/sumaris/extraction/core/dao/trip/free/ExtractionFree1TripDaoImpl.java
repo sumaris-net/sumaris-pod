@@ -23,16 +23,20 @@
 package net.sumaris.extraction.core.dao.trip.free;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free1Specification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
+
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -96,6 +100,14 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         //        HEADLINE_LENGTH Longueur de la corde de dos (cumulée si jumeaux),   = HEADLINE_CUMULATIVE_LENGTH ?
         //        WIDTH_GEAR Largeur cumulée (drague),              missing in SUMARIS
         //        SEINE_LENGTH Longueur de la bolinche ou senne     missing in SUMARIS
+
+        // Bind groupBy columns
+        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE,
+            RdbSpecification.COLUMN_DATE, RdbSpecification.COLUMN_TIME
+        );
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
+            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         return xmlQuery;
     }
