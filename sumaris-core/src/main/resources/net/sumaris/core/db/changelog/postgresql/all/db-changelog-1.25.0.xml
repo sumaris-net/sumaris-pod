@@ -45,7 +45,7 @@
 			<column name="IS_CALCULATED" valueNumeric="1"/>
 			<column name="IS_ESTIMATED" valueNumeric="0"/>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
 		</insert>
 	</changeSet>
@@ -65,7 +65,7 @@
 			<column name="IS_CALCULATED" valueNumeric="1"/>
 			<column name="IS_ESTIMATED" valueNumeric="0"/>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
 		</insert>
 	</changeSet>
@@ -87,7 +87,7 @@
 			<column name="UNIT_FK" valueNumeric="3"/>
 			<column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="6"/>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
 		</insert>
 	</changeSet>
@@ -109,7 +109,7 @@
 			<column name="UNIT_FK" valueNumeric="3"/>
 			<column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="6"/>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
 		</insert>
 	</changeSet>
