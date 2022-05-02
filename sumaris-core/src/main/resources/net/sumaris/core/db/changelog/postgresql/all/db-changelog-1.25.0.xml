@@ -42,8 +42,8 @@
 			<column name="ID" valueNumeric="47"/>
 			<column name="LABEL">CALCULATED_WEIGHT_LENGTH</column>
 			<column name="NAME">Calculated by Length-Weight Relation (WLR)</column>
-			<column name="IS_CALCULATED" valueNumeric="1"/>
-			<column name="IS_ESTIMATED" valueNumeric="0"/>
+			<column name="IS_CALCULATED" valueBoolean="true"/>
+			<column name="IS_ESTIMATED" valueBoolean="false"/>
 			<column name="STATUS_FK" valueNumeric="1"/>
 			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
