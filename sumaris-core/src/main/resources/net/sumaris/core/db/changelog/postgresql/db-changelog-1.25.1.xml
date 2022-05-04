@@ -25,7 +25,7 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.25.1.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-1.25.1.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
@@ -38,13 +38,14 @@
 		<dropColumn tableName="extraction_product_value" columnName="parent_fk"/>
 	</changeSet>
 
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
 			<where>LABEL='1.25.1'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
-			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
 			<column name="LABEL">1.25.1</column>
 			<column name="DESCRIPTION">
 				- EXTRACTION_PRODUCT_VALUE: Remove unused column PARENT_FK;

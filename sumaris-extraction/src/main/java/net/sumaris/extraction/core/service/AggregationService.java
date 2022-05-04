@@ -73,9 +73,20 @@ public interface AggregationService {
      * @param strata
      */
     @Transactional
-    AggregationContextVO aggregate(AggregationTypeVO type,
+    AggregationContextVO aggregate(IExtractionFormat source,
                                    @Nullable ExtractionFilterVO filter,
                                    @Nullable AggregationStrataVO strata);
+
+    @Transactional(rollbackFor = IOException.class)
+    File aggregateAndDump(IExtractionFormat source,
+                          @Nullable ExtractionFilterVO filter,
+                          @Nullable AggregationStrataVO strata);
+
+    @Transactional
+    AggregationResultVO aggregateAndRead(IExtractionFormat source,
+                                         @Nullable ExtractionFilterVO filter,
+                                         @Nullable AggregationStrataVO strata,
+                                         Page page);
 
     @Transactional(readOnly = true)
     AggregationResultVO getAggBySpace(AggregationTypeVO type,
@@ -101,16 +112,6 @@ public interface AggregationService {
                                 @Nullable ExtractionFilterVO filter,
                                 @Nullable AggregationStrataVO strata);
 
-    @Transactional(rollbackFor = IOException.class)
-    File executeAndDump(AggregationTypeVO type,
-                        @Nullable ExtractionFilterVO filter,
-                        @Nullable AggregationStrataVO strata);
-
-    @Transactional
-    AggregationResultVO executeAndRead(AggregationTypeVO type,
-                                       @Nullable ExtractionFilterVO filter,
-                                       @Nullable AggregationStrataVO strata,
-                                       Page page);
 
     @Transactional(timeout = 10000000)
     AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);

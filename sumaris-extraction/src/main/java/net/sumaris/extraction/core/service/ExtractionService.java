@@ -25,7 +25,6 @@ package net.sumaris.extraction.core.service;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
-import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.extraction.core.format.LiveFormatEnum;

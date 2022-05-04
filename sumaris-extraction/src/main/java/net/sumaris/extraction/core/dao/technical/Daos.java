@@ -142,20 +142,27 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
 
     /**
      * Do column names replacement, but escape sql keyword (e.g. 'DATE' replacement will keep TO_DATE(...) unchanged).
-     * Replacement will ignore the case.
+     * If ignoreCase=true, replacement will ignore the case.
      * @param sqlQuery
      * @param columnNamesMapping
      * @return
      */
-    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping) {
+    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping, boolean ignoreCase) {
         if (MapUtils.isEmpty(columnNamesMapping)) return sqlQuery; // Skip
 
+        String regexpOptions = (ignoreCase ? "(?i)" : "");
         for (Map.Entry<String, String> entry: columnNamesMapping.entrySet()) {
-            String sourceColumnName = entry.getKey().toLowerCase();
-            String targetColumnName = entry.getValue().toLowerCase(); // Output into lowercase (need by PostgreSQL)
+            String sourceColumnName = entry.getKey();
+
+            // Comment out - should not be need anymore
+            //  // Output into lowercase (need by PostgreSQL)
+            // String targetColumnName = entry.getValue().toLowerCase();
+            String targetColumnName = entry.getValue();
+
             sqlQuery = sqlQuery
                 // Do the replacement (should ignore case)
-                .replaceAll("(?i)(^|" + NON_COLUMN_CHAR_REGEXP + ")"
+                .replaceAll(regexpOptions
+                    + "(^|" + NON_COLUMN_CHAR_REGEXP + ")"
                         + sourceColumnName
                         + "("+NON_COLUMN_CHAR_REGEXP+"|$)",
                     "$1" + targetColumnName + "$2");

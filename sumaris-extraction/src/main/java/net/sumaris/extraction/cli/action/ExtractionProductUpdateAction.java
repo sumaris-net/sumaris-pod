@@ -45,7 +45,8 @@ public class ExtractionProductUpdateAction {
         // Create the job
         ExtractionJob job = new ExtractionJob(
             ExtractionServiceLocator.extractionProductService(),
-            ExtractionServiceLocator.aggregationService()
+            ExtractionServiceLocator.aggregationService(),
+            ExtractionConfiguration.instance()
         );
 
         // Run it !

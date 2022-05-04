@@ -27,7 +27,7 @@ import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.format.AggregationFormatEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggSpecification;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
@@ -127,8 +127,8 @@ public class ExtractionFormats  {
         return LiveFormatEnum.valueOf(format.getLabel(), format.getVersion());
     }
 
-    public static ProductFormatEnum getProductFormat(IExtractionFormat format) {
-        return ProductFormatEnum.valueOf(format.getLabel(), format.getVersion());
+    public static AggregationFormatEnum getProductFormat(IExtractionFormat format) {
+        return AggregationFormatEnum.valueOf(format.getLabel(), format.getVersion());
     }
 
     public static IExtractionFormat getFormatFromLabel(String label) {
@@ -138,7 +138,7 @@ public class ExtractionFormats  {
     public static IExtractionFormat getFormatFromLabel(String label, String version) {
         Preconditions.checkNotNull(label);
         if (label.toUpperCase().startsWith(AggSpecification.FORMAT_PREFIX)) {
-            return ProductFormatEnum.valueOf(label, version);
+            return AggregationFormatEnum.valueOf(label, version);
         }
         return LiveFormatEnum.valueOf(label, version);
     }

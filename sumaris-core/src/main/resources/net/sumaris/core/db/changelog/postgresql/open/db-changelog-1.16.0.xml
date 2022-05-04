@@ -54,12 +54,12 @@
         <sqlFile path="insert_harbours_FRA.sql" relativeToChangelogFile="true" endDelimiter=";"/>
     </changeSet>
 
-    <!-- Insert taxon_group DCO (Dauphin Commun) -->
+    <!-- Insert taxon_group ODN (Baleines odontocètes nca) -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-302" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group where label = 'DCO'</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group where label = 'ODN' and TAXON_GROUP_TYPE_FK=2</sqlCheck>
             </and>
         </preConditions>
 
@@ -73,6 +73,16 @@
             <column name="CREATION_DATE" valueComputed="current_timestamp" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
         </insert>
+    </changeSet>
+
+    <!-- Insert taxon_group DLP (Dauphins nca) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-302-1" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group where label = 'DLP' and TAXON_GROUP_TYPE_FK=2</sqlCheck>
+            </and>
+        </preConditions>
         <insert tableName="TAXON_GROUP">
             <column name="ID" valueComputed="nextval('taxon_group_seq')"/>
             <column name="LABEL">DLP</column>
@@ -84,6 +94,16 @@
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
             <column name="PARENT_TAXON_GROUP_FK" valueComputed="(select id from TAXON_GROUP WHERE LABEL='ODN' AND TAXON_GROUP_TYPE_FK=2)"/>
         </insert>
+    </changeSet>
+
+    <!-- Insert taxon_group DCO (Dauphin Commun) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-302-2" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group where label = 'DCO' and TAXON_GROUP_TYPE_FK=2</sqlCheck>
+            </and>
+        </preConditions>
         <insert tableName="TAXON_GROUP">
             <column name="ID" valueComputed="nextval('taxon_group_seq')"/>
             <column name="LABEL">DCO</column>

@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.service;
 
 import au.com.bytecode.opencsv.CSVReader;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
 import net.sumaris.extraction.core.DatabaseFixtures;
@@ -64,8 +65,8 @@ public abstract class AbstractServiceTest {
         return unpack(zipFile, format.getLabel() + '_' + format.getVersion());
     }
 
-    protected File unpack(File zipFile, ExtractionTypeVO type) {
-        return unpack(zipFile,  type.getCategory().name() + '_' + type.getLabel());
+    protected File unpack(File zipFile, IExtractionFormat format) {
+        return unpack(zipFile,  format.getCategory().name() + '_' + format.getLabel());
     }
 
     protected File unpack(File zipFile, String dirName) {

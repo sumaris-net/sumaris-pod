@@ -126,7 +126,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info("Starting extraction {{}-{}} (raw data / trips)... {}", context.getLabel(), context.getId(), filterInfo.toString());
+            log.info("Starting extraction #{} (raw data / trips)... {}", context.getId(), filterInfo);
         }
 
         // Fill context table names
@@ -193,7 +193,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
         finally {
             if (startTime != null) {
-                log.info("Extraction {{}-{}} finished in {}", context.getLabel(), context.getId(), TimeUtils.printDurationFrom(startTime));
+                log.info("Extraction #{} finished in {}", context.getId(), TimeUtils.printDurationFrom(startTime));
             }
         }
     }

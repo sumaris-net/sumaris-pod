@@ -307,12 +307,12 @@ public class ExtractionProductRepositoryImpl
         final EntityManager em = getEntityManager();
         if (CollectionUtils.isEmpty(sources)) {
             if (entity.getTables() != null) {
-                List<ExtractionProductTable> toRemove = ImmutableList.copyOf(entity.getTables());
+                List<ExtractionProductTable> tableEntitiesToRemove = ImmutableList.copyOf(entity.getTables());
                 entity.getTables().clear();
-                toRemove.forEach(em::remove);
+                tableEntitiesToRemove.forEach(em::remove);
             }
         } else {
-            Map<String, ExtractionProductTable> existingItems = Beans.splitByProperty(
+            Map<String, ExtractionProductTable> tableEntitiesToRemove = Beans.splitByProperty(
                 Beans.getList(entity.getTables()),
                 ExtractionProductTable.Fields.LABEL);
             final Status enableStatus = getReference(Status.class, StatusEnum.ENABLE.getId());
@@ -324,24 +324,28 @@ public class ExtractionProductRepositoryImpl
             sources.stream()
                 .filter(Objects::nonNull)
                 .forEach(source -> {
-                    ExtractionProductTable target = existingItems.remove(source.getLabel());
+                    ExtractionProductTable target = tableEntitiesToRemove.remove(source.getLabel());
                     boolean isNew = (target == null);
                     if (isNew) {
                         target = new ExtractionProductTable();
                     }
-                    Beans.copyProperties(source, target);
+                    Beans.copyProperties(source, target,
+                        // Keep immutable properties, from the existing entity
+                        ExtractionProductTable.Fields.ID,
+                        ExtractionProductTable.Fields.CREATION_DATE);
                     target.setProduct(entity);
                     target.setStatus(enableStatus);
                     target.setUpdateDate(updateDate);
                     if (isNew) {
                         target.setCreationDate(updateDate);
                         em.persist(target);
-                        source.setId(target.getId());
                     } else {
                         em.merge(target);
                     }
 
-                    source.setUpdateDate(updateDate);
+                    source.setId(target.getId());
+                    source.setUpdateDate(target.getUpdateDate());
+                    source.setCreationDate(target.getCreationDate());
 
                     if (isNew) entity.getTables().add(target);
                 });
@@ -359,9 +363,9 @@ public class ExtractionProductRepositoryImpl
             }
 
             // Remove old tables
-            if (MapUtils.isNotEmpty(existingItems)) {
-                entity.getTables().removeAll(existingItems.values());
-                existingItems.values().forEach(em::remove);
+            if (MapUtils.isNotEmpty(tableEntitiesToRemove)) {
+                entity.getTables().removeAll(tableEntitiesToRemove.values());
+                tableEntitiesToRemove.values().forEach(em::remove);
             }
 
         }
@@ -380,7 +384,7 @@ public class ExtractionProductRepositoryImpl
                 toRemove.forEach(em::remove);
             }
         } else {
-            Map<String, ExtractionProductColumn> existingItems = Beans.splitByProperty(
+            Map<String, ExtractionProductColumn> columnEntitiesToRemove = Beans.splitByProperty(
                 Beans.getList(parent.getColumns()),
                 ExtractionProductColumn.Fields.COLUMN_NAME);
             if (parent.getColumns() == null) {
@@ -391,21 +395,26 @@ public class ExtractionProductRepositoryImpl
             sources.stream()
                 .filter(Objects::nonNull)
                 .forEach(source -> {
-                    ExtractionProductColumn target = existingItems.remove(source.getColumnName());
+                    ExtractionProductColumn target = columnEntitiesToRemove.remove(source.getColumnName());
                     boolean isNew = (target == null);
                     if (isNew) {
                         target = new ExtractionProductColumn();
                     }
+                    Beans.copyProperties(source, target,
+                        // Keep immutable properties, from the existing entity
+                        ExtractionProductColumn.Fields.ID);
+
                     target.setTable(parent);
-                    Beans.copyProperties(source, target);
                     target.setLabel(StringUtils.underscoreToChangeCase(source.getColumnName()));
+                    source.setLabel(target.getLabel());
 
                     if (isNew) {
                         em.persist(target);
-                        source.setId(target.getId());
                     } else {
                         em.merge(target);
                     }
+
+                    source.setId(target.getId());
 
                     if (isNew) parent.getColumns().add(target);
                 });
@@ -420,9 +429,9 @@ public class ExtractionProductRepositoryImpl
             em.flush();
 
             // Remove old tables
-            if (MapUtils.isNotEmpty(existingItems)) {
-                parent.getColumns().removeAll(existingItems.values());
-                existingItems.values().forEach(em::remove);
+            if (MapUtils.isNotEmpty(columnEntitiesToRemove)) {
+                parent.getColumns().removeAll(columnEntitiesToRemove.values());
+                columnEntitiesToRemove.values().forEach(em::remove);
             }
 
             em.flush();

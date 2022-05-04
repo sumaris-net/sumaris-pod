@@ -37,7 +37,7 @@ import net.sumaris.core.util.Files;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;

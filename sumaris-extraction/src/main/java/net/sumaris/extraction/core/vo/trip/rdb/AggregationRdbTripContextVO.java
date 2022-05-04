@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.trip.AggregationTripContextVO;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -51,7 +52,10 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
     Map<String, String> columnNamesMapping = Maps.newLinkedHashMap();
 
     public <C extends AggregationRdbTripContextVO> C addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
-        columnNamesMapping.put(sourceColumnName, targetColumnName);
+        // Try to fix remplacement error
+        columnNamesMapping.put(sourceColumnName.toLowerCase(), targetColumnName.toLowerCase());
+        columnNamesMapping.put(sourceColumnName.toUpperCase(), targetColumnName.toUpperCase());
+
         return (C)this;
     }
 }

@@ -23,14 +23,12 @@ package net.sumaris.extraction.core.service;
  */
 
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.specification.data.trip.AggRjbTripSpecification;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
-import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
@@ -41,6 +39,7 @@ import net.sumaris.extraction.core.vo.*;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
@@ -55,11 +54,14 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Autowired
     private AggregationService aggregationService;
 
+    @Autowired
+    private ExtractionService extractionService;
+
     private String yearRawData;
     private String yearRdbProduct;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         yearRawData = String.valueOf(fixtures.getYearRawData());
         yearRdbProduct = String.valueOf(fixtures.getYearRdbProduct());
     }
@@ -67,16 +69,13 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Test
     public void aggregateLiveRdb() throws IOException {
 
-        AggregationTypeVO type = new AggregationTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE);
-        type.setLabel(LiveFormatEnum.RDB.name());
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = aggregationService.executeAndDump(type, null, strata);
-        File root = unpack(outputFile, type);
+        File outputFile = aggregationService.aggregateAndDump(LiveFormatEnum.RDB, null, strata);
+        File root = unpack(outputFile, LiveFormatEnum.RDB);
 
         // HH.csv
         File stationFile = new File(root, AggRdbSpecification.HH_SHEET_NAME + ".csv");
@@ -102,7 +101,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = aggregationService.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
@@ -131,7 +130,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = aggregationService.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, null, strata);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, type);
 
@@ -145,11 +144,9 @@ public class AggregationServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void aggregateFree1() throws IOException {
+    public void aggregateCost() throws IOException {
 
-        AggregationTypeVO type = new AggregationTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE);
-        type.setLabel(LiveFormatEnum.FREE1.getLabel());
+        AggregationTypeVO source = aggregationService.getTypeByFormat(LiveFormatEnum.COST);
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
@@ -167,9 +164,47 @@ public class AggregationServiceTest extends AbstractServiceTest {
             ))
             .build();
 
-        File outputFile = aggregationService.executeAndDump(type, filter, strata);
+        File outputFile = aggregationService.aggregateAndDump(source, filter, strata);
         Assert.assertTrue(outputFile.exists());
-        File root = unpack(outputFile, type);
+        File root = unpack(outputFile, source);
+
+        // HH.csv
+        File stationFile = new File(root, AggRjbTripSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRjbTripSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+        File speciesLengthFile = new File(root, AggRjbTripSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+    }
+
+    @Test
+    public void aggregateFree1() throws IOException {
+
+        AggregationTypeVO source = aggregationService.getTypeByFormat(LiveFormatEnum.FREE1);
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(AggRdbSpecification.COLUMN_QUARTER);
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+            .criteria(ImmutableList.of(
+                ExtractionFilterCriterionVO.builder()
+                    .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                    .name(ProductRdbStation.COLUMN_YEAR)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(yearRawData)
+                    .build()
+            ))
+            .build();
+
+        File outputFile = aggregationService.aggregateAndDump(source, filter, strata);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, source);
 
         // HH.csv
         File stationFile = new File(root, AggRjbTripSpecification.HH_SHEET_NAME + ".csv");
@@ -208,7 +243,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
             ))
             .build();
 
-        File outputFile = aggregationService.executeAndDump(type, filter, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, filter, strata);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, type);
 
@@ -228,7 +263,7 @@ public class AggregationServiceTest extends AbstractServiceTest {
     @Test
     public void executeAndRead() {
 
-        AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, LiveFormatEnum.SURVIVAL_TEST);
+        AggregationTypeVO source = aggregationService.getTypeByFormat(LiveFormatEnum.SURVIVAL_TEST);
 
         ExtractionFilterVO filter = new ExtractionFilterVO();
         filter.setSheetName(AggRdbSpecification.SL_SHEET_NAME);
@@ -245,7 +280,9 @@ public class AggregationServiceTest extends AbstractServiceTest {
         strata.setSpatialColumnName(AggRdbSpecification.COLUMN_AREA);
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_MONTH);
 
-        AggregationResultVO result = aggregationService.executeAndRead(type, filter, strata, Page.builder().size(100).build());
+        AggregationResultVO result = aggregationService.aggregateAndRead(
+            source,
+            filter, strata, Page.builder().size(100).build());
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -260,6 +297,38 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertTrue(result.getTimeStrata().contains(AggRdbSpecification.COLUMN_MONTH));
         Assert.assertTrue(result.getTimeStrata().contains(AggRdbSpecification.COLUMN_QUARTER));
         Assert.assertTrue(result.getTimeStrata().contains(AggRdbSpecification.COLUMN_YEAR));
+    }
+
+    @Test
+    public void save() {
+
+        // Live extraction product
+        {
+            AggregationTypeVO source = aggregationService.getTypeByFormat(LiveFormatEnum.SURVIVAL_TEST);
+
+            AggregationTypeVO type = createAggType(ExtractionCategoryEnum.PRODUCT, source);
+
+            // 1. Create the aggregation product
+            AggregationTypeVO savedType = aggregationService.save(type, null);
+            Assert.assertNotNull(savedType);
+            Assert.assertNotNull(savedType.getId());
+            Assert.assertNull(savedType.getParentId()); // No parent product
+        }
+
+        // Extraction linked to another source product
+        {
+            AggregationTypeVO source = new AggregationTypeVO();
+            source.setCategory(ExtractionCategoryEnum.PRODUCT);
+            source.setLabel(fixtures.getRdbProductLabel(0));
+
+            AggregationTypeVO type = createAggType(ExtractionCategoryEnum.PRODUCT, source);
+
+            // 1. Create the aggregation product
+            AggregationTypeVO savedType = aggregationService.save(type, null);
+            Assert.assertNotNull(savedType);
+            Assert.assertNotNull(savedType.getId());
+            Assert.assertNotNull(savedType.getParentId()); // Make sure to keep link with source product
+        }
     }
 
     @Test
@@ -303,6 +372,9 @@ public class AggregationServiceTest extends AbstractServiceTest {
 
         // 1. Create the aggregation product
         AggregationTypeVO savedType = aggregationService.save(type, null);
+        Assert.assertNotNull(savedType);
+        Assert.assertNotNull(savedType.getId());
+        Assert.assertNotNull(savedType.getParentId()); // Make sure to keep link with source product
 
         AggregationStrataVO strata = new AggregationStrataVO();
         strata.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
@@ -329,18 +401,88 @@ public class AggregationServiceTest extends AbstractServiceTest {
         Assert.assertTrue(result.getData().size() > 0);
     }
 
+    @Test
+    public void updateLiveProduct() {
+        AggregationTypeVO type = createAggType(ExtractionCategoryEnum.LIVE, LiveFormatEnum.PMFM_TRIP);
+
+        // Prepare a filter, on year + project
+        ExtractionFilterVO filter = new ExtractionFilterVO();
+        {
+            ExtractionFilterCriterionVO projectCriterion = new ExtractionFilterCriterionVO();
+            projectCriterion.setSheetName(PmfmTripSpecification.TR_SHEET_NAME);
+            projectCriterion.setName(PmfmTripSpecification.COLUMN_PROJECT);
+            projectCriterion.setOperator("=");
+            projectCriterion.setValue(fixtures.getProgramLabelForPmfmExtraction(0));
+
+            ExtractionFilterCriterionVO yearCriterion = new ExtractionFilterCriterionVO();
+            yearCriterion.setSheetName(PmfmTripSpecification.TR_SHEET_NAME);
+            yearCriterion.setName(PmfmTripSpecification.COLUMN_YEAR);
+            yearCriterion.setOperator("=");
+            yearCriterion.setValue(yearRawData);
+
+            filter.setCriteria(ImmutableList.of(projectCriterion, yearCriterion));
+        }
+
+        // First live execution
+        ExtractionTypeVO savedType = extractionService.save(type, filter);
+        Assume.assumeNotNull(savedType);
+        Assume.assumeNotNull(savedType.getId());
+
+        // Product update
+        AggregationTypeVO updatedType = aggregationService.updateProduct(savedType.getId());
+        Assert.assertNotNull(updatedType);
+        Assert.assertNotNull(updatedType.getId());
+    }
+
+    @Test
+    public void updateAggProduct() {
+        AggregationTypeVO source = new AggregationTypeVO();
+        source.setCategory(ExtractionCategoryEnum.PRODUCT);
+        source.setLabel(fixtures.getRdbProductLabel(0));
+
+        AggregationTypeVO type = createAggType(ExtractionCategoryEnum.PRODUCT, source);
+
+        // Prepare a filter on year
+        ExtractionFilterVO filter = new ExtractionFilterVO();
+        {
+            ExtractionFilterCriterionVO yearCriterion = new ExtractionFilterCriterionVO();
+            yearCriterion.setSheetName(RdbSpecification.TR_SHEET_NAME);
+            yearCriterion.setName(RdbSpecification.COLUMN_YEAR);
+            yearCriterion.setOperator("=");
+            yearCriterion.setValue(yearRdbProduct);
+
+            filter.setCriteria(ImmutableList.of(yearCriterion));
+        }
+
+        // Prepare strata
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSheetName(AggRdbSpecification.HH_SHEET_NAME);
+        strata.setSpatialColumnName(AggRjbTripSpecification.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(AggRjbTripSpecification.COLUMN_YEAR);
+        strata.setAggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME);
+        strata.setTechColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE);
+        type.setStratum(ImmutableList.of(strata));
+
+        // First execution
+        AggregationTypeVO savedType = aggregationService.save(type, filter);
+        Assume.assumeNotNull(savedType);
+        Assume.assumeNotNull(savedType.getId());
+        Assert.assertEquals(type.getLabel(), savedType.getLabel());
+
+        // Product update
+        AggregationTypeVO updatedType = aggregationService.updateProduct(savedType.getId());
+        Assert.assertNotNull(updatedType);
+        Assert.assertNotNull(updatedType.getId());
+    }
+
     /* -- protected methods --*/
 
     protected AggregationTypeVO createAggType(ExtractionCategoryEnum category, IExtractionFormat format) {
 
         AggregationTypeVO type = new AggregationTypeVO();
         type.setCategory(category);
-        if (category == ExtractionCategoryEnum.PRODUCT) {
-            type.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
-        }
-        else {
-            type.setLabel(format.getLabel());
-        }
+        // Derived label from format label
+        type.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
         type.setName(String.format("Aggregation on %s (%s) data", format.getLabel(), category.name()));
         type.setStatusId(StatusEnum.TEMPORARY.getId());
 

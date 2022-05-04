@@ -37,7 +37,7 @@ import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.format.AggregationFormatEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.*;
@@ -107,8 +107,8 @@ public class AggregationRdbTripDaoImpl<
     protected ExtractionTripDao<?, ?> extractionRdbTripDao;
 
     @Override
-    public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_RDB;
+    public AggregationFormatEnum getFormat() {
+        return AggregationFormatEnum.AGG_RDB;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class AggregationRdbTripDaoImpl<
         context.setFilter(filter);
         context.setStrata(strata);
         context.setId(System.currentTimeMillis());
-        context.setFormat(ProductFormatEnum.AGG_RDB);
+        context.setFormat(AggregationFormatEnum.AGG_RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         if (log.isInfoEnabled()) {
@@ -134,7 +134,7 @@ public class AggregationRdbTripDaoImpl<
             } else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting aggregation #%s-%s... %s", context.getLabel(), context.getId(), filterInfo));
+            log.info("Starting aggregation #{}... {}", context.getId(), filterInfo);
         }
 
         // Fill context table names
@@ -650,7 +650,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Analyze row
         Map<String, List<String>> columnValues = null;
-        if (context.isEnableAnalyze()) {
+        if (context.isEnableAnalyze() && count > 0) {
             columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
@@ -783,7 +783,7 @@ public class AggregationRdbTripDaoImpl<
         String sqlQuery = xmlQuery.getSQLQueryAsString();
 
         // Do column names replacement (e.g. see FREE extraction)
-        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping());
+        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping(), false);
 
         return queryUpdate(sqlQuery);
     }
@@ -861,8 +861,9 @@ public class AggregationRdbTripDaoImpl<
                         c -> c,
                         c -> query(
                             Daos.sqlReplaceColumnNames(
-                                String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c),
-                                context.getColumnNamesMapping()),
+                                // WArn: make
+                                String.format("SELECT DISTINCT T.%s FROM %s T where T.%s IS NOT NULL", c, tableName, c),
+                                context.getColumnNamesMapping(), false),
                             Object.class)
                                 .stream()
                                 .map(String::valueOf)

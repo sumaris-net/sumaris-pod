@@ -72,6 +72,7 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
      */
     String filter;
     Integer processingFrequencyId;
+    Integer parentId;
 
     @JsonIgnore
     LiveFormatEnum liveFormat;
@@ -83,4 +84,10 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     public boolean isPublic() {
         return statusId != null && statusId == StatusEnum.ENABLE.getId();
     }
+
+    @JsonIgnore
+    public ExtractionCategoryEnum getRawFormatCategory() {
+        return getParentId() != null ? ExtractionCategoryEnum.PRODUCT : IExtractionFormat.getRawFormatCategory(getLabel());
+    }
+
 }

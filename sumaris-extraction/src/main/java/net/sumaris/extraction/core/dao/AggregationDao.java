@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.format.AggregationFormatEnum;
 import net.sumaris.extraction.core.vo.*;
 
 import javax.annotation.Nullable;
@@ -41,7 +41,7 @@ public interface AggregationDao<
 
     String TABLE_NAME_PREFIX = "AGG_";
 
-    ProductFormatEnum getFormat();
+    AggregationFormatEnum getFormat();
 
     <R extends C> R aggregate(ExtractionProductVO source,
                               @Nullable F filter,

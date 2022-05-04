@@ -22,15 +22,14 @@
 
 package net.sumaris.extraction.server.job;
 
-import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.config.ExtractionConfigurationOption;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
-import net.sumaris.extraction.core.service.ExtractionServiceLocator;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.history.ProcessingFrequency;
@@ -38,7 +37,6 @@ import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -46,11 +44,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Component
@@ -65,24 +63,36 @@ public class ExtractionJob {
     @Autowired
     private AggregationService aggregationService;
 
-    private boolean ready = false;
+    @Autowired
+    private ExtractionConfiguration configuration;
+
+    @Autowired(required = false)
+    private Executor extractionExecutor;
+
+    private boolean enable = false;
+
 
     public ExtractionJob() {
         super();
     }
 
     public ExtractionJob(ExtractionProductService extractionProductService,
-                         AggregationService aggregationService) {
+                         AggregationService aggregationService,
+                         ExtractionConfiguration configuration) {
         super();
         this.extractionProductService = extractionProductService;
         this.aggregationService = aggregationService;
-        this.ready = true;
+        this.configuration = configuration;
+        this.enable = configuration.enableExtractionProduct();
     }
 
     public void execute(@NonNull ProcessingFrequencyEnum frequency) {
-        if (!ready) return; // SKip
+        if (!enable) {
+            throw new IllegalStateException("Cannot update extraction products. Service is not ready, or not enabled");
+        }
+
         if (frequency == ProcessingFrequencyEnum.NEVER) {
-            throw new IllegalArgumentException(String.format("Cannot update products with frequency '%s'", frequency));
+            throw new IllegalArgumentException(String.format("Cannot update extraction products with frequency '%s'", frequency));
         }
 
         long now = System.currentTimeMillis();
@@ -130,41 +140,53 @@ public class ExtractionJob {
 
     @EventListener({ConfigurationReadyEvent.class})
     protected void onConfigurationReady(ConfigurationReadyEvent event) {
-        if (!this.ready) {
-            // Load started
-            log.info("Started Extraction jobs, for frequencies {{}}",
-                Arrays.stream(ProcessingFrequencyEnum.values())
-                    .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
-                    .map(Enum::name)
-                    .collect(Collectors.joining(",")));
-            this.ready = true;
+        if (!this.enable) {
+            boolean enable = configuration.enableExtractionProduct() && extractionExecutor != null;
+
+            if (!enable) {
+                log.debug("Extraction jobs disabled.");
+                log.debug("To enable extraction jobs, please set configuration option '{}=true'", ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
+                return;
+            }
+            else {
+                // Load started
+                log.info("Started Extraction jobs, for frequencies {{}}",
+                    Arrays.stream(ProcessingFrequencyEnum.values())
+                        .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
+                        .map(Enum::name)
+                        .collect(Collectors.joining(",")));
+                this.enable = true;
+            }
         }
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.hourly.cron:0 0 * * * ?}")
     @Async
     protected void executeHourly(){
+        if (!enable) return; // Skip
         execute(ProcessingFrequencyEnum.HOURLY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.daily.cron:0 0 0 * * ?}")
     @Async
     protected void executeDaily(){
+        if (!enable) return; // Skip
         execute(ProcessingFrequencyEnum.DAILY);
     }
 
-    @Scheduled(cron = "${sumaris.extraction.scheduling.daily.cron:0 0 0 2 * MON}")
+    @Scheduled(cron = "${sumaris.extraction.scheduling.weekly.cron:0 0 0 2 * MON}")
     @Async
     protected void executeWeekly(){
+        if (!enable) return; // Skip
         execute(ProcessingFrequencyEnum.WEEKLY);
     }
 
-    @Scheduled(cron = "${sumaris.extraction.scheduling.hourly.cron:0 0 0 1 * ?}")
+    @Scheduled(cron = "${sumaris.extraction.scheduling.monthly.cron:0 0 0 1 * ?}")
     @Async
     protected void executeMonthly(){
+        if (!enable) return; // Skip
         execute(ProcessingFrequencyEnum.MONTHLY);
     }
-
 
 
 }

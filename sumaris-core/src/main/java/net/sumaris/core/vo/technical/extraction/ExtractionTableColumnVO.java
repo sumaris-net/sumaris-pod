@@ -44,7 +44,6 @@ public class ExtractionTableColumnVO implements IEntity<Integer> {
     private String description;
     private Integer rankOrder;
 
-    //private tTableVO table;
     private Integer tableId;
 
     private List<String> values;

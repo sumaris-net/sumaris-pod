@@ -27,7 +27,7 @@ package net.sumaris.extraction.cli.action;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.exception.UnknownFormatException;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.format.AggregationFormatEnum;
 import net.sumaris.extraction.core.service.AggregationService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionServiceLocator;
@@ -58,7 +58,7 @@ public class AggregationAction {
         String formatLabel = config.getExtractionCliOutputFormat();
         AggregationTypeVO type = null;
         try {
-            IExtractionFormat format = ProductFormatEnum.valueOf(formatLabel);
+            IExtractionFormat format = AggregationFormatEnum.valueOf(formatLabel);
             type = aggregationService.getTypeByFormat(format);
         } catch (UnknownFormatException | IllegalArgumentException e) {
             String availableProducts = productService.findByFilter(ExtractionProductFilterVO.builder()

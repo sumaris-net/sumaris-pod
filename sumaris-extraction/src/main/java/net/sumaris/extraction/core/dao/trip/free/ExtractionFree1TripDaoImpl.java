@@ -28,6 +28,7 @@ import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.specification.data.trip.CostSpecification;
 import net.sumaris.extraction.core.specification.data.trip.Free1Specification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -151,4 +152,6 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
                 return super.getQueryFullName(context, queryName);
         }
     }
+
+
 }

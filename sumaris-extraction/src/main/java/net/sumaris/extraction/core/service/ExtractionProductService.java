@@ -22,10 +22,7 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
 import net.sumaris.core.vo.technical.extraction.*;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

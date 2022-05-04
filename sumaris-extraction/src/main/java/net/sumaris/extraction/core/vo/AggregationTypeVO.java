@@ -25,6 +25,8 @@ package net.sumaris.extraction.core.vo;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionFormat;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 
 import java.util.Date;
@@ -48,6 +50,5 @@ public class AggregationTypeVO extends ExtractionTypeVO {
     Date creationDate;
 
     List<AggregationStrataVO> stratum;
-
 
 }

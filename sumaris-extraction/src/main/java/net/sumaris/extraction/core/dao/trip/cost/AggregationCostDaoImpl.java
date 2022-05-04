@@ -24,7 +24,7 @@ package net.sumaris.extraction.core.dao.trip.cost;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.format.AggregationFormatEnum;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
@@ -49,15 +49,15 @@ public class AggregationCostDaoImpl<
     implements AggCostSpecification {
 
     @Override
-    public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_COST;
+    public AggregationFormatEnum getFormat() {
+        return AggregationFormatEnum.AGG_COST;
     }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
-        context.setFormat(ProductFormatEnum.AGG_COST);
+        context.setFormat(AggregationFormatEnum.AGG_COST);
 
         return context;
     }

@@ -77,7 +77,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = aggregationService.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
@@ -105,7 +105,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = aggregationService.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, null, strata);
         File root = unpack(outputFile, type);
 
         // HH.csv
@@ -134,7 +134,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
         strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
-        File outputFile = aggregationService.executeAndDump(type, null, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, null, strata);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, type);
 
@@ -170,7 +170,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
             ))
             .build();
 
-        File outputFile = aggregationService.executeAndDump(type, filter, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, filter, strata);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, type);
 
@@ -211,7 +211,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
             ))
             .build();
 
-        File outputFile = aggregationService.executeAndDump(type, filter, strata);
+        File outputFile = aggregationService.aggregateAndDump(type, filter, strata);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, type);
 
@@ -248,7 +248,7 @@ public class AggregationServicePgsqlTest extends AbstractServiceTest {
         strata.setSpatialColumnName(AggRdbSpecification.COLUMN_AREA);
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_MONTH);
 
-        AggregationResultVO result = aggregationService.executeAndRead(type, filter, strata, Page.builder().size(100).build());
+        AggregationResultVO result = aggregationService.aggregateAndRead(type, filter, strata, Page.builder().size(100).build());
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());

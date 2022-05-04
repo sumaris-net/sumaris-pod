@@ -22,7 +22,11 @@
 
 package net.sumaris.core.model.technical.extraction;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public interface IExtractionFormat {
+
+    String LABEL_SEPARATOR = "-";
 
     /**
      * If label was derived from another format, return the raw (original) format.
@@ -33,9 +37,27 @@ public interface IExtractionFormat {
      */
     static String getRawFormatLabel(String label) {
         if (label == null) return null;
-        int lastSeparatorIndex = label.lastIndexOf("-");
+        int lastSeparatorIndex = label.lastIndexOf(LABEL_SEPARATOR);
         if (lastSeparatorIndex == -1) return label;
         return label.substring(0, lastSeparatorIndex);
+    }
+
+    static ExtractionCategoryEnum getRawFormatCategory(String label) {
+        String rawFormatLabel = getRawFormatLabel(label);
+        return rawFormatLabel.contains(LABEL_SEPARATOR)
+            ? ExtractionCategoryEnum.PRODUCT
+            : ExtractionCategoryEnum.LIVE;
+    }
+
+    /**
+     * Say if a label is a root format label.
+     * Root label must NOT contains the character '-'.
+     * @param label
+     * @return true if label contains '-' (= root format)
+     */
+    static boolean isRootFormatLabel(String label) {
+        if (label == null) return false;
+        return !label.contains(LABEL_SEPARATOR);
     }
 
     String getLabel();
@@ -47,5 +69,16 @@ public interface IExtractionFormat {
 
     default String getRawFormatLabel() {
         return getRawFormatLabel(getLabel());
+    }
+
+    default ExtractionCategoryEnum getRawFormatCategory() {
+        return getRawFormatCategory(getLabel());
+    }
+
+    default boolean isRoot() {
+        return isRootFormatLabel(getLabel());
+    }
+    default boolean isChild() {
+        return !isRootFormatLabel(getLabel());
     }
 }
