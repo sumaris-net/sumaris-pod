@@ -22,7 +22,7 @@ package net.sumaris.extraction.core.dao;
  * #L%
  */
 
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 
@@ -34,7 +34,7 @@ public interface ExtractionDao<C extends ExtractionContextVO,
     String TABLE_NAME_PREFIX = "EXT_";
     String SEQUENCE_NAME_SUFFIX = "_SEQ";
 
-    LiveFormatEnum getFormat();
+    LiveExtractionTypeEnum getFormat();
 
     <R extends C> R execute(F filter);
 

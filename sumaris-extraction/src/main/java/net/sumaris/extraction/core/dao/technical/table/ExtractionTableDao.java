@@ -55,27 +55,27 @@ public interface ExtractionTableDao {
 
     List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
 
-    ExtractionResultVO getRows(String tableName, ExtractionFilterVO filter, Page page);
+    ExtractionResultVO read(String tableName, ExtractionFilterVO filter, Page page);
 
-    ExtractionResultVO getAggRows(String tableName,
-                                  @Nullable ExtractionFilterVO filter,
-                                  Set<String> groupByColumnNames,
-                                  Map<String, SQLAggregatedFunction> otherColumnNames,
-                                  Page page);
+    ExtractionResultVO readWithAggColumns(String tableName,
+                                          @Nullable ExtractionFilterVO filter,
+                                          Set<String> groupByColumnNames,
+                                          Map<String, SQLAggregatedFunction> otherColumnNames,
+                                          Page page);
 
-    Map<String, Object> getAggByTechRows(String tableName,
-                                         @Nullable ExtractionFilterVO filter,
-                                         String aggColumnName,
-                                         SQLAggregatedFunction aggFunction,
-                                         String techColumnName,
-                                         String sort, SortDirection direction);
+    Map<String, Object> readAggColumnByTech(String tableName,
+                                            @Nullable ExtractionFilterVO filter,
+                                            String aggColumnName,
+                                            SQLAggregatedFunction aggFunction,
+                                            String techColumnName,
+                                            String sort, SortDirection direction);
 
-    MinMaxVO getAggMinMaxByTech(String tableName,
-                                @Nullable ExtractionFilterVO filter,
-                                Set<String> groupByColumns,
-                                String aggColumnName,
-                                SQLAggregatedFunction aggFunction,
-                                String techColumnName);
+    MinMaxVO getTechMinMax(String tableName,
+                           @Nullable ExtractionFilterVO filter,
+                           Set<String> groupByColumns,
+                           String aggColumnName,
+                           SQLAggregatedFunction aggFunction,
+                           String techColumnName);
 
     void dropTable(String tableName);
 

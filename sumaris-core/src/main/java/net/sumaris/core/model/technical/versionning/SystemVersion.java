@@ -43,7 +43,7 @@ import java.util.Date;
                 "    WHERE\n" +
                 "      id = (select max(id) from SystemVersion)" )
 })
-public class SystemVersion implements IReferentialEntity, IWithDescriptionAndCommentEntity {
+public class SystemVersion implements IReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SYSTEM_VERSION_SEQ")

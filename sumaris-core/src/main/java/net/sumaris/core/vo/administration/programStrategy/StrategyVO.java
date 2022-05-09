@@ -32,7 +32,7 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-public class StrategyVO implements IReferentialVO {
+public class StrategyVO implements IReferentialVO<Integer>{
 
     private Integer id;
     private String label;

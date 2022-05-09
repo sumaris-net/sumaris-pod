@@ -20,23 +20,20 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.vo.filter;
+package net.sumaris.extraction.core.service.pgsql;
 
-import lombok.*;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
+import net.sumaris.extraction.core.DatabaseResource;
+import net.sumaris.extraction.core.service.*;
+import org.junit.*;
+import org.springframework.test.context.ActiveProfiles;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@FieldNameConstants
-@EqualsAndHashCode(callSuper = true)
-public class ExtractionTypeFilterVO extends ExtractionProductFilterVO {
+/**
+ * @author peck7 on 17/12/2018.
+ */
+@ActiveProfiles("pgsql")
+public class AggregationServicePgsqlTest extends AbstractAggregationServiceTest {
 
-    public static ExtractionTypeFilterVO nullToEmpty(ExtractionTypeFilterVO filter) {
-        return filter != null ? filter : new ExtractionTypeFilterVO();
-    }
-
-    private boolean isSpatial;
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
 
 }

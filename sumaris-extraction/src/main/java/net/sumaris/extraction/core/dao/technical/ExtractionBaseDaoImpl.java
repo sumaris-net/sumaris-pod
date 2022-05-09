@@ -269,8 +269,8 @@ public abstract class ExtractionBaseDaoImpl extends HibernateDaoSupport {
         }
     }
 
-    protected String formatTableName(String tableName, long id){
-        String finalTableName = String.format(tableName, id);
+    protected String formatTableName(String tableName, long time){
+        String finalTableName = String.format(tableName, time);
         if (this.databaseType != null) {
             switch (this.databaseType) {
                 case hsqldb:

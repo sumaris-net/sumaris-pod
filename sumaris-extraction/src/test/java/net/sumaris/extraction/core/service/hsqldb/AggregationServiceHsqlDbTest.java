@@ -1,10 +1,10 @@
-package net.sumaris.extraction.core.vo.filter;
+package net.sumaris.extraction.core.service.hsqldb;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Core Extraction
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,18 +22,16 @@ package net.sumaris.extraction.core.vo.filter;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
+import net.sumaris.extraction.core.DatabaseResource;
+import net.sumaris.extraction.core.service.*;
+import org.junit.*;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class AggregationTypeFilterVO extends ExtractionProductFilterVO {
+/**
+ * @author peck7 on 17/12/2018.
+ */
+public class AggregationServiceHsqlDbTest extends AbstractAggregationServiceTest {
 
-    private Boolean isSpatial;
-    private Integer[] statusIds;
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+
 }

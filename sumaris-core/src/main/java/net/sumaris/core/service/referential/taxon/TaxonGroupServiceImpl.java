@@ -109,11 +109,11 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
     }
 
     @Override
-    public List<TaxonGroupVO> findByFilter(ReferentialFilterVO filter,
-                                           int offset,
-                                           int size,
-                                           String sortAttribute,
-                                           SortDirection sortDirection) {
+    public List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter,
+                                              int offset,
+                                              int size,
+                                              String sortAttribute,
+                                              SortDirection sortDirection) {
         return taxonGroupRepository.findAll(filter, offset, size, sortAttribute, sortDirection);
     }
 

@@ -25,12 +25,15 @@ package net.sumaris.extraction.core.vo;
 import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.extraction.core.util.ExtractionFormats;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
+import net.sumaris.extraction.core.util.ExtractionTypes;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 
 import java.util.*;
 
@@ -40,17 +43,20 @@ import java.util.*;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExtractionContextVO implements IExtractionFormat {
+public class ExtractionContextVO implements IExtractionType {
 
-    long id;
-
+    Integer id;
     String label;
+
+    String format;
     String version;
     ExtractionCategoryEnum category;
 
     ExtractionFilterVO filter;
 
     String tableNamePrefix;
+
+    Date updateDate;
 
     @FieldNameConstants.Exclude
     Map<String, String> tableNames = new LinkedHashMap<>();
@@ -66,28 +72,25 @@ public class ExtractionContextVO implements IExtractionFormat {
     Set<String> tableNameWithDistinct = new HashSet<>();
 
     public ExtractionContextVO() {
-
+        // Generate a unique, positive i
+        this.id = Math.abs(UUID.randomUUID().hashCode());
     }
 
     protected ExtractionContextVO(ExtractionContextVO source) {
-
         this.id = source.id;
-        this.label = source.label;
+        this.format = source.format;
         this.version = source.version;
         this.category = source.category;
+        this.updateDate = source.updateDate;
         this.tableNames.putAll(source.tableNames);
         this.hiddenColumnNames.putAll(source.hiddenColumnNames);
         this.tableNameWithDistinct.addAll(source.tableNameWithDistinct);
     }
 
-    public void setFormat(IExtractionFormat format) {
-        this.category = format.getCategory();
-        this.label = format.getLabel();
-        this.version = format.getVersion();
-    }
-
-    public IExtractionFormat getFormat() {
-        return ExtractionFormats.getFormatFromLabel(label, version);
+    public void setType(IExtractionType type) {
+        this.category = type.getCategory();
+        this.format = type.getFormat();
+        this.version = type.getVersion();
     }
 
     /**
@@ -144,12 +147,15 @@ public class ExtractionContextVO implements IExtractionFormat {
     }
 
     public String getTableNameBySheetName(String sheetName) {
-        Preconditions.checkNotNull(sheetName);
-        return tableNames.entrySet().stream()
-                .filter(e -> sheetName.equalsIgnoreCase(e.getValue()))
-                .map(e -> e.getKey())
-                .findFirst()
+        return findTableNameBySheetName(sheetName)
                 .orElse(null);
+    }
+
+    public Optional<String> findTableNameBySheetName(@NonNull String sheetName) {
+        return tableNames.entrySet().stream()
+            .filter(e -> sheetName.equalsIgnoreCase(e.getValue()))
+            .map(Map.Entry::getKey)
+            .findFirst();
     }
 
     public boolean hasSheet(String sheetName) {

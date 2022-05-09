@@ -54,7 +54,7 @@ import java.util.stream.Stream;
  * @author peck7 on 19/08/2020.
  */
 public class PmfmRepositoryImpl
-    extends ReferentialRepositoryImpl<Pmfm, PmfmVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Pmfm, PmfmVO, IReferentialFilter, ReferentialFetchOptions>
     implements PmfmSpecifications {
 
     @Autowired
@@ -66,12 +66,12 @@ public class PmfmRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", unless = "#result == null")
-    public PmfmVO get(int id) {
+    public PmfmVO get(Integer id) {
         return super.get(id);
     }
 
     @Override
-    public Optional<PmfmVO> findById(int id) {
+    public Optional<PmfmVO> findVOById(Integer id) {
         // Make sure to use cached function
         return Optional.ofNullable(this.get(id));
     }

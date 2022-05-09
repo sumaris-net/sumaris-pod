@@ -22,14 +22,13 @@
 
 package net.sumaris.extraction.core.dao.trip.free2;
 
-import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.free2.ExtractionFree2ContextVO;
@@ -70,8 +69,8 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
     protected ExtractionTableDao extractionTableDao;
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.FREE2;
+    public LiveExtractionTypeEnum getFormat() {
+        return LiveExtractionTypeEnum.FREE2;
     }
 
     @Override
@@ -88,7 +87,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         filter.setPreview(isPreview);
         filter.setSheetName(sheetName);
 
-        context.setFormat(LiveFormatEnum.FREE2);
+        context.setType(LiveExtractionTypeEnum.FREE2);
 
         // Stop here, if sheet already filled
         if (sheetName != null && context.hasSheet(sheetName)) return context;

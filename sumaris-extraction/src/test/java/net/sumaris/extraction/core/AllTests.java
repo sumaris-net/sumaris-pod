@@ -23,8 +23,9 @@
 package net.sumaris.extraction.core;
 
 import net.sumaris.extraction.core.dao.technical.DaosTest;
-import net.sumaris.extraction.core.service.AggregationServiceTest;
-import net.sumaris.extraction.core.service.ExtractionServiceTest;
+import net.sumaris.extraction.core.service.AbstractAggregationServiceTest;
+import net.sumaris.extraction.core.service.ExtractionProductServiceTest;
+import net.sumaris.extraction.core.service.hsqldb.ExtractionManagerHsqlDbTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -37,8 +38,9 @@ import org.junit.runners.Suite;
     // DAO
     DaosTest.class,
     // Service
-    AggregationServiceTest.class,
-    ExtractionServiceTest.class
+    AbstractAggregationServiceTest.class,
+    ExtractionManagerHsqlDbTest.class,
+    ExtractionProductServiceTest.class
 })
 public class AllTests {
 

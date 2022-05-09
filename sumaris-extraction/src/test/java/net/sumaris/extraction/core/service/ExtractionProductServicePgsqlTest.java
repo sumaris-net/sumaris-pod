@@ -22,20 +22,14 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.util.ExtractionProducts;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.extraction.core.DatabaseResource;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -60,6 +54,14 @@ public class ExtractionProductServicePgsqlTest extends AbstractServiceTest {
     private ExtractionProductService service;
 
     @Test
+    public void saveLiveRdb() {
+
+        ExtractionProductVO type = createProduct(LiveExtractionTypeEnum.RDB);
+        ExtractionProductVO savedType = service.save(type);
+        Assert.assertNotNull(savedType);
+    }
+
+    @Test
     public void getAndSave() {
         ExtractionProductVO source = service.getByLabel(fixtures.getRdbProductLabel(0), ExtractionProductFetchOptions.FOR_UPDATE);
 
@@ -73,7 +75,7 @@ public class ExtractionProductServicePgsqlTest extends AbstractServiceTest {
 
     @Test
     public void saveThenDelete() {
-        ExtractionProductVO source = createProduct(ExtractionCategoryEnum.LIVE, LiveFormatEnum.SURVIVAL_TEST);
+        ExtractionProductVO source = createProduct(LiveExtractionTypeEnum.SURVIVAL_TEST);
 
         // Save
         ExtractionProductVO target = service.save(source);
@@ -117,25 +119,4 @@ public class ExtractionProductServicePgsqlTest extends AbstractServiceTest {
 
     /* -- protected methods --*/
 
-    protected ExtractionProductVO createProduct(ExtractionCategoryEnum category, IExtractionFormat format) {
-
-        ExtractionProductVO target = new ExtractionProductVO();
-        target.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
-        target.setFormat(format.getLabel());
-        target.setVersion(format.getVersion());
-        target.setName(String.format("Product on %s (%s) data", format.getLabel(), category.name()));
-        target.setStatusId(StatusEnum.TEMPORARY.getId());
-        target.setIsSpatial(false);
-        target.setProcessingFrequencyId(0);
-
-        DepartmentVO recDep = new DepartmentVO();
-        recDep.setId(fixtures.getDepartmentId(0));
-        target.setRecorderDepartment(recDep);
-
-        PersonVO recorder = new PersonVO();
-        recorder.setId(fixtures.getPersonId(0));
-        target.setRecorderPerson(recorder);
-
-        return target;
-    }
 }

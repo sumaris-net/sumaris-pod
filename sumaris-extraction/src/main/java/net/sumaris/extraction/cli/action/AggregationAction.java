@@ -25,19 +25,24 @@ package net.sumaris.extraction.cli.action;
  */
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.cli.action.ActionUtils;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.exception.UnknownFormatException;
-import net.sumaris.extraction.core.format.AggregationFormatEnum;
-import net.sumaris.extraction.core.service.AggregationService;
+import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionServiceLocator;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
+import net.sumaris.extraction.core.specification.data.trip.AggSpecification;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 /**
@@ -53,15 +58,18 @@ public class AggregationAction {
     public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
         ExtractionProductService productService = ExtractionServiceLocator.extractionProductService();
-        AggregationService aggregationService = ExtractionServiceLocator.aggregationService();
+        ExtractionManager extractionManager = ExtractionServiceLocator.extractionManager();
 
         String formatLabel = config.getExtractionCliOutputFormat();
-        AggregationTypeVO type = null;
+        if (formatLabel != null && !formatLabel.toUpperCase().startsWith(AggSpecification.FORMAT_PREFIX)) {
+            formatLabel = AggSpecification.FORMAT_PREFIX + formatLabel.toUpperCase();
+        }
+
+        IExtractionType type = null;
         try {
-            IExtractionFormat format = AggregationFormatEnum.valueOf(formatLabel);
-            type = aggregationService.getTypeByFormat(format);
+            type = extractionManager.getByExample(AggExtractionTypeEnum.valueOf(formatLabel));
         } catch (UnknownFormatException | IllegalArgumentException e) {
-            String availableProducts = productService.findByFilter(ExtractionProductFilterVO.builder()
+            String availableProducts = productService.findByFilter(ExtractionTypeFilterVO.builder()
                     .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
                     .build(),
                     ExtractionProductFetchOptions.DOCUMENTATION)
@@ -77,6 +85,39 @@ public class AggregationAction {
         log.info("Starting {} aggregation {{}}...",
                 StringUtils.capitalize(type.getCategory().name().toLowerCase()),
                 type.getLabel());
+
+        // Check output file
+        File outputFile = ActionUtils.checkAndGetOutputFile(false, AggregationAction.class);
+
+        // Execute the extraction
+        long startTime = System.currentTimeMillis();
+        File tempFile;
+        try {
+            tempFile = extractionManager.executeAndDump(type, null, null);
+            if (!tempFile.exists()) {
+                log.error("No data");
+                return;
+            }
+        } catch (IOException e) {
+            log.error("Error during aggregation: " + e.getMessage(), e);
+            return;
+        }
+
+        // Move temp file to expected output file
+        try {
+            Files.moveFile(tempFile, outputFile);
+        }
+        catch (IOException e) {
+            log.error("Error while creating output file: " + e.getMessage(), e);
+            return;
+        }
+
+        // Success log
+        log.info("{} aggregation {{}} finished, in {} - output: {}",
+            StringUtils.capitalize(type.getCategory().name().toLowerCase()),
+            type.getLabel(),
+            TimeUtils.printDurationFrom(startTime),
+            outputFile.getAbsolutePath());
     }
 
 }

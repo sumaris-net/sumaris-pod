@@ -146,7 +146,7 @@
       <not><columnExists tableName="extraction_product" columnName="documentation"/></not>
     </preConditions>
     <addColumn tableName="extraction_product">
-      <column name="documentation" type="LONGVARCHAR"/>
+      <column name="documentation" type="CLOB(5000)"/>
     </addColumn>
   </changeSet>
 

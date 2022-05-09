@@ -65,6 +65,23 @@ public interface ExtractionProductSpecifications {
         }).addBind(PERSON_ID_ID_PARAM, personId);
     }
 
-    List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
+    default Specification<ExtractionProduct> isSpatial(Boolean isSpatial) {
+        if (isSpatial == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Boolean> parameter = cb.parameter(Boolean.class, ExtractionProduct.Fields.IS_SPATIAL);
+            return cb.equal(root.get(ExtractionProduct.Fields.IS_SPATIAL), parameter);
+        }).addBind(ExtractionProduct.Fields.IS_SPATIAL, isSpatial);
+    }
+
+    default Specification<ExtractionProduct> withParentId(Integer parentId) {
+        if (parentId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameter = cb.parameter(Integer.class, ExtractionProduct.Fields.PARENT);
+            return cb.equal(root.get(ExtractionProduct.Fields.PARENT).get(ExtractionProduct.Fields.ID), parameter);
+        }).addBind(ExtractionProduct.Fields.PARENT, parentId);
+    }
+
+
+    List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(Integer id, String tableLabel);
 
 }

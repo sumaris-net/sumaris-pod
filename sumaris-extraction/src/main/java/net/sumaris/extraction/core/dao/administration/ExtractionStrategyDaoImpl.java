@@ -29,7 +29,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyContextVO;
@@ -49,6 +49,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -73,8 +74,8 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
     protected ResourceLoader resourceLoader;
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.STRAT;
+    public LiveExtractionTypeEnum getFormat() {
+        return LiveExtractionTypeEnum.STRAT;
     }
 
     @Override
@@ -85,8 +86,8 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         R context = createNewContext();
         context.setStrategyFilter(strategyFilter);
         context.setFilter(filter);
-        context.setId(System.currentTimeMillis());
-        context.setFormat(LiveFormatEnum.STRAT);
+        context.setUpdateDate(new Date());
+        context.setType(LiveExtractionTypeEnum.STRAT);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         if (log.isInfoEnabled()) {
@@ -98,7 +99,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting extraction #%s-%s (raw data / strategies)... %s", context.getLabel(), context.getId(), filterInfo.toString()));
+            log.info("Starting extraction {} (raw data / strategies)... {}", context.getFormat(), filterInfo);
         }
 
         // Fill context table names
@@ -271,11 +272,11 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getLabel());
+        Preconditions.checkNotNull(context.getFormat());
         Preconditions.checkNotNull(context.getVersion());
 
         return String.format("%s/v%s/%s",
-                StringUtils.underscoreToChangeCase(context.getLabel()),
+                StringUtils.underscoreToChangeCase(context.getFormat()),
                 context.getVersion().replaceAll("[.]", "_"),
                 queryName);
     }

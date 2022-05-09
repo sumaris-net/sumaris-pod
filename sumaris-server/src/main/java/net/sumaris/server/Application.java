@@ -40,6 +40,7 @@ import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -63,6 +64,7 @@ import java.io.IOException;
 )
 @EnableEmailTools
 @EnableWebSocket
+@EnableCaching
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 

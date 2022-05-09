@@ -24,7 +24,6 @@ package net.sumaris.core.service.referential.taxon;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.springframework.transaction.annotation.Propagation;
@@ -46,11 +45,11 @@ public interface TaxonGroupService {
     List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter);
 
     @Transactional(readOnly = true)
-    List<TaxonGroupVO> findByFilter(ReferentialFilterVO filter,
-                                    int offset,
-                                    int size,
-                                    String sortAttribute,
-                                    SortDirection sortDirection);
+    List<TaxonGroupVO> findAllByFilter(ReferentialFilterVO filter,
+                                       int offset,
+                                       int size,
+                                       String sortAttribute,
+                                       SortDirection sortDirection);
 
     @Transactional(readOnly = true)
     List<Integer> getAllIdByReferenceTaxonId(int referenceTaxonId, Date startDate, Date endDate);

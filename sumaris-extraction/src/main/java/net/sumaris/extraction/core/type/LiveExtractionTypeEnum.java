@@ -20,15 +20,16 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.format;
+package net.sumaris.extraction.core.type;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -37,7 +38,7 @@ import java.util.Optional;
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public enum LiveFormatEnum implements IExtractionFormat {
+public enum LiveExtractionTypeEnum implements IExtractionType {
 
     // Administration
     STRAT (StratSpecification.FORMAT, StratSpecification.SHEET_NAMES, StratSpecification.VERSION_1_0),
@@ -52,18 +53,29 @@ public enum LiveFormatEnum implements IExtractionFormat {
     RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0)
     ;
 
-    private String label;
+    private Integer id;
+    private String format;
     private String[] sheetNames;
     private String version;
 
-    LiveFormatEnum(String label, String[] sheetNames, String version) {
-        this.label = label;
-        this.sheetNames = sheetNames;
+    LiveExtractionTypeEnum(String format, String[] sheetNames, String version) {
+        this.format = format;
         this.version = version;
+        this.sheetNames = sheetNames;
+        // A negative integer, to be different from a product identifier
+        this.id =  -1 * Math.abs(new HashCodeBuilder()
+            .append(format)
+            .append(sheetNames)
+            .append(version)
+            .build());
     }
 
-    public String getLabel() {
-        return label;
+    public Integer getId() {
+        return id;
+    }
+
+    public String getFormat() {
+        return format;
     }
 
     public String getVersion() {
@@ -79,26 +91,24 @@ public enum LiveFormatEnum implements IExtractionFormat {
         return ExtractionCategoryEnum.LIVE;
     }
 
-    public static LiveFormatEnum valueOf(@NonNull String label, @Nullable String version) {
-        return findFirst(label, version)
+    public static LiveExtractionTypeEnum valueOf(@NonNull String format, @Nullable String version) {
+        return findFirst(format, version)
                 .orElseGet(() -> {
-                    if (label.contains(LiveFormatEnum.RDB.name())) {
-                        return LiveFormatEnum.RDB;
-                    }
-                    throw new SumarisTechnicalException(String.format("Unknown live format '%s'", label));
+                    /*if (label.contains(LiveExtractionTypeEnum.RDB.name())) {
+                        return LiveExtractionTypeEnum.RDB;
+                    }*/
+                    throw new SumarisTechnicalException(String.format("Unknown live extraction format '%s'", format));
                 });
     }
 
-    public static Optional<LiveFormatEnum> findFirst(@NonNull IExtractionFormat format) {
-        Preconditions.checkArgument(format.getCategory() == ExtractionCategoryEnum.LIVE, "Invalid format. Must be a LIVE format");
-        return findFirst(format.getLabel(), format.getVersion());
+    public static Optional<LiveExtractionTypeEnum> findFirst(@NonNull IExtractionType type) {
+        Preconditions.checkArgument(type.getCategory() == ExtractionCategoryEnum.LIVE, "Invalid format. Must be a LIVE format");
+        return findFirst(type.getFormat(), type.getVersion());
     }
 
-    public static Optional<LiveFormatEnum> findFirst(@NonNull String label, @Nullable String version) {
-        final String rawFormatLabel = IExtractionFormat.getRawFormatLabel(label);
-
+    public static Optional<LiveExtractionTypeEnum> findFirst(@NonNull String format, @Nullable String version) {
         return Arrays.stream(values())
-                .filter(e -> e.getLabel().equalsIgnoreCase(rawFormatLabel)
+                .filter(e -> e.getFormat().equalsIgnoreCase(format)
                         && (version == null || e.getVersion().equalsIgnoreCase(version)))
                 .findFirst();
     }

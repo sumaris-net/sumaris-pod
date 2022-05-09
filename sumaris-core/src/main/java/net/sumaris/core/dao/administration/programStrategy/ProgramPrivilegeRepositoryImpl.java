@@ -44,7 +44,7 @@ import javax.persistence.EntityManager;
  */
 @Slf4j
 public class ProgramPrivilegeRepositoryImpl
-    extends ReferentialRepositoryImpl<ProgramPrivilege, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+    extends ReferentialRepositoryImpl<Integer, ProgramPrivilege, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     public ProgramPrivilegeRepositoryImpl(EntityManager entityManager) {
         super(ProgramPrivilege.class, ReferentialVO.class, entityManager);
@@ -52,7 +52,7 @@ public class ProgramPrivilegeRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, unless = "#result==null")
-    public ReferentialVO get(int id) {
+    public ReferentialVO get(Integer id) {
         return super.get(id);
     }
 

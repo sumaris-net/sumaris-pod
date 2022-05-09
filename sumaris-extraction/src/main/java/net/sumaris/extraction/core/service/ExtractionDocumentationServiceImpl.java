@@ -26,18 +26,17 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
-import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
@@ -67,15 +66,14 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
     private SumarisConfiguration configuration;
 
     @Autowired
-    private ExtractionService extractionService;
+    private ExtractionProductService productService;
 
     @Autowired
-    private ExtractionProductService extractionProductService;
-
+    private ExtractionManager extractionManager;
     @Override
-    public Optional<Resource> find(@NonNull IExtractionFormat format, @NonNull Locale locale) {
+    public Optional<Resource> find(@NonNull IExtractionType type, @NonNull Locale locale) {
 
-        ExtractionTypeVO type = extractionService.getByFormat(format);
+        type = extractionManager.getByExample(type);
 
         // Try to get a generic localized file
         {
@@ -91,7 +89,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
         // Retry without the locale
         {
             String fileName = String.format("%s-v%s.md",
-                    StringUtils.underscoreToChangeCase(type.getRawFormatLabel()),
+                    StringUtils.underscoreToChangeCase(type.getFormat()),
                     type.getVersion()
             );
             Resource result = getResourceOrNull(MANUAL_CLASSPATH_DIR + fileName);
@@ -99,7 +97,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
         }
 
         // If product: try to create doc file
-        if (ExtractionCategoryEnum.PRODUCT == type.getCategory()) {
+        if (type.getCategory() == ExtractionCategoryEnum.PRODUCT) {
 
             // Computed a specific file name, for the product
             String productFileName = String.format("%s-v%s-%s.md",
@@ -110,7 +108,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             File productFile = new File(configuration.getTempDirectory(), productFileName);
             boolean fileExists = productFile.exists();
 
-            ExtractionProductVO product = extractionProductService.get(type.getId(), ExtractionProductFetchOptions.DOCUMENTATION);
+            ExtractionProductVO product = productService.get(type.getId(), ExtractionProductFetchOptions.DOCUMENTATION);
 
             // Remove old file if update need
             long lastUpdateDate = product.getUpdateDate() != null ? product.getUpdateDate().getTime() : 0l;
@@ -139,7 +137,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
 
     @Override
     public String generate(int productId, @NonNull Locale locale) {
-        ExtractionProductVO source = extractionProductService.get(productId, ExtractionProductFetchOptions.builder()
+        ExtractionProductVO source = productService.get(productId, ExtractionProductFetchOptions.builder()
             .withTables(true)
             .withColumns(true)
             .withColumnValues(true)
@@ -185,7 +183,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             // If not loaded of not exists
             List<ExtractionTableColumnVO> columns = table.getColumns();
             if (columns == null) {
-                columns = extractionProductService.getColumnsBySheetName(source.getId(), table.getLabel(),
+                columns = productService.getColumnsBySheetName(source.getId(), table.getLabel(),
                         ExtractionTableColumnFetchOptions.builder()
                                 .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
                                 .build());

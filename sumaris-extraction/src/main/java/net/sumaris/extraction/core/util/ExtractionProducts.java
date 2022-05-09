@@ -24,12 +24,13 @@ package net.sumaris.extraction.core.util;
 
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.nuiton.i18n.I18n;
 
 import java.sql.Types;
+import java.util.Date;
 
 /**
  * Helper class
@@ -37,18 +38,22 @@ import java.sql.Types;
  */
 public class ExtractionProducts {
 
-    public static String getProductLabel(@NonNull IExtractionFormat format, @NonNull long timeInMillis) {
-        return getProductLabel(format.getLabel(), timeInMillis);
+    public static String computeProductLabel(@NonNull IExtractionType format, @NonNull long timeInMillis) {
+        return computeProductLabel(format.getFormat(), timeInMillis);
     }
 
-    public static String getProductLabel(@NonNull String formatLabel, @NonNull long timeInMillis) {
+    public static String computeProductLabel(@NonNull String formatLabel, @NonNull long timeInMillis) {
         return String.format("%s-%s",
                 formatLabel,
                 timeInMillis);
     }
 
-    public static String getProductDisplayName(@NonNull IExtractionFormat format, @NonNull long timeInMillis) {
-        return getProductDisplayName(format.getLabel(), timeInMillis);
+    public static String getProductDisplayName(@NonNull IExtractionType format, @NonNull Date time) {
+        return getProductDisplayName(format.getFormat(), time.getTime());
+    }
+
+    public static String getProductDisplayName(@NonNull IExtractionType format, @NonNull long timeInMillis) {
+        return getProductDisplayName(format.getFormat(), timeInMillis);
     }
 
 
@@ -60,8 +65,8 @@ public class ExtractionProducts {
         return String.format("%s#%s", formatLabel, timeInMillis);
     }
 
-    public static String getSheetDisplayName(@NonNull IExtractionFormat format, String sheetName) {
-        return getSheetDisplayName(format.getLabel(), sheetName);
+    public static String getSheetDisplayName(@NonNull IExtractionType format, String sheetName) {
+        return getSheetDisplayName(format.getFormat(), sheetName);
     }
 
     public static String getSheetDisplayName(@NonNull String formatLabel, @NonNull String sheetName) {

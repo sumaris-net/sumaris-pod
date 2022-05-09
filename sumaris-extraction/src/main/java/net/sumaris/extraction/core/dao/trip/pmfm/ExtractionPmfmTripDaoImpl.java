@@ -33,7 +33,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -41,7 +41,6 @@ import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.pmfm.ExtractionPmfmTripContextVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jdom2.Attribute;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -69,8 +68,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.PMFM_TRIP;
+    public LiveExtractionTypeEnum getFormat() {
+        return LiveExtractionTypeEnum.PMFM_TRIP;
     }
 
     @Override
@@ -105,7 +104,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             }
         }
 
-        context.setFormat(LiveFormatEnum.PMFM_TRIP);
+        context.setType(LiveExtractionTypeEnum.PMFM_TRIP);
 
         return context;
     }

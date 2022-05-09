@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.AggregationFormatEnum;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
@@ -61,8 +61,8 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public AggregationFormatEnum getFormat() {
-        return AggregationFormatEnum.AGG_SURVIVAL_TEST;
+    public AggExtractionTypeEnum getFormat() {
+        return AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         R context = super.aggregate(source, filter, strata);
 
         // Override some context properties
-        context.setFormat(AggregationFormatEnum.AGG_SURVIVAL_TEST);
+        context.setType(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
         context.setSurvivalTestTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
         context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 

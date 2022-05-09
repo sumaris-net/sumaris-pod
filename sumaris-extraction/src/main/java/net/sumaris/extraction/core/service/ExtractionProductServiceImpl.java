@@ -22,23 +22,35 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.ExtractionCacheConfiguration;
+import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
+import net.sumaris.extraction.core.util.ExtractionTypes;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -56,11 +68,12 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     private ExtractionTableDao extractionTableDao;
 
     @Override
-    public List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+    public List<ExtractionProductVO> findByFilter(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return extractionProductRepository.findAll(filter, fetchOptions);
     }
 
     @Override
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS)
     public ExtractionProductVO get(int id, ExtractionProductFetchOptions fetchOptions) {
         return extractionProductRepository.get(id, fetchOptions);
     }
@@ -72,7 +85,7 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     @Override
     public Optional<ExtractionProductVO> findById(int id, ExtractionProductFetchOptions fetchOptions) {
-        return extractionProductRepository.findById(id, fetchOptions);
+        return extractionProductRepository.findVOById(id, fetchOptions);
     }
 
     @Override
@@ -81,20 +94,65 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     }
 
     @Override
-    @Caching(evict = {
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
-    })
     public ExtractionProductVO save(ExtractionProductVO source) {
-        // Save the product
-        return extractionProductRepository.save(source);
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
+        Preconditions.checkNotNull(source.getName());
+        Preconditions.checkNotNull(source.getFormat());
+        Preconditions.checkNotNull(source.getVersion());
+
+        // Load the product
+        ExtractionProductVO target = null;
+        if (source.getId() != null) {
+            target = findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
+
+            // Not found : warn
+            if (target == null) {
+                log.warn("Extraction #{} not exists. Saving as a new extraction...", source.getId());
+                source.setId(null);
+            }
+        }
+        boolean isNew = target == null;
+        // Check label != format
+        if (isNew) {
+            Preconditions.checkArgument(!Objects.equals(source.getLabel().toUpperCase(), source.getFormat().toUpperCase()), "Invalid label. Expected pattern: <format>-NNN");
+        }
+        // Check label was not changed
+        else {
+            Preconditions.checkArgument(Objects.equals(target.getLabel(), source.getLabel()), "Cannot change a product label");
+        }
+
+        // Remember the table to remove
+        Collection<String> tablesToRemove = Sets.newHashSet();
+        if (!isNew) {
+            Collection<String> existingTables = Beans.getList(target.getTableNames());
+            if (CollectionUtils.isNotEmpty(existingTables)) {
+                Collection<String> sourceTables = Beans.getList(source.getTableNames());
+                existingTables.stream()
+                    .filter(t -> !sourceTables.contains(t))
+                    .forEach(tablesToRemove::add);
+            }
+        }
+
+        // Set default frequency to manually
+        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
+            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
+            : ProcessingFrequencyEnum.MANUALLY;
+        source.setProcessingFrequencyId(frequency.getId());
+
+        // Save it
+        target = extractionProductRepository.save(source);
+
+        // Drop old tables
+        dropTables(tablesToRemove);
+
+        return target;
     }
 
     @Override
     @Caching(evict = {
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_EXAMPLE, allEntries = true),
         @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
     })
     public void delete(int id) {
@@ -103,7 +161,6 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     @Override
     public List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName, ExtractionTableColumnFetchOptions fetchOptions) {
-
 
         // Try to find columns from the DB
         List<ExtractionTableColumnVO> columns = null;
@@ -126,11 +183,18 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
 
             // Fill rank order, if need
             if (fetchOptions.isWithRankOrder()) {
-                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getRawFormatLabel(), sheetName, columns);
+                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getFormat(), sheetName, columns);
             }
         }
 
         return columns;
     }
+
+
+    protected void dropTables(Collection<String> tableNames) {
+        Beans.getStream(tableNames).forEach(extractionTableDao::dropTable);
+    }
+
+
 
 }

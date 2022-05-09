@@ -22,19 +22,19 @@
 
 package net.sumaris.extraction.server.http;
 
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
-import net.sumaris.extraction.core.service.AggregationService;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
-import net.sumaris.extraction.core.vo.ExtractionResultVO;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.extraction.server.security.ExtractionSecurityService;
+import net.sumaris.extraction.core.service.AggregationService;
+import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
+import net.sumaris.extraction.core.vo.ExtractionFilterVO;
+import net.sumaris.extraction.core.vo.ExtractionResultVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
+import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.extraction.server.util.QueryParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geojson.FeatureCollection;
@@ -81,9 +81,10 @@ public class AggregationRestController implements ExtractionRestPaths {
                                                @RequestParam(value = "agg", required = false) String aggStrata,
                                                @RequestParam(value = "q", required = false) String queryString) {
 
-        AggregationTypeVO type = new AggregationTypeVO();
-        type.setLabel(label);
-        type.setCategory(ExtractionCategoryEnum.PRODUCT);
+        ExtractionTypeVO type = ExtractionTypeVO.builder()
+            .label(label)
+            .category(ExtractionCategoryEnum.PRODUCT)
+            .build();
 
         // Check access right
         securityService.checkReadAccess(type);
@@ -106,7 +107,7 @@ public class AggregationRestController implements ExtractionRestPaths {
         strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME);
         strata.setTechColumnName(null);
 
-        ExtractionResultVO result =aggregationService.getAggBySpace(type, filter, strata,
+        ExtractionResultVO result =aggregationService.readBySpace(type, filter, strata,
             Page.builder()
                 .offset(offset)
                 .size(size)

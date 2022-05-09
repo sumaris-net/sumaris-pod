@@ -34,7 +34,6 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
@@ -45,14 +44,12 @@ import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityEventService;
-import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -238,7 +235,7 @@ public class ReferentialGraphQLService {
                                                     @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                     @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.NAME) String sort,
                                                     @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        return taxonGroupService.findByFilter(
+        return taxonGroupService.findAllByFilter(
                 ReferentialFilterVO.nullToEmpty(filter),
                 offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }

@@ -46,7 +46,7 @@ import java.util.Optional;
 /**
  * @author peck7 on 31/07/2020.
  */
-public interface TaxonNameSpecifications extends ReferentialSpecifications<TaxonName> {
+public interface TaxonNameSpecifications extends ReferentialSpecifications<Integer, TaxonName> {
 
     // TODO use BindableSpecification
 

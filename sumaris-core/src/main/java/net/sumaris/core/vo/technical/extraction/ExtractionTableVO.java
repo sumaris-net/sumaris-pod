@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @Data
 @FieldNameConstants
-public class ExtractionTableVO implements IReferentialVO {
+public class ExtractionTableVO implements IReferentialVO<Integer> {
 
     private Integer id;
     private String label;

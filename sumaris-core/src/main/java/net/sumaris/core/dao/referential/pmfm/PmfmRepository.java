@@ -33,5 +33,5 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
  * @author peck7 on 19/08/2020.
  */
 public interface PmfmRepository
-    extends ReferentialRepository<Pmfm, PmfmVO, IReferentialFilter, ReferentialFetchOptions>, PmfmSpecifications {
+    extends ReferentialRepository<Integer, Pmfm, PmfmVO, IReferentialFilter, ReferentialFetchOptions>, PmfmSpecifications {
 }

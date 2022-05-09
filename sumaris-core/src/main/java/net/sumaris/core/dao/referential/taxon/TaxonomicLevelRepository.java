@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author blavenie
  */
-public interface TaxonomicLevelRepository extends
-    ReferentialRepository<TaxonomicLevel, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+public interface TaxonomicLevelRepository
+    extends ReferentialRepository<Integer, TaxonomicLevel, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
 }

@@ -23,13 +23,22 @@ package net.sumaris.extraction.core.service;
  */
 
 import au.com.bytecode.opencsv.CSVReader;
+import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.ZipUtils;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.DatabaseFixtures;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
+import net.sumaris.extraction.core.specification.data.trip.AggSpecification;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.util.ExtractionProducts;
+import net.sumaris.extraction.core.util.ExtractionTypes;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
@@ -42,6 +51,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -61,12 +71,12 @@ public abstract class AbstractServiceTest {
 
     /* -- Protected functions -- */
 
-    protected File unpack(File zipFile, LiveFormatEnum format) {
-        return unpack(zipFile, format.getLabel() + '_' + format.getVersion());
+    protected File unpack(File zipFile, LiveExtractionTypeEnum type) {
+        return unpack(zipFile, type.getFormat() + '_' + type.getVersion());
     }
 
-    protected File unpack(File zipFile, IExtractionFormat format) {
-        return unpack(zipFile,  format.getCategory().name() + '_' + format.getLabel());
+    protected File unpack(File zipFile, IExtractionType type) {
+        return unpack(zipFile,  type.getCategory().name() + '_' + type.getLabel());
     }
 
     protected File unpack(File zipFile, String dirName) {
@@ -120,4 +130,43 @@ public abstract class AbstractServiceTest {
         return Arrays.asList(headers).contains(header);
     }
 
+    protected ExtractionProductVO createProduct(IExtractionType source) {
+
+        ExtractionProductVO target = new ExtractionProductVO(source);
+        target.setId(null);
+        long time = System.currentTimeMillis();
+        target.setUpdateDate(new Date(time));
+        target.setLabel(ExtractionProducts.computeProductLabel(source.getFormat(), time));
+        target.setName(ExtractionProducts.getProductDisplayName(source, time));
+        target.setFormat(source.getFormat());
+        target.setVersion(source.getVersion());
+        target.setStatusId(StatusEnum.TEMPORARY.getId());
+        target.setProcessingFrequencyId(ProcessingFrequencyEnum.NEVER.getId());
+
+        target.setIsSpatial(ExtractionTypes.isAggregation(source));
+
+        DepartmentVO recDep = new DepartmentVO();
+        recDep.setId(fixtures.getDepartmentId(0));
+        target.setRecorderDepartment(recDep);
+
+        PersonVO recorder = new PersonVO();
+        recorder.setId(fixtures.getPersonId(0));
+        target.setRecorderPerson(recorder);
+
+        return target;
+    }
+
+    protected ExtractionProductVO createAggProduct(AggExtractionTypeEnum source) {
+        return createAggProduct(source, source.getParent());
+    }
+
+    protected ExtractionProductVO createAggProduct(AggExtractionTypeEnum source, IExtractionType parent) {
+
+        ExtractionProductVO target = createProduct(source);
+
+        target.setIsSpatial(true);
+        target.setParent(parent);
+
+        return target;
+    }
 }

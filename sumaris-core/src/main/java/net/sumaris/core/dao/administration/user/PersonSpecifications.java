@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 20/08/2020.
  */
-public interface PersonSpecifications extends ReferentialSpecifications<Person> {
+public interface PersonSpecifications extends ReferentialSpecifications<Integer, Person> {
 
     String USER_PROFILE_IDS_PARAMETER = "userProfiles";
     String PUBKEY_PARAMETER = "pubkey";
@@ -154,9 +154,9 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         return searchText(searchAttributes, filter.getSearchText(), true);
     }
 
-    PersonVO get(int id);
+    PersonVO get(Integer id);
 
-    Optional<PersonVO> findById(int id);
+    Optional<PersonVO> findVOById(Integer id);
 
     Optional<PersonVO> findByPubkey(String pubkey);
 

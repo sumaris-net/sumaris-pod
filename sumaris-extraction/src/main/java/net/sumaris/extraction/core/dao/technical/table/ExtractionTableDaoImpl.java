@@ -70,7 +70,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
 
     @Override
     public ExtractionResultVO getTable(String tableName) {
-        return getRows(tableName, null, Page.builder().size(0).build());
+        return read(tableName, null, Page.builder().size(0).build());
     }
 
     @Override
@@ -80,8 +80,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return toProductColumnVOs(table, table.getColumnNames(), fetchOptions);
     }
 
-    @Override
-    public ExtractionResultVO getRows(@NonNull String tableName, ExtractionFilterVO filter, Page page) {
+    public ExtractionResultVO read(@NonNull String tableName, ExtractionFilterVO filter, Page page) {
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
@@ -104,7 +103,7 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         result.setTotal(total);
 
         if (page.getSize() > 0 && total.longValue() > 0) {
-            List<String[]> rows = getRows(table, filter.isDistinct(), columnNames, whereClause, page);
+            List<String[]> rows = read(table, filter.isDistinct(), columnNames, whereClause, page);
             result.setRows(rows);
         }
 
@@ -156,11 +155,11 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public ExtractionResultVO getAggRows(@NonNull String tableName,
-                                         @Nullable ExtractionFilterVO filter,
-                                         Set<String> groupByColumnNames,
-                                         final Map<String, SQLAggregatedFunction> otherColumnNames,
-                                         Page page) {
+    public ExtractionResultVO readWithAggColumns(@NonNull String tableName,
+                                                 @Nullable ExtractionFilterVO filter,
+                                                 Set<String> groupByColumnNames,
+                                                 final Map<String, SQLAggregatedFunction> otherColumnNames,
+                                                 Page page) {
 
         ExtractionResultVO result = new ExtractionResultVO();
 
@@ -247,12 +246,12 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
     }
 
     @Override
-    public Map<String, Object> getAggByTechRows(String tableName,
-                                                @Nullable ExtractionFilterVO filter,
-                                                String aggColumnName,
-                                                SQLAggregatedFunction aggFunction,
-                                                String techColumnName,
-                                                String sortColumn, SortDirection direction) {
+    public Map<String, Object> readAggColumnByTech(String tableName,
+                                                   @Nullable ExtractionFilterVO filter,
+                                                   String aggColumnName,
+                                                   SQLAggregatedFunction aggFunction,
+                                                   String techColumnName,
+                                                   String sortColumn, SortDirection direction) {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
@@ -287,12 +286,12 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
                 .collect(Collectors.toMap(row -> row[0].toString(), row -> row[1]));
     }
 
-    public MinMaxVO getAggMinMaxByTech(String tableName,
-                                       @Nullable ExtractionFilterVO filter,
-                                       Set<String> groupByColumns,
-                                       String aggColumnName,
-                                       SQLAggregatedFunction aggFunction,
-                                       String techColumnName) {
+    public MinMaxVO getTechMinMax(String tableName,
+                                  @Nullable ExtractionFilterVO filter,
+                                  Set<String> groupByColumns,
+                                  String aggColumnName,
+                                  SQLAggregatedFunction aggFunction,
+                                  String techColumnName) {
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
@@ -359,11 +358,11 @@ public class ExtractionTableDaoImpl extends ExtractionBaseDaoImpl implements Ext
         return total;
     }
 
-    protected List<String[]> getRows(SumarisTableMetadata table,
-                                     boolean distinct,
-                                     List<String> columnNames,
-                                     String whereClause,
-                                     Page page) {
+    protected List<String[]> read(SumarisTableMetadata table,
+                                  boolean distinct,
+                                  List<String> columnNames,
+                                  String whereClause,
+                                  Page page) {
         String sql = table.getSelectQuery(distinct, columnNames, whereClause, page.getSortBy(), page.getSortDirection());
         int columnCount = columnNames.size();
         return query(sql, r -> toTableRowVO(r, columnCount), page.getOffset(), page.getSize());

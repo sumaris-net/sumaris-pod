@@ -381,7 +381,7 @@ public class ReferentialDaoImpl
 
         EntityManager entityManager = getEntityManager();
 
-        IReferentialEntity entity = null;
+        IReferentialEntity<Integer> entity = null;
         if (source.getId() != null) {
             entity = find(entityClass, source.getId());
         }
@@ -481,7 +481,7 @@ public class ReferentialDaoImpl
         // Level
         ReferentialEntities.getLevelProperty(entityName).ifPresent(levelDescriptor -> {
             try {
-                IReferentialEntity level = (IReferentialEntity) levelDescriptor.getReadMethod().invoke(source, new Object[0]);
+                IReferentialEntity<Integer> level = (IReferentialEntity) levelDescriptor.getReadMethod().invoke(source, new Object[0]);
                 if (level != null) {
                     target.setLevelId(level.getId());
                 }

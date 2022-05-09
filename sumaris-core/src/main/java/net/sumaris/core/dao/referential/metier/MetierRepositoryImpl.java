@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 
 
 public class MetierRepositoryImpl
-    extends ReferentialRepositoryImpl<Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
     implements MetierSpecifications {
 
     @Autowired

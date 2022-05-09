@@ -28,17 +28,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.cli.action.ActionUtils;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.exception.UnknownFormatException;
-import net.sumaris.extraction.core.service.ExtractionService;
-import net.sumaris.extraction.core.service.ExtractionServiceLocator;
-import net.sumaris.extraction.core.util.ExtractionFormats;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.extraction.core.service.*;
+import net.sumaris.extraction.core.util.ExtractionTypes;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 /**
  * <p>DatabaseChangeLogAction class.</p>
@@ -52,20 +51,28 @@ public class ExtractionAction {
      */
     public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
-        ExtractionService service = ExtractionServiceLocator.extractionService();
+        ExtractionTypeService extractionTypeService = ExtractionServiceLocator.extractionTypeService();
+        ExtractionManager service = ExtractionServiceLocator.extractionManager();
 
         String formatLabel = config.getExtractionCliOutputFormat();
-        IExtractionFormat format = null;
+        IExtractionType type;
         try {
-            format = ExtractionFormats.getFormatFromLabel(formatLabel);
+            type = ExtractionTypes.getByFormat(formatLabel);
         } catch (UnknownFormatException e) {
             log.error("Unknown format: " + formatLabel);
+            String availableTypes = extractionTypeService.getLiveTypes()
+                .stream()
+                .map(p -> " - " + p.getLabel())
+                .collect(Collectors.joining("\n"));
+            log.error("Unknown extraction type '{}'.\nAvailable types:\n{}",
+                formatLabel,
+                availableTypes);
             return;
         }
 
         log.info("Starting {} extraction {{}}...",
-                StringUtils.capitalize(format.getCategory().name().toLowerCase()),
-                format.getLabel());
+                StringUtils.capitalize(type.getCategory().name().toLowerCase()),
+                type.getLabel());
 
         // Check output file
         File outputFile = ActionUtils.checkAndGetOutputFile(false, ExtractionAction.class);
@@ -74,7 +81,6 @@ public class ExtractionAction {
         long startTime = System.currentTimeMillis();
         File tempFile;
         try {
-            ExtractionTypeVO type = service.getByFormat(format);
             tempFile = service.executeAndDump(type, null);
             if (!tempFile.exists()) {
                 log.error("No data");
@@ -97,8 +103,8 @@ public class ExtractionAction {
 
         // Success log
         log.info("{} extraction {{}} finished, in {} - output: {}",
-            StringUtils.capitalize(format.getCategory().name().toLowerCase()),
-            format.getLabel(),
+            StringUtils.capitalize(type.getCategory().name().toLowerCase()),
+            type.getLabel(),
             TimeUtils.printDurationFrom(startTime),
             outputFile.getAbsolutePath());
     }

@@ -22,8 +22,8 @@
 
 package net.sumaris.extraction.core;
 
-import net.sumaris.extraction.core.service.AggregationServicePgsqlTest;
-import net.sumaris.extraction.core.service.ExtractionServicePgsqlTest;
+import net.sumaris.extraction.core.service.pgsql.AggregationServicePgsqlTest;
+import net.sumaris.extraction.core.service.pgsql.ExtractionManagerPgsqlTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -36,9 +36,8 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("pgsql")
 @Suite.SuiteClasses({
     // DAO
-    //DaosPgsqlTest.class,
     // Service
-    ExtractionServicePgsqlTest.class,
+    ExtractionManagerPgsqlTest.class,
     AggregationServicePgsqlTest.class
     //ExtractionProductServicePgsqlTest.class
 

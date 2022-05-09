@@ -22,12 +22,11 @@
 
 package net.sumaris.extraction.server.security;
 
-import lombok.NonNull;
 import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.exception.UnauthorizedException;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +36,7 @@ import java.util.Optional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public interface ExtractionSecurityService {
 
-    default void checkReadAccess(IExtractionFormat format) throws ForbiddenException {
+    default void checkReadAccess(IExtractionType format) throws ForbiddenException {
         if (!canRead(format)) {
             throw new ForbiddenException("Access forbidden");
         }
@@ -63,7 +62,7 @@ public interface ExtractionSecurityService {
 
     boolean canReadAll();
 
-    boolean canRead(IExtractionFormat format) throws UnauthorizedException;
+    boolean canRead(IExtractionType format) throws UnauthorizedException;
 
     boolean canRead(int productId) throws UnauthorizedException;
 
@@ -71,7 +70,7 @@ public interface ExtractionSecurityService {
 
     boolean canWriteAll();
 
-    boolean canWrite(@NonNull ExtractionTypeVO type) throws UnauthorizedException;
+    boolean canWrite(ExtractionProductVO type) throws UnauthorizedException;
 
     boolean canWrite(int productId) throws UnauthorizedException;
 

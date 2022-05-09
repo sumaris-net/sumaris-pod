@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class TaxonGroupRepositoryImpl
-    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, TaxonGroup, TaxonGroupVO, IReferentialFilter, ReferentialFetchOptions>
     implements TaxonGroupSpecifications {
 
     @Autowired

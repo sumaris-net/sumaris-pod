@@ -24,24 +24,16 @@ package net.sumaris.extraction.core.service;
 
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.cache.CacheTTL;
-import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
 import net.sumaris.extraction.core.vo.*;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
-import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -49,53 +41,15 @@ import java.util.concurrent.CompletableFuture;
 @Transactional
 public interface ExtractionService {
 
+    Set<IExtractionType> getTypes();
+    ExtractionContextVO execute(IExtractionType type, @Nullable ExtractionFilterVO filter);
 
-    @Transactional(readOnly = true)
-    ExtractionTypeVO getByFormat(IExtractionFormat type);
-
-    @Transactional(readOnly = true)
-    List<ExtractionTypeVO> findAll();
-
-    @Transactional(readOnly = true)
-    List<ExtractionTypeVO> findAll(@Nullable ExtractionTypeFilterVO filter, Page page);
-
-    @Transactional(readOnly = true)
-    List<ExtractionTypeVO> getLiveExtractionTypes();
-
-    ExtractionContextVO execute(IExtractionFormat format, @Nullable ExtractionFilterVO filter);
-
-    ExtractionResultVO read(ExtractionContextVO context,
-                            @Nullable ExtractionFilterVO filter,
-                            Page page) ;
-
-    ExtractionResultVO executeAndRead(ExtractionTypeVO type,
-                                      @Nullable ExtractionFilterVO filter,
-                                      Page page);
-
-    ExtractionResultVO executeAndReadWithCache(@NonNull ExtractionTypeVO type,
-                                               @Nullable ExtractionFilterVO filter,
-                                               @NonNull Page page,
-                                               @Nullable CacheTTL ttl);
-
-    @Transactional(rollbackFor = IOException.class)
-    File executeAndDump(ExtractionTypeVO type,
-                        ExtractionFilterVO filter) throws IOException;
-
-    File executeAndDumpTrips(LiveFormatEnum format, ExtractionTripFilterVO filter);
-
-    File executeAndDumpStrategies(LiveFormatEnum format, ExtractionStrategyFilterVO filter);
-
-    File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
+    ExtractionResultVO read(@NonNull IExtractionType type,
+                            ExtractionFilterVO filter,
+                            Page page);
 
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(ExtractionContextVO context);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    @Async
-    CompletableFuture<Boolean> asyncClean(ExtractionContextVO context);
-
-    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    ExtractionProductVO toProductVO(ExtractionContextVO context);
-
-    ExtractionTypeVO save(ExtractionTypeVO type, ExtractionFilterVO filter);
+    List<ExtractionTableVO> toProductTableVO(ExtractionContextVO source);
 }

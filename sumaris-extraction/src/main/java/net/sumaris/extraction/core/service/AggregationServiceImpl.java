@@ -22,57 +22,40 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.util.TimeUtils;
-import net.sumaris.core.config.ExtractionAutoConfiguration;
-import net.sumaris.core.config.ExtractionCacheConfiguration;
-import net.sumaris.extraction.core.dao.AggregationDao;
-import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
-import net.sumaris.extraction.core.format.AggregationFormatEnum;
-import net.sumaris.extraction.core.specification.data.trip.AggSpecification;
-import net.sumaris.extraction.core.util.ExtractionFormats;
-import net.sumaris.extraction.core.util.ExtractionProducts;
-import net.sumaris.extraction.core.vo.*;
-import net.sumaris.extraction.core.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.extraction.core.dao.AggregationDao;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.util.ExtractionProducts;
+import net.sumaris.extraction.core.util.ExtractionTypes;
+import net.sumaris.extraction.core.vo.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.nuiton.i18n.I18n;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
-import java.io.File;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -84,170 +67,109 @@ import java.util.stream.Collectors;
 public class AggregationServiceImpl implements AggregationService {
 
     private final ConfigurableApplicationContext context;
-    private final DataSource dataSource;
-    private final ExtractionService extractionService;
-    private final ExtractionProductService extractionProductService;
+
     private final ExtractionTableDao extractionTableDao;
-    private final ObjectMapper objectMapper;
 
     private Optional<TaskExecutor> taskExecutor;
-    private Map<IExtractionFormat, AggregationDao<?,?,?>> daosByFormat = Maps.newHashMap();
+
+    @Autowired
+    private ExtractionProductRepository productRepository;
+
+    private Map<IExtractionType, AggregationDao<?,?,?>> daosByType = Maps.newHashMap();
 
     public AggregationServiceImpl(ConfigurableApplicationContext context,
-                                  ObjectMapper objectMapper,
-                                  DataSource dataSource,
-                                  ExtractionTableDao extractionTableDao,
-                                  ExtractionService extractionService,
-                                  ExtractionProductService extractionProductService) {
+                                  ExtractionTableDao extractionTableDao) {
         this.context = context;
-        this.objectMapper = objectMapper;
-        this.dataSource = dataSource;
-
         this.extractionTableDao = extractionTableDao;
-
-        this.extractionService = extractionService;
-        this.extractionProductService = extractionProductService;
     }
 
     @PostConstruct
     protected void init() {
-        this.taskExecutor = Optional.ofNullable(context.getBean(TaskExecutor.class));
+        try {
+            this.taskExecutor = Optional.of(context.getBean(TaskExecutor.class));
+        }
+        catch(BeansException e) {
+            log.warn("Failed to get bean TaskExecutor", e);
+            this.taskExecutor = Optional.empty();
+        }
 
             // Register all extraction daos
         context.getBeansOfType(AggregationDao.class).values()
             .forEach(dao -> {
-                IExtractionFormat format = dao.getFormat();
+                IExtractionType type = dao.getFormat();
                 // Check if unique, by format
-                if (daosByFormat.containsKey(format)) {
+                if (daosByType.containsKey(type)) {
                     throw new BeanInitializationException(
-                        String.format("Too many ExtractionDao for the same format %s: [%s, %s]",
-                            daosByFormat.get(dao.getFormat()).getClass().getSimpleName(),
+                        String.format("More than one AggregationDao class found for the format %s v%s: [%s, %s]",
+                            type.getLabel(),
+                            type.getVersion(),
+                            daosByType.get(type).getClass().getSimpleName(),
                             dao.getClass().getSimpleName()));
                 }
                 // Register the dao
-                daosByFormat.put(format, dao);
+                daosByType.put(type, dao);
             });
     }
 
-    @Override
-    public List<AggregationTypeVO> findTypesByFilter(AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
-
-        final AggregationTypeFilterVO notNullFilter = filter != null ? filter : new AggregationTypeFilterVO();
-
-        return ListUtils.emptyIfNull(getProductAggregationTypes(notNullFilter, fetchOptions))
-            .stream()
-            .filter(t -> notNullFilter.getIsSpatial() == null || Objects.equals(notNullFilter.getIsSpatial(), t.getIsSpatial()))
-            .collect(Collectors.toList());
+    public Set<IExtractionType> getTypes() {
+        return daosByType.keySet();
     }
 
-    @Override
-    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS)
-    public AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions) {
-        ExtractionProductVO source = extractionProductService.get(id, fetchOptions);
-        return toAggregationType(source);
-    }
-
-    @Override
-    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT,
-            key = "#format.category.toLowerCase() + #format.label.toLowerCase() + #format.version",
-            condition = " #format != null", unless = "#result == null")
-    public AggregationTypeVO getTypeByFormat(IExtractionFormat format) {
-        return ExtractionFormats.findOneMatch(getAllAggregationTypes(null), format);
-    }
-
-    @Override
-    public AggregationContextVO aggregate(@NonNull IExtractionFormat source,
+    public AggregationContextVO aggregate(@NonNull IExtractionType type,
                                           @Nullable ExtractionFilterVO filter,
                                           AggregationStrataVO strata) {
-        Preconditions.checkNotNull(source.getCategory());
-        Preconditions.checkNotNull(source.getLabel());
 
-        switch (source.getCategory()) {
-            case PRODUCT:
-                // Get the source product, then execute aggregation
-                ExtractionProductVO product = extractionProductService.getByLabel(source.getLabel(), ExtractionProductFetchOptions.TABLES_AND_STRATUM);
-                return aggregateDao(product, filter, strata);
+        Preconditions.checkNotNull(type.getParent(), "Cannot aggregate: missing 'type.parent'");
+        ExtractionProductVO source = getProductWithTables(type.getParent());
 
-            case LIVE:
-                // First execute the raw extraction
-                AggregationTypeVO sourceType = getTypeByFormat(source);
-                ExtractionContextVO rawExtractionContext = extractionService.execute(sourceType, filter);
+        // Aggregate (create agg tables)
+        return getDao(type).aggregate(source, filter, strata);
+    }
 
-                try {
-                    ExtractionProductVO pivotProduct = extractionService.toProductVO(rawExtractionContext);
-                    ExtractionFilterVO aggregationFilter = null;
-                    if (filter != null) {
-                        aggregationFilter = new ExtractionFilterVO();
-                        aggregationFilter.setSheetName(filter.getSheetName());
-                    }
+    @Override
+    public AggregationResultVO readBySpace(@NonNull IExtractionType type,
+                                           @Nullable ExtractionFilterVO filter,
+                                           @Nullable AggregationStrataVO strata,
+                                           Page page) {
+        filter = ExtractionFilterVO.nullToEmpty(filter);
 
-                    // Execute, from product
-                    return aggregateDao(pivotProduct, aggregationFilter, strata);
-                } finally {
-                    // Clean intermediate tables
-                    extractionService.asyncClean(rawExtractionContext);
-                }
-            default:
-                throw new SumarisTechnicalException(String.format("Aggregation on category %s not implemented!", source.getCategory()));
+        // Prepare the read filter
+        ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
+            .sheetName(filter.getSheetName())
+            .build();
+
+        AggregationContextVO context;
+        if (type instanceof AggregationContextVO) {
+            context = (AggregationContextVO)type;
         }
+
+        // Convert to context VO (need the next read() function)
+        else {
+            ExtractionProductVO product = getProductWithTables(type);
+            String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
+            context = toContextVO(product, sheetName);
+        }
+
+        // Read the context
+        return readBySpace(context, readFilter, strata, page);
     }
 
-    @Override
-    public AggregationResultVO getAggBySpace(AggregationTypeVO type,
-                                             @Nullable ExtractionFilterVO filter,
-                                             @Nullable AggregationStrataVO strata,
-                                             Page page) {
-        Preconditions.checkNotNull(type);
 
+
+
+    @Override
+    public AggregationTechResultVO readByTech(@NonNull IExtractionType type,
+                                              @Nullable ExtractionFilterVO filter,
+                                              @Nullable AggregationStrataVO strata,
+                                              String sort,
+                                              SortDirection direction) {
+
+        ExtractionProductVO product = getProductWithTables(type);
         filter = ExtractionFilterVO.nullToEmpty(filter);
-        ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
-                ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
         String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
-        AggregationContextVO context = toContextVO(product, sheetName);
-
-        return getAggBySpace(context, filter, strata, page);
-    }
-
-    @Override
-    public AggregationResultVO getAggBySpace(@NonNull AggregationContextVO context,
-                                             @Nullable ExtractionFilterVO filter,
-                                             @Nullable AggregationStrataVO strata,
-                                             Page page) {
-        filter = ExtractionFilterVO.nullToEmpty(filter);
-        strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
-        String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
-
-        String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
-
-        // Missing the expected sheet = return no data
-        if (tableName == null) return createEmptyResult();
-
-        // Force strata and filter to have the same sheet
-        strata.setSheetName(sheetName);
-        filter.setSheetName(sheetName);
-
-        // Read the data
-        AggregationFormatEnum format = ExtractionFormats.getProductFormat(context);
-        return getDao(format).getAggBySpace(tableName, filter, strata, page);
-    }
-
-    @Override
-    public AggregationTechResultVO getAggByTech(AggregationTypeVO type,
-                                                @Nullable ExtractionFilterVO filter,
-                                                @Nullable AggregationStrataVO strata,
-                                                String sort,
-                                                SortDirection direction) {
-        Preconditions.checkNotNull(type);
-
-        filter = ExtractionFilterVO.nullToEmpty(filter);
-        ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
-                ExtractionProductFetchOptions.TABLES);
-
-        // Convert to context VO (need the next read() function)
-        String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
-        Preconditions.checkNotNull(sheetName, String.format("Missing 'filter.%s' or 'strata.%s",
+        Preconditions.checkArgument(StringUtils.isNotBlank(sheetName), String.format("Missing 'filter.%s' or 'strata.%s",
                 ExtractionFilterVO.Fields.SHEET_NAME,
                 AggregationStrataVO.Fields.LABEL));
 
@@ -255,25 +177,25 @@ public class AggregationServiceImpl implements AggregationService {
 
         strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
 
-        String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
+        String tableName = context.getTableNameBySheetName(sheetName);
 
         // Missing the expected sheet = return no data
         if (tableName == null) return createEmptyTechResult();
 
-        AggregationFormatEnum format = ExtractionFormats.getProductFormat(context);
-        return getDao(format).getAggByTech(tableName, filter, strata, sort, direction);
+        AggExtractionTypeEnum format = AggExtractionTypeEnum.valueOf(context.getFormat(), context.getVersion());
+        return getDao(format).readByTech(tableName, filter, strata, sort, direction);
     }
 
     @Override
-    public MinMaxVO getAggMinMaxByTech(@NonNull AggregationTypeVO type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
+    public MinMaxVO getTechMinMax(@NonNull IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
+
+        ExtractionProductVO product = getProductWithTables(type);
 
         filter = ExtractionFilterVO.nullToEmpty(filter);
-        ExtractionProductVO product = extractionProductService.getByLabel(type.getLabel(),
-                ExtractionProductFetchOptions.TABLES);
 
         // Convert to context VO (need the next read() function)
         String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
-        Preconditions.checkNotNull(sheetName, String.format("Missing 'filter.%s' or 'strata.%s",
+        Preconditions.checkArgument(StringUtils.isNotBlank(sheetName), String.format("Missing 'filter.%s' or 'strata.%s",
                 ExtractionFilterVO.Fields.SHEET_NAME,
                 AggregationStrataVO.Fields.LABEL));
 
@@ -281,368 +203,21 @@ public class AggregationServiceImpl implements AggregationService {
 
         strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
 
-        String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
+        String tableName = context.getTableNameBySheetName(sheetName);
 
-        AggregationFormatEnum format = ExtractionFormats.getProductFormat(context);
-        return getDao(format).getAggMinMaxByTech(tableName, filter, strata);
+        AggExtractionTypeEnum format = AggExtractionTypeEnum.valueOf(context.getFormat(), context.getVersion());
+        return getDao(format).getTechMinMax(tableName, filter, strata);
     }
 
-    @Override
-    public AggregationResultVO aggregateAndRead(IExtractionFormat source,
-                                                @Nullable ExtractionFilterVO filter,
-                                                @Nullable AggregationStrataVO strata,
-                                                Page page) {
-        // Execute the aggregation
-        AggregationContextVO context = aggregate(source, filter, strata);
-        Daos.commitIfHsqldbOrPgsql(dataSource);
-
-        // Prepare the read filter
-        ExtractionFilterVO readFilter = null;
-        if (filter != null) {
-            readFilter = new ExtractionFilterVO();
-            readFilter.setSheetName(filter.getSheetName());
-        }
-
-        try {
-            // Read data
-            return getAggBySpace(context, readFilter, strata, page);
-        } finally {
-            // Clean created tables
-            clean(context, true);
-        }
-    }
-
-    @Override
-    public File aggregateAndDump(IExtractionFormat source, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
-        // Execute the aggregation
-        AggregationContextVO context = aggregate(source, filter, strata);
-        Daos.commitIfHsqldbOrPgsql(dataSource);
-
-        try {
-            // Dump to files
-            return extractionService.dumpTablesToFile(context, null /*already apply*/);
-        }
-        finally {
-            // Delete aggregation tables, after dump
-            clean(context);
-        }
-    }
-
-    @Override
-    @Caching(
-            evict = {
-                @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-                @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
-                @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
-            }
-    )
-    public CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter) {
-        return CompletableFuture.completedFuture(save(type, filter));
-    }
-
-    @Override
-    @Caching(
-        evict = {
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
-        }
-    )
-    public AggregationTypeVO updateProduct(int productId) {
-
-        ExtractionProductVO target = extractionProductService.findById(productId, ExtractionProductFetchOptions.FOR_UPDATE)
-            .orElseThrow(() -> new DataNotFoundException(String.format("Unknown product {id: %s}", productId)));
-        Collection<String> previousTableNames = Lists.newArrayList(target.getTableNames());
-
-        // Read filter
-        ExtractionFilterVO filter = readFilter(target.getFilter());
-
-        long startTime = System.currentTimeMillis();
-        log.debug("Updating extraction {id: {}, label: '{}'}...", productId, target.getLabel());
-
-        boolean needAggregation = false;
-        String rawFormatLabel = target.getRawFormatLabel();
-        if (rawFormatLabel.startsWith(AggSpecification.FORMAT_PREFIX)) {
-            rawFormatLabel = rawFormatLabel.substring(AggSpecification.FORMAT_PREFIX.length());
-            needAggregation = true;
-        }
-
-        AggregationTypeVO source = target.getParentId() != null
-            ? getTypeById(target.getParentId(), null)
-            : getTypeByFormat(AggregationTypeVO.builder()
-                .label(rawFormatLabel)
-                .category(IExtractionFormat.getRawFormatCategory(rawFormatLabel))
-                .build());
-
-        // Execute an aggregation
-        if (needAggregation) {
-            AggregationContextVO context = aggregate(source, filter, null);
-            // Update product tables, using the aggregation result
-            toProductVO(context, target);
-        }
-        // Execute a simple extraction
-        else {
-
-            ExtractionContextVO extractionContextVO = extractionService.execute(source, filter);
-            ExtractionProductVO updatedProduct = extractionService.toProductVO(extractionContextVO);
-
-            // Copy id+updateDate
-            copyIdAndUpdateDate(target, updatedProduct);
-            target = updatedProduct;
-        }
-
-        // Save the product
-        extractionProductService.save(target);
-
-        // Drop each orphan tables
-        List<String> newTableNames = Beans.getList(target.getTableNames());
-        previousTableNames.stream()
-            .filter(tableName -> !newTableNames.contains(tableName))
-            .forEach(extractionTableDao::dropTable);
-
-        log.debug("Updating extraction {id: {}, label: '{}'} [OK] in {}", productId,
-            target.getLabel(),
-            TimeUtils.printDurationFrom(startTime));
-
-        // Transform to type
-        return toAggregationType(target);
-    }
-
-    @Override
-    @Caching(
-        evict = {
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_ID_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.AGGREGATION_TYPE_BY_FORMAT, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
-        }
-    )
-    public AggregationTypeVO save(AggregationTypeVO source, @Nullable ExtractionFilterVO filter) {
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getLabel());
-        Preconditions.checkNotNull(source.getName());
-        Collection<String> tablesToDrop = Lists.newArrayList();
-
-        // Load the product
-        ExtractionProductVO target = null;
-        if (source.getId() != null) {
-            target = extractionProductService.findById(source.getId(), ExtractionProductFetchOptions.FOR_UPDATE).orElse(null);
-        }
-        boolean isNew = target == null;
-        if (isNew) {
-            target = new ExtractionProductVO();
-            target.setLabel(source.getLabel().toUpperCase());
-            source.setId(null); // Avoid reusing invalid ID (e.g. from a detached entity)
-
-            // Check label != format
-            Preconditions.checkArgument(!Objects.equals(source.getLabel(), source.getRawFormatLabel()), "Invalid label. Expected pattern: <type_name>-NNN");
-        }
-        else {
-            // Check label was not changed
-            String previousLabel = target.getLabel();
-            Preconditions.checkArgument(previousLabel.equalsIgnoreCase(source.getLabel()), "Cannot change a product label");
-
-            // If not given in arguments, parse the product's filter string
-            filter = filter != null ? filter : readFilter(target.getFilter());
-
-        }
-
-        // Check if need aggregate (ig new or if filter changed)
-        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
-            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
-            : ProcessingFrequencyEnum.MANUALLY;
-
-        String filterAsString = writeFilterAsString(filter);
-
-        boolean needExecution = (isNew || !Objects.equals(target.getFilter(), filterAsString))
-            && (frequency == ProcessingFrequencyEnum.MANUALLY);
-
-        // Execute the aggregation (if need) before saving
-        if (needExecution) {
-
-            // Should clean existing table
-            if (!isNew) {
-                tablesToDrop.addAll(Beans.getList(target.getTableNames()));
-            }
-
-            // Execute the aggregation
-            {
-                // Prepare an executable type (with label=format)
-                AggregationTypeVO format = source.getParentId() != null
-                    ? getTypeById(source.getParentId(), null)
-                    : getTypeByFormat(AggregationTypeVO.builder()
-                        .label(source.getRawFormatLabel())
-                        .category(source.getRawFormatCategory())
-                        .build());
-                source.setParentId(format.getId()); // Remember the parent id (of any)
-
-                // Execute the aggregation
-                AggregationContextVO context = aggregate(format, filter, null);
-
-                // Update product, using the aggregation result
-                toProductVO(context, target);
-            }
-
-            // Copy some properties from the given type
-            target.setName(source.getName());
-            target.setUpdateDate(source.getUpdateDate());
-            target.setDescription(source.getDescription());
-            target.setDocumentation(source.getDocumentation());
-            target.setStatusId(source.getStatusId());
-            target.setRecorderDepartment(source.getRecorderDepartment());
-            target.setRecorderPerson(source.getRecorderPerson());
-            target.setParentId(source.getParentId());
-        }
-
-        // Not need new aggregation: update entity before saving
-        else {
-            Preconditions.checkArgument(StringUtils.equalsIgnoreCase(target.getLabel(), source.getLabel()), "Cannot update the label of an existing product");
-            target.setName(source.getName());
-            target.setUpdateDate(source.getUpdateDate());
-            target.setDescription(source.getDescription());
-            target.setDocumentation(source.getDocumentation());
-            target.setComments(source.getComments());
-            target.setStatusId(source.getStatusId());
-            target.setIsSpatial(source.getIsSpatial());
-
-            if (target.getRecorderDepartment() == null) {
-                target.setRecorderDepartment(source.getRecorderDepartment());
-            }
-            if (target.getRecorderPerson() == null) {
-                target.setRecorderPerson(source.getRecorderPerson());
-            }
-        }
-        target.setStratum(source.getStratum());
-        target.setFilter(filterAsString);
-        target.setProcessingFrequencyId(frequency.getId());
-
-        // Save the product
-        target = extractionProductService.save(target);
-
-        // Drop old tables
-        dropTables(tablesToDrop);
-
-        // Transform back to type
-        return toAggregationType(target);
-    }
-
-    public AggregationContextVO aggregateDao(@NonNull ExtractionProductVO source,
-                                             @Nullable ExtractionFilterVO filter,
-                                             AggregationStrataVO strata) {
-        Preconditions.checkNotNull(source.getLabel());
-
-        String aggFormatLabel = source.getFormat() != null ? source.getFormat() : source.getRawFormatLabel();
-        if (!aggFormatLabel.startsWith(AggSpecification.FORMAT_PREFIX)) {
-            aggFormatLabel = AggSpecification.FORMAT_PREFIX + aggFormatLabel;
-        }
-
-        AggregationFormatEnum aggFormat = AggregationFormatEnum.valueOf(aggFormatLabel, source.getVersion());
-
-        // Aggregate (create agg tables)
-        return getDao(aggFormat).aggregate(source, filter, strata);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> asyncClean(AggregationContextVO context) {
-        try {
-            clean(context);
-            return CompletableFuture.completedFuture(Boolean.TRUE);
-        } catch (Exception e) {
-            log.warn(String.format("Error while cleaning aggregation #%s: %s", context.getId(), e.getMessage()), e);
-            return CompletableFuture.completedFuture(Boolean.FALSE);
-        }
-    }
 
     @Override
     public void clean(AggregationContextVO context) {
-        clean(context, false);
+        log.info("Cleaning aggregation #{}", context.getId());
+        getDao(context).clean(context);
     }
 
-    /* -- protected methods -- */
-
-    protected List<AggregationTypeVO> getAllAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
-        return ImmutableList.<AggregationTypeVO>builder()
-            .addAll(getProductAggregationTypes(fetchOptions))
-            .addAll(getLiveAggregationTypes())
-            .build();
-    }
-
-    protected List<AggregationTypeVO> getProductAggregationTypes(ExtractionProductFetchOptions fetchOptions) {
-        return getProductAggregationTypes(null, fetchOptions);
-    }
-
-    protected List<AggregationTypeVO> getProductAggregationTypes(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
-        filter = filter != null ? filter : new AggregationTypeFilterVO();
-
-        // Exclude types with a DISABLE status, by default
-        if (ArrayUtils.isEmpty(filter.getStatusIds())) {
-            filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
-        }
-
-        final Boolean filterIsSpatial = filter.getIsSpatial();
-
-        return ListUtils.emptyIfNull(extractionProductService.findByFilter(filter, fetchOptions))
-            .stream()
-            .filter(p -> filterIsSpatial == null || filterIsSpatial.equals(p.getIsSpatial()))
-            .map(this::toAggregationType)
-            .collect(Collectors.toList());
-    }
-
-    protected List<AggregationTypeVO> getLiveAggregationTypes() {
-        return Arrays.stream(AggregationFormatEnum.values())
-            .filter(format -> format.getLabel().startsWith(AggSpecification.FORMAT_PREFIX))
-            .map(format -> {
-                AggregationTypeVO type = new AggregationTypeVO();
-                type.setLabel(format.getLabel().toLowerCase().substring(AggSpecification.FORMAT_PREFIX.length()));
-                type.setCategory(ExtractionCategoryEnum.LIVE);
-                type.setSheetNames(format.getSheetNames());
-                type.setVersion(format.getVersion());
-                return type;
-            })
-            .collect(Collectors.toList());
-    }
-
-    protected AggregationResultVO createEmptyResult() {
-        AggregationResultVO result = new AggregationResultVO();
-        result.setColumns(ImmutableList.of());
-        result.setTotal(0);
-        result.setRows(ImmutableList.of());
-        return result;
-    }
-
-    protected AggregationTechResultVO createEmptyTechResult() {
-        AggregationTechResultVO result = new AggregationTechResultVO();
-        result.setData(Maps.newHashMap());;
-        return result;
-    }
-
-    protected AggregationTypeVO toAggregationType(ExtractionProductVO source) {
-        AggregationTypeVO target = new AggregationTypeVO();
-
-        Beans.copyProperties(source, target);
-
-        // Change label to lowercase (better for UI client)
-        target.setLabel(source.getLabel().toLowerCase());
-
-        // Stratum
-        if (CollectionUtils.isNotEmpty(source.getStratum())) {
-            target.setStratum(source.getStratum());
-        }
-
-        return target;
-    }
-
-    protected void toProductVO(AggregationContextVO source, ExtractionProductVO target) {
-
-        target.setLabel(ExtractionProducts.getProductLabel(source, source.getId()));
-        target.setName(ExtractionProducts.getProductDisplayName(source, source.getId()));
-        target.setFormat(source.getRawFormatLabel());
-        target.setVersion(source.getVersion());
-        target.setIsSpatial(source.isSpatial());
-
-        target.setTables(toProductTableVO(source));
-    }
-
-    protected List<ExtractionTableVO> toProductTableVO(AggregationContextVO source) {
+    @Override
+    public List<ExtractionTableVO> toProductTableVO(AggregationContextVO source) {
 
         final List<String> tableNames = ImmutableList.copyOf(source.getTableNames());
         return tableNames.stream()
@@ -662,18 +237,56 @@ public class AggregationServiceImpl implements AggregationService {
 
                 // Columns
                 List<ExtractionTableColumnVO> columns = toProductColumnVOs(source, tableName,
-                        ExtractionTableColumnFetchOptions.builder()
-                                .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
-                                .build());
+                    ExtractionTableColumnFetchOptions.builder()
+                        .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
+                        .build());
 
                 // Fill rank order
-                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source, sheetName, columns);
+                ExtractionTableColumnOrder.fillRankOrderByTypeAndSheet(source, sheetName, columns);
 
                 table.setColumns(columns);
 
                 return table;
             })
             .collect(Collectors.toList());
+    }
+
+    /* -- protected methods -- */
+
+
+    protected AggregationResultVO readBySpace(@NonNull AggregationContextVO context,
+                                              @Nullable ExtractionFilterVO filter,
+                                              @Nullable AggregationStrataVO strata,
+                                              Page page) {
+        filter = ExtractionFilterVO.nullToEmpty(filter);
+        strata = strata != null ? strata : (context.getStrata() != null ? context.getStrata() : new AggregationStrataVO());
+        String sheetName = strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
+
+        String tableName = StringUtils.isNotBlank(sheetName) ? context.getTableNameBySheetName(sheetName) : null;
+
+        // Missing the expected sheet = return no data
+        if (tableName == null) return createEmptyResult();
+
+        // Force strata and filter to have the same sheet
+        strata.setSheetName(sheetName);
+        filter.setSheetName(sheetName);
+
+        // Read the data
+        return getDao(context).readBySpace(tableName, filter, strata, page);
+    }
+
+    protected AggregationResultVO createEmptyResult() {
+        AggregationResultVO result = new AggregationResultVO();
+        result.setColumns(ImmutableList.of());
+        result.setTotal(0);
+        result.setRows(ImmutableList.of());
+        return result;
+    }
+
+    protected AggregationTechResultVO createEmptyTechResult() {
+        AggregationTechResultVO result = new AggregationTechResultVO();
+        result.setData(Maps.newHashMap());
+        return result;
     }
 
     protected List<ExtractionTableColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName,
@@ -712,65 +325,25 @@ public class AggregationServiceImpl implements AggregationService {
         target.setId(source.getId());
         target.setLabel(source.getLabel());
         target.setCategory(source.getCategory());
+        target.setFormat(source.getFormat());
         target.setVersion(source.getVersion());
+        target.setUpdateDate(source.getUpdateDate());
 
         ListUtils.emptyIfNull(source.getTables())
             .forEach(t -> target.addTableName(t.getTableName(), t.getLabel()));
 
         // Find the strata to apply, by sheetName
-        if (sheetName != null && source.getStratum() != null) {
+        if (source.getStratum() != null) {
             AggregationStrataVO productStrata = source.getStratum().stream()
                     .filter(s -> sheetName.equals(s.getSheetName()))
                     .findFirst().orElse(null);
             if (productStrata != null) {
-                AggregationStrataVO strata = new AggregationStrataVO();
-                Beans.copyProperties(productStrata, strata);
+                AggregationStrataVO strata = new AggregationStrataVO(productStrata); // Copy
                 target.setStrata(strata);
             }
         }
 
         return target;
-    }
-
-    protected String getI18nSheetName(String format, String sheetName) {
-        return I18n.t(String.format("sumaris.extraction.%s.%s", format.toUpperCase(), sheetName.toUpperCase()));
-    }
-
-    protected void dropTables(Collection<String> tableNames) {
-        Beans.getStream(tableNames).forEach(extractionTableDao::dropTable);
-    }
-
-    protected String writeFilterAsString(ExtractionFilterVO filter) {
-        if (filter == null) return null;
-        try {
-            return objectMapper.writeValueAsString(filter);
-        }
-        catch(JsonProcessingException e) {
-            throw new SumarisTechnicalException(e);
-        }
-    }
-
-    protected ExtractionFilterVO readFilter(String json) {
-        if (StringUtils.isBlank(json)) return null;
-
-        try {
-            return objectMapper.readValue(json, ExtractionFilterVO.class);
-        }
-        catch(JsonProcessingException e) {
-            throw new SumarisTechnicalException(e);
-        }
-    }
-
-
-    protected void clean(AggregationContextVO context, boolean async) {
-        if (context == null) return;
-        if (async && taskExecutor.isPresent()) {
-            taskExecutor.get().execute(() -> self().clean(context));
-        }
-        else {
-            log.info("Cleaning aggregation #{}-{}", context.getLabel(), context.getId());
-            getDao(context.getFormat()).clean(context);
-        }
     }
 
     /**
@@ -781,32 +354,26 @@ public class AggregationServiceImpl implements AggregationService {
         return context.getBean("aggregationService", AggregationService.class);
     }
 
+
+    protected ExtractionProductVO getProductWithTables(@NonNull IExtractionType type) {
+        // Avoid to fetch, if already a full object
+        if (type instanceof ExtractionProductVO && ((ExtractionProductVO)type).getTables() != null) {
+            return (ExtractionProductVO)type;
+        }
+        log.warn("Fetching a product without cache! Received a {} without tables. Make sure this cannot be done earlier !", type.getClass().getSimpleName());
+        return type.getId() != null
+            ? productRepository.get(type.getId(), ExtractionProductFetchOptions.TABLES_AND_RECORDER)
+            : productRepository.getByLabel(type.getLabel(), ExtractionProductFetchOptions.TABLES_AND_RECORDER);
+    }
+
     protected <C extends AggregationContextVO, F extends ExtractionFilterVO, S extends AggregationStrataVO>
-        AggregationDao<C, F, S> getDao(IExtractionFormat format) {
-
-        AggregationDao dao = daosByFormat.get(format);
-        if (dao == null) throw new SumarisTechnicalException("Unknown aggregation format (no targeted dao): " + format);
-        return dao;
-    }
-
-    protected void copyIdAndUpdateDate(ExtractionProductVO source, ExtractionProductVO target) {
-        target.setName(source.getName());
-        target.setUpdateDate(source.getUpdateDate());
-        target.setDescription(source.getDescription());
-        target.setDocumentation(source.getDocumentation());
-        target.setComments(source.getComments());
-        target.setStatusId(source.getStatusId());
-        target.setIsSpatial(source.getIsSpatial());
-
-        if (target.getRecorderDepartment() == null) {
-            target.setRecorderDepartment(source.getRecorderDepartment());
+    AggregationDao<C, F, S> getDao(@NonNull IExtractionType type) {
+        try {
+            IExtractionType daoType = daosByType.containsKey(type) ? type : ExtractionTypes.findOneMatch(daosByType.keySet(), type);
+            return (AggregationDao<C, F, S>)daosByType.get(daoType);
         }
-        if (target.getRecorderPerson() == null) {
-            target.setRecorderPerson(source.getRecorderPerson());
+        catch (IllegalArgumentException e) {
+            throw new SumarisTechnicalException(String.format("Unknown aggregation format (no dao): %s", type));
         }
-
-        target.setStratum(source.getStratum());
-        target.setProcessingFrequencyId(source.getProcessingFrequencyId());
     }
-
 }

@@ -32,6 +32,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
  * @author blavenie
  */
 public interface ProgramPrivilegeRepository
-    extends ReferentialRepository<ProgramPrivilege, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+    extends ReferentialRepository<Integer, ProgramPrivilege, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
 }

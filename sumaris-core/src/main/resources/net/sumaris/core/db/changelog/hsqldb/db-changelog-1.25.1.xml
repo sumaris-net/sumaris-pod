@@ -38,6 +38,23 @@
 		<dropColumn tableName="extraction_product_value" columnName="parent_fk"/>
 	</changeSet>
 
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-002" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<columnExists tableName="extraction_product" columnName="filter"/>
+		</preConditions>
+		<sql endDelimiter=";">
+			alter table extraction_product  alter column filter SET DATA TYPE CLOB(5000);
+		</sql>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-003" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<columnExists tableName="extraction_product" columnName="documentation"/>
+		</preConditions>
+		<sql endDelimiter=";">
+			alter table extraction_product  alter column documentation SET DATA TYPE CLOB(5000);
+		</sql>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">

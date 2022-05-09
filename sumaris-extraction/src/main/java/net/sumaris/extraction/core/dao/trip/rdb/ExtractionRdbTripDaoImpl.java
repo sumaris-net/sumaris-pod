@@ -47,7 +47,7 @@ import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
@@ -98,8 +98,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected ResourceLoader resourceLoader;
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.RDB;
+    public LiveExtractionTypeEnum getFormat() {
+        return LiveExtractionTypeEnum.RDB;
     }
 
     @Override
@@ -110,8 +110,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         R context = createNewContext();
         context.setTripFilter(tripFilter);
         context.setFilter(filter);
-        context.setId(System.currentTimeMillis());
-        context.setFormat(LiveFormatEnum.RDB);
+        context.setUpdateDate(new Date());
+        context.setType(LiveExtractionTypeEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         // Start log
@@ -126,7 +126,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info("Starting extraction #{} (raw data / trips)... {}", context.getId(), filterInfo);
+            log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
         // Fill context table names
@@ -509,7 +509,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     protected String getQueryFullName(@NonNull C context, String queryName) {
-        return getQueryFullName(context.getLabel(), context.getVersion(), queryName);
+        return getQueryFullName(context.getFormat(), context.getVersion(), queryName);
     }
 
     protected String getQueryFullName(@NonNull String formatLabel,

@@ -27,6 +27,7 @@ package net.sumaris.extraction.cli.action;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
+import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionServiceLocator;
 import net.sumaris.extraction.server.job.ExtractionJob;
 
@@ -43,15 +44,11 @@ public class ExtractionProductUpdateAction {
     public void run() throws InterruptedException {
 
         // Create the job
-        ExtractionJob job = new ExtractionJob(
-            ExtractionServiceLocator.extractionProductService(),
-            ExtractionServiceLocator.aggregationService(),
-            ExtractionConfiguration.instance()
-        );
+        ExtractionManager manager = ExtractionServiceLocator.extractionManager();
 
         // Run it !
         ProcessingFrequencyEnum frequency = ExtractionConfiguration.instance().getExtractionCliFrequency();
-        job.execute(frequency);
+        manager.executeAll(frequency);
 
         // Waiting 10s, to let DB drop tables (asynchronously)
         Thread.sleep(10000);

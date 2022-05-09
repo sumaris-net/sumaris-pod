@@ -27,8 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
-import net.sumaris.extraction.core.specification.data.trip.CostSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free1Specification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -49,8 +48,8 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         implements Free1Specification {
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.FREE1;
+    public LiveExtractionTypeEnum getFormat() {
+        return LiveExtractionTypeEnum.FREE1;
     }
 
     @Override
@@ -58,7 +57,7 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormat(LiveFormatEnum.FREE1);
+        context.setType(LiveExtractionTypeEnum.FREE1);
 
         return context;
     }

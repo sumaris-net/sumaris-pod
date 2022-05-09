@@ -36,7 +36,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "transcribing_item")
-public class TranscribingItem implements IItemReferentialEntity  {
+public class TranscribingItem implements IItemReferentialEntity<Integer>  {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TRANSCRIBING_ITEM_SEQ")

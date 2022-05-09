@@ -39,10 +39,13 @@ import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
+import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionService;
+import net.sumaris.extraction.core.service.ExtractionTypeService;
+import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.server.security.IDownloadController;
@@ -97,6 +100,11 @@ public class ExtractionRestController implements ExtractionRestPaths {
     private ExtractionService extractionService;
 
     @Autowired
+    private ExtractionManager extractionManager;
+
+    @Autowired
+    private ExtractionTypeService extractionTypeService;
+    @Autowired
     private ExtractionDocumentationService extractionDocumentationService;
 
     @Autowired
@@ -122,13 +130,13 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         // User can read all: return all types
         if (extractionSecurityService.canReadAll()) {
-            return extractionService.findAll();
+            return extractionTypeService.findAll();
         }
 
         ExtractionTypeFilterVO filter = new ExtractionTypeFilterVO();
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
-        return extractionService.findAll(filter, null);
+        return extractionTypeService.findByFilter(filter, null);
     }
 
     @GetMapping(
@@ -217,7 +225,8 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         extractionSecurityService.checkReadAccess(type);
 
-        File tempFile = extractionService.executeAndDump(type, filter);
+        ExtractionContextVO context = extractionManager.execute(type, filter);
+        File tempFile = extractionManager.dumpTablesToFile(context, filter);
 
         // Add to file register
         String path = downloadController.registerFile(tempFile, true);

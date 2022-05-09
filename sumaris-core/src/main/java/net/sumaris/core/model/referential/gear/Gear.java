@@ -40,7 +40,7 @@ import java.util.List;
 @Entity
 @Table(name = "gear")
 @Cacheable
-public class Gear implements IItemReferentialEntity {
+public class Gear implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_SEQ")

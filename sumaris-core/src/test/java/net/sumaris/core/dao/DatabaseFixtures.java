@@ -293,14 +293,14 @@ public class DatabaseFixtures {
 
 	/* -- product -- */
 
-	public Integer getProductId(int index) {
+	public Long getProductId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
-				return 1;
+				return 1L;
 
 			default:
-				return 1;
+				return 1L;
 		}
 	}
 

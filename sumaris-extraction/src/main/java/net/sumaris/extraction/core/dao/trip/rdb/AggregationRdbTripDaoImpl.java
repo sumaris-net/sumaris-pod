@@ -32,12 +32,13 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.format.AggregationFormatEnum;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.*;
@@ -60,10 +61,7 @@ import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,8 +105,8 @@ public class AggregationRdbTripDaoImpl<
     protected ExtractionTripDao<?, ?> extractionRdbTripDao;
 
     @Override
-    public AggregationFormatEnum getFormat() {
-        return AggregationFormatEnum.AGG_RDB;
+    public AggExtractionTypeEnum getFormat() {
+        return AggExtractionTypeEnum.AGG_RDB;
     }
 
     @Override
@@ -120,11 +118,13 @@ public class AggregationRdbTripDaoImpl<
         context.setTripFilter(extractionRdbTripDao.toTripFilterVO(filter));
         context.setFilter(filter);
         context.setStrata(strata);
-        context.setId(System.currentTimeMillis());
-        context.setFormat(AggregationFormatEnum.AGG_RDB);
+        context.setUpdateDate(new Date());
+        context.setType(AggExtractionTypeEnum.AGG_RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
+        Long startTime = null;
         if (log.isInfoEnabled()) {
+            startTime = System.currentTimeMillis();
             StringBuilder filterInfo = new StringBuilder();
             String filterStr = (filter != null) ? Beans.getStream(filter.getCriteria())
                         .map(ExtractionFilterCriterionVO::toString)
@@ -134,7 +134,7 @@ public class AggregationRdbTripDaoImpl<
             } else {
                 filterInfo.append("(without filter)");
             }
-            log.info("Starting aggregation #{}... {}", context.getId(), filterInfo);
+            log.info("Starting aggregation #{} (trips)... {}", context.getId(), filterInfo);
         }
 
         // Fill context table names
@@ -177,20 +177,27 @@ public class AggregationRdbTripDaoImpl<
         catch (PersistenceException e) {
             // If error,clean created tables first, then rethrow the exception
             clean(context);
+
+            startTime = null; // Avoid log
+
             throw e;
         }
-
+        finally {
+            if (startTime != null) {
+                log.info("Aggregation #{} finished in {}", context.getId(), TimeUtils.printDurationFrom(startTime));
+            }
+        }
         return context;
     }
 
     @Override
-    public AggregationResultVO getAggBySpace(@NonNull String tableName, F filter, @NonNull S strata, Page page) {
+    public AggregationResultVO readBySpace(@NonNull String tableName, F filter, @NonNull S strata, Page page) {
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Set<String> groupByColumnNames = getExistingGroupByColumnNames(strata, table);
         Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
 
-        ExtractionResultVO rows = extractionTableDao.getAggRows(tableName, filter,
+        ExtractionResultVO rows = extractionTableDao.readWithAggColumns(tableName, filter,
                 groupByColumnNames, aggColumns, page);
 
         AggregationResultVO result = new AggregationResultVO(rows);
@@ -211,10 +218,10 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public AggregationTechResultVO getAggByTech(@NonNull String tableName,
-                                                @Nullable F filter,
-                                                @NonNull S strata,
-                                                String sortAttribute, SortDirection direction) {
+    public AggregationTechResultVO readByTech(@NonNull String tableName,
+                                              @Nullable F filter,
+                                              @NonNull S strata,
+                                              String sortAttribute, SortDirection direction) {
 
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
         Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
@@ -226,7 +233,7 @@ public class AggregationRdbTripDaoImpl<
         Map.Entry<String, ExtractionTableDao.SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME)));
 
-        result.setData(extractionTableDao.getAggByTechRows(tableName, filter,
+        result.setData(extractionTableDao.readAggColumnByTech(tableName, filter,
                 aggColumn.getKey(),
                 aggColumn.getValue(),
                 strata.getTechColumnName(),
@@ -236,7 +243,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata) {
+    public MinMaxVO getTechMinMax(String tableName, F filter, S strata) {
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
         Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
 
@@ -248,7 +255,7 @@ public class AggregationRdbTripDaoImpl<
 
         Set<String> timeColumnNames = getGroupByTimesColumnNames(strata.getTimeColumnName());
 
-        return extractionTableDao.getAggMinMaxByTech(tableName, filter,
+        return extractionTableDao.getTechMinMax(tableName, filter,
                 timeColumnNames,
                 aggColumn.getKey(),
                 aggColumn.getValue(),
@@ -560,7 +567,7 @@ public class AggregationRdbTripDaoImpl<
     protected long createSpeciesLengthMapTable(ExtractionProductVO source, C context) {
 
         String tableName = context.getSpeciesLengthMapTableName();
-        log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
+        log.debug(String.format("Aggregation #%s > Creating Species Length Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthMapQuery(source, context);
         if (xmlQuery == null) return -1; // Skip
@@ -628,7 +635,7 @@ public class AggregationRdbTripDaoImpl<
     protected long createSpeciesLengthTable(ExtractionProductVO source, C context) {
 
         String tableName = context.getSpeciesLengthTableName();
-        log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
+        log.debug(String.format("Aggregation #%s > Creating Species Length table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(source, context);
         if (xmlQuery == null) return 0; // Skip
@@ -794,11 +801,11 @@ public class AggregationRdbTripDaoImpl<
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getLabel());
+        Preconditions.checkNotNull(context.getFormat());
         Preconditions.checkNotNull(context.getVersion());
 
         return getQueryFullName(
-                context.getLabel(),
+                context.getFormat(),
                 context.getVersion(),
                 queryName);
     }

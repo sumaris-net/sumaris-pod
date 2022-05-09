@@ -30,7 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 /**
  * @author peck7 on 20/08/2020.
  */
-public interface DepartmentSpecifications extends ReferentialSpecifications<Department> {
+public interface DepartmentSpecifications extends ReferentialSpecifications<Integer, Department> {
 
     String LOGO_PARAMETER = "logo";
 

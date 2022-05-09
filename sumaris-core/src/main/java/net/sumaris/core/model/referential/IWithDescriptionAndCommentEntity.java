@@ -25,7 +25,9 @@ package net.sumaris.core.model.referential;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 
-public interface IWithDescriptionAndCommentEntity extends IEntity<Integer> {
+import java.io.Serializable;
+
+public interface IWithDescriptionAndCommentEntity<ID extends Serializable> extends IEntity<ID> {
 
 
     interface Fields extends IUpdateDateEntity.Fields {

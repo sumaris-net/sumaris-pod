@@ -22,7 +22,10 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-public interface IReferentialWithStatusEntity extends IReferentialEntity, IWithStatusEntity<Integer, Status> {
+import java.io.Serializable;
+
+public interface IReferentialWithStatusEntity<ID extends Serializable>
+    extends IReferentialEntity<ID>, IWithStatusEntity<ID, Status> {
 
     interface Fields extends IReferentialEntity.Fields {
         String STATUS = "status";

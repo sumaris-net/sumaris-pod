@@ -25,7 +25,8 @@ package net.sumaris.extraction.core.config;
  */
 
 import net.sumaris.core.dao.technical.cache.CacheTTL;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import org.nuiton.config.ConfigOptionDef;
 
@@ -57,7 +58,7 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
     EXTRACTION_CLI_OUTPUT_FORMAT(
             "sumaris.extraction.cli.output.format",
             n("sumaris.config.option.extraction.cli.output.format.description"),
-            LiveFormatEnum.RDB.getLabel(),
+            LiveExtractionTypeEnum.RDB.getLabel(),
             String.class,
             false),
 

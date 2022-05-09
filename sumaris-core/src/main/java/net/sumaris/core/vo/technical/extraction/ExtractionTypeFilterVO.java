@@ -22,19 +22,44 @@
 
 package net.sumaris.core.vo.technical.extraction;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+
+import java.util.Arrays;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 @Data
 @FieldNameConstants
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExtractionProductFilterVO implements IReferentialFilter {
+public class ExtractionTypeFilterVO implements IReferentialFilter {
+
+    public static ExtractionTypeFilterVO nullToEmpty(ExtractionTypeFilterVO filter) {
+        return filter != null ? filter : ExtractionTypeFilterVO.builder().build();
+    }
+
+    public static Predicate<IExtractionType> toPredicate(@NonNull ExtractionTypeFilterVO filter) {
+
+        Pattern searchPattern = net.sumaris.core.dao.technical.Daos.searchTextIgnoreCasePattern(filter.getSearchText(), false);
+        Pattern searchAnyPattern = net.sumaris.core.dao.technical.Daos.searchTextIgnoreCasePattern(filter.getSearchText(), true);
+
+        return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
+            && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
+            && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
+            && (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(s.getCategory().name()))
+            && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
+            && (searchPattern == null || searchAnyPattern == null
+            || searchPattern.matcher(s.getLabel()).matches()
+            || searchAnyPattern.matcher(s.getName()).matches());
+    }
+
+    private String format;
+    private String version;
+    private Integer parentId;
 
     private Integer id;
     private String label;
@@ -58,6 +83,9 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
     private Integer[] includedIds;
     private Integer[] excludedIds;
 
+
+    private Boolean isSpatial;
+
     public String getCategory() {
         return levelLabel;
     }
@@ -65,4 +93,5 @@ public class ExtractionProductFilterVO implements IReferentialFilter {
     public void setCategory(String category) {
         levelLabel = category;
     }
+
 }

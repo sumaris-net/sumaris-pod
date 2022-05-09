@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  */
 @Slf4j
 public class LocationRepositoryImpl
-    extends ReferentialRepositoryImpl<Location, LocationVO, LocationFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Location, LocationVO, LocationFilterVO, ReferentialFetchOptions>
     implements LocationSpecifications {
 
     public LocationRepositoryImpl(EntityManager entityManager) {
@@ -65,7 +65,7 @@ public class LocationRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, unless = "#result==null")
-    public LocationVO get(int id) {
+    public LocationVO get(Integer id) {
         return super.get(id);
     }
 

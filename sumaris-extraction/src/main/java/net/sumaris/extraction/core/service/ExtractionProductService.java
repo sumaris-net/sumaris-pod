@@ -37,13 +37,14 @@ import java.util.Optional;
 public interface ExtractionProductService {
 
     @Transactional(readOnly = true)
-    List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions);
+    List<ExtractionProductVO> findByFilter(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     ExtractionProductVO get(int id, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOptions);
+
 
     @Transactional(readOnly = true)
     Optional<ExtractionProductVO> findById(int id, ExtractionProductFetchOptions fetchOptions);

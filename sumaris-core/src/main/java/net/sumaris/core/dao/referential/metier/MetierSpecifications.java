@@ -49,7 +49,7 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface MetierSpecifications
-    extends ReferentialSpecifications<Metier> {
+    extends ReferentialSpecifications<Integer, Metier> {
 
     String PROGRAM_LABEL_PARAMETER = "programLabel";
     String EXCLUDED_TRIP_ID_PARAMETER = "tripId";

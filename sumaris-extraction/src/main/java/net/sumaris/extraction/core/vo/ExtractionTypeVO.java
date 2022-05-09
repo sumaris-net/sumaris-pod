@@ -26,8 +26,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.util.Beans;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -45,21 +47,27 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode
 public class ExtractionTypeVO implements IValueObject<Integer>,
-        IExtractionFormat,
-        IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
-        IWithRecorderPersonEntity<Integer, PersonVO> {
-
+    IExtractionType<PersonVO, DepartmentVO>,
+    IWithRecorderPersonEntity<Integer, PersonVO>,
+    IWithRecorderDepartmentEntity<Integer, DepartmentVO>
+{
     Integer id;
 
     @ToString.Include
     ExtractionCategoryEnum category;
     @ToString.Include
-    String label;
-    @ToString.Include
-    String name;
+    String format;
     @ToString.Include
     String version;
 
+    Integer parentId;
+    @JsonIgnore
+    IExtractionType<PersonVO, DepartmentVO> parent;
+
+    @ToString.Include
+    String label;
+    @ToString.Include
+    String name;
     String description;
     String comments;
     String[] sheetNames;
@@ -67,27 +75,49 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
     Boolean isSpatial;
     String docUrl;
 
-    /**
-     * The extraction filter used to create data. Useful to refresh the aggregation
-     */
     String filter;
     Integer processingFrequencyId;
-    Integer parentId;
-
-    @JsonIgnore
-    LiveFormatEnum liveFormat;
 
     PersonVO recorderPerson;
     DepartmentVO recorderDepartment;
 
+    public ExtractionTypeVO(IExtractionType source) {
+
+        Beans.copyProperties(source, this);
+
+        // Generate a negative an unique id
+        //this.setId(-1 * source.hashCode());
+
+        this.setCategory(source.getCategory());
+        this.setFormat(source.getFormat());
+        this.setVersion(source.getVersion());
+
+        this.setParentId(source.getParentId());
+        this.setParent(source.getParent());
+
+        this.setLabel(source.getLabel());
+        this.setName(source.getName());
+        this.setSheetNames(source.getSheetNames());
+        this.setStatusId(source.getStatusId());
+
+
+
+        if (source.getRecorderDepartment() instanceof DepartmentVO) {
+            this.setRecorderDepartment((DepartmentVO) source.getRecorderDepartment());
+        }
+        if (source.getRecorderPerson() instanceof PersonVO) {
+            this.setRecorderPerson((PersonVO) source.getRecorderPerson());
+        }
+    }
+
     @JsonIgnore
     public boolean isPublic() {
-        return statusId != null && statusId == StatusEnum.ENABLE.getId();
+        return StatusEnum.ENABLE.getId().equals(statusId);
     }
 
     @JsonIgnore
     public ExtractionCategoryEnum getRawFormatCategory() {
-        return getParentId() != null ? ExtractionCategoryEnum.PRODUCT : IExtractionFormat.getRawFormatCategory(getLabel());
+        return getParentId() != null ? ExtractionCategoryEnum.PRODUCT : IExtractionType.getRawFormatCategory(getLabel());
     }
 
 }

@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.AggregationFormatEnum;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggPmfmTripSpecification;
 import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -52,15 +52,15 @@ public class AggregationPmfmTripDaoImpl<
     implements AggSurvivalTestSpecification {
 
     @Override
-    public AggregationFormatEnum getFormat() {
-        return AggregationFormatEnum.AGG_PMFM_TRIP;
+    public AggExtractionTypeEnum getFormat() {
+        return AggExtractionTypeEnum.AGG_PMFM_TRIP;
     }
 
     @Override
     public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
-        context.setFormat(AggregationFormatEnum.AGG_PMFM_TRIP);
+        context.setType(AggExtractionTypeEnum.AGG_PMFM_TRIP);
 
         return context;
     }

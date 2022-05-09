@@ -28,8 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.history.ProcessingFrequency;
+import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.extraction.*;
@@ -39,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Slf4j
-public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
+public class ExtractionProductRepositoryWriteTest extends AbstractDaoTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -52,31 +51,10 @@ public class ExtractionProductDaoWriteTest extends AbstractDaoTest{
         super.setUp();
         setCommitOnTearDown(false); // this is need because of delete()
     }
-
-    @Test
-    @Ignore
-    // FIXME
-    public void getAll() {
-        ExtractionProductFilterVO filter = ExtractionProductFilterVO.builder()
-            //.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
-            .build();
-        List<ExtractionProductVO> products = repository.findAll(filter);
-        Assert.assertNotNull(products);
-        Assert.assertEquals(1, products.size());
-    }
-
-    @Test
-    @Ignore
-    // FIXME
-    public void delete() {
-        Integer id = fixtures.getProductId(0);
-        repository.deleteById(id);
-    }
-
     @Test
     public void save() {
         ExtractionProductVO source = new ExtractionProductVO();
-        source.setLabel("rdb-" + System.currentTimeMillis());
+        source.setLabel("RDB-" + System.currentTimeMillis());
         source.setName("Test RDB product");
         source.setStatusId(StatusEnum.ENABLE.getId());
         source.setIsSpatial(false);

@@ -43,7 +43,7 @@ import java.util.*;
 @FieldNameConstants
 @Entity
 @Cacheable
-public class Program implements IItemReferentialEntity {
+public class Program implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")

@@ -39,7 +39,7 @@ import java.util.Objects;
 @Entity
 @Cacheable
 @Table(name="acquisition_level")
-public class AcquisitionLevel implements IItemReferentialEntity {
+public class AcquisitionLevel implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ACQUISITION_LEVEL_SEQ")

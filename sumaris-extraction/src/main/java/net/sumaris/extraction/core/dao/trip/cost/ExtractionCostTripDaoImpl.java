@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.CostSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -48,15 +48,15 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         implements CostSpecification {
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.COST;
+    public LiveExtractionTypeEnum getFormat() {
+        return LiveExtractionTypeEnum.COST;
     }
 
     @Override
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
-        context.setFormat(LiveFormatEnum.COST);
+        context.setType(LiveExtractionTypeEnum.COST);
 
         return context;
     }

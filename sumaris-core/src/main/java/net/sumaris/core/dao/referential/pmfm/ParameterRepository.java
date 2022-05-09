@@ -32,5 +32,5 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
  * @author peck7 on 19/08/2020.
  */
 public interface ParameterRepository
-    extends ReferentialRepository<Parameter, ParameterVO, ReferentialFilterVO, ReferentialFetchOptions> {
+    extends ReferentialRepository<Integer, Parameter, ParameterVO, ReferentialFilterVO, ReferentialFetchOptions> {
 }

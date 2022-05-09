@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
  * @author peck7 on 21/08/2020.
  */
 public class ExtractionProductRepositoryImpl
-    extends ReferentialRepositoryImpl<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ExtractionProductFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, ExtractionProduct, ExtractionProductVO, ExtractionTypeFilterVO, ExtractionProductFetchOptions>
     implements ExtractionProductSpecifications {
 
     private final DepartmentRepository departmentRepository;
@@ -75,7 +75,7 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER)
-    public List<ExtractionProductVO> findAll(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+    public List<ExtractionProductVO> findAll(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.findAll(filter, fetchOptions);
     }
 
@@ -86,8 +86,12 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    protected Specification<ExtractionProduct> toSpecification(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+    protected Specification<ExtractionProduct> toSpecification(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(withPropertyValue(ExtractionProduct.Fields.FORMAT, String.class, filter.getFormat()))
+            .and(withPropertyValue(ExtractionProduct.Fields.VERSION, String.class, filter.getVersion()))
+            .and(isSpatial(filter.getIsSpatial()))
+            .and(withParentId(filter.getParentId()))
             .and(withRecorderPersonIdOrPublic(filter.getRecorderPersonId()))
             .and(withRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
@@ -106,21 +110,24 @@ public class ExtractionProductRepositoryImpl
         // Status
         target.setStatusId(source.getStatus().getId());
 
+
         // Copy without/with documentation (can be very long)
         List<String> excludedProperties = Lists.newArrayList();
         if (fetchOptions == null || !fetchOptions.isWithDocumentation()) {
             excludedProperties.add(ExtractionProduct.Fields.DOCUMENTATION);
         }
         if (fetchOptions == null || !fetchOptions.isWithFilter()) {
-            excludedProperties.add(ExtractionProduct.Fields.FILTER);
+            excludedProperties.add(ExtractionProduct.Fields.FILTER_CONTENT);
         }
         if (excludedProperties.size() > 0) {
-            Beans.copyProperties(source, target, excludedProperties.toArray(new String[excludedProperties.size()]));
+            Beans.copyProperties(source, target, excludedProperties.toArray(new String[0]));
         }
         else {
             Beans.copyProperties(source, target);
         }
 
+        // Parent
+        target.setParentId(source.getParent() != null ? source.getParent().getId() : null);
 
         // Processing frequency
         if (copyIfNull || source.getProcessingFrequency() != null) {
@@ -248,13 +255,16 @@ public class ExtractionProductRepositoryImpl
         }
 
         // Parent
-        if (copyIfNull || source.getParentId() != null) {
-            if (source.getParentId() == null) {
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
+        parentId = parentId != null && parentId >= 0 ? parentId : null; // Avoid to ave negative ID (= from ExtractionType enum)
+        if (copyIfNull || parentId != null) {
+            if (parentId == null) {
                 target.setParent(null);
             } else {
-                target.setParent(getReference(ExtractionProduct.class, source.getParentId()));
+                target.setParent(getReference(ExtractionProduct.class, parentId));
             }
         }
+        source.setParentId(parentId);
 
         // Processing frequency
         if (copyIfNull || source.getProcessingFrequencyId() != null) {
@@ -358,7 +368,7 @@ public class ExtractionProductRepositoryImpl
             if (hasColumns) {
                 sources.stream()
                     .filter(Objects::nonNull)
-                    .forEach(source -> saveProductTableColumns(source.getColumns(), source.getId(), updateDate));
+                    .forEach(source -> saveProductTableColumns(source.getColumns(), source.getId()));
                 em.flush();
             }
 
@@ -371,7 +381,7 @@ public class ExtractionProductRepositoryImpl
         }
     }
 
-    private void saveProductTableColumns(List<ExtractionTableColumnVO> sources, int tableId, Date updateDate) {
+    private void saveProductTableColumns(List<ExtractionTableColumnVO> sources, int tableId) {
         final EntityManager em = getEntityManager();
 
         // Load parent
@@ -584,7 +594,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
+    public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(Integer id, String tableLabel) {
         EntityManager em  = getEntityManager();
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<ExtractionProductColumn> query = cb.createQuery(ExtractionProductColumn.class);

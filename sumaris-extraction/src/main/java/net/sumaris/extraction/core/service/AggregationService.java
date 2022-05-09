@@ -22,23 +22,20 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.extraction.core.vo.*;
-import net.sumaris.extraction.core.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import org.springframework.scheduling.annotation.Async;
+import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
+import net.sumaris.extraction.core.vo.*;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 
 /**
  * Create aggregation tables, from a data extraction.
@@ -49,81 +46,33 @@ import java.util.concurrent.CompletableFuture;
 @Transactional
 public interface AggregationService {
 
-    @Transactional(readOnly = true)
-    AggregationTypeVO getTypeByFormat(IExtractionFormat format);
+    Set<IExtractionType> getTypes();
 
-    @Transactional(readOnly = true)
-    List<AggregationTypeVO> findTypesByFilter(@Nullable AggregationTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
-
-    @Transactional(readOnly = true)
-    AggregationTypeVO getTypeById(int id, ExtractionProductFetchOptions fetchOptions);
-
-    /**
-     * Refresh a product (execute the aggregation, using the filter stored in the product)
-     * @param productId
-     */
-    @Transactional
-    AggregationTypeVO updateProduct(int productId);
-
-    /**
-     * Do an aggregate
-     *
-     * @param type
-     * @param filter
-     * @param strata
-     */
-    @Transactional
-    AggregationContextVO aggregate(IExtractionFormat source,
+    AggregationContextVO aggregate(@NonNull IExtractionType source,
                                    @Nullable ExtractionFilterVO filter,
-                                   @Nullable AggregationStrataVO strata);
-
-    @Transactional(rollbackFor = IOException.class)
-    File aggregateAndDump(IExtractionFormat source,
-                          @Nullable ExtractionFilterVO filter,
-                          @Nullable AggregationStrataVO strata);
-
-    @Transactional
-    AggregationResultVO aggregateAndRead(IExtractionFormat source,
-                                         @Nullable ExtractionFilterVO filter,
-                                         @Nullable AggregationStrataVO strata,
-                                         Page page);
+                                   AggregationStrataVO strata);
 
     @Transactional(readOnly = true)
-    AggregationResultVO getAggBySpace(AggregationTypeVO type,
-                                      @Nullable ExtractionFilterVO filter,
-                                      @Nullable AggregationStrataVO strata,
-                                      Page page);
+    AggregationResultVO readBySpace(IExtractionType type,
+                                    @Nullable ExtractionFilterVO filter,
+                                    @Nullable AggregationStrataVO strata,
+                                    Page page);
 
     @Transactional(readOnly = true)
-    AggregationResultVO getAggBySpace(AggregationContextVO context,
-                                      @Nullable ExtractionFilterVO filter,
-                                      @Nullable AggregationStrataVO strata,
-                                      Page page);
+    AggregationTechResultVO readByTech(IExtractionType type,
+                                       @Nullable ExtractionFilterVO filter,
+                                       @Nullable AggregationStrataVO strata,
+                                       String sort,
+                                       SortDirection direction);
 
     @Transactional(readOnly = true)
-    AggregationTechResultVO getAggByTech(AggregationTypeVO format,
-                                         @Nullable ExtractionFilterVO filter,
-                                         @Nullable AggregationStrataVO strata,
-                                         String sort,
-                                         SortDirection direction);
-
-    @Transactional(readOnly = true)
-    MinMaxVO getAggMinMaxByTech(AggregationTypeVO format,
-                                @Nullable ExtractionFilterVO filter,
-                                @Nullable AggregationStrataVO strata);
-
-
-    @Transactional(timeout = 10000000)
-    AggregationTypeVO save(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
-
-    @Async
-    @Transactional(timeout = 10000000, propagation = Propagation.REQUIRES_NEW)
-    CompletableFuture<AggregationTypeVO> asyncSave(AggregationTypeVO type, @Nullable ExtractionFilterVO filter);
+    MinMaxVO getTechMinMax(IExtractionType type,
+                           @Nullable ExtractionFilterVO filter,
+                           @Nullable AggregationStrataVO strata);
 
     @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
     void clean(AggregationContextVO context);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    @Async
-    CompletableFuture<Boolean> asyncClean(AggregationContextVO context);
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    List<ExtractionTableVO> toProductTableVO(AggregationContextVO source);
 }

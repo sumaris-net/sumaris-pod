@@ -22,20 +22,18 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -46,22 +44,19 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * @author peck7 on 17/12/2018.
+ * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public class ExtractionServiceTest extends AbstractServiceTest {
-
-    @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+public abstract class AbstractExtractionManagerTest extends AbstractServiceTest {
 
     @Autowired
-    private ExtractionService service;
+    private ExtractionManager service;
 
     @Test
-    public void exportStratFormat() throws IOException {
+    public void executeStrat() throws IOException {
 
         // Test the Strategy format
-        File outputFile = service.executeAndDumpStrategies(LiveFormatEnum.STRAT, null);
-        File root = unpack(outputFile, LiveFormatEnum.STRAT.getLabel());
+        File outputFile = service.executeAndDumpStrategies(LiveExtractionTypeEnum.STRAT, null);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.STRAT.getLabel());
 
         // ST.csv (strategy)
         {
@@ -78,12 +73,12 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void exportRdbFormat() throws IOException {
+    public void executeRdb() throws IOException {
 
         // Test the RDB format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.RDB, null);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.RDB, null);
         Assert.assertTrue(outputFile.exists());
-        File root = unpack(outputFile, LiveFormatEnum.RDB.getLabel());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.RDB.getLabel());
 
         // TR.csv
         {
@@ -112,19 +107,19 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void exportFree1Format() {
+    public void executeFree1() {
 
         // Test the FREE 1 format
-        service.executeAndDumpTrips(LiveFormatEnum.FREE1, null);
+        service.executeAndDumpTrips(LiveExtractionTypeEnum.FREE1, null);
     }
 
     @Test
-    public void exportFree2Format() throws IOException {
+    public void executeFree2() throws IOException {
 
         // Test the FREE v2 format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.FREE2, null);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.FREE2, null);
 
-        File root = unpack(outputFile, LiveFormatEnum.FREE2);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.FREE2);
 
         // MAREES.csv
         File tripFile = new File(root, Free2Specification.TRIP_SHEET_NAME + ".csv");
@@ -135,16 +130,16 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
 
         // ENGINS.csv
-        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
+        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(gearFile) > 1);
     }
 
     @Test
-    public void exportSurvivalTestFormat() throws IOException  {
+    public void executeSurvivalTest() throws IOException  {
 
         // Test Survival test format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.SURVIVAL_TEST, null);
-        File root = unpack(outputFile, LiveFormatEnum.SURVIVAL_TEST);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.SURVIVAL_TEST, null);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.SURVIVAL_TEST);
 
         // RL (release)
         File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
@@ -156,15 +151,15 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void exportPmfmFormat() throws IOException {
+    public void executePmfm() throws IOException {
 
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
         filter.setProgramLabel(fixtures.getProgramLabelForPmfmExtraction(0));
 
         // Test the RDB format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.PMFM_TRIP, filter);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
         Assert.assertTrue(outputFile.exists());
-        File root = unpack(outputFile, LiveFormatEnum.PMFM_TRIP.getLabel());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel());
 
         // TR.csv
         {
@@ -210,7 +205,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
 
         // RL.csv
         {
-            File releaseFile = new File(root, PmfmTripSpecification.ST_SHEET_NAME + ".csv");
+            File releaseFile = new File(root, PmfmTripSpecification.RL_SHEET_NAME + ".csv");
             Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
 
             assertHasColumn(releaseFile, "measure_time");
@@ -219,82 +214,7 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test
-    public void save() {
 
-        ExtractionTypeVO type = new ExtractionTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE);
-        type.setLabel(LiveFormatEnum.RDB.name() + "-ext");
-        type.setName("Product - " + LiveFormatEnum.RDB.name());
-        type.setStatusId(StatusEnum.TEMPORARY.getId());
-
-        DepartmentVO recDep = new DepartmentVO();
-        recDep.setId(fixtures.getDepartmentId(0));
-        type.setRecorderDepartment(recDep);
-
-        ExtractionTypeVO savedType = service.save(type, null);
-
-        Assert.assertNotNull(savedType);
-    }
-
-    @Test
-    public void getByFormat() {
-
-        // Get valid live format
-        {
-            AggregationTypeVO format = new AggregationTypeVO();
-            format.setLabel(LiveFormatEnum.RDB.getLabel());
-            format.setCategory(LiveFormatEnum.RDB.getCategory());
-            ExtractionTypeVO type = service.getByFormat(format);
-
-            Assert.assertNotNull(type);
-            Assert.assertEquals("type.label should be in lowerCase", format.getLabel().toLowerCase(), type.getLabel());
-        }
-
-        // Get invalid live format
-        {
-            AggregationTypeVO format = new AggregationTypeVO();
-            format.setLabel("FAKE");
-            format.setCategory(ExtractionCategoryEnum.LIVE);
-            try {
-                service.getByFormat(format);
-                Assert.fail("Should failed on wrong format");
-            } catch (Exception e) {
-                // OK
-            }
-        }
-
-        // Get a valid product
-        {
-            AggregationTypeVO format = new AggregationTypeVO();
-            format.setLabel("rdb-01");
-            format.setCategory(ExtractionCategoryEnum.PRODUCT);
-            ExtractionTypeVO type = service.getByFormat(format);
-            Assert.assertNotNull(type);
-            Assert.assertEquals(format.getLabel(), type.getLabel());
-        }
-
-
-    }
-
-
-    @Test
-    public void saveLiveRdb() {
-        ExtractionTypeVO type = new ExtractionTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE);
-        type.setLabel(LiveFormatEnum.RDB.name() + "-save");
-        type.setName("RDB live extraction saved as product");
-        type.setStatusId(StatusEnum.TEMPORARY.getId());
-
-        DepartmentVO recDep = new DepartmentVO();
-        recDep.setId(fixtures.getDepartmentId(0));
-        type.setRecorderDepartment(recDep);
-
-        ExtractionTypeVO savedType = service.save(type, null);
-        Assert.assertNotNull(savedType);
-        Assert.assertNotNull(savedType.getId());
-
-    }
 
     /* -- protected methods -- */
 

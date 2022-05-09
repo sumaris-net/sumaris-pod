@@ -38,7 +38,7 @@ import java.util.List;
  * @author peck7 on 24/08/2020.
  */
 public interface ProgramRepository
-    extends ReferentialRepository<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
+    extends ReferentialRepository<Integer, Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
     ProgramSpecifications {
 
     String findQuery = "select distinct(PROGRAM.id) " +

@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * @author peck7 on 18/08/2020.
  */
-public interface LocationSpecifications extends ReferentialSpecifications<Location> {
+public interface LocationSpecifications extends ReferentialSpecifications<Integer, Location> {
 
     String PARAMETER_ANCESTOR_IDS = "ancestorId";
 

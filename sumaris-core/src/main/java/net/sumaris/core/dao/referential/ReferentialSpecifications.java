@@ -34,19 +34,16 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public interface ReferentialSpecifications<E extends IReferentialWithStatusEntity> extends IEntityWithStatusSpecifications<E> {
+public interface ReferentialSpecifications<ID extends Serializable, E extends IReferentialWithStatusEntity<ID>>
+    extends IEntityWithStatusSpecifications<E> {
 
-    String ID_PARAMETER = "id";
-    String LABEL_PARAMETER = "label";
     String PROPERTY_PARAMETER_PREFIX = "property";
     String LEVEL_LABEL_PARAMETER = "levelLabel";
     String SEARCH_TEXT_PARAMETER = "searchText";
@@ -56,17 +53,17 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     default Specification<E> hasId(Integer id) {
         if (id == null) return null;
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, ID_PARAMETER);
+            ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, IEntity.Fields.ID);
             return criteriaBuilder.equal(root.get(IEntity.Fields.ID), idParam);
-        }).addBind(ID_PARAMETER, id);
+        }).addBind(IEntity.Fields.ID, id);
     }
 
     default Specification<E> hasLabel(String label) {
         if (label == null) return null;
         return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, LABEL_PARAMETER);
+            ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, IItemReferentialEntity.Fields.LABEL);
             return criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), labelParam);
-        }).addBind(LABEL_PARAMETER, label.toUpperCase());
+        }).addBind(IItemReferentialEntity.Fields.LABEL, label.toUpperCase());
     }
 
     default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {
@@ -79,15 +76,15 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(ids)) return null;
 
-        final String paramName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName.replace(".", "_"));
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, paramName);
-            return criteriaBuilder.in(
+        final String parameterName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(joinPropertyName.replaceAll("[.]", "_"));
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, parameterName);
+            return cb.in(
                     Daos.composeJoin(root, joinPropertyName, JoinType.INNER).get(IEntity.Fields.ID)
                 )
-                .value(levelParam);
+                .value(parameter);
         })
-        .addBind(paramName, Arrays.asList(ids));
+        .addBind(parameterName, Arrays.asList(ids));
     }
 
     default Specification<E> inLevelLabels(Class<E> entityClass, String[] levelLabels) {
@@ -119,29 +116,29 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
     }
 
     default Specification<E> searchText(String[] searchAttributes, String searchText, boolean searchAny) {
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<String> searchTextParam = cb.parameter(String.class, SEARCH_TEXT_PARAMETER);
             if (ArrayUtils.isNotEmpty(searchAttributes)) {
                 // search on all attributes
                 List<Predicate> predicates = new ArrayList<>();
                 predicates.add(
-                    criteriaBuilder.isNull(searchTextParam)
+                    cb.isNull(searchTextParam)
                 );
-                Arrays.stream(searchAttributes).forEach(searchAttribute -> predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.upper(Daos.composePath(root, searchAttribute)),
+                Arrays.stream(searchAttributes).forEach(searchAttribute -> predicates.add(cb.like(
+                        cb.upper(Daos.composePath(root, searchAttribute)),
                         searchTextParam,
                         Daos.LIKE_ESCAPE_CHAR)
                     ));
-                return criteriaBuilder.or(
+                return cb.or(
                     // all predicates
                     predicates.toArray(new Predicate[predicates.size()])
                 );
             }
             // Search on label+name only
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
-                criteriaBuilder.like(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
+            return cb.or(
+                cb.isNull(searchTextParam),
+                cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
+                cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
             );
         })
             .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null, searchAny));
@@ -212,6 +209,16 @@ public interface ReferentialSpecifications<E extends IReferentialWithStatusEntit
             );
         })
         .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
+    }
+
+    default Specification<E> withPropertyValue(String propertyName, Class<?> propertyClass, Object value) {
+        if (value == null) return null;
+        final String parameterName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(propertyName.replaceAll("[.]", "_"));
+        return BindableSpecification.<E>where((root, query, cb) -> {
+                ParameterExpression<?> parameter = cb.parameter(propertyClass, parameterName);
+                return cb.equal(Daos.composePath(root, propertyName), parameter);
+            })
+            .addBind(parameterName, value);
     }
 
     default boolean shouldQueryDistinct(String joinProperty) {

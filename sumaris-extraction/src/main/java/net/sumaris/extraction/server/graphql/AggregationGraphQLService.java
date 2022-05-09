@@ -23,43 +23,27 @@
 package net.sumaris.extraction.server.graphql;
 
 import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLEnvironment;
-import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
-import io.leangen.graphql.execution.ResolutionEnvironment;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.service.AggregationService;
-import net.sumaris.extraction.core.service.ExtractionProductService;
-import net.sumaris.extraction.core.vo.*;
-import net.sumaris.extraction.core.vo.filter.AggregationTypeFilterVO;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.extraction.core.service.AggregationService;
+import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionProductService;
+import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
-import net.sumaris.server.http.graphql.GraphQLApi;
-import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
+import net.sumaris.server.http.graphql.GraphQLApi;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 @GraphQLApi
 @Service
@@ -68,15 +52,18 @@ import java.util.concurrent.ExecutionException;
 @ConditionalOnWebApplication
 public class AggregationGraphQLService {
 
-    private AggregationService aggregationService;
-    private ExtractionProductService productService;
-    private ExtractionSecurityService securityService;
-    private ExtractionGeoJsonConverter geoJsonConverter;
+    private final ExtractionManager extractionManager;
+    private final AggregationService aggregationService;
+    private final ExtractionProductService productService;
+    private final ExtractionSecurityService securityService;
+    private final ExtractionGeoJsonConverter geoJsonConverter;
 
-    public AggregationGraphQLService(AggregationService aggregationService,
+    public AggregationGraphQLService(ExtractionManager extractionManager,
+                                     AggregationService aggregationService,
                                      ExtractionProductService productService,
                                      ExtractionSecurityService securityService,
                                      ExtractionGeoJsonConverter geoJsonConverter) {
+        this.extractionManager = extractionManager;
         this.aggregationService = aggregationService;
         this.productService = productService;
         this.securityService = securityService;
@@ -85,25 +72,9 @@ public class AggregationGraphQLService {
 
     /* -- aggregation service -- */
 
-    @GraphQLQuery(name = "aggregationType", description = "Get one aggregation type")
-    @Transactional(readOnly = true)
-    public AggregationTypeVO getAggregationType(@GraphQLArgument(name = "id") int id,
-                                                @GraphQLEnvironment ResolutionEnvironment env) {
-        securityService.checkReadAccess(id);
-        return aggregationService.getTypeById(id, getFetchOptions(GraphQLUtils.fields(env)));
-    }
-
-    @GraphQLQuery(name = "aggregationTypes", description = "Get all available aggregation types")
-    @Transactional(readOnly = true)
-    public List<AggregationTypeVO> getAllAggregationTypes(@GraphQLArgument(name = "filter") AggregationTypeFilterVO filter,
-                                                          @GraphQLEnvironment ResolutionEnvironment env) {
-        filter = fillFilterDefaults(filter);
-        return aggregationService.findTypesByFilter(filter, getFetchOptions(GraphQLUtils.fields(env)));
-    }
-
     @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
     @Transactional(readOnly = true)
-    public AggregationResultVO getAggregationRows(@GraphQLArgument(name = "type") AggregationTypeVO type,
+    public AggregationResultVO getAggregationRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata,
                                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -111,10 +82,15 @@ public class AggregationGraphQLService {
                                                   @GraphQLArgument(name = "sortBy") String sort,
                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
-        // Check access right
-        securityService.checkReadAccess(type);
+        // Check type
+        ExtractionProductVO product = getByExample(type);
 
-        return aggregationService.getAggBySpace(type, filter, strata, Page.builder()
+        checkIsSpatial(product);
+
+        // Check access right
+        securityService.checkReadAccess(product);
+
+        return aggregationService.readBySpace(product, filter, strata, Page.builder()
             .offset(offset)
             .size(size)
             .sortBy(sort)
@@ -122,31 +98,11 @@ public class AggregationGraphQLService {
             .build());
     }
 
-    @GraphQLQuery(name = "aggregationColumns", description = "Read columns from aggregation")
-    @Transactional(readOnly = true)
-    public List<ExtractionTableColumnVO> getAggregationColumns(@GraphQLArgument(name = "type") AggregationTypeVO type,
-                                                               @GraphQLArgument(name = "sheet") String sheetName,
-                                                               @GraphQLEnvironment ResolutionEnvironment env) {
-
-        // Check type
-        type = aggregationService.getTypeByFormat(type);
-
-        // Check access right
-        securityService.checkReadAccess(type);
-
-        Set<String> fields = GraphQLUtils.fields(env);
-
-        ExtractionTableColumnFetchOptions fetchOptions = ExtractionTableColumnFetchOptions.builder()
-                .withRankOrder(fields.contains(ExtractionTableColumnVO.Fields.RANK_ORDER))
-                .build();
-
-        return productService.getColumnsBySheetName(type.getId(), sheetName, fetchOptions);
-    }
 
 
     @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
-    public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") AggregationTypeVO format,
+    public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -155,21 +111,25 @@ public class AggregationGraphQLService {
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        final AggregationTypeVO type = aggregationService.getTypeByFormat(format);
+        ExtractionProductVO product = getByExample(type, ExtractionProductFetchOptions.builder()
+            .withStratum(true)
+            .build());
+
+        checkIsSpatial(product);
 
         // Check access right
-        securityService.checkReadAccess(type);
+        securityService.checkReadAccess(product);
 
         // Use the first product's strata, as default
         if ((strata == null || strata.getSpatialColumnName() == null || strata.getTimeColumnName() == null)
-                && CollectionUtils.isNotEmpty(type.getStratum())) {
+            && CollectionUtils.isNotEmpty(product.getStratum())) {
 
             // Get a strata, to use by default
             final String sheetName = strata != null ? strata.getSheetName() : (filter != null ? filter.getSheetName() : null);
-            AggregationStrataVO defaultStrata = type.getStratum().stream()
-                            .filter(s -> sheetName == null || sheetName.equalsIgnoreCase(s.getSheetName()))
-                            .findFirst()
-                    .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown sheetName '%s' in type '%s'", sheetName, type.getLabel())));
+            AggregationStrataVO defaultStrata = product.getStratum().stream()
+                .filter(s -> sheetName == null || sheetName.equalsIgnoreCase(s.getSheetName()))
+                .findFirst()
+                .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown sheetName '%s' in type '%s'", sheetName, type.getLabel())));
 
             // Apply default strata, if need
             if (strata == null) {
@@ -197,7 +157,7 @@ public class AggregationGraphQLService {
         }
 
         // Get data
-        AggregationResultVO data = aggregationService.getAggBySpace(type, filter, strata, Page.builder()
+        AggregationResultVO data = aggregationService.readBySpace(product, filter, strata, Page.builder()
             .offset(offset)
             .size(size)
             .sortBy(sort)
@@ -211,110 +171,55 @@ public class AggregationGraphQLService {
 
     @GraphQLQuery(name = "aggregationTech", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
-    public AggregationTechResultVO getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
+    public AggregationTechResultVO getAggregationByTech(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
                                                         @GraphQLArgument(name = "sortBy") String sort,
                                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        final AggregationTypeVO type = aggregationService.getTypeByFormat(format);
+        ExtractionProductVO product = getByExample(type);
+
+        checkIsSpatial(product);
 
         // Check access right
-        securityService.checkReadAccess(type);
+        securityService.checkReadAccess(product);
 
-        return aggregationService.getAggByTech(type, filter, strata, sort, SortDirection.fromString(direction));
+        return aggregationService.readByTech(product, filter, strata, sort, SortDirection.fromString(direction));
     }
-
 
     @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
-    public MinMaxVO getAggregationByTech(@GraphQLArgument(name = "type") AggregationTypeVO format,
+    public MinMaxVO getAggregationByTech(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                          @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                          @GraphQLArgument(name = "strata") AggregationStrataVO strata) {
 
         // Check type
-        final AggregationTypeVO type = aggregationService.getTypeByFormat(format);
+        ExtractionProductVO product = getByExample(type);
+
+        checkIsSpatial(product);
 
         // Check access right
-        securityService.checkReadAccess(type);
+        securityService.checkReadAccess(product);
 
-        return aggregationService.getAggMinMaxByTech(type, filter, strata);
-    }
-
-    @GraphQLMutation(name = "saveAggregation", description = "Create or update a data aggregation")
-    public AggregationTypeVO saveAggregation(@GraphQLArgument(name = "type") AggregationTypeVO type,
-                                             @GraphQLArgument(name = "filter") ExtractionFilterVO filter
-    ) throws ExecutionException, InterruptedException {
-        boolean isNew = type.getId() == null;
-        if (isNew) {
-            securityService.checkWriteAccess();
-        }
-        else {
-            securityService.checkWriteAccess(type.getId());
-        }
-
-        return aggregationService.asyncSave(type, filter).get();
-    }
-
-    @GraphQLMutation(name = "deleteAggregations", description = "Delete some aggregations")
-    public void deleteAggregations(@GraphQLArgument(name = "ids") int[] ids) {
-
-        // Make sure can be deleted
-        Arrays.stream(ids).forEach(securityService::checkWriteAccess);
-
-        // Do deletion
-        Arrays.stream(ids).forEach(productService::delete);
-    }
-
-    @GraphQLMutation(name = "updateProduct", description = "Update an extraction product")
-    @Transactional(timeout = 10000000)
-    public AggregationTypeVO updateProduct(@GraphQLArgument(name = "id") int id) {
-
-        // Make sure can update
-        securityService.checkWriteAccess(id);
-
-        // Do update
-        return aggregationService.updateProduct(id);
-    }
-
-    /* -- protected methods --*/
-
-    protected ExtractionProductFetchOptions getFetchOptions(Set<String> fields) {
-        return ExtractionProductFetchOptions.builder()
-                .withDocumentation(fields.contains(AggregationTypeVO.Fields.DOCUMENTATION))
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
-                // Tables (=sheets)
-                .withTables(fields.contains(ExtractionTypeVO.Fields.SHEET_NAMES))
-                // Columns not need
-                .withColumns(false)
-                // Stratum
-                .withStratum(
-                        fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, IEntity.Fields.ID))
-                        || fields.contains(StringUtils.slashing(AggregationTypeVO.Fields.STRATUM, AggregationStrataVO.Fields.SPATIAL_COLUMN_NAME))
-                )
-
-                .build();
+        return aggregationService.getTechMinMax(product, filter, strata);
     }
 
 
-    protected AggregationTypeFilterVO fillFilterDefaults(AggregationTypeFilterVO filter) {
-        AggregationTypeFilterVO result = filter != null ? filter : new AggregationTypeFilterVO();
+    protected void checkIsSpatial(ExtractionProductVO target) {
 
-        // Restrict to self data - issue #199
-        if (!securityService.canReadAll()) {
-            PersonVO user = securityService.getAuthenticatedUser().orElse(null);
-            if (user != null) {
-                result.setRecorderPersonId(user.getId());
-                result.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
-            }
-            else {
-                result.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
-            }
-        }
-
-        return result;
+        if (!target.getIsSpatial()) throw new SumarisTechnicalException("Not a spatial product");
     }
 
+    protected ExtractionProductVO getByExample(IExtractionType source) {
+        return getByExample(source, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
+    }
+
+    protected ExtractionProductVO getByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
+        IExtractionType checkedType = extractionManager.getByExample(source, fetchOptions);
+
+        if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
+
+        return (ExtractionProductVO)checkedType;
+    }
 }

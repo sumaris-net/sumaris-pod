@@ -22,12 +22,13 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -36,6 +37,7 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -58,7 +60,18 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
     private ExtractionProductService service;
 
     @Test
-    public void getAndSave() {
+    public void saveLiveRdb() {
+        ExtractionProductVO source = createProduct(LiveExtractionTypeEnum.RDB);
+
+        ExtractionProductVO target = service.save(source);
+        Assert.assertNotNull(target);
+        Assert.assertNotNull(target.getId());
+        Assert.assertEquals(source.getLabel(), target.getLabel());
+        Assert.assertEquals(ExtractionCategoryEnum.PRODUCT, target.getCategory());
+    }
+
+    @Test
+    public void saveExistingProduct() {
         ExtractionProductVO source = service.getByLabel(fixtures.getRdbProductLabel(0), ExtractionProductFetchOptions.FOR_UPDATE);
 
         source.setComments("Test save");
@@ -67,11 +80,12 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
         ExtractionProductVO target = service.save(source);
         Assert.assertNotNull(target);
         Assert.assertNotNull(target.getId());
+        Assert.assertEquals(source.getLabel(), target.getLabel());
     }
 
     @Test
     public void saveThenDelete() {
-        ExtractionProductVO source = createProduct(ExtractionCategoryEnum.LIVE, LiveFormatEnum.SURVIVAL_TEST);
+        ExtractionProductVO source = createProduct(LiveExtractionTypeEnum.SURVIVAL_TEST);
 
         // Save
         ExtractionProductVO target = service.save(source);
@@ -115,16 +129,16 @@ public class ExtractionProductServiceTest extends AbstractServiceTest {
 
     /* -- protected methods --*/
 
-    protected ExtractionProductVO createProduct(ExtractionCategoryEnum category, IExtractionFormat format) {
+    protected ExtractionProductVO createProduct(IExtractionType source) {
 
         ExtractionProductVO target = new ExtractionProductVO();
-        target.setLabel(ExtractionProducts.getProductLabel(format, System.currentTimeMillis()));
-        target.setFormat(format.getLabel());
-        target.setVersion(format.getVersion());
-        target.setName(String.format("Product on %s (%s) data", format.getLabel(), category.name()));
+        target.setLabel(ExtractionProducts.computeProductLabel(source, System.currentTimeMillis()));
+        target.setFormat(source.getLabel());
+        target.setVersion(source.getVersion());
+        target.setName(String.format("Product on %s (%s) data", source.getLabel(), source.getCategory().name()));
         target.setStatusId(StatusEnum.TEMPORARY.getId());
         target.setIsSpatial(false);
-        target.setProcessingFrequencyId(0);
+        target.setProcessingFrequencyId(ProcessingFrequencyEnum.NEVER.getId());
 
         DepartmentVO recDep = new DepartmentVO();
         recDep.setId(fixtures.getDepartmentId(0));
