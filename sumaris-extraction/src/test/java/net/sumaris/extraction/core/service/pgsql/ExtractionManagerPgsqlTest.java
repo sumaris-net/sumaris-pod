@@ -23,7 +23,7 @@
 package net.sumaris.extraction.core.service.pgsql;
 
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.AbstractExtractionManagerTest;
+import net.sumaris.extraction.core.service.ExtractionManagerTest;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,7 +35,7 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @ActiveProfiles("pgsql")
-public class ExtractionManagerPgsqlTest extends AbstractExtractionManagerTest {
+public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");

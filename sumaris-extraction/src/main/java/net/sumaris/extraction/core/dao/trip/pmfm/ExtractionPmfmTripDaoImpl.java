@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
@@ -67,9 +68,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
-    @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.PMFM_TRIP;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getSurvivalTestTableName());
 
         // Clean row using generic tripFilter
@@ -293,7 +293,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getReleaseTableName());
 
         // Clean row using generic tripFilter

@@ -22,8 +22,10 @@ package net.sumaris.extraction.core.dao.trip.survivalTest;
  * #L%
  */
 
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -51,8 +53,8 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.SURVIVAL_TEST;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.SURVIVAL_TEST);
     }
 
     @Override
@@ -179,7 +181,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getSurvivalTestTableName());
 
         // Clean row using generic tripFilter
@@ -209,7 +211,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getReleaseTableName());
 
         // Clean row using generic tripFilter

@@ -20,31 +20,22 @@
  * #L%
  */
 
-package net.sumaris.extraction.core;
+package net.sumaris.core.vo.technical.extraction;
 
+import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 
-import net.sumaris.extraction.core.service.pgsql.ExtractionManagerPgsqlTest;
-import net.sumaris.extraction.core.service.pgsql.ExtractionProductServicePgsqlTest;
-import org.junit.ClassRule;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.springframework.test.context.ActiveProfiles;
+import java.util.Optional;
+import java.util.Set;
 
-/**
- * Created by Ludovic on 02/02/2016.
- */
-@RunWith(Suite.class)
-@ActiveProfiles("pgsql")
-@Suite.SuiteClasses({
-    // DAO
-    // Service
-    ExtractionProductServicePgsqlTest.class,
-    ExtractionManagerPgsqlTest.class
+public interface IExtractionTypeWithTablesVO
+    extends IExtractionType<PersonVO, DepartmentVO>, IValueObject<Integer> {
 
-})
-public class AllPgsqlTests {
+    Set<String> getTableNames();
 
-    @ClassRule
-    public static InitTests initTests = new InitTests("pgsql");
+    Optional<String> findTableNameBySheetName(String sheetName);
 
+    Optional<String> findSheetNameByTableName(String tableName);
 }

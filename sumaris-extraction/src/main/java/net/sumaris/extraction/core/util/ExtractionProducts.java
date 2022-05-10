@@ -38,14 +38,23 @@ import java.util.Date;
  */
 public class ExtractionProducts {
 
-    public static String computeProductLabel(@NonNull IExtractionType format, @NonNull long timeInMillis) {
-        return computeProductLabel(format.getFormat(), timeInMillis);
+    public static String computeLabel(@NonNull IExtractionType format, @NonNull long timeInMillis) {
+        return computeLabel(format.getFormat(), timeInMillis);
     }
 
-    public static String computeProductLabel(@NonNull String formatLabel, @NonNull long timeInMillis) {
+    public static String computeLabel(@NonNull String formatLabel, @NonNull long timeInMillis) {
         return String.format("%s-%s",
                 formatLabel,
                 timeInMillis);
+    }
+
+
+    public static String extractFormatFromLabel(String label) {
+        int index = label.indexOf('-');
+        if (index != -1) {
+            return label.substring(0, index);
+        }
+        return label;
     }
 
     public static String getProductDisplayName(@NonNull IExtractionType format, @NonNull Date time) {

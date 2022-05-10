@@ -36,6 +36,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionProductService;
+import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
@@ -57,17 +58,19 @@ import java.util.concurrent.ExecutionException;
 @ConditionalOnWebApplication
 public class ExtractionProductGraphQLService {
 
-    private final ExtractionProductService productService;
+    private final ExtractionSecurityService extractionSecurityService;
 
+    private final ExtractionTypeService extractionTypeService;
+    private final ExtractionProductService extractionProductService;
     private final ExtractionManager extractionManager;
 
-    private final ExtractionSecurityService securityService;
-
-    public ExtractionProductGraphQLService(ExtractionProductService productService,
-                                           ExtractionManager extractionManager, ExtractionSecurityService securityService) {
-        this.productService = productService;
+    public ExtractionProductGraphQLService(ExtractionManager extractionManager,
+                                           ExtractionProductService extractionProductService,
+                                           ExtractionSecurityService extractionSecurityService, ExtractionTypeService extractionTypeService) {
         this.extractionManager = extractionManager;
-        this.securityService = securityService;
+        this.extractionProductService = extractionProductService;
+        this.extractionSecurityService = extractionSecurityService;
+        this.extractionTypeService = extractionTypeService;
     }
 
     /* -- aggregation service -- */
@@ -76,8 +79,8 @@ public class ExtractionProductGraphQLService {
     @Transactional(readOnly = true)
     public ExtractionProductVO getProduct(@GraphQLArgument(name = "id") int id,
                                           @GraphQLEnvironment ResolutionEnvironment env) {
-        securityService.checkReadAccess(id);
-        return productService.get(id, getFetchOptions(GraphQLUtils.fields(env)));
+        extractionSecurityService.checkReadAccess(id);
+        return extractionProductService.get(id, getFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "extractionProducts", description = "Get all available extraction products")
@@ -85,20 +88,20 @@ public class ExtractionProductGraphQLService {
     public List<ExtractionProductVO> findProductsByFilter(@GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter,
                                                           @GraphQLEnvironment ResolutionEnvironment env) {
         filter = fillFilterDefaults(filter);
-        return productService.findByFilter(filter, getFetchOptions(GraphQLUtils.fields(env)));
+        return extractionProductService.findByFilter(filter, getFetchOptions(GraphQLUtils.fields(env)));
     }
 
-    @GraphQLMutation(name = "saveProduct", description = "Create or update a extraction product")
+    @GraphQLMutation(name = "saveExtractionProduct", description = "Create or update a extraction product")
     public ExtractionProductVO saveProduct(@GraphQLNonNull @GraphQLArgument(name = "product") ExtractionProductVO source,
                                            @GraphQLArgument(name = "filter") ExtractionFilterVO filter
-    ) throws ExecutionException, InterruptedException {
+    ) {
 
         boolean isNew = source.getId() == null;
         if (isNew) {
-            securityService.checkWriteAccess();
+            extractionSecurityService.checkWriteAccess();
         }
         else {
-            securityService.checkWriteAccess(source.getId());
+            extractionSecurityService.checkWriteAccess(source.getId());
         }
 
         // Execute, then save
@@ -107,7 +110,7 @@ public class ExtractionProductGraphQLService {
         }
 
         // Save only
-        return productService.save(source);
+        return extractionProductService.save(source);
     }
 
     @GraphQLMutation(name = "deleteProducts", description = "Delete many products")
@@ -115,10 +118,10 @@ public class ExtractionProductGraphQLService {
     public void deleteProducts(@GraphQLArgument(name = "ids") int[] ids) {
 
         // Make sure can be deleted
-        Arrays.stream(ids).forEach(securityService::checkWriteAccess);
+        Arrays.stream(ids).forEach(extractionSecurityService::checkWriteAccess);
 
         // Do deletion
-        Arrays.stream(ids).forEach(productService::delete);
+        Arrays.stream(ids).forEach(extractionProductService::delete);
     }
 
 
@@ -129,11 +132,10 @@ public class ExtractionProductGraphQLService {
                                                            @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Check type
-        ExtractionProductVO checkedType = getByExample(type);
-
+        ExtractionProductVO checkedType = getProductByExample(type);
 
         // Check access right
-        securityService.checkReadAccess(checkedType);
+        extractionSecurityService.checkReadAccess(checkedType);
 
         Set<String> fields = GraphQLUtils.fields(env);
 
@@ -141,14 +143,14 @@ public class ExtractionProductGraphQLService {
             .withRankOrder(fields.contains(ExtractionTableColumnVO.Fields.RANK_ORDER))
             .build();
 
-        return productService.getColumnsBySheetName(checkedType.getId(), sheetName, fetchOptions);
+        return extractionProductService.getColumnsBySheetName(checkedType.getId(), sheetName, fetchOptions);
     }
 
     @GraphQLMutation(name = "updateProduct", description = "Update an extraction product")
     public ExtractionProductVO updateProduct(@GraphQLArgument(name = "id") int id) throws ExecutionException, InterruptedException {
 
         // Make sure can update
-        securityService.checkWriteAccess(id);
+        extractionSecurityService.checkWriteAccess(id);
 
         // Do update
         return extractionManager.executeAndSave(id);
@@ -179,8 +181,8 @@ public class ExtractionProductGraphQLService {
         filter = ExtractionTypeFilterVO.nullToEmpty(filter);
 
         // Restrict to self data - issue #199
-        if (!securityService.canReadAll()) {
-            PersonVO user = securityService.getAuthenticatedUser().orElse(null);
+        if (!extractionSecurityService.canReadAll()) {
+            PersonVO user = extractionSecurityService.getAuthenticatedUser().orElse(null);
             if (user != null) {
                 filter.setRecorderPersonId(user.getId());
                 filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
@@ -193,8 +195,8 @@ public class ExtractionProductGraphQLService {
         return filter;
     }
 
-    protected ExtractionProductVO getByExample(IExtractionType source) {
-        IExtractionType checkedType = extractionManager.getByExample(source);
+    protected ExtractionProductVO getProductByExample(IExtractionType type) {
+        IExtractionType checkedType = extractionTypeService.getByExample(type);
 
         if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
 

@@ -22,7 +22,6 @@ package net.sumaris.core.vo.technical.extraction;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import lombok.*;
@@ -52,9 +51,11 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExtractionProductVO implements IReferentialVO<Integer>,
-    IExtractionType<PersonVO, DepartmentVO>,
     IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
-    IWithRecorderPersonEntity<Integer, PersonVO> {
+    IWithRecorderPersonEntity<Integer, PersonVO>,
+    IExtractionTypeWithTablesVO,
+    IExtractionTypeWithStratumVO,
+    IAggregationSourceVO {
 
     @ToString.Include
     Integer id;
@@ -76,6 +77,7 @@ public class ExtractionProductVO implements IReferentialVO<Integer>,
     Date updateDate;
     Date creationDate;
     Boolean isSpatial;
+    String docUrl;
     String filterContent;
     Integer processingFrequencyId;
 
@@ -95,13 +97,46 @@ public class ExtractionProductVO implements IReferentialVO<Integer>,
         Beans.copyProperties(other, this);
         if (other instanceof ExtractionProductVO) {
             tables = ImmutableList.copyOf(Beans.getList(((ExtractionProductVO) other).tables));
-            stratum = ImmutableList.copyOf(Beans.getList(((ExtractionProductVO) other).stratum));
+            stratum = ImmutableList.copyOf(Beans.getList(((IExtractionTypeWithStratumVO) other).getStratum()));
+        }
+        else {
+            if (other instanceof  IExtractionTypeWithTablesVO) {
+                tables = ((IExtractionTypeWithTablesVO) other).getTableNames().stream()
+                    .map(tableName -> {
+                        String sheetName = ((IExtractionTypeWithTablesVO) other).findSheetNameByTableName(tableName).orElse(null);
+                        return ExtractionTableVO.builder()
+                            .tableName(tableName)
+                            .label(sheetName)
+                            .build();
+                    })
+                    .collect(Collectors.toList());
+            }
+            if (other instanceof  IExtractionTypeWithStratumVO) {
+                stratum = ImmutableList.copyOf(Beans.getList(((IExtractionTypeWithStratumVO) other).getStratum()));
+            }
         }
     }
 
-    public List<String> getTableNames() {
+    @Override
+    public Set<String> getTableNames() {
         if (tables == null) return null;
-        return tables.stream().map(ExtractionTableVO::getTableName).collect(Collectors.toList());
+        return tables.stream().map(ExtractionTableVO::getTableName).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Optional<String> findTableNameBySheetName(@NonNull String sheetName) {
+        return ListUtils.emptyIfNull(tables).stream()
+            .filter(t -> sheetName.equalsIgnoreCase(t.getLabel()))
+            .map(ExtractionTableVO::getTableName)
+            .findFirst();
+    }
+
+    @Override
+    public Optional<String> findSheetNameByTableName(@NonNull String tableName) {
+        return ListUtils.emptyIfNull(tables).stream()
+            .filter(t -> tableName.equalsIgnoreCase(t.getTableName()))
+            .map(ExtractionTableVO::getLabel)
+            .findFirst();
     }
 
     public String[] getSheetNames() {
@@ -113,12 +148,6 @@ public class ExtractionProductVO implements IReferentialVO<Integer>,
         if (tables == null) return null;
         return tables.stream()
             .collect(Collectors.toMap(ExtractionTableVO::getLabel, ExtractionTableVO::getTableName));
-    }
-
-    public Map<String, String> getSheetNameByTableNameMap() {
-        if (tables == null) return null;
-        return tables.stream()
-            .collect(Collectors.toMap(ExtractionTableVO::getTableName, ExtractionTableVO::getLabel));
     }
 
     public Map<String, Set<String>> getHiddenColumnNames() {
@@ -134,27 +163,5 @@ public class ExtractionProductVO implements IReferentialVO<Integer>,
             });
         return result;
     }
-
-    public Optional<String> findTableNameBySheetName(String sheetName) {
-        Preconditions.checkNotNull(sheetName);
-        return ListUtils.emptyIfNull(tables).stream()
-                .filter(t -> sheetName.equalsIgnoreCase(t.getLabel()))
-                .map(ExtractionTableVO::getTableName)
-                .findFirst();
-    }
-
-    public Optional<String> findSheetNameByTableName(String tableName) {
-        Preconditions.checkNotNull(tableName);
-        return ListUtils.emptyIfNull(tables).stream()
-                .filter(t -> tableName.equalsIgnoreCase(t.getTableName()))
-                .map(ExtractionTableVO::getLabel)
-                .findFirst();
-    }
-
-    public boolean hasSpatialSheet() {
-        return ListUtils.emptyIfNull(tables).stream()
-                .anyMatch(t -> t.getIsSpatial() != null && t.getIsSpatial());
-    }
-
 
 }

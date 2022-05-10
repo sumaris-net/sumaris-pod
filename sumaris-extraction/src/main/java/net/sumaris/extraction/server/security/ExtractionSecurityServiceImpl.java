@@ -26,10 +26,12 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
@@ -39,9 +41,10 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionProductService;
-import net.sumaris.extraction.core.service.ExtractionService;
+import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.server.security.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,11 +71,8 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Autowired
     private ExtractionProductService productService;
-
     @Autowired
-    private ExtractionService extractionService;
-    @Autowired
-    private ExtractionManager extractionManager;
+    private ExtractionTypeService extractionTypeService;
     @Autowired
     private IAuthService<PersonVO> authService;
 
@@ -91,25 +91,31 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     }
 
     @Override
-    public boolean canRead(@NonNull IExtractionType format) {
+    public boolean canRead(@NonNull IExtractionType type) {
 
         // User can read all extraction
         if (canReadAll()) return true; // OK if can read all
 
-        if (format.getCategory() != null && format.getCategory() == ExtractionCategoryEnum.LIVE) {
-            return false; // KO: Live extraction not allowed, when cannot read all data
-        }
+        type = extractionTypeService.getByExample(type);
 
-        IExtractionType type = extractionManager.getByExample(format);
+        // KO: Live extraction not allowed, when cannot read all data
+        if (ExtractionTypes.isLive(type)) return false;
 
-        if (ExtractionTypes.isPublic(type)) return true; // OK if public
+        // OK if public
+        if (ExtractionTypes.isPublic(type)) return true;
 
         // Get extraction type recorder
         PersonVO user = getAuthenticatedUser().orElse(null);
         if (user == null) throw new UnauthorizedException("User not login");
 
+        if (!(type instanceof IWithRecorderPersonEntity)) {
+            log.warn("Invalid ExtractionType class: {}. Should implement IWithRecorderPersonEntity.class", type.getClass().getSimpleName());
+            return false; // No recorder fetched (should never occur)
+        }
+
         // OK if same recorder
-        Serializable recorderPersonId = type.getRecorderPerson() != null ? type.getRecorderPerson().getId() : null;
+        IEntity recorderPerson = ((IWithRecorderPersonEntity)type).getRecorderPerson();
+        Serializable recorderPersonId = recorderPerson != null ? recorderPerson.getId() : null;
         return Objects.equals(user.getId(), recorderPersonId);
     }
 
@@ -126,9 +132,8 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     @Override
     public boolean canWrite(@NonNull ExtractionProductVO type) {
 
-        if (type.getCategory() != null && type.getCategory() == ExtractionCategoryEnum.LIVE) {
-            return false; // KO: only products are writable
-        }
+        // KO: only products are writable
+        if (!ExtractionTypes.isProduct(type)) return false;
 
         // User can read all extraction
         if (canWriteAll()) return true; // OK if can read all
@@ -144,8 +149,8 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public boolean canRead(int productId) {
-       ExtractionProductVO product = productService.get(productId, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
-       return canRead(product);
+       IExtractionType checkedType = extractionTypeService.getByExample(ExtractionTypeVO.builder().id(productId).build());
+       return canRead(checkedType);
     }
 
     @Override

@@ -49,7 +49,7 @@ public interface ExtractionTypeService {
     List<ExtractionTypeVO> findAll();
 
     @Transactional(readOnly = true)
-    List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter, Page page);
+    List<ExtractionTypeVO> findAllByFilter(@Nullable ExtractionTypeFilterVO filter, Page page);
 
     @Transactional(readOnly = true)
     List<ExtractionTypeVO> getLiveTypes();

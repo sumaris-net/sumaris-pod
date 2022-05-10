@@ -30,14 +30,6 @@ public class ExtractionServiceLocator {
         return ServiceLocator.instance().getService("extractionProductService", ExtractionProductService.class);
     }
 
-    public static AggregationService aggregationService() {
-        return ServiceLocator.instance().getService("aggregationService", AggregationService.class);
-    }
-
-    public static ExtractionService extractionService() {
-        return ServiceLocator.instance().getService("extractionService", ExtractionService.class);
-    }
-
     public static ExtractionTypeService extractionTypeService() {
         return ServiceLocator.instance().getService("extractionTypeService", ExtractionTypeService.class);
     }

@@ -88,19 +88,4 @@ public class ExtractionWebAutoConfiguration {
         };
     }
 
-    @Bean
-    @ConditionalOnBean(name= "extractionExecutor")
-    @ConditionalOnMissingBean({SchedulingConfigurer.class})
-    public SchedulingConfigurer schedulingConfigurer(Executor extractionExecutor) {
-        return taskRegistrar -> taskRegistrar.setScheduler(extractionExecutor);
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        name = "sumaris.extraction.scheduling.enabled",
-        matchIfMissing = true
-    )
-    public Executor extractionExecutor() {
-        return Executors.newScheduledThreadPool((ProcessingFrequencyEnum.values().length - 1) * 2);
-    }
 }

@@ -29,14 +29,13 @@ import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionServiceLocator;
-import net.sumaris.extraction.server.job.ExtractionJob;
 
 /**
  * <p>DatabaseChangeLogAction class.</p>
  *
  */
 @Slf4j
-public class ExtractionProductUpdateAction {
+public class ExtractionUpdateAction {
 
     /**
      * <p>Update a product (execute extraction or aggregation).</p>

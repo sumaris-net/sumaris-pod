@@ -153,10 +153,6 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
         String regexpOptions = (ignoreCase ? "(?i)" : "");
         for (Map.Entry<String, String> entry: columnNamesMapping.entrySet()) {
             String sourceColumnName = entry.getKey();
-
-            // Comment out - should not be need anymore
-            //  // Output into lowercase (need by PostgreSQL)
-            // String targetColumnName = entry.getValue().toLowerCase();
             String targetColumnName = entry.getValue();
 
             sqlQuery = sqlQuery

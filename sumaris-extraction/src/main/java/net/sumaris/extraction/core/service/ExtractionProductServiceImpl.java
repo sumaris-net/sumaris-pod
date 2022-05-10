@@ -24,21 +24,18 @@ package net.sumaris.extraction.core.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.ExtractionCacheConfiguration;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
-import net.sumaris.extraction.core.util.ExtractionTypes;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
+import net.sumaris.extraction.core.util.ExtractionProducts;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -52,6 +49,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author benoit.lavenier@e-is.pro
@@ -61,11 +59,16 @@ import java.util.Optional;
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionProductServiceImpl implements ExtractionProductService {
 
-    @Autowired
-    private ExtractionProductRepository extractionProductRepository;
+    private final ExtractionProductRepository extractionProductRepository;
 
-    @Autowired
-    private ExtractionTableDao extractionTableDao;
+    private final SumarisDatabaseMetadata databaseMetadata;
+
+
+    public ExtractionProductServiceImpl(ExtractionProductRepository extractionProductRepository,
+                                        SumarisDatabaseMetadata databaseMetadata) {
+        this.extractionProductRepository = extractionProductRepository;
+        this.databaseMetadata = databaseMetadata;
+    }
 
     @Override
     public List<ExtractionProductVO> findByFilter(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
@@ -73,7 +76,7 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     }
 
     @Override
-    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS)
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID)
     public ExtractionProductVO get(int id, ExtractionProductFetchOptions fetchOptions) {
         return extractionProductRepository.get(id, fetchOptions);
     }
@@ -94,6 +97,13 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
     }
 
     @Override
+    @Caching(
+        evict = {
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPE_BY_EXAMPLE, allEntries = true),
+            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
+        }
+    )
     public ExtractionProductVO save(ExtractionProductVO source) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
@@ -151,8 +161,8 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
 
     @Override
     @Caching(evict = {
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_EXAMPLE, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPE_BY_EXAMPLE, allEntries = true),
         @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
     })
     public void delete(int id) {
@@ -176,7 +186,7 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
                     .orElseThrow(() -> new DataRetrievalFailureException(String.format("Product id=%s has no sheetName '%s'", id, sheetName)));
 
             // Get columns
-            columns = extractionTableDao.getColumns(tableName,
+            columns = getColumns(tableName,
                     ExtractionTableColumnFetchOptions.builder()
                         .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
                         .build());
@@ -190,11 +200,43 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
         return columns;
     }
 
-
-    protected void dropTables(Collection<String> tableNames) {
-        Beans.getStream(tableNames).forEach(extractionTableDao::dropTable);
+    @Override
+    public List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions) {
+        SumarisTableMetadata table = databaseMetadata.getTable(tableName);
+        Preconditions.checkNotNull(table, "Unknown table: " + tableName);
+        return toProductColumnVOs(table, table.getColumnNames(), fetchOptions);
     }
 
+    protected void dropTables(Collection<String> tableNames) {
+        Beans.getStream(tableNames).forEach(extractionProductRepository::dropTable);
+    }
 
+    /**
+     * Read table metadata, to get column.
+     *
+     * /!\ Important: column order must be the unchanged !! Otherwise getTableGroupByRows() will not work well
+     *
+     * @param table
+     * @param columnNames
+     * @param fetchOptions
+     * @return
+     */
+    protected List<ExtractionTableColumnVO> toProductColumnVOs(SumarisTableMetadata table,
+                                                               Collection<String> columnNames,
+                                                               ExtractionTableColumnFetchOptions fetchOptions) {
 
+        List<ExtractionTableColumnVO> columns = columnNames.stream()
+            // Get column metadata
+            .map(table::getColumnMetadata)
+            .filter(Objects::nonNull)
+            // Transform in VO
+            .map(ExtractionProducts::toProductColumnVO)
+            .collect(Collectors.toList());
+
+        if (fetchOptions.isWithRankOrder()) {
+            ExtractionTableColumnOrder.fillRankOrderByTableName(table.getName(), columns);
+        }
+
+        return columns;
+    }
 }

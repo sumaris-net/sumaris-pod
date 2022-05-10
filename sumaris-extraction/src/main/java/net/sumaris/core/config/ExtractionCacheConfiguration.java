@@ -50,9 +50,9 @@ public class ExtractionCacheConfiguration {
         String EXTRACTION_ROWS_PREFIX = "net.sumaris.core.dao.technical.extraction.extractionRows.";
 
         String EXTRACTION_TYPES = "net.sumaris.extraction.core.service.extractionTypes";
+        String EXTRACTION_TYPE_BY_EXAMPLE = "net.sumaris.extraction.core.service.productByExample";
 
-        String PRODUCT_BY_ID_AND_OPTIONS = "net.sumaris.extraction.core.service.productById";
-        String PRODUCT_BY_EXAMPLE = "net.sumaris.extraction.core.service.productByExample";
+        String PRODUCT_BY_ID = "net.sumaris.extraction.core.service.productById";
     }
 
     @Bean
@@ -60,12 +60,12 @@ public class ExtractionCacheConfiguration {
         return cacheManager -> {
             log.info("Adding {Extraction} caches...");
             Caches.createCollectionHeapCache(cacheManager, Names.EXTRACTION_TYPES, ExtractionTypeVO.class, CacheTTL.MEDIUM.asDuration(), 100);
-            Caches.createHeapCache(cacheManager, Names.PRODUCT_BY_ID_AND_OPTIONS, ExtractionProductVO.class, CacheTTL.DEFAULT.asDuration(), 100);
-            Caches.createHeapCache(cacheManager, Names.PRODUCT_BY_EXAMPLE, String.class, IExtractionType.class, CacheTTL.DEFAULT.asDuration(), 100);
+            Caches.createHeapCache(cacheManager, Names.EXTRACTION_TYPE_BY_EXAMPLE, String.class, IExtractionType.class, CacheTTL.DEFAULT.asDuration(), 500);
+            Caches.createHeapCache(cacheManager, Names.PRODUCT_BY_ID, ExtractionProductVO.class, CacheTTL.DEFAULT.asDuration(), 100);
 
             Arrays.stream(CacheTTL.values())
                 .forEach(ttl -> Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
-                    Integer.class, ExtractionResultVO.class, ttl.asDuration(), 10));
+                    Integer.class, ExtractionResultVO.class, ttl.asDuration(), 50));
         };
     }
 }

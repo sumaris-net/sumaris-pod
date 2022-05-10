@@ -25,9 +25,12 @@ package net.sumaris.extraction.core.vo;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import org.apache.commons.collections4.ListUtils;
 
 /**
  * @author Ludovic Pecquot <ludovic.pecquot>
@@ -36,9 +39,9 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @EqualsAndHashCode(callSuper = true)
-public class ExtractionProductContextVO extends ExtractionContextVO {
+public class AggregationProductContextVO extends AggregationContextVO {
 
-    public ExtractionProductContextVO(ExtractionProductVO source) {
+    public AggregationProductContextVO(@NonNull ExtractionProductVO source, @NonNull String sheetName) {
         Beans.copyProperties(source, this);
 
         // Copy table names
@@ -46,6 +49,17 @@ public class ExtractionProductContextVO extends ExtractionContextVO {
 
         // Copy hidden columns
         setHiddenColumnNames(source.getHiddenColumnNames());
+
+        // Find the strata to apply, by sheetName
+        if (source.getStratum() != null) {
+            AggregationStrataVO productStrata = source.getStratum().stream()
+                .filter(s -> sheetName.equals(s.getSheetName()))
+                .findFirst().orElse(null);
+            if (productStrata != null) {
+                AggregationStrataVO strata = new AggregationStrataVO(productStrata); // Copy
+                this.setStrata(strata);
+            }
+        }
     }
 
 

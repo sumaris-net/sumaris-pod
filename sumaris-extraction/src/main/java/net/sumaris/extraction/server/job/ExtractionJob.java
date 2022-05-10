@@ -22,23 +22,13 @@
 
 package net.sumaris.extraction.server.job;
 
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.model.technical.history.ProcessingFrequency;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfigurationOption;
 import net.sumaris.extraction.core.service.ExtractionManager;
-import net.sumaris.extraction.core.service.ExtractionProductService;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.event.EventListener;
@@ -47,8 +37,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Component
@@ -57,52 +45,34 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExtractionJob {
 
-    @Autowired
-    private ExtractionManager extractionManager;
-
-    @Autowired
-    private ExtractionConfiguration configuration;
-
-    @Autowired(required = false)
-    private Executor extractionExecutor;
-
+    private final ExtractionManager extractionManager;
+    private final ExtractionConfiguration configuration;
     private boolean enable = false;
-
-
-    public ExtractionJob() {
-        super();
-    }
 
     public ExtractionJob(ExtractionManager extractionManager,
                          ExtractionConfiguration configuration) {
         super();
         this.extractionManager = extractionManager;
         this.configuration = configuration;
-        this.enable = configuration.enableExtractionProduct();
     }
-
-   
 
     /* -- protected functions -- */
 
     @EventListener({ConfigurationReadyEvent.class})
     protected void onConfigurationReady(ConfigurationReadyEvent event) {
-        if (!this.enable) {
-            boolean enable = configuration.enableExtractionProduct() && extractionExecutor != null;
-
+        boolean enable = configuration.enableExtractionProduct() && configuration.enableExtractionScheduling();
+        if (this.enable != enable) {
+            this.enable = enable;
             if (!enable) {
-                log.debug("Extraction jobs disabled.");
-                log.debug("To enable extraction jobs, please set configuration option '{}=true'", ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
-                return;
+                log.info("Extraction jobs disabled. Use option '{}' to enable jobs", ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
             }
             else {
                 // Load started
-                log.info("Started Extraction jobs, for frequencies {{}}",
+                log.info("Started Extraction jobs {{}}",
                     Arrays.stream(ProcessingFrequencyEnum.values())
                         .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
                         .map(Enum::name)
-                        .collect(Collectors.joining(",")));
-                this.enable = true;
+                        .collect(Collectors.joining(", ")));
             }
         }
     }

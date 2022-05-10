@@ -48,14 +48,5 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
 
     String landingTableName; // CL table
 
-    // Allow to rename column name (e.g FREE1 use FISHING_DURATION instead of FISHING_TIME)
-    Map<String, String> columnNamesMapping = Maps.newLinkedHashMap();
 
-    public <C extends AggregationRdbTripContextVO> C addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
-        // Try to fix remplacement error
-        columnNamesMapping.put(sourceColumnName.toLowerCase(), targetColumnName.toLowerCase());
-        columnNamesMapping.put(sourceColumnName.toUpperCase(), targetColumnName.toUpperCase());
-
-        return (C)this;
-    }
 }

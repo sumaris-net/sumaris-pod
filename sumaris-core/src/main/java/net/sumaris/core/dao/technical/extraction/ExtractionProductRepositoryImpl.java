@@ -22,14 +22,17 @@ package net.sumaris.core.dao.technical.extraction;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.*;
@@ -39,14 +42,10 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -59,6 +58,7 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 21/08/2020.
  */
+@Slf4j
 public class ExtractionProductRepositoryImpl
     extends ReferentialRepositoryImpl<Integer, ExtractionProduct, ExtractionProductVO, ExtractionTypeFilterVO, ExtractionProductFetchOptions>
     implements ExtractionProductSpecifications {
@@ -66,10 +66,13 @@ public class ExtractionProductRepositoryImpl
     private final DepartmentRepository departmentRepository;
     private final PersonRepository personRepository;
 
-    protected ExtractionProductRepositoryImpl(EntityManager entityManager, DepartmentRepository departmentRepository, PersonRepository personRepository) {
+    private final String dropTableQuery;
+
+    protected ExtractionProductRepositoryImpl(EntityManager entityManager, DepartmentRepository departmentRepository, PersonRepository personRepository, SumarisDatabaseMetadata databaseMetadata) {
         super(ExtractionProduct.class, ExtractionProductVO.class, entityManager);
         this.departmentRepository = departmentRepository;
         this.personRepository = personRepository;
+        this.dropTableQuery = databaseMetadata.getDialect().getDropTableString("%s");
         setLockForUpdate(true);
     }
 
@@ -103,6 +106,20 @@ public class ExtractionProductRepositoryImpl
             return false;
         }
         return super.shouldQueryDistinct(joinProperty);
+    }
+
+    @Override
+    public void dropTable(String tableName) {
+        Preconditions.checkNotNull(tableName);
+
+        log.debug(String.format("Dropping extraction table {%s}...", tableName));
+        try {
+            String sql = String.format(dropTableQuery, tableName);
+            getSession().createSQLQuery(sql).executeUpdate();
+
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
+        }
     }
 
     @Override

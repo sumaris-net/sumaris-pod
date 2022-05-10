@@ -41,8 +41,12 @@ import java.util.Date;
 @AllArgsConstructor
 public class AggregationStrataVO implements IReferentialVO<Integer> {
 
+    public static AggregationStrataVO nullToEmpty(AggregationStrataVO strata) {
+        return strata != null ? strata : new AggregationStrataVO();
+    }
+
     Integer id;
-    String label;
+    String sheetName;
     String name;
     String description;
     String comments;
@@ -66,11 +70,11 @@ public class AggregationStrataVO implements IReferentialVO<Integer> {
         Beans.copyProperties(other, this);
     }
 
-    public String getSheetName() {
-        return label;
+    public String getLabel() {
+        return sheetName;
     }
 
-    public void setSheetName(String sheetName) {
-        this.label = sheetName;
+    public void setLabel(String label) {
+        this.sheetName = label;
     }
 }

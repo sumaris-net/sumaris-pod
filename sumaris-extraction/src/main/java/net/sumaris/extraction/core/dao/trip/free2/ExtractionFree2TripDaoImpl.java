@@ -22,11 +22,12 @@
 
 package net.sumaris.extraction.core.dao.trip.free2;
 
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
@@ -42,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
+
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -59,18 +62,9 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
     @Autowired
     protected ProgramService programService;
 
-    @Autowired
-    protected ResourceLoader resourceLoader;
-
-    @Autowired
-    protected SumarisDatabaseMetadata databaseMetadata;
-
-    @Autowired
-    protected ExtractionTableDao extractionTableDao;
-
     @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.FREE2;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.FREE2);
     }
 
     @Override
@@ -236,7 +230,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("noneUnitId", String.valueOf(UnitEnum.NONE.getId()));
 
         // execute
-        execute(xmlQuery);
+        execute(context, xmlQuery);
 
         long count = countFrom(context.getGearTableName());
 
@@ -269,7 +263,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         String tableName = context.getRawSpeciesListTableName();
 
         XMLQuery rawXmlQuery = createRawSpeciesListQuery(context, excludeInvalidStation);
-        execute(rawXmlQuery);
+        execute(context, rawXmlQuery);
 
         // Clean row using generic filter
         long count = countFrom(tableName);
@@ -311,7 +305,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         //xmlQuery.bind("noneUnitId", String.valueOf(UnitEnum.NONE.getId()));
 
         // execute
-        execute(xmlQuery);
+        execute(context, xmlQuery);
 
         long count = countFrom(tableName);
 
@@ -346,7 +340,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         //xmlQuery.bind("noneUnitId", String.valueOf(UnitEnum.NONE.getId()));
 
         // execute
-        execute(xmlQuery);
+        execute(context, xmlQuery);
 
         long count = countFrom(tableName);
 

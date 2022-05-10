@@ -38,6 +38,8 @@ import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 
+import java.util.Date;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -49,34 +51,34 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 public class ExtractionTypeVO implements IValueObject<Integer>,
     IExtractionType<PersonVO, DepartmentVO>,
     IWithRecorderPersonEntity<Integer, PersonVO>,
-    IWithRecorderDepartmentEntity<Integer, DepartmentVO>
-{
+    IWithRecorderDepartmentEntity<Integer, DepartmentVO> {
+
     Integer id;
 
-    @ToString.Include
-    ExtractionCategoryEnum category;
     @ToString.Include
     String format;
     @ToString.Include
     String version;
-
-    Integer parentId;
-    @JsonIgnore
-    IExtractionType<PersonVO, DepartmentVO> parent;
+    String[] sheetNames;
 
     @ToString.Include
     String label;
     @ToString.Include
     String name;
+
     String description;
     String comments;
-    String[] sheetNames;
     Integer statusId;
+    Date creationDate;
+    Date updateDate;
+
     Boolean isSpatial;
     String docUrl;
-
-    String filter;
     Integer processingFrequencyId;
+
+    Integer parentId;
+    @JsonIgnore
+    IExtractionType<PersonVO, DepartmentVO> parent;
 
     PersonVO recorderPerson;
     DepartmentVO recorderDepartment;
@@ -85,10 +87,6 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
 
         Beans.copyProperties(source, this);
 
-        // Generate a negative an unique id
-        //this.setId(-1 * source.hashCode());
-
-        this.setCategory(source.getCategory());
         this.setFormat(source.getFormat());
         this.setVersion(source.getVersion());
 
@@ -100,24 +98,19 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
         this.setSheetNames(source.getSheetNames());
         this.setStatusId(source.getStatusId());
 
-
-
-        if (source.getRecorderDepartment() instanceof DepartmentVO) {
-            this.setRecorderDepartment((DepartmentVO) source.getRecorderDepartment());
+        if (source instanceof IWithRecorderDepartmentEntity) {
+            Object recorderDepartment = ((IWithRecorderDepartmentEntity)source).getRecorderDepartment();
+            if (recorderDepartment instanceof DepartmentVO) {
+                this.setRecorderDepartment((DepartmentVO) recorderDepartment);
+            }
         }
-        if (source.getRecorderPerson() instanceof PersonVO) {
-            this.setRecorderPerson((PersonVO) source.getRecorderPerson());
+        if (source instanceof IWithRecorderPersonEntity) {
+            Object recorderPerson = ((IWithRecorderPersonEntity)source).getRecorderPerson();
+            if (recorderPerson instanceof PersonVO) {
+                this.setRecorderPerson((PersonVO) recorderPerson);
+            }
         }
     }
 
-    @JsonIgnore
-    public boolean isPublic() {
-        return StatusEnum.ENABLE.getId().equals(statusId);
-    }
-
-    @JsonIgnore
-    public ExtractionCategoryEnum getRawFormatCategory() {
-        return getParentId() != null ? ExtractionCategoryEnum.PRODUCT : IExtractionType.getRawFormatCategory(getLabel());
-    }
 
 }

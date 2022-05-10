@@ -76,6 +76,13 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             Boolean.class,
         false),
 
+    EXTRACTION_SCHEDULING_ENABLED (
+        "sumaris.extraction.scheduling.enabled",
+        n("sumaris.config.option.sumaris.extraction.scheduling.enabled.description"),
+        "${sumaris.extraction.product.enable}",
+        Boolean.class,
+        false),
+
     EXTRACTION_CACHE_DEFAULT_TTL(
         "sumaris.extraction.cache.ttl.default",
         n("sumaris.config.option.extraction.ttl.default.description"),

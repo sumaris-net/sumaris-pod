@@ -23,7 +23,6 @@ package net.sumaris.extraction.core.service;
  */
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.google.common.base.Preconditions;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
@@ -34,7 +33,6 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.DatabaseFixtures;
-import net.sumaris.extraction.core.specification.data.trip.AggSpecification;
 import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.util.ExtractionProducts;
@@ -76,7 +74,7 @@ public abstract class AbstractServiceTest {
     }
 
     protected File unpack(File zipFile, IExtractionType type) {
-        return unpack(zipFile,  type.getCategory().name() + '_' + type.getLabel());
+        return unpack(zipFile,  type.getLabel());
     }
 
     protected File unpack(File zipFile, String dirName) {
@@ -136,7 +134,7 @@ public abstract class AbstractServiceTest {
         target.setId(null);
         long time = System.currentTimeMillis();
         target.setUpdateDate(new Date(time));
-        target.setLabel(ExtractionProducts.computeProductLabel(source.getFormat(), time));
+        target.setLabel(ExtractionProducts.computeLabel(source.getFormat(), time));
         target.setName(ExtractionProducts.getProductDisplayName(source, time));
         target.setFormat(source.getFormat());
         target.setVersion(source.getVersion());

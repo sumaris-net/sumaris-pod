@@ -23,18 +23,20 @@ package net.sumaris.extraction.core.dao.trip.survivalTest;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
 import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.extraction.core.vo.trip.survivalTest.AggregationSurvivalTestContextVO;
-import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -44,6 +46,7 @@ import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -61,12 +64,12 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public AggExtractionTypeEnum getFormat() {
-        return AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
+    public <R extends C> R aggregate(IExtractionTypeWithTablesVO source, @Nullable F filter, S strata) {
         // Execute inherited aggregation
         R context = super.aggregate(source, filter, strata);
 
@@ -118,7 +121,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     }
 
     @Override
-    protected XMLQuery createStationQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createStationQuery(IExtractionTypeWithTablesVO source, C context) {
         XMLQuery xmlQuery = super.createStationQuery(source, context);
 
         // Inject specific select clause
@@ -128,7 +131,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     }
 
     @Override
-    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createSpeciesLengthQuery(IExtractionTypeWithTablesVO source, C context) {
         XMLQuery xmlQuery = super.createSpeciesLengthQuery(source, context);
 
         // Inject specific select clause
@@ -137,7 +140,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         return xmlQuery;
     }
 
-    protected long createSurvivalTestTable(ExtractionProductVO source, C context) {
+    protected long createSurvivalTestTable(IExtractionTypeWithTablesVO source, C context) {
 
         String tableName = context.getSurvivalTestTableName();
         log.debug(String.format("Aggregation #%s > Creating survival tests table...", context.getId()));
@@ -173,7 +176,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         return count;
     }
 
-    protected XMLQuery createSurvivalTestQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createSurvivalTestQuery(IExtractionTypeWithTablesVO source, C context) {
         String rawSurvivalTestTableName = source.findTableNameBySheetName(SurvivalTestSpecification.ST_SHEET_NAME)
                 .orElse(null);
         if (rawSurvivalTestTableName == null) return null; // Skip
@@ -200,7 +203,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         return xmlQuery;
     }
 
-    protected long createReleaseTable(ExtractionProductVO source, C context) {
+    protected long createReleaseTable(IExtractionTypeWithTablesVO source, C context) {
 
         String tableName = context.getReleaseTableName();
         log.debug(String.format("Aggregation #%s > Creating releases table...", context.getId()));
@@ -236,7 +239,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
         return count;
     }
 
-    protected XMLQuery createReleaseQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createReleaseQuery(IExtractionTypeWithTablesVO source, C context) {
         String rawReleaseTableName = source.findTableNameBySheetName(AggSurvivalTestSpecification.RL_SHEET_NAME)
                 .orElse(null);
         if (rawReleaseTableName == null) return null; // Skip

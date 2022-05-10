@@ -23,33 +23,30 @@ package net.sumaris.extraction.core.dao.administration;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyContextVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
-import java.io.IOException;
-import java.net.URL;
 import java.util.Date;
+import java.util.Set;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -59,23 +56,18 @@ import static org.nuiton.i18n.I18n.t;
  */
 @Repository("extractionStrategyDao")
 @Lazy
+@Slf4j
 public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
-        extends ExtractionBaseDaoImpl
+        extends ExtractionBaseDaoImpl<C, F>
         implements ExtractionStrategyDao<C, F> {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtractionStrategyDaoImpl.class);
 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.ST_SHEET_NAME + "_%s";
     private static final String SM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.SM_SHEET_NAME + "_%s";
 
-    protected static final String XML_QUERY_PATH = "xmlQuery";
-
-    @Autowired
-    protected ResourceLoader resourceLoader;
 
     @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.STRAT;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.STRAT);
     }
 
     @Override
@@ -129,11 +121,6 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         }
     }
 
-    @Override
-    public void clean(C context) {
-        super.dropTables(context);
-    }
-
     /* -- protected methods -- */
 
     protected Class<? extends ExtractionStrategyContextVO> getContextClass() {
@@ -166,7 +153,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         XMLQuery xmlQuery = createStrategyQuery(context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getStrategyTableName());
 
         // Clean row using generic filter
@@ -226,7 +213,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         XMLQuery xmlQuery = createStrategyMonitoringQuery(context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getStrategyMonitoringTableName());
 
         // Clean row using generic filter
@@ -260,51 +247,6 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         return xmlQuery;
     }
 
-    protected int execute(XMLQuery xmlQuery) {
-        return queryUpdate(xmlQuery.getSQLQueryAsString());
-    }
-
-    protected long countFrom(String tableName) {
-        XMLQuery xmlQuery = createXMLQuery("countFrom");
-        xmlQuery.bind("tableName", tableName);
-        return queryCount(xmlQuery.getSQLQueryAsString());
-    }
-
-    protected String getQueryFullName(C context, String queryName) {
-        Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getFormat());
-        Preconditions.checkNotNull(context.getVersion());
-
-        return String.format("%s/v%s/%s",
-                StringUtils.underscoreToChangeCase(context.getFormat()),
-                context.getVersion().replaceAll("[.]", "_"),
-                queryName);
-    }
-
-    protected XMLQuery createXMLQuery(C context, String queryName) {
-        return createXMLQuery(getQueryFullName(context, queryName));
-    }
-
-    protected XMLQuery createXMLQuery(String queryName) {
-        XMLQuery query = createXMLQuery();
-        query.setQuery(getXMLQueryClasspathURL(queryName));
-        return query;
-    }
-
-    protected URL getXMLQueryURL(C context, String queryName) {
-        return getXMLQueryClasspathURL(getQueryFullName(context, queryName));
-    }
-
-    protected URL getXMLQueryClasspathURL(String queryName) {
-        Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + XML_QUERY_PATH + "/" + queryName + ".xml");
-        if (!resource.exists())
-            throw new SumarisTechnicalException(t("sumaris.extraction.xmlQuery.notFound", queryName));
-        try {
-            return resource.getURL();
-        } catch (IOException e) {
-            throw new SumarisTechnicalException(e);
-        }
-    }
 
 
 }

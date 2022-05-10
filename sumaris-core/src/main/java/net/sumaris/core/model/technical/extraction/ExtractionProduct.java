@@ -128,10 +128,6 @@ public class ExtractionProduct implements IExtractionType<Person, Department>,
     @SortNatural
     private List<ExtractionProductTable> tables = new ArrayList<>();
 
-    @Override
-    public ExtractionCategoryEnum getCategory() {
-        return ExtractionCategoryEnum.PRODUCT;
-    }
 
     @Override
     public String[] getSheetNames() {

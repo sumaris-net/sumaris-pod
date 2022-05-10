@@ -37,6 +37,7 @@ import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.extraction.core.util.ExtractionTypes;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
@@ -78,7 +79,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
         // Try to get a generic localized file
         {
             String localizedFileName = String.format("%s-v%s-%s.md",
-                    StringUtils.underscoreToChangeCase(type.getRawFormatLabel()),
+                    StringUtils.underscoreToChangeCase(type.getFormat()),
                     type.getVersion(),
                     locale
             );
@@ -97,7 +98,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
         }
 
         // If product: try to create doc file
-        if (type.getCategory() == ExtractionCategoryEnum.PRODUCT) {
+        if (ExtractionTypes.isProduct(type)) {
 
             // Computed a specific file name, for the product
             String productFileName = String.format("%s-v%s-%s.md",
@@ -170,7 +171,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
             String sheetName = table.getLabel();
 
             // Add sub title
-            String sectionName = getI18nTable(locale, source.getRawFormatLabel(), table);
+            String sectionName = getI18nTable(locale, source.getFormat(), table);
             sb.append("## ").append(sectionName).append("\n\n");
 
             if (StringUtils.isNotBlank(table.getDescription())) {
@@ -189,7 +190,7 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
                                 .build());
 
                 // Fill rank order (to be able to sort)
-                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getRawFormatLabel(), sheetName, columns);
+                ExtractionTableColumnOrder.fillRankOrderByFormatAndSheet(source.getFormat(), sheetName, columns);
             }
 
             // Add columns

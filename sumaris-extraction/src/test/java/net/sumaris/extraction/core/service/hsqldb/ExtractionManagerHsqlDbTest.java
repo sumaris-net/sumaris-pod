@@ -23,13 +23,13 @@
 package net.sumaris.extraction.core.service.hsqldb;
 
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.AbstractExtractionManagerTest;
+import net.sumaris.extraction.core.service.ExtractionManagerTest;
 import org.junit.ClassRule;
 
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public class ExtractionManagerHsqlDbTest extends AbstractExtractionManagerTest {
+public class ExtractionManagerHsqlDbTest extends ExtractionManagerTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

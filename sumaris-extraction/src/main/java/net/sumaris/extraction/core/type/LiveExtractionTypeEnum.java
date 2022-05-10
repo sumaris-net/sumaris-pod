@@ -22,13 +22,11 @@
 
 package net.sumaris.extraction.core.type;
 
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.annotation.Nullable;
@@ -74,6 +72,11 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
         return id;
     }
 
+    @Override
+    public String getLabel() {
+        return getFormat();
+    }
+
     public String getFormat() {
         return format;
     }
@@ -86,23 +89,13 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
         return sheetNames;
     }
 
-    @Override
-    public final ExtractionCategoryEnum getCategory() {
-        return ExtractionCategoryEnum.LIVE;
-    }
 
     public static LiveExtractionTypeEnum valueOf(@NonNull String format, @Nullable String version) {
         return findFirst(format, version)
-                .orElseGet(() -> {
-                    /*if (label.contains(LiveExtractionTypeEnum.RDB.name())) {
-                        return LiveExtractionTypeEnum.RDB;
-                    }*/
-                    throw new SumarisTechnicalException(String.format("Unknown live extraction format '%s'", format));
-                });
+                .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown live extraction format '%s'", format)));
     }
 
     public static Optional<LiveExtractionTypeEnum> findFirst(@NonNull IExtractionType type) {
-        Preconditions.checkArgument(type.getCategory() == ExtractionCategoryEnum.LIVE, "Invalid format. Must be a LIVE format");
         return findFirst(type.getFormat(), type.getVersion());
     }
 

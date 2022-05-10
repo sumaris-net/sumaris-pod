@@ -23,17 +23,16 @@ package net.sumaris.extraction.core.vo;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
-import net.sumaris.extraction.core.util.ExtractionTypes;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
+import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 
 import java.util.*;
 
@@ -43,14 +42,13 @@ import java.util.*;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExtractionContextVO implements IExtractionType {
+public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
 
     Integer id;
     String label;
 
     String format;
     String version;
-    ExtractionCategoryEnum category;
 
     ExtractionFilterVO filter;
 
@@ -59,7 +57,7 @@ public class ExtractionContextVO implements IExtractionType {
     Date updateDate;
 
     @FieldNameConstants.Exclude
-    Map<String, String> tableNames = new LinkedHashMap<>();
+    Map<String, String> sheetNameByTableNames = new LinkedHashMap<>();
 
     @FieldNameConstants.Exclude
     Set<String> rawTableNames = new HashSet<>();
@@ -71,6 +69,10 @@ public class ExtractionContextVO implements IExtractionType {
     @FieldNameConstants.Exclude
     Set<String> tableNameWithDistinct = new HashSet<>();
 
+    // Allow to rename column name (e.g FREE1 use FISHING_DURATION instead of FISHING_TIME)
+    @FieldNameConstants.Exclude
+    Map<String, String> columnNamesMapping = Maps.newLinkedHashMap();
+
     public ExtractionContextVO() {
         // Generate a unique, positive i
         this.id = Math.abs(UUID.randomUUID().hashCode());
@@ -80,15 +82,13 @@ public class ExtractionContextVO implements IExtractionType {
         this.id = source.id;
         this.format = source.format;
         this.version = source.version;
-        this.category = source.category;
         this.updateDate = source.updateDate;
-        this.tableNames.putAll(source.tableNames);
+        this.sheetNameByTableNames.putAll(source.sheetNameByTableNames);
         this.hiddenColumnNames.putAll(source.hiddenColumnNames);
         this.tableNameWithDistinct.addAll(source.tableNameWithDistinct);
     }
 
     public void setType(IExtractionType type) {
-        this.category = type.getCategory();
         this.format = type.getFormat();
         this.version = type.getVersion();
     }
@@ -111,7 +111,7 @@ public class ExtractionContextVO implements IExtractionType {
     public void addTableName(String tableName, String sheetName,
                              Set<String> hiddenColumnNames,
                              boolean enableDistinct) {
-        tableNames.put(tableName, sheetName);
+        sheetNameByTableNames.put(tableName, sheetName);
         if (CollectionUtils.isNotEmpty(hiddenColumnNames)) {
             this.hiddenColumnNames.put(tableName, hiddenColumnNames);
         }
@@ -128,18 +128,19 @@ public class ExtractionContextVO implements IExtractionType {
         rawTableNames.add(tableName);
     }
 
-    public String getSheetName(String tableName) {
-        String otherName = tableNames.get(tableName);
-        return (otherName!=null) ? otherName : tableName;
+    @Override
+    public Optional<String> findSheetNameByTableName(String tableName) {
+        return Optional.ofNullable(sheetNameByTableNames.get(tableName));
     }
 
+    @Override
     public Set<String> getTableNames() {
-        return tableNames.keySet();
+        return sheetNameByTableNames.keySet();
     }
 
     @Override
     public String[] getSheetNames() {
-        return tableNames.values().toArray(new String[tableNames.size()]);
+        return sheetNameByTableNames.values().toArray(new String[sheetNameByTableNames.size()]);
     }
 
     public Set<String> getRawTableNames() {
@@ -151,8 +152,9 @@ public class ExtractionContextVO implements IExtractionType {
                 .orElse(null);
     }
 
+    @Override
     public Optional<String> findTableNameBySheetName(@NonNull String sheetName) {
-        return tableNames.entrySet().stream()
+        return sheetNameByTableNames.entrySet().stream()
             .filter(e -> sheetName.equalsIgnoreCase(e.getValue()))
             .map(Map.Entry::getKey)
             .findFirst();
@@ -160,7 +162,7 @@ public class ExtractionContextVO implements IExtractionType {
 
     public boolean hasSheet(String sheetName) {
         Preconditions.checkNotNull(sheetName);
-        return tableNames.containsValue(sheetName);
+        return sheetNameByTableNames.containsValue(sheetName);
     }
 
     public boolean hasRawTable(String rawTableName) {
@@ -182,5 +184,14 @@ public class ExtractionContextVO implements IExtractionType {
      */
     public boolean isDistinctEnable(String tableName) {
         return tableNameWithDistinct.contains(tableName);
+    }
+
+
+    public <C extends AggregationRdbTripContextVO> C addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
+        // Try to fix remplacement error
+        columnNamesMapping.put(sourceColumnName.toLowerCase(), targetColumnName.toLowerCase());
+        columnNamesMapping.put(sourceColumnName.toUpperCase(), targetColumnName.toUpperCase());
+
+        return (C)this;
     }
 }

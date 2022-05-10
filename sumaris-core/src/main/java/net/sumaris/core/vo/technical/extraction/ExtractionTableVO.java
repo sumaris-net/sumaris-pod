@@ -22,8 +22,7 @@ package net.sumaris.core.vo.technical.extraction;
  * #L%
  */
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
@@ -35,6 +34,9 @@ import java.util.Map;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldNameConstants
 public class ExtractionTableVO implements IReferentialVO<Integer> {
 

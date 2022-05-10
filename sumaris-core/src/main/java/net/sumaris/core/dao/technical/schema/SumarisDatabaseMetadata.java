@@ -64,25 +64,23 @@ import java.util.Set;
 @Slf4j
 public class SumarisDatabaseMetadata {
 
-	@Autowired
-	protected SumarisDatabaseMetadata databaseMetadata;
 
 	protected final Map<String, SumarisTableMetadata> tables;
 	protected final Map<String, PersistentClass> entities;
 
-	protected String defaultSchemaName = null;
-	protected String defaultCatalogName = null;
-	protected Dialect dialect = null;
+	protected String defaultSchemaName;
+	protected final String defaultCatalogName;
+	protected final Dialect dialect;
 
-	protected DataSource dataSource = null;
+	protected final DataSource dataSource;
 
 	protected final Metadata metadata;
 
 	protected Set<String> sequences;
 
-	protected String sequenceSuffix;
+	protected final String sequenceSuffix;
 
-	protected String defaultUpdateDateColumnName;
+	protected final String defaultUpdateDateColumnName;
 
 	@Autowired
 	public SumarisDatabaseMetadata(DataSource dataSource, SumarisConfiguration configuration) {

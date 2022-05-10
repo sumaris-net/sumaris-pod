@@ -50,6 +50,7 @@ public class ExtractionTypes {
         // Helper class
     }
 
+
     public static <C extends IExtractionType, T extends IExtractionType> C findOneMatch(C[] availableTypes,
                                                                                         T source) throws IllegalArgumentException {
         return findOneMatch(Arrays.asList(availableTypes), source);
@@ -88,7 +89,8 @@ public class ExtractionTypes {
     }
 
     public static boolean isProduct(@NonNull IExtractionType format) {
-        return format.getId() != null && format.getId() >= 0;
+        return (format.getId() != null && format.getId() >= 0)
+            || (format.getLabel() != null && format.getLabel().indexOf('-') != -1);
     }
 
     public static boolean isAggregation(@NonNull IExtractionType format) {

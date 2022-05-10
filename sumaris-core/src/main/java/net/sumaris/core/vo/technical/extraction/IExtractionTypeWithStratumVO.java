@@ -20,23 +20,26 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.service;
+package net.sumaris.core.vo.technical.extraction;
 
+import lombok.NonNull;
+import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.springframework.core.io.Resource;
-import org.springframework.transaction.annotation.Transactional;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 
-import java.util.Locale;
+import java.util.List;
 import java.util.Optional;
 
-@Transactional(readOnly = true)
-public interface ExtractionDocumentationService {
+public interface IExtractionTypeWithStratumVO
+    extends IExtractionType<PersonVO, DepartmentVO>, IValueObject<Integer> {
 
-    Optional<Resource> find(IExtractionType type, Locale locale);
+    List<AggregationStrataVO> getStratum();
 
-    String generate(ExtractionProductVO source, Locale locale);
-
-    String generate(int productId, Locale locale);
-
+    default Optional<AggregationStrataVO> findStrataBySheetName(@NonNull String sheetName) {
+        return Beans.getStream(getStratum())
+            .filter(s -> sheetName.equalsIgnoreCase(s.getSheetName()))
+            .findFirst();
+    }
 }

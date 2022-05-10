@@ -61,8 +61,8 @@
 		</sql>
 	</changeSet>
 
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-004">
-		<preConditions>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-004" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
 			<not><tableExists tableName="extraction_product_value"/></not>
 		</preConditions>
 		<createTable tableName="extraction_product_value">
@@ -91,6 +91,7 @@
 			<column name="LABEL">1.25.0</column>
 			<column name="DESCRIPTION">
 				- PMFM: Add columns DETECTION_THRESHOLD and PRECISION;
+				- Unit: Fix kilogram unit symbol;
 				- Add round weight conversion (ADAP instance only);
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>

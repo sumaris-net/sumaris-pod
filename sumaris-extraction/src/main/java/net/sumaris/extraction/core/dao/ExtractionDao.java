@@ -22,21 +22,29 @@ package net.sumaris.extraction.core.dao;
  * #L%
  */
 
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import lombok.NonNull;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
+import net.sumaris.extraction.core.vo.ExtractionResultVO;
+
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public interface ExtractionDao<C extends ExtractionContextVO,
-        F extends ExtractionFilterVO> {
+public interface ExtractionDao<
+    C extends ExtractionContextVO,
+    F extends ExtractionFilterVO> {
     String TABLE_NAME_PREFIX = "EXT_";
     String SEQUENCE_NAME_SUFFIX = "_SEQ";
 
-    LiveExtractionTypeEnum getFormat();
+    Set<IExtractionType> getManagedTypes();
 
     <R extends C> R execute(F filter);
 
-    void clean(C context);
+    ExtractionResultVO read(@NonNull C context, F filter, Page page);
+
+    <R extends ExtractionContextVO> void clean(R context);
 }

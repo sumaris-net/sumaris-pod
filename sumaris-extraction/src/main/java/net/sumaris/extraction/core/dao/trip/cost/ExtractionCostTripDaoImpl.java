@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.dao.trip.cost;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -48,8 +49,8 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         implements CostSpecification {
 
     @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.COST;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.COST);
     }
 
     @Override

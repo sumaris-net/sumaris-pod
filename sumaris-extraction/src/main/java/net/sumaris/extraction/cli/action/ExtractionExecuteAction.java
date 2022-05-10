@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  *
  */
 @Slf4j
-public class ExtractionAction {
+public class ExtractionExecuteAction {
 
     /**
      * <p>execute.</p>
@@ -54,34 +54,33 @@ public class ExtractionAction {
         ExtractionTypeService extractionTypeService = ExtractionServiceLocator.extractionTypeService();
         ExtractionManager service = ExtractionServiceLocator.extractionManager();
 
-        String formatLabel = config.getExtractionCliOutputFormat();
+        String format = config.getExtractionCliOutputFormat();
         IExtractionType type;
         try {
-            type = ExtractionTypes.getByFormat(formatLabel);
+            type = ExtractionTypes.getByFormat(format);
         } catch (UnknownFormatException e) {
-            log.error("Unknown format: " + formatLabel);
+            log.error("Unknown format: " + format);
             String availableTypes = extractionTypeService.getLiveTypes()
                 .stream()
                 .map(p -> " - " + p.getLabel())
                 .collect(Collectors.joining("\n"));
-            log.error("Unknown extraction type '{}'.\nAvailable types:\n{}",
-                formatLabel,
+            log.error("Unknown extraction format '{}'.\nAvailable formats:\n{}",
+                format,
                 availableTypes);
             return;
         }
 
-        log.info("Starting {} extraction {{}}...",
-                StringUtils.capitalize(type.getCategory().name().toLowerCase()),
-                type.getLabel());
+        log.info("Starting {} extraction...",
+                StringUtils.capitalize(type.getFormat().toLowerCase()));
 
         // Check output file
-        File outputFile = ActionUtils.checkAndGetOutputFile(false, ExtractionAction.class);
+        File outputFile = ActionUtils.checkAndGetOutputFile(false, ExtractionExecuteAction.class);
 
         // Execute the extraction
         long startTime = System.currentTimeMillis();
         File tempFile;
         try {
-            tempFile = service.executeAndDump(type, null);
+            tempFile = service.executeAndDump(type, null, null);
             if (!tempFile.exists()) {
                 log.error("No data");
                 return;
@@ -102,9 +101,8 @@ public class ExtractionAction {
         }
 
         // Success log
-        log.info("{} extraction {{}} finished, in {} - output: {}",
-            StringUtils.capitalize(type.getCategory().name().toLowerCase()),
-            type.getLabel(),
+        log.info("{} extraction finished, in {} - output: {}",
+            StringUtils.capitalize(type.getFormat().toLowerCase()),
             TimeUtils.printDurationFrom(startTime),
             outputFile.getAbsolutePath());
     }

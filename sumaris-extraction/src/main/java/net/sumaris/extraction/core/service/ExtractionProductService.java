@@ -55,6 +55,8 @@ public interface ExtractionProductService {
     @Transactional(readOnly = true)
     List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName, ExtractionTableColumnFetchOptions fetchOptions);
 
+    List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
+
     @Transactional
     ExtractionProductVO save(ExtractionProductVO source);
 

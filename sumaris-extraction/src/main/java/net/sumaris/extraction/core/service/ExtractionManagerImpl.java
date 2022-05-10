@@ -32,8 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.ExtractionCacheConfiguration;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -44,7 +44,6 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.history.ProcessingFrequency;
@@ -54,34 +53,33 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.dao.AggregationDaoDispatcher;
+import net.sumaris.extraction.core.dao.ExtractionDaoDispatcher;
 import net.sumaris.extraction.core.dao.administration.ExtractionStrategyDao;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -94,7 +92,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -113,27 +110,25 @@ public class ExtractionManagerImpl implements ExtractionManager {
     private final ExtractionCsvDao extractionCsvDao;
 
     private final ExtractionProductService productService;
+    private final SumarisDatabaseMetadata databaseMetadata;
     private final LocationService locationService;
     private final ReferentialService referentialService;
-    private final SumarisDatabaseMetadata databaseMetadata;
 
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired(required = false)
     private CacheManager cacheManager;
 
-    @Autowired(required = false)
-    private Executor extractionExecutor;
+    @Autowired
+    private ExtractionDaoDispatcher extractionDao;
 
     @Autowired
-    private ExtractionService extractionService;
-
-    @Autowired
-    private AggregationService aggregationService;
+    private AggregationDaoDispatcher aggregationDao;
 
     @Autowired
     private ExtractionTypeService extractionTypeService;
 
+    private boolean enableCache = false;
     private boolean enableProduct = false;
     private boolean enableTechnicalTablesUpdate = false;
     private CacheTTL cacheDefaultTtl;
@@ -164,14 +159,11 @@ public class ExtractionManagerImpl implements ExtractionManager {
     @PostConstruct
     protected void init() {
         enableProduct = configuration.enableExtractionProduct();
+        enableCache = configuration.enableCache() && this.cacheManager != null;
 
         // Register enum extraction types
-        this.extractionTypeService.registerLiveTypes(extractionService.getTypes());
-        this.extractionTypeService.registerLiveTypes(aggregationService.getTypes());
-    }
-
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+        this.extractionTypeService.registerLiveTypes(extractionDao.getManagedTypes());
+        this.extractionTypeService.registerLiveTypes(aggregationDao.getManagedTypes());
 
         // Update technical tables (if option changed)
         if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
@@ -180,7 +172,12 @@ public class ExtractionManagerImpl implements ExtractionManager {
             // Init rectangles
             if (this.enableTechnicalTablesUpdate) initRectangleLocations();
         }
+    }
 
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        boolean enableCache = configuration.enableCache() && this.cacheManager != null;
         CacheTTL cacheDefaultTtl = configuration.getExtractionCacheDefaultTtl();
         if (cacheDefaultTtl == null) {
             cacheDefaultTtl = CacheTTL.DEFAULT;
@@ -188,11 +185,15 @@ public class ExtractionManagerImpl implements ExtractionManager {
         boolean enableProduct = configuration.enableExtractionProduct();
 
         // Update if need
-        if (this.enableProduct != enableProduct || this.cacheDefaultTtl != cacheDefaultTtl) {
+        if (this.enableCache != enableCache
+            || this.cacheDefaultTtl != cacheDefaultTtl
+            || this.enableProduct != enableProduct) {
+            this.enableCache = enableCache;
             this.enableProduct = enableProduct;
             this.cacheDefaultTtl = cacheDefaultTtl;
 
-            log.info("Extraction manager started with {cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
+            log.info("Started Extraction manager {enableCache: {}, cacheDefaultTtl: '{}' ({}), enableProduct: {}}",
+                enableCache,
                 this.cacheDefaultTtl.name(),
                 DurationFormatUtils.formatDuration(this.cacheDefaultTtl.asDuration().toMillis(), "H:mm:ss", true),
                 enableProduct);
@@ -202,58 +203,24 @@ public class ExtractionManagerImpl implements ExtractionManager {
     }
 
     @Override
-    public IExtractionType getById(int id) {
-        Preconditions.checkArgument(id >= 0);
-        return getByExample(ExtractionTypeVO.builder().id(id).build());
-    }
-
-    @Override
     public IExtractionType getByExample(@NonNull IExtractionType source) {
         return getByExample(source, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
     }
 
     @Override
-    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_EXAMPLE,
-        key = "#source.id + #source.label + #source.format + #source.version + #fetchOptions.hashCode()",
-        condition = " #source != null", unless = "#result == null")
     public IExtractionType getByExample(@NonNull IExtractionType source, @NonNull ExtractionProductFetchOptions fetchOptions) {
         return extractionTypeService.getByExample(source, fetchOptions);
     }
 
-    @Caching(evict = {
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_EXAMPLE, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS, allEntries = true)
-    })
-    protected void clearCache() {
-        if (this.cacheManager == null) return; // Skip
-
-        log.debug("Cleaning {Extraction} caches...");
-
-        // Clear all rows cache (by TTL)
-        Arrays.stream(CacheTTL.values())
-            .map(ttl -> {
-                try {
-                    return cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
-                }
-                catch (Exception e) {
-                    // Cache not exists: skip
-                    return null;
-                }
-            })
-            .filter(Objects::nonNull)
-            .forEach(Cache::clear);
-    }
     @Override
     public <R extends ExtractionResultVO> R executeAndRead(@NonNull IExtractionType type,
                                                            @Nullable ExtractionFilterVO filter,
                                                            @Nullable AggregationStrataVO strata,
                                                            Page page) {
         // Make sure type has category AND label filled
-        type = getByExample(type, ExtractionProductFetchOptions.TABLES_AND_COLUMNS);
+        type = getByExample(type);
 
-
-        ExtractionContextVO context;
+        ExtractionContextVO context = null;
         try {
             // Mark as preview
             filter = ExtractionFilterVO.nullToEmpty(filter);
@@ -261,51 +228,56 @@ public class ExtractionManagerImpl implements ExtractionManager {
 
             // Execute extraction into temp tables
             context = execute(type, filter, strata);
-        } catch (DataNotFoundException e) {
-            return (R)createEmptyResult();
-        }
 
-        // Force commit
-        Daos.commitIfHsqldbOrPgsql(dataSource);
+            // Result has not the expected sheetname: skip
+            if (filter.getSheetName() != null && !context.hasSheet(filter.getSheetName())) {
+                return (R)createEmptyResult();
+            }
 
-        try {
+            // Force commit
+            Daos.commitIfHsqldbOrPgsql(dataSource);
+
             // Create a read filter, with sheetname only, because already applied by execute()
             ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
                 .sheetName(filter.getSheetName())
                 .build();
 
             // Read
-            return (R)read(context, readFilter, strata, page);
-        } finally {
-            // Clean created tables
-            asyncClean(context);
+            return (R)read(context, readFilter, strata, page, true /*already checked*/);
         }
-
+        catch (DataNotFoundException e) {
+            return (R)createEmptyResult();
+        }
+        finally {
+            // Clean created tables
+            if (context != null) {
+                asyncClean(context);
+            }
+        }
     }
 
     @Override
-    public ExtractionResultVO executeAndRead(IExtractionType type, @Nullable ExtractionFilterVO filter, Page page) {
-        return executeAndRead(type, filter, null, page);
-    }
-
-    @Override
-    public ExtractionResultVO executeAndReadWithCache(@NonNull IExtractionType type,
+    public ExtractionResultVO executeAndRead(@NonNull IExtractionType type,
                                                       @Nullable ExtractionFilterVO filter,
                                                       @Nullable AggregationStrataVO strata,
                                                       @NonNull Page page,
                                                       @Nullable CacheTTL ttl) {
+
+        // No cache
+        if (!enableCache) return executeAndRead(type, filter, strata, page);
+
         Preconditions.checkNotNull(this.cacheManager, "Cache has been disabled by configuration. Please enable cache before retry");
 
         filter = ExtractionFilterVO.nullToEmpty(filter);
         ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
 
+        // Compute a cache key
+        // note: Not need to use TTL in cache key, because using a cache by TTL
         Integer cacheKey = new HashCodeBuilder(17, 37)
             .append(type)
             .append(filter)
-            .append(page)
             .append(strata)
-            // Not need to use TTL in cache key, because using a cache by TTL
-            //.append(ttl)
+            .append(page)
             .build();
 
         // Get cache (if exists)
@@ -315,7 +287,7 @@ public class ExtractionManagerImpl implements ExtractionManager {
         if (result != null) return result;
 
         // Get extraction rows
-        result = executeAndRead(type, filter, page);
+        result = executeAndRead(type, filter, strata, page);
 
         // Add result to cache
         cache.put(cacheKey, result);
@@ -324,34 +296,35 @@ public class ExtractionManagerImpl implements ExtractionManager {
     }
 
     @Override
-    public ExtractionResultVO executeAndReadWithCache(@NonNull IExtractionType type,
-                                                      @Nullable ExtractionFilterVO filter,
-                                                      @NonNull Page page,
-                                                      @Nullable CacheTTL ttl) {
-        return executeAndReadWithCache(type, filter, null, page, ttl);
+    public ExtractionResultVO read(@NonNull IExtractionType type,
+                                   ExtractionFilterVO filter,
+                                   AggregationStrataVO strata,
+                                   Page page) {
+        return read(type, filter, strata, page, false);
     }
 
-    protected ExtractionResultVO read(@NonNull ExtractionContextVO context,
+    protected ExtractionResultVO read(@NonNull IExtractionType type,
                                       ExtractionFilterVO filter,
                                       AggregationStrataVO strata,
-                                      Page page) {
+                                      Page page,
+                                      boolean skipFetchType) {
+
+        // Fetch type
+        if (!skipFetchType) type = getByExample(type);
+
         filter = ExtractionFilterVO.nullToEmpty(filter);
 
         // Read aggregation
-        if (ExtractionTypes.isAggregation(context)) {
-            return aggregationService.readBySpace(context, filter, strata, page);
+        if (ExtractionTypes.isAggregation(type)) {
+            return aggregationDao.read(type, filter, strata, page);
         }
 
         // Get simple extraction
         else {
-            return extractionService.read(context, filter, page);
+            return extractionDao.read(type, filter, page);
         }
     }
 
-    @Override
-    public ExtractionContextVO execute(@NonNull IExtractionType type, ExtractionFilterVO filter) {
-        return execute(type, filter, null);
-    }
 
     @Override
     public ExtractionProductVO executeAndSave(IExtractionType source, ExtractionFilterVO filter, AggregationStrataVO strata) {
@@ -382,35 +355,25 @@ public class ExtractionManagerImpl implements ExtractionManager {
 
         // If has parent
         if (parent != null) {
-            // Refresh parent if need (if not an existing product)
-            if (!ExtractionTypes.isProduct(parent)) {
-                // Execute the parent
+            // Refresh parent (if need)
+            if (ExtractionTypes.isLive(parent)) {
                 ExtractionContextVO parentResult = execute(parent, filter, strata);
                 parent = toProductVO(parentResult);
             }
 
-            // Set as source's parent
-            source = new ExtractionProductVO(source);
-            ((ExtractionProductVO) source).setParent(parent);
+            // Aggregation
+            if (ExtractionTypes.isAggregation(source)) {
+                return aggregationDao.execute(source, parent, filter, strata);
+            }
         }
 
-        // Aggregation
-        if (ExtractionTypes.isAggregation(source)) {
-            return aggregationService.aggregate(source, filter, strata);
-        }
-
-        // Product extraction: nothing to do
-        if (ExtractionTypes.isProduct(source)) {
-            IExtractionType type = getByExample(source, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
-            Preconditions.checkArgument(type instanceof ExtractionProductVO);
-            return new ExtractionProductContextVO((ExtractionProductVO)source);
-        }
 
         // Live extraction
-        else {
-            IExtractionType type = getByExample(source);
-            return extractionService.execute(type, filter);
-        }
+        IExtractionType type = getByExample(ExtractionTypeVO.builder()
+            .format(source.getFormat())
+            .version(source.getVersion())
+            .build());
+        return extractionDao.execute(type, filter);
     }
 
     @Override
@@ -430,22 +393,17 @@ public class ExtractionManagerImpl implements ExtractionManager {
     }
 
     @Override
-    public File executeAndDump(@NonNull IExtractionType type, ExtractionFilterVO filter) {
-        return executeAndDump(type, filter, null);
-    }
-
-    @Override
     public File executeAndDumpTrips(LiveExtractionTypeEnum format, ExtractionTripFilterVO tripFilter) {
         String tripSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : RdbSpecification.TR_SHEET_NAME;
         ExtractionFilterVO filter = extractionRdbTripDao.toExtractionFilterVO(tripFilter, tripSheetName);
-        return executeAndDump(format, filter);
+        return executeAndDump(format, filter, null);
     }
 
     @Override
     public File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO strategyFilter) {
         String strategySheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : StratSpecification.ST_SHEET_NAME;
         ExtractionFilterVO filter = extractionStrategyDao.toExtractionFilterVO(strategyFilter, strategySheetName);
-        return executeAndDump(format, filter);
+        return executeAndDump(format, filter, null);
     }
 
     @Override
@@ -467,7 +425,7 @@ public class ExtractionManagerImpl implements ExtractionManager {
         final boolean defaultEnableDistinct = filter != null && filter.isDistinct();
 
         File outputDirectory = createTempDirectory(basename);
-        List<File> outputFiles = context.getTableNames().stream()
+        List<File> outputFiles = Beans.getStream(context.getTableNames())
                 .map(tableName -> {
                     try {
                         // Add table's hidden columns has excluded columns
@@ -482,7 +440,8 @@ public class ExtractionManagerImpl implements ExtractionManager {
                         tableFilter.setDistinct(enableDistinct);
 
                         // Compute the table output file
-                        File tempCsvFile = new File(outputDirectory, context.getSheetName(tableName) + ".csv");
+                        File tempCsvFile = new File(outputDirectory, context.findSheetNameByTableName(tableName).orElse(tableName)
+                            + ".csv");
                         dumpTableToFile(tableName, tableFilter, tempCsvFile);
                         return tempCsvFile;
                     } catch (IOException e) {
@@ -576,21 +535,41 @@ public class ExtractionManagerImpl implements ExtractionManager {
             System.currentTimeMillis() - now,
             successCount, errorCount);
     }
-    
-    /*@Caching(
-        evict = {
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_EXAMPLE, allEntries = true),
-            @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
-        }
-    )*/
+
+
+    @Caching(evict = {
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPE_BY_EXAMPLE, allEntries = true),
+        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID, allEntries = true)
+    })
+    protected void clearCache() {
+        if (this.cacheManager == null) return; // Skip
+
+        log.debug("Cleaning {Extraction} caches...");
+
+        // Clear all rows cache (by TTL)
+        Arrays.stream(CacheTTL.values())
+            .map(ttl -> {
+                try {
+                    return cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+                }
+                catch (Exception e) {
+                    // Cache not exists: skip
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .forEach(Cache::clear);
+    }
+
+    @Override
     public ExtractionProductVO executeAndSave(int id) {
 
         long startTime = System.currentTimeMillis();
         log.info("Updating product #{}...", id);
 
         ExtractionProductVO source = productService.findById(id, ExtractionProductFetchOptions.FOR_UPDATE)
-            .orElseThrow(() -> new DataNotFoundException(String.format("Unknown product {id: %s}", id)));
+            .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.extraction.product.notFoundById", id)));
 
         // Read filter
         ExtractionFilterVO filter = parseFilter(source.getFilterContent());
@@ -602,21 +581,53 @@ public class ExtractionManagerImpl implements ExtractionManager {
         return target;
     }
 
+    @Override
+    public AggregationTechResultVO readByTech(IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, String sort, SortDirection direction) {
+        return aggregationDao.readByTech(type, filter, strata, sort, direction);
+    }
+
+    @Override
+    public MinMaxVO getTechMinMax(IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
+        return aggregationDao.getTechMinMax(type, filter, strata);
+    }
 
     /* -- protected -- */
 
-    protected List<ExtractionTypeVO> getProductExtractionTypes(ExtractionTypeFilterVO filter) {
-        Preconditions.checkNotNull(filter);
+    protected boolean initRectangleLocations() {
+        boolean updateAreas = false;
+        try {
+            // Insert missing rectangles
+            long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
+                + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_GFCM.getId());
+            if (statisticalRectanglesCount == 0) {
+                locationService.insertOrUpdateRectangleLocations();
+                updateAreas = true;
+            }
 
-        return ListUtils.emptyIfNull(
-            productService.findByFilter(filter, ExtractionProductFetchOptions.builder()
-                .withRecorderDepartment(true)
-                .withTables(true)
-                .build()))
-            .stream()
-            .map(this::toExtractionTypeVO)
-            .collect(Collectors.toList());
+            // FIXME - We don't really need to store square 10x10, because extractions (and map) can compute it dynamically, using lat/long
+            // Insert missing squares
+            /*long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
+            if (square10minCount == 0) {
+                locationService.insertOrUpdateSquares10();
+                updateAreas = true;
+            }*/
+
+            if (updateAreas) {
+                // Update area
+                locationService.insertOrUpdateRectangleAndSquareAreas();
+
+                // Update location hierarchy
+                locationService.updateLocationHierarchy();
+            }
+            return true;
+
+        } catch (Throwable t) {
+            log.error("Error while initializing rectangle locations: " + t.getMessage(), t);
+            return false;
+        }
+
     }
+
 
     protected void dumpTableToFile(String tableName, ExtractionFilterVO filter, File outputFile) throws IOException {
         SumarisTableMetadata table;
@@ -656,41 +667,6 @@ public class ExtractionManagerImpl implements ExtractionManager {
 
     }
 
-    protected boolean initRectangleLocations() {
-        boolean updateAreas = false;
-        try {
-            // Insert missing rectangles
-            long statisticalRectanglesCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_ICES.getId())
-                + referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.RECTANGLE_GFCM.getId());
-            if (statisticalRectanglesCount == 0) {
-                locationService.insertOrUpdateRectangleLocations();
-                updateAreas = true;
-            }
-
-            // FIXME - We don't really need to store square 10x10, because extractions (and map) can compute it dynamically, using lat/long
-            // Insert missing squares
-            /*long square10minCount = referentialService.countByLevelId(Location.class.getSimpleName(), LocationLevelEnum.SQUARE_10.getId());
-            if (square10minCount == 0) {
-                locationService.insertOrUpdateSquares10();
-                updateAreas = true;
-            }*/
-
-            if (updateAreas) {
-                // Update area
-                locationService.insertOrUpdateRectangleAndSquareAreas();
-
-                // Update location hierarchy
-                locationService.updateLocationHierarchy();
-            }
-            return true;
-
-        } catch (Throwable t) {
-            log.error("Error while initializing rectangle locations: " + t.getMessage(), t);
-            return false;
-        }
-
-    }
-
     protected File createTempDirectory(String dirName) {
         try {
             File outputDirectory = new File(configuration.getTempDirectory(), dirName);
@@ -720,21 +696,6 @@ public class ExtractionManagerImpl implements ExtractionManager {
         return result;
     }
 
-    protected ExtractionTypeVO toExtractionTypeVO(ExtractionProductVO product) {
-        ExtractionTypeVO type = new ExtractionTypeVO();
-        toExtractionTypeVO(product, type);
-        return type;
-    }
-
-    protected void toExtractionTypeVO(ExtractionProductVO source, ExtractionTypeVO target) {
-
-        Beans.copyProperties(source, target);
-        target.setLabel(source.getLabel());
-
-        // Recorder department
-        target.setRecorderDepartment(source.getRecorderDepartment());
-    }
-
     protected void clean(ExtractionContextVO context) {
         try {
             asyncClean(context).get();
@@ -746,9 +707,9 @@ public class ExtractionManagerImpl implements ExtractionManager {
     protected CompletableFuture<Void> asyncClean(ExtractionContextVO context) {
         if (context != null) {
             if (ExtractionTypes.isAggregation(context)) {
-                aggregationService.clean((AggregationContextVO) context);
+                aggregationDao.clean((AggregationContextVO) context);
             } else {
-                extractionService.clean(context);
+                extractionDao.clean(context);
             }
         }
         return CompletableFuture.completedFuture(null);
@@ -766,39 +727,103 @@ public class ExtractionManagerImpl implements ExtractionManager {
 
         target.setFormat(source.getFormat());
         target.setVersion(source.getVersion());
+        List<ExtractionTableVO> tables = toProductTableVO(source);
+        target.setTables(tables);
+    }
 
-        if (source instanceof AggregationContextVO) {
-            List<ExtractionTableVO> tables = aggregationService.toProductTableVO((AggregationContextVO)source);
-            target.setTables(tables);
-        }
-        else {
-            List<ExtractionTableVO> tables = extractionService.toProductTableVO(source);
-            target.setTables(tables);
-        }
+
+    protected List<ExtractionTableVO> toProductTableVO(ExtractionContextVO source) {
+        final List<String> tableNames = ImmutableList.copyOf(source.getTableNames());
+        return Beans.getStream(tableNames)
+            .map(tableName -> {
+                ExtractionTableVO table = new ExtractionTableVO();
+                table.setTableName(tableName);
+
+                // Keep rankOrder from original linked has map
+                table.setRankOrder(tableNames.indexOf(tableName) + 1);
+
+                // Label (=the sheet name)
+                String sheetName = source.findSheetNameByTableName(tableName).orElse(tableName);
+                table.setLabel(sheetName);
+                table.setName(ExtractionProducts.getSheetDisplayName(source.getFormat(), sheetName));
+
+                if (source instanceof AggregationContextVO) {
+                    AggregationContextVO aggContext = (AggregationContextVO) source;
+                    table.setIsSpatial(aggContext.hasSpatialColumn(tableName));
+
+                    // Columns
+                    List<ExtractionTableColumnVO> columns = toProductColumnVOs(aggContext, tableName,
+                        ExtractionTableColumnFetchOptions.builder()
+                            .withRankOrder(false) // skip rankOrder, because fill later, by format and sheetName (more accuracy)
+                            .build());
+
+                    // Fill rank order
+                    ExtractionTableColumnOrder.fillRankOrderByTypeAndSheet(source, sheetName, columns);
+
+                    table.setColumns(columns);
+                }
+                else {
+                    table.setIsSpatial(false);
+                }
+
+                return table;
+            })
+            .collect(Collectors.toList());
+    }
+
+    protected List<ExtractionTableColumnVO> toProductColumnVOs(AggregationContextVO context, String tableName,
+                                                               ExtractionTableColumnFetchOptions fetchOptions) {
+
+
+        // Get columns (from table metadata), but exclude hidden columns
+        List<ExtractionTableColumnVO> columns = productService.getColumns(tableName, fetchOptions);
+
+        Set<String> hiddenColumns = Beans.getSet(context.getHiddenColumns(tableName));
+        Map<String, List<String>> columnValues = Beans.getMap(context.getColumnValues(tableName));
+
+        // For each column
+        Beans.getStream(columns).forEach(column -> {
+            String columnName = column.getColumnName();
+            // If hidden, replace the type with 'hidden'
+            if (hiddenColumns.contains(columnName)) {
+                column.setType("hidden");
+            }
+
+            // Set values
+            List<String> values = columnValues.get(columnName);
+            if (CollectionUtils.isNotEmpty(values)) {
+                column.setValues(values);
+            }
+        });
+
+        return columns;
     }
 
     protected IExtractionType getParent(IExtractionType source) {
+        return getParent(source, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
+    }
+
+    protected IExtractionType getParent(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
+        // Use the existing parent
         if (source.getParent() != null) {
-            return getByExample(source.getParent());
+            return getByExample(source.getParent(), fetchOptions);
         }
+
+        // Get parent by id (if product)
         Integer parentId = source.getParentId();
-        if (parentId != null) {
-            if (parentId < 0) {
-                log.warn("TODO: Trying to get parent from negative id -> avoid this case");
-            }
-            else {
-                return getById(parentId);
-            }
+        if (parentId != null && parentId >= 0) {
+            return productService.get(parentId, fetchOptions);
         }
+
         // Aggregation always has a parent : a LIVE extraction by default
         if (ExtractionTypes.isAggregation(source)) {
             IExtractionType aggLiveType = getByExample(ExtractionTypeVO.builder()
-                .category(ExtractionCategoryEnum.LIVE)
                 .format(source.getFormat())
                 .version(source.getVersion())
                 .build());
             return aggLiveType.getParent();
         }
+
         return null;
     }
 
@@ -814,29 +839,6 @@ public class ExtractionManagerImpl implements ExtractionManager {
         }
     }
 
-    /*@Override
-    @Caching(evict = {
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID_AND_OPTIONS, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_EXAMPLE, allEntries = true),
-        @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
-    })
-    public void save(ExtractionProductVO source, ExtractionFilterVO filter) {
-
-        // If not given in arguments, parse the product's filter string
-        filter = filter != null ? filter : parseFilter(source.getFilter());
-
-        // Check if need aggregate (ig new or if filter changed)
-        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
-            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
-            : ProcessingFrequencyEnum.MANUALLY;
-
-        String filterAsString = writeFilterAsString(filter);
-
-        boolean needUpdateData = (isNew || !Objects.equals(target.getFilter(), filterAsString))
-            && (frequency == ProcessingFrequencyEnum.MANUALLY);
-
-    }*/
-
     protected String writeFilterAsString(ExtractionFilterVO filter) {
         if (filter == null) return null;
         try {
@@ -846,4 +848,5 @@ public class ExtractionManagerImpl implements ExtractionManager {
             throw new SumarisTechnicalException(e);
         }
     }
+
 }

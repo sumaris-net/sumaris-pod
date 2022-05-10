@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.dao.trip.rjb;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
@@ -51,8 +52,8 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         implements RjbTripSpecification {
 
     @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.RJB_TRIP;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.RJB_TRIP);
     }
 
     @Override

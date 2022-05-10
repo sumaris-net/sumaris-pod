@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.dao.trip.free;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
@@ -48,8 +49,8 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         implements Free1Specification {
 
     @Override
-    public LiveExtractionTypeEnum getFormat() {
-        return LiveExtractionTypeEnum.FREE1;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.FREE1);
     }
 
     @Override

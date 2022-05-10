@@ -23,6 +23,7 @@ package net.sumaris.extraction.core.service;
  */
 
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
@@ -51,17 +52,12 @@ public interface ExtractionManager {
     int EXECUTION_TIMEOUT = 10000000;
 
     @Transactional(timeout = -1)
-    IExtractionType getById(int id);
-    @Transactional(timeout = -1)
     IExtractionType getByExample(IExtractionType source);
     @Transactional(timeout = -1)
     IExtractionType getByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     ExtractionContextVO execute(IExtractionType format, ExtractionFilterVO filter, AggregationStrataVO strata);
-
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
-    ExtractionContextVO execute(IExtractionType format, ExtractionFilterVO filter);
 
     @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     ExtractionProductVO executeAndSave(IExtractionType format,
@@ -73,22 +69,20 @@ public interface ExtractionManager {
 
     @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     <R extends ExtractionResultVO> R executeAndRead(IExtractionType type,
-                                          @Nullable ExtractionFilterVO filter,
-                                          @Nullable AggregationStrataVO strata,
-                                          Page page);
+                                                    @Nullable ExtractionFilterVO filter,
+                                                    @Nullable AggregationStrataVO strata,
+                                                    Page page);
 
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
-    ExtractionResultVO executeAndRead(IExtractionType type, @Nullable ExtractionFilterVO filter, Page page);
+    ExtractionResultVO executeAndRead(IExtractionType type,
+                                      @Nullable ExtractionFilterVO filter,
+                                      @Nullable AggregationStrataVO strata,
+                                      Page page,
+                                      @Nullable CacheTTL ttl);
 
-    ExtractionResultVO executeAndReadWithCache(IExtractionType type,
-                                               @Nullable ExtractionFilterVO filter,
-                                               @Nullable AggregationStrataVO strata,
-                                               Page page,
-                                               @Nullable CacheTTL ttl);
-    ExtractionResultVO executeAndReadWithCache(IExtractionType type,
-                                               @Nullable ExtractionFilterVO filter,
-                                               Page page,
-                                               @Nullable CacheTTL ttl);
+    ExtractionResultVO read(IExtractionType type,
+                            @Nullable ExtractionFilterVO filter,
+                            @Nullable AggregationStrataVO strata,
+                            Page page);
 
     File executeAndDumpTrips(LiveExtractionTypeEnum format, ExtractionTripFilterVO filter);
 
@@ -97,17 +91,19 @@ public interface ExtractionManager {
     @Transactional(rollbackFor = IOException.class)
     File executeAndDump(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata) throws IOException;
 
-    @Transactional(rollbackFor = IOException.class)
-    File executeAndDump(IExtractionType type, ExtractionFilterVO filter) throws IOException;
-
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
     void executeAll(ProcessingFrequencyEnum frequency);
 
- /*   void save(ExtractionProductVO source, ExtractionFilterVO filter);
+    @Transactional(readOnly = true)
+    AggregationTechResultVO readByTech(IExtractionType type,
+                                       @Nullable ExtractionFilterVO filter,
+                                       @Nullable AggregationStrataVO strata,
+                                       String sort,
+                                       SortDirection direction);
 
-    @Async
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
-    CompletableFuture<ExtractionProductVO> asyncSave(ExtractionProductVO source, @Nullable ExtractionFilterVO filter);
-*/
+    @Transactional(readOnly = true)
+    MinMaxVO getTechMinMax(IExtractionType type,
+                           @Nullable ExtractionFilterVO filter,
+                           @Nullable AggregationStrataVO strata);
 }

@@ -84,4 +84,5 @@ public interface ExtractionProductSpecifications {
 
     List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(Integer id, String tableLabel);
 
+    void dropTable(String tableName);
 }

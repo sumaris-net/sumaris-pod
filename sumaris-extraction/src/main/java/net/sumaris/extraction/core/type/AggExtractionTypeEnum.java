@@ -79,6 +79,11 @@ public enum AggExtractionTypeEnum implements IExtractionType<PersonVO, Departmen
         return id;
     }
 
+    @Override
+    public String getLabel() {
+        return getFormat();
+    }
+
     public String getFormat() {
         return format;
     }
@@ -95,27 +100,16 @@ public enum AggExtractionTypeEnum implements IExtractionType<PersonVO, Departmen
         return sheetNames;
     }
 
-    @Override
-    public final ExtractionCategoryEnum getCategory() {
-        return ExtractionCategoryEnum.LIVE;
-    }
-
     public static AggExtractionTypeEnum valueOf(@NonNull String format, @Nullable String version) {
         return findFirst(format, version)
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown product format found, for label '%s'", format)));
     }
 
     public static Optional<AggExtractionTypeEnum> findFirst(@NonNull IExtractionType format) {
-        Preconditions.checkArgument(format.getCategory() == ExtractionCategoryEnum.PRODUCT, "Invalid format. Must be a PRODUCT format");
-        return findFirst(format.getLabel(), format.getVersion());
+        return findFirst(format.getFormat(), format.getVersion());
     }
 
     public static Optional<AggExtractionTypeEnum> findFirst(@NonNull String format, String version) {
-        if (format.contains("-")) {
-            log.warn("Trying to resolve a AggregationFormatEnum from an invalid format '{}'. Please make sure this is not a label", format);
-            return findFirst(IExtractionType.getFormat(format), version);
-        }
-
         return Arrays.stream(values())
                 .filter(e -> format.equalsIgnoreCase(e.getFormat())
                         && (version == null || e.getVersion().equalsIgnoreCase(version)))

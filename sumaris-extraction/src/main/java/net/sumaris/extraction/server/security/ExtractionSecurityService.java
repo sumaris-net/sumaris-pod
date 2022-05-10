@@ -62,7 +62,7 @@ public interface ExtractionSecurityService {
 
     boolean canReadAll();
 
-    boolean canRead(IExtractionType format) throws UnauthorizedException;
+    boolean canRead(IExtractionType type) throws UnauthorizedException;
 
     boolean canRead(int productId) throws UnauthorizedException;
 

@@ -50,7 +50,9 @@ public class ExtractionTypeFilterVO implements IReferentialFilter {
         return s -> (filter.getId() == null || filter.getId().equals(s.getId()))
             && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
             && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
-            && (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(s.getCategory().name()))
+            && (filter.getFormat() == null || filter.getFormat().equalsIgnoreCase(s.getFormat()))
+            && (filter.getVersion() == null || filter.getVersion().equalsIgnoreCase(s.getVersion()))
+            //&& (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(s.getCategory().name()))
             && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
             && (searchPattern == null || searchAnyPattern == null
             || searchPattern.matcher(s.getLabel()).matches()

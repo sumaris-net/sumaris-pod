@@ -26,6 +26,7 @@ import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.DatabaseResource;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public abstract class ExtractionTypeServiceReadTest extends AbstractServiceTest {
+public class ExtractionTypeServiceReadTest extends AbstractServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
@@ -52,16 +53,15 @@ public abstract class ExtractionTypeServiceReadTest extends AbstractServiceTest 
 
         // Get valid live format
         {
-            ExtractionTypeVO source = ExtractionTypeVO.builder()
+            ExtractionTypeVO example = ExtractionTypeVO.builder()
                 .format(LiveExtractionTypeEnum.RDB.getFormat())
-                .category(LiveExtractionTypeEnum.RDB.getCategory())
                 .build();
 
-            IExtractionType type = service.getByExample(source);
+            IExtractionType type = service.getByExample(example);
 
             Assert.assertNotNull(type);
             Assert.assertNotNull(type.getFormat());
-            Assert.assertEquals("type.format should be in uppercase", source.getFormat().toUpperCase(), type.getFormat());
+            Assert.assertEquals("type.format should be in uppercase", example.getFormat().toUpperCase(), type.getFormat());
             Assert.assertNotNull(type.getLabel());
             Assert.assertEquals("type.label is computed", LiveExtractionTypeEnum.RDB.getLabel(), type.getLabel());
             Assert.assertNotNull(type.getId());
@@ -70,11 +70,11 @@ public abstract class ExtractionTypeServiceReadTest extends AbstractServiceTest 
 
         // Get invalid live format
         {
-            ExtractionTypeVO format = new ExtractionTypeVO();
-            format.setLabel("FAKE");
-            format.setCategory(ExtractionCategoryEnum.LIVE);
+            ExtractionTypeVO example = ExtractionTypeVO.builder()
+                .format("FAKE")
+                .build();
             try {
-                service.getByExample(format);
+                service.getByExample(example);
                 Assert.fail("Should failed on wrong format");
             } catch (Exception e) {
                 // OK
@@ -83,13 +83,15 @@ public abstract class ExtractionTypeServiceReadTest extends AbstractServiceTest 
 
         // Get a valid product, by label
         {
-            ExtractionTypeVO format = new ExtractionTypeVO();
-            format.setLabel(fixtures.getRdbProductLabel(0));
-            format.setCategory(ExtractionCategoryEnum.PRODUCT);
-            IExtractionType type = service.getByExample(format);
+            ExtractionTypeVO example = ExtractionTypeVO.builder()
+                .label(fixtures.getRdbProductLabel(0))
+                .format(LiveExtractionTypeEnum.RDB.getFormat())
+                .build();
+
+            IExtractionType type = service.getByExample(example);
 
             Assert.assertNotNull(type);
-            Assert.assertEquals(format.getLabel(), type.getLabel());
+            Assert.assertEquals(example.getLabel(), type.getLabel());
             Assert.assertTrue(type instanceof ExtractionProductVO);
         }
     }
@@ -99,7 +101,7 @@ public abstract class ExtractionTypeServiceReadTest extends AbstractServiceTest 
 
         ExtractionTypeFilterVO filter = ExtractionTypeFilterVO.builder().build();
 
-        List<ExtractionTypeVO> types = service.findByFilter(filter, null);
+        List<ExtractionTypeVO> types = service.findAllByFilter(filter, null);
         Assert.assertNotNull(types);
         Assert.assertTrue(types.size() > 0);
     }

@@ -31,23 +31,19 @@ import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.ExtractionCacheConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +74,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
     private ExtractionConfiguration configuration;
 
     @Autowired
-    private ExtractionProductRepository extractionProductRepository;
+    private ExtractionProductService extractionProductService;
 
     private Set<IExtractionType> availableLiveTypes = Sets.newHashSet();
 
@@ -101,7 +97,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
     public void registerLiveTypes(Set<IExtractionType> types) {
         synchronized (this.availableLiveTypes) {
             types.stream()
-                .filter(t -> !this.availableLiveTypes.contains(t) && t.getCategory() == ExtractionCategoryEnum.LIVE)
+                .filter(t -> !this.availableLiveTypes.contains(t))
                 .forEach(this.availableLiveTypes::add);
         }
     }
@@ -117,13 +113,13 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
     }
 
     public List<ExtractionTypeVO> findAll() {
-        return findByFilter(null, null);
+        return findAllByFilter(null, null);
     }
 
     @Override
     @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES)
-    public List<ExtractionTypeVO> findByFilter(@Nullable ExtractionTypeFilterVO filter,
-                                               @Nullable Page page) {
+    public List<ExtractionTypeVO> findAllByFilter(@Nullable ExtractionTypeFilterVO filter,
+                                                  @Nullable Page page) {
         if (page == null) {
             return this.findAllByFilter(filter, 0, 1000, null, null);
         }
@@ -136,14 +132,17 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
     }
 
     @Override
+    @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPE_BY_EXAMPLE,
+        key = "#source.id + #source.label + #source.format + #source.version + #fetchOptions.hashCode()",
+        condition = " #source != null", unless = "#result == null")
     public IExtractionType getByExample(@NonNull IExtractionType source, @NonNull ExtractionProductFetchOptions fetchOptions) {
 
         // Product
-        if (ExtractionTypes.isProduct(source)) {
-            Preconditions.checkArgument(StringUtils.isNotBlank(source.getLabel()) || source.getId() != null);
-            if (source.getId() != null && source.getId() >= 0) return extractionProductRepository.get(source.getId(), fetchOptions);
-            if (source.getLabel() != null) return extractionProductRepository.getByLabel(source.getLabel(), fetchOptions);
-            throw new SumarisTechnicalException(String.format("Unknown extraction product: %s", source));
+        if (enableProduct && ExtractionTypes.isProduct(source)) {
+            // Product by id
+            if (source.getId() != null) return extractionProductService.get(source.getId(), fetchOptions);
+            //  Product by label
+            if (source.getLabel() != null) return extractionProductService.getByLabel(source.getLabel(), fetchOptions);
         }
 
         // Live format
@@ -192,7 +191,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
         Preconditions.checkNotNull(filter);
 
         return ListUtils.emptyIfNull(
-                extractionProductRepository.findAll(filter, ExtractionProductFetchOptions.TABLES_AND_RECORDER))
+                extractionProductService.findByFilter(filter, ExtractionProductFetchOptions.TABLES_AND_RECORDER))
             .stream()
             .map(this::toExtractionTypeVO)
             .collect(Collectors.toList());
@@ -207,10 +206,10 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
     protected void toExtractionTypeVO(ExtractionProductVO source, ExtractionTypeVO target) {
 
         Beans.copyProperties(source, target);
-        target.setLabel(source.getLabel());
 
         // Recorder department
         target.setRecorderDepartment(source.getRecorderDepartment());
+        target.setRecorderPerson(source.getRecorderPerson());
     }
 
 }
