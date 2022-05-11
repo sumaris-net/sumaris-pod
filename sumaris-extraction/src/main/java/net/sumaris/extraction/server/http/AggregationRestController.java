@@ -30,7 +30,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
@@ -55,7 +55,7 @@ import java.text.ParseException;
 public class AggregationRestController implements ExtractionRestPaths {
 
     @Autowired
-    private ExtractionManager extractionManager;
+    private ExtractionService extractionService;
 
     @Autowired
     private ExtractionGeoJsonConverter geoJsonConverter;
@@ -114,7 +114,7 @@ public class AggregationRestController implements ExtractionRestPaths {
         strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME);
         strata.setTechColumnName(null);
 
-        ExtractionResultVO result = extractionManager.executeAndRead(product, filter, strata,
+        ExtractionResultVO result = extractionService.executeAndRead(product, filter, strata,
             Page.builder()
                 .offset(offset)
                 .size(size)
@@ -124,7 +124,7 @@ public class AggregationRestController implements ExtractionRestPaths {
     }
 
     protected ExtractionProductVO getProductByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
-        IExtractionType checkedType = extractionManager.getByExample(source, fetchOptions);
+        IExtractionType checkedType = extractionService.getByExample(source, fetchOptions);
 
         if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
 

@@ -39,7 +39,6 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.util.ExtractionTypes;

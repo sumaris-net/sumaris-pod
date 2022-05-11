@@ -38,7 +38,7 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
@@ -63,22 +63,22 @@ import java.util.stream.Collectors;
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 @Slf4j
-public class ExtractionManagerGraphQLService {
+public class ExtractionServiceGraphQLService {
 
     private final ExtractionSecurityService extractionSecurityService;
-    private final ExtractionManager extractionManager;
+    private final ExtractionService extractionService;
     private final IDownloadController downloadController;
     private final ExtractionGeoJsonConverter geoJsonConverter;
 
-    public ExtractionManagerGraphQLService(
+    public ExtractionServiceGraphQLService(
         IDownloadController downloadController,
         ExtractionSecurityService extractionSecurityService,
-        ExtractionManager extractionManager,
+        ExtractionService extractionService,
         ExtractionGeoJsonConverter geoJsonConverter) {
 
         this.downloadController = downloadController;
         this.extractionSecurityService = extractionSecurityService;
-        this.extractionManager = extractionManager;
+        this.extractionService = extractionService;
         this.geoJsonConverter = geoJsonConverter;
     }
 
@@ -100,7 +100,7 @@ public class ExtractionManagerGraphQLService {
 
         extractionSecurityService.checkReadAccess(type);
 
-        return extractionManager.executeAndRead(type, filter, strata, Page.builder()
+        return extractionService.executeAndRead(type, filter, strata, Page.builder()
             .offset(offset)
             .size(size)
             .sortBy(sort)
@@ -134,7 +134,7 @@ public class ExtractionManagerGraphQLService {
             .sortDirection(SortDirection.fromString(direction))
             .build();
 
-        ExtractionResultVO resultVO = extractionManager.executeAndRead(type, filter, strata, page,
+        ExtractionResultVO resultVO = extractionService.executeAndRead(type, filter, strata, page,
             cacheDuration != null ? CacheTTL.fromString(cacheDuration) : null);
 
         return toJsonArray(resultVO);
@@ -151,7 +151,7 @@ public class ExtractionManagerGraphQLService {
 
         extractionSecurityService.checkReadAccess(type);
 
-        File tempFile = extractionManager.executeAndDump(type, filter, strata);
+        File tempFile = extractionService.executeAndDump(type, filter, strata);
 
         // Add to download controller
         String filePath = downloadController.registerFile(tempFile, true);
@@ -180,7 +180,7 @@ public class ExtractionManagerGraphQLService {
         extractionSecurityService.checkReadAccess(product);
 
         // Get data
-        return extractionManager.executeAndRead(product, filter, strata, Page.builder()
+        return extractionService.executeAndRead(product, filter, strata, Page.builder()
                 .offset(offset)
                 .size(size)
                 .sortBy(sort)
@@ -248,7 +248,7 @@ public class ExtractionManagerGraphQLService {
         }
 
         // Get data
-        ExtractionResultVO data = extractionManager.executeAndRead(product, filter, strata, Page.builder()
+        ExtractionResultVO data = extractionService.executeAndRead(product, filter, strata, Page.builder()
                 .offset(offset)
                 .size(size)
                 .sortBy(sort)
@@ -276,7 +276,7 @@ public class ExtractionManagerGraphQLService {
         // Check access right
         extractionSecurityService.checkReadAccess(product);
 
-        return extractionManager.readByTech(product, filter, strata, sort, SortDirection.fromString(direction));
+        return extractionService.readByTech(product, filter, strata, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
@@ -293,7 +293,7 @@ public class ExtractionManagerGraphQLService {
         // Check access right
         extractionSecurityService.checkReadAccess(product);
 
-        return extractionManager.getTechMinMax(product, filter, strata);
+        return extractionService.getTechMinMax(product, filter, strata);
     }
 
 
@@ -325,7 +325,7 @@ public class ExtractionManagerGraphQLService {
     }
 
     protected ExtractionProductVO getProductByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
-        IExtractionType checkedType = extractionManager.getByExample(source, fetchOptions);
+        IExtractionType checkedType = extractionService.getByExample(source, fetchOptions);
 
         if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
 

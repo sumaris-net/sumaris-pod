@@ -39,7 +39,7 @@ import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
@@ -96,7 +96,7 @@ public class ExtractionRestController implements ExtractionRestPaths {
     private SumarisConfiguration configuration;
 
     @Autowired
-    private ExtractionManager extractionManager;
+    private ExtractionService extractionService;
 
     @Autowired
     private ExtractionTypeService extractionTypeService;
@@ -219,8 +219,8 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         extractionSecurityService.checkReadAccess(type);
 
-        ExtractionContextVO context = extractionManager.execute(type, filter, null);
-        File tempFile = extractionManager.dumpTablesToFile(context, filter);
+        ExtractionContextVO context = extractionService.execute(type, filter, null);
+        File tempFile = extractionService.dumpTablesToFile(context, filter);
 
         // Add to file register
         String path = downloadController.registerFile(tempFile, true);

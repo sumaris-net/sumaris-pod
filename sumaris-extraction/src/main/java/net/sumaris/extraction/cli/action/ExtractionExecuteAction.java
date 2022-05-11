@@ -52,7 +52,7 @@ public class ExtractionExecuteAction {
     public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
         ExtractionTypeService extractionTypeService = ExtractionServiceLocator.extractionTypeService();
-        ExtractionManager service = ExtractionServiceLocator.extractionManager();
+        ExtractionService service = ExtractionServiceLocator.extractionManager();
 
         String format = config.getExtractionCliOutputFormat();
         IExtractionType type;

@@ -22,7 +22,6 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -48,10 +47,10 @@ import java.io.IOException;
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public abstract class ExtractionManagerTest extends AbstractServiceTest {
+public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
-    private ExtractionManager service;
+    private ExtractionService service;
     @Autowired
     private ObjectMapper objectMapper;
 

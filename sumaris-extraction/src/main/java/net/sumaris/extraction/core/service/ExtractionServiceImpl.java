@@ -100,7 +100,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("extractionManager")
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
-public class ExtractionManagerImpl implements ExtractionManager {
+public class ExtractionServiceImpl implements ExtractionService {
 
     private final ExtractionConfiguration configuration;
     private final DataSource dataSource;
@@ -133,7 +133,7 @@ public class ExtractionManagerImpl implements ExtractionManager {
     private boolean enableTechnicalTablesUpdate = false;
     private CacheTTL cacheDefaultTtl;
 
-    public ExtractionManagerImpl(ExtractionConfiguration configuration,
+    public ExtractionServiceImpl(ExtractionConfiguration configuration,
                                  DataSource dataSource,
                                  SumarisDatabaseMetadata databaseMetadata,
                                  ExtractionTripDao extractionRdbTripDao,

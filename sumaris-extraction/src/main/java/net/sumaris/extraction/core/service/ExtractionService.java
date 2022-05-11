@@ -34,20 +34,18 @@ import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author peck7 on 17/12/2018.
  */
 @Transactional
-public interface ExtractionManager {
+public interface ExtractionService {
 
     int EXECUTION_TIMEOUT = 10000000;
 

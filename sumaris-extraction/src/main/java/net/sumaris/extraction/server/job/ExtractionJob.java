@@ -28,7 +28,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfigurationOption;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.event.EventListener;
@@ -45,14 +45,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExtractionJob {
 
-    private final ExtractionManager extractionManager;
+    private final ExtractionService extractionService;
     private final ExtractionConfiguration configuration;
     private boolean enable = false;
 
-    public ExtractionJob(ExtractionManager extractionManager,
+    public ExtractionJob(ExtractionService extractionService,
                          ExtractionConfiguration configuration) {
         super();
-        this.extractionManager = extractionManager;
+        this.extractionService = extractionService;
         this.configuration = configuration;
     }
 
@@ -81,28 +81,28 @@ public class ExtractionJob {
     @Async
     protected void executeHourly(){
         if (!enable) return; // Skip
-        extractionManager.executeAll(ProcessingFrequencyEnum.HOURLY);
+        extractionService.executeAll(ProcessingFrequencyEnum.HOURLY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.daily.cron:0 0 0 * * ?}")
     @Async
     protected void executeDaily(){
         if (!enable) return; // Skip
-        extractionManager.executeAll(ProcessingFrequencyEnum.DAILY);
+        extractionService.executeAll(ProcessingFrequencyEnum.DAILY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.weekly.cron:0 0 0 2 * MON}")
     @Async
     protected void executeWeekly(){
         if (!enable) return; // Skip
-        extractionManager.executeAll(ProcessingFrequencyEnum.WEEKLY);
+        extractionService.executeAll(ProcessingFrequencyEnum.WEEKLY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.monthly.cron:0 0 0 1 * ?}")
     @Async
     protected void executeMonthly(){
         if (!enable) return; // Skip
-        extractionManager.executeAll(ProcessingFrequencyEnum.MONTHLY);
+        extractionService.executeAll(ProcessingFrequencyEnum.MONTHLY);
     }
 
 

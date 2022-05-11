@@ -34,7 +34,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.*;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -62,12 +62,12 @@ public class ExtractionProductGraphQLService {
 
     private final ExtractionTypeService extractionTypeService;
     private final ExtractionProductService extractionProductService;
-    private final ExtractionManager extractionManager;
+    private final ExtractionService extractionService;
 
-    public ExtractionProductGraphQLService(ExtractionManager extractionManager,
+    public ExtractionProductGraphQLService(ExtractionService extractionService,
                                            ExtractionProductService extractionProductService,
                                            ExtractionSecurityService extractionSecurityService, ExtractionTypeService extractionTypeService) {
-        this.extractionManager = extractionManager;
+        this.extractionService = extractionService;
         this.extractionProductService = extractionProductService;
         this.extractionSecurityService = extractionSecurityService;
         this.extractionTypeService = extractionTypeService;
@@ -106,7 +106,7 @@ public class ExtractionProductGraphQLService {
 
         // Execute, then save
         if (isNew) {
-            return extractionManager.executeAndSave(source, filter, null);
+            return extractionService.executeAndSave(source, filter, null);
         }
 
         // Save only
@@ -153,7 +153,7 @@ public class ExtractionProductGraphQLService {
         extractionSecurityService.checkWriteAccess(id);
 
         // Do update
-        return extractionManager.executeAndSave(id);
+        return extractionService.executeAndSave(id);
     }
 
     /* -- protected methods --*/

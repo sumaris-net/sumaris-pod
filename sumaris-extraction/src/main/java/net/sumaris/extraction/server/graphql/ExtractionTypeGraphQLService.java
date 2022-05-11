@@ -22,7 +22,6 @@
 
 package net.sumaris.extraction.server.graphql;
 
-import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLQuery;
@@ -30,36 +29,23 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
-import net.sumaris.extraction.core.service.ExtractionManager;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.vo.*;
-import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.server.http.graphql.GraphQLApi;
-import net.sumaris.server.security.IDownloadController;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
