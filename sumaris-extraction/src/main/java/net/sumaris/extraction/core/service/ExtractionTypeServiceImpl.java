@@ -133,7 +133,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
 
     @Override
     @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPE_BY_EXAMPLE,
-        key = "#source.id + #source.label + #source.format + #source.version + #fetchOptions.hashCode()",
+        key = "#source.label + #source.format + #source.version + #fetchOptions.hashCode()",
         condition = " #source != null", unless = "#result == null")
     public IExtractionType getByExample(@NonNull IExtractionType source, @NonNull ExtractionProductFetchOptions fetchOptions) {
 
