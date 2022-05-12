@@ -26,6 +26,8 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -81,6 +83,7 @@ public interface ExtractionProductSpecifications {
         }).addBind(ExtractionProduct.Fields.PARENT, parentId);
     }
 
+    ExtractionProductVO save(ExtractionProductVO source, ExtractionProductSaveOptions saveOptions);
 
     List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(Integer id, String tableLabel);
 

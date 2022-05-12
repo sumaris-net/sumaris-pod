@@ -183,8 +183,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
             .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
             .skip(offset)
             .limit((size < 0) ? types.size() : size)
-            .collect(Collectors.toList()
-            );
+            .collect(Collectors.toList());
     }
 
     protected List<ExtractionTypeVO> findProductsByFilter(ExtractionTypeFilterVO filter) {

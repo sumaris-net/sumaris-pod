@@ -22,6 +22,7 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
@@ -40,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -66,11 +69,6 @@ public interface ExtractionService {
     ExtractionProductVO executeAndSave(int id);
 
     @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
-    <R extends ExtractionResultVO> R executeAndRead(IExtractionType type,
-                                                    @Nullable ExtractionFilterVO filter,
-                                                    @Nullable AggregationStrataVO strata,
-                                                    Page page);
-
     ExtractionResultVO executeAndRead(IExtractionType type,
                                       @Nullable ExtractionFilterVO filter,
                                       @Nullable AggregationStrataVO strata,
@@ -80,7 +78,8 @@ public interface ExtractionService {
     ExtractionResultVO read(IExtractionType type,
                             @Nullable ExtractionFilterVO filter,
                             @Nullable AggregationStrataVO strata,
-                            Page page);
+                            Page page,
+                            @Nullable CacheTTL ttl);
 
     File executeAndDumpTrips(LiveExtractionTypeEnum format, ExtractionTripFilterVO filter);
 
@@ -104,4 +103,11 @@ public interface ExtractionService {
     MinMaxVO getTechMinMax(IExtractionType type,
                            @Nullable ExtractionFilterVO filter,
                            @Nullable AggregationStrataVO strata);
+
+    ExtractionFilterVO parseFilter(String jsonFilter);
+
+    List<Map<String, String>> toListOfMap(ExtractionResultVO source);
+
+    ObjectNode[] toJson(ExtractionResultVO source);
+
 }

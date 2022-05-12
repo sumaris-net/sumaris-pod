@@ -24,8 +24,11 @@ package net.sumaris.extraction.core.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -213,118 +216,29 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public <R extends ExtractionResultVO> R executeAndRead(@NonNull IExtractionType type,
-                                                           @Nullable ExtractionFilterVO filter,
-                                                           @Nullable AggregationStrataVO strata,
-                                                           Page page) {
-        // Make sure type has category AND label filled
-        type = getByExample(type);
-
-        ExtractionContextVO context = null;
-        try {
-            // Mark as preview
-            filter = ExtractionFilterVO.nullToEmpty(filter);
-            filter.setPreview(true);
-
-            // Execute extraction into temp tables
-            context = execute(type, filter, strata);
-
-            // Result has not the expected sheetname: skip
-            if (filter.getSheetName() != null && !context.hasSheet(filter.getSheetName())) {
-                return (R)createEmptyResult();
-            }
-
-            // Force commit
-            Daos.commitIfHsqldbOrPgsql(dataSource);
-
-            // Create a read filter, with sheetname only, because already applied by execute()
-            ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
-                .sheetName(filter.getSheetName())
-                .build();
-
-            // Read
-            return (R)read(context, readFilter, strata, page, true /*already checked*/);
-        }
-        catch (DataNotFoundException e) {
-            return (R)createEmptyResult();
-        }
-        finally {
-            // Clean created tables
-            if (context != null) {
-                asyncClean(context);
-            }
-        }
-    }
-
-    @Override
     public ExtractionResultVO executeAndRead(@NonNull IExtractionType type,
-                                                      @Nullable ExtractionFilterVO filter,
-                                                      @Nullable AggregationStrataVO strata,
-                                                      @NonNull Page page,
-                                                      @Nullable CacheTTL ttl) {
+                                             @Nullable ExtractionFilterVO filter,
+                                             @Nullable AggregationStrataVO strata,
+                                             @NonNull Page page,
+                                             @Nullable CacheTTL ttl) {
 
-        // No cache
-        if (!enableCache) return executeAndRead(type, filter, strata, page);
+        // Fetch type
+        IExtractionType finalType = getByExample(type);
+        ExtractionFilterVO finalFilter = ExtractionFilterVO.nullToEmpty(filter);
 
-        Preconditions.checkNotNull(this.cacheManager, "Cache has been disabled by configuration. Please enable cache before retry");
-
-        filter = ExtractionFilterVO.nullToEmpty(filter);
-        ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
-
-        // Compute a cache key
-        // note: Not need to use TTL in cache key, because using a cache by TTL
-        Integer cacheKey = new HashCodeBuilder(17, 37)
-            .append(type)
-            .append(filter)
-            .append(strata)
-            .append(page)
-            .build();
-
-        // Get cache (if exists)
-        Cache<Integer, ExtractionResultVO> cache = cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
-
-        ExtractionResultVO result = cache.get(cacheKey);
-        if (result != null) return result;
-
-        // Get extraction rows
-        result = executeAndRead(type, filter, strata, page);
-
-        // Add result to cache
-        cache.put(cacheKey, result);
-
-        return result;
+        // Get cached result
+        return getCachedResultOrPut(finalType, finalFilter, strata, page, ttl,
+            () -> executeAndRead(finalType, finalFilter, strata, page, true /*already fetched*/));
     }
 
     @Override
     public ExtractionResultVO read(@NonNull IExtractionType type,
                                    ExtractionFilterVO filter,
                                    AggregationStrataVO strata,
-                                   Page page) {
-        return read(type, filter, strata, page, false);
+                                   Page page,
+                                   CacheTTL ttl) {
+        return read(type, filter, strata, page, ttl, false);
     }
-
-    protected ExtractionResultVO read(@NonNull IExtractionType type,
-                                      ExtractionFilterVO filter,
-                                      AggregationStrataVO strata,
-                                      Page page,
-                                      boolean skipFetchType) {
-
-        // Fetch type
-        if (!skipFetchType) type = getByExample(type);
-
-        filter = ExtractionFilterVO.nullToEmpty(filter);
-
-        // Read aggregation
-        if (ExtractionTypes.isAggregation(type)) {
-            return aggregationDao.read(type, filter, strata, page);
-        }
-
-        // Get simple extraction
-        else {
-            return extractionDao.read(type, filter, page);
-        }
-    }
-
 
     @Override
     public ExtractionProductVO executeAndSave(IExtractionType source, ExtractionFilterVO filter, AggregationStrataVO strata) {
@@ -342,9 +256,15 @@ public class ExtractionServiceImpl implements ExtractionService {
             target.setTables(null);
         }
 
+        // Set product's filter
         target.setFilterContent(writeFilterAsString(filter));
 
-        return productService.save(target);
+        // Set product's strata, if not set yet
+        if (strata != null && CollectionUtils.isEmpty(target.getStratum())) {
+            target.setStratum(Lists.newArrayList(strata));
+        }
+
+        return productService.save(target, ExtractionProductSaveOptions.WITH_TABLES_AND_STRATUM);
     }
 
     @Override
@@ -365,8 +285,12 @@ public class ExtractionServiceImpl implements ExtractionService {
             if (ExtractionTypes.isAggregation(source)) {
                 return aggregationDao.execute(source, parent, filter, strata);
             }
+            else if (ExtractionTypes.isProduct(parent)) {
+                // TODO: merge filter, to add it to existing ?
+                ExtractionProductVO parentProduct = (ExtractionProductVO)parent;
+                log.info(parentProduct.getFilterContent());
+            }
         }
-
 
         // Live extraction
         IExtractionType type = getByExample(ExtractionTypeVO.builder()
@@ -591,6 +515,41 @@ public class ExtractionServiceImpl implements ExtractionService {
         return aggregationDao.getTechMinMax(type, filter, strata);
     }
 
+    @Override
+    public List<Map<String, String>> toListOfMap(ExtractionResultVO source) {
+        if (source == null || CollectionUtils.isNotEmpty(source.getColumns())) return null;
+
+        String[] columnNames = source.getColumns().stream()
+            .map(ExtractionTableColumnVO::getLabel)
+            .toArray(String[]::new);
+
+        return Beans.getStream(source.getRows())
+            .map(row -> {
+                Map<String, String> rowMap = new LinkedHashMap<>();
+                for (int i = 0; i < row.length; i++) {
+                    rowMap.put(columnNames[i], row[i]);
+                }
+                return rowMap;
+            }).collect(Collectors.toList());
+    }
+
+    @Override
+    public ObjectNode[] toJson(ExtractionResultVO source) {
+        if (source == null || CollectionUtils.isNotEmpty(source.getColumns())) return null;
+
+        String[] columnNames = source.getColumns().stream()
+            .map(ExtractionTableColumnVO::getLabel)
+            .toArray(String[]::new);
+
+        return Beans.getStream(source.getRows())
+            .map(row -> {
+                ObjectNode node = objectMapper.createObjectNode();
+                for (int i = 0; i < row.length; i++) {
+                    node.put(columnNames[i], row[i]);
+                }
+                return node;
+            }).toArray(ObjectNode[]::new);
+    }
     /* -- protected -- */
 
     protected boolean initRectangleLocations() {
@@ -626,6 +585,84 @@ public class ExtractionServiceImpl implements ExtractionService {
             return false;
         }
 
+    }
+
+    protected <R extends ExtractionResultVO> R executeAndRead(@NonNull IExtractionType type,
+                                                              @NonNull ExtractionFilterVO filter,
+                                                              @Nullable AggregationStrataVO strata,
+                                                              Page page,
+                                                              boolean skipFetchType) {
+        // Fetch type (if need)
+        type = skipFetchType ? type : getByExample(type);
+
+        ExtractionContextVO context = null;
+        try {
+            // Mark as preview
+            filter.setPreview(true);
+
+            // Execute extraction into temp tables
+            context = execute(type, filter, strata);
+
+            // Result has not the expected sheetname: skip
+            if (filter.getSheetName() != null && !context.hasSheet(filter.getSheetName())) {
+                return (R)createEmptyResult();
+            }
+
+            // Force commit
+            Daos.commitIfHsqldbOrPgsql(dataSource);
+
+            // Create a read filter, with sheetname only, because already applied by execute()
+            ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
+                .sheetName(filter.getSheetName())
+                .build();
+
+            // Read
+            return (R)read(context, readFilter, strata, page, CacheTTL.NONE, true /*already checked*/);
+        }
+        catch (DataNotFoundException e) {
+            return (R)createEmptyResult();
+        }
+        finally {
+            // Clean created tables
+            if (context != null) {
+                asyncClean(context);
+            }
+        }
+    }
+
+    protected ExtractionResultVO read(@NonNull IExtractionType type,
+                                      ExtractionFilterVO filter,
+                                      @Nullable AggregationStrataVO strata,
+                                      @Nullable Page page,
+                                      @Nullable CacheTTL ttl,
+                                      boolean skipFetchType) {
+
+        // Fetch type (if need)
+        IExtractionType finalType = skipFetchType ? type : getByExample(type);
+        ExtractionFilterVO finalFilter = ExtractionFilterVO.nullToEmpty(filter);
+
+        return getCachedResultOrPut(finalType, finalFilter, strata, page, ttl,
+            () -> read(finalType, finalFilter, strata, page, true /*already fetched*/));
+    }
+
+    protected ExtractionResultVO read(@NonNull IExtractionType type,
+                                      ExtractionFilterVO filter,
+                                      AggregationStrataVO strata,
+                                      Page page,
+                                      boolean skipFetchType) {
+
+        // Fetch type (if need)
+        type = skipFetchType ? type : getByExample(type);
+        filter = ExtractionFilterVO.nullToEmpty(filter);
+
+        // Use aggregation dao
+        if (ExtractionTypes.isAggregation(type)) {
+            return aggregationDao.read(type, filter, strata, page);
+        }
+        // Or simple extraction dao
+        else {
+            return extractionDao.read(type, filter, page);
+        }
     }
 
 
@@ -828,11 +865,12 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
 
-    protected ExtractionFilterVO parseFilter(String json) {
-        if (StringUtils.isBlank(json)) return null;
+    @Override
+    public ExtractionFilterVO parseFilter(String jsonFilter) {
+        if (StringUtils.isBlank(jsonFilter)) return null;
 
         try {
-            return objectMapper.readValue(json, ExtractionFilterVO.class);
+            return objectMapper.readValue(jsonFilter, ExtractionFilterVO.class);
         }
         catch(JsonProcessingException e) {
             throw new SumarisTechnicalException(e);
@@ -849,4 +887,43 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
+    protected Integer computeCacheKey(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata, Page page) {
+        // Compute a cache key
+        // note: Not need to use TTL in cache key, because using a cache by TTL
+        return new HashCodeBuilder(17, 37)
+            .append(type)
+            .append(filter)
+            .append(strata)
+            .append(page)
+            .build();
+    }
+
+    protected <R extends ExtractionResultVO> R getCachedResultOrPut(@NonNull IExtractionType type,
+                                                                    @NonNull ExtractionFilterVO filter,
+                                                                    @Nullable AggregationStrataVO strata, Page page,
+                                                                    @Nullable CacheTTL ttl,
+                                                                    Supplier<R> supplier) {
+        ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
+
+        // No cache: compute value
+        if (!enableCache || ttl == CacheTTL.NONE) return supplier.get();
+
+        // Compute a cache key
+        Integer cacheKey = computeCacheKey(type, filter, strata, page);
+
+        // Get the cache
+        Cache<Integer, R> cache = cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+
+        // Reuse cached value if exists
+        R result = cache.get(cacheKey);
+        if (result != null) return result;
+
+        // Not exists in cache: compute it
+        result = supplier.get();
+        if (result == null) return null;
+
+        // Add to cache
+        cache.put(cacheKey, result);
+        return result;
+    }
 }

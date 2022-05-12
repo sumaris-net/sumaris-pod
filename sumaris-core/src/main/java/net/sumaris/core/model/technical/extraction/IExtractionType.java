@@ -62,6 +62,8 @@ public interface IExtractionType<P extends IEntity<Integer>, D extends IEntity<I
 
     String getVersion();
 
+    Boolean getIsSpatial();
+
     default Integer getParentId() {
         return null;
     }

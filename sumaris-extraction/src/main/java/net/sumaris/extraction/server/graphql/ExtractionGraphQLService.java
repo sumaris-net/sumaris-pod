@@ -22,8 +22,10 @@
 
 package net.sumaris.extraction.server.graphql;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLNonNull;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
@@ -37,8 +39,8 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.core.service.ExtractionService;
+import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
@@ -52,10 +54,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -63,14 +63,14 @@ import java.util.stream.Collectors;
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 @Slf4j
-public class ExtractionServiceGraphQLService {
+public class ExtractionGraphQLService {
 
     private final ExtractionSecurityService extractionSecurityService;
     private final ExtractionService extractionService;
     private final IDownloadController downloadController;
     private final ExtractionGeoJsonConverter geoJsonConverter;
 
-    public ExtractionServiceGraphQLService(
+    public ExtractionGraphQLService(
         IDownloadController downloadController,
         ExtractionSecurityService extractionSecurityService,
         ExtractionService extractionService,
@@ -84,48 +84,58 @@ public class ExtractionServiceGraphQLService {
 
     @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")
     @Transactional
-    public ExtractionResultVO readExtractionRows(@GraphQLArgument(name = "type") ExtractionTypeVO type,
-                                                 @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                                 @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                                 @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                 @GraphQLArgument(name = "size", defaultValue = "100") Integer size,
-                                                 @GraphQLArgument(name = "sortBy") String sort,
-                                                 @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                 @GraphQLArgument(name = "cacheDuration") String cacheDuration
+    public ExtractionResultVO read(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
+                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                   @GraphQLArgument(name = "size", defaultValue = "100") Integer size,
+                                   @GraphQLArgument(name = "sortBy") String sort,
+                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                   @GraphQLArgument(name = "cacheDuration") String cacheDuration
     ) {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
-        Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
-        extractionSecurityService.checkReadAccess(type);
+        IExtractionType checkedType = extractionService.getByExample(type);
+        extractionSecurityService.checkReadAccess(checkedType);
 
-        return extractionService.executeAndRead(type, filter, strata, Page.builder()
+        Page page = Page.builder()
             .offset(offset)
             .size(size)
             .sortBy(sort)
             .sortDirection(SortDirection.fromString(direction, SortDirection.ASC))
-            .build(),
-            cacheDuration != null ? CacheTTL.fromString(cacheDuration) : null);
+            .build();
+
+        // Read product
+        if (ExtractionTypes.isProduct(type)) {
+            return extractionService.read(checkedType, filter, strata, page,
+                CacheTTL.fromString(cacheDuration));
+        }
+        // Live extraction
+        else {
+            return extractionService.executeAndRead(checkedType, filter, strata, page,
+                CacheTTL.fromString(cacheDuration));
+        }
     }
 
     @GraphQLQuery(name = "extraction", description = "Read extraction data")
     @Transactional
-    public List<Map<String, String>> readExtractionMap(@GraphQLArgument(name = "type") ExtractionTypeVO type,
-                                                       @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                                       @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                                       @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                       @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                       @GraphQLArgument(name = "sortBy") String sort,
-                                                       @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                       @GraphQLArgument(name = "cacheDuration") String cacheDuration
+    public ObjectNode[] readAsJson(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
+                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                   @GraphQLArgument(name = "sortBy") String sort,
+                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                   @GraphQLArgument(name = "cacheDuration") String cacheDuration
     ) {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
-        Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
-        extractionSecurityService.checkReadAccess(type);
+        IExtractionType checkedType = extractionService.getByExample(type);
+        extractionSecurityService.checkReadAccess(checkedType);
 
         Page page = Page.builder()
             .offset(offset)
@@ -134,20 +144,28 @@ public class ExtractionServiceGraphQLService {
             .sortDirection(SortDirection.fromString(direction))
             .build();
 
-        ExtractionResultVO resultVO = extractionService.executeAndRead(type, filter, strata, page,
-            cacheDuration != null ? CacheTTL.fromString(cacheDuration) : null);
+        // Read product
+        ExtractionResultVO data;
+        if (ExtractionTypes.isProduct(type)) {
+            data = extractionService.read(checkedType, filter, strata, page,
+                CacheTTL.fromString(cacheDuration));
+        }
+        // Live extraction
+        else {
+            data = extractionService.executeAndRead(checkedType, filter, strata, page,
+                CacheTTL.fromString(cacheDuration));
+        }
 
-        return toJsonArray(resultVO);
+        return extractionService.toJson(data);
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Extract data into a file")
     @Transactional(timeout = 10000000)
-    public String getExtractionFile(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+    public String getExtractionFile(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                     @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                     @GraphQLArgument(name = "strata") AggregationStrataVO strata
     ) throws IOException {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
-        Preconditions.checkNotNull(type.getLabel(), "Argument 'type.label' must not be null.");
 
         extractionSecurityService.checkReadAccess(type);
 
@@ -158,37 +176,6 @@ public class ExtractionServiceGraphQLService {
 
        return filePath;
     }
-
-
-    @GraphQLQuery(name = "aggregationRows", description = "Read an aggregation")
-    @Transactional(readOnly = true)
-    public ExtractionResultVO readAggregation(@GraphQLArgument(name = "type") ExtractionTypeVO type,
-                                              @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                              @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                              @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                              @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                              @GraphQLArgument(name = "sortBy") String sort,
-                                              @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                              @GraphQLArgument(name = "cacheDuration") String cacheDuration) {
-
-        // Check type
-        ExtractionProductVO product = getProductByExample(type);
-
-        checkIsSpatial(product);
-
-        // Check access right
-        extractionSecurityService.checkReadAccess(product);
-
-        // Get data
-        return extractionService.executeAndRead(product, filter, strata, Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction, SortDirection.ASC))
-                .build(),
-            cacheDuration != null ? CacheTTL.fromString(cacheDuration) : null);
-    }
-
 
     @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
@@ -202,22 +189,22 @@ public class ExtractionServiceGraphQLService {
                                         @GraphQLArgument(name = "cacheDuration") String cacheDuration) {
 
         // Check type
-        ExtractionProductVO product = getProductByExample(type, ExtractionProductFetchOptions.builder()
+        ExtractionProductVO checkedType = getProductByExample(type, ExtractionProductFetchOptions.builder()
             .withStratum(true)
             .build());
 
-        checkIsSpatial(product);
+        checkIsSpatial(checkedType);
 
         // Check access right
-        extractionSecurityService.checkReadAccess(product);
+        extractionSecurityService.checkReadAccess(checkedType);
 
         // Use the first product's strata, as default
         if ((strata == null || strata.getSpatialColumnName() == null || strata.getTimeColumnName() == null)
-            && CollectionUtils.isNotEmpty(product.getStratum())) {
+            && CollectionUtils.isNotEmpty(checkedType.getStratum())) {
 
             // Get a strata, to use by default
             final String sheetName = strata != null ? strata.getSheetName() : (filter != null ? filter.getSheetName() : null);
-            AggregationStrataVO defaultStrata = product.getStratum().stream()
+            AggregationStrataVO defaultStrata = checkedType.getStratum().stream()
                 .filter(s -> sheetName == null || sheetName.equalsIgnoreCase(s.getSheetName()))
                 .findFirst()
                 .orElseThrow(() -> new SumarisTechnicalException(String.format("Unknown sheetName '%s' in type '%s'", sheetName, type.getLabel())));
@@ -247,14 +234,16 @@ public class ExtractionServiceGraphQLService {
             sort = strata.getSpatialColumnName();
         }
 
-        // Get data
-        ExtractionResultVO data = extractionService.executeAndRead(product, filter, strata, Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction, SortDirection.ASC))
-                .build(),
-            cacheDuration != null ? CacheTTL.fromString(cacheDuration) : null);
+        Page page = Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction, SortDirection.ASC))
+            .build();
+
+        // Read data
+        ExtractionResultVO data = extractionService.read(checkedType, filter, strata, page,
+            CacheTTL.fromString(cacheDuration));
 
         // Convert to GeoJSON
         return geoJsonConverter.toFeatureCollection(data, strata.getSpatialColumnName());
@@ -269,14 +258,14 @@ public class ExtractionServiceGraphQLService {
                                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
 
         // Check type
-        ExtractionProductVO product = getProductByExample(type);
+        ExtractionProductVO checkedType = getProductByExample(type);
 
-        checkIsSpatial(product);
+        checkIsSpatial(checkedType);
 
         // Check access right
-        extractionSecurityService.checkReadAccess(product);
+        extractionSecurityService.checkReadAccess(checkedType);
 
-        return extractionService.readByTech(product, filter, strata, sort, SortDirection.fromString(direction));
+        return extractionService.readByTech(checkedType, filter, strata, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
@@ -286,35 +275,18 @@ public class ExtractionServiceGraphQLService {
                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata) {
 
         // Check type
-        ExtractionProductVO product = getProductByExample(type);
+        ExtractionProductVO checkedType = getProductByExample(type);
 
-        checkIsSpatial(product);
+        checkIsSpatial(checkedType);
 
         // Check access right
-        extractionSecurityService.checkReadAccess(product);
+        extractionSecurityService.checkReadAccess(checkedType);
 
-        return extractionService.getTechMinMax(product, filter, strata);
+        return extractionService.getTechMinMax(checkedType, filter, strata);
     }
 
 
     /* -- protected methods -- */
-
-    protected List<Map<String, String>> toJsonArray(ExtractionResultVO source) {
-        if (CollectionUtils.isNotEmpty(source.getColumns())) return null;
-
-        String[] columnNames = source.getColumns().stream()
-            .map(ExtractionTableColumnVO::getLabel)
-            .toArray(String[]::new);
-
-        return source.getRows()
-            .stream().map(row -> {
-                Map<String, String> rowMap = new LinkedHashMap<>();
-                for (int i = 0; i < row.length; i++) {
-                    rowMap.put(columnNames[i], row[i]);
-                }
-                return rowMap;
-            }).collect(Collectors.toList());
-    }
 
     protected ExtractionProductVO getProductByExample(IExtractionType source) {
         return getProductByExample(source, ExtractionProductFetchOptions.TABLES_AND_RECORDER);

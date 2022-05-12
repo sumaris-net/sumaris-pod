@@ -78,6 +78,7 @@ public class ExtractionProductVO implements IReferentialVO<Integer>,
     Date creationDate;
     Boolean isSpatial;
     String docUrl;
+
     String filterContent;
     Integer processingFrequencyId;
 

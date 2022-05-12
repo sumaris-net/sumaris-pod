@@ -33,6 +33,7 @@ import java.time.Duration;
  */
 public enum CacheTTL {
 
+    NONE(-1), // No cache
 
     DEFAULT(1500), // 25 min;
 
@@ -53,8 +54,12 @@ public enum CacheTTL {
         return value;
     }
 
-    public static CacheTTL fromString(@NonNull String name) {
-        return CacheTTL.valueOf(name.toUpperCase());
+    public static CacheTTL fromString(@Nullable String name, @Nullable CacheTTL defaultValue) {
+        return name != null ? CacheTTL.valueOf(name.toUpperCase()) : defaultValue;
+    }
+
+    public static CacheTTL fromString(@Nullable String name) {
+        return fromString(name, null);
     }
 
     public static CacheTTL nullToDefault(@Nullable CacheTTL ttl, CacheTTL defaultTtl) {

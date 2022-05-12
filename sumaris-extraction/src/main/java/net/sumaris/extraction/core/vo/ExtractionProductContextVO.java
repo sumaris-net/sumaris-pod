@@ -42,7 +42,9 @@ public class ExtractionProductContextVO extends ExtractionContextVO {
         Beans.copyProperties(source, this);
 
         // Copy table names
-        setSheetNameByTableNames(source.getTableNameBySheetNameMap());
+        source.getTableNameBySheetNameMap().entrySet().forEach(entry ->
+            addTableName(entry.getValue(), entry.getKey())
+        );
 
         // Copy hidden columns
         setHiddenColumnNames(source.getHiddenColumnNames());

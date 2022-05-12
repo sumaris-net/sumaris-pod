@@ -395,8 +395,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions) {
-        Preconditions.checkNotNull(trips);
+    public List<TripVO> save(@NonNull List<TripVO> trips, TripSaveOptions saveOptions) {
 
         return trips.stream()
             .map(t -> save(t, saveOptions))

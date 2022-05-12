@@ -453,7 +453,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
         ExtractionResultVO result = service.executeAndRead(
             type,
-            filter, strata, Page.builder().size(100).build());
+            filter, strata, Page.builder().size(100).build(), null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -503,7 +503,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
             .build();
 
-        ExtractionResultVO result = service.read(savedProduct, filter, strata, Page.builder().size(1000).build());
+        ExtractionResultVO result = service.read(savedProduct, filter, strata, Page.builder().size(1000).build(), null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());

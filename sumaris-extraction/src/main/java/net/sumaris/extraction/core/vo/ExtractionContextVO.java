@@ -46,9 +46,10 @@ public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
 
     Integer id;
     String label;
-
     String format;
     String version;
+
+    Boolean isSpatial;
 
     ExtractionFilterVO filter;
 
@@ -91,6 +92,7 @@ public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
     public void setType(IExtractionType type) {
         this.format = type.getFormat();
         this.version = type.getVersion();
+        this.isSpatial = type.getIsSpatial();
     }
 
     /**

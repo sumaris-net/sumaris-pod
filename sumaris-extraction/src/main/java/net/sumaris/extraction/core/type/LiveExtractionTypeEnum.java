@@ -89,6 +89,10 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
         return sheetNames;
     }
 
+    @Override
+    public Boolean getIsSpatial() {
+        return false;
+    }
 
     public static LiveExtractionTypeEnum valueOf(@NonNull String format, @Nullable String version) {
         return findFirst(format, version)

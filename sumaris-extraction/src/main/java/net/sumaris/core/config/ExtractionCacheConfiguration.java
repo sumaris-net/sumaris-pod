@@ -64,6 +64,7 @@ public class ExtractionCacheConfiguration {
             Caches.createHeapCache(cacheManager, Names.PRODUCT_BY_ID, ExtractionProductVO.class, CacheTTL.DEFAULT.asDuration(), 100);
 
             Arrays.stream(CacheTTL.values())
+                .filter(ttl -> ttl.asDuration().getSeconds() > 0) // Skip NONE
                 .forEach(ttl -> Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
                     Integer.class, ExtractionResultVO.class, ttl.asDuration(), 50));
         };
