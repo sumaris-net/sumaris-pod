@@ -41,6 +41,7 @@ import java.util.Date;
 public interface ObservedLocationSpecifications extends RootDataSpecifications<ObservedLocation> {
 
     String LOCATION_ID_PARAM = "locationId";
+    String LOCATION_IDS_PARAM = "locationIds";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
     String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
@@ -51,6 +52,14 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
             ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
             return criteriaBuilder.equal(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(LOCATION_ID_PARAM, locationId);
+    }
+
+    default Specification<ObservedLocation> hasLocationIds(Integer[] locationIds) {
+        if (ArrayUtils.isEmpty(locationIds)) return null;
+        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, LOCATION_IDS_PARAM);
+            return criteriaBuilder.in(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID)).value(param);
+        }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
 
     default Specification<ObservedLocation> withStartDate(Date startDate) {

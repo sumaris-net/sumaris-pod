@@ -64,6 +64,7 @@ public class TripRepositoryImpl
             .and(id(filter.getTripId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
+            .and(hasLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
