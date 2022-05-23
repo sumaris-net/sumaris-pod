@@ -57,11 +57,14 @@
   <PROGRAM_PROPERTY ID="32" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150"/>
   <PROGRAM_PROPERTY ID="33" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.distanceMaxError" NAME="200"/>
   <PROGRAM_PROPERTY ID="34" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.maxTotalDurationInHours" NAME="24"/><!-- 24 hours -->
+  <PROGRAM_PROPERTY ID="35" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
+  <PROGRAM_PROPERTY ID="36" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
 
-  <PROGRAM_PROPERTY ID="35" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.endDateTime.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="36" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.location.level.ids" NAME="3"/>
-  <PROGRAM_PROPERTY ID="37" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.landing.editor" NAME="control"/>
-  <PROGRAM_PROPERTY ID="38" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.measurements.maxVisibleButtons" NAME="4"/>
+
+  <PROGRAM_PROPERTY ID="37" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.endDateTime.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="38" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.location.level.ids" NAME="3"/>
+  <PROGRAM_PROPERTY ID="39" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.landing.editor" NAME="control"/>
+
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="10" LOCATION_CLASSIFICATION_FK="2"/>
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="11" LOCATION_CLASSIFICATION_FK="1"/>

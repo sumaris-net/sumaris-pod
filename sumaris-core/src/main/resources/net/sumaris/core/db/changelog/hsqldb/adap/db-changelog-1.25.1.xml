@@ -64,4 +64,31 @@
         </sql>
     </changeSet>
 
+    <!-- Add new option to enable RTP  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.trip.operation.batch.lengthWeightConversion.enable')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.batch.lengthWeightConversion.enable</column>
+            <column name="NAME">true</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+
 </databaseChangeLog>
