@@ -55,6 +55,21 @@
 		</sql>
 	</changeSet>
 
+	<!-- Rename a program option -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-004" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.metier.filter'</sqlCheck></not>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update PROGRAM_PROPERTY set LABEL='sumaris.trip.operation.metier.filter' where LABEL='sumaris.trip.metier.filter';
+			update PROGRAM set update_date=current_timestamp where ID IN (SELECT PROGRAM_FK FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.metier.filter');
+			commit;
+		</sql>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">

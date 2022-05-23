@@ -24,10 +24,10 @@ package net.sumaris.server.util.social;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.social.UserEventVO;
+
+import java.io.Serializable;
 
 @Builder
 @AllArgsConstructor
@@ -35,7 +35,7 @@ import net.sumaris.core.vo.social.UserEventVO;
 @Data
 @FieldNameConstants
 @ToString(onlyExplicitlyIncluded = true)
-public class MessageVO {
+public class MessageVO implements Serializable {
 
     String subject;
     String body;
