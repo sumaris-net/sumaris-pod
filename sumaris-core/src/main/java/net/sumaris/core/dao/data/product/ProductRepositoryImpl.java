@@ -355,10 +355,14 @@ public class ProductRepositoryImpl
             String packagingId = product.getMeasurementValues().get(PmfmEnum.PACKAGING.getId());
             if (StringUtils.isNotBlank(packagingId)) {
                 QualitativeValue packaging = getReference(QualitativeValue.class, Integer.valueOf(packagingId));
-                String avgPackagingPrice = product.getMeasurementValues().remove(getAveragePricePmfmIdByPackaging(packaging));
-                if (StringUtils.isNotBlank(avgPackagingPrice)) {
-                    // put it as generic avg price
-                    product.getMeasurementValues().put(PmfmEnum.AVERAGE_PACKAGING_PRICE.getId(), avgPackagingPrice);
+                Integer pmfmId = getAveragePricePmfmIdByPackaging(packaging);
+                // AVERAGE_WEIGHT_PRICE must be used as is, don't convert to packaging-specific pmfm
+                if (!Objects.equals(pmfmId, PmfmEnum.AVERAGE_WEIGHT_PRICE.getId())) {
+                    String avgPackagingPrice = product.getMeasurementValues().remove(pmfmId);
+                    if (StringUtils.isNotBlank(avgPackagingPrice)) {
+                        // put it as generic avg price
+                        product.getMeasurementValues().put(PmfmEnum.AVERAGE_PACKAGING_PRICE.getId(), avgPackagingPrice);
+                    }
                 }
             }
 
