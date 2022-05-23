@@ -449,7 +449,7 @@ public class DataGraphQLService {
 
     /* -- Observed location -- */
 
-    @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
+        @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
     @Transactional(readOnly = true)
     @IsUser
     public List<ObservedLocationVO> findObservedLocationsByFilter(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,

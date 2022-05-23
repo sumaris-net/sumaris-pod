@@ -26,15 +26,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -43,8 +39,6 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 31/08/2020.
@@ -70,6 +64,7 @@ public class ObservedLocationRepositoryImpl
     public Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(hasLocationId(filter.getLocationId()))
+            .and(hasLocationIds(filter.getLocationIds()))
             .and(withStartDate(filter.getStartDate()))
             .and(withEndDate(filter.getEndDate()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
