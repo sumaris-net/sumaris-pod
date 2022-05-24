@@ -36,7 +36,7 @@ import javax.persistence.EntityManager;
  * @author blavenie
  */
 public class TaxonomicLevelRepositoryImpl
-        extends ReferentialRepositoryImpl<TaxonomicLevel, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+        extends ReferentialRepositoryImpl<Integer, TaxonomicLevel, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     public TaxonomicLevelRepositoryImpl(EntityManager entityManager) {
         super(TaxonomicLevel.class, ReferentialVO.class, entityManager);
@@ -44,7 +44,7 @@ public class TaxonomicLevelRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id")
-    public ReferentialVO get(int id) {
+    public ReferentialVO get(Integer id) {
         return super.get(id);
     }
 

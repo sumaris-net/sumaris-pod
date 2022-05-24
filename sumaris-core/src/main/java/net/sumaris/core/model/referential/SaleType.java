@@ -34,7 +34,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "sale_type")
-public class SaleType implements IItemReferentialEntity {
+public class SaleType implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "SALE_TYPE_SEQ")

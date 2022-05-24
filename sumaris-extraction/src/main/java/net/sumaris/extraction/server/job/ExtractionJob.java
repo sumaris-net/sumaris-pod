@@ -22,35 +22,21 @@
 
 package net.sumaris.extraction.server.job;
 
-import lombok.Data;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.AggregationService;
-import net.sumaris.extraction.core.service.ExtractionProductService;
-import net.sumaris.extraction.core.service.ExtractionServiceLocator;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.model.technical.history.ProcessingFrequency;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFilterVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.config.ExtractionConfigurationOption;
+import net.sumaris.extraction.core.service.ExtractionManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -59,112 +45,65 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExtractionJob {
 
-    @Autowired
-    private ExtractionProductService extractionProductService;
+    private final ExtractionManager extractionManager;
+    private final ExtractionConfiguration configuration;
+    private boolean enable = false;
 
-    @Autowired
-    private AggregationService aggregationService;
-
-    private boolean ready = false;
-
-    public ExtractionJob() {
+    public ExtractionJob(ExtractionManager extractionManager,
+                         ExtractionConfiguration configuration) {
         super();
-    }
-
-    public ExtractionJob(ExtractionProductService extractionProductService,
-                         AggregationService aggregationService) {
-        super();
-        this.extractionProductService = extractionProductService;
-        this.aggregationService = aggregationService;
-        this.ready = true;
-    }
-
-    public void execute(@NonNull ProcessingFrequencyEnum frequency) {
-        if (!ready) return; // SKip
-        if (frequency == ProcessingFrequencyEnum.NEVER) {
-            throw new IllegalArgumentException(String.format("Cannot update products with frequency '%s'", frequency));
-        }
-
-        long now = System.currentTimeMillis();
-        log.info("Updating {} extractions...", frequency.name().toLowerCase());
-
-        // Get products to refresh
-        List<ExtractionProductVO> products = extractionProductService.findByFilter(ExtractionProductFilterVO.builder()
-                // Filter on public or private products
-                .statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
-                // With the expected frequency
-                .searchJoin(ExtractionProduct.Fields.PROCESSING_FREQUENCY)
-                .searchAttribute(ProcessingFrequency.Fields.LABEL)
-                .searchText(frequency.getLabel())
-                .build(),
-            ExtractionProductFetchOptions.MINIMAL);
-
-        if (CollectionUtils.isEmpty(products)) {
-            log.info("Updating {} extractions [OK] - No extraction found.", frequency.name().toLowerCase());
-            return;
-        }
-
-        int successCount = 0;
-        int errorCount = 0;
-
-        for (ExtractionProductVO product: products) {
-            try {
-                aggregationService.updateProduct(product.getId());
-                successCount++;
-            }
-            catch(Throwable e) {
-                log.error("Error while updating extraction {id: {}, label: '{}'}: {}", product.getId(), product.getLabel(), e.getMessage(), e);
-                errorCount++;
-
-                // TODO: add to processing history
-            }
-        }
-
-        log.info("Updating {} extractions [OK] in {}ms (success: {}, errors: {})",
-            frequency.name().toLowerCase(),
-            System.currentTimeMillis() - now,
-            successCount, errorCount);
+        this.extractionManager = extractionManager;
+        this.configuration = configuration;
     }
 
     /* -- protected functions -- */
 
     @EventListener({ConfigurationReadyEvent.class})
     protected void onConfigurationReady(ConfigurationReadyEvent event) {
-        if (!this.ready) {
-            // Load started
-            log.info("Started Extraction jobs, for frequencies {{}}",
-                Arrays.stream(ProcessingFrequencyEnum.values())
-                    .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
-                    .map(Enum::name)
-                    .collect(Collectors.joining(",")));
-            this.ready = true;
+        boolean enable = configuration.enableExtractionProduct() && configuration.enableExtractionScheduling();
+        if (this.enable != enable) {
+            this.enable = enable;
+            if (!enable) {
+                log.info("Extraction jobs disabled. Use option '{}' to enable jobs", ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
+            }
+            else {
+                // Load started
+                log.info("Started Extraction jobs {{}}",
+                    Arrays.stream(ProcessingFrequencyEnum.values())
+                        .filter(e -> e != ProcessingFrequencyEnum.MANUALLY && e != ProcessingFrequencyEnum.NEVER)
+                        .map(Enum::name)
+                        .collect(Collectors.joining(", ")));
+            }
         }
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.hourly.cron:0 0 * * * ?}")
     @Async
     protected void executeHourly(){
-        execute(ProcessingFrequencyEnum.HOURLY);
+        if (!enable) return; // Skip
+        extractionManager.executeAll(ProcessingFrequencyEnum.HOURLY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.daily.cron:0 0 0 * * ?}")
     @Async
     protected void executeDaily(){
-        execute(ProcessingFrequencyEnum.DAILY);
+        if (!enable) return; // Skip
+        extractionManager.executeAll(ProcessingFrequencyEnum.DAILY);
     }
 
-    @Scheduled(cron = "${sumaris.extraction.scheduling.daily.cron:0 0 0 2 * MON}")
+    @Scheduled(cron = "${sumaris.extraction.scheduling.weekly.cron:0 0 0 2 * MON}")
     @Async
     protected void executeWeekly(){
-        execute(ProcessingFrequencyEnum.WEEKLY);
+        if (!enable) return; // Skip
+        extractionManager.executeAll(ProcessingFrequencyEnum.WEEKLY);
     }
 
-    @Scheduled(cron = "${sumaris.extraction.scheduling.hourly.cron:0 0 0 1 * ?}")
+    @Scheduled(cron = "${sumaris.extraction.scheduling.monthly.cron:0 0 0 1 * ?}")
     @Async
     protected void executeMonthly(){
-        execute(ProcessingFrequencyEnum.MONTHLY);
+        if (!enable) return; // Skip
+        extractionManager.executeAll(ProcessingFrequencyEnum.MONTHLY);
     }
-
 
 
 }

@@ -74,7 +74,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class StrategyRepositoryImpl
-    extends ReferentialRepositoryImpl<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
     implements StrategySpecifications {
 
     @Autowired
@@ -105,8 +105,8 @@ public class StrategyRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, condition = "#result.present")
-    public Optional<StrategyVO> findById(int id) {
-        return super.findById(id);
+    public Optional<StrategyVO> findVOById(Integer id) {
+        return super.findVOById(id);
     }
 
     @Override

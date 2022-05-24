@@ -38,7 +38,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "order_type")
-public class OrderType implements IItemReferentialEntity  {
+public class OrderType implements IItemReferentialEntity<Integer>  {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ORDER_TYPE_SEQ")

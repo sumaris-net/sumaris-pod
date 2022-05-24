@@ -248,9 +248,13 @@ public abstract class DatabaseResource implements TestRule {
 
                 // If running on server mode
                 if (serverMode) {
-                    // Do not copy DB files, but display a warn
-                    log.warn(String.format("Database running in server mode! Please remove the property '%s' in file %s, to use a file database.",
+                    // OK. Do not copy DB files
+
+                    // Display a warn, if hsqldb
+                    if (HSQLDB_DATASOURCE_TYPE.equalsIgnoreCase(datasourcePlatform)) {
+                        log.warn(String.format("Database running in server mode! Please remove the property '%s' in file %s, to use a file database.",
                             SumarisConfigurationOption.JDBC_URL.getKey(), configFilename));
+                    }
                 }
                 else {
                     Tests.checkDbExists(testClass, dbDirectory);

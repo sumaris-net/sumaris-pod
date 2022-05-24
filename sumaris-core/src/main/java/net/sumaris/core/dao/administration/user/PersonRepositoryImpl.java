@@ -97,13 +97,13 @@ public class PersonRepositoryImpl
     }
 
     @Override
-    public PersonVO get(int id) {
-        return findById(id).orElseThrow(() -> new DataRetrievalFailureException("Cannot load person with id=" + id));
+    public PersonVO get(Integer id) {
+        return findVOById(id).orElseThrow(() -> new DataRetrievalFailureException("Cannot load person with id=" + id));
     }
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", unless="#result==null")
-    public Optional<PersonVO> findById(int id) {
+    public Optional<PersonVO> findVOById(Integer id) {
         return super.findById(id).map(this::toVO);
     }
 

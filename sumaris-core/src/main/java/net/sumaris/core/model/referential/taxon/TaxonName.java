@@ -52,8 +52,8 @@ import java.util.List;
                         "FROM TaxonName " +
                         "WHERE id=:id")
 })
-public class TaxonName implements IItemReferentialEntity,
-        IWithDescriptionAndCommentEntity,
+public class TaxonName implements IItemReferentialEntity<Integer>,
+        IWithDescriptionAndCommentEntity<Integer>,
         ITreeNodeEntityBean<Integer, TaxonName> {
 
     @Id

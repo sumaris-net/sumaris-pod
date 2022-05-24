@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ProgramRepositoryImpl
-    extends ReferentialRepositoryImpl<Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>
     implements ProgramSpecifications {
 
     @Autowired
@@ -137,8 +137,8 @@ public class ProgramRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID)
-    public Optional<ProgramVO> findById(int id) {
-        return super.findById(id);
+    public Optional<ProgramVO> findVOById(Integer id) {
+        return super.findVOById(id);
     }
 
     @Override

@@ -41,7 +41,7 @@ import javax.persistence.EntityManager;
  * @author peck7 on 20/08/2020.
  */
 public class DepartmentRepositoryImpl
-    extends ReferentialRepositoryImpl<Department, DepartmentVO, DepartmentFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Department, DepartmentVO, DepartmentFilterVO, ReferentialFetchOptions>
     implements DepartmentSpecifications {
 
     public DepartmentRepositoryImpl(EntityManager entityManager) {
@@ -50,7 +50,7 @@ public class DepartmentRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id", unless="#result==null")
-    public DepartmentVO get(int id) {
+    public DepartmentVO get(Integer id) {
         return super.get(id);
     }
 

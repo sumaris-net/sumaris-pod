@@ -28,7 +28,7 @@ import net.sumaris.core.dao.administration.UserSettingsRepositoryWriteTest;
 import net.sumaris.core.dao.administration.UserTokenRepositoryWriteTest;
 import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.*;
-import net.sumaris.core.dao.technical.extraction.ExtractionProductDaoWriteTest;
+import net.sumaris.core.dao.technical.extraction.ExtractionProductRepositoryWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
 import net.sumaris.core.service.data.vessel.VesselServiceWriteTest;
 import net.sumaris.core.service.technical.ConfigurationServiceTest;
@@ -70,7 +70,7 @@ import org.junit.runners.Suite;
     VesselSnapshotDaoImplReadTest.class,
     // DAO: technical
     DatabaseSchemaDaoTest.class,
-    ExtractionProductDaoWriteTest.class,
+    ExtractionProductRepositoryWriteTest.class,
 
     // Service: referential
     LocationServiceReadTest.class,

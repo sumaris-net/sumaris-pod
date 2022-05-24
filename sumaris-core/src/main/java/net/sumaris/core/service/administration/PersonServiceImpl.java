@@ -96,7 +96,7 @@ public class PersonServiceImpl implements PersonService {
 	@Override
 	public PersonVO getById(final int id) {
 		// This find method was a find in PersonDaoImpl
-		return personRepository.findById(id)
+		return personRepository.findVOById(id)
 				.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
 	}
 

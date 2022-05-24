@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class AcquisitionLevelRepositoryImpl
-    extends ReferentialRepositoryImpl<AcquisitionLevel, ReferentialVO, IReferentialFilter, IFetchOptions> {
+    extends ReferentialRepositoryImpl<Integer, AcquisitionLevel, ReferentialVO, IReferentialFilter, IFetchOptions> {
 
     @Autowired
     AcquisitionLevelRepositoryImpl(EntityManager entityManager) {

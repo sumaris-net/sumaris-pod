@@ -46,7 +46,7 @@ import java.util.Set;
         }
 )
 @Cacheable
-public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntity {
+public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithStatusEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")

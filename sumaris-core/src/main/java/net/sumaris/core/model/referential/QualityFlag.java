@@ -34,7 +34,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "quality_flag")
-public class QualityFlag implements IItemReferentialEntity {
+public class QualityFlag implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "QUALITY_FLAG_SEQ")

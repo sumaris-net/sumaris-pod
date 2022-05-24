@@ -24,24 +24,27 @@ package net.sumaris.extraction.server.security;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.AggregationService;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionProductService;
+import net.sumaris.extraction.core.service.ExtractionTypeService;
+import net.sumaris.extraction.core.util.ExtractionTypes;
+import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.server.security.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +53,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -66,8 +70,9 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     private SumarisConfiguration configuration;
 
     @Autowired
-    private AggregationService aggregationService;
-
+    private ExtractionProductService productService;
+    @Autowired
+    private ExtractionTypeService extractionTypeService;
     @Autowired
     private IAuthService<PersonVO> authService;
 
@@ -86,28 +91,32 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     }
 
     @Override
-    public boolean canRead(@NonNull IExtractionFormat format) {
+    public boolean canRead(@NonNull IExtractionType type) {
 
         // User can read all extraction
         if (canReadAll()) return true; // OK if can read all
 
-        if (format.getCategory() != null && format.getCategory() == ExtractionCategoryEnum.LIVE) {
-            return false; // KO: Live extraction not allowed, when cannot read all data
-        }
+        type = extractionTypeService.getByExample(type);
 
-        ExtractionTypeVO type = aggregationService.getTypeByFormat(format);
+        // KO: Live extraction not allowed, when cannot read all data
+        if (ExtractionTypes.isLive(type)) return false;
 
-        if (type.isPublic()) return true; // OK if public
+        // OK if public
+        if (ExtractionTypes.isPublic(type)) return true;
 
         // Get extraction type recorder
         PersonVO user = getAuthenticatedUser().orElse(null);
         if (user == null) throw new UnauthorizedException("User not login");
 
-        Integer recorderPersonId = type.getRecorderPerson() != null ? type.getRecorderPerson().getId() : null;
-        boolean isSameRecorder = Objects.equals(user.getId(), recorderPersonId);
-        if (isSameRecorder) return true; // OK if same
+        if (!(type instanceof IWithRecorderPersonEntity)) {
+            log.warn("Invalid ExtractionType class: {}. Should implement IWithRecorderPersonEntity.class", type.getClass().getSimpleName());
+            return false; // No recorder fetched (should never occur)
+        }
 
-        return false; // KO: not same recorder
+        // OK if same recorder
+        IEntity recorderPerson = ((IWithRecorderPersonEntity)type).getRecorderPerson();
+        Serializable recorderPersonId = recorderPerson != null ? recorderPerson.getId() : null;
+        return Objects.equals(user.getId(), recorderPersonId);
     }
 
     @Override
@@ -121,11 +130,10 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     }
 
     @Override
-    public boolean canWrite(@NonNull ExtractionTypeVO type) {
+    public boolean canWrite(@NonNull ExtractionProductVO type) {
 
-        if (type.getCategory() != null && type.getCategory() == ExtractionCategoryEnum.LIVE) {
-            return false; // KO: only products are writable
-        }
+        // KO: only products are writable
+        if (!ExtractionTypes.isProduct(type)) return false;
 
         // User can read all extraction
         if (canWriteAll()) return true; // OK if can read all
@@ -134,26 +142,21 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
         PersonVO user = getAuthenticatedUser().orElse(null);
         if (user == null) throw new UnauthorizedException("User not login");
 
+        // OK if same issuer
         Integer recorderPersonId = type.getRecorderPerson() != null ? type.getRecorderPerson().getId() : null;
-        boolean isSameRecorder = user != null && Objects.equals(user.getId(), recorderPersonId);
-        if (isSameRecorder) return true; // OK if same issuer
-
-        return false; // KO
+        return Objects.equals(user.getId(), recorderPersonId);
     }
 
     @Override
     public boolean canRead(int productId) {
-       AggregationTypeVO type = aggregationService.getTypeById(productId, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
-       return canRead(type);
+       IExtractionType checkedType = extractionTypeService.getByExample(ExtractionTypeVO.builder().id(productId).build());
+       return canRead(checkedType);
     }
 
     @Override
     public boolean canWrite(int productId) throws UnauthorizedException {
-        AggregationTypeVO type = aggregationService.getTypeById(productId, ExtractionProductFetchOptions.builder()
-            .withRecorderDepartment(true)
-            .withRecorderPerson(true)
-        .build());
-        return canWrite(type);
+        ExtractionProductVO product = productService.get(productId, ExtractionProductFetchOptions.TABLES_AND_RECORDER);
+        return canWrite(product);
     }
 
     @Override

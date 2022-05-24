@@ -34,7 +34,7 @@ import java.util.Date;
 @Builder
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ReferentialVO implements IReferentialVO, IReferentialWithLevelVO {
+public class ReferentialVO implements IReferentialVO<Integer>, IReferentialWithLevelVO<Integer> {
 
     @EqualsAndHashCode.Include
     private Integer id;

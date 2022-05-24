@@ -22,8 +22,7 @@
 
 package net.sumaris.extraction.server.http;
 
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.server.MimeMappings;

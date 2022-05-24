@@ -1353,7 +1353,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     protected PmfmVO getPmfm(int pmfmId) {
         // /!\ IMPORTANT: should use a cached method !
-        return pmfmRepository.findById(pmfmId)
+        return pmfmRepository.findVOById(pmfmId)
             .orElseThrow(() -> new DataRetrievalFailureException("Cannot find PMFM with id=" + pmfmId));
     }
 }

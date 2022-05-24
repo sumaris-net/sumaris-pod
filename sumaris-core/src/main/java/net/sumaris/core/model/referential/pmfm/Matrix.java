@@ -43,7 +43,7 @@ import java.util.Date;
 @Entity
 @Table(name = "matrix")
 @Cacheable
-public class Matrix implements IItemReferentialEntity {
+public class Matrix implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "MATRIX_SEQ")

@@ -81,8 +81,16 @@ public class ExtractionConfiguration {
         return delegate.getJdbcURL();
     }
 
+    public boolean enableCache() {
+        return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.CACHE_ENABLED.getKey());
+    }
+
     public boolean enableExtractionProduct() {
         return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
+    }
+
+    public boolean enableExtractionScheduling() {
+        return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_SCHEDULING_ENABLED.getKey());
     }
 
     public CacheTTL getExtractionCacheDefaultTtl() {

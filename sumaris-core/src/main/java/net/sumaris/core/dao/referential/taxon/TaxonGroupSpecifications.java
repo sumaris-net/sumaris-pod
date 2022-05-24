@@ -45,7 +45,7 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface TaxonGroupSpecifications
-    extends ReferentialSpecifications<TaxonGroup> {
+    extends ReferentialSpecifications<Integer, TaxonGroup> {
 
     default Specification<TaxonGroup> inLevelIds(Integer... levelIds) {
         return inTypes(levelIds);
@@ -57,7 +57,7 @@ public interface TaxonGroupSpecifications
             ParameterExpression<Collection> param = cb.parameter(Collection.class, TaxonGroup.Fields.TAXON_GROUP_TYPE);
             return cb.in(root.get(TaxonGroup.Fields.TAXON_GROUP_TYPE).get(Status.Fields.ID)).value(param);
         })
-        .addBind(ID_PARAMETER, Arrays.asList(taxonGroupTypeIds));
+        .addBind(TaxonGroup.Fields.TAXON_GROUP_TYPE, Arrays.asList(taxonGroupTypeIds));
     }
 
     default Specification<TaxonGroup> inGearIds(Integer[] gearIds) {

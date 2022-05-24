@@ -409,7 +409,7 @@ public class DenormalizedBatchRepositoryImpl
     }
 
     protected PmfmVO getPmfm(int pmfmId) {
-        return pmfmRepository.findById(pmfmId)
+        return pmfmRepository.findVOById(pmfmId)
             .orElseThrow(() -> new DataRetrievalFailureException("Cannot find PMFM with id=" + pmfmId));
     }
 

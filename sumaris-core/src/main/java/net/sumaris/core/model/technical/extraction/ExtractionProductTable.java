@@ -40,7 +40,7 @@ import java.util.List;
 @Entity
 @Cacheable
 @Table(name = "extraction_product_table")
-public class ExtractionProductTable implements IItemReferentialEntity {
+public class ExtractionProductTable implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_TABLE_SEQ")

@@ -40,7 +40,7 @@ import java.util.Date;
 @Entity
 @Table(name = "parameter_group")
 @Cacheable
-public class ParameterGroup implements IItemReferentialEntity {
+public class ParameterGroup implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_GROUP_SEQ")

@@ -22,20 +22,21 @@ package net.sumaris.extraction.core.vo;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.IAggregationSourceVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -43,7 +44,7 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AggregationContextVO extends ExtractionContextVO {
+public class AggregationContextVO extends ExtractionContextVO implements IAggregationSourceVO {
 
     AggregationStrataVO strata;
 
@@ -79,8 +80,7 @@ public class AggregationContextVO extends ExtractionContextVO {
     }
 
     public boolean isSpatial() {
-        return SetUtils.emptyIfNull(getTableNames())
-                .stream()
+        return Beans.getStream(getTableNames())
                 .anyMatch(this::hasSpatialColumn);
     }
 
@@ -94,5 +94,10 @@ public class AggregationContextVO extends ExtractionContextVO {
 
     public String getStrataTimeColumnName() {
         return strata != null ? strata.getTimeColumnName() : null;
+    }
+
+    @Override
+    public List<AggregationStrataVO> getStratum() {
+        return ImmutableList.of(strata);
     }
 }

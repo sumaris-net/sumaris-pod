@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.trip.AggregationTripContextVO;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,11 +48,5 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
 
     String landingTableName; // CL table
 
-    // Allow to rename column name (e.g FREE1 use FISHING_DURATION instead of FISHING_TIME)
-    Map<String, String> columnNamesMapping = Maps.newLinkedHashMap();
 
-    public <C extends AggregationRdbTripContextVO> C addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
-        columnNamesMapping.put(sourceColumnName, targetColumnName);
-        return (C)this;
-    }
 }

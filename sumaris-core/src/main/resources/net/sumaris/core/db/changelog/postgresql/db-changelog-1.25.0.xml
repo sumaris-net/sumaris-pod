@@ -61,6 +61,26 @@
 		</sql>
 	</changeSet>
 
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-004" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not><tableExists tableName="extraction_product_value"/></not>
+		</preConditions>
+		<createTable tableName="extraction_product_value">
+			<column name="id" type="INTEGER">
+				<constraints primaryKey="true" primaryKeyName="extraction_product_value_pk"/>
+			</column>
+			<column name="label" type="VARCHAR(50)">
+				<constraints nullable="false"/>
+			</column>
+			<column name="name" type="VARCHAR(100)"/>
+			<column name="extraction_product_column_fk" type="INTEGER">
+				<constraints nullable="false"/>
+			</column>
+			<column name="parent_fk" type="INTEGER"/>
+		</createTable>
+		<addForeignKeyConstraint baseColumnNames="extraction_product_column_fk" baseTableName="extraction_product_value" constraintName="FKhf142n0vbqe0nehckqrni1wq" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="extraction_product_column" validate="true"/>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
@@ -71,6 +91,7 @@
 			<column name="LABEL">1.25.0</column>
 			<column name="DESCRIPTION">
 				- PMFM: Add columns DETECTION_THRESHOLD and PRECISION;
+				- Unit: Fix kilogram unit symbol;
 				- Add round weight conversion (ADAP instance only);
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>

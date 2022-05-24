@@ -22,8 +22,10 @@ package net.sumaris.extraction.core.vo;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -40,6 +42,7 @@ public class ExtractionFilterVO {
         return filter != null ? filter : new ExtractionFilterVO();
     }
 
+
     private String operator;
 
     private List<ExtractionFilterCriterionVO> criteria;
@@ -54,12 +57,23 @@ public class ExtractionFilterVO {
 
     private Set<String> excludeColumnNames;
 
+    @JsonIgnore
     public boolean isDistinct() {
-        return distinct != null ? distinct.booleanValue() : false;
+        return distinct != null && distinct;
     }
 
+    @JsonIgnore
     public boolean isPreview() {
-        return preview != null ? preview.booleanValue() : false;
+        return preview != null && preview;
+    }
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return sheetName == null
+            && distinct == null
+            && CollectionUtils.isEmpty(criteria)
+            && CollectionUtils.isEmpty(includeColumnNames)
+            && CollectionUtils.isEmpty(excludeColumnNames);
     }
 
 }

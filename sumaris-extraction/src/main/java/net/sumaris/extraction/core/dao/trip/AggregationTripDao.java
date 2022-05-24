@@ -23,11 +23,7 @@ package net.sumaris.extraction.core.dao.trip;
  */
 
 import net.sumaris.extraction.core.dao.AggregationDao;
-import net.sumaris.extraction.core.dao.ExtractionDao;
-import net.sumaris.extraction.core.vo.AggregationResultVO;
-import net.sumaris.extraction.core.vo.AggregationTechResultVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.extraction.core.vo.MinMaxVO;
 import net.sumaris.extraction.core.vo.trip.AggregationTripContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 

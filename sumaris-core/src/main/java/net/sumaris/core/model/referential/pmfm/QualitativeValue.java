@@ -36,7 +36,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name="qualitative_value")
-public class QualitativeValue implements IItemReferentialEntity {
+public class QualitativeValue implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUALITATIVE_VALUE_SEQ")

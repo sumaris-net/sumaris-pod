@@ -31,10 +31,9 @@ import java.util.Optional;
 
 public interface ReferenceTaxonRepository extends JpaRepository<ReferenceTaxon, Integer> {
 
-    ReferenceTaxonVO get(int id);
+    ReferenceTaxonVO get(Integer id);
 
-    Optional<ReferenceTaxonVO> findById(int id);
+    Optional<ReferenceTaxonVO> findVOById(Integer id);
 
-    ReferenceTaxon save(ReferenceTaxon referenceTaxon);
 
 }

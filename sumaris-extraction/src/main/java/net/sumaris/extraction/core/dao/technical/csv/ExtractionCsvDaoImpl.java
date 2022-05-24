@@ -26,7 +26,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import au.com.bytecode.opencsv.ResultSetHelperService;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
+import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;

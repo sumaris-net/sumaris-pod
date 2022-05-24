@@ -32,7 +32,7 @@ import org.springframework.data.jpa.repository.Lock;
 import javax.persistence.LockModeType;
 
 public interface TaxonGroupRepository
-    extends ReferentialRepository<TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>,
+    extends ReferentialRepository<Integer, TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>,
     TaxonGroupSpecifications {
 
     TaxonGroup getByLabelAndTaxonGroupTypeId(String label, Integer taxonGroupTypeId);

@@ -55,7 +55,8 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group")
-public class TaxonGroup implements IItemReferentialEntity, IWithDescriptionAndCommentEntity, ITreeNodeEntityBean<Integer, TaxonGroup> {
+public class TaxonGroup implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer>,
+    ITreeNodeEntityBean<Integer, TaxonGroup> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")

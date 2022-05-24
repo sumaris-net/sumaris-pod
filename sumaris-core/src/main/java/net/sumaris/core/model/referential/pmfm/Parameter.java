@@ -43,7 +43,7 @@ import java.util.List;
 @Entity
 @Table(name = "parameter")
 @Cacheable
-public class Parameter implements IItemReferentialEntity {
+public class Parameter implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_SEQ")

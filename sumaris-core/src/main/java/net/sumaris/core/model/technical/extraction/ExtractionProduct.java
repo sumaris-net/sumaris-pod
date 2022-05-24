@@ -47,10 +47,10 @@ import java.util.List;
 @Cacheable
 @Table(name = "extraction_product")
 @EqualsAndHashCode
-public class ExtractionProduct implements IItemReferentialEntity,
-        IExtractionFormat,
-        IWithRecorderPersonEntity<Integer, Person>,
-        IWithRecorderDepartmentEntity<Integer, Department> {
+public class ExtractionProduct implements IExtractionType<Person, Department>,
+    IItemReferentialEntity<Integer>,
+    IWithRecorderPersonEntity<Integer, Person>,
+    IWithRecorderDepartmentEntity<Integer, Department> {
 
     public final static int LENGTH_VERSION = 10;
 
@@ -95,7 +95,8 @@ public class ExtractionProduct implements IItemReferentialEntity,
 
     @Basic(fetch = FetchType.LAZY)
     @Lob
-    private String filter;
+    @Column(name = "filter")
+    private String filterContent;
 
     @Column(name = "is_spatial", nullable = false)
     private Boolean isSpatial;
@@ -127,10 +128,6 @@ public class ExtractionProduct implements IItemReferentialEntity,
     @SortNatural
     private List<ExtractionProductTable> tables = new ArrayList<>();
 
-    @Override
-    public ExtractionCategoryEnum getCategory() {
-        return ExtractionCategoryEnum.PRODUCT;
-    }
 
     @Override
     public String[] getSheetNames() {

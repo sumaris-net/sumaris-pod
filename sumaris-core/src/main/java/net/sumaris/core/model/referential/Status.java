@@ -35,7 +35,7 @@ import java.util.Date;
 @Entity
 @Table(name = "status")
 @Cacheable
-public class Status implements IReferentialEntity {
+public class Status implements IReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")

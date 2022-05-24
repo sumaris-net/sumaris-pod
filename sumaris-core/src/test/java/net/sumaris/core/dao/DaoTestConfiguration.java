@@ -36,8 +36,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
             LiquibaseAutoConfiguration.class,
             FreeMarkerAutoConfiguration.class,
             JmsAutoConfiguration.class,
-            CacheAutoConfiguration.class,
-            CacheConfiguration.class
+            CacheAutoConfiguration.class
         },
         scanBasePackages = {
                 "net.sumaris.core.dao",

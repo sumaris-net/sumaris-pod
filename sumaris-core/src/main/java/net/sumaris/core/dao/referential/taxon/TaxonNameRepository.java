@@ -35,9 +35,9 @@ import java.util.List;
 /**
  * @author peck7 on 31/07/2020.
  */
-public interface TaxonNameRepository extends
-    ReferentialRepository<TaxonName, TaxonNameVO, TaxonNameFilterVO, TaxonNameFetchOptions>,
-    TaxonNameSpecifications {
+public interface TaxonNameRepository
+    extends ReferentialRepository<Integer, TaxonName, TaxonNameVO, TaxonNameFilterVO, TaxonNameFetchOptions>,
+        TaxonNameSpecifications {
 
     List<TaxonName> getAllTaxonNameByParentIdInAndIsReferentTrue(Collection<Integer> parentIds);
 

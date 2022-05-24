@@ -22,14 +22,17 @@ package net.sumaris.core.dao.technical.extraction;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.*;
@@ -39,14 +42,10 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -59,23 +58,27 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 21/08/2020.
  */
+@Slf4j
 public class ExtractionProductRepositoryImpl
-    extends ReferentialRepositoryImpl<ExtractionProduct, ExtractionProductVO, ExtractionProductFilterVO, ExtractionProductFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, ExtractionProduct, ExtractionProductVO, ExtractionTypeFilterVO, ExtractionProductFetchOptions>
     implements ExtractionProductSpecifications {
 
     private final DepartmentRepository departmentRepository;
     private final PersonRepository personRepository;
 
-    protected ExtractionProductRepositoryImpl(EntityManager entityManager, DepartmentRepository departmentRepository, PersonRepository personRepository) {
+    private final String dropTableQuery;
+
+    protected ExtractionProductRepositoryImpl(EntityManager entityManager, DepartmentRepository departmentRepository, PersonRepository personRepository, SumarisDatabaseMetadata databaseMetadata) {
         super(ExtractionProduct.class, ExtractionProductVO.class, entityManager);
         this.departmentRepository = departmentRepository;
         this.personRepository = personRepository;
+        this.dropTableQuery = databaseMetadata.getDialect().getDropTableString("%s");
         setLockForUpdate(true);
     }
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER)
-    public List<ExtractionProductVO> findAll(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+    public List<ExtractionProductVO> findAll(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.findAll(filter, fetchOptions);
     }
 
@@ -86,8 +89,12 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    protected Specification<ExtractionProduct> toSpecification(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+    protected Specification<ExtractionProduct> toSpecification(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(withPropertyValue(ExtractionProduct.Fields.FORMAT, String.class, filter.getFormat()))
+            .and(withPropertyValue(ExtractionProduct.Fields.VERSION, String.class, filter.getVersion()))
+            .and(isSpatial(filter.getIsSpatial()))
+            .and(withParentId(filter.getParentId()))
             .and(withRecorderPersonIdOrPublic(filter.getRecorderPersonId()))
             .and(withRecorderDepartmentId(filter.getRecorderDepartmentId()));
     }
@@ -102,9 +109,24 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
+    public void dropTable(String tableName) {
+        Preconditions.checkNotNull(tableName);
+
+        log.debug(String.format("Dropping extraction table {%s}...", tableName));
+        try {
+            String sql = String.format(dropTableQuery, tableName);
+            getSession().createSQLQuery(sql).executeUpdate();
+
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(String.format("Cannot drop extraction table {%s}...", tableName), e);
+        }
+    }
+
+    @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
         // Status
         target.setStatusId(source.getStatus().getId());
+
 
         // Copy without/with documentation (can be very long)
         List<String> excludedProperties = Lists.newArrayList();
@@ -112,15 +134,17 @@ public class ExtractionProductRepositoryImpl
             excludedProperties.add(ExtractionProduct.Fields.DOCUMENTATION);
         }
         if (fetchOptions == null || !fetchOptions.isWithFilter()) {
-            excludedProperties.add(ExtractionProduct.Fields.FILTER);
+            excludedProperties.add(ExtractionProduct.Fields.FILTER_CONTENT);
         }
         if (excludedProperties.size() > 0) {
-            Beans.copyProperties(source, target, excludedProperties.toArray(new String[excludedProperties.size()]));
+            Beans.copyProperties(source, target, excludedProperties.toArray(new String[0]));
         }
         else {
             Beans.copyProperties(source, target);
         }
 
+        // Parent
+        target.setParentId(source.getParent() != null ? source.getParent().getId() : null);
 
         // Processing frequency
         if (copyIfNull || source.getProcessingFrequency() != null) {
@@ -248,13 +272,16 @@ public class ExtractionProductRepositoryImpl
         }
 
         // Parent
-        if (copyIfNull || source.getParentId() != null) {
-            if (source.getParentId() == null) {
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
+        parentId = parentId != null && parentId >= 0 ? parentId : null; // Avoid to ave negative ID (= from ExtractionType enum)
+        if (copyIfNull || parentId != null) {
+            if (parentId == null) {
                 target.setParent(null);
             } else {
-                target.setParent(getReference(ExtractionProduct.class, source.getParentId()));
+                target.setParent(getReference(ExtractionProduct.class, parentId));
             }
         }
+        source.setParentId(parentId);
 
         // Processing frequency
         if (copyIfNull || source.getProcessingFrequencyId() != null) {
@@ -307,12 +334,12 @@ public class ExtractionProductRepositoryImpl
         final EntityManager em = getEntityManager();
         if (CollectionUtils.isEmpty(sources)) {
             if (entity.getTables() != null) {
-                List<ExtractionProductTable> toRemove = ImmutableList.copyOf(entity.getTables());
+                List<ExtractionProductTable> tableEntitiesToRemove = ImmutableList.copyOf(entity.getTables());
                 entity.getTables().clear();
-                toRemove.forEach(em::remove);
+                tableEntitiesToRemove.forEach(em::remove);
             }
         } else {
-            Map<String, ExtractionProductTable> existingItems = Beans.splitByProperty(
+            Map<String, ExtractionProductTable> tableEntitiesToRemove = Beans.splitByProperty(
                 Beans.getList(entity.getTables()),
                 ExtractionProductTable.Fields.LABEL);
             final Status enableStatus = getReference(Status.class, StatusEnum.ENABLE.getId());
@@ -324,24 +351,28 @@ public class ExtractionProductRepositoryImpl
             sources.stream()
                 .filter(Objects::nonNull)
                 .forEach(source -> {
-                    ExtractionProductTable target = existingItems.remove(source.getLabel());
+                    ExtractionProductTable target = tableEntitiesToRemove.remove(source.getLabel());
                     boolean isNew = (target == null);
                     if (isNew) {
                         target = new ExtractionProductTable();
                     }
-                    Beans.copyProperties(source, target);
+                    Beans.copyProperties(source, target,
+                        // Keep immutable properties, from the existing entity
+                        ExtractionProductTable.Fields.ID,
+                        ExtractionProductTable.Fields.CREATION_DATE);
                     target.setProduct(entity);
                     target.setStatus(enableStatus);
                     target.setUpdateDate(updateDate);
                     if (isNew) {
                         target.setCreationDate(updateDate);
                         em.persist(target);
-                        source.setId(target.getId());
                     } else {
                         em.merge(target);
                     }
 
-                    source.setUpdateDate(updateDate);
+                    source.setId(target.getId());
+                    source.setUpdateDate(target.getUpdateDate());
+                    source.setCreationDate(target.getCreationDate());
 
                     if (isNew) entity.getTables().add(target);
                 });
@@ -354,20 +385,20 @@ public class ExtractionProductRepositoryImpl
             if (hasColumns) {
                 sources.stream()
                     .filter(Objects::nonNull)
-                    .forEach(source -> saveProductTableColumns(source.getColumns(), source.getId(), updateDate));
+                    .forEach(source -> saveProductTableColumns(source.getColumns(), source.getId()));
                 em.flush();
             }
 
             // Remove old tables
-            if (MapUtils.isNotEmpty(existingItems)) {
-                entity.getTables().removeAll(existingItems.values());
-                existingItems.values().forEach(em::remove);
+            if (MapUtils.isNotEmpty(tableEntitiesToRemove)) {
+                entity.getTables().removeAll(tableEntitiesToRemove.values());
+                tableEntitiesToRemove.values().forEach(em::remove);
             }
 
         }
     }
 
-    private void saveProductTableColumns(List<ExtractionTableColumnVO> sources, int tableId, Date updateDate) {
+    private void saveProductTableColumns(List<ExtractionTableColumnVO> sources, int tableId) {
         final EntityManager em = getEntityManager();
 
         // Load parent
@@ -380,7 +411,7 @@ public class ExtractionProductRepositoryImpl
                 toRemove.forEach(em::remove);
             }
         } else {
-            Map<String, ExtractionProductColumn> existingItems = Beans.splitByProperty(
+            Map<String, ExtractionProductColumn> columnEntitiesToRemove = Beans.splitByProperty(
                 Beans.getList(parent.getColumns()),
                 ExtractionProductColumn.Fields.COLUMN_NAME);
             if (parent.getColumns() == null) {
@@ -391,21 +422,26 @@ public class ExtractionProductRepositoryImpl
             sources.stream()
                 .filter(Objects::nonNull)
                 .forEach(source -> {
-                    ExtractionProductColumn target = existingItems.remove(source.getColumnName());
+                    ExtractionProductColumn target = columnEntitiesToRemove.remove(source.getColumnName());
                     boolean isNew = (target == null);
                     if (isNew) {
                         target = new ExtractionProductColumn();
                     }
+                    Beans.copyProperties(source, target,
+                        // Keep immutable properties, from the existing entity
+                        ExtractionProductColumn.Fields.ID);
+
                     target.setTable(parent);
-                    Beans.copyProperties(source, target);
                     target.setLabel(StringUtils.underscoreToChangeCase(source.getColumnName()));
+                    source.setLabel(target.getLabel());
 
                     if (isNew) {
                         em.persist(target);
-                        source.setId(target.getId());
                     } else {
                         em.merge(target);
                     }
+
+                    source.setId(target.getId());
 
                     if (isNew) parent.getColumns().add(target);
                 });
@@ -420,9 +456,9 @@ public class ExtractionProductRepositoryImpl
             em.flush();
 
             // Remove old tables
-            if (MapUtils.isNotEmpty(existingItems)) {
-                parent.getColumns().removeAll(existingItems.values());
-                existingItems.values().forEach(em::remove);
+            if (MapUtils.isNotEmpty(columnEntitiesToRemove)) {
+                parent.getColumns().removeAll(columnEntitiesToRemove.values());
+                columnEntitiesToRemove.values().forEach(em::remove);
             }
 
             em.flush();
@@ -575,7 +611,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel) {
+    public List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(Integer id, String tableLabel) {
         EntityManager em  = getEntityManager();
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<ExtractionProductColumn> query = cb.createQuery(ExtractionProductColumn.class);

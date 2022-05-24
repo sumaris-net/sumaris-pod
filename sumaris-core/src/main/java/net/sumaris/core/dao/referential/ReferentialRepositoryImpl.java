@@ -44,6 +44,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -59,12 +60,13 @@ import java.util.stream.Collectors;
 @NoRepositoryBean
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public abstract class ReferentialRepositoryImpl<
-    E extends IItemReferentialEntity,
-    V extends IReferentialVO,
+    ID extends Serializable,
+    E extends IItemReferentialEntity<ID>,
+    V extends IReferentialVO<ID>,
     F extends IReferentialFilter,
     O extends IFetchOptions>
-    extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
+    extends SumarisJpaRepositoryImpl<E, ID, V>
+    implements ReferentialRepository<ID, E, V, F, O>, ReferentialSpecifications<ID, E> {
 
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
@@ -147,12 +149,12 @@ public abstract class ReferentialRepositoryImpl<
     }
 
     @Override
-    public V get(int id) {
+    public V get(ID id) {
         return toVO(this.getById(id));
     }
 
     @Override
-    public V get(int id, O fetchOptions) {
+    public V get(ID id, O fetchOptions) {
         return toVO(this.getById(id), fetchOptions);
     }
 
@@ -169,12 +171,12 @@ public abstract class ReferentialRepositoryImpl<
     }
 
     @Override
-    public Optional<V> findById(int id) {
-        return findById(id, null);
+    public Optional<V> findVOById(ID id) {
+        return findVOById(id, null);
     }
 
     @Override
-    public Optional<V> findById(int id, O fetchOptions) {
+    public Optional<V> findVOById(ID id, O fetchOptions) {
         return super.findById(id).map(entity -> toVO(entity, fetchOptions));
     }
 

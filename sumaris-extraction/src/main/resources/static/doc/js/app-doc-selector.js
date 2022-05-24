@@ -36,15 +36,11 @@ function AppDocSelector() {
         markdownDiv,
         types;
 
-
     function init() {
         inputUri = document.getElementById("baseUri");
         inputUri.oninput = computeBaseUri;
 
         uriDiv = document.getElementById("uriDiv");
-
-        inputCategory = document.getElementById("category");
-        inputCategory.onchange = onCategoryChanged;
 
         inputExtractionType = document.getElementById("extractionType");
         inputFormat = document.getElementById("format");
@@ -57,7 +53,7 @@ function AppDocSelector() {
 
         computeBaseUri();
 
-        onCategoryChanged();
+        fillExtractionTypes();
     }
 
     function logInfo(message, cssClass) {
@@ -113,30 +109,15 @@ function AppDocSelector() {
         return (params.length) ? ('?' + params.join('&')) : '';
     }
 
-    function onCategoryChanged() {
-
-        const category = inputCategory.value;
-        console.info("Category changed to: " + category);
-
-        // Add types
-        fillExtractionTypes(category);
-
-        computeParams();
-    }
-
-    function fillExtractionTypes(category) {
+    function fillExtractionTypes() {
         let path = computeBaseUri();
         path += 'types';
-
-        category = category && category.toUpperCase();
 
         const onReceivedResponse = function(response) {
             types = response && JSON.parse(response) || [];
             console.info("Loaded types: ", types);
 
             inputExtractionType.innerHTML = types.reduce((res, type) => {
-                // Filter on same category
-                if (category && type.category !== category) return res;
                 return res + '<option value=' + type.label + '>' + (type.name || type.label) + '</option>\n';
             }, "\n");
         }

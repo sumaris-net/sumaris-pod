@@ -26,9 +26,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-
-import java.util.Map;
 
 /**
  * @author Ludovic Pecquot <ludovic.pecquot>
@@ -39,21 +38,15 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class ExtractionProductContextVO extends ExtractionContextVO {
 
-    String label;
+    public ExtractionProductContextVO(ExtractionProductVO source) {
+        Beans.copyProperties(source, this);
 
-    public ExtractionProductContextVO(ExtractionProductVO product) {
-        this(product.getLabel(), product.getItems());
+        // Copy table names
+        setSheetNameByTableNames(source.getTableNameBySheetNameMap());
+
+        // Copy hidden columns
+        setHiddenColumnNames(source.getHiddenColumnNames());
     }
 
-    public ExtractionProductContextVO(String label, Map<String, String> items) {
-        super();
-        this.label = label;
-        items.entrySet().stream().forEach(e -> this.addTableName(e.getValue(), e.getKey()));
-    }
-
-    @Override
-    public String getLabel() {
-        return label;
-    }
 
 }

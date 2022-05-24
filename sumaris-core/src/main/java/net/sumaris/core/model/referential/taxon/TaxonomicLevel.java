@@ -102,7 +102,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxonomic_level")
-public class TaxonomicLevel implements IItemReferentialEntity {
+public class TaxonomicLevel implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TAXONOMIC_LEVEL_SEQ")

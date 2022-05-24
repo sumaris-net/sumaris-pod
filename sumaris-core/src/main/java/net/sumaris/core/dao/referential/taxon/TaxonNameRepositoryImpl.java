@@ -52,7 +52,7 @@ import java.util.Optional;
  */
 @Slf4j
 public class TaxonNameRepositoryImpl
-        extends ReferentialRepositoryImpl<TaxonName, TaxonNameVO, TaxonNameFilterVO, TaxonNameFetchOptions>
+        extends ReferentialRepositoryImpl<Integer, TaxonName, TaxonNameVO, TaxonNameFilterVO, TaxonNameFetchOptions>
         implements TaxonNameSpecifications {
 
     @Autowired
@@ -64,7 +64,7 @@ public class TaxonNameRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id")
-    public TaxonNameVO get(int id) {
+    public TaxonNameVO get(Integer id) {
         return super.get(id);
     }
 

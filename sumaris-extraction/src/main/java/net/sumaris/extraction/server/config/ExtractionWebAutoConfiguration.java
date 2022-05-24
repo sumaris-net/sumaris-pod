@@ -24,7 +24,7 @@ package net.sumaris.extraction.server.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestController;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -88,19 +88,4 @@ public class ExtractionWebAutoConfiguration {
         };
     }
 
-    @Bean
-    @ConditionalOnBean(name= "extractionExecutor")
-    @ConditionalOnMissingBean({SchedulingConfigurer.class})
-    public SchedulingConfigurer schedulingConfigurer(Executor extractionExecutor) {
-        return taskRegistrar -> taskRegistrar.setScheduler(extractionExecutor);
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        name = "sumaris.extraction.scheduling.enabled",
-        matchIfMissing = true
-    )
-    public Executor extractionExecutor() {
-        return Executors.newScheduledThreadPool((ProcessingFrequencyEnum.values().length - 1) * 2);
-    }
 }
