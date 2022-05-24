@@ -109,7 +109,7 @@ public class LandingRepositoryImpl
 
         StringBuilder queryBuilder = new StringBuilder();
 
-        queryBuilder.append("from Landing l ");
+        queryBuilder.append("select l from Landing l ");
 
         if (sortByVesselRegistrationCode) {
             // add joins
