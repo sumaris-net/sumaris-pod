@@ -28,10 +28,11 @@ import java.util.Arrays;
 
 public enum LogicalOperatorEnum {
 
-    AND("AND", "OR NOT"),
-    AND_NOT("AND NOT", "OR"),
-    OR("OR", "OR NOT"),
-    OR_NOT("OR NOT", "AND"),
+    // Between several groups
+    AND("AND", "OR"),
+    OR("OR", "AND"),
+
+    // On one or many values
     IN("IN", "NOT IN"),
     NOT_IN("NOT IN", "IN"),
     EQUALS("=", "!="),

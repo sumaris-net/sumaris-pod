@@ -221,7 +221,6 @@ public class SumarisTableMetadatas {
 
         StringBuilder sql = new StringBuilder();
         StringBuilder logicalOperator = new StringBuilder();
-        StringBuilder locigalOperatorClose = new StringBuilder();
 
         String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
 
@@ -357,18 +356,8 @@ public class SumarisTableMetadatas {
                             case OR:
                                 logicalOperator.append(" OR ");
                                 break;
-                            case OR_NOT:
-                                sql.insert(0, "NOT ("); // before the first criteria
-                                locigalOperatorClose.append(")"); // after the last criteria
-                                logicalOperator.append(") OR NOT (");
-                                break;
                             case AND:
                                 logicalOperator.append(" AND ");
-                                break;
-                            case AND_NOT:
-                                sql.insert(0, "NOT ("); // before the first criteria
-                                locigalOperatorClose.append(")"); // after the last criteria
-                                logicalOperator.append(") AND NOT (");
                                 break;
                             default:
                                 if (!skipInvalidCriteria) {
@@ -380,9 +369,6 @@ public class SumarisTableMetadatas {
                     }
                 }
             });
-
-        // Close last logical operation
-        sql.append(locigalOperatorClose);
 
         return sql.toString();
     }
