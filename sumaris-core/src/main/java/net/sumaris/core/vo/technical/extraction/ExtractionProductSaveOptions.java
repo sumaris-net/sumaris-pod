@@ -41,7 +41,6 @@ public class ExtractionProductSaveOptions implements IFetchOptions {
     public static ExtractionProductSaveOptions nullToEmpty(ExtractionProductSaveOptions options) {
         return options != null ? options : DEFAULT;
     }
-
     @Builder.Default()
     private boolean withTables = false;
 

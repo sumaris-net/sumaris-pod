@@ -22,23 +22,18 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
+import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.util.ExtractionProducts;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +53,7 @@ public abstract class ExtractionProductServiceTest extends AbstractServiceTest {
     public void saveLiveRdb() {
         ExtractionProductVO source = createProduct(LiveExtractionTypeEnum.RDB);
 
-        ExtractionProductVO target = service.save(source);
+        ExtractionProductVO target = service.save(source, ExtractionProductSaveOptions.DEFAULT);
         Assert.assertNotNull(target);
         Assert.assertNotNull(target.getId());
         Assert.assertEquals(source.getLabel(), target.getLabel());
@@ -71,7 +66,7 @@ public abstract class ExtractionProductServiceTest extends AbstractServiceTest {
         source.setComments("Test save");
 
         // Save
-        ExtractionProductVO target = service.save(source);
+        ExtractionProductVO target = service.save(source, ExtractionProductSaveOptions.WITH_TABLES_AND_STRATUM);
         Assert.assertNotNull(target);
         Assert.assertNotNull(target.getId());
         Assert.assertEquals(source.getLabel(), target.getLabel());
@@ -82,7 +77,7 @@ public abstract class ExtractionProductServiceTest extends AbstractServiceTest {
         ExtractionProductVO source = createProduct(LiveExtractionTypeEnum.SURVIVAL_TEST);
 
         // Save
-        ExtractionProductVO target = service.save(source);
+        ExtractionProductVO target = service.save(source, ExtractionProductSaveOptions.DEFAULT);
         Assert.assertNotNull(target);
         Assert.assertNotNull(target.getId());
 

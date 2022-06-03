@@ -31,6 +31,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
@@ -626,7 +627,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
                 .build()));
 
             // First execution
-            savedProduct = productService.save(product);
+            savedProduct = productService.save(product, ExtractionProductSaveOptions.WITH_TABLES_AND_STRATUM);
             Assume.assumeNotNull(savedProduct);
             Assume.assumeNotNull(savedProduct.getId());
             Assume.assumeNotNull(savedProduct.getParentId());
