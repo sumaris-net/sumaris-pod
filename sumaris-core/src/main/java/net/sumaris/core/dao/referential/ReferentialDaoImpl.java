@@ -30,7 +30,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.*;
@@ -491,8 +491,8 @@ public class ReferentialDaoImpl
         });
 
         // Parent
-        if (source instanceof ITreeNodeEntityBean) {
-            IEntity<?> parent = ((ITreeNodeEntityBean<?, ?>) source).getParent();
+        if (source instanceof ITreeNodeEntity) {
+            IEntity<?> parent = ((ITreeNodeEntity<?, ?>) source).getParent();
             Object parentId = parent != null ? parent.getId() : null;
             if (parentId == null) {
                 target.setParentId(null);

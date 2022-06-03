@@ -497,7 +497,7 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         }
         int minutesFloor = (int) Math.floor(seconds / 60);
         int secondsFloor = (int) Math.floor(seconds - minutesFloor * 60);
-        int millis = (int) Math.floor((seconds - secondsFloor) * 1_000);
+        int millis = (int) Math.floor((seconds - secondsFloor - minutesFloor * 60) * 1_000);
 
         return sb.append(minutesFloor).append("min ")
             .append(secondsFloor).append("s ")

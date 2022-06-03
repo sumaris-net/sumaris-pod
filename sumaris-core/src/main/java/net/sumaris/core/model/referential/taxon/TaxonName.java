@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
@@ -54,7 +54,7 @@ import java.util.List;
 })
 public class TaxonName implements IItemReferentialEntity<Integer>,
         IWithDescriptionAndCommentEntity<Integer>,
-        ITreeNodeEntityBean<Integer, TaxonName> {
+    ITreeNodeEntity<Integer, TaxonName> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")

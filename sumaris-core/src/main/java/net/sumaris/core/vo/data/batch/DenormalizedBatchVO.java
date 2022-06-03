@@ -29,7 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 import net.sumaris.core.vo.data.OperationVO;
@@ -47,7 +47,7 @@ import java.util.List;
 public class DenormalizedBatchVO
         implements IValueObject<Integer>,
     IUpdateDateEntity<Integer, Date>,
-        ITreeNodeEntityBean<Integer, DenormalizedBatchVO> {
+    ITreeNodeEntity<Integer, DenormalizedBatchVO> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include

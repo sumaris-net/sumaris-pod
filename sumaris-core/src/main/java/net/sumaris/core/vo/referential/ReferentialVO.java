@@ -24,7 +24,6 @@ package net.sumaris.core.vo.referential;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
 
 import java.util.Date;
 

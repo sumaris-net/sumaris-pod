@@ -26,7 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -44,7 +44,7 @@ import java.util.Map;
 @EqualsAndHashCode
 public class BatchVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>,
-        ITreeNodeEntityBean<Integer, BatchVO> {
+    ITreeNodeEntity<Integer, BatchVO> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include

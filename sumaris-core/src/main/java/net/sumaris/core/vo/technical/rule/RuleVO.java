@@ -23,10 +23,9 @@
 package net.sumaris.core.vo.technical.rule;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Joiner;
 import lombok.*;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,7 +39,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString(onlyExplicitlyIncluded = true)
-public class RuleVO implements IEntity<Integer>, IReferentialVO<Integer>, ITreeNodeEntityBean<Integer, RuleVO> {
+public class RuleVO implements IEntity<Integer>, IReferentialVO<Integer>, ITreeNodeEntity<Integer, RuleVO> {
 
     @ToString.Include
     @EqualsAndHashCode.Exclude
