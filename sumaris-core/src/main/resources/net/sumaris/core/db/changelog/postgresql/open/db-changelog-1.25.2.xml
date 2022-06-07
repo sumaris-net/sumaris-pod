@@ -25,13 +25,13 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-1.25.1.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-1.25.2.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
 	<!-- PIFIL : Remove PMFM_STRATEGY2_GEAR on TRIP_PROGRESS (should to be applied on all gears) -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-300">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-300">
 		<preConditions onFail="MARK_RAN">
 			<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
 					inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
@@ -51,7 +51,7 @@
 	</changeSet>
 
 	<!-- PIFIL : Remove PMFM_STRATEGY2_GEAR on IS_ACOUSTIC_DEVICE (should to be applied on all gears) -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-301">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-301">
 		<preConditions onFail="MARK_RAN">
 			<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
 				inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
@@ -68,22 +68,5 @@
 			update PROGRAM set update_date=current_timestamp where ID in (SELECT PROGRAM_FK from STRATEGY where ID=3);
 			commit;
 		</sql>
-	</changeSet>
-
-	<!-- update SYSTEM_VERSION -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-200" runOnChange="true">
-		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.25.1'</where>
-		</delete>
-		<insert tableName="SYSTEM_VERSION">
-			<column name="ID" valueComputed="nextval('system_version_seq')"/>
-			<column name="LABEL">1.25.1</column>
-			<column name="DESCRIPTION">
-				- EXTRACTION_PRODUCT_VALUE: Remove unused column PARENT_FK;
-			</column>
-			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
-			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-			<column name="COMMENTS"/>
-		</insert>
 	</changeSet>
 </databaseChangeLog>

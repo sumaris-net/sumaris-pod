@@ -107,7 +107,7 @@
 			<column name="METHOD_FK" valueComputed="(SELECT ID FROM method where label='CALCULATED_WEIGHT_LENGTH_SUM')"/>
 			<column name="MATRIX_FK" valueNumeric="1"/>
 			<column name="UNIT_FK" valueNumeric="3"/>
-			<column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="6"/>
+			<column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="3"/>
 			<column name="STATUS_FK" valueNumeric="1"/>
 			<column name="CREATION_DATE" valueComputed="sysdate" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />

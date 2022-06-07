@@ -3,7 +3,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
-    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.25.1.xml">
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.25.2.xml">
 
     <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
     <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
@@ -18,41 +18,21 @@
         </or>
     </preConditions>
 
-    <!-- Change option  -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-401" runOnChange="true">
+    <!-- Add new option to enable RTP  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-402" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">
                     SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
-                        'sumaris.trip.operation.distanceMaxWarning',
-                        'sumaris.trip.operation.distanceMaxError',
-                        'sumaris.trip.operation.position.boundingBox')
+                    'sumaris.trip.operation.batch.lengthWeightConversion.enable')
                     AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
             </and>
         </preConditions>
         <insert tableName="PROGRAM_PROPERTY">
             <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
-            <column name="LABEL">sumaris.trip.operation.distanceMaxWarning</column>
-            <column name="NAME">30</column>
-            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
-            <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="sysdate"/>
-            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-        </insert>
-        <insert tableName="PROGRAM_PROPERTY">
-            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
-            <column name="LABEL">sumaris.trip.operation.distanceMaxError</column>
-            <column name="NAME">40</column>
-            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
-            <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="sysdate"/>
-            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-        </insert>
-        <insert tableName="PROGRAM_PROPERTY">
-            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
-            <column name="LABEL">sumaris.trip.operation.position.boundingBox</column>
-            <column name="NAME">[-18,43,0,55]</column>
+            <column name="LABEL">sumaris.trip.operation.batch.lengthWeightConversion.enable</column>
+            <column name="NAME">true</column>
             <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate"/>
@@ -63,5 +43,6 @@
             commit;
         </sql>
     </changeSet>
+
 
 </databaseChangeLog>

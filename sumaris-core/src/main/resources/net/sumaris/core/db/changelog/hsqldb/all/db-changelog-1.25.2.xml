@@ -25,13 +25,13 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.25.1.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.25.2.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
 	<!-- Update PMFM BATCH_CALCULATED_WEIGHT_LENGTH_SUM (reduce maxDecimals to 3) -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-301" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-301" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<and>
 				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>

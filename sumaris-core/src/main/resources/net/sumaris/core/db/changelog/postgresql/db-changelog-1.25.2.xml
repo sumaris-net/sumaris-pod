@@ -25,46 +25,36 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.25.1.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-1.25.2.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-	<!-- Remove unused column EXTRACTION_PRODUCT_VALUE.PARENT_FK -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-001">
+	<!-- Rename program options -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-001" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
-			<columnExists tableName="extraction_product_value" columnName="parent_fk"/>
-		</preConditions>
-		<dropColumn tableName="extraction_product_value" columnName="parent_fk"/>
-	</changeSet>
-
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-002" runOnChange="true">
-		<preConditions onFail="MARK_RAN">
-			<columnExists tableName="extraction_product" columnName="filter"/>
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.metier.filter'</sqlCheck></not>
+			</and>
 		</preConditions>
 		<sql endDelimiter=";">
-			alter table extraction_product  alter column filter SET DATA TYPE CLOB(5000);
-		</sql>
-	</changeSet>
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-003" runOnChange="true">
-		<preConditions onFail="MARK_RAN">
-			<columnExists tableName="extraction_product" columnName="documentation"/>
-		</preConditions>
-		<sql endDelimiter=";">
-			alter table extraction_product  alter column documentation SET DATA TYPE CLOB(5000);
+			update PROGRAM_PROPERTY set LABEL='sumaris.trip.operation.metier.filter' where LABEL='sumaris.trip.metier.filter';
+			update PROGRAM set update_date=current_timestamp where ID IN (SELECT PROGRAM_FK FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.metier.filter');
+			commit;
 		</sql>
 	</changeSet>
 
 	<!-- update SYSTEM_VERSION -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-200" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.25.1'</where>
+			<where>LABEL='1.25.2'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
-			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-			<column name="LABEL">1.25.1</column>
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
+			<column name="LABEL">1.25.2</column>
 			<column name="DESCRIPTION">
-				- EXTRACTION_PRODUCT_VALUE: Remove unused column PARENT_FK;
+				- Rename program option 'sumaris.trip.metier.filter' to 'sumaris.trip.operation.metier.filter';
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
