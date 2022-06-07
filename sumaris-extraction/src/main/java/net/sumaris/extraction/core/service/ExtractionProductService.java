@@ -58,7 +58,7 @@ public interface ExtractionProductService {
     List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
 
     @Transactional
-    ExtractionProductVO save(ExtractionProductVO source);
+    ExtractionProductVO save(ExtractionProductVO source, ExtractionProductSaveOptions saveOptions);
 
     @Transactional
     void delete(int id);

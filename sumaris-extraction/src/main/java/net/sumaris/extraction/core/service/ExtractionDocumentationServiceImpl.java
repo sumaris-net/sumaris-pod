@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Files;
@@ -70,11 +69,11 @@ public class ExtractionDocumentationServiceImpl implements ExtractionDocumentati
     private ExtractionProductService productService;
 
     @Autowired
-    private ExtractionManager extractionManager;
+    private ExtractionService extractionService;
     @Override
     public Optional<Resource> find(@NonNull IExtractionType type, @NonNull Locale locale) {
 
-        type = extractionManager.getByExample(type);
+        type = extractionService.getByExample(type);
 
         // Try to get a generic localized file
         {

@@ -27,11 +27,10 @@ import com.google.common.collect.Lists;
 import lombok.NonNull;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
-public interface ITreeNodeEntityBean<ID extends Serializable, E extends IEntity<ID>> extends IEntity<ID> {
+public interface ITreeNodeEntity<ID extends Serializable, E extends IEntity<ID>> extends IEntity<ID> {
 
     interface Fields {
         String PARENT = "parent";
@@ -57,8 +56,8 @@ public interface ITreeNodeEntityBean<ID extends Serializable, E extends IEntity<
     }
 
     @JsonIgnore
-    default <T extends ITreeNodeEntityBean<ID, E>> void addChildren(@NonNull E child) {
-        if (child instanceof ITreeNodeEntityBean) ((ITreeNodeEntityBean<ID, E>) child).setParent((E) this);
+    default <T extends ITreeNodeEntity<ID, E>> void addChildren(@NonNull E child) {
+        if (child instanceof ITreeNodeEntity) ((ITreeNodeEntity<ID, E>) child).setParent((E) this);
         if (this.getChildren() == null) {
             setChildren(Lists.newArrayList((E) child));
         }

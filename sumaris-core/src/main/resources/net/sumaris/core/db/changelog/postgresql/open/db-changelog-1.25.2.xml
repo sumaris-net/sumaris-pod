@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-1.25.2.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<!-- PIFIL : Remove PMFM_STRATEGY2_GEAR on TRIP_PROGRESS (should to be applied on all gears) -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-300">
+		<preConditions onFail="MARK_RAN">
+			<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
+					inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
+					inner join PMFM on PMFM.ID=PS.PMFM_FK and PMFM.LABEL='TRIP_PROGRESS'</sqlCheck>
+			</not>
+		</preConditions>
+		<sql endDelimiter=";">
+			delete from PMFM_STRATEGY2GEAR where PMFM_STRATEGY_FK in (
+				select distinct PS.ID
+				from PMFM_STRATEGY PS, PMFM
+				where PS.STRATEGY_FK=3 AND PMFM.ID=PS.PMFM_FK AND PMFM.LABEL='TRIP_PROGRESS'
+			);
+			update STRATEGY set update_date=current_timestamp where ID=3;
+			update PROGRAM set update_date=current_timestamp where ID in (SELECT PROGRAM_FK from STRATEGY where ID=3);
+			commit;
+		</sql>
+	</changeSet>
+
+	<!-- PIFIL : Remove PMFM_STRATEGY2_GEAR on IS_ACOUSTIC_DEVICE (should to be applied on all gears) -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-301">
+		<preConditions onFail="MARK_RAN">
+			<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
+				inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
+				inner join PMFM on PMFM.ID=PS.PMFM_FK and PMFM.LABEL='IS_ACOUSTIC_DEVICE'</sqlCheck>
+			</not>
+		</preConditions>
+		<sql endDelimiter=";">
+			delete from PMFM_STRATEGY2GEAR where PMFM_STRATEGY_FK in (
+				select distinct PS.ID
+				from PMFM_STRATEGY PS, PMFM
+				where PS.STRATEGY_FK=3 AND PMFM.ID=PS.PMFM_FK AND PMFM.LABEL='IS_ACOUSTIC_DEVICE'
+			);
+			update STRATEGY set update_date=current_timestamp where ID=3;
+			update PROGRAM set update_date=current_timestamp where ID in (SELECT PROGRAM_FK from STRATEGY where ID=3);
+			commit;
+		</sql>
+	</changeSet>
+</databaseChangeLog>

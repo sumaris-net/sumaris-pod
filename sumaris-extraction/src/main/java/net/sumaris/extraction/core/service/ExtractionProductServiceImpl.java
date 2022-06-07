@@ -32,10 +32,14 @@ import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.util.ExtractionProducts;
+import net.sumaris.extraction.core.util.ExtractionTypes;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -104,12 +108,16 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
             @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPES, allEntries = true)
         }
     )
-    public ExtractionProductVO save(ExtractionProductVO source) {
+    public ExtractionProductVO save(ExtractionProductVO source, ExtractionProductSaveOptions saveOptions) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getLabel());
         Preconditions.checkNotNull(source.getName());
         Preconditions.checkNotNull(source.getFormat());
         Preconditions.checkNotNull(source.getVersion());
+        Preconditions.checkNotNull(source.getRecorderDepartment());
+        Preconditions.checkNotNull(source.getRecorderDepartment().getId());
+
+        saveOptions = ExtractionProductSaveOptions.nullToEmpty(saveOptions);
 
         // Load the product
         ExtractionProductVO target = null;
@@ -134,7 +142,7 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
 
         // Remember the table to remove
         Collection<String> tablesToRemove = Sets.newHashSet();
-        if (!isNew) {
+        if (!isNew && saveOptions.isWithTables()) {
             Collection<String> existingTables = Beans.getList(target.getTableNames());
             if (CollectionUtils.isNotEmpty(existingTables)) {
                 Collection<String> sourceTables = Beans.getList(source.getTableNames());
@@ -144,14 +152,10 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
             }
         }
 
-        // Set default frequency to manually
-        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
-            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
-            : ProcessingFrequencyEnum.MANUALLY;
-        source.setProcessingFrequencyId(frequency.getId());
+        fillDefaultProperties(source);
 
         // Save it
-        target = extractionProductRepository.save(source);
+        target = extractionProductRepository.save(source, saveOptions);
 
         // Drop old tables
         dropTables(tablesToRemove);
@@ -238,5 +242,18 @@ public class ExtractionProductServiceImpl implements ExtractionProductService {
         }
 
         return columns;
+    }
+
+    protected void fillDefaultProperties(ExtractionProductVO source) {
+        if (source == null) return;
+
+        // Set default frequency to manually
+        ProcessingFrequencyEnum frequency = source.getProcessingFrequencyId() != null
+            ? ProcessingFrequencyEnum.valueOf(source.getProcessingFrequencyId())
+            : ProcessingFrequencyEnum.MANUALLY;
+        source.setProcessingFrequencyId(frequency.getId());
+
+        // Set default isSpatial
+        source.setIsSpatial(ExtractionTypes.isAggregation(source));
     }
 }

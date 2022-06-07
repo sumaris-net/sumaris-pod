@@ -25,6 +25,7 @@ package net.sumaris.core.dao.technical.extraction;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
@@ -254,8 +255,29 @@ public class ExtractionProductRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PRODUCTS_BY_FILTER, allEntries = true),
         }
     )
-    public ExtractionProductVO save(ExtractionProductVO source) {
-        return super.save(source);
+    public ExtractionProductVO save(@NonNull ExtractionProductVO source, @NonNull ExtractionProductSaveOptions saveOptions) {
+
+
+        // Workaround to force tables to be saved (or not)
+        // See onAfterSaveEntity() for details
+        List<ExtractionTableVO> tables = source.getTables();
+        if (!saveOptions.isWithTables()) source.setTables(null);
+        else source.setTables(Beans.getList(tables));
+
+        // Workaround to force stratum to be saved (or not)
+        // See onAfterSaveEntity() for details
+        List<AggregationStrataVO> stratum = source.getStratum();
+        if (!saveOptions.isWithStratum()) source.setStratum(null);
+        else source.setStratum(Beans.getList(stratum));
+
+        // Call the inherited method
+        ExtractionProductVO result = super.save(source);
+
+        // Restore original tables or stratum, if not saved
+        if (!saveOptions.isWithTables()) result.setTables(tables);
+        if (!saveOptions.isWithStratum()) result.setStratum(stratum);
+
+        return result;
     }
 
     @Override
@@ -310,21 +332,22 @@ public class ExtractionProductRepositoryImpl
         EntityManager em = getEntityManager();
 
         // Save tables
-        saveProductTables(vo, savedEntity);
-
-        em.flush();
+        if (vo.getTables() != null) {
+            saveProductTables(vo, savedEntity);
+            em.flush();
+        }
 
         // Save stratum
-        saveProductStratum(vo, savedEntity);
-
-        em.flush();
+        if (vo.getStratum() != null) {
+            saveProductStratum(vo, savedEntity);
+            em.flush();
+        }
 
         // Final merge
         em.merge(savedEntity);
 
         em.flush();
         em.clear();
-
     }
 
     private void saveProductTables(ExtractionProductVO vo, ExtractionProduct entity) {
@@ -373,13 +396,14 @@ public class ExtractionProductRepositoryImpl
                     source.setId(target.getId());
                     source.setUpdateDate(target.getUpdateDate());
                     source.setCreationDate(target.getCreationDate());
+                    source.setProductId(entity.getId());
 
                     if (isNew) entity.getTables().add(target);
                 });
 
             em.flush();
 
-            // Save each columns
+            // Save each column
             // Important: Skip if not columns, because UI editor not sent columns at all.
             boolean hasColumns = sources.stream().anyMatch(source -> source != null && source.getColumns() != null);
             if (hasColumns) {

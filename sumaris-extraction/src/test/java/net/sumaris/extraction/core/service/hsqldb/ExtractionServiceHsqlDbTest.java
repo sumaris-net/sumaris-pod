@@ -20,31 +20,18 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.service.pgsql;
+package net.sumaris.extraction.core.service.hsqldb;
 
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.ExtractionManagerTest;
-import org.junit.Assert;
+import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import org.junit.ClassRule;
-import org.springframework.test.context.ActiveProfiles;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
- * @author peck7 on 17/12/2018.
+ * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-@ActiveProfiles("pgsql")
-public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
+public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
 
     @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
-    /* -- protected methods -- */
-
-    protected void assertHasColumn(File file, String columnName) throws IOException {
-        //String headerName = StringUtils.underscoreToChangeCase(columnName);
-        Assert.assertTrue(String.format("Missing header '%s' in file: %s", columnName, file.getPath()),
-            hasHeaderInCsvFile(file, columnName));
-    }
 }

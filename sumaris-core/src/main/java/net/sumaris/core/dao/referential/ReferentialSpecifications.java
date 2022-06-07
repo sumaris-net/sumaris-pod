@@ -34,12 +34,15 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface ReferentialSpecifications<ID extends Serializable, E extends IReferentialWithStatusEntity<ID>>
     extends IEntityWithStatusSpecifications<E> {
@@ -116,38 +119,37 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
     }
 
     default Specification<E> searchText(String[] searchAttributes, String searchText, boolean searchAny) {
+        if (StringUtils.isBlank(searchText)) return null;
         return BindableSpecification.<E>where((root, query, cb) -> {
             ParameterExpression<String> searchTextParam = cb.parameter(String.class, SEARCH_TEXT_PARAMETER);
             if (ArrayUtils.isNotEmpty(searchAttributes)) {
                 // search on all attributes
-                List<Predicate> predicates = new ArrayList<>();
-                predicates.add(
-                    cb.isNull(searchTextParam)
-                );
-                Arrays.stream(searchAttributes).forEach(searchAttribute -> predicates.add(cb.like(
+                List<Predicate> predicates = Arrays.stream(searchAttributes).map(searchAttribute -> cb.like(
                         cb.upper(Daos.composePath(root, searchAttribute)),
                         searchTextParam,
                         Daos.LIKE_ESCAPE_CHAR)
-                    ));
+                    ).collect(Collectors.toList());
+                // One predicate
+                if (predicates.size() == 1) return predicates.get(0);
+                // Many predicates (use OR operator)
                 return cb.or(
-                    // all predicates
                     predicates.toArray(new Predicate[predicates.size()])
                 );
             }
             // Search on label+name only
             return cb.or(
-                cb.isNull(searchTextParam),
                 cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
                 cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
             );
         })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null, searchAny));
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText.toUpperCase(), searchAny));
     }
 
     default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
+        if (StringUtils.isBlank(searchText)) return null;
         Preconditions.checkArgument(StringUtils.isNotBlank(joinProperty), "'joinProperty' cannot be empty");
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> searchTextParam = criteriaBuilder.parameter(String.class, SEARCH_TEXT_PARAMETER);
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<String> searchTextParam = cb.parameter(String.class, SEARCH_TEXT_PARAMETER);
 
             // Avoid duplication, for 'one to many' join
             if (shouldQueryDistinct(joinProperty)) {
@@ -159,19 +161,16 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
 
             // Search on given attribute
             if (StringUtils.isNotBlank(searchAttribute)) {
-                return criteriaBuilder.or(
-                    criteriaBuilder.isNull(searchTextParam),
-                    criteriaBuilder.like(criteriaBuilder.upper(join.get(searchAttribute)), searchTextParam, Daos.LIKE_ESCAPE_CHAR));
+                return cb.like(cb.upper(join.get(searchAttribute)), searchTextParam, Daos.LIKE_ESCAPE_CHAR);
             }
 
             // Search on label+name
-            return criteriaBuilder.or(
-                criteriaBuilder.isNull(searchTextParam),
-                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
-                criteriaBuilder.like(criteriaBuilder.upper(join.get(IItemReferentialEntity.Fields.NAME)), criteriaBuilder.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
+            return cb.or(
+                cb.like(cb.upper(join.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
+                cb.like(cb.upper(join.get(IItemReferentialEntity.Fields.NAME)), cb.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
             );
         })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText != null ? searchText.toUpperCase() : null));
+            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText.toUpperCase()));
     }
 
     default Specification<E> inSearchJoinLevelIds(String searchJoin, Integer... joinLevelIds) {

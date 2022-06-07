@@ -24,7 +24,7 @@ package net.sumaris.rdf.core.model.adapter.schema;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
@@ -137,10 +137,10 @@ public class RdfSchemaEquivalences extends AbstractSchemaVisitor {
             }
 
             // Tree node entity
-            if (ITreeNodeEntityBean.class.isAssignableFrom(clazz)) {
+            if (ITreeNodeEntity.class.isAssignableFrom(clazz)) {
 
                 // Parent
-                model.getResource(classUri + "#" + ITreeNodeEntityBean.Fields.PARENT)
+                model.getResource(classUri + "#" + ITreeNodeEntity.Fields.PARENT)
                         .addProperty(equivalentProperty, SKOS.broader);
             }
         }

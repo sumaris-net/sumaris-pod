@@ -23,7 +23,7 @@
 package net.sumaris.extraction.core;
 
 
-import net.sumaris.extraction.core.service.pgsql.ExtractionManagerPgsqlTest;
+import net.sumaris.extraction.core.service.pgsql.ExtractionServicePgsqlTest;
 import net.sumaris.extraction.core.service.pgsql.ExtractionProductServicePgsqlTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -39,7 +39,7 @@ import org.springframework.test.context.ActiveProfiles;
     // DAO
     // Service
     ExtractionProductServicePgsqlTest.class,
-    ExtractionManagerPgsqlTest.class
+    ExtractionServicePgsqlTest.class
 
 })
 public class AllPgsqlTests {

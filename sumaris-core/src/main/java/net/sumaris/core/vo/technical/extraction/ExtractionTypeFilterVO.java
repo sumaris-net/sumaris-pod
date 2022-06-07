@@ -28,6 +28,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -52,7 +53,7 @@ public class ExtractionTypeFilterVO implements IReferentialFilter {
             && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
             && (filter.getFormat() == null || filter.getFormat().equalsIgnoreCase(s.getFormat()))
             && (filter.getVersion() == null || filter.getVersion().equalsIgnoreCase(s.getVersion()))
-            //&& (filter.getCategory() == null || filter.getCategory().equalsIgnoreCase(s.getCategory().name()))
+            && (filter.getIsSpatial() == null || Objects.equals(filter.getIsSpatial(), s.getIsSpatial()))
             && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
             && (searchPattern == null || searchAnyPattern == null
             || searchPattern.matcher(s.getLabel()).matches()

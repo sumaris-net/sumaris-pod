@@ -133,7 +133,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
 
     @Override
     @Cacheable(cacheNames = ExtractionCacheConfiguration.Names.EXTRACTION_TYPE_BY_EXAMPLE,
-        key = "#source.id + #source.label + #source.format + #source.version + #fetchOptions.hashCode()",
+        key = "#source.label + #source.format + #source.version + #fetchOptions.hashCode()",
         condition = " #source != null", unless = "#result == null")
     public IExtractionType getByExample(@NonNull IExtractionType source, @NonNull ExtractionProductFetchOptions fetchOptions) {
 
@@ -183,8 +183,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
             .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
             .skip(offset)
             .limit((size < 0) ? types.size() : size)
-            .collect(Collectors.toList()
-            );
+            .collect(Collectors.toList());
     }
 
     protected List<ExtractionTypeVO> findProductsByFilter(ExtractionTypeFilterVO filter) {

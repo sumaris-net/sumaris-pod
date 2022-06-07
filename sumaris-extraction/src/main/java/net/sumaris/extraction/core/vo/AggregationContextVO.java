@@ -98,6 +98,11 @@ public class AggregationContextVO extends ExtractionContextVO implements IAggreg
 
     @Override
     public List<AggregationStrataVO> getStratum() {
-        return ImmutableList.of(strata);
+        return strata != null ? ImmutableList.of(strata) : ImmutableList.of();
     }
+
+   /* @Override
+    public Boolean getIsSpatial() {
+        return true;
+    }*/
 }

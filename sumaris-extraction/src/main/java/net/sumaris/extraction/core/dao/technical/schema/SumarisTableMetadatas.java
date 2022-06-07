@@ -27,10 +27,10 @@ import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.dao.technical.sql.LogicalOperatorEnum;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.vo.ExtractionFilterCriterionVO;
-import net.sumaris.extraction.core.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.core.util.Dates;
 import org.apache.commons.collections4.CollectionUtils;
@@ -243,7 +243,7 @@ public class SumarisTableMetadatas {
                     // Append logical operator (between criterion)
                     sql.append(logicalOperator);
 
-                    ExtractionFilterOperatorEnum operator = criterion.getOperator() == null ? ExtractionFilterOperatorEnum.EQUALS : ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+                    LogicalOperatorEnum operator = criterion.getOperator() == null ? LogicalOperatorEnum.EQUALS : LogicalOperatorEnum.fromSymbol(criterion.getOperator());
 
                     // Inverse the logic, if need
                     if (inverseTheLogic) operator = operator.inverse();
@@ -256,10 +256,10 @@ public class SumarisTableMetadatas {
                             case NOT_IN:
                             case NOT_EQUALS:
                             case NOT_BETWEEN:
-                                operator = ExtractionFilterOperatorEnum.NOT_NULL;
+                                operator = LogicalOperatorEnum.NOT_NULL;
                                 break;
                             default:
-                                operator = ExtractionFilterOperatorEnum.NULL;
+                                operator = LogicalOperatorEnum.NULL;
                         }
                     }
                     switch (operator) {
@@ -345,15 +345,26 @@ public class SumarisTableMetadatas {
 
                     // Init the logical operator, for next iteration
                     if (!skipCriterion && logicalOperator.length() == 0) {
-                        boolean isOR = "OR".equalsIgnoreCase(StringUtils.trim(filter.getOperator()));
+                        LogicalOperatorEnum ope = StringUtils.isNotBlank(filter.getOperator())
+                            ? LogicalOperatorEnum.fromSymbol(filter.getOperator())
+                            : LogicalOperatorEnum.AND;
 
                         // Inverse the logic, if need
-                        if (inverseTheLogic) isOR = !isOR;
+                        if (inverseTheLogic) ope = ope.inverse();
 
-                        if (isOR) {
-                            logicalOperator.append(" OR ");
-                        } else {
-                            logicalOperator.append(" AND ");
+                        switch (ope) {
+                            case OR:
+                                logicalOperator.append(" OR ");
+                                break;
+                            case AND:
+                                logicalOperator.append(" AND ");
+                                break;
+                            default:
+                                if (!skipInvalidCriteria) {
+                                    throw new SumarisTechnicalException(String.format("Invalid filter operator: '%s'", filter.getOperator()));
+                                }
+                                // Fall back to the default operator
+                                logicalOperator.append(" AND ");
                         }
                     }
                 }

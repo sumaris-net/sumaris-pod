@@ -35,7 +35,6 @@ import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
@@ -180,7 +179,7 @@ public class SocialGraphQLService {
 
         // Only admin can use recipientFilter
         if (message.getRecipientFilter() != null && !isSupervisor) {
-            throw new UnauthorizedException("Only admin or supervisor can use " + MessageVO.Fields.recipientFilter);
+            throw new UnauthorizedException("Only admin or supervisor can use " + MessageVO.Fields.RECIPIENT_FILTER);
         }
 
         // Limit number of recipients, if not admin
@@ -193,10 +192,5 @@ public class SocialGraphQLService {
 
         return true;
     }
-
-
-    /* -- User interaction -- */
-
-
 
 }

@@ -22,7 +22,6 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -32,6 +31,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
@@ -48,10 +48,10 @@ import java.io.IOException;
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public abstract class ExtractionManagerTest extends AbstractServiceTest {
+public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
-    private ExtractionManager service;
+    private ExtractionService service;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -454,7 +454,7 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
 
         ExtractionResultVO result = service.executeAndRead(
             type,
-            filter, strata, Page.builder().size(100).build());
+            filter, strata, Page.builder().size(100).build(), null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -504,7 +504,7 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
             .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
             .build();
 
-        ExtractionResultVO result = service.read(savedProduct, filter, strata, Page.builder().size(1000).build());
+        ExtractionResultVO result = service.read(savedProduct, filter, strata, Page.builder().size(1000).build(), null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
@@ -627,7 +627,7 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
                 .build()));
 
             // First execution
-            savedProduct = productService.save(product);
+            savedProduct = productService.save(product, ExtractionProductSaveOptions.WITH_TABLES_AND_STRATUM);
             Assume.assumeNotNull(savedProduct);
             Assume.assumeNotNull(savedProduct.getId());
             Assume.assumeNotNull(savedProduct.getParentId());

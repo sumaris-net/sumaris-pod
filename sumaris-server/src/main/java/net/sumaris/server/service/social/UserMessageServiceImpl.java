@@ -32,7 +32,6 @@ import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
 import it.ozimov.springboot.mail.service.EmailService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -425,8 +424,8 @@ public class UserMessageServiceImpl implements UserMessageService {
     protected String toJsonString(@NonNull String subject, String body) {
         try {
             return objectMapper.writeValueAsString(ImmutableMap.of(
-                MessageVO.Fields.subject, subject,
-                MessageVO.Fields.body, body
+                MessageVO.Fields.SUBJECT, subject,
+                MessageVO.Fields.BODY, body
             ));
         } catch (JsonProcessingException e) {
             throw new SumarisTechnicalException(e);

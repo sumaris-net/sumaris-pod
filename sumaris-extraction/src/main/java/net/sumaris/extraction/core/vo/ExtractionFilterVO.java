@@ -27,6 +27,7 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ import java.util.Set;
 @AllArgsConstructor
 @FieldNameConstants
 @EqualsAndHashCode
-public class ExtractionFilterVO {
+public class ExtractionFilterVO implements Serializable {
 
     public static ExtractionFilterVO nullToEmpty(ExtractionFilterVO filter) {
         return filter != null ? filter : new ExtractionFilterVO();

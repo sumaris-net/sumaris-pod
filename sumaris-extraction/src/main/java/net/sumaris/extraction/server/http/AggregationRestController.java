@@ -30,7 +30,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
@@ -55,7 +55,7 @@ import java.text.ParseException;
 public class AggregationRestController implements ExtractionRestPaths {
 
     @Autowired
-    private ExtractionManager extractionManager;
+    private ExtractionService extractionService;
 
     @Autowired
     private ExtractionGeoJsonConverter geoJsonConverter;
@@ -108,23 +108,24 @@ public class AggregationRestController implements ExtractionRestPaths {
         // Limit to 1000 rows
         if (size > 1000) size = 1000;
 
-        AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setTimeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggRdbSpecification.COLUMN_YEAR);
-        strata.setSpatialColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE);
-        strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME);
-        strata.setTechColumnName(null);
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+            .timeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggRdbSpecification.COLUMN_YEAR)
+            .spatialColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE)
+            .aggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME)
+            .techColumnName(null)
+            .build();
 
-        ExtractionResultVO result = extractionManager.executeAndRead(product, filter, strata,
+        ExtractionResultVO result = extractionService.executeAndRead(product, filter, strata,
             Page.builder()
                 .offset(offset)
                 .size(size)
-                .build());
+                .build(), null);
 
         return geoJsonConverter.toFeatureCollection(result, strata.getSpatialColumnName());
     }
 
     protected ExtractionProductVO getProductByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
-        IExtractionType checkedType = extractionManager.getByExample(source, fetchOptions);
+        IExtractionType checkedType = extractionService.getByExample(source, fetchOptions);
 
         if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
 

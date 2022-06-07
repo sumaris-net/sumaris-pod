@@ -34,7 +34,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.*;
-import net.sumaris.extraction.core.service.ExtractionManager;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -62,12 +62,12 @@ public class ExtractionProductGraphQLService {
 
     private final ExtractionTypeService extractionTypeService;
     private final ExtractionProductService extractionProductService;
-    private final ExtractionManager extractionManager;
+    private final ExtractionService extractionService;
 
-    public ExtractionProductGraphQLService(ExtractionManager extractionManager,
+    public ExtractionProductGraphQLService(ExtractionService extractionService,
                                            ExtractionProductService extractionProductService,
                                            ExtractionSecurityService extractionSecurityService, ExtractionTypeService extractionTypeService) {
-        this.extractionManager = extractionManager;
+        this.extractionService = extractionService;
         this.extractionProductService = extractionProductService;
         this.extractionSecurityService = extractionSecurityService;
         this.extractionTypeService = extractionTypeService;
@@ -92,9 +92,7 @@ public class ExtractionProductGraphQLService {
     }
 
     @GraphQLMutation(name = "saveExtractionProduct", description = "Create or update a extraction product")
-    public ExtractionProductVO saveProduct(@GraphQLNonNull @GraphQLArgument(name = "product") ExtractionProductVO source,
-                                           @GraphQLArgument(name = "filter") ExtractionFilterVO filter
-    ) {
+    public ExtractionProductVO saveProduct(@GraphQLNonNull @GraphQLArgument(name = "product") ExtractionProductVO source) {
 
         boolean isNew = source.getId() == null;
         if (isNew) {
@@ -106,16 +104,17 @@ public class ExtractionProductGraphQLService {
 
         // Execute, then save
         if (isNew) {
-            return extractionManager.executeAndSave(source, filter, null);
+            ExtractionFilterVO filter = extractionService.parseFilter(source.getFilterContent());
+            return extractionService.executeAndSave(source, filter, null);
         }
 
         // Save only
-        return extractionProductService.save(source);
+        return extractionProductService.save(source, ExtractionProductSaveOptions.DEFAULT);
     }
 
     @GraphQLMutation(name = "deleteProducts", description = "Delete many products")
     @Transactional
-    public void deleteProducts(@GraphQLArgument(name = "ids") int[] ids) {
+    public void deleteProducts(@GraphQLNonNull @GraphQLArgument(name = "ids") int[] ids) {
 
         // Make sure can be deleted
         Arrays.stream(ids).forEach(extractionSecurityService::checkWriteAccess);
@@ -127,7 +126,7 @@ public class ExtractionProductGraphQLService {
 
     @GraphQLQuery(name = "extractionColumns", description = "Read columns from an extraction")
     @Transactional(readOnly = true)
-    public List<ExtractionTableColumnVO> getProductColumns(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+    public List<ExtractionTableColumnVO> getProductColumns(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                                            @GraphQLArgument(name = "sheet") String sheetName,
                                                            @GraphQLEnvironment ResolutionEnvironment env) {
 
@@ -146,14 +145,14 @@ public class ExtractionProductGraphQLService {
         return extractionProductService.getColumnsBySheetName(checkedType.getId(), sheetName, fetchOptions);
     }
 
-    @GraphQLMutation(name = "updateProduct", description = "Update an extraction product")
+    @GraphQLMutation(name = "updateExtractionProduct", description = "Update an extraction product")
     public ExtractionProductVO updateProduct(@GraphQLArgument(name = "id") int id) throws ExecutionException, InterruptedException {
 
         // Make sure can update
         extractionSecurityService.checkWriteAccess(id);
 
         // Do update
-        return extractionManager.executeAndSave(id);
+        return extractionService.executeAndSave(id);
     }
 
     /* -- protected methods --*/

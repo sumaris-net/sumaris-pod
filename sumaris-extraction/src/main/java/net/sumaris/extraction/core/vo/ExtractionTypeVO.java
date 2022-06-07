@@ -91,12 +91,15 @@ public class ExtractionTypeVO implements IValueObject<Integer>,
         this.setVersion(source.getVersion());
 
         this.setParentId(source.getParentId());
-        this.setParent(source.getParent());
+        if (source.getParent() != null) {
+            this.setParent(new ExtractionTypeVO(source.getParent()));
+        }
 
         this.setLabel(source.getLabel());
         this.setName(source.getName());
         this.setSheetNames(source.getSheetNames());
         this.setStatusId(source.getStatusId());
+        this.setIsSpatial(source.getIsSpatial());
 
         if (source instanceof IWithRecorderDepartmentEntity) {
             Object recorderDepartment = ((IWithRecorderDepartmentEntity)source).getRecorderDepartment();

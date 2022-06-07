@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.25.1</version>
+  <version>1.25.2</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -531,11 +531,6 @@
         <version>${graphql-java-servlet.version}</version>
       </dependency>
       <dependency>
-        <groupId>de.grundid.opendatalab</groupId>
-        <artifactId>geojson-jackson</artifactId>
-        <version>${geojson-jackson.version}</version>
-      </dependency>
-      <dependency>
         <groupId>io.leangen.graphql</groupId>
         <artifactId>spqr</artifactId>
         <version>${spqr.version}</version>
@@ -585,7 +580,6 @@
         <artifactId>jna-platform</artifactId>
         <version>${jna.version}</version>
       </dependency>
-
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
@@ -597,6 +591,11 @@
         <version>${jackson.version}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>de.grundid.opendatalab</groupId>
+        <artifactId>geojson-jackson</artifactId>
+        <version>${geojson-jackson.version}</version>
       </dependency>
 
       <!-- WebSocket -->

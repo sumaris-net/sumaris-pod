@@ -34,7 +34,7 @@ public class ExtractionServiceLocator {
         return ServiceLocator.instance().getService("extractionTypeService", ExtractionTypeService.class);
     }
 
-    public static ExtractionManager extractionManager() {
-        return ServiceLocator.instance().getService("extractionManager", ExtractionManager.class);
+    public static ExtractionService extractionManager() {
+        return ServiceLocator.instance().getService("extractionManager", ExtractionService.class);
     }
 }

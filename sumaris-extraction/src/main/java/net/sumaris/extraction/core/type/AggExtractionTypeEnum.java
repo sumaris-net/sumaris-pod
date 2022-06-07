@@ -92,6 +92,11 @@ public enum AggExtractionTypeEnum implements IExtractionType<PersonVO, Departmen
         return version;
     }
 
+    @Override
+    public Boolean getIsSpatial() {
+        return true;
+    }
+
     public IExtractionType getParent() {
         return parent;
     }
