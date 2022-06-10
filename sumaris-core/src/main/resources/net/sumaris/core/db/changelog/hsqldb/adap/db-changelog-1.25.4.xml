@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.25.3.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Set option 'sumaris.trip.minDurationInHours' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.trip.minDurationInHours')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.minDurationInHours</column>
+            <column name="NAME">24</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Set option 'sumaris.trip.maxDurationInHours' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.trip.maxDurationInHours')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.maxDurationInHours</column>
+            <column name="NAME">400</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Set option 'sumaris.trip.operation.distanceMaxWarning' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-403" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.trip.operation.distanceMaxWarning')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.distanceMaxWarning</column>
+            <column name="NAME">30</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Set option 'sumaris.trip.operation.distanceMaxError' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-404" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.trip.operation.distanceMaxError')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.distanceMaxError</column>
+            <column name="NAME">40</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Set option 'sumaris.trip.operation.maxTotalDurationInHours' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-405" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.trip.operation.maxTotalDurationInHours')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.maxTotalDurationInHours</column>
+            <column name="NAME">12</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Update PMFM DRESSING (was linked to the wrong parameter) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-406" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) FROM PMFM WHERE LABEL='DRESSING' AND PARAMETER_FK NOT IN (SELECT ID FROM PARAMETER WHERE LABEL='DRESSING')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PMFM set PARAMETER_FK=(SELECT ID FROM PARAMETER WHERE LABEL = 'DRESSING') where LABEL='DRESSING';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Update PMFM_STRATEGY Max length / species -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-407" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10 AND PMFM_FK=(SELECT ID FROM PMFM WHERE LABEL='LENGTH_TOTAL_CM')</sqlCheck>
+            </and>
+        </preConditions>
+
+        <!-- MNZ and COD : max length = 199 cm -->
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='LENGTH_TOTAL_CM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+            <column name="RANK_ORDER" valueNumeric="-1"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAX_VALUE" valueNumeric="199"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(SELECT ID FROM PMFM_STRATEGY WHERE RANK_ORDER=-1)"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='MNZ')"/>
+        </insert>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(SELECT ID FROM PMFM_STRATEGY WHERE RANK_ORDER=-1)"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='COD')"/>
+        </insert>
+        <sql endDelimiter=";">
+            UPDATE PMFM_STRATEGY SET RANK_ORDER=4 WHERE RANK_ORDER=-1 AND STRATEGY_FK=10;
+        </sql>
+
+        <!-- HAD : max length = 99 cm -->
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='LENGTH_TOTAL_CM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+            <column name="RANK_ORDER" valueNumeric="-1"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAX_VALUE" valueNumeric="99"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(SELECT ID FROM PMFM_STRATEGY WHERE RANK_ORDER=-1)"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='HAD')"/>
+        </insert>
+        <sql endDelimiter=";">
+            UPDATE PMFM_STRATEGY SET RANK_ORDER=4 WHERE RANK_ORDER=-1 AND STRATEGY_FK=10;
+        </sql>
+
+        <!-- RJB1 : max length = 170 cm -->
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='LENGTH_TOTAL_CM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+            <column name="RANK_ORDER" valueNumeric="-1"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAX_VALUE" valueNumeric="170"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(SELECT ID FROM PMFM_STRATEGY WHERE RANK_ORDER=-1)"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_1')"/>
+        </insert>
+        <sql endDelimiter=";">
+            UPDATE PMFM_STRATEGY SET RANK_ORDER=4 WHERE RANK_ORDER=-1 AND STRATEGY_FK=10;
+        </sql>
+
+        <!-- RJB2 : max length = 230 cm -->
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='LENGTH_TOTAL_CM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+            <column name="RANK_ORDER" valueNumeric="-1"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAX_VALUE" valueNumeric="230"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(SELECT ID FROM PMFM_STRATEGY WHERE RANK_ORDER=-1)"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE TAXON_GROUP_TYPE_FK=2 AND LABEL='RJB_2')"/>
+        </insert>
+        <sql endDelimiter=";">
+            UPDATE PMFM_STRATEGY SET RANK_ORDER=4 WHERE RANK_ORDER=-1 AND STRATEGY_FK=10;
+            DELETE FROM PMFM_STRATEGY where RANK_ORDER=4 AND STRATEGY_FK=10 AND MAX_VALUE IS NULL;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Add PMFM_STRATEGY for DRESSING -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-408" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10 AND PMFM_FK=(SELECT ID FROM PMFM WHERE LABEL='DRESSING')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='DRESSING')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="5"/>
+            <column name="RANK_ORDER" valueNumeric="5"/>
+            <column name="DEFAULT_VALUE" valueComputed="(SELECT QV.ID FROM PARAMETER P inner join QUALITATIVE_VALUE QV on QV.PARAMETER_FK=P.ID WHERE P.LABEL='DRESSING' AND QV.LABEL='WHL')"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="0"/>
+        </insert>
+        <sql endDelimiter=";">
+            update STRATEGY set update_date=current_timestamp where ID=10;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Add PMFM_STRATEGY for PRESERVATION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-409" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10 AND PMFM_FK=(SELECT ID FROM PMFM WHERE LABEL='PRESERVATION')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='PRESERVATION')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="5"/>
+            <column name="RANK_ORDER" valueNumeric="6"/>
+            <column name="DEFAULT_VALUE" valueComputed="(SELECT QV.ID FROM PARAMETER P inner join QUALITATIVE_VALUE QV on QV.PARAMETER_FK=P.ID WHERE P.LABEL='PRESERVATION' AND QV.LABEL='FRE')"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="0"/>
+        </insert>
+        <sql endDelimiter=";">
+            update STRATEGY set update_date=current_timestamp where ID=10;
+            commit;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

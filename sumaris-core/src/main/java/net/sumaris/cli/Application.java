@@ -45,13 +45,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
 
 
 /**
@@ -97,6 +97,9 @@ public class Application {
 			ARGS = args;
 		}
 
+		boolean daemon = Arrays.asList(ARGS).contains("--daemon") || Arrays.asList(ARGS).contains("-d");
+		System.setProperty("spring.main.web-application-type", "none");
+
 		SumarisConfiguration.setInstance(null); // Reset existing config
 		SumarisConfiguration.setArgs(ApplicationUtils.toApplicationConfigArgs(ARGS));
 
@@ -107,6 +110,8 @@ public class Application {
 		else if (StringUtils.isBlank(System.getProperty("spring.config.location"))) {
 			System.setProperty("spring.config.location", "optional:file:./config/,classpath:/");
 		}
+
+		log.info("Configuration location: {}", System.getProperty("spring.config.location"));
 
 		try {
 			// Start Spring boot
@@ -123,7 +128,7 @@ public class Application {
 			ActionUtils.logConnectionProperties();
 
 			// Execute all action
-			doAllAction(appContext, true);
+			doAllAction(appContext, daemon);
 		} catch (Exception e) {
 			log.error("Error while executing action", e);
 		}
@@ -155,30 +160,32 @@ public class Application {
 		return "sumaris-core-i18n";
 	}
 
+	protected static void doAllAction(ApplicationContext appContext, boolean daemon) {
+		doAllAction(appContext, daemon, !daemon);
+	}
 
-	protected static void doAllAction(ApplicationContext appContext, boolean runInThread) {
+	protected static void doAllAction(ApplicationContext appContext, boolean runInThread, boolean exit) {
 		if (runInThread) {
 			try {
 				// Execute in a thread
 				TaskExecutor taskExecutor = appContext.getBean(TaskExecutor.class);
-				taskExecutor.execute(() -> doAllAction(appContext, false));
+				taskExecutor.execute(() -> doAllAction(appContext, false, false));
 				return;
 			} catch (NoSuchBeanDefinitionException e) {
 				// continue
 			}
 		}
 
-
 		try {
 			waitConfigurationReady(appContext);
 
-			SumarisConfiguration.getInstance().getApplicationConfig().doAllAction();
-			System.exit(0);
+			SumarisConfiguration.getInstance().doAllAction();
+			if (exit) System.exit(0);
 		} catch(Exception e) {
 			if (!(e instanceof InterruptedException)) {
 				log.error("Error while executing action", e);
 			}
-			System.exit(1);
+			if (exit) System.exit(1);
 		}
 	}
 

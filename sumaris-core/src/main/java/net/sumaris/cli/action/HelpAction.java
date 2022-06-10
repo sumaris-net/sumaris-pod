@@ -43,16 +43,18 @@ public class HelpAction {
 		sb.append("Usage:  <commands> <options>").append("\n")
 				.append("with <commands>:").append("\n")
 				.append(" -h --help                                  Display help").append("\n")
-				.append("    --schema-create    --output <db_dir>    Create a new database schema").append("\n")
+				.append("    --schema-create     --output <db_dir>   Create a new database schema").append("\n")
+				.append("    --schema-create-sql --output <file> 	 Create the SQL schema file").append("\n")
 				.append("    --schema-update                         Update database schema").append("\n")
-				.append("    --schema-changelog --output <file>      Generate a database changelog report (pending schema changes)").append("\n")
+				.append("    --schema-changelog  --output <file>     Generate a database changelog report (pending schema changes)").append("\n")
 				//.append("    --schema-diff      --output <file>      Generate a database schema diff report (compare database and model)").append("\n")
 				.append("\n")
 				.append("with <options>:").append("\n")
-				.append(" -u --user <user>		           Database user").append("\n")
-				.append(" -p --password <pwd> 		       Database password").append("\n")
+				.append(" -u  --user <user>		           Database user").append("\n")
+				.append(" -p  --password <pwd> 		       Database password").append("\n")
 				.append(" -db --database <db_url> 	       Database JDBC URL ()").append("\n")
 				.append(" -f                               Force the output directory overwrite, if exists").append("\n")
+				.append(" -d                               Run as daemon service").append("\n")
 				.append("\n");
 
 		System.out.println(sb.toString());
