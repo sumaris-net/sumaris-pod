@@ -175,18 +175,21 @@
       <artifactId>liquibase-hibernate5</artifactId>
     </dependency>
 
-    <!-- Queue -->
+    <!-- JMS / ActiveMQ -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
       <scope>compile</scope>
-      <!--<optional>true</optional>-->
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-broker</artifactId>
       <scope>compile</scope>
-      <!--<optional>true</optional>-->
+    </dependency>
+    <dependency>
+      <groupId>jakarta.jms</groupId>
+      <artifactId>jakarta.jms-api</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>

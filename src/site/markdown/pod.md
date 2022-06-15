@@ -72,7 +72,7 @@ DB_PORT=9000
 
 ### Oracle
 
-Download locally oracle propeties file from [isi-sih-sumaris](https://gitlab.ifremer.fr/dev_ops/shared_docker_image_factory/isi-sih-sumaris) project (you can find properties files under `sumaris-server` directory).
+Download locally oracle properties file from [isi-sih-sumaris](https://gitlab.ifremer.fr/dev_ops/shared_docker_image_factory/isi-sih-sumaris) project (you can find properties files under `sumaris-server` directory).
 
 Run next command with the right path to oracle tns_name and propertie files :
 ```bash
@@ -102,7 +102,7 @@ spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsn
 
   5. Congratulations ! 
   
-     Your Pod should now be running..
+     Your Pod should now be running.
      
      A welcome page should also be visible at the address [http://localhost:8080](http://localhost:8080):
      
@@ -111,7 +111,7 @@ spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsn
 <u>Note for IT developers:</u> 
 
 Your running Pod give access to useful dev tools : 
-  - A GraphQL live query editor, at `<server_url>/grapiql` (WARN some query will need authorization) 
+  - A GraphQL live query editor, at `<server_url>/graphiql` (WARN some query will need authorization) 
   - A GraphQL subscription query editor (GraphQL + websocket), at `<server_url>/subscription/test`
     
 ### On MS Windows
@@ -122,20 +122,20 @@ Your running Pod give access to useful dev tools :
 
 To change the Pod's configuration, follow this steps:
 
- 1. Create a directory for your configuration (e.g. `/home/<USER>/.config/sumaris/`): 
+ 1. Create a directory for your configuration (e.g. `/home/<USER>/.config/SUMARiS/`): 
     ```bash
-    mkdir -p /home/<USER>/.config/sumaris/
+    mkdir -p /home/<USER>/.config/SUMARiS/
     ```
  
- 2. Create a file `application.yml` inside this directory;
+ 2. Create a file `application.properties` inside this directory;
  
  3. Edit the file, and add options you want to override (see the [list of available options](./config-report.html)):
  
     A basic example:
-    ```yml
-    server.address: 127.0.0.1
-    server.port: 8080  
-    sumaris.basedir: /home/<USER>/.config/sumaris
+    ```properties
+    server.address= 127.0.0.1
+    server.port=8080
+    sumaris.basedir= /home/<USER>/.config/SUMARiS
     ```
 
  4. In a terminal, start the pod with the command:

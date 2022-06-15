@@ -45,12 +45,11 @@
       <artifactId>sumaris-core-shared</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
+    <!--<dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-tools</artifactId>
-      <version>${hibernate-tools.version}</version>
       <scope>runtime</scope>
-    </dependency>
+    </dependency>-->
 
     <!-- hibernate, spring... -->
     <dependency>
@@ -495,6 +494,10 @@
                     <groupId>org.hibernate</groupId>
                     <artifactId>hibernate-entitymanager</artifactId>
                   </exclusion>
+                  <exclusion>
+                    <groupId>org.eclipse.jdt</groupId>
+                    <artifactId>org.eclipse.jdt.core</artifactId>
+                  </exclusion>
                 </exclusions>
               </dependency>
               <dependency>
@@ -562,8 +565,6 @@
                       <classpath refid="maven.plugin.classpath" />
                     </taskdef>
 
-<!--                    <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="hbm2doc" inheritRefs="true" />-->
-
                     <!-- workaround (when no jdbc schema defined)-->
                     <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g" byline="false">
                       <fileset file="${hibernate.generated.cfg.path}" />
@@ -571,12 +572,14 @@
 
                     <hibernatetool destdir="${project.reporting.outputDirectory}/hibernate">
                       <classpath>
-                        <path location="${project.build.outputDirectory}" />
+                        <path location="${project.build.outputDirectory}"/>
                       </classpath>
 
                       <jpaconfiguration persistenceunit="sumaris" />
 
-                      <hbm2doc />
+                      <hbm2doc>
+                        <property key="jdk5" value="false"/>
+                      </hbm2doc>
                     </hibernatetool>
 
                     <!-- restore the hibernate.cfg.xml -->
@@ -587,38 +590,6 @@
                 </configuration>
               </execution>
             </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>de.juplo</groupId>
-            <artifactId>hibernate-maven-plugin</artifactId>
-            <version>2.0.2.IFR</version>
-            <executions>
-              <execution>
-                <id>queries2doc</id>
-                <phase>pre-site</phase>
-                <goals>
-                  <goal>queries2doc</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <scanTestClasses>false</scanTestClasses>
-              <format>true</format>
-              <force>true</force>
-              <hibernateConfig>${hibernate.generated.cfg.path}</hibernateConfig>
-              <hibernateProperties>${hibernate.generated.cfg.dir}/hibernate.properties</hibernateProperties>
-              <outputFile>${project.reporting.outputDirectory}/hibernate/queries/index.html</outputFile>
-              <outputDirectory>${project.reporting.outputDirectory}/hibernate/queries</outputDirectory>
-              <scanClasses>true</scanClasses>
-              <url>${jdbc.url}</url>
-              <username>${jdbc.username}</username>
-              <password>${jdbc.password}</password>
-              <!-- add queries files-->
-              <mappings>
-                ${project.build.outputDirectory}/META-INF/orm.xml
-              </mappings>
-            </configuration>
           </plugin>
         </plugins>
       </build>
