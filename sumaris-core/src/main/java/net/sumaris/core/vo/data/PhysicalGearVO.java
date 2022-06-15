@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -37,14 +38,18 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
 public class PhysicalGearVO implements IRootDataVO<Integer>,
-        IWithRecorderPersonEntity<Integer, PersonVO> {
+        IWithRecorderPersonEntity<Integer, PersonVO>,
+        ITreeNodeEntity<Integer, PhysicalGearVO> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
+    @ToString.Include
     private Integer rankOrder;
+    @ToString.Include
     private ReferentialVO gear;
 
     private String comments;
@@ -64,10 +69,17 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
 
-    // Parent entity
+    // Parent physical gear
     @EqualsAndHashCode.Exclude
-    @ToString.Exclude
+    private PhysicalGearVO parent;
+    @ToString.Include
+    private Integer parentId;
+    private List<PhysicalGearVO> children;;
+
+    // Trip
+    @EqualsAndHashCode.Exclude
     private TripVO trip;
+    @ToString.Include
     private Integer tripId;
 
 }

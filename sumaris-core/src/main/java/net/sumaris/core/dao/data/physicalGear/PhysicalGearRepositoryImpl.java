@@ -30,6 +30,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
+import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.util.Beans;
@@ -38,6 +39,7 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,6 +47,7 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -89,6 +92,11 @@ public class PhysicalGearRepositoryImpl
             }
         }
 
+        // Parent
+        if (source.getParent() != null) {
+            target.setParentId(source.getParent().getId());
+        }
+
         // Trip
         Trip trip = source.getTrip();
         if (copyIfNull || trip != null) {
@@ -112,7 +120,47 @@ public class PhysicalGearRepositoryImpl
         Preconditions.checkNotNull(source.getGear(), "Missing gear");
         Preconditions.checkNotNull(source.getGear().getId(), "Missing gear.id");
 
-        // Copy properties
+        // Copy some data from parent
+        if (source.getParent() != null) {
+            source.setProgram(source.getParent().getProgram());
+            source.setRecorderDepartment(source.getParent().getRecorderDepartment());
+            source.setRecorderPerson(source.getParent().getRecorderPerson());
+        }
+
+        // Parent
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
+        Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
+        if (copyIfNull || (parentId != null)) {
+
+            // Check if parent changed
+            PhysicalGear previousParent = target.getParent();
+            if (previousParent != null && !Objects.equals(parentId, previousParent.getId()) && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
+                // Remove in the parent children list (to avoid a DELETE CASCADE if the parent is delete later - fix #15)
+                previousParent.getChildren().remove(target);
+            }
+
+            if (parentId == null) {
+                target.setParent(null);
+            }
+            else {
+                PhysicalGear parent = getReference(PhysicalGear.class, parentId);
+                target.setParent(parent);
+
+                // Not need to update the children collection, because mapped by the 'parent' property
+                //if (!parent.getChildren().contains(target)) {
+                //    parent.getChildren().add(target);
+                //}
+
+                // Force using the parent's trip
+                tripId = parent.getTrip().getId();
+            }
+        }
+
+        // /!\ IMPORTANT: update source's parentId, tripId, BEFORE calling hashCode()
+        source.setParentId(parentId);
+        source.setTripId(tripId);
+
+        // Copy properties, and data stuff (program, qualityFlag, recorder, ...)
         super.toEntity(source, target, copyIfNull);
 
         // Gear
@@ -126,7 +174,6 @@ public class PhysicalGearRepositoryImpl
         }
 
         // Trip
-        Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
         if (copyIfNull || (tripId != null)) {
             if (tripId == null) {
                 target.setTrip(null);
@@ -134,7 +181,6 @@ public class PhysicalGearRepositoryImpl
                 target.setTrip(getReference(Trip.class, tripId));
             }
         }
-
     }
 
     public List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources) {

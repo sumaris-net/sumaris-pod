@@ -305,4 +305,50 @@
             commit;
         </sql>
     </changeSet>
+
+    <!-- Update PMFM OUT_OF_SIZE_WEIGHT maxDecimals to 3 -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-410" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM pmfm where label='OUT_OF_SIZE_WEIGHT' and MAXIMUM_NUMBER_DECIMALS=2</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PMFM set MAXIMUM_NUMBER_DECIMALS=3, update_date=current_timestamp where label='OUT_OF_SIZE_WEIGHT';
+            update PROGRAM set update_date=current_timestamp where label='ADAP-CONTROLE';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Update PMFM SAMPLE_MEASURED_WEIGHT maxDecimals to 3 -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-411" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM pmfm where label='SAMPLE_MEASURED_WEIGHT' and MAXIMUM_NUMBER_DECIMALS=2</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PMFM set MAXIMUM_NUMBER_DECIMALS=3, update_date=current_timestamp where label='SAMPLE_MEASURED_WEIGHT';
+            update PROGRAM set update_date=current_timestamp where label='ADAP-CONTROLE';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Update PMFM_STRATEGY COMPLIANT_PRODUCT default value (to true) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-412" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM pmfm_strategy where pmfm_fk=(select ID from pmfm where label='COMPLIANT_PRODUCT')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update pmfm_strategy set DEFAULT_VALUE=1 where pmfm_fk=(select ID from pmfm where label='COMPLIANT_PRODUCT');
+            update PROGRAM set update_date=current_timestamp where label='ADAP-CONTROLE';
+            commit;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>
