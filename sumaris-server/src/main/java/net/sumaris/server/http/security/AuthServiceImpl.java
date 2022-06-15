@@ -27,7 +27,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.event.JmsEntityEvents;
+import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;

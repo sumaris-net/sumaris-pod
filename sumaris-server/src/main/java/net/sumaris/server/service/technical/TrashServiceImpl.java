@@ -33,7 +33,7 @@ import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.event.JmsEntityEvents;
+import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;

@@ -20,16 +20,17 @@
  * #L%
  */
 
-package net.sumaris.core.event;
+package net.sumaris.core.jms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.event.entity.*;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.event.entity.IEntityEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.jms.JMSException;
@@ -41,8 +42,6 @@ import java.util.Map;
 public abstract class JmsEntityEvents {
 
     public static final String DESTINATION = "entity-event";
-
-    private static final Map<String, Class<?>> classesByType = Maps.newConcurrentMap();
 
     protected JmsEntityEvents() {
         // Helper class
