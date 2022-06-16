@@ -22,6 +22,7 @@
 
 package net.sumaris.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphql.spring.boot.test.GraphQLTestTemplate;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -29,7 +30,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -55,6 +58,11 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
     public static final String I18N_BUNDLE_NAME = MODULE_NAME + "-i18n";
 
     @Bean
+    public static GraphQLTestTemplate graphQLTestTemplate(ResourceLoader resourceLoader, TestRestTemplate restTemplate, ObjectMapper objectMapper) {
+        return new GraphQLTestTemplate(resourceLoader, restTemplate, "/graphql", objectMapper);
+    }
+
+    @Bean
     public SumarisConfiguration configuration() {
         SumarisConfiguration config = super.configuration();
 
@@ -77,8 +85,4 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
         return I18N_BUNDLE_NAME;
     }
 
-    @Bean
-    public GraphQLTestTemplate graphQLTestTemplate() {
-        return new GraphQLTestTemplate();
-    }
 }

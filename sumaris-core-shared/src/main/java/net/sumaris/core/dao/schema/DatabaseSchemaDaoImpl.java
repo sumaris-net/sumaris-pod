@@ -512,13 +512,13 @@ public class DatabaseSchemaDaoImpl
         Resource scriptResource = ResourceUtils.getResource(scriptPathWithPrefix);
         if (scriptResource.exists()) {
             if (log.isInfoEnabled()) {
-                log.info("Will use create script: " + scriptPath);
+                log.info("Will use create script at: " + scriptPath);
             }
         }
         else {
 
             if (log.isInfoEnabled()) {
-                log.info("Will use generated create script");
+                log.info("Generating create script...");
             }
 
             // No script file: try to generate script
@@ -526,6 +526,8 @@ public class DatabaseSchemaDaoImpl
                 scriptFile = File.createTempFile("script", ".tmp.sql");
                 generateCreateSchemaFile(scriptFile.getAbsolutePath(), false, false, true);
                 scriptResource = ResourceUtils.getResource(org.springframework.util.ResourceUtils.FILE_URL_PREFIX + scriptFile.getAbsolutePath());
+
+                log.debug("Will use generated script at: " + scriptFile);
 
             } catch(IOException e){
                 throw new SumarisTechnicalException(String.format("Could not find DB script file, at %s", scriptPath));

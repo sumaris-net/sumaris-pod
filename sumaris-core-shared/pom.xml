@@ -174,12 +174,17 @@
       <groupId>org.liquibase.ext</groupId>
       <artifactId>liquibase-hibernate5</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.mattbertolini</groupId>
+      <artifactId>liquibase-slf4j</artifactId>
+    </dependency>
 
     <!-- JMS / ActiveMQ -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
-      <scope>compile</scope>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
