@@ -111,6 +111,7 @@
     <createSequence sequenceName="VESSEL_POSITION_SEQ" incrementBy="50"/>
     <createSequence sequenceName="VESSEL_SEQ" incrementBy="50"/>
     <createSequence sequenceName="VESSEL_USE_MEASUREMENT_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50"/>
   </changeSet>
 
   <!-- Sequence on data (increment by 50) -->
