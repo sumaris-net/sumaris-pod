@@ -351,4 +351,29 @@
         </sql>
     </changeSet>
 
+    <!-- Set option 'sumaris.i18nSuffix' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-413" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in (
+                    'sumaris.i18nSuffix')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-CONTROLE')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.i18nSuffix</column>
+            <column name="NAME">AUCTION_CONTROL.</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-CONTROLE')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-CONTROLE';
+            commit;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
