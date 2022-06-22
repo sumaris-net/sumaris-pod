@@ -277,6 +277,13 @@ public class DatabaseFixtures {
 		return program;
 	}
 
+	public ProgramVO getWithSubGearsProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(70);
+		program.setLabel("APASE");
+		return program;
+	}
+
 	/* -- PMFM -- */
 
 	public Integer getPmfmBatchWeight() {

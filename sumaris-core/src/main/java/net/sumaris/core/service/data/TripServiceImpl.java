@@ -259,6 +259,9 @@ public class TripServiceImpl implements TripService {
         // Save
         TripVO target = tripRepository.save(source);
 
+        // Avoid sequence configuration mistake (see AllocationSize)
+        Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid Trip.id. Make sure your sequence has been well configured");
+
         // Save or update parent entity
         saveParent(target, options);
 
@@ -505,6 +508,7 @@ public class TripServiceImpl implements TripService {
 
     protected void checkCanSave(TripVO source) {
         Preconditions.checkNotNull(source);
+        Preconditions.checkArgument(source.getId() == null || source.getId() >= 0, "Cannot save a trip with a local id: " + source.getId());
         Preconditions.checkNotNull(source.getProgram(), "Missing program");
         Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
         Preconditions.checkNotNull(source.getDepartureDateTime(), "Missing departureDateTime");

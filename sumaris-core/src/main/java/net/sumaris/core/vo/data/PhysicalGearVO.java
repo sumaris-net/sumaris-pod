@@ -51,7 +51,6 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private Integer rankOrder;
     @ToString.Include
     private ReferentialVO gear;
-
     private String comments;
     private Date creationDate;
     private Date updateDate;

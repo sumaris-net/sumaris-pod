@@ -45,27 +45,35 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
 
     default Specification<PhysicalGear> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearFilterVO.Fields.VESSEL_ID);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, PhysicalGearFilterVO.Fields.VESSEL_ID);
             Join<PhysicalGear, Vessel> vesselJoin = Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL));
-            return criteriaBuilder.equal(vesselJoin.get(Vessel.Fields.ID), param);
+            return cb.equal(vesselJoin.get(Vessel.Fields.ID), param);
         }).addBind(PhysicalGearFilterVO.Fields.VESSEL_ID, vesselId);
     }
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {
         if (tripId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PhysicalGearFilterVO.Fields.TRIP_ID);
-            return criteriaBuilder.equal(Daos.composeJoin(root, PhysicalGear.Fields.TRIP)
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, PhysicalGearFilterVO.Fields.TRIP_ID);
+            return cb.equal(Daos.composeJoin(root, PhysicalGear.Fields.TRIP)
                 .get(IEntity.Fields.ID), param);
         }).addBind(PhysicalGearFilterVO.Fields.TRIP_ID, tripId);
     }
 
+    default Specification<PhysicalGear> excludeTripId(Integer tripId) {
+        if (tripId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, PhysicalGearFilterVO.Fields.EXCLUDE_TRIP_ID);
+            return cb.notEqual(Daos.composeJoin(root, PhysicalGear.Fields.TRIP).get(IEntity.Fields.ID), param);
+        }).addBind(PhysicalGearFilterVO.Fields.EXCLUDE_TRIP_ID, tripId);
+    }
+
     default Specification<PhysicalGear> hasProgramLabel(String programLabel) {
         if (programLabel == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PhysicalGearVO.Fields.PROGRAM);
-            return criteriaBuilder.equal(Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.PROGRAM))
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> param = cb.parameter(String.class, PhysicalGearVO.Fields.PROGRAM);
+            return cb.equal(Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.PROGRAM))
                 .get(Program.Fields.LABEL), param);
         }).addBind(PhysicalGearVO.Fields.PROGRAM, programLabel);
     }
@@ -92,6 +100,37 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
                 return cb.lessThanOrEqualTo(tripJoin.get(Trip.Fields.RETURN_DATE_TIME), endDate);
             }
         };
+    }
+
+    default Specification<PhysicalGear> hasParentGearId(Integer parentGearId) {
+        if (parentGearId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, PhysicalGearFilterVO.Fields.PARENT_GEAR_ID);
+            return cb.equal(Daos.composeJoin(root, PhysicalGear.Fields.PARENT)
+                .get(IEntity.Fields.ID), param);
+        }).addBind(PhysicalGearFilterVO.Fields.PARENT_GEAR_ID, parentGearId);
+    }
+
+    default Specification<PhysicalGear> excludeParentGearId(Integer excludeParentGearId) {
+        if (excludeParentGearId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, PhysicalGearFilterVO.Fields.EXCLUDE_PARENT_GEAR_ID);
+            return cb.notEqual(Daos.composeJoin(root, PhysicalGear.Fields.PARENT)
+                .get(IEntity.Fields.ID), param);
+        }).addBind(PhysicalGearFilterVO.Fields.EXCLUDE_PARENT_GEAR_ID, excludeParentGearId);
+    }
+    default Specification<PhysicalGear> excludeParentGear(Boolean excludeParentGear) {
+        if (excludeParentGear == null || !excludeParentGear) return null;
+        return BindableSpecification.where((root, query, cb) ->
+            cb.isNotNull(Daos.composePath(root, PhysicalGear.Fields.PARENT))
+        );
+    }
+
+    default Specification<PhysicalGear> excludeChildGear(Boolean excludeChildOperation) {
+        if (excludeChildOperation == null || !excludeChildOperation) return null;
+        return BindableSpecification.where((root, query, cb) ->
+            cb.isNull(Daos.composePath(root, PhysicalGear.Fields.PARENT))
+        );
     }
 
     List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources, List<Integer> idsToRemove);

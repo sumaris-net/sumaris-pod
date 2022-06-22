@@ -30,7 +30,6 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
-import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.util.Beans;
@@ -71,9 +70,15 @@ public class PhysicalGearRepositoryImpl
     public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            // Parent
             .and(hasVesselId(filter.getVesselId()))
+            // Trip
             .and(hasTripId(filter.getTripId()))
+            .and(excludeTripId(filter.getExcludeTripId()))
+            // Parent
+            .and(hasParentGearId(filter.getParentGearId()))
+            .and(excludeParentGearId(filter.getExcludeParentGearId()))
+            .and(excludeParentGear(filter.getExcludeParentGear()))
+            .and(excludeChildGear(filter.getExcludeChildGear()))
             // Quality
             .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
