@@ -103,6 +103,7 @@
     <createSequence sequenceName="PHYSICAL_GEAR_SEQ" incrementBy="50" startValue="1000"/>
     <createSequence sequenceName="QUANTIF_MEASUREMENT_B_SEQ" incrementBy="50" startValue="1000"/>
     <createSequence sequenceName="SALE_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="EXPECTED_SALE_SEQ" incrementBy="50" startValue="1000"/>
     <createSequence sequenceName="SAMPLE_MEASUREMENT_SEQ" incrementBy="50" startValue="1000"/>
     <createSequence sequenceName="SAMPLE_SEQ" incrementBy="50" startValue="1000"/>
     <createSequence sequenceName="SORTING_MEASUREMENT_B_SEQ" incrementBy="50" startValue="1000"/>
@@ -136,6 +137,7 @@
     ALTER SEQUENCE QUANTIF_MEASUREMENT_P_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SALE_MEASUREMENT_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SALE_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE EXPECTED_SALE_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SAMPLE_MEASUREMENT_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SAMPLE_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SORTING_MEASUREMENT_B_SEQ INCREMENT BY 50;
