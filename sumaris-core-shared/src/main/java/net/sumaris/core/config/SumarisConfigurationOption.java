@@ -487,6 +487,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     /*
      * CLI options
      */
+    CLI_DAEMONIZE(
+        "sumaris.cli.daemon",
+        n("sumaris.config.option.cli.daemon.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
 
     CLI_OUTPUT_FILE(
         "sumaris.cli.output.file",

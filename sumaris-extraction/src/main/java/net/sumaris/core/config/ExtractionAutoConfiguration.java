@@ -54,9 +54,8 @@ public class ExtractionAutoConfiguration {
 
     @Bean
     public ExtractionConfiguration extractionConfiguration(SumarisConfiguration configuration) {
-
-        ExtractionConfiguration instance = new ExtractionConfiguration(configuration);
-        ExtractionConfiguration.setInstance(instance);
-        return instance;
+        ExtractionConfiguration instance = ExtractionConfiguration.instance();
+        if (instance != null) return instance;
+        return new ExtractionConfiguration(configuration);
     }
 }

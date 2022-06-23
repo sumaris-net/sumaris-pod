@@ -36,20 +36,17 @@ import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.hibernate.cache.jcache.ConfigSettings;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class, javax.cache.CacheManager.class})
