@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.27.0</version>
+    <version>1.27.1</version>
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
@@ -128,7 +128,10 @@
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
-      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.dom4j</groupId>
+      <artifactId>dom4j</artifactId>
     </dependency>
 
     <!-- Cryptography -->

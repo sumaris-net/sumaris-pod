@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.27.0</version>
+    <version>1.27.1</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -272,7 +272,7 @@
           <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
-            <version>2.1.3</version>
+            <version>${dom4j.version}</version>
           </dependency>
         </dependencies>
         <executions>
