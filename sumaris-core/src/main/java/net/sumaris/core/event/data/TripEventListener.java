@@ -24,7 +24,7 @@ package net.sumaris.core.event.data;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
-import net.sumaris.core.event.JmsEntityEvents;
+import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.vo.data.TripVO;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;

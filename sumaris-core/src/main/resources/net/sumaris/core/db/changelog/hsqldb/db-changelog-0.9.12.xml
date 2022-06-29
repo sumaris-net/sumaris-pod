@@ -12,37 +12,37 @@
     -->
 
     <!-- create sequences -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-10">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-10" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="LANDING_MEASUREMENT_SEQ"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="LANDING_MEASUREMENT_SEQ"/>
+        <createSequence sequenceName="LANDING_MEASUREMENT_SEQ" incrementBy="50"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-11">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-11" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="OBSERVED_LOCATION_MEASURME_SEQ"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="OBSERVED_LOCATION_MEASURME_SEQ"/>
+        <createSequence sequenceName="OBSERVED_LOCATION_MEASURME_SEQ" incrementBy="50"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-12">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-12" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="OBSERVED_LOCATION_SEQ"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="OBSERVED_LOCATION_SEQ"/>
+        <createSequence sequenceName="OBSERVED_LOCATION_SEQ" incrementBy="50"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="SALE_MEASUREMENT_SEQ"/>
             </not>
         </preConditions>
-        <createSequence sequenceName="SALE_MEASUREMENT_SEQ"/>
+        <createSequence sequenceName="SALE_MEASUREMENT_SEQ" incrementBy="50"/>
     </changeSet>
     <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-13-1" runOnChange="true">
         <preConditions onFail="MARK_RAN">

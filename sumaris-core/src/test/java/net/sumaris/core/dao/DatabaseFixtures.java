@@ -107,6 +107,10 @@ public class DatabaseFixtures {
 		return 1;
 	}
 
+	public Integer getTripIdWithSubGears() {
+		return 70;
+	}
+
 	public Integer getOperationId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
@@ -274,6 +278,13 @@ public class DatabaseFixtures {
 		ProgramVO program = new ProgramVO();
 		program.setId(11);
 		program.setLabel("ADAP-CONTROLE");
+		return program;
+	}
+
+	public ProgramVO getWithSubGearsProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(70);
+		program.setLabel("APASE");
 		return program;
 	}
 

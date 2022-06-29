@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.core.event;
+package net.sumaris.core.jms;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
@@ -39,7 +39,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Message;

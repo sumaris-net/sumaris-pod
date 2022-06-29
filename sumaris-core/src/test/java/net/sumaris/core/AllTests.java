@@ -101,6 +101,8 @@ import org.junit.runners.Suite;
     OperationServiceWriteTest.class,
     PacketServiceWriteTest.class,
     VesselServiceWriteTest.class,
+    PhysicalGearServiceReadTest.class,
+
     // Service: technical
     DatabaseSchemaServiceTest.class,
     ConfigurationServiceTest.class,

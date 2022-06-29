@@ -22,6 +22,7 @@
 
 package net.sumaris.core.dao.technical.model;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serializable;
@@ -51,7 +52,8 @@ public class TreeNodeEntities {
         return result.build();
     }
 
-    public static <ID extends Serializable, T extends ITreeNodeEntity<ID, T>> T listAsTree(Collection<T> nodes, Function<T, ID> getParentId) {
+    public static <ID extends Serializable, T extends ITreeNodeEntity<ID, T>> T listAsTree(Collection<T> nodes, Function<T, ID> getParentId,
+                                                                                           boolean setChildren) {
 
         nodes.forEach(node -> {
             if (node.getParent() == null && getParentId != null) {
@@ -59,7 +61,16 @@ public class TreeNodeEntities {
                 if (parentId != null) {
                     nodes.stream().filter(n -> parentId.equals(n.getId()))
                             .findFirst()
-                            .ifPresent(node::setParent);
+                            .ifPresent(parent -> {
+                                node.setParent(parent);
+                                if (setChildren) {
+                                    if (parent.getChildren() == null) {
+                                        parent.setChildren(Lists.newArrayList(node));
+                                    } else {
+                                        parent.getChildren().add(node);
+                                    }
+                                }
+                            });
                 }
             }
         });

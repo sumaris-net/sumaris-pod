@@ -36,7 +36,7 @@ import net.sumaris.core.dao.technical.model.Entities;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.event.JmsEntityEvents;
+import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;

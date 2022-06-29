@@ -25,6 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -42,7 +43,8 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name="physical_gear")
-public class PhysicalGear implements IRootDataEntity<Integer> {
+public class PhysicalGear implements IRootDataEntity<Integer>,
+    ITreeNodeEntity<Integer, PhysicalGear> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_SEQ")
@@ -106,10 +108,21 @@ public class PhysicalGear implements IRootDataEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PhysicalGearMeasurement> measurements = new ArrayList<>();
 
-    /* -- parent -- */
+    /* -- Tree link -- */
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = PhysicalGear.Fields.PARENT)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @ToString.Exclude
+    private List<PhysicalGear> children = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_physical_gear_fk")
+    @ToString.Exclude
+    private PhysicalGear parent;
+
+    /* -- Trip -- */
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk", nullable = false)
     private Trip trip;
-
 }

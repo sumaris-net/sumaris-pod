@@ -390,7 +390,7 @@ public class SampleRepositoryImpl
             if (source.getId() != null) {
                 target = sourcesIdsToProcess.remove(source.getId());
             }
-            // Check if batch save can be skipped
+            // Check if sample save can be skipped
             boolean skip = enableSaveUsingHash && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
                 source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
