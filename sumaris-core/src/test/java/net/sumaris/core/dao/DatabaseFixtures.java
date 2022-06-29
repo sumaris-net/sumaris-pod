@@ -107,6 +107,10 @@ public class DatabaseFixtures {
 		return 1;
 	}
 
+	public Integer getTripIdWithSubGears() {
+		return 70;
+	}
+
 	public Integer getOperationId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

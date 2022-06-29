@@ -300,6 +300,7 @@ public class TripServiceImpl implements TripService {
 
         // Save physical gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
+
             // Fille defaults, from the trip
             source.getGears().forEach(gear -> {
                 fillDefaultProperties(target, gear);
@@ -735,6 +736,11 @@ public class TripServiceImpl implements TripService {
         DataBeans.setDefaultRecorderPerson(gear, parent.getRecorderPerson());
 
         gear.setTripId(parent.getId());
+
+        // Fill children defaults
+        if (CollectionUtils.isNotEmpty(gear.getChildren())){
+            gear.getChildren().forEach(child -> fillDefaultProperties(parent, child));
+        }
     }
 
     protected void fillDefaultProperties(TripVO parent, MeasurementVO measurement) {
