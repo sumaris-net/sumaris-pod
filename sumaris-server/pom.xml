@@ -204,6 +204,11 @@
       <artifactId>javax.servlet-api</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Compile -->
     <dependency>
@@ -213,10 +218,6 @@
     <dependency>
       <groupId>org.nuiton.i18n</groupId>
       <artifactId>nuiton-i18n</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.dom4j</groupId>
-      <artifactId>dom4j</artifactId>
     </dependency>
 
     <!-- Unit test -->
