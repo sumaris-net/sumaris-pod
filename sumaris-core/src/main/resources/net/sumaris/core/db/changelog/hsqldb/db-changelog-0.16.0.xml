@@ -126,38 +126,6 @@
     </sql>
   </changeSet>
 
-  <!-- Add missing SAMPLE ACQUISITION_LEVEL -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-16" runOnChange="true">
-    <preConditions onFail="MARK_RAN">
-      <and>
-        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
-        <sqlCheck expectedResult="0">SELECT count(*) FROM acquisition_level where label='SAMPLE'</sqlCheck>
-      </and>
-    </preConditions>
-    <insert tableName="acquisition_level">
-      <column name="ID" valueComputed="NEXT VALUE FOR acquisition_level_seq"/>
-      <column name="LABEL">SAMPLE</column>
-      <column name="NAME">Sample (e.g. survival test)</column>
-      <column name="STATUS_FK" valueNumeric="1"/>
-      <column name="CREATION_DATE" valueComputed="sysdate" />
-      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-    </insert>
-  </changeSet>
-
-  <!-- Rename some program options -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-17" runOnChange="true">
-    <preConditions onFail="MARK_RAN">
-      <or>
-        <not><sqlCheck expectedResult="0">select count(*) from PROGRAM_PROPERTY where label='sumaris.trip.operation.survivalTest.taxonName.enable'</sqlCheck></not>
-        <not><sqlCheck expectedResult="0">select count(*) from PROGRAM_PROPERTY where label='sumaris.trip.operation.survivalTest.taxonGroup.enable'</sqlCheck></not>
-      </or>
-    </preConditions>
-    <sql endDelimiter=";">
-      update PROGRAM_PROPERTY set label='sumaris.trip.operation.sample.taxonName.enable' where label='sumaris.trip.operation.survivalTest.taxonName.enable';
-      update PROGRAM_PROPERTY set label='sumaris.trip.operation.sample.taxonGroup.enable' where label='sumaris.trip.operation.survivalTest.taxonGroup.enable';
-      commit;
-    </sql>
-  </changeSet>
 
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-200" runOnChange="true">
