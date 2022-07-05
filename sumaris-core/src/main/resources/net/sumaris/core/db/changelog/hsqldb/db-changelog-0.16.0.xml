@@ -154,7 +154,7 @@
     </preConditions>
     <sql endDelimiter=";">
       update PROGRAM_PROPERTY set label='sumaris.trip.operation.sample.taxonName.enable' where label='sumaris.trip.operation.survivalTest.taxonName.enable';
-      update PROGRAM_PROPERTY set label='sumaris.trip.operation.sample.taxonGroup.enable' where label='sumaris.trip.operation.taxonGroup.taxonName.enable';
+      update PROGRAM_PROPERTY set label='sumaris.trip.operation.sample.taxonGroup.enable' where label='sumaris.trip.operation.survivalTest.taxonGroup.enable';
       commit;
     </sql>
   </changeSet>
