@@ -46,11 +46,11 @@
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229078000-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
-			<where>LABEL='1.25.2'</where>
+			<where>LABEL='1.25.3'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
 			<column name="ID" valueComputed="nextval('system_version_seq')"/>
-			<column name="LABEL">1.25.2</column>
+			<column name="LABEL">1.25.3</column>
 			<column name="DESCRIPTION">
 				- EXTRACTION_PRODUCT_COLUMN: Resize COLUMN_NAME to VARCHAR(100);
 			</column>
