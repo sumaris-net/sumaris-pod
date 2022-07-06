@@ -46,6 +46,16 @@
 														 referencedColumnNames="id" referencedTableName="physical_gear"/>
 	</changeSet>
 
+	<!-- create missing sequence acquisition_level_seq -->
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1648229079000-3">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<sequenceExists sequenceName="acquisition_level_seq"/>
+			</not>
+		</preConditions>
+		<createSequence sequenceName="acquisition_level_seq"/>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
