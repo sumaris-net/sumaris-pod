@@ -133,5 +133,22 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
         );
     }
 
+    /**
+     * Save all physical gears, on a trip
+     * @param tripId
+     * @param sources
+     * @return
+     */
+    List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources);
+
+    /**
+     * Save all physical gears, on a trip.
+     * Allow to delete unused entities later (outside this function).
+     *
+     * @param tripId
+     * @param sources
+     * @param idsToRemove Used to allow deletion later. Is null, will delete unused entities inside the function
+     * @return
+     */
     List<PhysicalGearVO> saveAllByTripId(final int tripId, final List<PhysicalGearVO> sources, List<Integer> idsToRemove);
 }

@@ -49,7 +49,7 @@ public interface BatchService {
 	@Transactional(readOnly = true)
 	List<BatchVO> getAllByOperationId(int operationId, BatchFetchOptions fetchOptions);
 
-	List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources);
+	List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources);
 
 	@Transactional(readOnly = true)
 	BatchVO get(int id);

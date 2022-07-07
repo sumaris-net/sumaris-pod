@@ -52,6 +52,22 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @ToString.Include
     private Integer id;
 
+    @Column(name = "rank_order", nullable = false)
+    private Integer rankOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Gear.class)
+    @JoinColumn(name = "gear_fk", nullable = false)
+    @ToString.Include
+    private Gear gear;
+
+    @Column(length = LENGTH_COMMENTS)
+    private String comments;
+
+    @Column
+    private Integer hash;
+
+    /* -- Quality insurance -- */
+
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
@@ -61,15 +77,12 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorder_person_fk")
-    private Person recorderPerson;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_person_fk")
+    private Person recorderPerson;
 
     @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -90,17 +103,20 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @Column(name = "rank_order", nullable = false)
-    private Integer rankOrder;
-
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Gear.class)
-    @JoinColumn(name = "gear_fk", nullable = false)
-    @ToString.Include
-    private Gear gear;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
+
+    /* -- Tree link -- */
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = PhysicalGear.Fields.PARENT)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<PhysicalGear> children = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_physical_gear_fk")
+    private PhysicalGear parent;
 
     /* -- measurements -- */
 
@@ -108,21 +124,13 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<PhysicalGearMeasurement> measurements = new ArrayList<>();
 
-    /* -- Tree link -- */
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = PhysicalGear.Fields.PARENT)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    @ToString.Exclude
-    private List<PhysicalGear> children = new ArrayList<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_physical_gear_fk")
-    @ToString.Exclude
-    private PhysicalGear parent;
-
-    /* -- Trip -- */
+    /* -- Owner entities -- */
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk", nullable = false)
     private Trip trip;
+
+    public String toString() {
+        return String.format("PhysicalGear{id=%s,rankOrder=%s}", id, rankOrder);
+    }
 }

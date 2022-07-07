@@ -31,8 +31,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 public interface IDataVO<ID extends Serializable>
-        extends IValueObject<ID>,
-    IUpdateDateEntity<ID, Date>,
+    extends IValueObject<ID>,
+        IUpdateDateEntity<ID, Date>,
         IWithRecorderDepartmentEntity<ID, DepartmentVO> {
 
     Date getControlDate();

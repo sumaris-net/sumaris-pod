@@ -180,7 +180,7 @@ public class BatchRepositoryImpl
 
 
     @Override
-    public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
+    public List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources) {
 
         long startTime = System.currentTimeMillis();
         log.debug("Saving operation {id: {}} batches... {hash_optimization: {}}", operationId, enableSaveUsingHash);
@@ -345,10 +345,11 @@ public class BatchRepositoryImpl
 
         boolean dirty = updatesCount > 0;
 
-        // Remove not processed batches
+        // If there is some not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
             // Delete linked produces first (ie. Sales of packets)
             productRepository.deleteProductsByBatchIdIn(sourcesIdsToProcess.keySet());
+            // Delete batches
             this.deleteAll(sourcesIdsToProcess.values());
             dirty = true;
         }

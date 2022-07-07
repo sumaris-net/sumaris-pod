@@ -27,6 +27,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -46,7 +47,8 @@ import java.util.Map;
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @EqualsAndHashCode
-public class SampleVO implements IRootDataVO<Integer>, ITreeNodeEntity<Integer, SampleVO> {
+public class SampleVO implements IRootDataVO<Integer>,
+    ITreeNodeEntity<Integer, SampleVO> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include

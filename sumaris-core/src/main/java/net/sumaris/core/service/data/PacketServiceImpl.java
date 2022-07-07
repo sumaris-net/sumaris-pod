@@ -131,7 +131,7 @@ public class PacketServiceImpl implements PacketService {
             if (sources.isEmpty()) {
 
                 // Root batch exists but no packet to save = delete this batch
-                batchRepository.saveByOperationId(operationId, batches);
+                batchRepository.saveAllByOperationId(operationId, batches);
                 return sources;
 
             }
@@ -146,7 +146,7 @@ public class PacketServiceImpl implements PacketService {
         batches.forEach(batch -> fillDefaultProperties(sources.get(0), batch));
 
         // Save Batches
-        List<BatchVO> savedBatches = batchRepository.saveByOperationId(operationId, batches);
+        List<BatchVO> savedBatches = batchRepository.saveAllByOperationId(operationId, batches);
 
         // Save measurements
         savedBatches.forEach(savedBatch -> {

@@ -622,6 +622,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             Boolean.class,
             false),
 
+    ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION(
+        "sumaris.persistence.physicalGear.hashOptimization",
+        n("sumaris.config.option.persistence.physicalGear.hashOptimization.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),
