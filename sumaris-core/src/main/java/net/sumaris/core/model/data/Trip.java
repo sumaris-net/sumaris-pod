@@ -53,7 +53,8 @@ import java.util.*;
 )
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
-        IWithVesselEntity<Integer, Vessel> {
+        IWithVesselEntity<Integer, Vessel>,
+        IWithGearsEntity<Integer, PhysicalGear> {
 
     static {
         I18n.n("sumaris.persistence.table.trip");
@@ -135,7 +136,7 @@ public class Trip implements IRootDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     @OrderBy("rankOrder ASC")
-    private List<PhysicalGear> physicalGears = new ArrayList<>();
+    private List<PhysicalGear> gears = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)

@@ -50,6 +50,8 @@ public interface PhysicalGearService {
 
 	List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources, List<Integer> idsToRemove);
 
+	void treeToList(final PhysicalGearVO source, final List<PhysicalGearVO> result);
+
 	void delete(List<Integer> ids);
 
 	void delete(int id);

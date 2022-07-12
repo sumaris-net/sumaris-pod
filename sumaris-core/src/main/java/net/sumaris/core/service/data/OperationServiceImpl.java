@@ -276,7 +276,7 @@ public class OperationServiceImpl implements OperationService {
 
             List<BatchVO> batches = getAllBatches(source);
             batches.forEach(b -> fillDefaultProperties(source, b));
-            batches = batchService.saveByOperationId(source.getId(), batches);
+            batches = batchService.saveAllByOperationId(source.getId(), batches);
 
             // Transform saved batches into flat list (e.g. to be used as graphQL query response)
             batches.forEach(batch -> {

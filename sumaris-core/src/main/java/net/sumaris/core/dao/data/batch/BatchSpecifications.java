@@ -92,7 +92,7 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
 
     BatchVO getCatchBatchBySaleId(int saleId, BatchFetchOptions fetchOptions);
 
-    List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources);
+    List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources);
 
     List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources);
 

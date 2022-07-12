@@ -115,6 +115,16 @@
     <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
 
+  <!-- create missing sequences -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2-0-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <not><sequenceExists sequenceName="EXPECTED_SALE_SEQ"/></not>
+      </and>
+    </preConditions>
+    <createSequence sequenceName="EXPECTED_SALE_SEQ" incrementBy="50" startValue="1000"/>
+  </changeSet>
+
   <!-- Sequence on data (increment by 50) -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2-1" runOnChange="true">
     <sql endDelimiter=";"><![CDATA[

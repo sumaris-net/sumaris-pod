@@ -42,7 +42,6 @@ import java.util.Map;
 @FieldNameConstants
 @EqualsAndHashCode
 public class PhysicalGearVO implements IRootDataVO<Integer>,
-        IWithRecorderPersonEntity<Integer, PersonVO>,
         ITreeNodeEntity<Integer, PhysicalGearVO> {
 
     @EqualsAndHashCode.Exclude
@@ -53,6 +52,7 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private ReferentialVO gear;
     private String comments;
     private Date creationDate;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
@@ -64,21 +64,18 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
 
     private ProgramVO program;
 
-    @EqualsAndHashCode.Exclude
-    private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
+    private List<MeasurementVO> measurements;
 
     // Parent physical gear
     @EqualsAndHashCode.Exclude
     private PhysicalGearVO parent;
-    @ToString.Include
     private Integer parentId;
     private List<PhysicalGearVO> children;;
 
     // Trip
     @EqualsAndHashCode.Exclude
     private TripVO trip;
-    @ToString.Include
     private Integer tripId;
 
 }

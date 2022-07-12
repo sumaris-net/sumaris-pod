@@ -25,27 +25,34 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.25.4.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.28.0.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-	<!-- Add a new acquisition level, for children physical gear -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229079000-301" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229079900-1">
 		<preConditions onFail="MARK_RAN">
-			<and>
-				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
-				<sqlCheck expectedResult="0">SELECT count(*) FROM acquisition_level where label='CHILD_PHYSICAL_GEAR'</sqlCheck>
-			</and>
+			<not><columnExists tableName="physical_gear" columnName="hash"/></not>
 		</preConditions>
-		<insert tableName="acquisition_level">
-			<column name="ID" valueComputed="NEXT VALUE FOR acquisition_level_seq"/>
-			<column name="LABEL">CHILD_PHYSICAL_GEAR</column>
-			<column name="NAME">Children physical gear</column>
-			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
-			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-		</insert>
+		<addColumn tableName="physical_gear">
+			<column name="hash" type="integer"/>
+		</addColumn>
 	</changeSet>
 
+	<!-- update SYSTEM_VERSION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229079900-200" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='1.28.0'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+			<column name="LABEL">1.28.0</column>
+			<column name="DESCRIPTION">
+				- Add column PHYSICAL_GEAR.HASH
+			</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
+			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+			<column name="COMMENTS"/>
+		</insert>
+	</changeSet>
 </databaseChangeLog>

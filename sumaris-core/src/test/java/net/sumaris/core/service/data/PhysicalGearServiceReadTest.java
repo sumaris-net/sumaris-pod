@@ -129,8 +129,8 @@ public class PhysicalGearServiceReadTest extends AbstractServiceTest{
             3); // All sub gears in APASE data
 
         assertFindAll(PhysicalGearFilterVO.builder()
-                .vesselId(fixtures.getVesselId(0))
-                .programLabel(fixtures.getWithSubGearsProgram().getLabel())
+                //.vesselId(fixtures.getVesselId(0))
+                //.programLabel(fixtures.getWithSubGearsProgram().getLabel())
                 .parentGearId(70 /* =id of the root gear  */)
                 .build(),
             3); // All sub gears in APASE data, the one trip

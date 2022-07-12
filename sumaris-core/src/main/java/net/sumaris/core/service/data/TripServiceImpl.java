@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
@@ -52,6 +53,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -301,25 +303,36 @@ public class TripServiceImpl implements TripService {
         // Save physical gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
 
-            // Fille defaults, from the trip
-            source.getGears().forEach(gear -> {
+            List<PhysicalGearVO> gears = getGearsAsList(source);
+
+            // Fill defaults, from the trip
+            gears.forEach(gear -> {
                 fillDefaultProperties(target, gear);
-                if (withOperationGroup) {
-                    fillPhysicalGearMeasurementsFromOperationGroups(gear, source.getOperationGroups());
-                }
+                if (withOperationGroup) fillPhysicalGearMeasurementsFromOperationGroups(gear, source.getOperationGroups());
             });
 
             // Save
-            List<PhysicalGearVO> gears;
-            if (withOperationGroup){
-                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears(), physicalGearIdsToRemove);
+            if (withOperationGroup) {
+                gears = physicalGearService.saveAllByTripId(target.getId(), gears, physicalGearIdsToRemove);
             }
             else {
-                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears());
+                gears = physicalGearService.saveAllByTripId(target.getId(), gears);
             }
+
+            // Prepare saved gears (e.g. to be used as graphQL query response)
+            gears.forEach(gear -> {
+                // Set parentId (instead of parent object)
+                if (gear.getParentId() == null && gear.getParent() != null) {
+                    gear.setParentId(gear.getParent().getId());
+                }
+                // Remove link parent/children
+                gear.setParent(null);
+                gear.setChildren(null);
+            });
+
             target.setGears(gears);
         }
-        // Remove all
+        // No gears: remove all existing
         else if (!isNew) {
           physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
@@ -384,7 +397,7 @@ public class TripServiceImpl implements TripService {
             }
         }
 
-        if (physicalGearIdsToRemove.size() > 0){
+        if (CollectionUtils.isNotEmpty(physicalGearIdsToRemove)){
             physicalGearService.delete(physicalGearIdsToRemove);
         }
 
@@ -753,4 +766,20 @@ public class TripServiceImpl implements TripService {
         measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());
     }
 
+    /**
+     * Get all samples, in the sample tree parent/children
+     *
+     * @param parent
+     * @return
+     */
+    protected List<PhysicalGearVO> getGearsAsList(final TripVO parent) {
+        final List<PhysicalGearVO> result = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(parent.getGears())) {
+            parent.getGears().forEach(source -> {
+                fillDefaultProperties(parent, source);
+                physicalGearService.treeToList(source, result);
+            });
+        }
+        return result;
+    }
 }

@@ -243,7 +243,7 @@ public class OperationRepositoryImpl
             // If not found, try using the rankOrder
             if (physicalGearId == null && source.getPhysicalGear() != null && source.getPhysicalGear().getRankOrder() != null && target.getTrip() != null) {
                 Integer rankOrder = source.getPhysicalGear().getRankOrder();
-                physicalGearId = target.getTrip().getPhysicalGears()
+                physicalGearId = target.getTrip().getGears()
                         .stream()
                         .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
                         .map(PhysicalGear::getId)

@@ -968,6 +968,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_UNIQUE_TAG.getKey());
     }
 
+    public boolean enablePhysicalGearHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION.getKey());
+    }
+
     /**
      * Prefer ProgramEnum.SIH.getLabel()
      */
