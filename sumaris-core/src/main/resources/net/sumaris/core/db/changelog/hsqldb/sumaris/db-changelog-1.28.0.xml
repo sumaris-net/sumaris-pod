@@ -23,7 +23,7 @@
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM EXTRACTION_PRODUCT where FORMAT IS NULL OR VERSION is NULL)</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM EXTRACTION_PRODUCT where FORMAT IS NULL OR VERSION is NULL</sqlCheck>
             </and>
         </preConditions>
         <sql endDelimiter=";">
