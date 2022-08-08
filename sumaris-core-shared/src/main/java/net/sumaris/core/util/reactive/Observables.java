@@ -23,6 +23,7 @@
 package net.sumaris.core.util.reactive;
 
 import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 
@@ -103,5 +104,13 @@ public class Observables {
         @NonNull Callable<Optional<T>> first,
         @NonNull Function<T, Optional<V>> second) {
         return () -> first.call().flatMap(second::apply);
+    }
+
+    public static void dispose(Disposable disposable) {
+        if (disposable == null || disposable.isDisposed()) {
+            // null or already disposed
+            return;
+        }
+        disposable.dispose();
     }
 }

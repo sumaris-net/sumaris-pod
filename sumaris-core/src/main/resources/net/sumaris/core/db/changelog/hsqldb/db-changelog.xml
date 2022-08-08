@@ -150,6 +150,8 @@
     <include relativeToChangelogFile="true" file="db-changelog-1.28.0.xml"/>
     <include relativeToChangelogFile="true" file="sumaris/db-changelog-1.28.0.xml"/>
 
+    <include relativeToChangelogFile="true" file="db-changelog-1.29.0.xml"/>
+
     <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
     <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
 

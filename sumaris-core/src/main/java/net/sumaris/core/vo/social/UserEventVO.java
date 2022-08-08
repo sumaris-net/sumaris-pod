@@ -44,10 +44,16 @@ public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Int
     private Date updateDate;
     private String issuer;
     private String recipient;
-    private String eventType;
+
+    private String type;
+    private String level;
 
     private String hash;
     private String content;
     private String signature;
+    private Date readDate;
     private String readSignature;
+
+    @Deprecated
+    private String eventType;
 }

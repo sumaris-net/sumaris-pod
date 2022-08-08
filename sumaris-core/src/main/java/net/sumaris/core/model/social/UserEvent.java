@@ -62,7 +62,11 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
 
     @Column(name = "event_type", nullable = false, length = 30)
     @ToString.Include(rank = 1)
-    private String eventType;
+    private String type;
+
+    @Column(name = "level", nullable = false, length = 30)
+    @ToString.Include(rank = 2)
+    private String level;
 
     @Lob
     @Column(length=20971520)
@@ -74,6 +78,10 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
+
+    @Column(name = "read_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date readDate;
 
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;

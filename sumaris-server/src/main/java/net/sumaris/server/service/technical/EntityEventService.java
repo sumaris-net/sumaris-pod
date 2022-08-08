@@ -69,6 +69,15 @@ public interface EntityEventService {
                     int intervalInSeconds,
                     boolean startWithActualValue);
 
+    <ID extends Serializable, D extends Date,
+        T extends IUpdateDateEntity<ID, D>,
+        V extends IUpdateDateEntity<ID, D>,
+        L extends Collection<V>> Observable<Long>
+    watchEntitiesCount(Class<T> entityClass,
+                       Callable<Optional<L>> loader,
+                       @Nullable Integer intervalInSeconds,
+                       boolean startWithActualValue);
+
     <ID extends Serializable, T extends IEntity<ID>>
     Observable<IEntityEvent> watchEntityEvents(Class<T> entityClass);
 }

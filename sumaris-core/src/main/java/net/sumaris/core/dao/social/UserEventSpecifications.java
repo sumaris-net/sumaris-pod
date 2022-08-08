@@ -24,34 +24,78 @@ package net.sumaris.core.dao.social;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.social.UserEvent;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
-public interface UserEventSpecifications {
+import javax.persistence.criteria.ParameterExpression;
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
+public interface UserEventSpecifications {
 
     default Specification<UserEvent> toSpecification(UserEventFilterVO filter) {
         if (filter == null) return null;
-        return BindableSpecification.where(isIssuer(filter.getIssuer()))
-                .and(isRecipient(filter.getRecipient()));
+
+
+        return BindableSpecification
+            .where(inIssuers(filter.getIssuers()))
+            .and(inRecipients(filter.getRecipients()))
+            .and(inLevels(filter.getLevels()))
+            .and(inTypes(filter.getTypes()))
+            .and(creationDateAfter(filter.getStartDate()))
+            .and(excludeRead(filter.isExcludeRead()))
+            ;
     }
 
-    default Specification<UserEvent> isIssuer(String issuer) {
-        if (StringUtils.isBlank(issuer)) return null;
-        return (root, query, cb) -> cb.equal(root.get(UserEvent.Fields.ISSUER), issuer);
+    default Specification<UserEvent> inIssuers(String[] issuers) {
+        return inPropertyValues(UserEvent.Fields.ISSUER, issuers);
+
     }
 
-    default Specification<UserEvent> isRecipient(String recipient) {
-        if (StringUtils.isBlank(recipient)) return null;
-        return (root, query, cb) -> cb.equal(root.get(UserEvent.Fields.RECIPIENT), recipient);
+    default Specification<UserEvent> inRecipients(String[] recipients) {
+        return inPropertyValues(UserEvent.Fields.RECIPIENT, recipients);
     }
 
-    Page<UserEventVO> findAllVO(@Nullable Specification<UserEvent> spec, Pageable pageable);
+    default Specification<UserEvent> inTypes(String[] types) {
+        return inPropertyValues(UserEvent.Fields.TYPE, types);
+    }
+
+    default Specification<UserEvent> inLevels(String[] levels) {
+        return inPropertyValues(UserEvent.Fields.LEVEL, levels);
+    }
+
+    default Specification<UserEvent> creationDateAfter(Date startDate) {
+        if (startDate == null) return null;
+        return (root, query, cb) -> cb.greaterThan(root.get(UserEvent.Fields.CREATION_DATE), startDate);
+    }
+
+    default Specification<UserEvent> excludeRead(boolean excludeRead) {
+        if (!excludeRead) return null;
+        return (root, query, cb) -> cb.isNull(root.get(UserEvent.Fields.READ_SIGNATURE));
+    }
+
+    default Specification<UserEvent> inPropertyValues(String propertyName, String[] values) {
+        if (ArrayUtils.isEmpty(values)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, propertyName);
+            return cb.in(root.get(UserEvent.Fields.ISSUER)).value(param);
+        }).addBind(propertyName, Arrays.asList(values));
+    }
+
+    long count(UserEventFilterVO filter);
+
+    List<UserEventVO> findAllVO(UserEventFilterVO filter, @Nullable net.sumaris.core.dao.technical.Page page);
+
+    Page<UserEventVO> findAllVO(@Nullable Specification<UserEvent> spec, @Nullable Pageable pageable);
     Page<UserEventVO> findAllVO(@Nullable Specification<UserEvent> spec, net.sumaris.core.dao.technical.Page page);
 
+    Timestamp getDatabaseCurrentTimestamp();
 }

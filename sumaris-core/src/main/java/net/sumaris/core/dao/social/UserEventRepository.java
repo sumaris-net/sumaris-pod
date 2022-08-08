@@ -22,11 +22,24 @@ package net.sumaris.core.dao.social;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.List;
 
 public interface UserEventRepository
-    extends SumarisJpaRepository<UserEvent, Integer, UserEventVO>, UserEventSpecifications
-{
+    extends SumarisJpaRepository<UserEvent, Integer, UserEventVO>, UserEventSpecifications {
+
+    @Query("select max(creationDate) from UserEvent where recipient in (:recipients)")
+    Timestamp getMaxCreationDateByRecipient(@Param("recipients") Collection<String> recipients);
+
+    @Query("select max(readDate) from UserEvent where recipient in (:recipients)")
+    Timestamp getMaxReadDateByRecipient(@Param("recipients") Collection<String> recipients);
 }

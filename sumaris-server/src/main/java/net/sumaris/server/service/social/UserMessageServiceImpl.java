@@ -39,6 +39,7 @@ import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.social.UserEventService;
@@ -224,7 +225,8 @@ public class UserMessageServiceImpl implements UserMessageService {
 
         // Create a builder
         UserEventVO.UserEventVOBuilder builder = UserEventVO.builder()
-            .eventType(message.getType().toEventType().getLabel())
+            .type(message.getType().toEventType().getLabel())
+            .level(EventLevelEnum.INFO.getLabel())
             .creationDate(new Date());
 
         // Get issuer
@@ -379,7 +381,7 @@ public class UserMessageServiceImpl implements UserMessageService {
 
     protected List<UserEventVO> toUserEvents(@NonNull Email email) {
         UserEventVO.UserEventVOBuilder builder = UserEventVO.builder()
-            .eventType(EventTypeEnum.INBOX_MESSAGE.getLabel())
+            .type(EventTypeEnum.INBOX_MESSAGE.getLabel())
             .creationDate(new Date());
 
         // Set content
