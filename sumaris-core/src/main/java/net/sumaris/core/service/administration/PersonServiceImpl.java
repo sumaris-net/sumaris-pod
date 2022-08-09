@@ -132,7 +132,7 @@ public class PersonServiceImpl implements PersonService {
 		List<PersonVO> matches = findByFilter(
 			PersonFilterVO.builder()
 				.email(email)
-				.build(), null).getContent();
+				.build(), Pageable.unpaged()).getContent();
 		if (CollectionUtils.size(matches) != 1) throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
 		return matches.get(0);
 	}

@@ -87,6 +87,11 @@ public class UserEventRepositoryImpl
     }
 
     @Override
+    public void toVO(UserEvent source, UserEventVO target, boolean copyIfNull) {
+        super.toVO(source, target, copyIfNull);
+    }
+
+    @Override
     public Timestamp getDatabaseCurrentTimestamp() {
         return super.getDatabaseCurrentTimestamp();
     }
