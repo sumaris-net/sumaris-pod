@@ -276,10 +276,6 @@ public class UserEventGraphQLService {
         if (filter.getIssuers() == null && filter.getIssuer() != null) {
             filter.setIssuers(new String[]{filter.getIssuer()});
         }
-
-        if (filter.getStartDate() != null) {
-            filter.setStartDate(Dates.resetTime(filter.getStartDate()));
-        }
         return filter;
     }
 }

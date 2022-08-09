@@ -274,7 +274,7 @@ public class UserMessageServiceImpl implements UserMessageService {
         else if (ArrayUtils.isNotEmpty(message.getRecipients())) {
             recipients = Arrays.stream(message.getRecipients())
                 .map(p -> (StringUtils.isNotBlank(p.getEmail())) ? p.getEmail()
-                    : (p.getId() != null ? personService.getEmailById(p.getId()) : null)
+                    : (p.getId() != null ? personService.getPubkeyById(p.getId()) : null)
                 )
                 .filter(StringUtils::isNotBlank);
         }

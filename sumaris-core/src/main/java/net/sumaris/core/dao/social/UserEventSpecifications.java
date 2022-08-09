@@ -22,7 +22,9 @@ package net.sumaris.core.dao.social;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
@@ -46,13 +48,23 @@ public interface UserEventSpecifications {
 
 
         return BindableSpecification
-            .where(inIssuers(filter.getIssuers()))
-            .and(inRecipients(filter.getRecipients()))
+            .where(inRecipients(filter.getRecipients()))
+            .and(inIssuers(filter.getIssuers()))
             .and(inLevels(filter.getLevels()))
             .and(inTypes(filter.getTypes()))
             .and(creationDateAfter(filter.getStartDate()))
+            .and(includedIds(filter.getIncludedIds()))
             .and(excludeRead(filter.isExcludeRead()))
             ;
+    }
+
+    default Specification<UserEvent> includedIds(Integer[] includedIds) {
+        if (ArrayUtils.isEmpty(includedIds)) return null;
+        return BindableSpecification.<UserEvent>where((root, query, criteriaBuilder) -> {
+                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, UserEvent.Fields.ID);
+                return criteriaBuilder.in(root.get(UserEvent.Fields.ID)).value(param);
+            })
+            .addBind(UserEvent.Fields.ID, Arrays.asList(includedIds));
     }
 
     default Specification<UserEvent> inIssuers(String[] issuers) {
@@ -86,7 +98,8 @@ public interface UserEventSpecifications {
         if (ArrayUtils.isEmpty(values)) return null;
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, propertyName);
-            return cb.in(root.get(UserEvent.Fields.ISSUER)).value(param);
+            return cb.in(Daos.composePath(root, propertyName))
+                .value(param);
         }).addBind(propertyName, Arrays.asList(values));
     }
 

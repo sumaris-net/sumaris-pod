@@ -45,6 +45,7 @@ public class UserEventFilterVO {
     @Deprecated
     private String recipient;
 
+    private Integer[] includedIds;
     private String[] types;
     private String[] levels;
     private String[] recipients;
