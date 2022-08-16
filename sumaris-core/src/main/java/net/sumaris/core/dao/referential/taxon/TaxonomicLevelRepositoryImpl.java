@@ -22,44 +22,21 @@ package net.sumaris.core.dao.referential.taxon;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
-import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
-import net.sumaris.core.vo.referential.TaxonNameVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
-import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author blavenie
  */
-@Slf4j
 public class TaxonomicLevelRepositoryImpl
-        extends ReferentialRepositoryImpl<TaxonomicLevel, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+        extends ReferentialRepositoryImpl<Integer, TaxonomicLevel, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     public TaxonomicLevelRepositoryImpl(EntityManager entityManager) {
         super(TaxonomicLevel.class, ReferentialVO.class, entityManager);
@@ -67,7 +44,7 @@ public class TaxonomicLevelRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id")
-    public ReferentialVO get(int id) {
+    public ReferentialVO get(Integer id) {
         return super.get(id);
     }
 

@@ -24,13 +24,17 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.PhysicalGearMeasurement;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.OperationFetchOptions;
-import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +48,9 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	@Autowired
 	protected PhysicalGearRepository physicalGearRepository;
 
+	@Autowired
+	protected MeasurementDao measurementDao;
+
 	@Override
 	public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options) {
 		return physicalGearRepository.findAll(filter != null ? filter : new PhysicalGearFilterVO(), page, options);
@@ -56,12 +63,17 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	@Override
 	public List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources) {
-		return physicalGearRepository.saveAllByTripId(tripId, sources, null);
+		return saveAllByTripId(tripId, sources, null);
 	}
 
 	@Override
 	public List<PhysicalGearVO> saveAllByTripId(int tripId, List<PhysicalGearVO> sources, List<Integer> idsToRemove) {
-		return physicalGearRepository.saveAllByTripId(tripId, sources, idsToRemove);
+		List<PhysicalGearVO> result = physicalGearRepository.saveAllByTripId(tripId, sources, idsToRemove);
+
+		// Save measurements
+		saveMeasurements(result);
+
+		return result;
 	}
 
 	@Override
@@ -88,4 +100,66 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 		return physicalGearRepository.get(physicalGearId, o);
 	}
 
+	@Override
+	public void treeToList(final PhysicalGearVO source, final List<PhysicalGearVO> result) {
+		if (source == null) return;
+
+		// Add current to list
+		if (!result.contains(source)) result.add(source);
+
+		// Process children
+		if (CollectionUtils.isNotEmpty(source.getChildren())) {
+			// Recursive call
+			source.getChildren().forEach(child -> {
+				fillDefaultProperties(source, child);
+				// Link to parent
+				child.setParent(source);
+				treeToList(child, result);
+			});
+		}
+	}
+
+	/* -- protected functions -- */
+
+	protected void saveMeasurements(List<PhysicalGearVO> result) {
+		result.forEach(source -> {
+			if (source.getMeasurementValues() != null) {
+				measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
+			}
+			else {
+				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+				measurements.forEach(m -> fillDefaultProperties(source, m, PhysicalGearMeasurement.class));
+				measurements = measurementDao.savePhysicalGearMeasurements(source.getId(), measurements);
+				source.setMeasurements(measurements);
+			}
+		});
+	}
+
+	protected void fillDefaultProperties(PhysicalGearVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
+		if (measurement == null) return;
+
+		// Copy recorder department from the parent
+		if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
+			measurement.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+		// Copy recorder person from the parent
+		if (measurement.getRecorderPerson() == null || measurement.getRecorderPerson().getId() == null) {
+			measurement.setRecorderPerson(parent.getRecorderPerson());
+		}
+
+		measurement.setEntityName(entityClass.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(PhysicalGearVO parent, PhysicalGearVO source) {
+		if (source == null) return;
+
+		// Copy recorder department from the parent
+		if (source.getRecorderDepartment() == null || source.getRecorderDepartment().getId() == null) {
+			source.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		source.setProgram(parent.getProgram());
+		source.setParentId(parent.getId());
+		source.setTripId(parent.getTripId());
+	}
 }

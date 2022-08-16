@@ -36,6 +36,8 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -48,7 +50,7 @@ import java.util.stream.Collectors;
 /**
  * @author peck7 on 20/08/2020.
  */
-public interface PersonSpecifications extends ReferentialSpecifications<Person> {
+public interface PersonSpecifications extends ReferentialSpecifications<Integer, Person> {
 
     String USER_PROFILE_IDS_PARAMETER = "userProfiles";
     String PUBKEY_PARAMETER = "pubkey";
@@ -152,15 +154,17 @@ public interface PersonSpecifications extends ReferentialSpecifications<Person> 
         return searchText(searchAttributes, filter.getSearchText(), true);
     }
 
-    PersonVO get(int id);
+    PersonVO get(Integer id);
 
-    Optional<PersonVO> findById(int id);
+    Optional<PersonVO> findVOById(Integer id);
 
     Optional<PersonVO> findByPubkey(String pubkey);
 
     Optional<PersonVO> findByUsername(String username);
 
     List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+    Page<PersonVO> findByFilter(PersonFilterVO filter, Pageable pageable);
 
     long countByFilter(PersonFilterVO filter);
 

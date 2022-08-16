@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.CacheConfiguration;
+import net.sumaris.core.dao.technical.Daos;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
@@ -63,25 +64,23 @@ import java.util.Set;
 @Slf4j
 public class SumarisDatabaseMetadata {
 
-	@Autowired
-	protected SumarisDatabaseMetadata databaseMetadata;
 
 	protected final Map<String, SumarisTableMetadata> tables;
 	protected final Map<String, PersistentClass> entities;
 
-	protected String defaultSchemaName = null;
-	protected String defaultCatalogName = null;
-	protected Dialect dialect = null;
+	protected String defaultSchemaName;
+	protected final String defaultCatalogName;
+	protected final Dialect dialect;
 
-	protected DataSource dataSource = null;
+	protected final DataSource dataSource;
 
 	protected final Metadata metadata;
 
 	protected Set<String> sequences;
 
-	protected String sequenceSuffix;
+	protected final String sequenceSuffix;
 
-	protected String defaultUpdateDateColumnName;
+	protected final String defaultUpdateDateColumnName;
 
 	@Autowired
 	public SumarisDatabaseMetadata(DataSource dataSource, SumarisConfiguration configuration) {
@@ -112,7 +111,7 @@ public class SumarisDatabaseMetadata {
 
 	@Cacheable(cacheNames = CacheConfiguration.Names.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisTableMetadata getTable(String name) throws HibernateException {
-		return getTable(name.toLowerCase(), defaultSchemaName, defaultCatalogName);
+		return getTable(name, defaultSchemaName, defaultCatalogName);
 	}
 
 
@@ -228,8 +227,9 @@ public class SumarisDatabaseMetadata {
 
 			String catalog = StringUtils.isBlank(table.getCatalog()) ? defaultCatalogName : table.getCatalog();
 			String schema = StringUtils.isBlank(table.getSchema()) ? defaultSchemaName : table.getSchema();
-			String qualifiedTableName = getQualifiedTableName(catalog, schema, table.getName()).render().toLowerCase();
-			persistentClassMap.put(qualifiedTableName, persistentClass);
+			QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, table.getName());
+			String cacheKey = getCacheKey(qualifiedTableName);
+			persistentClassMap.put(cacheKey, persistentClass);
 
 			if (log.isDebugEnabled()) {
 				for (Iterator propertyIterator = persistentClass.getPropertyIterator();
@@ -254,18 +254,21 @@ public class SumarisDatabaseMetadata {
 
 		try {
 			DatabaseMetaData jdbcMeta = conn.getMetaData();
+			boolean useTableLowercase = Daos.isPostgresqlDatabase(conn);
 
 			// Init tables
 			for (DatabaseTableEnum table : DatabaseTableEnum.values()) {
-				String tableName = table.name().toLowerCase();
+				String tableName = table.name();
+				if (useTableLowercase) tableName = tableName.toLowerCase();
 				if (log.isDebugEnabled()) {
 					log.debug("Load metas of table: " + tableName);
 				}
-				String qualifiedTableName = getQualifiedTableName(defaultCatalogName, defaultSchemaName, tableName).render().toLowerCase();
-				PersistentClass persistentClass = persistentClassMap.get(qualifiedTableName);
-				entities.put(qualifiedTableName, persistentClass);
+				QualifiedTableName qualifiedTableName = getQualifiedTableName(defaultCatalogName, defaultSchemaName, tableName);
+				String cacheKey = getCacheKey(qualifiedTableName);
+				PersistentClass persistentClass = persistentClassMap.get(cacheKey);
+				entities.put(cacheKey, persistentClass);
 
-				getTable(tableName, defaultSchemaName, defaultCatalogName, jdbcMeta, persistentClass);
+				getTable(qualifiedTableName, jdbcMeta, persistentClass);
 			}
 		}
 		catch (SQLException e) {
@@ -283,18 +286,19 @@ public class SumarisDatabaseMetadata {
 		Preconditions.checkNotNull(qualifiedTableName);
 		Preconditions.checkNotNull(jdbcMeta);
 
-		String fullTableName = qualifiedTableName.render().toLowerCase();
-		SumarisTableMetadata sumarisTableMetadata = tables.get(fullTableName);
+		String cacheKey = getCacheKey(qualifiedTableName);
+		SumarisTableMetadata sumarisTableMetadata = tables.get(cacheKey);
 		if (sumarisTableMetadata == null) {
 			// Try to retrieve the persistence class
 			if (persistentClass == null) {
-				persistentClass = entities.get(fullTableName);
+				persistentClass = entities.get(cacheKey);
 			}
 
 			// If persistence class exists
 			if (persistentClass != null) {
 				// Get the table mapping
 				Table table = persistentClass.getTable();
+				table.setName(qualifiedTableName.getTableName().getText()); // Force to keep same case as input
 				table.setCatalog(qualifiedTableName.getCatalogName() != null ? qualifiedTableName.getCatalogName().getText() : null);
 				table.setSchema(qualifiedTableName.getSchemaName() != null ? qualifiedTableName.getSchemaName().getText() : null);
 				sumarisTableMetadata = new SumarisHibernateTableMetadata(table, this, jdbcMeta, persistentClass);
@@ -305,11 +309,12 @@ public class SumarisDatabaseMetadata {
 				sumarisTableMetadata = new SumarisTableMetadata(qualifiedTableName, this, jdbcMeta);
 			}
 
-			// Add to cached (if not extraction)
+			// Add to cache (if not an extraction result table)
+			String tableName = qualifiedTableName.getTableName().getText();
 			// TODO: use include/exclude pattern, by configuration
-			String tableName = qualifiedTableName.getTableName().getText().toLowerCase();
-			if (!tableName.startsWith("ext_") && !tableName.startsWith("agg_"))  {
-				tables.put(fullTableName, sumarisTableMetadata);
+			if (!tableName.toUpperCase().startsWith("EXT_")
+				&& !tableName.toUpperCase().startsWith("AGG_"))  {
+				tables.put(cacheKey, sumarisTableMetadata);
 			}
 		}
 		return sumarisTableMetadata;
@@ -327,7 +332,8 @@ public class SumarisDatabaseMetadata {
 										 String schema,
 										 String catalog) throws HibernateException {
 		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);
-		SumarisTableMetadata sumarisTableMetadata = tables.get(qualifiedTableName.render().toLowerCase());
+		String cacheKey = getCacheKey(qualifiedTableName);
+		SumarisTableMetadata sumarisTableMetadata = tables.get(cacheKey);
 		if (sumarisTableMetadata == null) {
 			// Create a new connection then retrieve the metadata :
 			Connection conn = null;
@@ -344,5 +350,9 @@ public class SumarisDatabaseMetadata {
 
 		}
 		return sumarisTableMetadata;
+	}
+
+	private String getCacheKey(QualifiedTableName qualifiedTableName) {
+		return qualifiedTableName.render().toLowerCase();
 	}
 }

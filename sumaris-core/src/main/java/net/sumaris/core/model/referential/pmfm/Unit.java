@@ -37,7 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "unit")
 @Cacheable
-public class Unit implements IItemReferentialEntity {
+public class Unit implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "UNIT_SEQ")

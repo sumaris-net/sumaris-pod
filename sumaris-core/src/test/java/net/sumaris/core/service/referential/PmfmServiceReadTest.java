@@ -53,7 +53,7 @@ public class PmfmServiceReadTest extends AbstractServiceTest {
         assertFindResult(ReferentialFilterVO.builder().label("CONVEYOR_BELT").build(), 1);
         // searchText
         assertFindResult(ReferentialFilterVO.builder().searchText("CONVEYOR_BELT").build(), 1);
-        assertFindResult(ReferentialFilterVO.builder().searchText("NB").build(), 4);
+        assertFindResult(ReferentialFilterVO.builder().searchText("NB").build(), 5);
 
         // levelLabels
         assertFindResult(ReferentialFilterVO.builder()

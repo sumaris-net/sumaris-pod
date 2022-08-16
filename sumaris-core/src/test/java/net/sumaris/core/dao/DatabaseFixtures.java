@@ -107,6 +107,10 @@ public class DatabaseFixtures {
 		return 1;
 	}
 
+	public Integer getTripIdWithSubGears() {
+		return 70;
+	}
+
 	public Integer getOperationId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
@@ -192,6 +196,10 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public String[] getRectangleLabels() {
+		return new String[]{"65F1", "65F2", "65F3", "65F4","65F5"};
+	}
+
 	public Integer getDepartmentId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
@@ -250,6 +258,15 @@ public class DatabaseFixtures {
 		return 1122; // MNZ - Baudroie
 	}
 
+	public Integer getReferenceTaxonId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		return 1001 + index;
+	}
+
+	public Integer getReferenceTaxonIdCOD() {
+		return 1061; // Gadus Morhua
+	}
+
     public ProgramVO getDefaultProgram() {
 		ProgramVO program = new ProgramVO();
 		program.setId(1);
@@ -261,6 +278,13 @@ public class DatabaseFixtures {
 		ProgramVO program = new ProgramVO();
 		program.setId(11);
 		program.setLabel("ADAP-CONTROLE");
+		return program;
+	}
+
+	public ProgramVO getWithSubGearsProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(70);
+		program.setLabel("APASE");
 		return program;
 	}
 
@@ -280,14 +304,14 @@ public class DatabaseFixtures {
 
 	/* -- product -- */
 
-	public Integer getProductId(int index) {
+	public Long getProductId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
-				return 1;
+				return 1L;
 
 			default:
-				return 1;
+				return 1L;
 		}
 	}
 

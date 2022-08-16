@@ -41,7 +41,7 @@ import javax.persistence.EntityManager;
  * @author peck7 on 20/08/2020.
  */
 public class DepartmentRepositoryImpl
-    extends ReferentialRepositoryImpl<Department, DepartmentVO, DepartmentFilterVO, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Department, DepartmentVO, DepartmentFilterVO, ReferentialFetchOptions>
     implements DepartmentSpecifications {
 
     public DepartmentRepositoryImpl(EntityManager entityManager) {
@@ -50,7 +50,7 @@ public class DepartmentRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id", unless="#result==null")
-    public DepartmentVO get(int id) {
+    public DepartmentVO get(Integer id) {
         return super.get(id);
     }
 
@@ -80,16 +80,16 @@ public class DepartmentRepositoryImpl
 
     @Override
     @Caching(put = {
-        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_ID, key="#vo.id", condition = "#vo != null && #vo.id != null"),
-        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_LABEL, key="#vo.label", condition = "#vo != null && #vo.id != null && #vo.label != null")
+        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
+        @CachePut(cacheNames= CacheConfiguration.Names.DEPARTMENT_BY_LABEL, key="#source.label", condition = "#source != null && #source.id != null && #source.label != null")
     })
-    public DepartmentVO save(DepartmentVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getLabel());
-        Preconditions.checkNotNull(vo.getName());
-        Preconditions.checkNotNull(vo.getSiteUrl());
+    public DepartmentVO save(DepartmentVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel());
+        Preconditions.checkNotNull(source.getName());
+        Preconditions.checkNotNull(source.getSiteUrl());
 
-        return super.save(vo);
+        return super.save(source);
     }
 
     @Override

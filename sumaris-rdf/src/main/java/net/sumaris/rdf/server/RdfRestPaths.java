@@ -23,6 +23,9 @@
 package net.sumaris.rdf.server;
 
 public interface RdfRestPaths {
+    String SCHEMA_BASE_PATH = "/schema"; // Should be same as ModelType.SCHEMA (but in lowercase);
+    String DATA_BASE_PATH = "/data"; // Should be same as ModelType.DATA (but in lowercase);
+
     String SPARQL_ENDPOINT = "/sparql";
     String ONTOLOGY_BASE_PATH = "/ontology";
     String WEBVOWL_BASE_PATH = "/webvowl";

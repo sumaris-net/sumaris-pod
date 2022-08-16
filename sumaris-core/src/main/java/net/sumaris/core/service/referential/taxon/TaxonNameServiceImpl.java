@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
 import net.sumaris.core.vo.referential.TaxonNameVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,15 @@ public class TaxonNameServiceImpl implements TaxonNameService {
     @Override
     public TaxonNameVO get(int id, TaxonNameFetchOptions fetchOptions) {
         return taxonNameRepository.get(id, fetchOptions);
+    }
+
+    @Override
+    public TaxonNameVO getByReferenceTaxonId(int referenceTaxonId, TaxonNameFetchOptions fetchOptions) {
+        List<TaxonNameVO> result = taxonNameRepository.findAll(TaxonNameFilterVO.builder()
+                .referenceTaxonId(referenceTaxonId)
+                .withSynonyms(false)
+            .build(), fetchOptions);
+        return CollectionUtils.extractSingleton(result);
     }
 
     @Override

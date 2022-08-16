@@ -22,11 +22,10 @@
 
 package net.sumaris.core.vo.technical.extraction;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.IReferentialVO;
 
 import java.util.Date;
@@ -37,10 +36,17 @@ import java.util.Date;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @FieldNameConstants
-public class AggregationStrataVO implements IReferentialVO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AggregationStrataVO implements IReferentialVO<Integer> {
+
+    public static AggregationStrataVO nullToEmpty(AggregationStrataVO strata) {
+        return strata != null ? strata : new AggregationStrataVO();
+    }
 
     Integer id;
-    String label;
+    String sheetName;
     String name;
     String description;
     String comments;
@@ -60,11 +66,15 @@ public class AggregationStrataVO implements IReferentialVO {
     String aggFunction;
     String techColumnName;
 
-    public String getSheetName() {
-        return label;
+    public AggregationStrataVO(AggregationStrataVO other) {
+        Beans.copyProperties(other, this);
     }
 
-    public void setSheetName(String sheetName) {
-        this.label = sheetName;
+    public String getLabel() {
+        return sheetName;
+    }
+
+    public void setLabel(String label) {
+        this.sheetName = label;
     }
 }

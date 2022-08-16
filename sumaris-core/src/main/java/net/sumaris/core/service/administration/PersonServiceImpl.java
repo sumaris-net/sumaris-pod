@@ -40,10 +40,13 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -65,20 +68,46 @@ public class PersonServiceImpl implements PersonService {
 
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-	    if (filter == null) filter = new PersonFilterVO();
-		return personRepository.findByFilter(filter, offset, size, sortAttribute, sortDirection);
+		return personRepository.findByFilter(PersonFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection);
 	}
 
 	@Override
-	public Long countByFilter(final PersonFilterVO filter) {
-		return personRepository.countByFilter(filter != null ? filter : new PersonFilterVO());
+	public Page<PersonVO> findByFilter(PersonFilterVO filter, Pageable page) {
+		return personRepository.findByFilter(filter, page);
 	}
 
 	@Override
-	public PersonVO getById(final int personId) {
+	public Page<String> findEmailsByFilter(PersonFilterVO filter, Pageable page) {
+		return findByFilter(filter, page)
+			.map(PersonVO::getEmail);
+	}
+
+	@Override
+	public Page<String> findPubkeysByFilter(PersonFilterVO filter, Pageable page) {
+		return findByFilter(filter, page)
+			.map(PersonVO::getEmail);
+	}
+
+	@Override
+	public Long countByFilter(PersonFilterVO filter) {
+		return personRepository.countByFilter(PersonFilterVO.nullToEmpty(filter));
+	}
+
+	@Override
+	public PersonVO getById(final int id) {
 		// This find method was a find in PersonDaoImpl
-		return personRepository.findById(personId)
+		return personRepository.findVOById(id)
 				.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
+	}
+
+	@Override
+	public String getEmailById(final int id) {
+		return personRepository.getById(id).getEmail();
+	}
+
+	@Override
+	public String getPubkeyById(int id) {
+		return personRepository.getById(id).getPubkey();
 	}
 
 	@Override
@@ -96,6 +125,16 @@ public class PersonServiceImpl implements PersonService {
 	public PersonVO getByUsername(@NonNull String username) {
 		return personRepository.findByUsername(username)
 			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
+	}
+
+	@Override
+	public PersonVO getByEmail(String email) {
+		List<PersonVO> matches = findByFilter(
+			PersonFilterVO.builder()
+				.email(email)
+				.build(), null).getContent();
+		if (CollectionUtils.size(matches) != 1) throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
+		return matches.get(0);
 	}
 
 	@Override
@@ -175,6 +214,5 @@ public class PersonServiceImpl implements PersonService {
 		Preconditions.checkNotNull(person.getLastName(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.lastName")));
 		Preconditions.checkNotNull(person.getDepartment(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
 		Preconditions.checkNotNull(person.getDepartment().getId(), I18n.t("sumaris.error.validation.required", I18n.t("sumaris.model.person.department")));
-
 	}
 }

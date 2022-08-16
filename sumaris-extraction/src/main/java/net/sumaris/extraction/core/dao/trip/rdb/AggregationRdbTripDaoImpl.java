@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
@@ -32,42 +33,35 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableDao;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
-import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
-import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.vo.*;
-import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
+import net.sumaris.extraction.core.dao.AggregationBaseDaoImpl;
+import net.sumaris.extraction.core.dao.technical.Daos;
+import net.sumaris.extraction.core.dao.technical.SQLAggregatedFunction;
+import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
+import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
+import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.*;
+import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.nuiton.i18n.I18n.t;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -79,7 +73,7 @@ public class AggregationRdbTripDaoImpl<
         C extends AggregationRdbTripContextVO,
         F extends ExtractionFilterVO,
         S extends AggregationStrataVO>
-        extends ExtractionBaseDaoImpl
+        extends AggregationBaseDaoImpl<C, F, S>
         implements
         AggregationRdbTripDao<C, F, S>,
         AggRdbSpecification {
@@ -97,22 +91,16 @@ public class AggregationRdbTripDaoImpl<
     @Autowired
     protected ProgramService programService;
 
-    @Autowired
-    protected ResourceLoader resourceLoader;
-
-    @Autowired
-    protected ExtractionTableDao extractionTableDao;
-
     @javax.annotation.Resource(name = "extractionRdbTripDao")
     protected ExtractionTripDao<?, ?> extractionRdbTripDao;
 
     @Override
-    public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_RDB;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(AggExtractionTypeEnum.AGG_RDB);
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
+    public <R extends C> R aggregate(IExtractionTypeWithTablesVO source, @Nullable F filter, S strata) {
         long rowCount;
 
         // Init context
@@ -120,11 +108,13 @@ public class AggregationRdbTripDaoImpl<
         context.setTripFilter(extractionRdbTripDao.toTripFilterVO(filter));
         context.setFilter(filter);
         context.setStrata(strata);
-        context.setId(System.currentTimeMillis());
-        context.setFormat(ProductFormatEnum.AGG_RDB);
+        context.setUpdateDate(new Date());
+        context.setType(AggExtractionTypeEnum.AGG_RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
+        Long startTime = null;
         if (log.isInfoEnabled()) {
+            startTime = System.currentTimeMillis();
             StringBuilder filterInfo = new StringBuilder();
             String filterStr = (filter != null) ? Beans.getStream(filter.getCriteria())
                         .map(ExtractionFilterCriterionVO::toString)
@@ -134,7 +124,7 @@ public class AggregationRdbTripDaoImpl<
             } else {
                 filterInfo.append("(without filter)");
             }
-            log.info(String.format("Starting aggregation #%s-%s... %s", context.getLabel(), context.getId(), filterInfo));
+            log.info("Starting aggregation #{} (trips)... {}", context.getId(), filterInfo);
         }
 
         // Fill context table names
@@ -159,7 +149,9 @@ public class AggregationRdbTripDaoImpl<
 
                 // Species length map table
                 if (rowCount != 0) {
-                    rowCount = createSpeciesLengthMapTable(source, context);
+                    long mapRowCount = createSpeciesLengthMapTable(source, context);
+                    // Optional: if -1 then ignore result (= map table not need)
+                    if (mapRowCount != -1) rowCount = mapRowCount;
                 }
 
                 // Species Length
@@ -175,20 +167,30 @@ public class AggregationRdbTripDaoImpl<
         catch (PersistenceException e) {
             // If error,clean created tables first, then rethrow the exception
             clean(context);
+
+            startTime = null; // Avoid log
+
             throw e;
         }
+        finally {
+            if (startTime != null) {
+                log.info("Aggregation #{} finished in {}", context.getId(), TimeUtils.printDurationFrom(startTime));
+            }
 
+            // Force to set the real subclasses type
+            context.setType(getManagedTypes().iterator().next());
+        }
         return context;
     }
 
     @Override
-    public AggregationResultVO getAggBySpace(@NonNull String tableName, F filter, @NonNull S strata, Page page) {
+    public AggregationResultVO read(@NonNull String tableName, F filter, @NonNull S strata, Page page) {
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Set<String> groupByColumnNames = getExistingGroupByColumnNames(strata, table);
-        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
+        Map<String, SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
 
-        ExtractionResultVO rows = extractionTableDao.getAggRows(tableName, filter,
+        ExtractionResultVO rows = readWithAggColumns(tableName, filter,
                 groupByColumnNames, aggColumns, page);
 
         AggregationResultVO result = new AggregationResultVO(rows);
@@ -209,10 +211,10 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public AggregationTechResultVO getAggByTech(@NonNull String tableName,
-                                                @Nullable F filter,
-                                                @NonNull S strata,
-                                                String sortAttribute, SortDirection direction) {
+    public AggregationTechResultVO readByTech(@NonNull String tableName,
+                                              @Nullable F filter,
+                                              @NonNull S strata,
+                                              String sortAttribute, SortDirection direction) {
 
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
         Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
@@ -220,11 +222,11 @@ public class AggregationRdbTripDaoImpl<
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
 
-        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
-        Map.Entry<String, ExtractionTableDao.SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
+        Map<String, SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
+        Map.Entry<String, SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME)));
 
-        result.setData(extractionTableDao.getAggByTechRows(tableName, filter,
+        result.setData(readAggColumnByTech(table, filter,
                 aggColumn.getKey(),
                 aggColumn.getValue(),
                 strata.getTechColumnName(),
@@ -234,28 +236,23 @@ public class AggregationRdbTripDaoImpl<
     }
 
     @Override
-    public MinMaxVO getAggMinMaxByTech(String tableName, F filter, S strata) {
+    public MinMaxVO getTechMinMax(String tableName, F filter, S strata) {
         Preconditions.checkNotNull(strata.getTechColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.TECH_COLUMN_NAME));
         Preconditions.checkNotNull(strata.getAggColumnName(), String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME));
 
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
 
-        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
-        Map.Entry<String, ExtractionTableDao.SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
+        Map<String, SQLAggregatedFunction> aggColumns = getAggColumnNames(table, strata);
+        Map.Entry<String, SQLAggregatedFunction> aggColumn = aggColumns.entrySet().stream().findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Missing 'strata.%s'", AggregationStrataVO.Fields.AGG_COLUMN_NAME)));
 
         Set<String> timeColumnNames = getGroupByTimesColumnNames(strata.getTimeColumnName());
 
-        return extractionTableDao.getAggMinMaxByTech(tableName, filter,
+        return getTechMinMax(tableName, filter,
                 timeColumnNames,
                 aggColumn.getKey(),
                 aggColumn.getValue(),
                 strata.getTechColumnName());
-    }
-
-    @Override
-    public void clean(C context) {
-        super.dropTables(context);
     }
 
     /* -- protected methods -- */
@@ -277,14 +274,14 @@ public class AggregationRdbTripDaoImpl<
 
     protected void fillContextTableNames(C context) {
         // Set unique table names
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthMapTableName(String.format(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
-        context.setLandingTableName(String.format(CL_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(formatTableName(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(formatTableName(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(formatTableName(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthMapTableName(formatTableName(HL_MAP_TABLE_NAME_PATTERN, context.getId()));
+        context.setLandingTableName(formatTableName(CL_TABLE_NAME_PATTERN, context.getId()));
     }
 
-    protected long createStationTable(ExtractionProductVO source, C context) {
+    protected long createStationTable(IExtractionTypeWithTablesVO source, C context) {
 
         String tableName = context.getStationTableName();
         XMLQuery xmlQuery = createStationQuery(source, context);
@@ -320,7 +317,7 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createStationQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createStationQuery(IExtractionTypeWithTablesVO source, C context) {
 
         String stationTableName = context.getStationTableName();
         String rawTripTableName = source.findTableNameBySheetName(RdbSpecification.TR_SHEET_NAME)
@@ -443,8 +440,8 @@ public class AggregationRdbTripDaoImpl<
                 .collect(Collectors.toSet());
     }
 
-    protected Map<String, ExtractionTableDao.SQLAggregatedFunction> getAggColumnNames(SumarisTableMetadata table, AggregationStrataVO strata) {
-        Map<String, ExtractionTableDao.SQLAggregatedFunction> aggColumns = Maps.newHashMap();
+    protected Map<String, SQLAggregatedFunction> getAggColumnNames(SumarisTableMetadata table, AggregationStrataVO strata) {
+        Map<String, SQLAggregatedFunction> aggColumns = Maps.newHashMap();
 
         // Read strata agg column
         String aggColumnName = strata.getAggColumnName();
@@ -462,9 +459,9 @@ public class AggregationRdbTripDaoImpl<
         aggColumnName = aggColumnName != null && !table.hasColumn(aggColumnName) ? null : aggColumnName;
 
         if (aggColumnName != null) {
-            ExtractionTableDao.SQLAggregatedFunction function = strata.getAggFunction() != null ?
-                    ExtractionTableDao.SQLAggregatedFunction.valueOf(strata.getAggFunction().toUpperCase()) :
-                    ExtractionTableDao.SQLAggregatedFunction.SUM;
+            SQLAggregatedFunction function = strata.getAggFunction() != null ?
+                    SQLAggregatedFunction.valueOf(strata.getAggFunction().toUpperCase()) :
+                    SQLAggregatedFunction.SUM;
             aggColumns.put(aggColumnName, function);
         }
 
@@ -477,11 +474,12 @@ public class AggregationRdbTripDaoImpl<
     }
 
 
-    protected long createSpeciesListTable(ExtractionProductVO source, C context) {
+    protected long createSpeciesListTable(IExtractionTypeWithTablesVO source, C context) {
         String tableName = context.getSpeciesListTableName();
         log.debug(String.format("Aggregation #%s > Creating Species List table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesListQuery(source, context);
+        if (xmlQuery == null) return 0;
 
         // aggregate insertion
         execute(context, xmlQuery);
@@ -514,10 +512,12 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createSpeciesListQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createSpeciesListQuery(IExtractionTypeWithTablesVO source, C context) {
         String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
+                .orElse(null);
         String stationTableName = context.getStationTableName();
+
+        if (rawSpeciesListTableName == null) return null;
 
         XMLQuery xmlQuery = createXMLQuery(context, "createSpeciesListTable");
 
@@ -552,13 +552,13 @@ public class AggregationRdbTripDaoImpl<
      * @param context
      * @return
      */
-    protected long createSpeciesLengthMapTable(ExtractionProductVO source, C context) {
+    protected long createSpeciesLengthMapTable(IExtractionTypeWithTablesVO source, C context) {
 
         String tableName = context.getSpeciesLengthMapTableName();
-        log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
+        log.debug(String.format("Aggregation #%s > Creating Species Length Map table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthMapQuery(source, context);
-        if (xmlQuery == null) return 0; // Skip
+        if (xmlQuery == null) return -1; // Skip
 
         // Create the table
         execute(context, xmlQuery);
@@ -576,7 +576,7 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createSpeciesLengthMapQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createSpeciesLengthMapQuery(IExtractionTypeWithTablesVO source, C context) {
         String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
                 .orElse(null);
         String rawSpeciesLengthTableName = source.findTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
@@ -585,9 +585,9 @@ public class AggregationRdbTripDaoImpl<
 
         // Skip if SL.SAMPLE_IDS exists
         SumarisTableMetadata rawSpeciesListTable = databaseMetadata.getTable(rawSpeciesListTableName);
-        if (rawSpeciesListTable.hasColumn(COLUMN_SAMPLE_IDS)) return null;
+        if (rawSpeciesListTable.hasColumn(COLUMN_SAMPLE_IDS)) return null; // Skip (map table not need)
 
-        // Check column SL.ID exists (e.g when rax tables comes from the 'P01_RDB' product)
+        // Check column SL.ID exists (e.g when raw tables comes from the 'P01_RDB' product)
         if (!rawSpeciesListTable.hasColumn(COLUMN_ID)) {
             throw new SumarisTechnicalException(String.format("Cannot aggregate. Missing columns '%s' or '%s' in table '%s'",
                     COLUMN_SAMPLE_IDS, COLUMN_ID, rawSpeciesListTableName));
@@ -620,10 +620,10 @@ public class AggregationRdbTripDaoImpl<
         return xmlQuery;
     }
 
-    protected long createSpeciesLengthTable(ExtractionProductVO source, C context) {
+    protected long createSpeciesLengthTable(IExtractionTypeWithTablesVO source, C context) {
 
         String tableName = context.getSpeciesLengthTableName();
-        log.debug(String.format("Aggregation #%s > Creating Species Map table...", context.getId()));
+        log.debug(String.format("Aggregation #%s > Creating Species Length table...", context.getId()));
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(source, context);
         if (xmlQuery == null) return 0; // Skip
@@ -645,7 +645,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Analyze row
         Map<String, List<String>> columnValues = null;
-        if (context.isEnableAnalyze()) {
+        if (context.isEnableAnalyze() && count > 0) {
             columnValues = analyzeRow(context, tableName, xmlQuery, COLUMN_YEAR);
         }
 
@@ -659,14 +659,14 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createSpeciesLengthQuery(IExtractionTypeWithTablesVO source, C context) {
         String rawSpeciesListTableName = source.findTableNameBySheetName(RdbSpecification.SL_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.SL_SHEET_NAME)));
+                .orElse(null);
         String rawSpeciesLengthTableName = source.findTableNameBySheetName(RdbSpecification.HL_SHEET_NAME)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Missing %s table", RdbSpecification.HL_SHEET_NAME)));
+            .orElse(null);
 
         // No species length raw data: skip
-        if (rawSpeciesLengthTableName == null) return null;
+        if (rawSpeciesLengthTableName == null || rawSpeciesLengthTableName == null) return null;
 
         String stationTableName = context.getStationTableName();
 
@@ -706,7 +706,7 @@ public class AggregationRdbTripDaoImpl<
     }
 
 
-    protected long createLandingTable(ExtractionProductVO source, C context) {
+    protected long createLandingTable(IExtractionTypeWithTablesVO source, C context) {
         String tableName = context.getLandingTableName();
         log.debug(String.format("Aggregation #%s > Creating Landing table...", context.getId()));
 
@@ -744,7 +744,7 @@ public class AggregationRdbTripDaoImpl<
         return count;
     }
 
-    protected XMLQuery createLandingQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createLandingQuery(IExtractionTypeWithTablesVO source, C context) {
         String rawLandingTableName = source.findTableNameBySheetName(RdbSpecification.CL_SHEET_NAME)
                 .orElse(null);
         if (rawLandingTableName == null) return null; // Skip
@@ -778,58 +778,11 @@ public class AggregationRdbTripDaoImpl<
         String sqlQuery = xmlQuery.getSQLQueryAsString();
 
         // Do column names replacement (e.g. see FREE extraction)
-        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping(), xmlQuery.isLowercase());
+        sqlQuery = Daos.sqlReplaceColumnNames(sqlQuery, context.getColumnNamesMapping(), false);
 
         return queryUpdate(sqlQuery);
     }
 
-    protected long countFrom(String tableName) {
-        return extractionTableDao.getRowCount(tableName);
-    }
-
-    protected String getQueryFullName(C context, String queryName) {
-        Preconditions.checkNotNull(context);
-        Preconditions.checkNotNull(context.getLabel());
-        Preconditions.checkNotNull(context.getVersion());
-
-        return getQueryFullName(
-                context.getLabel(),
-                context.getVersion(),
-                queryName);
-    }
-
-    protected String getQueryFullName(String formatLabel, String formatVersion, String queryName) {
-        return String.format("%s/v%s/%s",
-                StringUtils.underscoreToChangeCase(formatLabel),
-                formatVersion.replaceAll("[.]", "_"),
-                queryName);
-    }
-
-    protected XMLQuery createXMLQuery(C context, String queryName) {
-        return createXMLQuery(getQueryFullName(context, queryName));
-    }
-
-    protected XMLQuery createXMLQuery(String queryName) {
-        XMLQuery query = createXMLQuery();
-        query.setQuery(getXMLQueryClasspathURL(queryName));
-        return query;
-    }
-
-    protected URL getXMLQueryURL(C context, String queryName) {
-        return getXMLQueryClasspathURL(getQueryFullName(context, queryName));
-    }
-
-    protected URL getXMLQueryClasspathURL(String queryName) {
-        String fileName = XML_QUERY_PATH + "/" + queryName + ".xml";
-        Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + fileName);
-        if (!resource.exists())
-            throw new SumarisTechnicalException(t("sumaris.extraction.xmlQuery.notFound", fileName));
-        try {
-            return resource.getURL();
-        } catch (IOException e) {
-            throw new SumarisTechnicalException(e);
-        }
-    }
 
     protected Map<String, List<String>> analyzeRow(
         final C context,
@@ -856,9 +809,9 @@ public class AggregationRdbTripDaoImpl<
                         c -> c,
                         c -> query(
                             Daos.sqlReplaceColumnNames(
-                                String.format("SELECT DISTINCT %s FROM %s where %s IS NOT NULL", c, tableName, c),
-                                context.getColumnNamesMapping(),
-                                xmlQuery.isLowercase()),
+                                // WArn: make
+                                String.format("SELECT DISTINCT T.%s FROM %s T where T.%s IS NOT NULL", c, tableName, c),
+                                context.getColumnNamesMapping(), false),
                             Object.class)
                                 .stream()
                                 .map(String::valueOf)

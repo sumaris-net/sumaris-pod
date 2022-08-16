@@ -41,4 +41,6 @@ public interface UserTokenRepository
 
     List<TokenOnly> findTokenByPubkey(String pubkey);
 
+    List<UserToken> findByPubkey(String pubkey);
+
 }

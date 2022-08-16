@@ -112,7 +112,7 @@ docker:ci:
       - docker push ${CI_BUILD_IMAGE}
     artifacts:
         paths:
-            - target/ci/Dockerfile
+            - target/docker
         expire_in: 72 hours
     except:
       - tags
@@ -190,7 +190,6 @@ sonarqube:
     - mvn clean install --batch-mode -DskipTests
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
     - echo "Pushing changes to upstream"
-    - git diff --cached
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
     - mkdir target && echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:

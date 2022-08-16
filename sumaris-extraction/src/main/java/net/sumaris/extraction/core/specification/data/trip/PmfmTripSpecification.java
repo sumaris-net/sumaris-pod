@@ -29,10 +29,15 @@ public interface PmfmTripSpecification extends RdbSpecification {
     String FORMAT = "PMFM_TRIP";
     String VERSION_1_0 = "1.0";
 
+    String ST_SHEET_NAME = "ST"; // Survival test
+    String RL_SHEET_NAME = "RL"; // Release
+
     String[] SHEET_NAMES = {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
             SL_SHEET_NAME,
-            HL_SHEET_NAME
+            HL_SHEET_NAME,
+            ST_SHEET_NAME,
+            RL_SHEET_NAME
     };
 }

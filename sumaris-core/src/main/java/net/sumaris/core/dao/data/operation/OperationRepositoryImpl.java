@@ -103,10 +103,8 @@ public class OperationRepositoryImpl
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
             if (fetchOptions != null && fetchOptions.isWithTrip()){
-                target.setTrip(tripRepository.toVO(source.getTrip(), TripFetchOptions.builder()
-                        .withRecorderDepartment(false)
-                        .withRecorderPerson(false)
-                        .build()));
+                // We use MINIMAL fetch, because only root attributes are usually expected by the APP
+                target.setTrip(tripRepository.toVO(source.getTrip(), TripFetchOptions.MINIMAL));
             }
         }
 
@@ -245,7 +243,7 @@ public class OperationRepositoryImpl
             // If not found, try using the rankOrder
             if (physicalGearId == null && source.getPhysicalGear() != null && source.getPhysicalGear().getRankOrder() != null && target.getTrip() != null) {
                 Integer rankOrder = source.getPhysicalGear().getRankOrder();
-                physicalGearId = target.getTrip().getPhysicalGears()
+                physicalGearId = target.getTrip().getGears()
                         .stream()
                         .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
                         .map(PhysicalGear::getId)
@@ -302,6 +300,7 @@ public class OperationRepositoryImpl
     @Override
     protected Specification<Operation> toSpecification(OperationFilterVO filter, OperationFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(distinct())
             .and(excludeOperationGroup())
             .and(hasTripId(filter.getTripId()))
             .and(hasProgramLabel(filter.getProgramLabel()))
@@ -309,9 +308,10 @@ public class OperationRepositoryImpl
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludeChildOperation(filter.getExcludeChildOperation()))
-            .and(hasNoChildOperation(filter.getExcludeChildOperation()))
+            .and(hasNoChildOperation(filter.getHasNoChildOperation()))
             .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
             .and(inGearIds(filter.getGearIds()))
+            .and(inPhysicalGearIds(filter.getPhysicalGearIds()))
             .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
             .and(hasQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()));

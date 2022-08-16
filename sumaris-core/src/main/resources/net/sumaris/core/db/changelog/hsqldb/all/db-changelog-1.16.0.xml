@@ -53,7 +53,7 @@
 	</changeSet>
 
 	<!-- Insert ORDER_TYPE : North to south order -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-402">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698877905-402" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<and>
 				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
@@ -65,7 +65,7 @@
 			<column name="LABEL">NORTH_TO_SOUTH_LOCATION</column>
 			<column name="NAME">Tri géographique nord/sud</column>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="OBJECT_TYPE_FK" valueComputed="select ID from OBJECT_TYPE where label='LOCATION'"/>
+			<column name="OBJECT_TYPE_FK" valueComputed="(select ID from OBJECT_TYPE where label='LOCATION')"/>
 			<column name="CREATION_DATE" valueComputed="sysdate" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
 		</insert>

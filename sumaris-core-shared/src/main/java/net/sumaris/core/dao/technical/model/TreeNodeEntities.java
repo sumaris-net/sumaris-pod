@@ -22,6 +22,7 @@
 
 package net.sumaris.core.dao.technical.model;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.Serializable;
@@ -34,24 +35,25 @@ import java.util.stream.Stream;
 
 public class TreeNodeEntities {
 
-    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> List<T> treeAsList(T rootNode) {
+    public static <T extends ITreeNodeEntity<? extends Serializable, T>> List<T> treeAsList(T rootNode) {
         return streamAll(rootNode).collect(Collectors.toList());
     }
 
-    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>> Stream<T> streamAll(T rootNode) {
+    public static <T extends ITreeNodeEntity<? extends Serializable, T>> Stream<T> streamAll(T rootNode) {
         Stream.Builder<T> result = Stream.<T>builder();
         appendToStream(rootNode, result);
         return result.build();
     }
 
-    public static <T extends ITreeNodeEntityBean<? extends Serializable, T>, R extends ITreeNodeEntityBean<? extends Serializable, R>>
+    public static <T extends ITreeNodeEntity<? extends Serializable, T>, R extends ITreeNodeEntity<? extends Serializable, R>>
         Stream<R> streamAllAndMap(T rootNode, BiFunction<T, R, R> mapFunction) {
         Stream.Builder<R> result = Stream.<R>builder();
         mapAndAppendToStream(rootNode, result, mapFunction, null);
         return result.build();
     }
 
-    public static <ID extends Serializable, T extends ITreeNodeEntityBean<ID, T>> T listAsTree(Collection<T> nodes, Function<T, ID> getParentId) {
+    public static <ID extends Serializable, T extends ITreeNodeEntity<ID, T>> T listAsTree(Collection<T> nodes, Function<T, ID> getParentId,
+                                                                                           boolean setChildren) {
 
         nodes.forEach(node -> {
             if (node.getParent() == null && getParentId != null) {
@@ -59,7 +61,16 @@ public class TreeNodeEntities {
                 if (parentId != null) {
                     nodes.stream().filter(n -> parentId.equals(n.getId()))
                             .findFirst()
-                            .ifPresent(node::setParent);
+                            .ifPresent(parent -> {
+                                node.setParent(parent);
+                                if (setChildren) {
+                                    if (parent.getChildren() == null) {
+                                        parent.setChildren(Lists.newArrayList(node));
+                                    } else {
+                                        parent.getChildren().add(node);
+                                    }
+                                }
+                            });
                 }
             }
         });
@@ -71,7 +82,7 @@ public class TreeNodeEntities {
 
     /* -- protected functions -- */
 
-    protected static <T extends ITreeNodeEntityBean<? extends Serializable, T>> void appendToStream(final T node, final Stream.Builder<T> result) {
+    protected static <T extends ITreeNodeEntity<? extends Serializable, T>> void appendToStream(final T node, final Stream.Builder<T> result) {
         if (node == null) return;
 
         // Add current node
@@ -85,7 +96,7 @@ public class TreeNodeEntities {
     }
 
 
-    protected static <T extends ITreeNodeEntityBean<? extends Serializable, T>, R extends ITreeNodeEntityBean<? extends Serializable, R>>
+    protected static <T extends ITreeNodeEntity<? extends Serializable, T>, R extends ITreeNodeEntity<? extends Serializable, R>>
         void mapAndAppendToStream(final T sourceNode, final Stream.Builder<R> result, final BiFunction<T, R, R> mapFunction, R parentNode) {
         if (sourceNode == null) return;
 

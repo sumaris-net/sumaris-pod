@@ -85,7 +85,7 @@ import java.util.Date;
                 "         OR coalesce(c.endDate, :startDate) < :startDate\n" +
                 "        )")
 })
-public class RoundWeightConversion implements IReferentialWithStatusEntity {
+public class RoundWeightConversion implements IReferentialWithStatusEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")

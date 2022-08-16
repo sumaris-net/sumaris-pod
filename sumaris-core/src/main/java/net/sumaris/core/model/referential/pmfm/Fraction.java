@@ -49,7 +49,7 @@ import java.util.Date;
 @Entity
 @Table(name = "fraction")
 @Cacheable
-public class Fraction implements IItemReferentialEntity {
+public class Fraction implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "FRACTION_SEQ")

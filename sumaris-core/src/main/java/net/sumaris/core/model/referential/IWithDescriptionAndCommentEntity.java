@@ -23,15 +23,14 @@ package net.sumaris.core.model.referential;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 
 import java.io.Serializable;
-import java.util.Date;
 
-public interface IWithDescriptionAndCommentEntity extends IEntity<Integer> {
+public interface IWithDescriptionAndCommentEntity<ID extends Serializable> extends IEntity<ID> {
 
 
-    interface Fields extends IUpdateDateEntityBean.Fields {
+    interface Fields extends IUpdateDateEntity.Fields {
         String DESCRIPTION = "description";
         String COMMENTS = "comments";
     }

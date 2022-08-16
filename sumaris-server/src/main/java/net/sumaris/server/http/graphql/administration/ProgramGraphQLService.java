@@ -23,13 +23,16 @@
 package net.sumaris.server.http.graphql.administration;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
+import io.reactivex.BackpressureStrategy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
@@ -44,27 +47,28 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.filter.ProgramFilterVO;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.technical.EntityEventService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -72,7 +76,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 @Service
@@ -103,7 +109,10 @@ public class ProgramGraphQLService {
     private AuthService authService;
 
     @Autowired
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
+
+    @Autowired
+    private DataAccessControlService dataAccessControlService;
 
     @Autowired
     public ProgramGraphQLService() {
@@ -136,16 +145,21 @@ public class ProgramGraphQLService {
         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
         @GraphQLArgument(name = "sortBy", defaultValue = ProgramVO.Fields.LABEL) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        if (filter == null) {
-            return programService.getAll();
-        }
+
+        // Add access restriction
+        filter = restrictProgramFilter(filter);
+
         return programService.findByFilter(filter, offset, size, sort, SortDirection.fromString(direction));
     }
 
     @GraphQLQuery(name = "programsCount", description = "Get programs count")
     @Transactional(readOnly = true)
     public Long getProgramCount(@GraphQLArgument(name = "filter") ProgramFilterVO filter) {
-        return referentialService.countByFilter(Program.class.getSimpleName(), filter);
+        // Add access restriction
+        filter = restrictProgramFilter(filter);
+
+        // Count
+        return programService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "strategy", description = "Get a strategy")
@@ -217,6 +231,23 @@ public class ProgramGraphQLService {
         return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
+
+    @GraphQLQuery(name = "acquisitionLevels", description = "Get program's acquisition levels")
+    public List<ReferentialVO> getProgramAcquisitionLevels(@GraphQLContext ProgramVO program) {
+        if (program.getAcquisitionLevels() != null) return program.getAcquisitionLevels();
+        if (program.getId() == null) return null;
+        return programService.getAcquisitionLevelsById(program.getId());
+    }
+
+    @GraphQLQuery(name = "acquisitionLevelLabels", description = "Get program acquisition level's labels")
+    public List<String> getProgramAcquisitionLevelLabels(@GraphQLContext ProgramVO program) {
+        if (program.getAcquisitionLevelLabels() != null) return program.getAcquisitionLevelLabels();
+        return Beans.getStream(getProgramAcquisitionLevels(program))
+            .map(ReferentialVO::getLabel)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toList());
+    }
+
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
         if (strategy.getPmfms() != null) return strategy.getPmfms();
@@ -279,20 +310,16 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "method", description = "Get strategy method")
     public ReferentialVO getPmfmStrategyMethod(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
-        if (pmfmStrategy.getMethod() != null) {
-            return pmfmStrategy.getMethod();
-        } else if (pmfmStrategy.getMethodId() != null) {
-            return referentialService.get(Method.class, pmfmStrategy.getMethodId());
-        }
-        return null;
+        if (pmfmStrategy.getMethod() != null) return pmfmStrategy.getMethod();
+        if (pmfmStrategy.getMethodId() == null) return null;
+        return referentialService.get(Method.class, pmfmStrategy.getMethodId());
     }
 
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
     public List<TaxonNameVO> getTaxonGroupTaxonNames(@GraphQLContext TaxonGroupVO taxonGroup) {
-        if (taxonGroup.getId() != null) {
-            return taxonNameService.findAllByTaxonGroupId(taxonGroup.getId());
-        }
-        return null;
+        if (taxonGroup.getTaxonNames() != null) return taxonGroup.getTaxonNames();
+        if (taxonGroup.getId() == null) return null;
+        return taxonNameService.findAllByTaxonGroupId(taxonGroup.getId());
     }
 
     @GraphQLQuery(name = "strategyNextLabel", description = "Get next label for strategy")
@@ -317,44 +344,6 @@ public class ProgramGraphQLService {
         return strategyService.computeNextSampleLabelByStrategy(strategyLabel,
             labelSeparator == null ? "" : labelSeparator,
             nbDigit == null ? 0 : nbDigit);
-    }
-
-    @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
-    @IsUser
-    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final int id,
-                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                              @GraphQLEnvironment ResolutionEnvironment env) {
-        ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
-
-        return changesPublisherService.getPublisher(updateDate -> {
-            // Get actual program
-            if (updateDate == null) return programService.get(id, fetchOptions);
-            // Get if newer
-            return programService.findNewerById(id, updateDate, fetchOptions).orElse(null);
-        }, minIntervalInSecond, true);
-    }
-
-
-    @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
-    @IsUser
-    public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
-                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                                               @GraphQLEnvironment ResolutionEnvironment env) {
-
-        Set<String> fields = GraphQLUtils.fields(env);
-        StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
-
-        Preconditions.checkArgument(programId >= 0, "Invalid programId");
-
-        return changesPublisherService.getListPublisher((lastUpdateDate) -> {
-            if (lastUpdateDate == null) {
-                // Get all
-                return strategyService.findByProgram(programId, fetchOptions);
-            }
-
-            // Get newer strategies
-            return strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
-        }, minIntervalInSecond, false /*get only updates, not actual list*/);
     }
 
     /* -- Mutations -- */
@@ -391,6 +380,109 @@ public class ProgramGraphQLService {
         strategyService.delete(id);
     }
 
+    /* -- Subscriptions -- */
+
+
+
+    @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
+    @IsUser
+    public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final int id,
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer minIntervalInSecond,
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
+        ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
+
+        if (minIntervalInSecond != null && minIntervalInSecond < 30) {
+            minIntervalInSecond = 30;
+        }
+
+        log.info("Checking changes Program#{}, every {} sec", id, minIntervalInSecond);
+
+        return entityEventService.watchEntity(updateDate -> {
+                // Get actual program
+                if (updateDate == null) {
+                    return Optional.of(programService.get(id, fetchOptions));
+                }
+                // Get if newer
+                return programService.findNewerById(id, updateDate, fetchOptions);
+            }, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
+    @IsUser
+    public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
+                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
+                                                               @GraphQLEnvironment ResolutionEnvironment env) {
+
+        Set<String> fields = GraphQLUtils.fields(env);
+        StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
+
+        Preconditions.checkArgument(programId >= 0, "Invalid programId");
+
+        log.info("Checking strategies changes on Program#{}, every {} sec", programId, intervalInSeconds);
+
+        return entityEventService.watchEntities((lastUpdateDate) -> {
+                // Get actual values
+                if (lastUpdateDate == null) {
+                    return Optional.of(strategyService.findByProgram(programId, fetchOptions));
+                }
+
+                // Get newer strategies
+                List<StrategyVO> updatedStrategies = strategyService.findNewerByProgramId(programId, lastUpdateDate, fetchOptions);
+                return CollectionUtils.isEmpty(updatedStrategies) ? Optional.empty() : Optional.of(updatedStrategies);
+            }, intervalInSeconds, false /*only changes, but not actual list*/)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLSubscription(name = "authorizedPrograms", description = "Subscribe to user's authorized programs")
+    @IsUser
+    @Transactional(readOnly = true)
+    public Publisher<List<ProgramVO>> getAuthorizedPrograms(
+        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
+        @GraphQLArgument(name = "startWithActualValue") Boolean startWithActualValue,
+        @GraphQLEnvironment ResolutionEnvironment env
+    ) {
+
+        final Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
+        final ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
+        startWithActualValue = startWithActualValue != null ? startWithActualValue : Boolean.FALSE;
+
+        log.info("Watching programs for Person#{} every {}s", personId, intervalInSeconds);
+
+        // Define a loader, decorate to return only when changes
+        Callable<Optional<List<Integer>>> programIdsLoader = Observables.distinctUntilChanged(() -> {
+            log.debug("Checking programs for Person#{}...", personId);
+            List<Integer> programIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(personId);
+            return Optional.of(programIds);
+        });
+
+        return entityEventService.watchEntities(Program.class,
+            // Call program ids loader
+            () -> programIdsLoader.call()
+                // Then convert to VO
+                .map(programIds -> {
+                    // User has no programs:
+                    if (CollectionUtils.isEmpty(programIds)) {
+                        // return an empty list (because findByFilter will return full list)
+                        return ImmutableList.of();
+                    }
+
+                    // Fetch VO, by ids
+                    log.debug("Fetching {} programs for Person#{}...", programIds.size(), personId);
+                    return programService.findByFilter(
+                        ProgramFilterVO.builder()
+                            .includedIds(programIds.toArray(new Integer[0]))
+                            .build(),
+                        Page.builder()
+                            .sortBy(IEntity.Fields.ID).sortDirection(SortDirection.ASC)
+                            .build(),
+                        fetchOptions);
+                }),
+                intervalInSeconds,
+                startWithActualValue)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
     /* -- Protected methods -- */
 
     protected ProgramFetchOptions getProgramFetchOptions(Set<String> fields) {
@@ -411,6 +503,10 @@ public class ProgramGraphQLService {
             )
             .withPersons(
                 fields.contains(StringUtils.slashing(ProgramVO.Fields.PERSONS, ReferentialVO.Fields.ID))
+            )
+            .withAcquisitionLevels(
+                fields.contains(StringUtils.slashing(ProgramVO.Fields.ACQUISITION_LEVELS, ReferentialVO.Fields.ID))
+                || fields.contains(ProgramVO.Fields.ACQUISITION_LEVEL_LABELS)
             )
             .build();
     }
@@ -443,7 +539,9 @@ public class ProgramGraphQLService {
                     fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.TYPE)) ||
                     fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.UNIT_LABEL)) ||
                     fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.MAXIMUM_NUMBER_DECIMALS)) ||
-                    fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER))
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.SIGNIF_FIGURES_NUMBER)) ||
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.DETECTION_THRESHOLD)) ||
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.PRECISION))
             )
 
             // Retrieve how to fetch Pmfms
@@ -457,19 +555,25 @@ public class ProgramGraphQLService {
 
     protected void checkCanEditProgram(Integer programId) {
 
+        // New program
         if (programId == null) {
-            checkIsAdmin("Cannot create a program. Not an admin.");
-            return;
+            // Only admin can create a program
+            dataAccessControlService.checkIsAdmin("Cannot create a program. Not an admin.");
         }
 
-        // Admin can create a program
-        if (authService.isAdmin()) return; // OK
+        // Edit an existing program
+        else {
 
-        PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+            // Admin can edit
+            if (authService.isAdmin()) return; // OK
 
-        boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
-            || programService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
-        if (!isManager) throw new AccessDeniedException("Forbidden");
+            PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+
+            // Manager can edit
+            boolean isManager = programService.hasUserPrivilege(programId, user.getId(), ProgramPrivilegeEnum.MANAGER)
+                || programService.hasDepartmentPrivilege(programId, user.getDepartment().getId(), ProgramPrivilegeEnum.MANAGER);
+            if (!isManager) throw new AccessDeniedException("Forbidden");
+        }
     }
 
     protected void checkCanEditStrategy(int programId, Integer strategyId) {
@@ -497,13 +601,6 @@ public class ProgramGraphQLService {
 
     protected void checkCanDeleteStrategy(int programId, Integer strategyId) {
         checkCanEditStrategy(programId, strategyId);
-    }
-
-    /**
-     * Check user is admin
-     */
-    protected void checkIsAdmin(String message) {
-        if (!authService.isAdmin()) throw new AccessDeniedException(message != null ? message : "Access forbidden");
     }
 
     /**
@@ -537,5 +634,26 @@ public class ProgramGraphQLService {
     protected boolean canDepartmentAccessNotSelfData(@NonNull Integer actualDepartmentId) {
         List<Integer> expectedDepartmentIds = configuration.getAccessNotSelfDataDepartmentIds();
         return CollectionUtils.isEmpty(expectedDepartmentIds) || expectedDepartmentIds.contains(actualDepartmentId);
+    }
+
+    protected ProgramFilterVO restrictProgramFilter(@NonNull ProgramFilterVO filter) {
+        filter = ProgramFilterVO.nullToEmpty(filter);
+
+        Integer[] programIds = filter.getId() != null ? new Integer[]{filter.getId()} : filter.getIncludedIds();
+
+        // Limit to authorized ids
+        Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIds(programIds)
+            .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+
+        // Reset id, as it has been deprecated
+        if (filter.getId() != null) {
+            filter.setId(null);
+            GraphQLHelper.logDeprecatedUse(authService, "ProgramFilterVO.id", "1.24.0");
+        }
+
+        // Apply limitations
+        filter.setIncludedIds(authorizedProgramIds);
+
+        return filter;
     }
 }

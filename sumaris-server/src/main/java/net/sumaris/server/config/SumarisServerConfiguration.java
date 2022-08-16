@@ -97,14 +97,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         super(env, args);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void overrideExternalModulesDefaultOptions(ApplicationConfig applicationConfig) {
-        super.overrideExternalModulesDefaultOptions(applicationConfig);
-    }
-
     public List<Integer> getConfigurationOptionAsNumbers(String optionKey) {
         List<Integer> result = (List<Integer>) complexOptionsCache.getIfPresent(optionKey);
 

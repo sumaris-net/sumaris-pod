@@ -24,9 +24,8 @@ package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
@@ -34,7 +33,7 @@ import java.util.List;
 
 @Data
 @FieldNameConstants
-public class DenormalizedPmfmStrategyVO implements IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public class DenormalizedPmfmStrategyVO implements IUpdateDateEntity<Integer, Date>, IValueObject<Integer> {
 
     private Integer id; // = the PMFM id
 
@@ -42,6 +41,8 @@ public class DenormalizedPmfmStrategyVO implements IUpdateDateEntityBean<Integer
     private Integer rankOrder;
     private Integer acquisitionNumber;
     private Boolean isMandatory;
+    private Boolean isComputed;
+    private Boolean isEstimated;
     private Double minValue;
     private Double maxValue;
     private Double defaultValue;
@@ -72,6 +73,8 @@ public class DenormalizedPmfmStrategyVO implements IUpdateDateEntityBean<Integer
     private String completeName; // Full name, with parameter, matrix, fraction and method name
     private Integer maximumNumberDecimals;
     private Integer signifFiguresNumber;
+    private Double detectionThreshold;
+    private Double precision;
     // ****
 
     private List<ReferentialVO> qualitativeValues;

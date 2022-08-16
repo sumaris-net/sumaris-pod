@@ -41,7 +41,7 @@ import java.util.Date;
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-public class Metier implements IItemReferentialEntity {
+public class Metier implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")

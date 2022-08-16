@@ -24,18 +24,18 @@ package net.sumaris.core.service;
 
 import net.sumaris.core.TestConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(
         exclude = {
             LiquibaseAutoConfiguration.class,
             FreeMarkerAutoConfiguration.class,
-            JmsAutoConfiguration.class
+            JmsAutoConfiguration.class,
+            CacheAutoConfiguration.class
         },
         scanBasePackages = {
             "net.sumaris.core"

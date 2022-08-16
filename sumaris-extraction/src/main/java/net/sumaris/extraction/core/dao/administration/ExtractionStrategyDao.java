@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 public interface ExtractionStrategyDao<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
         extends ExtractionDao<C, F> {
 
-
     default ExtractionStrategyFilterVO toStrategyFilterVO(ExtractionFilterVO source){
         ExtractionStrategyFilterVO target = new ExtractionStrategyFilterVO();
         if (source == null) return target;

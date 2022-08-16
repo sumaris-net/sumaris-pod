@@ -25,7 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -42,18 +42,21 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "sample")
 public class Sample implements IRootDataEntity<Integer>,
-        ITreeNodeEntityBean<Integer, Sample> {
+    ITreeNodeEntity<Integer, Sample> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_SEQ")
     @SequenceGenerator(name = "SAMPLE_SEQ", sequenceName="SAMPLE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
     private Integer id;
 
     @Column(length = 40, nullable = false)
+    @ToString.Include
     private String label;
 
     @Column(name = "rank_order", nullable = false)
@@ -87,7 +90,7 @@ public class Sample implements IRootDataEntity<Integer>,
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @Column(name = "hash")
+    @Column
     private Integer hash;
 
     /* -- Quality insurance -- */
@@ -135,12 +138,10 @@ public class Sample implements IRootDataEntity<Integer>,
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    @ToString.Exclude
     private List<Sample> children = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_sample_fk")
-    @ToString.Exclude
     private Sample parent;
 
 
@@ -150,24 +151,18 @@ public class Sample implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SampleMeasurement> measurements = new ArrayList<>();
 
-    /* -- Parent link -- */
+    /* -- Owner entities -- */
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_fk")
-    @ToString.Exclude
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk")
-    @ToString.Exclude
     private Batch batch;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "landing_fk")
-    @ToString.Exclude
     private Landing landing;
 
-    public String toString() {
-        return String.format("Sample{id=%s,label=%s}", id, label);
-    }
 }

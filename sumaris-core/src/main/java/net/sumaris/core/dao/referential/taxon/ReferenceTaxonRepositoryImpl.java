@@ -28,6 +28,7 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.referential.ReferenceTaxonVO;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import javax.persistence.EntityManager;
 import java.util.Optional;
 
@@ -41,22 +42,17 @@ public class ReferenceTaxonRepositoryImpl<O extends IFetchOptions>
     }
 
     @Override
-    public ReferenceTaxonVO get(int id) {
+    public ReferenceTaxonVO get(Integer id) {
         return toVO(this.getById(id));
     }
 
     @Override
-    public Optional<ReferenceTaxonVO> findById(int id) {
+    public Optional<ReferenceTaxonVO> findVOById(Integer id) {
         return findById(id, null);
     }
 
-    public Optional<ReferenceTaxonVO> findById(int id, O fetchOptions) {
+    public Optional<ReferenceTaxonVO> findById(Integer id, O fetchOptions) {
         return super.findById(id).map(entity -> toVO(entity, fetchOptions));
-    }
-
-    @Override
-    public ReferenceTaxon save(ReferenceTaxon referenceTaxon) {
-        return super.save(referenceTaxon);
     }
 
     protected ReferenceTaxonVO toVO(ReferenceTaxon source, O fetchOptions) {

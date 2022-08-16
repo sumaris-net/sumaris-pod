@@ -70,6 +70,9 @@ public class UserSettingsRepositoryWriteTest extends AbstractDaoTest {
         Assert.assertEquals("fr", settings.getLocale());
         Assert.assertEquals("DDMM", settings.getLatLongFormat());
         Assert.assertNull(settings.getContent());
+
+        commit();
+
         // reload
         settings = repository.findByIssuer(FAKE_PUBKEY).orElse(null);
         Assert.assertNotNull(settings);
@@ -78,6 +81,7 @@ public class UserSettingsRepositoryWriteTest extends AbstractDaoTest {
         Assert.assertEquals("fr", settings.getLocale());
         Assert.assertEquals("DDMM", settings.getLatLongFormat());
         Assert.assertNull(settings.getContent());
+
         // modify
         settings.setLocale("en");
         settings.setContent("_");

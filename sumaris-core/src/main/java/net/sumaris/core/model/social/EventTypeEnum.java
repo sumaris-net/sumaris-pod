@@ -22,46 +22,34 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 public enum EventTypeEnum implements Serializable {
 
-    DEBUG_DATA(1, "DEBUG_DATA"),
+    DEBUG_DATA("DEBUG_DATA"),
 
-    INBOX_MESSAGE(1, "INBOX_MESSAGE")
+    INBOX_MESSAGE("INBOX_MESSAGE"),
+
+    EMAIL("EMAIL"),
+
+    FEED("FEED")
     ;
 
-    public static EventTypeEnum valueOf(final int id) {
-        return Arrays.stream(values())
-                .filter(level -> level.id == id)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown EventTypeEnum: " + id));
-    }
 
-    public static EventTypeEnum byLabel(final String label) {
-        Preconditions.checkNotNull(label);
+    public static EventTypeEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
-                .filter(level -> label.equals(level.label))
+                .filter(item -> label.equals(item.label))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown EventTypeEnum: " + label));
     }
 
-    private int id;
     private String label;
 
-    EventTypeEnum(int id, String label) {
+    EventTypeEnum(String label) {
         this.label = label;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getLabel() {

@@ -26,11 +26,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
+import io.reactivex.BackpressureStrategy;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
@@ -48,18 +51,17 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
-import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import net.sumaris.server.service.administration.ImageService;
+import net.sumaris.server.service.technical.EntityEventService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,9 +71,8 @@ import java.util.*;
 @Service
 @GraphQLApi
 @Transactional
+@Slf4j
 public class DataGraphQLService {
-    /* Logger */
-    private static final Logger log = LoggerFactory.getLogger(DataGraphQLService.class);
 
     @Autowired
     private TripService tripService;
@@ -122,7 +123,7 @@ public class DataGraphQLService {
     private ImageService imageService;
 
     @Autowired
-    private ChangesPublisherService changesPublisherService;
+    private EntityEventService entityEventService;
 
     @Autowired
     private MetierRepository metierRepository;
@@ -244,20 +245,22 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrip", description = "Create or update a trip")
     @IsUser
     public TripVO saveTrip(@GraphQLNonNull @GraphQLArgument(name = "trip") TripVO trip,
-                           @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
-                           @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
                            @GraphQLArgument(name = "options") TripSaveOptions options,
+                           // Deprecated attributes
+                           @GraphQLArgument(name = "saveOptions", description = "@deprecated Use options") TripSaveOptions saveOptions,
+                           @GraphQLArgument(name = "withOperation", defaultValue = "false", description = "@deprecated Use options") Boolean withOperation,
+                           // Env
                            @GraphQLEnvironment ResolutionEnvironment env) {
 
         if (options == null) {
             // For compat prior to 1.7
             if (saveOptions != null) {
-                logDeprecatedUse("saveTrip(TripVO, saveOptions)", "1.7.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, saveOptions)", "1.7.0");
                 options = saveOptions;
             }
             // For compat prior to 1.5
             else if (withOperation != null) {
-                logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, withOperation)", "1.5.0");
                 options = TripSaveOptions.builder()
                         .withOperation(withOperation)
                         .build();
@@ -275,20 +278,22 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveTrips", description = "Create or update many trips")
     @IsUser
     public List<TripVO> saveTrips(@GraphQLNonNull @GraphQLArgument(name = "trips") List<TripVO> trips,
-                                  @GraphQLArgument(name = "withOperation", defaultValue = "false") Boolean withOperation, // Deprecated
-                                  @GraphQLArgument(name = "saveOptions") TripSaveOptions saveOptions, // Deprecated
                                   @GraphQLArgument(name = "options") TripSaveOptions options,
+                                  // Deprecated
+                                  @GraphQLArgument(name = "saveOptions", description = "@deprecated Use options") TripSaveOptions saveOptions, // Deprecated
+                                  @GraphQLArgument(name = "withOperation", defaultValue = "false", description = "@deprecated Use options") Boolean withOperation, // Deprecated
+                                  // Env
                                   @GraphQLEnvironment ResolutionEnvironment env) {
 
         if (options == null) {
             // For compat prior to 1.7
             if (saveOptions != null) {
-                logDeprecatedUse("saveTrip(TripVO, saveOptions)", "1.7.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, saveOptions)", "1.7.0");
                 options = saveOptions;
             }
             // For compat prior to 1.5
             else if (withOperation != null) {
-                logDeprecatedUse("saveTrip(TripVO, withOperation)", "1.5.0");
+                GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, withOperation)", "1.5.0");
                 options = TripSaveOptions.builder()
                         .withOperation(withOperation)
                         .build();
@@ -318,10 +323,16 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateTrip", description = "Subscribe to changes on a trip")
     @IsUser
     public Publisher<TripVO> updateTrip(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                        @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Trip.class, TripVO.class, id, minIntervalInSecond, true);
+
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        return entityEventService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(t -> fillTripFields(t, fields));
     }
 
     @GraphQLMutation(name = "controlTrip", description = "Control a trip")
@@ -382,7 +393,7 @@ public class DataGraphQLService {
                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                   @GraphQLEnvironment ResolutionEnvironment env) {
         Preconditions.checkNotNull(filter, "Missing filter");
-        Preconditions.checkNotNull(filter.getVesselId(), "Missing filter.vesselId");
+        Preconditions.checkArgument(filter.getVesselId() != null || filter.getParentGearId() != null, "Missing 'filter.vesselId' or 'filter.parentGearId'");
         Page page = Page.builder().offset(offset)
                 .size(size)
                 .sortBy(sort)
@@ -439,7 +450,7 @@ public class DataGraphQLService {
 
     /* -- Observed location -- */
 
-    @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
+        @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
     @Transactional(readOnly = true)
     @IsUser
     public List<ObservedLocationVO> findObservedLocationsByFilter(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
@@ -561,10 +572,14 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateObservedLocation", description = "Subscribe to changes on an observed location")
     @IsUser
     public Publisher<ObservedLocationVO> updateObservedLocation(@GraphQLArgument(name = "id") final int id,
-                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                                                @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true);
+        Set<String> fields = GraphQLUtils.fields(env);
+        return entityEventService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(ol -> fillObservedLocationFields(ol, fields));
     }
 
     @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
@@ -751,10 +766,18 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateOperation", description = "Subscribe to changes on an operation")
     @IsUser
     public Publisher<OperationVO> updateOperation(@GraphQLArgument(name = "id") final int id,
-                                                  @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                                  @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond
+    ) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Operation.class, OperationVO.class, id, minIntervalInSecond, true);
+        return entityEventService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLMutation(name = "controlOperation", description = "Control an operation")
+    @IsUser
+    public OperationVO controlOperation(@GraphQLNonNull @GraphQLArgument(name = "operation") OperationVO operation) {
+        return operationService.control(operation);
     }
 
     /* -- Operation Groups -- */
@@ -890,7 +913,7 @@ public class DataGraphQLService {
     public long countSamplesByLanding(@GraphQLContext LandingVO landing) {
         // Avoid a reloading (e.g. when saving)
         if (landing.getSamplesCount() != null) return landing.getSamplesCount();
-        if (landing.getId() == null) return 0l;
+        if (landing.getId() == null) return 0L;
 
         // Get samples by operation if a main undefined operation group exists
         SampleFilterVO filter = SampleFilterVO.builder().withTagId(true).build();
@@ -1031,10 +1054,14 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateLanding", description = "Subscribe to changes on an landing")
     @IsUser
     public Publisher<LandingVO> updateLanding(@GraphQLArgument(name = "id") final int id,
-                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond) {
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return changesPublisherService.getPublisher(Landing.class, LandingVO.class, id, minIntervalInSecond, true);
+        Set<String> fields = GraphQLUtils.fields(env);
+        return entityEventService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(l -> fillLandingFields(l, fields));
     }
 
     /* -- Aggregated landings -- */
@@ -1325,7 +1352,7 @@ public class DataGraphQLService {
 
     /* -- protected methods -- */
 
-    protected void fillTripFields(TripVO trip, Set<String> fields) {
+    protected TripVO fillTripFields(TripVO trip, Set<String> fields) {
         // Add image if need
         fillImages(trip, fields);
 
@@ -1337,9 +1364,11 @@ public class DataGraphQLService {
                 || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
+
+        return trip;
     }
 
-    protected void fillTrips(List<TripVO> trips, Set<String> fields) {
+    protected List<TripVO> fillTrips(List<TripVO> trips, Set<String> fields) {
         // Add image if need
         fillImages(trips, fields);
 
@@ -1351,32 +1380,42 @@ public class DataGraphQLService {
         if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID)) || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripsLandingLinks(trips);
         }
+
+        return trips;
     }
 
-    protected void fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
+    protected ObservedLocationVO fillObservedLocationFields(ObservedLocationVO observedLocation, Set<String> fields) {
         // Add image if need
         fillImages(observedLocation, fields);
+
+        return observedLocation;
     }
 
-    protected void fillObservedLocationsFields(List<ObservedLocationVO> observedLocations, Set<String> fields) {
+    protected List<ObservedLocationVO> fillObservedLocationsFields(List<ObservedLocationVO> observedLocations, Set<String> fields) {
         // Add image if need
         fillImages(observedLocations, fields);
+
+        return observedLocations;
     }
 
-    protected void fillLandingFields(LandingVO landing, Set<String> fields) {
+    protected LandingVO fillLandingFields(LandingVO landing, Set<String> fields) {
         // Add image if need
         fillImages(landing, fields);
 
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(landing, fields);
+
+        return landing;
     }
 
-    protected void fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
+    protected List<LandingVO> fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
         // Add image if need
         fillImages(landings, fields);
 
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(landings, fields);
+
+        return landings;
     }
 
     protected boolean hasImageField(Set<String> fields) {
@@ -1429,6 +1468,7 @@ public class DataGraphQLService {
             .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
             .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withGears(fields.contains(StringUtils.slashing(TripVO.Fields.GEARS, IEntity.Fields.ID)))
             .withLanding(fields.contains(StringUtils.slashing(TripVO.Fields.LANDING_ID))
                 || fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, IEntity.Fields.ID))
             )
@@ -1519,12 +1559,6 @@ public class DataGraphQLService {
             filter.setRecorderDepartmentId(depId);
         }
         return filter;
-    }
-
-    protected void logDeprecatedUse(String functionName, String appVersion) {
-        Integer userId = authService.getAuthenticatedUser().map(PersonVO::getId).orElse(null);
-        log.warn(String.format("User {id: %s} used service {%s} that is deprecated since {appVersion: %s}.", userId, functionName, appVersion));
-
     }
 
     private Integer getMainUndefinedOperationGroupId(LandingVO landing) {

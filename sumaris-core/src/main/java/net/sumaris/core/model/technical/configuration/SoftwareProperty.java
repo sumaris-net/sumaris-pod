@@ -36,7 +36,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "software_property")
-public class SoftwareProperty implements IItemReferentialEntity  {
+public class SoftwareProperty implements IItemReferentialEntity<Integer>  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_PROPERTY_SEQ")

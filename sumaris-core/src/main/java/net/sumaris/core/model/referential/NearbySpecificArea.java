@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "nearby_specific_area")
-public class NearbySpecificArea implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
+public class NearbySpecificArea implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nearby_specific_area_seq")

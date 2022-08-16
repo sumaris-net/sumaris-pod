@@ -159,7 +159,7 @@ public class SampleServiceImpl implements SampleService {
 	public void treeToList(final SampleVO sample, final List<SampleVO> result) {
 		if (sample == null) return;
 
-		// Add the batch itself
+		// Add current to list
 		if (!result.contains(sample)) result.add(sample);
 
 		// Process children
@@ -172,8 +172,8 @@ public class SampleServiceImpl implements SampleService {
 				treeToList(child, result);
 			});
 		}
-
 	}
+
 	/* -- protected methods -- */
 
 	protected void saveMeasurements(List<SampleVO> result) {

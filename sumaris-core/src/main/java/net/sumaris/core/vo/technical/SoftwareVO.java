@@ -31,7 +31,7 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class SoftwareVO implements IReferentialVO {
+public class SoftwareVO implements IReferentialVO<Integer>{
 
     private Integer id;
     private String label;

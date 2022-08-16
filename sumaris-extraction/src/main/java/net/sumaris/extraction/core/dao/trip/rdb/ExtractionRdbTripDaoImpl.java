@@ -23,27 +23,19 @@ package net.sumaris.extraction.core.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.ExtractionBaseDaoImpl;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
-import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
-import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.util.Beans;
@@ -51,10 +43,17 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.extraction.core.dao.technical.Daos;
+import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
+import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
+import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.vo.*;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -78,7 +77,7 @@ import static org.nuiton.i18n.I18n.t;
 @Lazy
 @Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
-        extends ExtractionBaseDaoImpl
+        extends ExtractionBaseDaoImpl<C, F>
         implements ExtractionTripDao<C, F> {
 
     private static final String TR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.TR_SHEET_NAME + "_%s";
@@ -88,7 +87,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     private static final String HL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.HL_SHEET_NAME + "_%s";
     private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.CA_SHEET_NAME + "_%s";
 
-    protected static final String XML_QUERY_PATH = "xmlQuery";
 
     @Autowired
     protected StrategyService strategyService;
@@ -96,12 +94,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     @Autowired
     protected ProgramService programService;
 
-    @Autowired
-    protected ResourceLoader resourceLoader;
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.RDB;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
     }
 
     @Override
@@ -112,8 +108,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         R context = createNewContext();
         context.setTripFilter(tripFilter);
         context.setFilter(filter);
-        context.setId(System.currentTimeMillis());
-        context.setFormat(LiveFormatEnum.RDB);
+        context.setUpdateDate(new Date());
+        context.setType(LiveExtractionTypeEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
 
         // Start log
@@ -128,7 +124,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            log.info("Starting extraction {{}-{}} (raw data / trips)... {}", context.getLabel(), context.getId(), filterInfo.toString());
+            log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
         // Fill context table names
@@ -195,15 +191,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
         finally {
             if (startTime != null) {
-                log.info("Extraction {{}-{}} finished in {}", context.getLabel(), context.getId(), TimeUtils.printDurationFrom(startTime));
+                log.info("Extraction #{} finished in {}", context.getId(), TimeUtils.printDurationFrom(startTime));
             }
         }
     }
 
-    @Override
-    public void clean(C context) {
-        dropTables(context);
-    }
 
     /* -- protected methods -- */
 
@@ -225,12 +217,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected void fillContextTableNames(C context) {
 
         // Set unique table names
-        context.setTripTableName(String.format(TR_TABLE_NAME_PATTERN, context.getId()));
-        context.setStationTableName(String.format(HH_TABLE_NAME_PATTERN, context.getId()));
-        context.setRawSpeciesListTableName(String.format(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesListTableName(String.format(SL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSpeciesLengthTableName(String.format(HL_TABLE_NAME_PATTERN, context.getId()));
-        context.setSampleTableName(String.format(CA_TABLE_NAME_PATTERN, context.getId()));
+        context.setTripTableName(formatTableName(TR_TABLE_NAME_PATTERN, context.getId()));
+        context.setStationTableName(formatTableName(HH_TABLE_NAME_PATTERN, context.getId()));
+        context.setRawSpeciesListTableName(formatTableName(SL_RAW_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesListTableName(formatTableName(SL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSpeciesLengthTableName(formatTableName(HL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSampleTableName(formatTableName(CA_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheetname
         context.setTripSheetName(RdbSpecification.TR_SHEET_NAME);
@@ -245,7 +237,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         XMLQuery xmlQuery = createTripQuery(context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getTripTableName());
 
         // Clean row using generic filter
@@ -310,7 +302,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         XMLQuery xmlQuery = createStationQuery(context);
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getStationTableName());
 
         // Clean row using generic filter
@@ -351,6 +343,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("date", true);
         xmlQuery.setGroup("time", true);
         xmlQuery.setGroup("fishingTime", true);
+        xmlQuery.setGroup("agg", true);
+
+        // Compute groupBy (exclude columns with the 'agg' group)
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         return xmlQuery;
     }
@@ -365,7 +362,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String tableName = context.getRawSpeciesListTableName();
 
         XMLQuery rawXmlQuery = createRawSpeciesListQuery(context, excludeInvalidStation);
-        execute(rawXmlQuery);
+        execute(context, rawXmlQuery);
 
         // Clean row using generic filter
         long count = countFrom(tableName);
@@ -402,7 +399,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String tableName = context.getSpeciesListTableName();
 
         XMLQuery xmlQuery = createSpeciesListQuery(context);
-        execute(xmlQuery);
+        execute(context, xmlQuery);
 
         long count = countFrom(tableName);
 
@@ -435,6 +432,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
 
         return xmlQuery;
     }
@@ -443,7 +442,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String tableName = context.getSpeciesLengthTableName();
 
         XMLQuery xmlQuery = createSpeciesLengthQuery(context);
-        execute(xmlQuery);
+        execute(context, xmlQuery);
 
         long count = countFrom(tableName);
 
@@ -492,97 +491,48 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return 0;
     }
 
-    protected int execute(XMLQuery xmlQuery) {
-        String sql = xmlQuery.getSQLQueryAsString();
-        return queryUpdate(sql);
-    }
-
-    protected long countFrom(String tableName) {
-        XMLQuery xmlQuery = createXMLQuery("countFrom");
-        xmlQuery.bind("tableName", tableName);
-        return queryCount(xmlQuery.getSQLQueryAsString());
-    }
-
-    protected String getQueryFullName(@NonNull C context, String queryName) {
-        return getQueryFullName(context.getLabel(), context.getVersion(), queryName);
-    }
-
-    protected String getQueryFullName(@NonNull String formatLabel,
-                                      @NonNull String formatVersion,
-                                      @NonNull String queryName) {
-        return String.format("%s/v%s/%s",
-            StringUtils.underscoreToChangeCase(formatLabel),
-            formatVersion.replaceAll("[.]", "_"),
-            queryName);
-    }
-
-    protected XMLQuery createXMLQuery(C context, String queryName) {
-        return createXMLQuery(getQueryFullName(context, queryName));
-    }
-
-    protected XMLQuery createXMLQuery(String queryName) {
-        XMLQuery query = createXMLQuery();
-        query.setQuery(getXMLQueryClasspathURL(queryName));
-        return query;
-    }
-
-    protected URL getXMLQueryURL(C context, String queryName) {
-        return getXMLQueryClasspathURL(getQueryFullName(context, queryName));
-    }
-
-    protected URL getXMLQueryClasspathURL(String queryName) {
-        Resource resource = resourceLoader.getResource(ResourceLoader.CLASSPATH_URL_PREFIX + XML_QUERY_PATH + "/" + queryName + ".xml");
-        if (!resource.exists())
-            throw new SumarisTechnicalException(t("sumaris.extraction.xmlQuery.notFound", queryName));
-        try {
-            return resource.getURL();
-        } catch (IOException e) {
-            throw new SumarisTechnicalException(e);
-        }
-    }
-
     /**
      * Fill the context's pmfm infos (e.g. used to generate
      * @param context
      */
     protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
                                                            List<String> programLabels,
-                                                           AcquisitionLevelEnum acquisitionLevel) {
+                                                           AcquisitionLevelEnum... acquisitionLevels) {
 
         if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
 
         // Create the map that holds the result
-        Map<AcquisitionLevelEnum, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsByAcquisitionLevel();
+        Map<String, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsCacheMap();
         if (pmfmColumns == null) {
             pmfmColumns = Maps.newHashMap();
-            context.setPmfmsByAcquisitionLevel(pmfmColumns);
+            context.setPmfmsCacheMap(pmfmColumns);
         }
+
+        List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
+            .map(acquisitionLevelEnum -> acquisitionLevelEnum.getId())
+            .collect(Collectors.toList());
+
+        String cacheKey = acquisitionLevelIds.toString();
 
         // Already loaded: use the cached values
-        if (pmfmColumns.containsKey(acquisitionLevel)) return pmfmColumns.get(acquisitionLevel);
+        if (pmfmColumns.containsKey(cacheKey)) return pmfmColumns.get(cacheKey);
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Loading PMFM for {program: %s, acquisitionLevel: %s} ...",
+            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
                 programLabels,
-                acquisitionLevel
-            ));
+                cacheKey
+            );
         }
 
-        // Load strategies
-        List<ExtractionPmfmColumnVO> result = strategyService.findByFilter(StrategyFilterVO.builder()
-                .programLabels(programLabels.toArray(new String[0]))
-                // TODO: filtrer les strategies via la periode du filtre (si présente) ?
-                // .startDate(...).endDate(...)
-                .build(), null, StrategyFetchOptions.DEFAULT)
+        // Load pmfm columns
+        List<ExtractionPmfmColumnVO> result = strategyService.findDenormalizedPmfmsByFilter(
+                PmfmStrategyFilterVO.builder()
+                    .programLabels(programLabels.toArray(new String[programLabels.size()]))
+                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[acquisitionLevelIds.size()]))
+                    .build(),
+                PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
+            )
                 .stream()
-                // Then, load PmfmStretegy
-                .flatMap(strategy ->  strategyService.findDenormalizedPmfmsByFilter(
-                            PmfmStrategyFilterVO.builder()
-                                    .strategyId(strategy.getId())
-                                    .acquisitionLevelId(acquisitionLevel.getId())
-                                    .build(),
-                            PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
-                    ).stream())
                 .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
 
                 // Group by pmfmId
@@ -590,11 +540,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 .values().stream().map(list -> list.get(0))
 
                 // Sort by label
+                // TODO sort by rankOrder ?
                 .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getLabel, String::compareTo))
                 .collect(Collectors.toList());
 
         // save result into the context map
-        pmfmColumns.put(acquisitionLevel, result);
+        pmfmColumns.put(cacheKey, result);
 
         return result;
     }

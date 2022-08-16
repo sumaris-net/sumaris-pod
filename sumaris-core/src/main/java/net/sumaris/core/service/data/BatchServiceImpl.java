@@ -41,6 +41,7 @@ import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -84,53 +85,12 @@ public class BatchServiceImpl implements BatchService {
 	}
 
 	@Override
-	public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
+	public List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources) {
 
-		List<BatchVO> result = batchRepository.saveByOperationId(operationId, sources);
+		List<BatchVO> result = batchRepository.saveAllByOperationId(operationId, sources);
 
 		// Save measurements
-		result.forEach(savedBatch -> {
-
-			// If only one maps: distinguish each item
-			if (savedBatch.getMeasurementValues() != null) {
-
-				Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
-				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
-
-				savedBatch.getMeasurementValues().forEach((pmfmId, value) -> {
-					if (pmfmService.isWeightPmfm(pmfmId)) {
-						quantificationMeasurements.putIfAbsent(pmfmId, value);
-					}
-					else {
-						if (sortingMeasurements.containsKey(pmfmId)) {
-							log.warn(String.format("Duplicate measurement width {pmfmId: %s} on batch {id: %s}", pmfmId, savedBatch.getId()));
-						}
-						else {
-							sortingMeasurements.putIfAbsent(pmfmId, value);
-						}
-					}
-				});
-				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), sortingMeasurements);
-				measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), quantificationMeasurements);
-			}
-			else {
-				// Sorting measurement
-				{
-					List<MeasurementVO> measurements = Beans.getList(savedBatch.getSortingMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchSortingMeasurement.class));
-					measurements = measurementDao.saveBatchSortingMeasurements(savedBatch.getId(), measurements);
-					savedBatch.setSortingMeasurements(measurements);
-				}
-
-				// Quantification measurement
-				{
-					List<QuantificationMeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
-					measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);
-					savedBatch.setQuantificationMeasurements(measurements);
-				}
-			}
-		});
+		saveMeasurements(result);
 
 		// Emit update event, on the catch batch
 		result.stream()
@@ -139,7 +99,7 @@ public class BatchServiceImpl implements BatchService {
 				.findFirst()
 				// Transform to event
 				.map(catchBatch -> new EntityUpdateEvent(catchBatch.getId(), Batch.class.getSimpleName(), catchBatch))
-				// Publishf
+				// Publish
 				.ifPresent(publisher::publishEvent);
 
 		return result;
@@ -184,6 +144,52 @@ public class BatchServiceImpl implements BatchService {
 
 	/* -- protected methods -- */
 
+	protected void saveMeasurements(List<BatchVO> result){
+
+		// Save measurements
+		result.forEach(savedBatch -> {
+
+			// If only one maps: distinguish each item
+			if (savedBatch.getMeasurementValues() != null) {
+
+				Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
+				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
+
+				savedBatch.getMeasurementValues().forEach((pmfmId, value) -> {
+					if (pmfmService.isWeightPmfm(pmfmId)) {
+						quantificationMeasurements.putIfAbsent(pmfmId, value);
+					}
+					else {
+						if (sortingMeasurements.containsKey(pmfmId)) {
+							log.warn(String.format("Duplicate measurement width {pmfmId: %s} on batch {id: %s}", pmfmId, savedBatch.getId()));
+						}
+						else {
+							sortingMeasurements.putIfAbsent(pmfmId, value);
+						}
+					}
+				});
+				measurementDao.saveBatchSortingMeasurementsMap(savedBatch.getId(), sortingMeasurements);
+				measurementDao.saveBatchQuantificationMeasurementsMap(savedBatch.getId(), quantificationMeasurements);
+			}
+			else {
+				// Sorting measurement
+				{
+					List<MeasurementVO> measurements = Beans.getList(savedBatch.getSortingMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchSortingMeasurement.class));
+					measurements = measurementDao.saveBatchSortingMeasurements(savedBatch.getId(), measurements);
+					savedBatch.setSortingMeasurements(measurements);
+				}
+
+				// Quantification measurement
+				{
+					List<QuantificationMeasurementVO> measurements = Beans.getList(savedBatch.getQuantificationMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(savedBatch, m, BatchQuantificationMeasurement.class));
+					measurements = measurementDao.saveBatchQuantificationMeasurements(savedBatch.getId(), measurements);
+					savedBatch.setQuantificationMeasurements(measurements);
+				}
+			}
+		});
+	}
 	protected void fillDefaultProperties(BatchVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
 		if (measurement == null) return;
 

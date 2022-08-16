@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -108,7 +109,7 @@ public class LandingRepositoryImpl
 
         StringBuilder queryBuilder = new StringBuilder();
 
-        queryBuilder.append("from Landing l ");
+        queryBuilder.append("select l from Landing l ");
 
         if (sortByVesselRegistrationCode) {
             // add joins
@@ -283,16 +284,16 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    protected void configureQuery(TypedQuery<Landing> query, LandingFetchOptions fetchOptions) {
+    protected void configureQuery(TypedQuery<Landing> query, @Nullable LandingFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
         // Prepare load graph
         EntityManager em = getEntityManager();
         EntityGraph<?> entityGraph = em.getEntityGraph(Landing.GRAPH_LOCATION_AND_PROGRAM);
-        if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
-        if (fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Landing.Fields.RECORDER_PERSON);
+        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Landing.Fields.RECORDER_DEPARTMENT);
 
-        // BLA avoid fetching observers (Many2Many)
+        // WARNING: should not enable this fetch, because page cannot be applied
         //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Landing.Fields.OBSERVERS);
 
         query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);

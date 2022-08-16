@@ -31,6 +31,9 @@ import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
+import net.sumaris.core.model.referential.conversion.UnitConversion;
+import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.grouping.Grouping;
@@ -55,8 +58,10 @@ import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 
 import java.beans.PropertyDescriptor;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Helper class
@@ -102,9 +107,13 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.originItemType");
         I18n.n("sumaris.persistence.table.strategy");
         I18n.n("sumaris.persistence.table.processingFrequency");
+        // Conversion
+        I18n.n("sumaris.persistence.table.weightLengthConversion");
+        I18n.n("sumaris.persistence.table.roundWeightConversion");
+        I18n.n("sumaris.persistence.table.unitConversion");
     }
 
-    public static final List<Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES = ImmutableList.of(
+    public static final List<Class<? extends IReferentialEntity>> ROOT_CLASSES = ImmutableList.of(
                 Status.class,
                 Department.class,
                 Location.class,
@@ -161,11 +170,21 @@ public class ReferentialEntities {
                 ProcessingFrequency.class
         );
 
-    public static final Map<String, Class<? extends IReferentialEntity>> REFERENTIAL_CLASSES_BY_NAME = Maps.uniqueIndex(
-            REFERENTIAL_CLASSES,
-            Class::getSimpleName);
+    public static final List<Class<? extends IReferentialEntity>> SUB_CLASSES = ImmutableList.of(
+        WeightLengthConversion.class,
+        RoundWeightConversion.class
+    );
 
-    public static final List<Class<? extends IReferentialEntity>> LAST_UPDATE_DATE_CLASSES_EXCLUDES = ImmutableList.of(
+    public static final List<Class<? extends Serializable>> CLASSES = ImmutableList.<Class<? extends Serializable>>builder()
+            .addAll(ROOT_CLASSES)
+            .addAll(SUB_CLASSES)
+            .build();
+
+    public static final Map<String, Class<? extends Serializable>> CLASSES_BY_NAME = Maps.uniqueIndex(
+        CLASSES,
+        Class::getSimpleName);
+
+    public static final List<Class<? extends Serializable>> LAST_UPDATE_DATE_CLASSES_EXCLUDES = ImmutableList.of(
         // Grouping
         GroupingClassification.class,
         GroupingLevel.class,
@@ -176,16 +195,18 @@ public class ReferentialEntities {
         // Software
         Software.class,
         // Technical
-        SystemVersion.class
+        SystemVersion.class,
+        UnitConversion.class
     );
 
-
-    public static final Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = REFERENTIAL_CLASSES
-            .stream().filter(c -> !LAST_UPDATE_DATE_CLASSES_EXCLUDES.contains(c))
+    public static final Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = Stream.concat(
+            ROOT_CLASSES.stream(),
+            SUB_CLASSES.stream()
+        ).filter(c -> !LAST_UPDATE_DATE_CLASSES_EXCLUDES.contains(c))
             .map(Class::getSimpleName)
             .collect(Collectors.toList());
 
-    public static final Map<String, PropertyDescriptor> LEVEL_PROPERTY_BY_CLASS_NAME = createLevelPropertyNameMap(REFERENTIAL_CLASSES);
+    public static final Map<String, PropertyDescriptor> LEVEL_PROPERTY_BY_CLASS_NAME = createLevelPropertyNameMap(ROOT_CLASSES);
 
     protected static final Map<String, PropertyDescriptor> createLevelPropertyNameMap(List<Class<? extends IReferentialEntity>> classes) {
         Map<String, PropertyDescriptor> result = new HashMap<>();
@@ -225,15 +246,16 @@ public class ReferentialEntities {
                 .map(PropertyDescriptor::getName);
     }
 
-    public static Class<? extends IReferentialEntity> getEntityClass(String entityName) {
+    public static <T extends Serializable> Class<T> getEntityClass(String entityName) {
         Preconditions.checkNotNull(entityName, "Missing 'entityName' argument");
 
         // Get entity class from entityName
-        Class<? extends IReferentialEntity> entityClass = REFERENTIAL_CLASSES_BY_NAME.get(entityName);
-        if (entityClass == null)
+        Class<? extends Serializable> entityClass = CLASSES_BY_NAME.get(entityName);
+        if (entityClass == null) {
             throw new IllegalArgumentException(String.format("Referential entity [%s] not exists", entityName));
+        }
 
-        return entityClass;
+        return (Class<T>) entityClass;
     }
 
     public static Optional<PropertyDescriptor> getLevelProperty(String entityName) {

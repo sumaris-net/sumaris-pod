@@ -35,7 +35,14 @@
     <select alias="STATION_NUMBER" type="number">O.ID</select>
 
     <!-- other fields -->
-    <select alias="FISHING_VALIDITY" type="text"><![CDATA[(SELECT CASE VUM.NUMERICAL_VALUE WHEN 1 THEN UPPER('V') WHEN 0 THEN UPPER('I') ELSE null END FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
+    <select alias="FISHING_VALIDITY" type="text" group="agg">
+      MAX(CASE VUM.PMFM_FK WHEN &amp;normalProgressPmfmId THEN
+        CASE VUM.NUMERICAL_VALUE
+          WHEN 1 THEN UPPER('V')
+          WHEN 0 THEN UPPER('I')
+        ELSE null END
+      ELSE null END)
+    </select>
     <select alias="AGGREGATION_LEVEL" type="text">UPPER('H')</select>
     <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis -->
     <select alias="SPECIES_REGISTRATION" type="text">'Par'</select><!-- TODO : check batch exhaustiveness -->
@@ -43,8 +50,9 @@
     <select alias="TIME" group="time" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'HH24:MI')</select>
 
     <!-- FISHING TIME -->
-    <select alias="FISHING_TIME" group="fishingTime" dbms="hsqldb,pgsql" type="number">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
-    <select alias="FISHING_TIME" group="fishingTime" dbms="oracle" type="number">CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER)</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="hsqldb">EXTRACT(MINUTE FROM (COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)))</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="oracle">CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER)</select>
+    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="pgsql">F_DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME))</select>
 
     <select alias="POS_START_LAT" type="number">P_START.LATITUDE</select>
     <select alias="POS_START_LON" type="number">P_START.LONGITUDE</select>
@@ -53,26 +61,40 @@
 
     <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
 
-    <select alias="STATISTICAL_RECTANGLE" dbms="hsqldb,pgsql" type="text">F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)</select>
+    <select alias="STATISTICAL_RECTANGLE" dbms="hsqldb,pgsql" type="text">
+      CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
+        F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
+      ELSE
+        L_AREA.LABEL
+      END
+    </select>
     <select alias="STATISTICAL_RECTANGLE" dbms="oracle" type="text">CAST(null as VARCHAR2(10))</select> <!-- TODO Rewrite function for Oracle -->
 
     <!-- TODO: check if 10'x10' codification is OK
     <select alias="SUB_POLYGON" type="text">F_TO_SQUARE(P_END.LATITUDE, P_END.LONGITUDE, 10)</select>-->
     <select alias="SUB_POLYGON" type="text" dbms="hsqldb,pgsql">null</select>
 
-    <select alias="MAIN_FISHING_DEPTH" type="number">(SELECT CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainFishingDepthPmfmId)</select>
-    <select alias="MAIN_WATER_DEPTH" type="number">(SELECT CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&amp;mainWaterDepthPmfmId)</select>
+    <select alias="MAIN_FISHING_DEPTH" group="agg" type="number">
+      MAX(CASE VUM.PMFM_FK WHEN &amp;mainFishingDepthPmfmId THEN CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
+    </select>
+    <select alias="MAIN_WATER_DEPTH" group="agg" type="number">
+      MAX(CASE VUM.PMFM_FK WHEN &amp;mainWaterDepthPmfmId THEN CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
+    </select>
 
+    <!-- TODO: check METIER -> TAXON_GROUP -> TAXON_GROUP_TYPE ? -->
     <select alias="NATIONAL_METIER" type="text" dbms="hsqldb,pgsql">null</select>
-    <select alias="EU_METIER_LEVEL5" type="text">M.LABEL</select>
+    <select alias="EU_METIER_LEVEL5" type="text">
+      M.LABEL
+    </select>
+
     <select alias="EU_METIER_LEVEL6" type="text" dbms="hsqldb,pgsql">null</select>
     <select alias="GEAR_TYPE" group="gearType" type="text">G.LABEL</select>
-    <select alias="MESH_SIZE" type="number">(SELECT CAST(ROUND(PGM.NUMERICAL_VALUE) AS INTEGER) FROM PHYSICAL_GEAR_MEASUREMENT PGM WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&amp;meshSizePmfmId)</select>
-    <select alias="SELECTION_DEVICE" type="text"><![CDATA[
-    (SELECT QV.LABEL FROM PHYSICAL_GEAR_MEASUREMENT PGM
-      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
-    WHERE
-      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)]]></select>
+    <select alias="MESH_SIZE" group="agg" type="number">
+      MAX(CASE PGM.PMFM_FK WHEN &amp;meshSizePmfmId THEN CAST(ROUND(PGM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
+    </select>
+    <select alias="SELECTION_DEVICE" group="agg" type="text">
+      MAX(CASE PGM.PMFM_FK WHEN &amp;selectionDevicePmfmId THEN PGQV.LABEL ELSE NULL END)
+    </select>
 
     <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text" dbms="hsqldb,pgsql">null</select>
 
@@ -82,8 +104,17 @@
     <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.PHYSICAL_GEAR_FK</from>
     <from join="true">LEFT OUTER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
 
+    <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.OPERATION_FK = O.ID</from>
+    <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
+    <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR_MEASUREMENT PGM ON PGM.PHYSICAL_GEAR_FK = PG.ID</from>
+    <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE PGQV on PGQV.ID = PGM.QUALITATIVE_VALUE_FK</from>
+
+    <from join="true">LEFT OUTER JOIN FISHING_AREA FA ON FA.OPERATION_FK = O.ID</from>
+    <from join="true">LEFT OUTER JOIN LOCATION L_AREA ON L_AREA.ID = FA.LOCATION_FK</from>
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_START ON P_START.OPERATION_FK = O.ID and P_START.DATE_TIME=COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</from>
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_END ON P_END.OPERATION_FK = O.ID and P_END.DATE_TIME=COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)</from>
+
+    <groupby>&amp;groupByColumns</groupby>
 
     <orderby direction="ASC">O.ID</orderby>
 

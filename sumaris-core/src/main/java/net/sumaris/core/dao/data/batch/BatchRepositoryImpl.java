@@ -23,10 +23,12 @@
 package net.sumaris.core.dao.data.batch;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
-import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
@@ -56,7 +58,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -179,7 +180,7 @@ public class BatchRepositoryImpl
 
 
     @Override
-    public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
+    public List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources) {
 
         long startTime = System.currentTimeMillis();
         log.debug("Saving operation {id: {}} batches... {hash_optimization: {}}", operationId, enableSaveUsingHash);
@@ -286,9 +287,10 @@ public class BatchRepositoryImpl
     protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
 
         // Load existing entities
-        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.HASH);
-        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.LABEL);
-        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(Beans.getList(parent.getBatches()));
+        final List<Batch> nonNullBatches = Beans.getList(parent.getBatches());
+        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(nonNullBatches, Batch.Fields.HASH, 0);
+        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(nonNullBatches, Batch.Fields.LABEL, "!!MISSING_LABEL!!");
+        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(nonNullBatches);
         final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
 
         // Save each batches
@@ -305,7 +307,7 @@ public class BatchRepositoryImpl
                 // Try to find it by hash code
                 Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
                 // Not found by hash code: try by label
-                if (CollectionUtils.isEmpty(existingBatchs)) {
+                if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null) {
                     existingBatchs = sourcesByLabelMap.get(source.getLabel());
                 }
                 // If one on match => use it
@@ -318,7 +320,7 @@ public class BatchRepositoryImpl
             }
 
             // Check if batch save can be skipped
-            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            boolean skip = enableSaveUsingHash && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
 
                 // Save the batch (using a dedicated function)
@@ -343,11 +345,12 @@ public class BatchRepositoryImpl
 
         boolean dirty = updatesCount > 0;
 
-        // Remove not processed batches
+        // If there is some not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
             // Delete linked produces first (ie. Sales of packets)
             productRepository.deleteProductsByBatchIdIn(sourcesIdsToProcess.keySet());
-            sourcesIdsToProcess.values().forEach(this::delete);
+            // Delete batches
+            this.deleteAll(sourcesIdsToProcess.values());
             dirty = true;
         }
 

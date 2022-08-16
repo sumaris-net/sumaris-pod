@@ -31,7 +31,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -51,8 +51,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.lang.Nullable;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
@@ -76,7 +76,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         .withUserProfiles(false)
         .build();
 
-    private String[] copyExcludeProperties = new String[]{IUpdateDateEntityBean.Fields.UPDATE_DATE};
+    private String[] copyExcludeProperties = new String[]{IUpdateDateEntity.Fields.UPDATE_DATE};
 
     @Autowired
     private PersonRepository personRepository;
@@ -206,13 +206,13 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         // TODO CONTROL PROCESS HERE
         Date newUpdateDate = getDatabaseCurrentDate();
         entity.setControlDate(newUpdateDate);
+        entity.setQualificationComments(vo.getQualificationComments());
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
 
         // Save entityName
         getEntityManager().merge(entity);
-
 
         // Update source
         vo.setControlDate(newUpdateDate);
@@ -346,7 +346,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         this.copyExcludeProperties = excludedProperties;
     }
 
-    protected void configureQuery(TypedQuery<E> query, O fetchOptions) {
+    protected void configureQuery(TypedQuery<E> query, @Nullable O fetchOptions) {
         // Can be override by subclasses
     }
 

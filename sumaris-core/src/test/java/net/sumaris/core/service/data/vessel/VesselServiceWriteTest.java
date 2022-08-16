@@ -56,7 +56,7 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
         VesselVO vessel1 = service.get(vesselId);
         Assert.assertNotNull(vessel1);
         Assert.assertNotNull(vessel1.getVesselFeatures());
-        Assert.assertEquals(1, vessel1.getVesselFeatures().getId().intValue());
+        Assert.assertEquals(2, vessel1.getVesselFeatures().getId().intValue());
         Assert.assertNotNull(vessel1.getVesselFeatures().getStartDate());
         Assert.assertNull(vessel1.getVesselFeatures().getEndDate());
         Assert.assertNotNull(vessel1.getVesselFeatures().getExteriorMarking());

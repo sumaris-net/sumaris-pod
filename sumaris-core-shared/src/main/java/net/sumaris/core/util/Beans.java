@@ -26,6 +26,7 @@ package net.sumaris.core.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -228,6 +229,26 @@ public class Beans {
         Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
         if (list == null) return ArrayListMultimap.create();
         return Multimaps.index(list, input -> getProperty(input, propertyName));
+    }
+
+    /**
+     * <p>splitByProperty.</p>
+     *
+     * @param list         a {@link Iterable} object.
+     * @param propertyName a {@link String} object.
+     * @param defaultKey   the default key, when property if null
+     * @param <K>          a K object.
+     * @param <V>          a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K, V> ListMultimap<K, V> splitByNotUniqueProperty(Iterable<V> list, String propertyName, @NonNull K defaultKey) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(propertyName));
+        if (list == null) return ArrayListMultimap.create();
+        return Multimaps.index(list, input -> {
+            K key = getProperty(input, propertyName);
+            if (key == null) return defaultKey;
+            return key;
+        });
     }
 
     /**
@@ -524,5 +545,12 @@ public class Beans {
             if (predicate.test(iter.previous()))
                 return iter.nextIndex();
         return -1;
+    }
+
+    public static Integer hashCode(Collection<?> beans) {
+        return getStream(beans)
+            .map(item -> item.hashCode())
+            .reduce((h1, h2) -> h1 * h2)
+            .orElse(null);
     }
 }

@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
@@ -52,9 +52,9 @@ import java.util.List;
                         "FROM TaxonName " +
                         "WHERE id=:id")
 })
-public class TaxonName implements IItemReferentialEntity,
-        IWithDescriptionAndCommentEntity,
-        ITreeNodeEntityBean<Integer, TaxonName> {
+public class TaxonName implements IItemReferentialEntity<Integer>,
+        IWithDescriptionAndCommentEntity<Integer>,
+    ITreeNodeEntity<Integer, TaxonName> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
@@ -119,12 +119,13 @@ public class TaxonName implements IItemReferentialEntity,
 
     /* -- Tree link -- */
 
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
+    @JoinColumn(name = "parent_taxon_name_fk")
+    private TaxonName parent;
+
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.PARENT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonName> children = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonName.class)
-    @JoinColumn(name = "parent_taxon_name_fk")
-    private TaxonName parent;
 
 }

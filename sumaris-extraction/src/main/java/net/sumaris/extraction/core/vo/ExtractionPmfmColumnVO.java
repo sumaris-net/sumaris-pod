@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.vo;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.PmfmValueType;
 
 /**
@@ -32,6 +33,7 @@ import net.sumaris.core.vo.referential.PmfmValueType;
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldNameConstants
 public class ExtractionPmfmColumnVO {
 
     int pmfmId;

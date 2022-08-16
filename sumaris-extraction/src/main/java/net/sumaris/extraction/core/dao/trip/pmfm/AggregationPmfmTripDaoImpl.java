@@ -23,20 +23,24 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.AggPmfmTripSpecification;
 import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -52,15 +56,15 @@ public class AggregationPmfmTripDaoImpl<
     implements AggSurvivalTestSpecification {
 
     @Override
-    public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_PMFM_TRIP;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(AggExtractionTypeEnum.AGG_PMFM_TRIP);
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
+    public <R extends C> R aggregate(IExtractionTypeWithTablesVO source, @Nullable F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
-        context.setFormat(ProductFormatEnum.AGG_PMFM_TRIP);
+        context.setType(AggExtractionTypeEnum.AGG_PMFM_TRIP);
 
         return context;
     }
@@ -73,7 +77,7 @@ public class AggregationPmfmTripDaoImpl<
     }
 
     @Override
-    protected XMLQuery createSpeciesLengthQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createSpeciesLengthQuery(IExtractionTypeWithTablesVO source, C context) {
         XMLQuery xmlQuery = super.createSpeciesLengthQuery(source, context);
 
         // Special case for COST format:

@@ -88,13 +88,13 @@
 		</createTable>
 	</changeSet>
 
-	<changeSet author="ludovic.pecquot@e-is.pro" id="1625816880597-4">
+	<changeSet author="ludovic.pecquot@e-is.pro" id="1625816880597-4" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<not>
 				<sequenceExists sequenceName="survey_measurement_seq"/>
 			</not>
 		</preConditions>
-		<createSequence sequenceName="survey_measurement_seq"/>
+		<createSequence sequenceName="survey_measurement_seq" incrementBy="50"/>
 	</changeSet>
 
 	<!-- update SYSTEM_VERSION -->

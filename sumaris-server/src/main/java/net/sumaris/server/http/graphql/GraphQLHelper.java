@@ -32,10 +32,13 @@ import graphql.GraphQLException;
 import graphql.execution.AbortExecutionException;
 import graphql.execution.ResultPath;
 import graphql.kickstart.execution.error.GenericGraphQLError;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.ErrorHelper;
+import net.sumaris.server.http.security.AnonymousUserDetails;
+import net.sumaris.server.http.security.AuthService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class GraphQLHelper extends GraphQLUtils {
 
     private GraphQLHelper() {
@@ -180,4 +184,9 @@ public class GraphQLHelper extends GraphQLUtils {
     }
 
 
+    public static void logDeprecatedUse(AuthService authService, String functionName, String appVersion) {
+        String userId = authService.getAuthenticatedUserId().map(Object::toString)
+            .orElse(AnonymousUserDetails.TOKEN);
+        log.warn("User {id: {}} used {{}} that is deprecated since {appVersion: {}}.", userId, functionName, appVersion);
+    }
 }

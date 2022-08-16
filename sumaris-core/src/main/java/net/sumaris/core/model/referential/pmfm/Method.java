@@ -62,7 +62,7 @@ import java.util.Date;
 @Entity
 @Table(name = "method")
 @Cacheable
-public class Method implements IItemReferentialEntity {
+public class Method implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "METHOD_SEQ")

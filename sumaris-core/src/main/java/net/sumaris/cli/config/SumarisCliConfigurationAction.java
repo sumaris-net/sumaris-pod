@@ -22,10 +22,7 @@
 
 package net.sumaris.cli.config;
 
-import net.sumaris.cli.action.DatabaseCreateSchemaAction;
-import net.sumaris.cli.action.DatabaseGenerateChangeLogAction;
-import net.sumaris.cli.action.DatabaseUpdateSchemaAction;
-import net.sumaris.cli.action.HelpAction;
+import net.sumaris.cli.action.*;
 import net.sumaris.cli.action.data.DenormalizeTripsAction;
 import org.nuiton.config.ConfigActionDef;
 
@@ -38,7 +35,9 @@ public enum SumarisCliConfigurationAction implements ConfigActionDef {
 
     HELP(HelpAction.class.getName() + "#show", "Shows help", "-h", "--help"),
 
-    // Database
+    // Database schema actions
+    DB_CREATE_SQL(DatabaseCreateSchemaFileAction.class.getName() + "#run", "Generate SQL to create the schema", DatabaseCreateSchemaFileAction.COMMAND),
+
     DB_CREATE(DatabaseCreateSchemaAction.class.getName() + "#run", "Create new database", "--schema-create"),
 
     DB_UPDATE_SCHEMA(DatabaseUpdateSchemaAction.class.getName() + "#run", "Update an existing database", "--schema-update"),

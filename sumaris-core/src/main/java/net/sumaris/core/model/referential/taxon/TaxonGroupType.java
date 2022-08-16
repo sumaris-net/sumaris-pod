@@ -44,7 +44,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group_type")
-public class TaxonGroupType implements IItemReferentialEntity {
+public class TaxonGroupType implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TAXON_GROUP_TYPE_SEQ")

@@ -29,6 +29,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -37,11 +38,11 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name="physical_gear_measurement")
+@SequenceGenerator(name = "PHYSICAL_GEAR_MEASUREMENT_SEQ", sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ")
 public class PhysicalGearMeasurement implements ISortedMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_MEASUREMENT_SEQ")
-    @SequenceGenerator(name = "PHYSICAL_GEAR_MEASUREMENT_SEQ", sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
     @Column(name = "update_date")

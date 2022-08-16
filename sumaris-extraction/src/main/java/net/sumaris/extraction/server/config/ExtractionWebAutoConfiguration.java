@@ -24,8 +24,7 @@ package net.sumaris.extraction.server.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestController;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -33,7 +32,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -90,19 +88,4 @@ public class ExtractionWebAutoConfiguration {
         };
     }
 
-    @Bean
-    @ConditionalOnBean(name="extractionTaskExecutor")
-    @ConditionalOnMissingBean({SchedulingConfigurer.class})
-    public SchedulingConfigurer schedulingConfigurer(Executor extractionTaskExecutor) {
-        return taskRegistrar -> taskRegistrar.setScheduler(extractionTaskExecutor);
-    }
-
-    @Bean
-    @ConditionalOnProperty(
-        name = "sumaris.extraction.scheduling.enabled",
-        matchIfMissing = true
-    )
-    public Executor extractionTaskExecutor() {
-        return Executors.newScheduledThreadPool((ProcessingFrequencyEnum.values().length - 1) * 2);
-    }
 }

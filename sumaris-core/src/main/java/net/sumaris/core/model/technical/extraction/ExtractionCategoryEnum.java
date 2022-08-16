@@ -33,7 +33,7 @@ import java.util.Optional;
 public enum ExtractionCategoryEnum {
 
     /**
-     * Fixed content
+     * Data from an existing product
      */
     PRODUCT,
 

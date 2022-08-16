@@ -42,7 +42,7 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @Table(name = "strategy")
-public class Strategy implements IItemReferentialEntity {
+public class Strategy implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")

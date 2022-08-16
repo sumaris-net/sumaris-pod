@@ -41,6 +41,9 @@ public interface TaxonNameService {
     TaxonNameVO getByLabel(String label, TaxonNameFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
+    TaxonNameVO getByReferenceTaxonId(int referenceTaxonId, TaxonNameFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
     List<TaxonNameVO> findByFilter(TaxonNameFilterVO filter, Page page, TaxonNameFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)

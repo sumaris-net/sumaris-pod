@@ -46,7 +46,7 @@ public interface SumarisJpaRepository<E extends IEntity<ID>, ID extends Serializ
 
     E createEntity();
 
-    V save(V vo);
+    V save(V source);
 
-    V save(V vo, boolean checkUpdateDate, boolean lockForUpdate);
+    V save(V source, boolean checkUpdateDate, boolean lockForUpdate);
 }

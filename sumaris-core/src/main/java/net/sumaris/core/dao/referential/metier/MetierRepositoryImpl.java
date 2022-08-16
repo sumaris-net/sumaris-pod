@@ -23,7 +23,6 @@ package net.sumaris.core.dao.referential.metier;
  */
 
 import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -48,9 +47,9 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
+
 public class MetierRepositoryImpl
-    extends ReferentialRepositoryImpl<Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
     implements MetierSpecifications {
 
     @Autowired
@@ -129,8 +128,13 @@ public class MetierRepositoryImpl
         }
 
         // Taxon group
-        if (source.getTaxonGroup() != null) {
-            target.setTaxonGroup(taxonGroupRepository.toVO(source.getTaxonGroup()));
+        if (source.getTaxonGroup() != null || copyIfNull) {
+            if (source.getTaxonGroup() == null) {
+                target.setTaxonGroup(null);
+            }
+            else {
+                target.setTaxonGroup(taxonGroupRepository.toVO(source.getTaxonGroup()));
+            }
         }
 
     }

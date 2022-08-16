@@ -28,9 +28,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jdbc.PostgresqlStatements;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
@@ -1621,8 +1622,8 @@ public class Daos {
         }
     }
 
-    public static void checkUpdateDateForUpdate(IUpdateDateEntityBean<?, ? extends Date> source,
-                                                IUpdateDateEntityBean<?, ? extends Date> entity) {
+    public static void checkUpdateDateForUpdate(IUpdateDateEntity<?, ? extends Date> source,
+                                                IUpdateDateEntity<?, ? extends Date> entity) {
         // Check update date
         if (entity.getUpdateDate() != null) {
             Timestamp serverUpdateDtNoMillisecond = Dates.resetMillisecond(entity.getUpdateDate());
@@ -1692,7 +1693,7 @@ public class Daos {
     public static <T> Stream<T> streamByPageIteration(final Function<Page, T> processPageFn,
                                                       final Function<T, Boolean> hasNextFn,
                                                       final int pageSize,
-                                                      final long maxPageCount) {
+                                                      final long maxLimit) {
         final Page page = Page.builder().size(pageSize).build();
         final Iterator<T> iterator = new Iterator<T>() {
             boolean hasNext = true;
@@ -1707,7 +1708,7 @@ public class Daos {
                 T pageModel = processPageFn.apply(page);
                 page.setOffset(page.getOffset() + pageSize);
                 hasNext = hasNextFn.apply(pageModel)
-                        && (maxPageCount == -1 || page.getOffset() < maxPageCount);
+                        && (maxLimit == -1 || page.getOffset() < maxLimit);
                 return pageModel;
             }
         };
@@ -1840,6 +1841,33 @@ public class Daos {
         return result;
     }
 
+    public static <S, T> ListJoin<S, T> composeJoinList(From<?, ?> root, String attributePath, JoinType joinType) {
+
+        String[] attributes = attributePath.split("\\.");
+        From<?, ?> from = root; // starting from root
+
+        for (int i = 0; i < attributes.length; i++) {
+            String attribute = attributes[i];
+            try {
+                // copy into a final var
+                final From<?, ?> finalForm = from;
+                // find a join (find it from existing joins of from)
+                from = from.getJoins().stream()
+                    .filter(j -> j.getAttribute().getName().equals(attribute) && (j instanceof ListJoin))
+                    .findFirst()
+                    .orElseGet(() -> finalForm.joinList(attribute, joinType));
+            } catch (IllegalArgumentException ignored) {
+                throw new IllegalArgumentException(String.format("the join or attribute [%s] from [%s] doesn't exists", attribute, from.getJavaType()));
+            }
+        }
+
+        if (!(from instanceof ListJoin)) {
+            throw new IllegalArgumentException(String.format("Invalid join list [%s] : expected a ListJoin class but found type [%s]", attributePath, from.getJavaType()));
+        }
+
+        return (ListJoin<S, T>)from;
+    }
+
     public static <T, X> Root<X> getRoot(CriteriaQuery<T> query, Class<X> entityClass) {
         return Beans.getStream(query.getRoots())
             .filter(root -> root.getJavaType() == entityClass)
@@ -1881,5 +1909,18 @@ public class Daos {
             default:
                 throw new SumarisTechnicalException("Daos.getHashCodeString() not implemented for DBMS: " + databaseType.name());
         }
+    }
+
+    public static Expression<Date> nvlEndDate(Path<?> root, CriteriaBuilder cb,
+                                              String endDateFieldName,
+                                              DatabaseType databaseType) {
+
+        if (databaseType == DatabaseType.oracle) {
+            // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
+            return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
+                root.get(endDateFieldName)
+            );
+        }
+        return cb.coalesce(root.get(endDateFieldName), Daos.DEFAULT_END_DATE_TIME);
     }
 }

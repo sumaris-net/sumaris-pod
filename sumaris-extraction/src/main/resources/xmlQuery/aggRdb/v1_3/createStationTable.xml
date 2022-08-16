@@ -107,8 +107,8 @@
     <where operator="AND" group="programFilter">
       <in field="S.PROJECT">&amp;progLabels</in>
     </where>
-    <where group="startDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') >= &startDate]]></where>
-    <where group="endDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || S.TIME, 'YYYY-MM-DD HH24:MI') <= &endDate]]></where>
+    <where group="startDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || COALESCE(S.TIME, '00:00'), 'YYYY-MM-DD HH24:MI') >= &startDate]]></where>
+    <where group="endDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || COALESCE(S.TIME, '00:00'), 'YYYY-MM-DD HH24:MI') <= &endDate]]></where>
     <where group="vesselFilter" operator="AND">
       <in field="S.VESSEL_IDENTIFIER">&amp;vesselIds</in>
     </where>

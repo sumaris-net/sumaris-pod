@@ -168,19 +168,4 @@ hibernate.dialect=${hibernate.dialect}
 		</echo>
 	</target>
 
-
-	<target name="hbm2doc">
-
-		<echo level="warning">STARTING Hbm2doc ant build</echo>
-
-		<hibernatetool>
-			<classpath>
-				<path location="${outputDirectory}" />
-			</classpath>
-
-			<jpaconfiguration persistenceunit="sumaris" />
-
-			<hbm2doc destdir="${project.reporting.outputDirectory}/hibernate" />
-		</hibernatetool>
-	</target>
 </project>

@@ -59,10 +59,16 @@ public class CustomMetadataBuilderFactory implements MetadataBuilderFactory {
 
         // Read sumaris.persistence.sequence.increment option
         int allocationSize = config != null ? config.getSequenceIncrementValue() : 0;
-        if (allocationSize <= 0) {
-            log.debug(String.format("invalid allocationSize : %s, fallback to default MetadataBuilderImplementor", allocationSize));
+        if (allocationSize < 0) {
+            log.debug("Invalid sequence allocationSize {}, fallback to default MetadataBuilderImplementor", allocationSize);
             return null;
         }
+        if (allocationSize == 0) {
+            log.debug("No sequence allocationSize defined in config. fallback to default MetadataBuilderImplementor");
+            return null;
+        }
+
+        log.info("Using allocationSize {} to all sequences", allocationSize);
 
         MetadataBuilderImplementor implementor = new MetadataBuilderImpl(metadatasources, defaultBuilder.getBootstrapContext().getServiceRegistry());
         implementor.applyIdGenerationTypeInterpreter(new ConfigurableSequenceGenerator(allocationSize));
@@ -118,8 +124,7 @@ public class CustomMetadataBuilderFactory implements MetadataBuilderFactory {
 
             definitionBuilder.addParam(
                 SequenceStyleGenerator.INCREMENT_PARAM,
-                // Set allocationSize from configuration instead of annotation
-                String.valueOf( allocationSize /*sequenceGeneratorAnnotation.allocationSize()*/ )
+                String.valueOf(this.allocationSize) // Forced by configuration instead of annotation
             );
             definitionBuilder.addParam(
                 SequenceStyleGenerator.INITIAL_PARAM,

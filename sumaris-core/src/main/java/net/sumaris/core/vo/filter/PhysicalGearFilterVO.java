@@ -46,10 +46,18 @@ public class PhysicalGearFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Integer locationId; // Not used in repository
 
-    // Parent
     private Integer vesselId;
-    private Integer tripId;
     private Integer[] programIds;
+
+    // Trip
+    private Integer tripId;
+    private Integer excludeTripId;
+
+    // Parent
+    private Integer parentGearId;
+    private Integer excludeParentGearId;
+    private Boolean excludeChildGear;
+    private Boolean excludeParentGear;
 
     // Quality
     private Integer[] qualityFlagIds;

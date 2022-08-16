@@ -33,6 +33,7 @@ import org.nuiton.config.ApplicationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.util.Arrays;
 
 @Slf4j
 public class ExtractionConfiguration {
@@ -58,6 +59,11 @@ public class ExtractionConfiguration {
     public ExtractionConfiguration(SumarisConfiguration configuration){
         this.delegate = configuration;
         setInstance(this);
+
+        // Define Alias
+        addAlias(this.delegate.getApplicationConfig());
+
+
     }
 
     public String getExtractionCliOutputFormat() {
@@ -72,7 +78,7 @@ public class ExtractionConfiguration {
         catch (IllegalArgumentException e) {
             throw new SumarisTechnicalException(String.format("Invalid frequency '%s'. Available values: %s",
                 value,
-                ProcessingFrequencyEnum.values()
+                Arrays.toString(ProcessingFrequencyEnum.values())
             ));
         }
     }
@@ -81,8 +87,16 @@ public class ExtractionConfiguration {
         return delegate.getJdbcURL();
     }
 
+    public boolean enableCache() {
+        return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.CACHE_ENABLED.getKey());
+    }
+
     public boolean enableExtractionProduct() {
         return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_PRODUCT_ENABLE.getKey());
+    }
+
+    public boolean enableExtractionScheduling() {
+        return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_SCHEDULING_ENABLED.getKey());
     }
 
     public CacheTTL getExtractionCacheDefaultTtl() {
@@ -112,5 +126,17 @@ public class ExtractionConfiguration {
 
     public char getCsvSeparator() {
         return delegate.getCsvSeparator();
+    }
+
+    /**
+     * Add alias to the given ApplicationConfig. <p/>
+     * This method could be override to add specific alias
+     *
+     * @param applicationConfig a {@link ApplicationConfig} object.
+     */
+    protected void addAlias(ApplicationConfig applicationConfig) {
+        // CLI options
+        applicationConfig.addAlias("-format", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
+        applicationConfig.addAlias("-frequency", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
     }
 }

@@ -126,8 +126,11 @@ public class DaosTest {
             "FROM TRIP T\n" +
             "WHERE\n" +
             "  0 < S.FISHING_DURATION";
-        String actualSql = Daos.sqlReplaceColumnNames(sql, ImmutableMap.of("date", "fishing_date",
-            "fishing_time", "fishing_duration"));
+        String actualSql = Daos.sqlReplaceColumnNames(sql, ImmutableMap.of(
+            "date", "fishing_date",
+            "DATE", "FISHING_DATE",
+            "FISHING_TIME", "FISHING_DURATION",
+            "fishing_time", "fishing_duration"), false);
 
         Assert.assertEquals(expectedSql, actualSql);
     }

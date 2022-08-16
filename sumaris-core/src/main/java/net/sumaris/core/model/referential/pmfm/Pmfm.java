@@ -46,7 +46,7 @@ import java.util.Set;
         }
 )
 @Cacheable
-public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntity {
+public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithStatusEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
@@ -86,11 +86,10 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
     private Double maxValue;
 
     /**
-     * Valeur par défaut (peut etre redéfini dans les stratégies).
+     * Valeur par défaut (peut être redéfini dans les stratégies).
      */
     @Column(name = "default_value")
     private Double defaultValue;
-
 
     /**
      * Nombre de décimales significatives pour le résultat mesuré/analysé suivant le quadruplet lié.
@@ -104,6 +103,17 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
     @Column(name = "signif_figures_number")
     private Integer signifFiguresNumber;
 
+    /**
+     * Seuil de détection des instruments de mesure et de la méthode associée.
+     */
+    @Column(name = "detection_threshold")
+    private Double detectionThreshold;
+
+    /**
+     * Précision de la mesure et de la méthode associée.
+     */
+    @Column(name = "precision")
+    private Double precision;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Parameter.class)
     @JoinColumn(name = "parameter_fk", nullable = false)

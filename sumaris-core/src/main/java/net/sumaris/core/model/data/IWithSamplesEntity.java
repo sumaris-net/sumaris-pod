@@ -23,14 +23,9 @@ package net.sumaris.core.model.data;
  */
 
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.referential.QualityFlag;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 public interface IWithSamplesEntity<T extends Serializable, S extends IEntity<Integer>> extends IEntity<T> {
 

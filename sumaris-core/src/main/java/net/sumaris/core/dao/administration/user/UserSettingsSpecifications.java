@@ -22,14 +22,27 @@ package net.sumaris.core.dao.administration.user;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
+import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.ParameterExpression;
 import java.util.Optional;
 
 /**
  * @author peck7 on 20/08/2020.
  */
 public interface UserSettingsSpecifications {
+
+    default Specification<UserSettings> hasIssuer(String issuer) {
+        if (issuer == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> parameter = cb.parameter(String.class, UserSettings.Fields.ISSUER);
+            return cb.equal(root.get(UserSettings.Fields.ISSUER), parameter);
+        }).addBind(UserSettings.Fields.ISSUER, issuer);
+    }
 
     Optional<UserSettingsVO> findByIssuer(String issuer);
 

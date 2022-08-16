@@ -47,7 +47,7 @@ import java.util.*;
 /**
  * @author peck7 on 24/08/2020.
  */
-public interface StrategySpecifications extends ReferentialSpecifications<Strategy> {
+public interface StrategySpecifications extends ReferentialSpecifications<Integer, Strategy> {
 
     String ANALYTIC_REFERENCES = "analyticReferences";
     String REFERENCE_TAXON_IDS = "referenceTaxonIds";

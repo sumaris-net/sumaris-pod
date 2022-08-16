@@ -34,7 +34,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "origin_item_type")
-public class OriginItemType implements IItemReferentialEntity {
+public class OriginItemType implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy= GenerationType.SEQUENCE, generator = "ORIGIN_ITEM_TYPE_SEQ")
     @SequenceGenerator(name = "ORIGIN_ITEM_TYPE_SEQ", sequenceName="ORIGIN_ITEM_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)

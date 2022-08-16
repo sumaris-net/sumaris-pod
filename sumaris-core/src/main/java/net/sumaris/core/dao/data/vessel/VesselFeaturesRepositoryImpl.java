@@ -29,6 +29,7 @@ import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -56,25 +57,17 @@ public class VesselFeaturesRepositoryImpl
 
     private final ReferentialDao referentialDao;
     private final LocationRepository locationRepository;
-    private final SumarisConfiguration configuration;
-    private boolean isOracleDatabase;
     private boolean enableRegistrationCodeSearchAsPrefix;
 
     @Autowired
     public VesselFeaturesRepositoryImpl(EntityManager entityManager,
                                         ReferentialDao referentialDao,
-                                        LocationRepository locationRepository,
-                                        SumarisConfiguration configuration) {
+                                        LocationRepository locationRepository) {
         super(VesselFeatures.class, VesselFeaturesVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.locationRepository = locationRepository;
-        this.configuration = configuration;
     }
 
-    @PostConstruct
-    private void setup() {
-        isOracleDatabase = Daos.isOracleDatabase(configuration.getJdbcURL());
-    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
@@ -172,12 +165,12 @@ public class VesselFeaturesRepositoryImpl
     }
 
     @Override
-    protected void onBeforeSaveEntity(VesselFeaturesVO vo, VesselFeatures entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(VesselFeaturesVO source, VesselFeatures target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // When new entity: set the creation date
-        if (isNew || entity.getCreationDate() == null) {
-            entity.setCreationDate(entity.getUpdateDate());
+        if (isNew || target.getCreationDate() == null) {
+            target.setCreationDate(target.getUpdateDate());
         }
     }
 
@@ -189,10 +182,5 @@ public class VesselFeaturesRepositoryImpl
             vo.setCreationDate(savedEntity.getCreationDate());
         }
 
-    }
-
-    @Override
-    public boolean isOracleDatabase() {
-        return isOracleDatabase;
     }
 }

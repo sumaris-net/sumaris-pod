@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "grouping_classification")
-public class GroupingClassification implements IItemReferentialEntity  {
+public class GroupingClassification implements IItemReferentialEntity<Integer>  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_CLASSIFICATION_SEQ")
