@@ -255,5 +255,16 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             Assert.assertEquals(1, strategies.size());
             Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
+
+        // by acquisition level
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .programIds(new Integer[]{40}) // SIH-OBSBIO
+                    .acquisitionlevels(new String[]{AcquisitionLevelEnum.OBSERVED_LOCATION.getLabel()})
+                    .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(0, strategies.size());
+        }
     }
 }

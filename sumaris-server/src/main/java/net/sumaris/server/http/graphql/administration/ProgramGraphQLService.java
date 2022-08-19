@@ -32,9 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.pmfm.Fraction;
@@ -53,10 +53,7 @@ import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.*;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.*;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
@@ -226,9 +223,22 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
+                                                   @GraphQLArgument(name = "filter") StrategyFilterVO filter,
                                                    @GraphQLEnvironment ResolutionEnvironment env) {
         if (program.getStrategies() != null) return program.getStrategies();
-        return strategyService.findByProgram(program.getId(), getStrategyFetchOptions(GraphQLUtils.fields(env)));
+        filter = StrategyFilterVO.nullToEmpty(filter);
+
+        boolean enableStrategyDepartment = programService.hasPropertyValueByProgramId(program.getId(), ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString());
+        if (enableStrategyDepartment) {
+            filter = fillStrategyFilter(filter);
+        }
+
+        if (ArrayUtils.isEmpty(filter.getAcquisitionlevels())) {
+            log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. It is not recommended in production!");
+        }
+
+        filter.setProgramIds(new Integer[]{program.getId()});
+        return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
 
@@ -273,7 +283,10 @@ public class ProgramGraphQLService {
         if (pmfmStrategy.getPmfm() != null) {
             return pmfmStrategy.getPmfm();
         } else if (pmfmStrategy.getPmfmId() != null) {
-            return pmfmService.get(pmfmStrategy.getPmfmId());
+            return pmfmService.get(pmfmStrategy.getPmfmId(), PmfmFetchOptions.builder()
+                    .withInheritance(false)
+                    .withQualitativeValue(true)
+                    .build());
         }
         return null;
     }
@@ -529,9 +542,12 @@ public class ProgramGraphQLService {
                 fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.ID))
                     || fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.LABEL))
             )
+            .withAppliedStrategies(
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.APPLIED_STRATEGIES, AppliedStrategyVO.Fields.ID))
+            )
             // Test if should include Pmfms
             .withPmfms(
-                fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
+                    fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
             )
             // Test if should include DenormalizedPmfms
             .withDenormalizedPmfms(
@@ -550,6 +566,7 @@ public class ProgramGraphQLService {
                     .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
                     .build()
             )
+
             .build();
     }
 
@@ -609,6 +626,7 @@ public class ProgramGraphQLService {
      * @param filter
      */
     protected StrategyFilterVO fillStrategyFilter(StrategyFilterVO filter) {
+        filter = StrategyFilterVO.nullToEmpty(filter);
 
         if (authService.isAdmin()) {
             // No restriction on department (= show all)

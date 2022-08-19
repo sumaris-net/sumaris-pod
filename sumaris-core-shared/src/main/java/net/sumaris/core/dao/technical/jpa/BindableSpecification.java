@@ -139,8 +139,8 @@ public class BindableSpecification<T> implements Specification<T>, Serializable 
     }
 
     @Override
-    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
-        return getSpecificationOptional().map(spec -> spec.toPredicate(root, query, criteriaBuilder)).orElse(null);
+    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        return getSpecificationOptional().map(spec -> spec.toPredicate(root, query, cb)).orElse(null);
     }
 
 }

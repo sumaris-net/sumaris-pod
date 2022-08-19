@@ -22,6 +22,7 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -53,18 +54,18 @@ public interface ProgramSpecifications {
 
     default Specification<Program> hasProperty(String propertyLabel) {
         if (propertyLabel == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROPERTY_LABEL_PARAM);
-            return criteriaBuilder.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(ProgramProperty.Fields.LABEL), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> param = cb.parameter(String.class, PROPERTY_LABEL_PARAM);
+            return cb.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(ProgramProperty.Fields.LABEL), param);
         })
         .addBind(PROPERTY_LABEL_PARAM, propertyLabel);
     }
 
     default Specification<Program> newerThan(Date updateDate) {
         if (updateDate == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
-            return criteriaBuilder.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            return cb.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
         })
         .addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
     }
@@ -110,4 +111,7 @@ public interface ProgramSpecifications {
     void clearCache();
 
     Logger getLogger();
+
+    boolean hasPropertyValueByProgramId(Integer id, ProgramPropertyEnum property, String expectedValue);
+    boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
 }

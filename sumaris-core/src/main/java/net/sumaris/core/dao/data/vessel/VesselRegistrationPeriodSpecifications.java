@@ -42,9 +42,9 @@ public interface VesselRegistrationPeriodSpecifications {
 
     default Specification<VesselRegistrationPeriod> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        BindableSpecification<VesselRegistrationPeriod> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.equal(root.get(VesselRegistrationPeriod.Fields.VESSEL).get(Vessel.Fields.ID), param);
+        BindableSpecification<VesselRegistrationPeriod> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
+            return cb.equal(root.get(VesselRegistrationPeriod.Fields.VESSEL).get(Vessel.Fields.ID), param);
         });
         specification.addBind(VESSEL_ID_PARAM, vesselId);
         return specification;

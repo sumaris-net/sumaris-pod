@@ -22,12 +22,12 @@
 
 package net.sumaris.core.vo.data.sample;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -103,4 +103,11 @@ public class SampleVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // = sample_measurement  (from a map)
     private List<MeasurementVO> measurements; // = sample_measurement (from a list)
 
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private int flags = 0;
+
+    public boolean hasFlag(int flag) {
+        return (flags & flag) != 0;
+    }
 }

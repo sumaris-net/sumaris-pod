@@ -28,33 +28,36 @@ import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
+import net.sumaris.core.vo.referential.PmfmFetchOptions;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
-import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/08/2020.
  */
 public class PmfmRepositoryImpl
-    extends ReferentialRepositoryImpl<Integer, Pmfm, PmfmVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Pmfm, PmfmVO, IReferentialFilter, PmfmFetchOptions>
     implements PmfmSpecifications {
 
     @Autowired
@@ -68,6 +71,18 @@ public class PmfmRepositoryImpl
     @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", unless = "#result == null")
     public PmfmVO get(Integer id) {
         return super.get(id);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM, unless = "#result == null")
+    public PmfmVO get(Integer id, PmfmFetchOptions fetchOptions) {
+        return super.get(id, fetchOptions);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PMFM, unless = "#result == null")
+    public PmfmVO getByLabel(String label) {
+        return super.getByLabel(label);
     }
 
     @Override
@@ -121,7 +136,7 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    protected void toVO(Pmfm source, PmfmVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
+    protected void toVO(Pmfm source, PmfmVO target, PmfmFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Parameter name
@@ -165,19 +180,21 @@ public class PmfmRepositoryImpl
         }
 
         // Qualitative values: from pmfm first, or (if empty) from parameter
-        if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
-            List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
-                .stream()
-                .map(referentialDao::toVO)
-                .collect(Collectors.toList());
-            target.setQualitativeValues(qualitativeValues);
-        } else if ((fetchOptions == null || fetchOptions.isWithInheritance()) // load parameter qv list is fetch option allows it
-            && CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-            List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
-                .stream()
-                .map(referentialDao::toVO)
-                .collect(Collectors.toList());
-            target.setQualitativeValues(qualitativeValues);
+        if (fetchOptions == null || fetchOptions.isWithQualitativeValue()) {
+            if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
+                List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
+                        .stream()
+                        .map(referentialDao::toVO)
+                        .collect(Collectors.toList());
+                target.setQualitativeValues(qualitativeValues);
+            } else if ((fetchOptions == null || fetchOptions.isWithInheritance()) // load parameter qv list is fetch option allows it
+                    && CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
+                List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
+                        .stream()
+                        .map(referentialDao::toVO)
+                        .collect(Collectors.toList());
+                target.setQualitativeValues(qualitativeValues);
+            }
         }
 
         // EntityName (as metadata - see ReferentialVO)
@@ -193,6 +210,7 @@ public class PmfmRepositoryImpl
     @Caching(
         evict = {
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
+                @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM, allEntries = true, condition = "#source != null && #source.id != null"),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PREFIX, allEntries = true),
                 @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_SUFFIX, allEntries = true),
@@ -203,7 +221,7 @@ public class PmfmRepositoryImpl
     public PmfmVO save(PmfmVO source) {
         PmfmVO savedVO = super.save(source);
         // Force reload
-        return get(savedVO.getId(), ReferentialFetchOptions.builder().withInheritance(false).build());
+        return get(savedVO.getId(), PmfmFetchOptions.builder().withInheritance(false).build());
     }
 
     @Override
@@ -240,7 +258,7 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    protected Specification<Pmfm> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
+    protected Specification<Pmfm> toSpecification(IReferentialFilter filter, PmfmFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions);
     }
 
@@ -279,5 +297,15 @@ public class PmfmRepositoryImpl
             .map(Parameter::getParameterGroup)
             .map(parameterGroup -> Arrays.binarySearch(parameterGroupIds, parameterGroup.getId()) != -1)
             .orElse(false);
+    }
+
+    @Override
+    protected void configureQuery(TypedQuery<Pmfm> query, Page page, @Nullable PmfmFetchOptions fetchOptions) {
+        super.configureQuery(query, page, fetchOptions);
+
+        // Fetch all pmfms (if no page)
+        if (page == null && fetchOptions != null && fetchOptions.isWithQualitativeValue()) {
+            query.setHint(QueryHints.HINT_LOADGRAPH, getEntityManager().getEntityGraph(Pmfm.GRAPH_QUALITATIVE_VALUES));
+        }
     }
 }

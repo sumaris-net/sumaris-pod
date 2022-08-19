@@ -43,7 +43,9 @@ public enum AcquisitionLevelEnum {
     @Deprecated
     SURVIVAL_TEST(7, "SURVIVAL_TEST"),
     INDIVIDUAL_MONITORING(8, "INDIVIDUAL_MONITORING"),
-    SAMPLE(12, "SAMPLE");
+    SAMPLE(12, "SAMPLE"),
+    OBSERVED_LOCATION(10, "OBSERVED_LOCATION")
+    ;
 
     private Integer id;
     private String label;

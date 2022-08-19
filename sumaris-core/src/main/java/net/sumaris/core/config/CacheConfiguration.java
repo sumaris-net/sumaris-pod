@@ -82,6 +82,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
 
         // Program privilege
         String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
+        // Program property
+        String PROGRAM_PROPERTY_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
 
         // Strategy
         String STRATEGY_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategyById";
@@ -89,6 +91,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String STRATEGIES_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.strategiesByFilter";
 
         // Pmfm
+        String PMFM = "net.sumaris.core.dao.referential.pmfm";
         String PMFM_BY_ID = "net.sumaris.core.dao.referential.pmfmById";
         String PMFM_COMPLETE_NAME_BY_ID = "net.sumaris.core.dao.referential.pmfmCompleteNameById";
         String PMFM_HAS_PREFIX = "net.sumaris.core.dao.referential.pmfmHasPrefix";
@@ -173,6 +176,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Pmfm
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_BY_ID, Integer.class, PmfmVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_COMPLETE_NAME_BY_ID, Integer.class, String.class, 600);
+            Caches.createEternalHeapCache(cacheManager, Names.PMFM, PmfmVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_PREFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_SUFFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_MATRIX, Boolean.class, 600);

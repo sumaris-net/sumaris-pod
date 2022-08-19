@@ -38,6 +38,10 @@ import java.util.Date;
 @AllArgsConstructor
 public class StrategyFilterVO implements IReferentialFilter {
 
+    public static StrategyFilterVO nullToEmpty(StrategyFilterVO filter) {
+        return filter != null ? filter : new StrategyFilterVO();
+    }
+
     /* -- Inherited from IReferentialFilter -- */
     private Integer id;
     private String label;
@@ -69,6 +73,8 @@ public class StrategyFilterVO implements IReferentialFilter {
     private Integer[] locationIds;
     private Integer[] parameterIds;
     private PeriodVO[] periods;
+
+    private String[] acquisitionlevels;
 
     /* -- Synonym properties (need by IReferentialFilter) -- */
 

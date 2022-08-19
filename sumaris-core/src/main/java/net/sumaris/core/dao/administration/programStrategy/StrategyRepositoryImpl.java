@@ -51,12 +51,16 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import net.sumaris.core.util.StringUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -64,7 +68,10 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -625,16 +632,17 @@ public class StrategyRepositoryImpl
 
     @Override
     protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
-        Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
-        if (filter.getId() != null) return spec;
-        return spec
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasAnalyticReferences(filter.getAnalyticReferences()))
-            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-            .and(hasDepartmentIds(filter.getDepartmentIds()))
-            .and(hasLocationIds(filter.getLocationIds()))
-            .and(hasParameterIds(filter.getParameterIds()))
-            .and(hasPeriods(filter.getPeriods()));
+        Specification<Strategy> specification = super.toSpecification(filter, fetchOptions);
+        if (filter.getId() != null) return specification;
+        return specification
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
+                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+                .and(hasDepartmentIds(filter.getDepartmentIds()))
+                .and(hasLocationIds(filter.getLocationIds()))
+                .and(hasParameterIds(filter.getParameterIds()))
+                .and(hasPeriods(filter.getPeriods()))
+                .and(hasAcquisitionLevelLabels(filter.getAcquisitionlevels()));
     }
 
     @Override
@@ -666,20 +674,22 @@ public class StrategyRepositoryImpl
             target.setTaxonNames(getTaxonNameStrategies(source));
         }
 
-        // Applied strategies
-        target.setAppliedStrategies(getAppliedStrategies(source));
+        // Applied Strategies
+        if (opts.isWithAppliedStrategies()) {
+            target.setAppliedStrategies(getAppliedStrategies(source));
+        }
 
         // Strategy departments
         if (opts.isWithDepartments()) {
             target.setDepartments(getDepartments(source));
         }
 
-        // Pmfm strategies
+        // Pmfms
         if (opts.isWithPmfms()) {
             target.setPmfms(getPmfms(source, opts.getPmfmsFetchOptions()));
         }
 
-        // Pmfm strategies
+        // Denormalized pmfms
         if (opts.isWithDenormalizedPmfms()) {
             target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
         }
@@ -742,8 +752,18 @@ public class StrategyRepositoryImpl
 
     protected List<AppliedStrategyVO> getAppliedStrategies(final Strategy source) {
         if (CollectionUtils.isEmpty(source.getAppliedStrategies())) return null;
-        return source.getAppliedStrategies()
-                .stream()
+
+        Integer[] locationIds = source.getAppliedStrategies()
+                .stream().map(AppliedStrategy::getLocation)
+                .filter(Objects::nonNull)
+                .map(Location::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toArray(Integer[]::new);
+        Map<Integer, LocationVO> locationsById = Beans.splitById(
+                locationRepository.findAll(LocationFilterVO.builder().includedIds(locationIds).build()));
+
+        return Beans.getStream(source.getAppliedStrategies())
                 // Sort by id (this is need for IMAGINE, as the first AppliedStrategy holds AppliedPeriod)
                 .sorted(Comparator.comparingInt(AppliedStrategy::getId))
                 .map(item -> {
@@ -752,7 +772,7 @@ public class StrategyRepositoryImpl
                     target.setStrategyId(source.getId());
 
                     if (item.getLocation() != null) {
-                        target.setLocation(locationRepository.get(item.getLocation().getId()));
+                        target.setLocation(locationsById.get(item.getLocation().getId()));
                     }
 
                     // AppliedPeriod
@@ -906,6 +926,19 @@ public class StrategyRepositoryImpl
         Integer privilegeId = source.getPrivilege() != null ? source.getPrivilege().getId() : null;
         if (copyIfNull || privilegeId != null) {
             target.setPrivilege(privilegeId != null ? getReference(ProgramPrivilege.class, privilegeId) : null);
+        }
+    }
+
+    protected void configureQuery(TypedQuery<Strategy> query, net.sumaris.core.dao.technical.Page page, @Nullable StrategyFetchOptions fetchOptions) {
+        super.configureQuery(query, page, fetchOptions);
+
+        if (page == null) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            if (fetchOptions != null && (fetchOptions.isWithPmfms() || fetchOptions.isWithDenormalizedPmfms())) {
+                EntityGraph<?> entityGraph = em.getEntityGraph(Strategy.GRAPH_PMFMS);
+                query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+            }
         }
     }
 }

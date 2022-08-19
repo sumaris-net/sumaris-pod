@@ -41,6 +41,7 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -469,7 +470,11 @@ public class SampleRepositoryImpl
         boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
         // Stop here (without change on the update_date)
-        if (skipSave) return source;
+        if (skipSave) {
+            source.setFlags(source.getFlags() | ValueObjectFlags.SKIP_SAVED);
+            return source;
+        }
+        source.setFlags(source.getFlags() - ValueObjectFlags.SKIP_SAVED);
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);

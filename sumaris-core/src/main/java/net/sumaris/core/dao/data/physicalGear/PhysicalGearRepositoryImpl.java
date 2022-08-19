@@ -183,15 +183,17 @@ public class PhysicalGearRepositoryImpl
         Integer newHash = source.hashCode();
 
         // If same hash, then skip (if allow)
-        if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
-            return true; // Skip
-        }
+        // TODO: enable this code
+//        if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
+//            return true; // Skip
+//        }
 
         // Copy properties, and data stuff (program, qualityFlag, recorder, ...)
         super.toEntity(source, target, copyIfNull);
 
         // Set the new Hash
-        target.setHash(newHash);
+        // TODO: enable this code
+        //target.setHash(newHash);
 
         // Gear
         Integer gearId = source.getGear() != null ? source.getGear().getId() : null;

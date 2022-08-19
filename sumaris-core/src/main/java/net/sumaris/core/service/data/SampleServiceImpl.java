@@ -34,6 +34,7 @@ import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -177,18 +178,19 @@ public class SampleServiceImpl implements SampleService {
 	/* -- protected methods -- */
 
 	protected void saveMeasurements(List<SampleVO> result) {
-		result.forEach(savedSample -> {
-			checkUniqueTag(savedSample);
-			if (savedSample.getMeasurementValues() != null) {
-				measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(savedSample, m, SampleMeasurement.class));
-				measurements = measurementDao.saveSampleMeasurements(savedSample.getId(), measurements);
-				savedSample.setMeasurements(measurements);
-			}
-		});
+		result.stream()
+			.filter(sample -> !sample.hasFlag(ValueObjectFlags.SKIP_SAVED))
+			.forEach(savedSample -> {
+				checkUniqueTag(savedSample);
+				if (savedSample.getMeasurementValues() != null) {
+					measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
+				} else {
+					List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(savedSample, m, SampleMeasurement.class));
+					measurements = measurementDao.saveSampleMeasurements(savedSample.getId(), measurements);
+					savedSample.setMeasurements(measurements);
+				}
+			});
 	}
 
 	private void checkUniqueTag(SampleVO savedSample) {
@@ -200,7 +202,7 @@ public class SampleServiceImpl implements SampleService {
 			savedSampleTagId = savedSample.getMeasurementValues().get(PmfmEnum.TAG_ID.getId());
 		} else if (savedSample.getMeasurements() != null) {
 			savedSampleTagId = savedSample.getMeasurements().stream()
-					.filter(m -> m.getId() == PmfmEnum.TAG_ID.getId())
+					.filter(m -> PmfmEnum.TAG_ID.getId().equals(m.getPmfmId()))
 					.map(MeasurementVO::getAlphanumericalValue)
 					.findFirst().orElse(null);
 		}

@@ -42,17 +42,17 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
 
     default Specification<Sale> hasTripId(Integer tripId) {
         if (tripId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Sale.Fields.TRIP).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, TRIP_ID_PARAM);
+            return cb.equal(root.get(Sale.Fields.TRIP).get(IEntity.Fields.ID), param);
         }).addBind(TRIP_ID_PARAM, tripId);
     }
 
     default Specification<Sale> hasSaleLocation(Integer locationId) {
         if (locationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Sale.Fields.SALE_LOCATION).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, TRIP_ID_PARAM);
+            return cb.equal(root.get(Sale.Fields.SALE_LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(LOCATION_ID_PARAM, locationId);
     }
 

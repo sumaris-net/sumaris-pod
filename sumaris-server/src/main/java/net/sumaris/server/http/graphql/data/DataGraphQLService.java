@@ -1334,7 +1334,7 @@ public class DataGraphQLService {
     // Measurement pmfm
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")
     public PmfmVO getMeasurementPmfm(@GraphQLContext MeasurementVO measurement) {
-        return pmfmService.get(measurement.getPmfmId());
+        return pmfmService.get(measurement.getPmfmId(), null);
     }
 
     // Vessel

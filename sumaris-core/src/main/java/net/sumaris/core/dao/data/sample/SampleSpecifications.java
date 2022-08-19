@@ -53,28 +53,28 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
     default Specification<Sample> hasOperationId(Integer operationId) {
         if (operationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, SampleVO.Fields.OPERATION_ID);
-            return criteriaBuilder.equal(root.get(Sample.Fields.OPERATION).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, SampleVO.Fields.OPERATION_ID);
+            return cb.equal(root.get(Sample.Fields.OPERATION).get(IEntity.Fields.ID), param);
         }).addBind(SampleVO.Fields.OPERATION_ID, operationId);
     }
 
     default Specification<Sample> hasLandingId(Integer landingId) {
         if (landingId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, SampleVO.Fields.LANDING_ID);
-            return criteriaBuilder.equal(root.get(Sample.Fields.LANDING).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, SampleVO.Fields.LANDING_ID);
+            return cb.equal(root.get(Sample.Fields.LANDING).get(IEntity.Fields.ID), param);
         }).addBind(SampleVO.Fields.LANDING_ID, landingId);
     }
 
     default Specification<Sample> hasObservedLocationId(Integer observedLocationId) {
         if (observedLocationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LandingVO.Fields.OBSERVED_LOCATION_ID);
-            return criteriaBuilder.equal(
+        return BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, LandingVO.Fields.OBSERVED_LOCATION_ID);
+            return cb.equal(
                     root.join(Sample.Fields.LANDING, JoinType.INNER)
                             .join(Landing.Fields.OBSERVED_LOCATION, JoinType.INNER)
                             .get(IEntity.Fields.ID),
@@ -84,10 +84,10 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
     default Specification<Sample> inObservedLocationIds(Integer... observedLocationIds) {
         if (ArrayUtils.isEmpty(observedLocationIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, OBSERVED_LOCATION_IDS);
-            return criteriaBuilder.in(
+        return BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, OBSERVED_LOCATION_IDS);
+            return cb.in(
                     root.join(Sample.Fields.LANDING, JoinType.INNER)
                             .join(Landing.Fields.OBSERVED_LOCATION, JoinType.INNER)
                             .get(IEntity.Fields.ID))
@@ -97,14 +97,14 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
     default Specification<Sample> hasTagId(String tagId) {
         if (tagId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> tagIdPmfmIdParam = criteriaBuilder.parameter(Integer.class, TAG_ID_PMFM_ID);
-            ParameterExpression<String> tagIdParam = criteriaBuilder.parameter(String.class, TAG_ID);
+        return BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> tagIdPmfmIdParam = cb.parameter(Integer.class, TAG_ID_PMFM_ID);
+            ParameterExpression<String> tagIdParam = cb.parameter(String.class, TAG_ID);
             Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
-            return criteriaBuilder.and(
-                    criteriaBuilder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
-                    criteriaBuilder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagIdParam)
+            return cb.and(
+                    cb.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                    cb.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagIdParam)
             );
         })
             .addBind(TAG_ID_PMFM_ID, PmfmEnum.TAG_ID.getId())
@@ -113,18 +113,18 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
     default Specification<Sample> withTagId(Boolean withTagId) {
         if (!Boolean.TRUE.equals(withTagId)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Sample.Fields.RANK_ORDER)));
-            ParameterExpression<Integer> tagIdPmfmIdParam = criteriaBuilder.parameter(Integer.class, TAG_ID_PMFM_ID);
+        return BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
+            ParameterExpression<Integer> tagIdPmfmIdParam = cb.parameter(Integer.class, TAG_ID_PMFM_ID);
             Join<Sample, SampleMeasurement> tagIdInnerJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
-            return criteriaBuilder.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam);
+            return cb.equal(tagIdInnerJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam);
         }).addBind(TAG_ID_PMFM_ID, PmfmEnum.TAG_ID.getId());
     }
 
     default Specification<Sample> addJoinFetch(SampleFetchOptions fetchOptions, boolean addQueryDistinct) {
         if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
             if (addQueryDistinct) query.distinct(true); // Need if findAll() is called, to avoid to many rows
             root.fetch(Sample.Fields.MEASUREMENTS, JoinType.LEFT);
             return null;
