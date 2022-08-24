@@ -30,7 +30,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.batch.DenormalizedBatchRepository;
 import net.sumaris.core.dao.data.batch.InvalidSamplingBatchException;
-import net.sumaris.core.dao.technical.model.TreeNodeEntities;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -295,13 +296,12 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			.collect(Collectors.toList());
 
 		// Compute indirect values (from children to parent)
-		MutableInt changedBatchCount = new MutableInt(0);
+		MutableInt changesCount = new MutableInt(0);
 		MutableInt loopCounter = new MutableInt(0);
 		do {
+			changesCount.setValue(0);
 			loopCounter.increment();
-			log.debug("Computing indirect values... (pass #{})", loopCounter);
-
-			changedBatchCount.setValue(0);
+			log.debug("Computing indirect values (pass #{}) ...", loopCounter);
 
 			revertBatches.forEach(batch -> {
 				boolean changed = false;
@@ -330,14 +330,14 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 				//Double sumChildRtpWeight = computeSumChildRTPWeight(target);
 				//changed = changed || !Objects.equals(sumChildRtpWeight, target.getSumChildRTPWeight());
 
-				if (changed) changedBatchCount.increment();
+				if (changed) changesCount.increment();
 			});
 
-			log.trace("Computing indirect values... (pass #{}) [OK] - {} changes", loopCounter, changedBatchCount);
+			log.trace("Computing indirect values (pass #{}) [OK] - {} changes", loopCounter, changesCount);
 		}
 
 		// Continue while changes has been applied on tree
-		while (changedBatchCount.intValue() > 0);
+		while (changesCount.intValue() > 0);
 	}
 
 	/**
@@ -345,41 +345,49 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 	 */
 	protected void computeElevatedValues(List<DenormalizedBatchVO> batches) {
 		MutableInt changesCount = new MutableInt(0);
+		MutableInt loopCounter = new MutableInt(0);
 
-		log.debug("Computing elevated values...");
-		batches.stream()
-			.map(target -> (TempDenormalizedBatchVO)target)
-			.forEach(target -> {
-				boolean changed = false;
+		do {
+			changesCount.setValue(0);
+			loopCounter.increment();
+			log.debug("Computing elevated values (pass #{}) ...", loopCounter);
 
-				Double elevateFactor = target.getElevateFactor();
-				if (elevateFactor == null) {
-					elevateFactor = 1d;
-					if (target.getParent() != null) {
-						elevateFactor *= ((TempDenormalizedBatchVO)target.getParent()).getElevateFactor();
+			batches.stream()
+				.map(target -> (TempDenormalizedBatchVO) target)
+				.forEach(target -> {
+					boolean changed = false;
+
+					log.trace("{} {}", target.getTreeIndent(), target.getLabel());
+					BigDecimal elevateFactor = target.getElevateFactor();
+					if (elevateFactor == null) {
+						elevateFactor = new BigDecimal(1);
+						if (target.getParent() != null) {
+							elevateFactor = elevateFactor.multiply(((TempDenormalizedBatchVO) target.getParent()).getElevateFactor());
+						}
 					}
-				}
-				// Remember it, for children
-				target.setElevateFactor(elevateFactor);
+					// Remember it, for children
+					target.setElevateFactor(elevateFactor);
 
-				Double weight = target.getWeight() != null ? target.getWeight() : target.getIndirectWeight();
-				if (weight != null) {
-					Double elevateWeight = weight * elevateFactor;
-					changed = changed || !Objects.equals(elevateWeight, target.getElevateWeight());
-					target.setElevateWeight(elevateWeight);
-				}
+					Double weight = target.getWeight() != null ? target.getWeight() : target.getIndirectWeight();
+					if (weight != null) {
+						Double elevateWeight = elevateFactor.multiply(new BigDecimal(weight)).doubleValue();
+						changed = changed || !Objects.equals(elevateWeight, target.getElevateWeight());
+						target.setElevateWeight(elevateWeight);
+					}
 
-				Integer individualCount = target.getIndividualCount() != null ? target.getIndividualCount() : target.getIndirectIndividualCount();
-				if (individualCount != null) {
-					Integer elevateIndividualCount = new Double(individualCount * elevateFactor).intValue();
-					changed = changed || !Objects.equals(elevateIndividualCount, target.getElevateIndividualCount());
-					target.setElevateIndividualCount(elevateIndividualCount);
-				}
+					Integer individualCount = target.getIndividualCount() != null ? target.getIndividualCount() : target.getIndirectIndividualCount();
+					if (individualCount != null) {
+						Integer elevateIndividualCount = new BigDecimal(individualCount).multiply(elevateFactor).intValue();
+						changed = changed || !Objects.equals(elevateIndividualCount, target.getElevateIndividualCount());
+						target.setElevateIndividualCount(elevateIndividualCount);
+					}
 
-				if (changed) changesCount.increment();
-			});
+					if (changed) changesCount.increment();
+				});
 
-		log.trace("Computing elevated values... [OK] - {} changes", changesCount);
+			log.trace("Computing elevated values (pass #{}) [OK] - {} changes", loopCounter, changesCount);
+		} while (changesCount.intValue() > 0);
+
 	}
 
 	protected Double computeIndirectWeight(TempDenormalizedBatchVO batch) {
@@ -392,7 +400,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 				Double samplingWeight = computeSamplingWeightAndRatio(batch, false);
 				if (samplingWeight != null) return samplingWeight;
 			}
-			catch(InvalidSamplingBatchException e) {
+			catch (InvalidSamplingBatchException e) {
 				// May be not a sampling batch ? (e.g. a species batch)
 				Double indirectWeight = computeSumChildrenWeight(batch);
 				if (indirectWeight != null) return indirectWeight;
@@ -415,47 +423,51 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 		if (checkArgument)
 			Preconditions.checkArgument(DenormalizedBatches.isSamplingBatch(batch));
 
+		DenormalizedBatchVO parent = batch.getParent();
+		boolean parentExhaustiveInventory = DenormalizedBatches.isExhaustiveInventory(parent);
 		Double samplingWeight = null;
 		Double samplingRatio = null;
-		Double elevateFactor = null;
+		BigDecimal elevateFactor = null;
 
 		if (batch.getSamplingRatio() != null) {
 			samplingRatio = batch.getSamplingRatio();
-			elevateFactor = 1 / samplingRatio;
+			elevateFactor = new BigDecimal(1).divide(new BigDecimal(samplingRatio));
 
 			// Try to use the sampling ratio text (more accuracy)
 			if (StringUtils.isNotBlank(batch.getSamplingRatioText()) && batch.getSamplingRatioText().contains("/")) {
 				String[] parts = batch.getSamplingRatioText().split("/", 2);
 				try {
-					samplingRatio = Double.parseDouble(parts[0]) / Double.parseDouble(parts[1]);
-					elevateFactor = Double.parseDouble(parts[1]) / Double.parseDouble(parts[0]);
+					double d0 = Double.parseDouble(parts[0]);
+					double d1 = Double.parseDouble(parts[1]);
+					samplingRatio = d0 / d1;
+					elevateFactor = new BigDecimal(d1).divide(new BigDecimal(d0));
 				} catch (Exception e) {
-					log.warn(String.format("Cannot parse samplingRatioText on batch {id: %s, label: '%s', saplingRatioText: '%s'} : %s",
+					log.warn("Cannot parse samplingRatioText on batch {id: {}}, label: '{}', saplingRatioText: '{}'} : {}",
 						batch.getId(),
 						batch.getLabel(),
 						batch.getSamplingRatioText(),
-						e.getMessage()));
+						e.getMessage());
 				}
 			}
 		}
-		else if (batch.getParent().getWeight() != null && batch.getWeight() != null) {
-			samplingRatio = batch.getWeight() / batch.getParent().getWeight();
-			elevateFactor = batch.getParent().getWeight() / batch.getWeight();
+		else if (parentExhaustiveInventory && parent.getWeight() != null && batch.getWeight() != null) {
+			samplingRatio = batch.getWeight() / parent.getWeight();
+			elevateFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(batch.getWeight()));
 		}
 
-		else if (batch.getParent().getWeight() != null && batch.hasChildren()) {
+		else if (parentExhaustiveInventory && parent.getWeight() != null && batch.hasChildren()) {
 			samplingWeight = computeSumChildrenWeight(batch);
 			if (samplingWeight != null) {
-				samplingRatio = samplingWeight / batch.getParent().getWeight();
-				elevateFactor = batch.getParent().getWeight() / samplingWeight;
+				samplingRatio = samplingWeight / parent.getWeight();
+				elevateFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(samplingWeight));
 			}
 		}
 
-		else if (batch.getParent().getWeight() == null && batch.hasChildren()) {
+		else if ((!parentExhaustiveInventory || parent.getWeight() == null) && batch.hasChildren()) {
 			samplingWeight = computeSumChildrenWeight(batch);
 			if (samplingWeight != null) {
 				samplingRatio = 1d;
-				elevateFactor = 1d;
+				elevateFactor = new BigDecimal(1);
 			}
 		}
 
@@ -465,7 +477,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			// - batch is parent of a sampling batch
 			if (CollectionUtils.isEmpty(batch.getChildren())) {
 				samplingRatio = 1d;
-				elevateFactor = 1d;
+				elevateFactor = new BigDecimal(1);
 			}
 			else {
 				throw new InvalidSamplingBatchException(String.format("Invalid sampling batch {id: %s, label: '%s'}: cannot get or compute the sampling ratio",
@@ -480,8 +492,8 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 		if (samplingWeight == null) {
 			if (batch.getWeight() != null) {
 				samplingWeight = batch.getWeight();
-			} else if (batch.hasParent() && batch.getParent().getWeight() != null) {
-				samplingWeight = batch.getParent().getWeight() * samplingRatio;
+			} else if (parentExhaustiveInventory && parent.getWeight() != null) {
+				samplingWeight = parent.getWeight() * samplingRatio;
 			}
 		}
 
