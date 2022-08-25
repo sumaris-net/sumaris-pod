@@ -22,7 +22,7 @@ package net.sumaris.core.model.technical.extraction;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
@@ -41,12 +41,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
 @Table(name = "extraction_product")
-@EqualsAndHashCode
 public class ExtractionProduct implements IExtractionType<Person, Department>,
     IItemReferentialEntity<Integer>,
     IWithRecorderPersonEntity<Integer, Person>,
@@ -57,7 +59,8 @@ public class ExtractionProduct implements IExtractionType<Person, Department>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_SEQ", sequenceName="EXTRACTION_PRODUCT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @EqualsAndHashCode.Exclude
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -115,7 +118,6 @@ public class ExtractionProduct implements IExtractionType<Person, Department>,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_extraction_product_fk")
-    @ToString.Exclude
     private ExtractionProduct parent;
 
     @OneToMany(fetch = FetchType.EAGER, targetEntity = ExtractionProductStrata.class, mappedBy = ExtractionProductStrata.Fields.PRODUCT)

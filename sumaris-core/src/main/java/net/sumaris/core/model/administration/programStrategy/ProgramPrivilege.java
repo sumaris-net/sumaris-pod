@@ -22,7 +22,7 @@
 
 package net.sumaris.core.model.administration.programStrategy;
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;

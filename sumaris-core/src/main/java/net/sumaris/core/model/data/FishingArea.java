@@ -22,7 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
@@ -39,7 +39,8 @@ import java.util.Date;
 /**
  * @author peck7 on 08/06/2020.
  */
-@Data
+@Getter
+@Setter
 @FieldNameConstants
 @Entity
 @Table(name = "fishing_area")

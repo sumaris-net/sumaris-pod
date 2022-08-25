@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -31,8 +32,10 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="qualitative_value")
@@ -42,6 +45,7 @@ public class QualitativeValue implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUALITATIVE_VALUE_SEQ")
     @SequenceGenerator(name = "QUALITATIVE_VALUE_SEQ", sequenceName="QUALITATIVE_VALUE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
@@ -32,8 +33,10 @@ import java.util.Date;
 /**
  * @author peck7 on 08/06/2020.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "distance_to_coast_gradient")

@@ -23,7 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;

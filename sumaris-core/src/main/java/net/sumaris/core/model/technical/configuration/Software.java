@@ -22,7 +22,8 @@ package net.sumaris.core.model.technical.configuration;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -34,8 +35,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "software")
@@ -45,6 +48,7 @@ public class Software implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_SEQ")
     @SequenceGenerator(name = "SOFTWARE_SEQ", sequenceName="SOFTWARE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL, unique = true)

@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.metier;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -37,8 +38,10 @@ import java.util.Date;
  *  Métier, qui peut etre un métier de peche ou non.
  *
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 public class Metier implements IItemReferentialEntity<Integer> {
@@ -47,6 +50,7 @@ public class Metier implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")
     @SequenceGenerator(name = "METIER_SEQ", sequenceName="METIER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

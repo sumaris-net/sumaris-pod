@@ -22,7 +22,8 @@
 
 package net.sumaris.core.model.referential.conversion;
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -53,8 +54,10 @@ import java.util.Date;
  *   une nouvelle recherche doit être lancée sur les coefficients ayant le sexe du lot considéré
  * </p>
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "weight_length_conversion")
@@ -65,6 +68,7 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WEIGHT_LENGTH_CONVERSION_SEQ")
     @SequenceGenerator(name = "WEIGHT_LENGTH_CONVERSION_SEQ", sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

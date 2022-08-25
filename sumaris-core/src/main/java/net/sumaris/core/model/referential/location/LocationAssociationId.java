@@ -22,7 +22,7 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 import java.io.Serializable;

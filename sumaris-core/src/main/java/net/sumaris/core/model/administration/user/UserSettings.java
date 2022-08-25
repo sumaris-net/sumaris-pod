@@ -22,7 +22,7 @@ package net.sumaris.core.model.administration.user;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;

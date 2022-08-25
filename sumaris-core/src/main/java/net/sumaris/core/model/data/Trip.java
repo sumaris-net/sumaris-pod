@@ -23,7 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -38,7 +38,8 @@ import org.nuiton.i18n.I18n;
 import javax.persistence.*;
 import java.util.*;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

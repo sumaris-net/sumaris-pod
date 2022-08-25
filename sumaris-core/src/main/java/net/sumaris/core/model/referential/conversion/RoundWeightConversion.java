@@ -22,7 +22,8 @@
 
 package net.sumaris.core.model.referential.conversion;
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -51,8 +52,9 @@ import java.util.Date;
  * FAO (1998): Guidelines for the routine collection of capture fishery data. FAO Fish. Tech. Pap, 382: 113 p.
  * </p>
  */
-@Data
+@Getter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "round_weight_conversion")
@@ -91,6 +93,7 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")
     @SequenceGenerator(name = "ROUND_WEIGHT_CONVERSION_SEQ", sequenceName="ROUND_WEIGHT_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

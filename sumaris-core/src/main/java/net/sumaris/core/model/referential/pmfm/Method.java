@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -56,11 +57,12 @@ import java.util.Date;
  * </ul>
  * </p>
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "method")
 @Cacheable
 public class Method implements IItemReferentialEntity<Integer> {
 
@@ -68,6 +70,7 @@ public class Method implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "METHOD_SEQ")
     @SequenceGenerator(name = "METHOD_SEQ", sequenceName="METHOD_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

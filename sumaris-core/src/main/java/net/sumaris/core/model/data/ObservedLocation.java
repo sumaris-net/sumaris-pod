@@ -23,7 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -48,7 +48,8 @@ import java.util.*;
                 @FetchProfile.FetchOverride(association = "recorderDepartment", entity = ObservedLocation.class, mode = FetchMode.JOIN)
             })
 })
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

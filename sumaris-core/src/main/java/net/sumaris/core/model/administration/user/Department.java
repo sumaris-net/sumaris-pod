@@ -22,7 +22,7 @@ package net.sumaris.core.model.administration.user;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;

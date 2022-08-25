@@ -22,7 +22,7 @@ package net.sumaris.core.model.technical.extraction.rdb;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;

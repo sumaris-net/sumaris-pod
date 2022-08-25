@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -97,8 +98,10 @@ import java.util.Date;
  * - Incertae sedis (dummy = taxons inclassables)
  *
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxonomic_level")
@@ -108,6 +111,7 @@ public class TaxonomicLevel implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TAXONOMIC_LEVEL_SEQ")
     @SequenceGenerator(name = "TAXONOMIC_LEVEL_SEQ", sequenceName="TAXONOMIC_LEVEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

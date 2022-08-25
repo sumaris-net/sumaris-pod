@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
@@ -49,8 +50,10 @@ import java.util.List;
  * Certains groupes peuvent être figés, c'est à dire qu'ils sont définis une bonne fois pour toute dans un document. Pour ce dernier cas particulier, il n'y a donc, a priori, pas besoin de mise à jour, et encore moins de pouvoir les supprimer : ils sont donc non modifiables (mais ce ne doit pas être une règle générale)
  *
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group")
@@ -61,6 +64,7 @@ public class TaxonGroup implements IItemReferentialEntity<Integer>, IWithDescrip
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
     @SequenceGenerator(name = "TAXON_GROUP_SEQ", sequenceName="TAXON_GROUP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

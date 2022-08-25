@@ -22,7 +22,8 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ISignedEntity;
@@ -33,8 +34,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_interaction")
@@ -44,6 +47,8 @@ public class UserInteraction implements ISignedEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_INTERACTION_SEQ")
     @SequenceGenerator(name = "USER_INTERACTION_SEQ", sequenceName="USER_INTERACTION_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

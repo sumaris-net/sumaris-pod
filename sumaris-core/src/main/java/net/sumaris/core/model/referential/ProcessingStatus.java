@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
@@ -37,8 +38,10 @@ import java.util.Date;
  * - échec
  * - etc.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_status")
@@ -48,6 +51,7 @@ public class ProcessingStatus implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_STATUS_SEQ")
     @SequenceGenerator(name = "PROCESSING_STATUS_SEQ", sequenceName="PROCESSING_STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -22,15 +22,18 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "sale_type")
@@ -40,6 +43,7 @@ public class SaleType implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "SALE_TYPE_SEQ")
     @SequenceGenerator(name = "SALE_TYPE_SEQ", sequenceName="SALE_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

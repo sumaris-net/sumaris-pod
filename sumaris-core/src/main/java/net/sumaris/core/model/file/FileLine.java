@@ -22,7 +22,7 @@ package net.sumaris.core.model.file;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IDataEntity;
@@ -31,7 +31,8 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Clob;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

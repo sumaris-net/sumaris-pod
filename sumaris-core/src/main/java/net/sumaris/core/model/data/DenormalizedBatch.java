@@ -27,7 +27,7 @@
 //
 package net.sumaris.core.model.data;
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
@@ -49,7 +49,8 @@ import java.util.List;
  * ATTENTION : Table technique. (RAZ des données possible).
  * Elle est remplie par le traitement de dénormalisation des lots.
  */
-@Data
+@Getter
+@Setter
 @FieldNameConstants
 @Entity
 @Table(name = "denormalized_batch")

@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
@@ -34,8 +35,10 @@ import java.util.Date;
  * Etat de validation d'une donnée du référentiel. Utile pour les responsables de référentiel.<br/>
  * Validity status of a referential data.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
@@ -46,6 +49,7 @@ public class ValidityStatus implements IUpdateDateEntity<Integer, Date> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VALIDITY_STATUS_SEQ")
     @SequenceGenerator(name = "VALIDITY_STATUS_SEQ", sequenceName="VALIDITY_STATUS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)

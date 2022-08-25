@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -43,11 +44,12 @@ import java.util.Date;
  * Les fractions dites "systématiques", au sens d'une classification systématique (ex : poisson : Cyprinidae / Cyprinus / Cyprinus carpio...) ne sont pas considérées comme des fractions au sens de l'entité, mais comme une précision apportée sur l'individu. Représentées par les entités "taxon" et "groupe de taxon", elles ne font pas partie de la liste des fractions analysées.
  * Etant une liste de référence, une procédure stricte pour la création de nouvelles fractions analysées pourra être mise en place.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "fraction")
 @Cacheable
 public class Fraction implements IItemReferentialEntity<Integer> {
 
@@ -55,6 +57,7 @@ public class Fraction implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "FRACTION_SEQ")
     @SequenceGenerator(name = "FRACTION_SEQ", sequenceName="FRACTION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

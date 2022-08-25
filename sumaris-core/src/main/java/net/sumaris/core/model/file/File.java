@@ -22,7 +22,7 @@ package net.sumaris.core.model.file;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
@@ -37,7 +37,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

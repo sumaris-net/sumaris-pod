@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
@@ -37,8 +38,10 @@ import java.util.Date;
  * - SIH_IAVMS - Importation des positions brutes VMS
  * - etc.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_type")
@@ -48,6 +51,7 @@ public class ProcessingType implements IItemReferentialEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_TYPE_SEQ")
     @SequenceGenerator(name = "PROCESSING_TYPE_SEQ", sequenceName="PROCESSING_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
@@ -32,6 +33,7 @@ import java.io.Serializable;
  * Définit les ReferenceTaxon constituants un TaxonName virtuel
  */
 @Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "virtual_component")
@@ -40,11 +42,13 @@ public class VirtualTaxonComponent implements Serializable  {
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "taxon_name_fk", nullable = false)
+    @EqualsAndHashCode.Include
     private TaxonName taxonName;
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
+    @EqualsAndHashCode.Include
     private ReferenceTaxon referenceTaxon;
 
 }

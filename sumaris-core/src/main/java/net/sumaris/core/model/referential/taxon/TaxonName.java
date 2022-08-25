@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
@@ -41,8 +42,10 @@ import java.util.List;
  * Cette classe regroupe les taxons valides, provisoires, obsolètes, virtuels et les synonymes.
  * On garde l'historique du passage en taxon valide, puis du passage en synonyme (date de fin référent).
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
@@ -60,6 +63,7 @@ public class TaxonName implements IItemReferentialEntity<Integer>,
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
     @SequenceGenerator(name = "TAXON_NAME_SEQ", sequenceName="TAXON_NAME_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

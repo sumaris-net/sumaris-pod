@@ -22,7 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
@@ -31,7 +31,8 @@ import net.sumaris.core.model.referential.QualityFlag;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @FieldNameConstants
 @Entity(name = "vessel_position")
 public class VesselPosition implements IDataEntity<Integer> {

@@ -22,7 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -32,7 +32,8 @@ import org.hibernate.annotations.Formula;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_registration_period")

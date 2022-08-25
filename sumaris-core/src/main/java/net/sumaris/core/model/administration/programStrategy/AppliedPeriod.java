@@ -22,7 +22,7 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 

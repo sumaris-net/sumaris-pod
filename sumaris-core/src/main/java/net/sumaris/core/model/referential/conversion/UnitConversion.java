@@ -22,7 +22,7 @@
 
 package net.sumaris.core.model.referential.conversion;
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.pmfm.Unit;
 
@@ -45,7 +45,8 @@ import java.util.Date;
  *   une nouvelle recherche doit être lancée sur les coefficients ayant le sexe du lot considéré
  * </p>
  */
-@Data
+@Getter
+@Setter
 @FieldNameConstants
 @Entity
 @Table(name = "unit_conversion")

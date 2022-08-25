@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
@@ -32,8 +33,10 @@ import java.util.Date;
 /**
  * @author peck7 on 08/06/2020.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "nearby_specific_area")
@@ -43,6 +46,7 @@ public class NearbySpecificArea implements IItemReferentialEntity<Integer>, IWit
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nearby_specific_area_seq")
     @SequenceGenerator(name = "nearby_specific_area_seq", sequenceName="nearby_specific_area_seq", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

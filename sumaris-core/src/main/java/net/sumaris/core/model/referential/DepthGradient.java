@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 
@@ -32,8 +33,10 @@ import java.util.Date;
 /**
  * @author peck7 on 08/06/2020.
  */
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "depth_gradient")
@@ -43,6 +46,7 @@ public class DepthGradient implements IItemReferentialEntity<Integer>, IWithDesc
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "depth_gradient_seq")
     @SequenceGenerator(name = "depth_gradient_seq", sequenceName="depth_gradient_seq", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)

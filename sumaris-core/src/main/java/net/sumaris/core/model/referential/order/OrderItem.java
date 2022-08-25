@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.order;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
@@ -31,8 +32,10 @@ import net.sumaris.core.model.referential.IReferentialEntity;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "order_item")
@@ -42,6 +45,7 @@ public class OrderItem implements IUpdateDateEntity<Integer, Date> {
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ORDER_ITEM_SEQ")
     @SequenceGenerator(name = "ORDER_ITEM_SEQ", sequenceName="ORDER_ITEM_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")
