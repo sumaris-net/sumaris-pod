@@ -23,7 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.util.Arrays;
 

@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data.operation;
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;

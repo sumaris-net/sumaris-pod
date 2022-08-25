@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data.landing;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;

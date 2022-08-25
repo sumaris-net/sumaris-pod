@@ -25,7 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.DepthGradient;
 import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.NearbySpecificArea;

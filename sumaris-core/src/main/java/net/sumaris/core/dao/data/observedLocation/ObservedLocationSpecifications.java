@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data.observedLocation;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.ObservedLocation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;

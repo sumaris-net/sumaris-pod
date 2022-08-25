@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;

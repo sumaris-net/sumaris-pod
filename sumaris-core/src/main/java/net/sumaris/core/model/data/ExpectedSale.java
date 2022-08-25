@@ -25,7 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;

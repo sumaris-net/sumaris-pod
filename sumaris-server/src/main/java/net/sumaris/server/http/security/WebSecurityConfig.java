@@ -26,6 +26,7 @@ import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -38,10 +39,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -61,15 +64,16 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Order(value = 10)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    private static final RequestMatcher ACTUATOR_URLS = new OrRequestMatcher(
+        new AntPathRequestMatcher("/api/node/health")
+    );
     private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
-            new AntPathRequestMatcher("/"),
-            new AntPathRequestMatcher("/favicon.ico"),
-            new AntPathRequestMatcher("/core/**"),
-            new AntPathRequestMatcher("/api/**"),
-            new AntPathRequestMatcher("/graphql/websocket/**"),
-            new AntPathRequestMatcher("/graphiql/**"),
-            new AntPathRequestMatcher("/vendor/**"),
-            new AntPathRequestMatcher("/error")
+        new AntPathRequestMatcher("/"),
+        new AntPathRequestMatcher("/api/**"),
+        new AntPathRequestMatcher("/graphql/websocket/**"),
+        new AntPathRequestMatcher("/vendor/**"),
+        new AntPathRequestMatcher("/error"),
+        new AntPathRequestMatcher("/404")
     );
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
 
@@ -108,6 +112,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.sessionManagement()
             .sessionCreationPolicy(STATELESS)
+
+            // Authorized actuator
+            .and()
+            .authorizeRequests()
+            .requestMatchers(ACTUATOR_URLS)
+            .permitAll()
+            // Configure authentification
             .and()
             .exceptionHandling()
             // this entry point handles when you request a protected page and you are not yet

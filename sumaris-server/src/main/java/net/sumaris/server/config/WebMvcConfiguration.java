@@ -33,6 +33,9 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -46,13 +49,20 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
     @Bean
     public WebMvcConfigurer configureStaticPages() {
         return new WebMvcConfigurer() {
+
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
 
+                // 404 error
+                registry.addViewController("/404")
+                    .setStatusCode(HttpStatus.NOT_FOUND)
+                    .setViewName("forward:/api/404.html");
+
                 // Error path
                 registry.addViewController("/error")
-                        .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .setViewName("forward:/core/error.html");
+                    .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .setViewName("forward:/api/error.html");
+
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
                 // API path
@@ -61,7 +71,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
                     registry.addRedirectViewController("/", API_PATH);
                     registry.addRedirectViewController(API_PATH + "/", API_PATH);
                     registry.addViewController(API_PATH)
-                            .setViewName("forward:/core/index.html");
+                            .setViewName("forward:/api/index.html");
                 }
 
                 // GraphiQL path
@@ -106,5 +116,6 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
     public ThreadPoolTaskExecutor taskExecutor(TaskExecutorBuilder builder) {
         return builder.build();
     }
+
 
 }

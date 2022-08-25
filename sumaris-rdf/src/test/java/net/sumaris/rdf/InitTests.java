@@ -81,7 +81,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
                 // Disable auto-load
                 "--option", RdfConfigurationOption.RDF_DATA_IMPORT_ENABLED.getKey(), Boolean.FALSE.toString(),
                 // Disable load external data (Sandre, MNHN, etc)
-                "--option", RdfConfigurationOption.RDF_DATA_IMPORT_EXTERNAL.getKey(), Boolean.FALSE.toString(),
+                "--option", RdfConfigurationOption.RDF_DATA_IMPORT_EXTERNAL_ENABLED.getKey(), Boolean.FALSE.toString(),
         };
     }
 
@@ -121,7 +121,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         System.setProperty("logging.level.Hibernate Types", "error");
 
         String[] args = ImmutableList.<String>builder()
-                .add(RdfDatasetAction.LOAD_ALIAS)
+                .add(RdfDatasetAction.INIT_ALIAS)
                 .addAll(Arrays.asList(getConfigArgs()))
                 .build().toArray(new String[0]);
         Application.run(args, getModuleName() + "-test.properties");

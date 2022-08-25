@@ -24,7 +24,6 @@ package net.sumaris.core.dao.social;
 
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;

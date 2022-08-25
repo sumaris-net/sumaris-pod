@@ -24,7 +24,7 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;

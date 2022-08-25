@@ -22,7 +22,7 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;

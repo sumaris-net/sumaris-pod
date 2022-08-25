@@ -22,11 +22,11 @@
 
 package net.sumaris.rdf.core.service.schema;
 
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.core.model.ModelVocabulary;
-import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.rdf.AbstractTest;
+import net.sumaris.rdf.DatabaseResource;
+import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.core.util.ModelUtils;
 import net.sumaris.rdf.core.util.RdfFormat;
 import org.apache.jena.atlas.lib.StrUtils;
@@ -38,7 +38,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.tdwg.rs.DWC;
 
 
 public class SchemaServiceTest extends AbstractTest {
@@ -58,11 +57,10 @@ public class SchemaServiceTest extends AbstractTest {
 
         // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className(TaxonName.class.getSimpleName())
+                .vocabulary(ModelVocabularies.COMMON)
+                .className(Status.class.getSimpleName())
                 // Will add RDFS equivalence between:
-                // - TaxonName#name <--> rdfs:label
-                // - TaxonName#name <--> dwc:scientificName
+                // - Status#name <--> rdfs:label
                 .withEquivalences(true)
                 .reasoningLevel(ReasoningLevel.RDFS)
                 .build())
@@ -74,15 +72,7 @@ public class SchemaServiceTest extends AbstractTest {
                 "SELECT * ",
                 "WHERE { ",
                 "  ?x <"+ RDFS.label.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
-                "}"));
-
-        // Get by dwc:scientificName
-        assertQueryHasResult(model,  StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ DWC.Terms.scientificName.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
+                "  FILTER ( ?label=\"Actif\" )",
                 "}"));
     }
 
@@ -94,11 +84,10 @@ public class SchemaServiceTest extends AbstractTest {
 
         // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className(TaxonName.class.getSimpleName())
+                .vocabulary(ModelVocabularies.COMMON)
+                .className(Status.class.getSimpleName())
                 // Will add OWL equivalence between:
-                // - TaxonName#name <--> rdfs:label
-                // - TaxonName#name <--> dwc:scientificName
+                // - Status#name <--> rdfs:label
                 .withEquivalences(true)
                 .reasoningLevel(ReasoningLevel.OWL)
                 .build())
@@ -112,16 +101,9 @@ public class SchemaServiceTest extends AbstractTest {
                 "SELECT * ",
                 "WHERE { ",
                 "  ?x <"+ RDFS.label.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
+                "  FILTER ( ?label=\"Actif\" )",
                 "}"));
 
-        // Get by dwc:scientificName
-        assertQueryHasResult(model,  StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ DWC.Terms.scientificName.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
-                "}"));
     }
 
     /* -- protected functions -- */

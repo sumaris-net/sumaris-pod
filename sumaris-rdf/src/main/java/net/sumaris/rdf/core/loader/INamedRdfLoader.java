@@ -34,4 +34,6 @@ public interface INamedRdfLoader {
     Model loadOnePage(Page page);
 
     String getName();
+
+    boolean enable();
 }

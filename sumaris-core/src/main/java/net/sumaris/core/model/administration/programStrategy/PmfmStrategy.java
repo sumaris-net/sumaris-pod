@@ -26,7 +26,7 @@ import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.*;

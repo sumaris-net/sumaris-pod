@@ -24,7 +24,7 @@ package net.sumaris.core.model.technical.history;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingType;

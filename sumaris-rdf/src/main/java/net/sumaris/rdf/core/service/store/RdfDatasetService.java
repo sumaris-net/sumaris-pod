@@ -49,7 +49,7 @@ public interface RdfDatasetService {
      * Fill dataset
      * @return
      */
-    void loadDataset();
+    void initDataset();
 
     /**
      * Get the dataset
@@ -57,9 +57,13 @@ public interface RdfDatasetService {
      */
     Dataset getDataset();
 
+    String getProviderName();
+
     /**
      * Get named models
      * @return
      */
-    Set<String> getModelNames() ;
+    Set<String> getModelNames();
+
+    void loadModels(boolean replaceIfExists);
 }

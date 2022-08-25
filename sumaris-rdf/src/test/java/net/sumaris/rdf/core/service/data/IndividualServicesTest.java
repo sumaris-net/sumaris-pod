@@ -23,10 +23,12 @@
 package net.sumaris.rdf.core.service.data;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.core.service.schema.RdfSchemaService;
@@ -76,9 +78,9 @@ public class IndividualServicesTest extends AbstractTest {
             "PREFIX this: <%sschema/>\n" +
             "SELECT DISTINCT ?sub\n" +
             "WHERE {\n" +
-            "  ?sub rdf:type this:"+ TaxonName.class.getSimpleName() +" ;\n" +
+            "  ?sub rdf:type this:"+ Status.class.getSimpleName() +" ;\n" +
             "    rdfs:label ?label .\n" +
-            "  FILTER( regex( ?label, \"^Lophius.*\" ) )\n" +
+            "  FILTER( regex( ?label, \"^Actif.*\" ) )\n" +
             "} LIMIT 10";
 
     @Before
@@ -88,15 +90,15 @@ public class IndividualServicesTest extends AbstractTest {
     }
 
     @Test
-    public void executeQuery() throws IOException {
+    public void executeQuery() {
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
+                .vocabulary(ModelVocabularies.COMMON)
                 .withEquivalences(false)
                 .build());
 
         Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
-                .className("TaxonName")
-                .id("1001")
+                .className(Status.class.getSimpleName())
+                .id(StatusEnum.ENABLE.toString())
                 .build());
 
         Dataset dataset = DatasetFactory.create(schema)
@@ -115,13 +117,13 @@ public class IndividualServicesTest extends AbstractTest {
     @Test
     public void executeUsingConnectionQuery() throws IOException {
         Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className("TaxonName")
+                .vocabulary(ModelVocabularies.COMMON)
+                .className(Status.class.getSimpleName())
                 .build());
 
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className("TaxonName")
+                .vocabulary(ModelVocabularies.COMMON)
+                .className(Status.class.getSimpleName())
                 .withEquivalences(true)
                 .build());
 
@@ -147,18 +149,18 @@ public class IndividualServicesTest extends AbstractTest {
 
     protected File createSchemaModelFile(boolean forceIfExists)  throws IOException {
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
+                .vocabulary(ModelVocabularies.COMMON)
                 .reasoningLevel(ReasoningLevel.NONE)
-                .className("TaxonName")
+                .className(Status.class.getSimpleName())
                 .build());
         return createModelFile("schema", model, forceIfExists);
     }
 
     protected File createDataModelFile(boolean forceIfExists)  throws IOException {
         Model model = service.getIndividuals(RdfIndividualFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
+                .vocabulary(ModelVocabularies.COMMON)
                 .reasoningLevel(ReasoningLevel.NONE)
-                .className("TaxonName")
+                .className(Status.class.getSimpleName())
                 .build());
         return createModelFile("data", model, forceIfExists);
     }

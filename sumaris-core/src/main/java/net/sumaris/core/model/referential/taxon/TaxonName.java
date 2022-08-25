@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;

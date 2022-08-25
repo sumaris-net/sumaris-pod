@@ -26,7 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import org.hibernate.annotations.Cascade;

@@ -22,8 +22,8 @@ package net.sumaris.core.dao.technical.jpa;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IValueObject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 

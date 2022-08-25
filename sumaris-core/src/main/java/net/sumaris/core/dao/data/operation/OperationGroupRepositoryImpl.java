@@ -32,7 +32,7 @@ import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;

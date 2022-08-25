@@ -24,7 +24,7 @@ package net.sumaris.core.vo.technical.extraction;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 
 import java.util.List;
 

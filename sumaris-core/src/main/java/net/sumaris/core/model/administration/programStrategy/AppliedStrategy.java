@@ -25,7 +25,7 @@ package net.sumaris.core.model.administration.programStrategy;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
 import org.hibernate.annotations.Cascade;

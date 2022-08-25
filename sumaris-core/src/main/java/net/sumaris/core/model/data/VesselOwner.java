@@ -24,9 +24,8 @@ package net.sumaris.core.model.data;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;

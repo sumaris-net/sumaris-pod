@@ -48,6 +48,8 @@ public interface RestPaths {
 
     String NODE_INFO_PATH = BASE_PATH + "/node/info";
 
+    String NODE_HEALTH_PATH = BASE_PATH + "/node/health";
+
     static void checkSecuredPath(String path) throws InvalidPathException {
         if (!isSecuredPath(path)) throw new InvalidPathException("Invalid path: " + path);
     }

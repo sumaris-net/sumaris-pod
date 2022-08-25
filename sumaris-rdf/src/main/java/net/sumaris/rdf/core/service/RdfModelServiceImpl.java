@@ -29,12 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.model.ModelURIs;
+import net.sumaris.rdf.core.util.ModelUtils;
+import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.service.data.RdfIndividualFetchOptions;
 import net.sumaris.rdf.core.service.data.RdfIndividualService;
 import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.core.service.schema.RdfSchemaService;
-import net.sumaris.rdf.core.util.ModelUtils;
-import net.sumaris.rdf.core.util.RdfFormat;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -82,10 +82,10 @@ public class RdfModelServiceImpl implements RdfModelService {
 
             // Try to resolve IRI, from known namespace/prefix
             return ModelURIs.getModelUrlByNamespace(iri)
-                    // IRI is mapped: parse the corresponding URL, without format (will detect it)
-                    .map(mappedUrl -> ModelUtils.read(mappedUrl, (RdfFormat)null))
-                    // IRI not mapped, read using the given format (if any)
-                    .orElseGet(() -> ModelUtils.read(iri, format));
+                // IRI is mapped: parse the corresponding URL, without format (will detect it)
+                .map(mappedUrl -> ModelUtils.read(mappedUrl, (RdfFormat)null))
+                // IRI not mapped, read using the given format (if any)
+                .orElseGet(() -> ModelUtils.read(iri, format));
         }
 
         // Path must match /ontology/{schema|data}/{class}/{id}
@@ -101,17 +101,17 @@ public class RdfModelServiceImpl implements RdfModelService {
         switch (modelType) {
             case "schema":
                 RdfSchemaFetchOptions schemaOptions = RdfSchemaFetchOptions.builder()
-                        .withEquivalences(true)
-                        .className(className)
-                        .build();
+                    .withEquivalences(true)
+                    .className(className)
+                    .build();
                 fillSchemaOptionsByUri(schemaOptions, relativeUri);
                 return schemaExportService.getOntology(schemaOptions);
             case "data":
                 String objectId = pathParams.size() > 2 ? pathParams.get(2) : null;
                 RdfIndividualFetchOptions dataOptions = RdfIndividualFetchOptions.builder()
-                        .className(className)
-                        .id(objectId)
-                        .build();
+                    .className(className)
+                    .id(objectId)
+                    .build();
                 fillDataOptionsByUri(dataOptions, relativeUri);
                 return dataExportService.getIndividuals(dataOptions);
             default:
@@ -122,21 +122,21 @@ public class RdfModelServiceImpl implements RdfModelService {
     @Override
     public Model union(String[] iris, @Nullable RdfFormat sourceFormat) {
         return Arrays.stream(iris)
-                .map(partIri -> {
-                    if (StringUtils.isBlank(partIri)) throw new IllegalArgumentException("Invalid 'uri': " + partIri);
+            .map(partIri -> {
+                if (StringUtils.isBlank(partIri)) throw new IllegalArgumentException("Invalid 'uri': " + partIri);
 
-                    // Retrieve the source format
-                    RdfFormat partFormat = sourceFormat;
-                    if (partFormat == null) {
-                        partFormat = RdfFormat.fromUrlExtension(partIri)
-                                .orElse(RdfFormat.RDFXML);
-                    };
+                // Retrieve the source format
+                RdfFormat partFormat = sourceFormat;
+                if (partFormat == null) {
+                    partFormat = RdfFormat.fromUrlExtension(partIri)
+                        .orElse(RdfFormat.RDFXML);
+                };
 
-                    // Read model from uri
-                    return get(partIri.trim(), partFormat);
-                })
-                // Union on all models
-                .reduce(ModelFactory::createUnion).orElse(null);
+                // Read model from uri
+                return get(partIri.trim(), partFormat);
+            })
+            // Union on all models
+            .reduce(ModelFactory::createUnion).orElse(null);
     }
 
     @Override
@@ -187,12 +187,6 @@ public class RdfModelServiceImpl implements RdfModelService {
         // With equivalences ?
         String equivalences = requestParams.get("equivalences");
         if (StringUtils.isNotBlank(equivalences)) options.setWithEquivalences(!"false".equalsIgnoreCase(equivalences)); // true by default
-
-        // packages ? empty by default
-        String packages = requestParams.get("packages");
-        if (StringUtils.isNotBlank(packages)) {
-            options.setPackages(Splitter.on(',').omitEmptyStrings().trimResults().splitToList(packages));
-        }
 
         return options;
     }

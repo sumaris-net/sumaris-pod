@@ -9,8 +9,8 @@
 
     <artifactId>sumaris-rdf</artifactId>
     <packaging>jar</packaging>
-    <name>SUMARiS:: RDF features</name>
-    <description>SUMARiS RDF library</description>
+    <name>SUMARiS:: RDF</name>
+    <description>SUMARiS RDF features</description>
 
     <properties>
         <!-- i18n configuration -->
@@ -24,6 +24,11 @@
 
     <dependencies>
         <!-- Project dependencies -->
+        <dependency>
+            <groupId>net.sumaris</groupId>
+            <artifactId>sumaris-core-shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>net.sumaris</groupId>
             <artifactId>sumaris-core</artifactId>
@@ -50,6 +55,10 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.jena</groupId>
@@ -69,7 +78,15 @@
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
-            <artifactId>jena-fuseki-main</artifactId>
+            <artifactId>jena-fuseki-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
@@ -78,6 +95,11 @@
         <dependency>
             <groupId>com.github.VisualDataWeb</groupId>
             <artifactId>OWL2VOWL</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Unit test -->
@@ -105,6 +127,7 @@
         <dependency>
             <groupId>com.mattbertolini</groupId>
             <artifactId>liquibase-slf4j</artifactId>
+            <version>${liquibase-slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

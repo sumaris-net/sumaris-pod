@@ -10,12 +10,12 @@ package net.sumaris.rdf.core.model;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,20 +23,22 @@ package net.sumaris.rdf.core.model;
  */
 
 
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import fr.eaufrance.sandre.schema.apt.APT;
+import fr.eaufrance.sandre.schema.com.COM;
 import fr.eaufrance.sandre.schema.inc.INC;
+import fr.eaufrance.sandre.schema.par.PAR;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.*;
+import org.purl.GR;
 import org.schema.SCHEMA;
 import org.tdwg.rs.DWC;
 import org.w3.GEO;
 import org.w3.W3NS;
-import org.purl.GR;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,9 +65,8 @@ public class ModelURIs {
         .put("geo", "http://www.w3.org/2003/01/geo/wgs84_pos#")
         .put("gn", "http://www.geonames.org/ontology#") // Geo names
 
-
         // Darwin core
-        .put("dwc", DWC.Terms.NS)
+        .put("dwc", DWC.Terms.URI)
         .put("dwciri", "http://rs.tdwg.org/dwc/iri/")
         .put("dwctax", "http://rs.tdwg.org/ontology/voc/TaxonName#")
 
@@ -76,13 +77,13 @@ public class ModelURIs {
         .put("dcat", "http://www.w3.org/ns/dcat")
 
         // Sandre
-        .put("apt", APT.NS)
-        .put("inc", INC.NS)
+        .put(APT.PREFIX, APT.NS)
+        .put(INC.PREFIX, INC.NS)
+        .put(COM.PREFIX, COM.NS)
 
         // TaxRef (MNHN)
         .put("taxref", "http://taxref.mnhn.fr/lod/")
         .put("taxrefprop", "http://taxref.mnhn.fr/lod/property/")
-
 
         .build();
 
@@ -101,9 +102,12 @@ public class ModelURIs {
         .put("geo", GEO.WGS84Pos.NS)
         .put("gn", "http://www.geonames.org/ontology") // Geo names
 
-        //.put("", "http://www.w3.org/2000/10/swap/pim/contact")
         .put("foaf", "http://xmlns.com/foaf/spec/index.rdf")
         .put("skos", SKOS.getURI())
+        .put(W3NS.Org.PREFIX, W3NS.Org.NS + ".rdf")
+
+        // Data Catalog
+        .put("dcat", "http://www.w3.org/ns/dcat")
 
         // Darwin core
         .put("dwc", "http://rs.tdwg.org/dwc/terms/")
@@ -113,20 +117,23 @@ public class ModelURIs {
         .put("txn", "http://lod.taxonconcept.org/ontology/txn.owl")
 
         // Sandre
-        .put("apt", "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl")
-        .put("inc", "http://owl.sandre.eaufrance.fr/inc/1/sandre_fmt_owl_inc.owl")
-
-        // Data Catalog
-        .put("dcat", "http://www.w3.org/ns/dcat")
+        .put(APT.PREFIX, APT.MODEL_URL)
+        .put(INC.PREFIX, INC.MODEL_URL)
+        .put(PAR.PREFIX, PAR.MODEL_URL)
 
         .build();
 
-    public static String getClassUri(Resource schema, Class clazz) {
-        return getClassUri(schema.getURI(), clazz);
+    public static String getTypeUri(Resource schema, Type type) {
+        return getTypeUri(schema.getURI(), type);
     }
 
-    public static String getClassUri(String schemaUri, Class clazz) {
-        String uri = schemaUri + clazz.getSimpleName();
+    public static String getTypeUri(String schemaUri, Type type) {
+        return getTypeUri(schemaUri, type.getTypeName());
+    }
+
+    public static String getTypeUri(String schemaUri, String className) {
+        className = className.substring(className.lastIndexOf(".") + 1);
+        String uri = schemaUri + className;
         if (uri.substring(1).contains("<")) {
             uri = uri.substring(0, uri.indexOf("<"));
         }
@@ -134,57 +141,38 @@ public class ModelURIs {
         return uri;
     }
 
-    public static String getClassUri(String schemaUri, String simpleClassName) {
-        String uri = schemaUri + simpleClassName;
-        if (uri.substring(1).contains("<")) {
-            uri = uri.substring(0, uri.indexOf("<"));
-        }
-
-        return uri;
+    public static String getDataUri(Resource schema, Class clazz) {
+        return getDataUri(schema.getURI(), clazz);
     }
 
-    public static String getBeanUri(Resource schema, Class clazz) {
-        return getBeanUri(schema.getURI(), clazz);
-    }
-
-    public static String getBeanUri(String schemaUri, Class clazz) {
-        String uri = getClassUri(schemaUri, clazz);
+    public static String getDataUri(String schemaUri, Class clazz) {
+        String uri = getTypeUri(schemaUri, clazz);
         // Replace /schema by /data
+        uri = uri.replace("/" + ModelType.SCHEMA.name().toLowerCase(), "/" + ModelType.DATA.name().toLowerCase());
+
+        // Remove version
         uri = uri.replace("/" + ModelType.SCHEMA.name().toLowerCase(), "/" + ModelType.DATA.name().toLowerCase());
 
         return uri;
     }
 
-    public static String getClassNameFromUri(String classUri) {
-        Preconditions.checkNotNull(classUri);
-
-        int separatorIndex = classUri.lastIndexOf('#');
-        if (separatorIndex == -1) {
-            separatorIndex = classUri.lastIndexOf('/');
-        }
-        if (separatorIndex == -1 || separatorIndex == classUri.length()-1) {
-            throw new IllegalArgumentException("Unable to parse class uri: " + classUri);
-        }
-        return  classUri.substring(separatorIndex+1);
-    }
-
     public static Optional<String> getModelUrlByNamespace(String ns) {
         Preconditions.checkNotNull(ns);
         return NAMESPACE_BY_PREFIX.entrySet().stream()
-                .filter(entry -> ns.startsWith(entry.getValue()))
-                .map(Map.Entry::getKey)
-                .map(RDF_URL_BY_PREFIX::get)
-                .filter(Objects::nonNull)
-                // Keep longest IRI
-                .sorted(Comparator.comparingInt(String::length))
-                .sorted(Comparator.reverseOrder())
-                .findFirst();
+            .filter(entry -> ns.startsWith(entry.getValue()))
+            .map(Map.Entry::getKey)
+            .map(RDF_URL_BY_PREFIX::get)
+            .filter(Objects::nonNull)
+            // Keep longest IRI
+            .sorted(Comparator.comparingInt(String::length))
+            .sorted(Comparator.reverseOrder())
+            .findFirst();
     }
 
     public static List<String> getModelUrlByPrefix(String... prefixes) {
         return Arrays.stream(prefixes)
-                .map(RDF_URL_BY_PREFIX::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            .map(RDF_URL_BY_PREFIX::get)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 }

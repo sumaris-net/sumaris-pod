@@ -25,7 +25,7 @@ package net.sumaris.core.util.reactive;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 
 import java.io.Serializable;
 import java.util.Date;

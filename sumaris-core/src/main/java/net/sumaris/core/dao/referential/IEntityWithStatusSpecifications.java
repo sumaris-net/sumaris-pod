@@ -22,22 +22,10 @@
 
 package net.sumaris.core.dao.referential;
 
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.IWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
-import net.sumaris.core.model.referential.pmfm.Unit;
-import net.sumaris.core.vo.filter.IReferentialFilter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
-
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
 
 public interface IEntityWithStatusSpecifications<E extends IWithStatusEntity<?, Status>>
     extends IEntityWithJoinSpecifications<E> {

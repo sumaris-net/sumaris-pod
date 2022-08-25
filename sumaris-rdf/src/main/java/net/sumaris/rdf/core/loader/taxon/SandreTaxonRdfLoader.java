@@ -28,7 +28,7 @@ import net.sumaris.rdf.core.loader.AbstractNamedRdfLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component("sandreTaxonLoader")
+@Component("sandreTaxonRdfLoader")
 @Slf4j
 public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
 
@@ -43,6 +43,11 @@ public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
 
     @Value("${rdf.dataset.sandre.apt.query:classpath:sparql/taxon.sparql}")
     private String queryFile;
+
+    @Override
+    public boolean enable() {
+        return true;
+    }
 
     @Override
     public String getName() {
@@ -62,5 +67,13 @@ public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
     @Override
     protected String getQueryPath() {
         return queryFile;
+    }
+
+    /* -- protected functions -- */
+
+    @Override
+    protected String getQuery() {
+        // TODO : add filter like: FILTER( ?modified >= "2020-05-23T00:00:00"^^xsd:dateTime)
+        return super.getQuery();
     }
 }

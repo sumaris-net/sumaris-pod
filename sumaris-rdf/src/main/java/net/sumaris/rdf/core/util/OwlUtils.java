@@ -64,7 +64,7 @@ public abstract class OwlUtils {
 
     public static Method getterOfField(Class t, String field) {
         return findGetterOfField(t, field)
-                .orElseThrow(() -> new SumarisTechnicalException(String.format("Class %s has no getter for %s", t.getSimpleName(), field)));
+            .orElseThrow(() -> new SumarisTechnicalException(String.format("Class %s has no getter for %s", t.getSimpleName(), field)));
     }
 
     public static Optional<Method> findGetterOfField(Class t, String field) {
@@ -96,24 +96,24 @@ public abstract class OwlUtils {
     }
 
     public static Map<Class, Resource> JAVA2XSD_TYPE_MAP = ImmutableMap.<Class, Resource>builder()
-            .put(Date.class, XSD.date)
-            .put(LocalDateTime.class, XSD.dateTime)
-            .put(Timestamp.class, XSD.dateTimeStamp)
-            .put(Integer.class, XSD.integer)
-            .put(Short.class, XSD.xshort)
-            .put(Long.class, XSD.xlong)
-            .put(Double.class, XSD.xdouble)
-            .put(Float.class, XSD.xfloat)
-            .put(Boolean.class, XSD.xboolean)
-            .put(long.class, XSD.xlong)
-            .put(int.class, XSD.integer)
-            .put(float.class, XSD.xfloat)
-            .put(double.class, XSD.xdouble)
-            .put(short.class, XSD.xshort)
-            .put(boolean.class, XSD.xboolean)
-            .put(String.class, XSD.xstring)
-            .put(void.class, RDFS.Literal)
-            .build();
+        .put(Date.class, XSD.date)
+        .put(LocalDateTime.class, XSD.dateTime)
+        .put(Timestamp.class, XSD.dateTimeStamp)
+        .put(Integer.class, XSD.integer)
+        .put(Short.class, XSD.xshort)
+        .put(Long.class, XSD.xlong)
+        .put(Double.class, XSD.xdouble)
+        .put(Float.class, XSD.xfloat)
+        .put(Boolean.class, XSD.xboolean)
+        .put(long.class, XSD.xlong)
+        .put(int.class, XSD.integer)
+        .put(float.class, XSD.xfloat)
+        .put(double.class, XSD.xdouble)
+        .put(short.class, XSD.xshort)
+        .put(boolean.class, XSD.xboolean)
+        .put(String.class, XSD.xstring)
+        .put(void.class, RDFS.Literal)
+        .build();
 
     public static List<Class> ACCEPTED_LIST_CLASS = Arrays.asList(List.class, ArrayList.class, Set.class);
 
@@ -136,21 +136,20 @@ public abstract class OwlUtils {
     }
 
 
-    public static String classToURI(Resource schema, Class clazz) {
-        return ModelURIs.getClassUri(schema, clazz);
+    public static String classToURI(Resource schema, Class type) {
+        return ModelURIs.getTypeUri(schema, type);
     }
 
-    public static String classToURI(String schemaUri, Class clazz) {
-        return ModelURIs.getClassUri(schemaUri, clazz);
+    public static String classToURI(String schemaUri, Class type) {
+        return ModelURIs.getTypeUri(schemaUri, type);
     }
 
-    public static String beanToURI(Resource schema, Class clazz) {
-        return ModelURIs.getBeanUri(schema, clazz);
+    public static String beanToURI(Resource schema, Class type) {
+        return ModelURIs.getDataUri(schema, type);
     }
 
-
-    public static String beanToURI(String schemaUri, Class clazz) {
-        return ModelURIs.getBeanUri(schemaUri, clazz);
+    public static String beanToURI(String schemaUri, Class type) {
+        return ModelURIs.getDataUri(schemaUri, type);
     }
 
     public static boolean isJavaType(Type type) {
@@ -177,8 +176,8 @@ public abstract class OwlUtils {
      */
     public static boolean isId(Method met) {
         return "getId".equals(met.getName())
-                && Stream.concat(getFieldAnnotations(getOptionalFieldByGetter(met)), Stream.of(met.getAnnotations()))
-                .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
+            && Stream.concat(getFieldAnnotations(getOptionalFieldByGetter(met)), Stream.of(met.getAnnotations()))
+            .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
     /**
@@ -189,15 +188,15 @@ public abstract class OwlUtils {
      */
     public static boolean isId(Field field) {
         return "id".equals(field.getName())
-                && Arrays.stream(field.getAnnotations())
-                .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
+            && Arrays.stream(field.getAnnotations())
+            .anyMatch(annot -> annot instanceof Id || annot instanceof org.springframework.data.annotation.Id);
     }
 
     public static boolean isManyToOne(Method met) {
         return getFieldAnnotations(getOptionalFieldByGetter(met)).anyMatch(annot -> annot instanceof ManyToOne) // check the corresponding field's annotations
-                ||
-                Stream.of(met.getAnnotations()).anyMatch(annot -> annot instanceof ManyToOne)  // check the method's annotations
-                ;
+            ||
+            Stream.of(met.getAnnotations()).anyMatch(annot -> annot instanceof ManyToOne)  // check the method's annotations
+            ;
     }
 
     public static Stream<Annotation> getFieldAnnotations(Optional<Field> field) {
@@ -206,10 +205,10 @@ public abstract class OwlUtils {
 
     public static boolean isGetter(Method met) {
         return met.getName().startsWith("get") // only getters
-                && !"getBytes".equals(met.getName()) // ignore ugly
-                && met.getParameterCount() == 0 // ignore getters that are not getters
-                && getOptionalFieldByGetter(met).isPresent()
-                ;
+            && !"getBytes".equals(met.getName()) // ignore ugly
+            && met.getParameterCount() == 0 // ignore getters that are not getters
+            && getOptionalFieldByGetter(met).isPresent()
+            ;
     }
 
     public static Class cleanProxyClass(Class clazz) {
@@ -278,7 +277,7 @@ public abstract class OwlUtils {
             Type raw = parameterized.getRawType();
 
             return (ACCEPTED_LIST_CLASS.stream() // add set LinkedList... if you wish
-                    .anyMatch(x -> x.getCanonicalName().equals(raw.getTypeName())));
+                .anyMatch(x -> x.getCanonicalName().equals(raw.getTypeName())));
         }
 
         return false;
@@ -293,7 +292,7 @@ public abstract class OwlUtils {
             Type[] typeArgs = parameterized.getActualTypeArguments();
 
             if (ACCEPTED_LIST_CLASS.stream()
-                    .anyMatch(x -> x.getCanonicalName().equals(raw.getTypeName()))) {
+                .anyMatch(x -> x.getCanonicalName().equals(raw.getTypeName()))) {
                 return typeArgs[0];
             }
         }
@@ -352,20 +351,20 @@ public abstract class OwlUtils {
 
     public static LocalDate convertToLocalDateViaMilisecond(Date dateToConvert) {
         return Instant.ofEpochMilli(dateToConvert.getTime())
-                .atZone(ZONE_ID)
-                .toLocalDate();
+            .atZone(ZONE_ID)
+            .toLocalDate();
     }
 
     public static LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
         return dateToConvert.toInstant()
-                .atZone(ZONE_ID)
-                .toLocalDate();
+            .atZone(ZONE_ID)
+            .toLocalDate();
     }
 
     public static Date convertToDateViaInstant(LocalDateTime dateToConvert) {
         return Date
-                .from(dateToConvert.atZone(ZONE_ID)
-                        .toInstant());
+            .from(dateToConvert.atZone(ZONE_ID)
+                .toInstant());
     }
 
 

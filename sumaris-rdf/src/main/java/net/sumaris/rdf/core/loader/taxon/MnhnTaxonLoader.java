@@ -49,6 +49,11 @@ public class MnhnTaxonLoader extends AbstractNamedRdfLoader {
     }
 
     @Override
+    public boolean enable() {
+        return false; // NMHN taxon not used anymore
+    }
+
+    @Override
     protected int getFetchSize() {
         return fetchSize;
     }

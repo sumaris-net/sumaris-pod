@@ -25,7 +25,7 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;

@@ -23,8 +23,8 @@ package net.sumaris.server.service.technical;
  */
 
 import io.reactivex.Observable;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.event.entity.IEntityEvent;
 
 import javax.annotation.Nullable;

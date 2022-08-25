@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
+import net.sumaris.rdf.core.config.RdfConfiguration;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntResource;
 import org.apache.jena.rdf.model.RDFNode;
@@ -41,23 +42,20 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static net.sumaris.rdf.core.util.OwlUtils.isJavaType;
-import static net.sumaris.rdf.core.util.OwlUtils.setterOfField;
-
 @Slf4j
 public abstract class Owl2Bean {
 
     private EntityManager entityManager;
 
-    private String modelPrefix;
+    private RdfConfiguration config;
 
-    public Owl2Bean(EntityManager entityManager, String modelPrefix) {
+    public Owl2Bean(RdfConfiguration config, EntityManager entityManager) {
+        this.config = config;
         this.entityManager = entityManager;
-        this.modelPrefix = modelPrefix;
     }
 
-    protected String getModelUriPrefix() {
-        return modelPrefix;
+    protected String getModelBaseUri() {
+        return config.getModelBaseUri();
     }
 
     protected EntityManager getEntityManager() {
@@ -122,7 +120,6 @@ public abstract class Owl2Bean {
                 }
             }
 
-
             // if none were cached, create a new TaxonomicLevel
             TaxonomicLevel tl = (TaxonomicLevel) context.URI_2_OBJ_REF.getOrDefault(val.toString(), new TaxonomicLevel());
             tl.setLabel(identifier);
@@ -176,62 +173,62 @@ public abstract class Owl2Bean {
             }
         } catch (Exception e) {
             log.warn("fillObjectWithStdAttribute could not reconstruct attribute "
-                    + setter.getDeclaringClass().getSimpleName() + "." + setter.getName() + "(" + setterParam.getSimpleName() + ") for val " + val, e);
+                + setter.getDeclaringClass().getSimpleName() + "." + setter.getName() + "(" + setterParam.getSimpleName() + ") for val " + val, e);
         }
     }
 
     public Optional<Object> owl2Bean(Resource ont, OntResource ontResource, Class clazz, RdfOwlConversionContext context) {
         log.info("processing ont Instance " + ontResource + " - " +
-                ontResource
-                        .asIndividual()
-                        .listProperties().toList().size());
+            ontResource
+                .asIndividual()
+                .listProperties().toList().size());
 
         try {
             Object obj = clazz.newInstance();
 
             ontResource
-                    .asIndividual()
-                    .listProperties()
-                    .toList()
-                    .forEach(stmt -> {
-                        String pred = stmt.getPredicate().getURI();
-                        RDFNode val = stmt.getObject();
-                        if ((pred.startsWith(getModelUriPrefix()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
-                            String fName = attributeOf(pred);
-                            try {
+                .asIndividual()
+                .listProperties()
+                .toList()
+                .forEach(stmt -> {
+                    String pred = stmt.getPredicate().getURI();
+                    RDFNode val = stmt.getObject();
+                    if ((pred.startsWith(getModelBaseUri()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
+                        String fName = attributeOf(pred);
+                        try {
 
-                                Optional<Method> setter;
-                                if ("setId".equals(fName)) {
-                                    setter = findSetterAnnotatedID(ont, clazz, context);
-                                } else {
-                                    setter = setterOfField(ont, clazz, fName, context);
-                                }
-
-                                if (setter.isPresent()) {
-                                    Class<?> setterParam = setter.get().getParameterTypes()[0];
-
-                                    if (log.isTraceEnabled()) log.trace("Trying to insert  " + fName + " => " + val + " using method ??");
-
-                                    if (isJavaType(setterParam)) {
-                                        fillObjectWithStdAttribute(setter.get(), obj, val);
-                                    } else {
-                                        //FIXME if entity  is different we shouldn't use the invoked method
-                                        setter.get().invoke(obj, getTranslatedReference(val, setterParam, obj, context));
-                                    }
-                                }
-
-                            } catch (Exception e) {
-                                log.error(String.format("%s on field %s => %s using class %s using method %s %s",
-                                        e.getClass().getSimpleName(), fName, val, clazz, setterOfField(ont, clazz, fName, context), e.getMessage()), e);
+                            Optional<Method> setter;
+                            if ("setId".equals(fName)) {
+                                setter = findSetterAnnotatedID(ont, clazz, context);
+                            } else {
+                                setter = OwlUtils.setterOfField(ont, clazz, fName, context);
                             }
 
-                            //values.put(fName, safeCastRDFNode(val, fName, clazz));
+                            if (setter.isPresent()) {
+                                Class<?> setterParam = setter.get().getParameterTypes()[0];
+
+                                if (log.isTraceEnabled()) log.trace("Trying to insert  " + fName + " => " + val + " using method ??");
+
+                                if (OwlUtils.isJavaType(setterParam)) {
+                                    fillObjectWithStdAttribute(setter.get(), obj, val);
+                                } else {
+                                    //FIXME if entity  is different we shouldn't use the invoked method
+                                    setter.get().invoke(obj, getTranslatedReference(val, setterParam, obj, context));
+                                }
+                            }
+
+                        } catch (Exception e) {
+                            log.error(String.format("%s on field %s => %s using class %s using method %s %s",
+                                e.getClass().getSimpleName(), fName, val, clazz, OwlUtils.setterOfField(ont, clazz, fName, context), e.getMessage()), e);
                         }
 
-                    });
+                        //values.put(fName, safeCastRDFNode(val, fName, clazz));
+                    }
+
+                });
             if (obj instanceof TaxonName) {
                 TaxonName tn = (TaxonName) obj;
-               // tn.setName("tn");
+                // tn.setName("tn");
                 tn.setReferenceTaxon(null);
                 getEntityManager().merge(tn);
             }
@@ -249,7 +246,7 @@ public abstract class Owl2Bean {
         for (Field f : clazz.getDeclaredFields())
             for (Annotation an : f.getDeclaredAnnotations())
                 if (an instanceof Id) {
-                    return setterOfField(ont, clazz, f.getName(), context);
+                    return OwlUtils.setterOfField(ont, clazz, f.getName(), context);
 
                 }
         return Optional.empty();

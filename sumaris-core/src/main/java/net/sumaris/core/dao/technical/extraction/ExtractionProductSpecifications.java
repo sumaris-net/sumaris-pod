@@ -23,7 +23,7 @@ package net.sumaris.core.dao.technical.extraction;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;

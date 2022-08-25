@@ -25,7 +25,7 @@ package net.sumaris.core.model.social;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ISignedEntity;
+import net.sumaris.core.model.ISignedEntity;
 import net.sumaris.core.model.data.IDataEntity;
 
 import javax.persistence.*;

@@ -49,7 +49,7 @@ import java.io.OutputStream;
 @Slf4j
 public class RdfDatasetAction {
 
-	public static final String LOAD_ALIAS = "--load";
+	public static final String INIT_ALIAS = "--init";
 	public static final String DUMP_ALIAS = "--dump";
 
 	private RdfDatasetService service;
@@ -60,14 +60,14 @@ public class RdfDatasetAction {
 	 * Loading RDF dataset
 	 * </p>
 	 */
-	public void load() {
-		init();
+	public void init() {
+		initBeans();
 
-		service.loadDataset();
+		service.initDataset();
 	}
 
 	public void dump() throws Throwable {
-		init();
+		initBeans();
 
 		// Get output format
 		RdfFormat format = config.getRdfOutputFormat()
@@ -98,7 +98,7 @@ public class RdfDatasetAction {
 
 	/* -- protected functions -- */
 
-	protected void init() {
+	protected void initBeans() {
 		if (this.service == null) this.service = getDatasetService();
 		if (this.config == null) this.config = getConfig();
 

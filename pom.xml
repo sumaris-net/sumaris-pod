@@ -269,9 +269,9 @@
         <version>3.4</version>
       </dependency>
       <dependency>
-        <groupId>org.antlr</groupId>
-        <artifactId>ST4</artifactId>
-        <version>${stringtemplate.version}</version>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.15</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -317,6 +317,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.antlr</groupId>
+        <artifactId>ST4</artifactId>
+        <version>${stringtemplate.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.websocket</groupId>
@@ -930,7 +935,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.jena</groupId>
-        <artifactId>jena-fuseki-main</artifactId>
+        <artifactId>jena-fuseki-core</artifactId>
         <version>${jena.version}</version>
         <exclusions>
           <exclusion>
@@ -940,6 +945,10 @@
           <exclusion>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-cmds</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
           </exclusion>
           <exclusion>
             <groupId>io.micrometer</groupId>

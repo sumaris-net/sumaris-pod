@@ -23,18 +23,17 @@
 package net.sumaris.rdf.core.service.data.remote;
 
 
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface RdfIndividualRemoteService {
 
-    OntModel getRemoteModel(String url);
+    OntModel getRemoteModel(java.lang.String url);
 
     @Transactional()
     Model importFromRemote(String remoteUrl,
                            String remoteOntUri,
-                           ModelVocabulary domain,
+                           String vocab,
                            String baseTargetPackage);
 }

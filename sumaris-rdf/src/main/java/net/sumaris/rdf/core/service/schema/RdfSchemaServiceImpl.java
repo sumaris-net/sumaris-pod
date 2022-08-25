@@ -25,49 +25,48 @@ package net.sumaris.rdf.core.service.schema;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.rdf.core.config.RdfCacheConfiguration;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.ModelVocabularyEnum;
+import net.sumaris.rdf.core.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.config.RdfConfigurationOption;
-import net.sumaris.rdf.core.dao.EntitiesDao;
+import net.sumaris.rdf.core.dao.OntologyEntitiesDao;
 import net.sumaris.rdf.core.model.IModelVisitor;
 import net.sumaris.rdf.core.model.ModelType;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
+import net.sumaris.rdf.core.service.IRdfFetchOptions;
+import net.sumaris.rdf.core.service.data.RdfIndividualFetchOptions;
 import net.sumaris.rdf.core.util.Bean2Owl;
 import net.sumaris.rdf.core.util.ModelUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.*;
-import org.reflections.Reflections;
-import org.reflections.scanners.Scanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.scanners.TypeAnnotationsScanner;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.Entity;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service("rdfSchemaService")
 @ConditionalOnBean({RdfConfiguration.class})
@@ -78,39 +77,32 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected RdfConfiguration config;
 
     @Autowired
-    protected EntitiesDao modelDao;
+    protected RdfCacheConfiguration cacheConfiguration;
 
     @Autowired
-    protected RdfCacheConfiguration cacheConfiguration;
+    protected OntologyEntitiesDao ontologyEntitiesDao;
 
     protected Bean2Owl beanConverter;
 
     private boolean debug;
+    private String modelBaseUri;
+    private String modelPrefix;
 
     protected List<IModelVisitor<Model, RdfSchemaFetchOptions>> modelVisitors = Lists.newCopyOnWriteArrayList();
 
     @PostConstruct
     protected void init() {
-
         debug = log.isDebugEnabled();
+        beanConverter = new Bean2Owl(ontologyEntitiesDao);
+        loadPrefixAndBaseUri();
+    }
 
-        beanConverter = new Bean2Owl(config.getModelBaseUri());
-
-        // Check schema URI validity
-        {
-            String prefix = getPrefix();
-            String ns = getNamespace();
-            try {
-                new URI(ns); // validate namespace
-            } catch (URISyntaxException e) {
-                throw new BeanInitializationException(String.format("Bad RDF schema namespace {%s}. Please fix the option '%s' in the configuration.", config.getModelBaseUri(), RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey(), e.getMessage()));
-            }
-            try {
-                ModelUtils.createOntologyModel(prefix, ns, ReasoningLevel.NONE); // validate prefix
-            } catch (PrefixMapping.IllegalPrefixException e) {
-                throw new BeanInitializationException(String.format("Bad RDF schema prefix {%s}. Please fix the option '%s' in the configuration.", config.getModelPrefix(), RdfConfigurationOption.RDF_MODEL_PREFIX.getKey(), e.getMessage()));
-            }
-        }
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        // Clean options cache
+        config.cleanCache();
+        // Recompute prefix and base uri
+        loadPrefixAndBaseUri();
     }
 
     @Override
@@ -119,12 +111,15 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     }
 
     @Override
-    public Model getOntology(ModelVocabulary voc) {
-        return getOntology(createOptions(voc));
+    public Model getOntology(String vocabulary) {
+        return getOntology(createOptions(vocabulary));
     }
 
     @Override
-    @Cacheable(cacheNames = RdfCacheConfiguration.Names.ONTOLOGY, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
+    @Cacheable(cacheNames = RdfCacheConfiguration.Names.ONTOLOGY,
+        key="#options.hashCode()",
+        condition = "#options != null",
+        unless = "#result == null")
     public Model getOntology(RdfSchemaFetchOptions options) {
         Preconditions.checkNotNull(options);
 
@@ -137,7 +132,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         // Cache key changed by applyDomainToOptions() => loop using self, to force cache used
         boolean optionsChanged = (cacheKey != fixedCacheKey);
         if (optionsChanged) {
-            if (debug) log.debug("Ontology export options was fixed! Will use: " + options.toString());
+            if (debug) log.debug("Ontology export options was fixed! Will use: " + options);
             return getOntology(options);
         }
 
@@ -145,11 +140,53 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         return getSchemaOntologyNoCache(options);
     }
 
+    @Override
+    public Set<String> getAllVocabularies() {
+        return ontologyEntitiesDao.getAllVocabularies();
+    }
+
+    @Override
+    public Model getAllOntologies() {
+        Model model = ModelFactory.createDefaultModel();
+
+        // Add each vocab ont model
+        getAllVocabularies()
+            .stream().map(this::getOntology)
+            .forEach(model::add);
+
+        return model;
+    }
+
     /* -- protected methods -- */
 
-    protected RdfSchemaFetchOptions createOptions(ModelVocabulary voc) {
+    /**
+     * Check schema URI validity
+     */
+    protected void loadPrefixAndBaseUri() {
+
+        String prefix = config.getModelPrefix();
+        modelPrefix = StringUtils.isNotBlank(prefix) ? prefix : "this";
+        this.modelBaseUri = config.getModelBaseUri();
+
+        // Validate namespace, as an URI
+        String uri = getNamespace();
+        try {
+            new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new BeanInitializationException(String.format("Bad RDF schema namespace {%s}. Please fix the option '%s' in the configuration.", modelBaseUri, RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey(), e.getMessage()));
+        }
+
+        // Validate prefix, for a new ontology creation
+        try {
+            ModelUtils.createOntologyModel(prefix, uri, ReasoningLevel.NONE);
+        } catch (PrefixMapping.IllegalPrefixException e) {
+            throw new BeanInitializationException(String.format("Bad RDF schema prefix {%s}. Please fix the option '%s' in the configuration.", prefix, RdfConfigurationOption.RDF_MODEL_PREFIX.getKey(), e.getMessage()));
+        }
+    }
+
+    protected RdfSchemaFetchOptions createOptions(String vocabulary) {
         RdfSchemaFetchOptions options = RdfSchemaFetchOptions.builder()
-                .domain(voc)
+                .vocabulary(vocabulary)
                 .build();
         fillOptions(options);
         return options;
@@ -158,50 +195,17 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected RdfSchemaFetchOptions fillOptions(RdfSchemaFetchOptions options) {
         Preconditions.checkNotNull(options);
 
-        ModelVocabulary domain = options.getDomain();
-        if (domain == null) {
+        String vocab = options.getVocabulary();
+        if (StringUtils.isBlank(vocab)) {
             if (StringUtils.isNotBlank(options.getClassName())) {
-                domain = modelDao.getDomainByClassName(options.getClassName());
+                vocab = ontologyEntitiesDao.getVocabularyByClassName(options.getClassName());
             }
             else {
-                domain = ModelVocabulary.REFERENTIAL; // default
+                vocab = ModelVocabularyEnum.DEFAULT.name();
             }
-            options.setDomain(domain);
+            options.setVocabulary(vocab);
         }
 
-        switch(domain) {
-            case DATA:
-                options.setAnnotatedType(Entity.class);
-                options.setPackages(Lists.newArrayList("net.sumaris.core.model.data"));
-                break;
-            case REFERENTIAL:
-                options.setAnnotatedType(Entity.class);
-                options.setPackages(ImmutableList.of(
-                        "net.sumaris.core.model.administration",
-                        "net.sumaris.core.model.referential"
-                ));
-                break;
-            case SOCIAL:
-                options.setAnnotatedType(Entity.class);
-                options.setPackages(ImmutableList.of(
-                        "net.sumaris.core.model.administration.user",
-                        "net.sumaris.core.model.social"
-                ));
-                break;
-            case TECHNICAL:
-                options.setAnnotatedType(Entity.class);
-                options.setPackages(ImmutableList.of(
-                        "net.sumaris.core.model.file",
-                        "net.sumaris.core.model.technical"
-                ));
-                break;
-            case VO:
-                options.setType(IValueObject.class);
-                options.setPackages(Lists.newArrayList("net.sumaris.core.vo"));
-                break;
-            default:
-                throw new SumarisTechnicalException(String.format("Unknown ontology {%s}", domain));
-        }
         return options;
     }
 
@@ -224,6 +228,13 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
                 .addProperty(RDFS.label, config.getModelLabel(), modelLanguage)
                 .addProperty(RDFS.comment, config.getModelComment(), modelLanguage);
 
+        if ("en".equalsIgnoreCase(modelLanguage)) {
+            schema.addProperty(RDFS.comment, config.getModelCommentFr(), "fr");
+        }
+        else if ("fr".equalsIgnoreCase(modelLanguage)) {
+            schema.addProperty(RDFS.comment, config.getModelCommentEn(), "en");
+        }
+
         // Add authors
         Iterable<String> authors = Splitter.on(',').omitEmptyStrings().trimResults().split(config.getModelAuthors());
         authors.forEach(author -> schema.addProperty(DC.creator, author));
@@ -231,18 +242,20 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         return schema;
     }
 
-    protected Model getSchemaOntologyNoCache(RdfSchemaFetchOptions options) {
-        Preconditions.checkNotNull(options);
-        Preconditions.checkNotNull(options.getDomain());
+    protected Model getSchemaOntologyNoCache(@NonNull RdfSchemaFetchOptions options) {
+        Preconditions.checkNotNull(options.getVocabulary());
 
-        String prefix = getPrefix();
-        String namespace = getNamespace();
+        String prefix = options.getVocabulary();
+        String namespace = getNamespace(options.getVocabulary(), options.getVersion());
 
         if (log.isDebugEnabled() && StringUtils.isBlank(options.getClassName())) {
-            log.info("Generating {} ontology {{}}...", options.getDomain().name().toLowerCase(), namespace);
+            log.debug("Generating ontology {{}}...", namespace);
         }
         OntModel model = ModelUtils.createOntologyModel(prefix, namespace, options.getReasoningLevel());
-        createSchemaResource(model, namespace);
+
+        //if (StringUtils.isBlank(options.getClassName())) {
+            createSchemaResource(model, namespace);
+        //}
 
         // Filter visitors, then notify them
         List<IModelVisitor> modelVisitors = getModelVisitors(model, prefix, namespace, options);
@@ -251,12 +264,20 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         modelVisitors.forEach(visitor -> visitor.visitModel(model, prefix, namespace));
 
         Multimap<OntClass, OntClass> mutuallyDisjoint = options.isWithDisjoints() ? HashMultimap.create() : null;
-        getClassesAsStream(options).forEach(clazz -> {
-            // Create the ontology class, from tha java class
-            OntClass ontClass = beanConverter.classToOwl(model, clazz, mutuallyDisjoint, options.isWithInterfaces());
+        getAllClassNames(options)
+            .forEach(ontClassName -> {
+                try {
+                    Class<?> entityClass = ontologyEntitiesDao.getTypeByVocabularyAndClassName(options.getVocabulary(), ontClassName);
 
-            // Notify visitors (e.g. for equivalences)
-            modelVisitors.forEach(visitor -> visitor.visitClass(model, ontClass, clazz));
+                    // Create the ontology class, from tha java class
+                    OntClass ontClass = beanConverter.classToOwl(model, entityClass, mutuallyDisjoint, options.isWithInterfaces());
+
+                    // Notify visitors (e.g. for equivalences)
+                    modelVisitors.forEach(visitor -> visitor.visitClass(model, ontClass, entityClass));
+                }
+                catch(Exception e) {
+                    log.error(e.getMessage(), e);
+                }
         });
 
         if (options.isWithDisjoints()) withDisjoints(mutuallyDisjoint);
@@ -266,75 +287,65 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     @Override
     public String getPrefix() {
-        String namespace = config.getModelPrefix();
-        return StringUtils.isNotBlank(namespace) ? namespace : "this";
+        if (modelPrefix == null) loadPrefixAndBaseUri();
+        return modelPrefix;
     }
 
     @Override
     public String getNamespace() {
-        String uri = config.getModelBaseUri() + ModelType.SCHEMA.name().toLowerCase() + "/";
-        // TODO: append version ?
+        return getNamespace(null, null);
+    }
 
-        // model should ends with '/'
-        if (uri.endsWith("#")) {
-            uri = uri.substring(0, uri.length() -1);
+    @Override
+    public String getNamespace(@NonNull String vocabulary) {
+        return getNamespace(vocabulary, null);
+    }
+
+    public String getNamespace(String vocabulary, String version) {
+        String uri = modelBaseUri + ModelType.SCHEMA.name().toLowerCase() + "/";
+
+        if (uri.endsWith("#")) uri = uri.substring(0, uri.length() -1); // Remove last '#'
+        if (!uri.endsWith("/")) uri += "/"; // Add trailing slash
+
+        // Add vocabulary
+        if (StringUtils.isNotBlank(vocabulary)) {
+            uri += vocabulary;
+            if (!uri.endsWith("/")) uri += "/"; // Add trailing slash
+
+            // Add version
+            if (StringUtils.isNotBlank(version)) {
+                uri += version;
+                if (!uri.endsWith("/")) uri += "/"; // Add trailing slash
+            }
         }
-        if (!uri.endsWith("/")) {
-            uri += "/";
-        }
+
         return uri;
     }
 
-    protected Stream<Class<?>> getClassesAsStream(RdfSchemaFetchOptions options) {
+    @Override
+    @Cacheable(cacheNames = RdfCacheConfiguration.Names.TYPES_FOR_INDIVIDUALS, key="#options.hashCode()", condition = "#options != null", unless = "#result == null")
+    public Set<Class<?>> getAllTypes(@NonNull RdfIndividualFetchOptions options) {
 
-        Reflections reflections;
-        Stream<Class<?>> result;
-
-        // Define class scanner
-        Scanner[] scanners = null;
-        if (options.getAnnotatedType() != null) {
-            scanners = new Scanner[] { new SubTypesScanner(false), new TypeAnnotationsScanner() };
+        if (StringUtils.isNotBlank(options.getClassName())) {
+            Class<?> type = ontologyEntitiesDao.getTypeByVocabularyAndClassName(options.getVocabulary(), options.getClassName());
+            return ImmutableSet.of(type);
         }
 
-        // Collect by package
-        if (CollectionUtils.isNotEmpty(options.getPackages())) {
-            if (scanners != null) {
-                reflections = new Reflections(options.getPackages(), scanners);
-            }
-            else {
-                reflections = new Reflections(options.getPackages());
-            }
-        }
-        // Or collect all
-        else {
-            reflections = Reflections.collect();
-        }
+        return ontologyEntitiesDao.getAllTypesByVocabulary(options.getVocabulary());
+    }
 
+    @Override
+    @Cacheable(cacheNames = RdfCacheConfiguration.Names.CLASS_FOR_INDIVIDUALS, key="#options.hashCode()", condition = "#options != null", unless = "#result == null")
+    public Set<String> getAllClassNames(IRdfFetchOptions options) {
+        Set<String> allClassNames = ontologyEntitiesDao.getAllClassNamesByVocabulary(options.getVocabulary());
 
-        // find by type
-        if (options.getType() != null) {
-            result = reflections.getSubTypesOf(options.getType()).stream();
+        if (StringUtils.isNotBlank(options.getClassName())) {
+            return allClassNames.stream()
+                .filter(ontClassName -> ontClassName != null && ontClassName.equalsIgnoreCase(options.getClassName()))
+                .collect(Collectors.toSet());
         }
 
-        // Get by annotated type
-        else if (options.getAnnotatedType() != null) {
-            result = reflections.getTypesAnnotatedWith(options.getAnnotatedType()).stream();
-        }
-
-        // Get all classes
-        else {
-            result = reflections.getSubTypesOf(Object.class).stream();
-        }
-
-        // Filter by class names
-        final Set<String> classNames = (options.getClassName() != null) ?
-                modelDao.getClassNamesByRootClass(options.getDomain(), options.getClassName()) :
-                (options.getDomain() != null) ? modelDao.getClassNamesByDomain(options.getDomain()) : null;
-        if (CollectionUtils.isNotEmpty(classNames)) {
-            return result.filter(clazz -> classNames.contains(clazz.getSimpleName()) || classNames.contains(clazz.getSimpleName().toLowerCase()));
-        }
-
-        return result;
+        return allClassNames;
     }
 
     protected void withDisjoints(Multimap<OntClass, OntClass> mutuallyDisjoint) {
@@ -361,7 +372,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     }
 
-    public List<IModelVisitor> getModelVisitors(Model model, String ns, String schemaUri, RdfSchemaFetchOptions options) {
-        return modelVisitors.stream().filter(visitor -> visitor.accept(model, ns, schemaUri, options)).collect(Collectors.toList());
+    public List<IModelVisitor> getModelVisitors(Model model, String prefix, String namespace, RdfSchemaFetchOptions options) {
+        return modelVisitors.stream().filter(visitor -> visitor.accept(model, prefix, namespace, options)).collect(Collectors.toList());
     }
 }

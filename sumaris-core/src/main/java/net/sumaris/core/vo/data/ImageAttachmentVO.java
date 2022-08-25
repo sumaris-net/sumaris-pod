@@ -50,5 +50,6 @@ public class ImageAttachmentVO implements IDataVO<Integer>,
     private Date dateTime;
     private String contentType;
     private String content;
+    private String path;
 
 }

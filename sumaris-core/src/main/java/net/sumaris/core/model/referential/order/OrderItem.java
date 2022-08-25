@@ -25,7 +25,7 @@ package net.sumaris.core.model.referential.order;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;

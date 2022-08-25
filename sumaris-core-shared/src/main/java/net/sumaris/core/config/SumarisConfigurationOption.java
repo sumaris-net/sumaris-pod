@@ -96,10 +96,16 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "${sumaris.data.directory}/db",
         File.class),
 
-    DB_ATTACHMENT_DIRECTORY(
-        "sumaris.persistence.db.attachment.directory",
-        n("sumaris.config.option.persistence.db.attachment.directory.description"),
+    MEASUREMENT_FILE_DIRECTORY(
+        "sumaris.measurement.file.directory",
+        n("sumaris.config.option.measurement.file.directory.description"),
         "${sumaris.data.directory}/meas_files",
+        File.class),
+
+    IMAGE_ATTACHMENT_DIRECTORY(
+        "sumaris.persistence.image.directory",
+        n("sumaris.config.option.persistence.image.directory.description"),
+        "${sumaris.data.directory}/photos",
         File.class),
 
     DB_NAME(

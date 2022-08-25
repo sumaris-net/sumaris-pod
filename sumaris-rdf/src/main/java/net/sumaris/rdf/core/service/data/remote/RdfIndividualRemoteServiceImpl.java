@@ -29,8 +29,7 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.util.Dates;
 import net.sumaris.rdf.core.config.RdfConfiguration;
-import net.sumaris.rdf.core.dao.EntitiesDao;
-import net.sumaris.rdf.core.model.ModelVocabulary;
+import net.sumaris.rdf.core.dao.OntologyEntitiesDao;
 import net.sumaris.rdf.core.model.ModelEntities;
 import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.core.service.schema.RdfSchemaService;
@@ -79,7 +78,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
     protected RdfConfiguration config;
 
     @Autowired
-    protected EntitiesDao modelDao;
+    protected OntologyEntitiesDao ontologyEntitiesDao;
 
     @Autowired
     private RdfSchemaService schemaService;
@@ -89,9 +88,9 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
     @PostConstruct
     protected void afterPropertiesSet() {
 
-        beanConverter = new Bean2Owl(config.getModelBaseUri());
+        beanConverter = new Bean2Owl(ontologyEntitiesDao);
 
-        owlConverter = new Owl2Bean(this.entityManager, config.getModelBaseUri()) {
+        owlConverter = new Owl2Bean(config, this.entityManager) {
             @Override
             protected List getCacheStatus() {
                 return RdfIndividualRemoteServiceImpl.this.getCacheStatus();
@@ -123,15 +122,15 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
 
     @Override
     public Model importFromRemote(String remoteUrl,
-                                     String remoteOntUri,
-                                     ModelVocabulary domain,
-                                     String baseTargetPackage) {
+                                  String remoteOntUri,
+                                  String vocab,
+                                  String baseTargetPackage) {
 
         // Reading remote model
         OntModel sourceModel = getRemoteModel(remoteUrl);
 
         // Recomposed object, from the remote model
-        RdfOwlConversionContext context = createImportContext(domain.name().toLowerCase(), baseTargetPackage);
+        RdfOwlConversionContext context = createImportContext(vocab.toLowerCase(), baseTargetPackage);
 
         long start = System.currentTimeMillis();
         List<? extends Object> recomposed = objectsFromOnt(sourceModel, context);
@@ -142,7 +141,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
         log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
 
         Model targetModel = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(domain)
+                .vocabulary(vocab)
                 .withInterfaces(true)
                 .build());
         String modelUri = schemaService.getNamespace();
