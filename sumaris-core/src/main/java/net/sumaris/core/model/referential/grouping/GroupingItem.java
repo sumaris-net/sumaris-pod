@@ -37,7 +37,7 @@ import javax.persistence.*;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -47,7 +47,7 @@ public class GroupingItem implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_ITEM_SEQ")
     @SequenceGenerator(name = "GROUPING_ITEM_SEQ", sequenceName="GROUPING_ITEM_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 

@@ -47,6 +47,8 @@ import javax.persistence.*;
  */
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "denormalized_batch_sort_val")
@@ -55,6 +57,8 @@ public class DenormalizedBatchSortingValue implements IEntity<Integer>
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DENORMALIZED_BATCH_SORT_VA_SEQ")
     @SequenceGenerator(name = "DENORMALIZED_BATCH_SORT_VA_SEQ", sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "rank_order", nullable = false)

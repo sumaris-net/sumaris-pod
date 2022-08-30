@@ -29,7 +29,10 @@ import net.sumaris.core.model.referential.location.Location;
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "program2location")

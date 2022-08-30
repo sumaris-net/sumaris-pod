@@ -37,7 +37,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -48,7 +48,7 @@ public class ParameterGroup implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_GROUP_SEQ")
     @SequenceGenerator(name = "PARAMETER_GROUP_SEQ", sequenceName="PARAMETER_GROUP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -65,7 +65,7 @@ public class ParameterGroup implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL, unique = true)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

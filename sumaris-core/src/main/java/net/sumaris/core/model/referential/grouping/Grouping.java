@@ -47,7 +47,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -60,7 +60,7 @@ public class Grouping implements IItemReferentialEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_SEQ")
     @SequenceGenerator(name = "GROUPING_SEQ", sequenceName="GROUPING_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -77,7 +77,7 @@ public class Grouping implements IItemReferentialEntity<Integer>,
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

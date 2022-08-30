@@ -33,7 +33,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Getter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -44,7 +44,7 @@ public class ExtractionProductStrata implements IItemReferentialEntity<Integer> 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_STRATA_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_STRATA_SEQ", sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 

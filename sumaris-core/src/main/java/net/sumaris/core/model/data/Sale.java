@@ -42,6 +42,8 @@ import java.util.Set;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "sale")
@@ -53,6 +55,8 @@ public class Sale implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SALE_SEQ")
     @SequenceGenerator(name = "SALE_SEQ", sequenceName = "SALE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

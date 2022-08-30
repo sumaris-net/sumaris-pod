@@ -34,7 +34,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -44,7 +44,7 @@ public class OrderItem implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ORDER_ITEM_SEQ")
     @SequenceGenerator(name = "ORDER_ITEM_SEQ", sequenceName="ORDER_ITEM_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -53,15 +53,15 @@ public class OrderItem implements IUpdateDateEntity<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "object_id", nullable = false)
-    @ToString.Include
+    
     private Integer objectId;
 
     @Column(name="rank", nullable = false)
-    @ToString.Include
+    
     private Integer rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_type_fk", nullable = false)
-    @ToString.Include
+    
     private OrderType type;
 }

@@ -197,6 +197,8 @@
     <helperPluginVersion>2.3.2</helperPluginVersion>
 
     <!-- apache maven plugins version -->
+    <assemblyPluginVersion>3.3.0</assemblyPluginVersion>
+    <compilerPluginVersion>3.8.1</compilerPluginVersion>
     <jarPluginVersion>3.1.2</jarPluginVersion>
     <sitePluginVersion>3.9.1</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
@@ -1154,7 +1156,7 @@
 
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>${assemblyPluginVersion}</version>
         </plugin>
 
         <plugin>
@@ -1180,7 +1182,7 @@
 
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
+          <version>${compilerPluginVersion}</version>
           <configuration>
             <source>${javaVersion}</source>
             <target>${javaVersion}</target>

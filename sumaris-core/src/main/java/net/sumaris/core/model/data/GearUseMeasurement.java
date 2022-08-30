@@ -35,6 +35,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="gear_use_measurement")
@@ -43,6 +45,8 @@ public class GearUseMeasurement implements IMeasurementEntity, ISortedMeasuremen
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_USE_MEASUREMENT_SEQ")
     @SequenceGenerator(name = "GEAR_USE_MEASUREMENT_SEQ", sequenceName="GEAR_USE_MEASUREMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

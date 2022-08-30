@@ -34,7 +34,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -46,12 +46,12 @@ public class Status implements IReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
     @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false)

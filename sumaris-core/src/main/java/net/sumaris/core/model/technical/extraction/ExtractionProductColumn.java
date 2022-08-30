@@ -36,7 +36,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -47,7 +47,7 @@ public class ExtractionProductColumn implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_COLUMN_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_COLUMN_SEQ", sequenceName="EXTRACTION_PRODUCT_COLUMN_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 

@@ -32,7 +32,10 @@ import net.sumaris.core.model.referential.location.Location;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "program2department")
@@ -51,7 +54,9 @@ public class ProgramDepartment implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PROGRAM2DEPARTMENT_SEQ")
-    @SequenceGenerator(name = "PROGRAM2DEPARTMENT_SEQ", sequenceName="PROGRAM2DEPARTMENT_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "PROGRAM2DEPARTMENT_SEQ", sequenceName="PROGRAM2DEPARTMENT_SEQ", allocationSize = IReferentialEntity._ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

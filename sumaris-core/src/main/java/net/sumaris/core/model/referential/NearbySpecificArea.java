@@ -35,7 +35,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -45,7 +45,7 @@ public class NearbySpecificArea implements IItemReferentialEntity<Integer>, IWit
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nearby_specific_area_seq")
     @SequenceGenerator(name = "nearby_specific_area_seq", sequenceName="nearby_specific_area_seq", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -62,7 +62,7 @@ public class NearbySpecificArea implements IItemReferentialEntity<Integer>, IWit
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

@@ -40,7 +40,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -49,7 +49,7 @@ public class Metier implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")
     @SequenceGenerator(name = "METIER_SEQ", sequenceName="METIER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -66,7 +66,7 @@ public class Metier implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

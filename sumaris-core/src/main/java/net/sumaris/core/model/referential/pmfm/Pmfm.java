@@ -39,7 +39,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -54,7 +54,7 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
     @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -71,7 +71,7 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
     private Date updateDate;
 
     @Column(length = IItemReferentialEntity.LENGTH_LABEL, unique = true)
-    @ToString.Include
+    
     private String label;
 
     @Formula("(select p.name from parameter p where p.id = parameter_fk)")

@@ -38,6 +38,8 @@ import java.util.List;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "expected_sale")
@@ -48,6 +50,8 @@ public class ExpectedSale implements IEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXPECTED_SALE_SEQ")
     @SequenceGenerator(name = "EXPECTED_SALE_SEQ", sequenceName = "EXPECTED_SALE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "sale_date")

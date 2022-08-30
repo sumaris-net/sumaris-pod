@@ -33,7 +33,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name = "file_status")
@@ -43,11 +43,12 @@ public class FileStatus implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_STATUS_SEQ")
     @SequenceGenerator(name = "FILE_STATUS_SEQ", sequenceName="FILE_STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

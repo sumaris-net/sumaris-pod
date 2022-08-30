@@ -37,7 +37,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -47,7 +47,7 @@ public class UserProfile implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USER_PROFILE_SEQ")
     @SequenceGenerator(name = "USER_PROFILE_SEQ", sequenceName="USER_PROFILE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -64,7 +64,7 @@ public class UserProfile implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = 50)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = 100)

@@ -29,7 +29,10 @@ import net.sumaris.core.model.referential.pmfm.Pmfm;
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "pmfm_applied_strategy")

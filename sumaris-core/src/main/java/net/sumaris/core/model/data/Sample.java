@@ -43,7 +43,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name = "sample")
@@ -53,11 +53,12 @@ public class Sample implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_SEQ")
     @SequenceGenerator(name = "SAMPLE_SEQ", sequenceName="SAMPLE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(length = 40, nullable = false)
-    @ToString.Include
+    
     private String label;
 
     @Column(name = "rank_order", nullable = false)

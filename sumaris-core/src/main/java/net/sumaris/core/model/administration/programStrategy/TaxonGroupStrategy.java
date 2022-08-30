@@ -29,7 +29,10 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group_strategy")

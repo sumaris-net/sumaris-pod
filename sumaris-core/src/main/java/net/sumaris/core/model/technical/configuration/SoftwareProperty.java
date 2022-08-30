@@ -34,7 +34,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -44,15 +44,16 @@ public class SoftwareProperty implements IItemReferentialEntity<Integer>  {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_PROPERTY_SEQ")
     @SequenceGenerator(name = "SOFTWARE_PROPERTY_SEQ", sequenceName="SOFTWARE_PROPERTY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = 255)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = 2000) // Increase, need to large URL in images
-    @ToString.Include
+    
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -30,7 +30,10 @@ import net.sumaris.core.model.referential.IReferentialEntity;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_settings")
@@ -39,6 +42,8 @@ public class UserSettings implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_SETTINGS_SEQ")
     @SequenceGenerator(name = "USER_SETTINGS_SEQ", sequenceName="USER_SETTINGS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

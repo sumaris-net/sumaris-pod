@@ -34,6 +34,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_registration_period")
@@ -42,6 +44,8 @@ public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vess
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_REGISTRATION_PERIOD_SEQ")
     @SequenceGenerator(name = "VESSEL_REGISTRATION_PERIOD_SEQ", sequenceName="VESSEL_REGISTRATION_PERIOD_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "start_date", nullable = false)

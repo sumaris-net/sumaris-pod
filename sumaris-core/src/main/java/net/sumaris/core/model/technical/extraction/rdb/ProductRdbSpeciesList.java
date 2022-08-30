@@ -30,7 +30,10 @@ import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "p01_rdb_species_list")

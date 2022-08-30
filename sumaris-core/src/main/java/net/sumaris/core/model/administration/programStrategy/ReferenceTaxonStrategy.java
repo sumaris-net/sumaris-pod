@@ -29,7 +29,10 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "reference_taxon_strategy")

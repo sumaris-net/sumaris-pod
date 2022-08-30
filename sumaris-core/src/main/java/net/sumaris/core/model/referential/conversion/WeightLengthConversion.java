@@ -56,7 +56,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -67,7 +67,7 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WEIGHT_LENGTH_CONVERSION_SEQ")
     @SequenceGenerator(name = "WEIGHT_LENGTH_CONVERSION_SEQ", sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -84,23 +84,23 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
     private Date updateDate;
 
     @Column(name = "conversion_coefficient_a", nullable = false)
-    @ToString.Include
+    
     private Double conversionCoefficientA;
 
     @Column(name = "conversion_coefficient_b", nullable = false)
-    @ToString.Include
+    
     private Double conversionCoefficientB;
 
     @Column(name = "start_month", nullable = false)
-    @ToString.Include
+    
     private Integer startMonth;
 
     @Column(name = "end_month", nullable = false)
-    @ToString.Include
+    
     private Integer endMonth;
 
     @Column(name = "year")
-    @ToString.Include
+    
     private Integer year;
 
     private String description;
@@ -114,27 +114,27 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sex_qualitative_value_fk")
-    @ToString.Include
+    
     private QualitativeValue sex;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "length_parameter_fk", nullable = false)
-    @ToString.Include
+    
     private Parameter lengthParameter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "length_unit_fk", nullable = false)
-    @ToString.Include
+    
     private Unit lengthUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
-    @ToString.Include
+    
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
-    @ToString.Include
+    
     private Location location;
 
 }

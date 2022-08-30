@@ -33,6 +33,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_owner")
@@ -41,6 +43,8 @@ public class VesselOwner implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_OWNER_SEQ")
     @SequenceGenerator(name = "VESSEL_OWNER_SEQ", sequenceName="VESSEL_OWNER_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "registration_code", length = 40)

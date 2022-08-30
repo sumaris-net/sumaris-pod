@@ -41,6 +41,8 @@ import java.util.Set;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @NamedEntityGraph(
@@ -61,6 +63,8 @@ public class Landing implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
     @SequenceGenerator(name = "LANDING_SEQ", sequenceName="LANDING_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

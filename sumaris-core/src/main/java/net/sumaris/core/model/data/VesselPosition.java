@@ -33,6 +33,8 @@ import java.util.Date;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity(name = "vessel_position")
 public class VesselPosition implements IDataEntity<Integer> {
@@ -40,6 +42,8 @@ public class VesselPosition implements IDataEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_POSITION_SEQ")
     @SequenceGenerator(name = "VESSEL_POSITION_SEQ", sequenceName="VESSEL_POSITION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

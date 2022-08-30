@@ -34,7 +34,7 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -44,7 +44,7 @@ public class ExtractionProductValue implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_VALUE_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_VALUE_SEQ", sequenceName="EXTRACTION_PRODUCT_VALUE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 

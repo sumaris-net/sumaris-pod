@@ -32,7 +32,10 @@ import java.io.Serializable;
 /**
  * Définit les ReferenceTaxon constituants un TaxonName virtuel
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

@@ -39,7 +39,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name = "file")
@@ -48,11 +48,12 @@ public class File implements Serializable, IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_SEQ")
     @SequenceGenerator(name = "FILE_SEQ", sequenceName="FILE_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    @ToString.Include
+    
     private String name;
 
     @Column(nullable = false, name = "content_type")

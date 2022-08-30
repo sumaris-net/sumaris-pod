@@ -27,7 +27,10 @@ import lombok.experimental.FieldNameConstants;
 
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 public class UnitConversionId implements Serializable {
     private int fromUnit;

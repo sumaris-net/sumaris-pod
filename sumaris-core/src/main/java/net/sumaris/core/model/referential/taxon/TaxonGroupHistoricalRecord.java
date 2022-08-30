@@ -36,7 +36,10 @@ import java.util.Date;
  *  Cette date est renseignée automatiquemnt par le système, lors d'une modification d'affectation.
  *
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group_historical_record")
@@ -45,6 +48,8 @@ public class TaxonGroupHistoricalRecord implements IUpdateDateEntity<Integer, Da
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_HISTORICAL_REC_SEQ")
     @SequenceGenerator(name = "TAXON_GROUP_HISTORICAL_REC_SEQ", sequenceName="TAXON_GROUP_HISTORICAL_REC_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "start_date", nullable = false)

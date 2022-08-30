@@ -43,7 +43,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -59,7 +59,7 @@ public class ExtractionProduct implements IExtractionType<Person, Department>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_SEQ", sequenceName="EXTRACTION_PRODUCT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 

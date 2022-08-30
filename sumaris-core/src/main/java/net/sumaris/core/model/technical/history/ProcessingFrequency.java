@@ -32,8 +32,10 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_frequency")
@@ -42,7 +44,8 @@ public class ProcessingFrequency implements IItemReferentialEntity<Integer>, IWi
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_FREQ_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_FREQ_SEQ", sequenceName="EXTRACTION_PRODUCT_FREQ_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,7 +61,7 @@ public class ProcessingFrequency implements IItemReferentialEntity<Integer>, IWi
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

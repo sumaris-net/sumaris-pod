@@ -41,7 +41,7 @@ import java.util.List;
  *
  */
 @Getter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -51,7 +51,7 @@ public class ReferenceTaxon implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
     @SequenceGenerator(name = "REFERENCE_TAXON_SEQ", sequenceName="REFERENCE_TAXON_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 

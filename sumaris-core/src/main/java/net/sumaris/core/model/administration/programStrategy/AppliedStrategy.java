@@ -34,8 +34,10 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "applied_strategy")
@@ -44,17 +46,18 @@ public class AppliedStrategy implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "APPLIED_STRATEGY_SEQ")
     @SequenceGenerator(name = "APPLIED_STRATEGY_SEQ", sequenceName="APPLIED_STRATEGY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_fk", nullable = false)
-    @ToString.Include
+    
     private Strategy strategy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
-    @ToString.Include
+    
     private Location location;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = AppliedPeriod.Fields.APPLIED_STRATEGY)

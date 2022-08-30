@@ -35,7 +35,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name="sorting_measurement_b")
@@ -44,7 +44,8 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SORTING_MEASUREMENT_B_SEQ")
     @SequenceGenerator(name = "SORTING_MEASUREMENT_B_SEQ", sequenceName="SORTING_MEASUREMENT_B_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")
@@ -94,12 +95,12 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pmfm_fk", nullable = false)
-    @ToString.Include
+    
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
-    @ToString.Include
+    
     private Batch batch;
 
 }

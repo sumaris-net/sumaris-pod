@@ -33,7 +33,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -56,18 +56,16 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
-    @ToString.Include
+    
     private String issuer;
 
     @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String recipient;
 
     @Column(name = "event_type", nullable = false, length = 30)
-    @ToString.Include(rank = 1)
     private String type;
 
     @Column(name = "level", nullable = false, length = 30)
-    @ToString.Include(rank = 2)
     private String level;
 
     @Lob
@@ -75,7 +73,6 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     private String content;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
-    @ToString.Include
     private String hash;
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)

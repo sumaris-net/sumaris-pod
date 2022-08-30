@@ -41,6 +41,8 @@ import java.util.List;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "product")
@@ -51,6 +53,8 @@ public class Product
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PRODUCT_SEQ")
     @SequenceGenerator(name = "PRODUCT_SEQ", sequenceName="PRODUCT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(length = 40)

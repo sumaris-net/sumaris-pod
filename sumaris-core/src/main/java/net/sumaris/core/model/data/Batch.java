@@ -39,7 +39,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 public class Batch implements IDataEntity<Integer>,
@@ -48,11 +48,12 @@ public class Batch implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
     @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(length = 40)
-    @ToString.Include
+    
     private String label;
 
     @Column(name = "rank_order", nullable = false)

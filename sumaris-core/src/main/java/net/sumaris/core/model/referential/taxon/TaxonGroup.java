@@ -52,7 +52,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -63,7 +63,7 @@ public class TaxonGroup implements IItemReferentialEntity<Integer>, IWithDescrip
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
     @SequenceGenerator(name = "TAXON_GROUP_SEQ", sequenceName="TAXON_GROUP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -80,7 +80,7 @@ public class TaxonGroup implements IItemReferentialEntity<Integer>, IWithDescrip
     private Date updateDate;
 
     @Column(length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

@@ -38,6 +38,8 @@ import java.util.List;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "operation")
@@ -70,6 +72,8 @@ public class Operation implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
     @SequenceGenerator(name = "OPERATION_SEQ", sequenceName = "OPERATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

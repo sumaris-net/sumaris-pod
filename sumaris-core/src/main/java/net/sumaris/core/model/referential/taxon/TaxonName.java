@@ -44,7 +44,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -62,7 +62,7 @@ public class TaxonName implements IItemReferentialEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
     @SequenceGenerator(name = "TAXON_NAME_SEQ", sequenceName="TAXON_NAME_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -114,7 +114,7 @@ public class TaxonName implements IItemReferentialEntity<Integer>,
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
-    @ToString.Include
+    
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonomicLevel.class)

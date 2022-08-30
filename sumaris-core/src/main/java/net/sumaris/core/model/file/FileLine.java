@@ -33,7 +33,7 @@ import java.sql.Clob;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name = "file_line")
@@ -42,11 +42,12 @@ public class FileLine implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_LINE_SEQ")
     @SequenceGenerator(name = "FILE_LINE_SEQ", sequenceName="FILE_LINE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, name = "line_number")
-    @ToString.Include
+    
     private Long lineNumber;
 
     @Column(nullable = false)

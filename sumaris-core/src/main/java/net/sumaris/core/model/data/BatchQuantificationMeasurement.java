@@ -35,7 +35,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name="quantification_measurement_b")
@@ -44,7 +44,8 @@ public class BatchQuantificationMeasurement implements IQuantifiedMeasurementEnt
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUANTIF_MEASUREMENT_B_SEQ")
     @SequenceGenerator(name = "QUANTIF_MEASUREMENT_B_SEQ", sequenceName="QUANTIF_MEASUREMENT_B_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")
@@ -97,12 +98,12 @@ public class BatchQuantificationMeasurement implements IQuantifiedMeasurementEnt
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Pmfm.class)
     @JoinColumn(name = "pmfm_fk", nullable = false)
-    @ToString.Include
+    
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
-    @ToString.Include
+    
     private Batch batch;
 
 }

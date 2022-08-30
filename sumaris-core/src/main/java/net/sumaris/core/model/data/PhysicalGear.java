@@ -40,7 +40,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(onlyExplicitlyIncluded = true)
+
 @FieldNameConstants
 @Entity
 @Table(name="physical_gear")
@@ -50,7 +50,8 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_SEQ")
     @SequenceGenerator(name = "PHYSICAL_GEAR_SEQ", sequenceName="PHYSICAL_GEAR_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "rank_order", nullable = false)
@@ -58,7 +59,7 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Gear.class)
     @JoinColumn(name = "gear_fk", nullable = false)
-    @ToString.Include
+    
     private Gear gear;
 
     @Column(length = LENGTH_COMMENTS)

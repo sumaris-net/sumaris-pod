@@ -33,8 +33,10 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
@@ -44,7 +46,8 @@ public class AcquisitionLevel implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "ACQUISITION_LEVEL_SEQ")
     @SequenceGenerator(name = "ACQUISITION_LEVEL_SEQ", sequenceName="ACQUISITION_LEVEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,7 +63,7 @@ public class AcquisitionLevel implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)

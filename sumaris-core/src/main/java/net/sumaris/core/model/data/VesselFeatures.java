@@ -38,6 +38,8 @@ import java.util.List;
 
 @Getter
 @Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_features")
@@ -48,7 +50,9 @@ public class VesselFeatures implements IDataEntity<Integer>,
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_FEATURES_SEQ")
-    @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ", allocationSize = _ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
