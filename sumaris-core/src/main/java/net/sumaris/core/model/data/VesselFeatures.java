@@ -50,7 +50,7 @@ public class VesselFeatures implements IDataEntity<Integer>,
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_FEATURES_SEQ")
-    @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ", allocationSize = _ALLOCATION_SIZE)
+    @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     
     @EqualsAndHashCode.Include
     private Integer id;

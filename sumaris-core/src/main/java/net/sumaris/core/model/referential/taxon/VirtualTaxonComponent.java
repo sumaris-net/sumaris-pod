@@ -34,8 +34,6 @@ import java.io.Serializable;
  */
 @Getter
 @Setter
-
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

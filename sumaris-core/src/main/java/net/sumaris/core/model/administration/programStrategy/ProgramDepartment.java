@@ -54,7 +54,7 @@ public class ProgramDepartment implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PROGRAM2DEPARTMENT_SEQ")
-    @SequenceGenerator(name = "PROGRAM2DEPARTMENT_SEQ", sequenceName="PROGRAM2DEPARTMENT_SEQ", allocationSize = IReferentialEntity._ALLOCATION_SIZE)
+    @SequenceGenerator(name = "PROGRAM2DEPARTMENT_SEQ", sequenceName="PROGRAM2DEPARTMENT_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     
     @EqualsAndHashCode.Include
     private Integer id;

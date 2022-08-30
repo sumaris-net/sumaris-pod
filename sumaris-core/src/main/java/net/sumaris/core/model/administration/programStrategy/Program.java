@@ -50,7 +50,6 @@ public class Program implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
     @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

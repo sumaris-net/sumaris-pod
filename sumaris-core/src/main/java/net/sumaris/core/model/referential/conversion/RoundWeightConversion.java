@@ -53,7 +53,7 @@ import java.util.Date;
  * </p>
  */
 @Getter
-
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
