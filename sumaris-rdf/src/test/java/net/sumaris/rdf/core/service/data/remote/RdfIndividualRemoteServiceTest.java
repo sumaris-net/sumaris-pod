@@ -57,7 +57,7 @@ public class RdfIndividualRemoteServiceTest extends AbstractTest {
     public void testSynchro() {
         String ontologyUrl = fixtures.getRemoteOntologyUrl();
         String ontologyIri = fixtures.getRemoteOntologyIri();
-        Model mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, ModelVocabularies.COMMON,
+        Model mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, ModelVocabularies.SHARED,
             IModel.MODEL_REFERENTIAL_PACKAGE_NAME);
         Assert.assertNotNull(mappedModel);
     }

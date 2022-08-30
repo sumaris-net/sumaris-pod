@@ -26,6 +26,8 @@ import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
@@ -34,11 +36,11 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "transcribing_item")
+@OntologyEntity(vocab = ModelVocabularies.TRANSCRIBING)
 public class TranscribingItem implements IItemReferentialEntity<Integer>  {
 
     @Id
@@ -78,6 +80,5 @@ public class TranscribingItem implements IItemReferentialEntity<Integer>  {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transcribing_item_type_fk", nullable = false)
-    
     private TranscribingItemType type;
 }

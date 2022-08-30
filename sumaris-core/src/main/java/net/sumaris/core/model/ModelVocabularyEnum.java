@@ -24,7 +24,7 @@ package net.sumaris.core.model;
 
 public enum ModelVocabularyEnum implements ModelVocabularies {
 
-    COMMON(ModelVocabularies.COMMON, "Shared"),
+    COMMON(ModelVocabularies.SHARED, "Shared"),
     DEFAULT(COMMON),
     TRANSCRIBING(ModelVocabularies.TRANSCRIBING, "Transcribing"),
 

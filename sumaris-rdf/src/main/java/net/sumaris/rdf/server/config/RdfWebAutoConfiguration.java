@@ -115,7 +115,7 @@ public class RdfWebAutoConfiguration {
                     String DATA_FILE_PATH = WEBVOWL_PATH_SLASH + "data/%s.json";
 
                     // WebVOWL schema files: from internal vocabularies
-                    Map<String, OntologyEntities.Definition> ontologyDefByVocabulary = Maps.newHashMap();
+                    Map<String, String> lastVersionByVobabulary = Maps.newHashMap();
                     OntologyEntities.getOntologyEntityDefs(config.getDelegate(), ModelVocabularyEnum.DEFAULT.getLabel(), config.getModelVersion())
                         .stream()
                         .sorted((def1, def2) -> {
@@ -130,13 +130,13 @@ public class RdfWebAutoConfiguration {
                         })
                         .forEach(def -> {
                             // Insert first [vocabulary, version]
-                            if (!ontologyDefByVocabulary.containsKey(def.getVocabulary())) {
-                                ontologyDefByVocabulary.put(def.getVocabulary(), def);
+                            if (!lastVersionByVobabulary.containsKey(def.getVocabulary())) {
+                                lastVersionByVobabulary.put(def.getVocabulary(), def.getVersion());
                             }
                         });
-                    ontologyDefByVocabulary.forEach((vocabulary, def) -> {
+                    lastVersionByVobabulary.forEach((vocabulary, version) -> {
                             registry.addViewController(String.format(DATA_FILE_PATH, vocabulary))
-                                .setViewName(String.format("forward:%s/%s/%s?format=vowl", RdfRestPaths.SCHEMA_BASE_PATH, vocabulary, def.getVersion()));
+                                .setViewName(String.format("forward:%s/%s/%s?format=vowl", RdfRestPaths.SCHEMA_BASE_PATH, vocabulary, version));
                     });
 
                     // WebVOWL schema files: from external URI
@@ -170,11 +170,18 @@ public class RdfWebAutoConfiguration {
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                     .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
                     .allowCredentials(true);
+
+
+                registry.addMapping(RdfRestPaths.WEBVOWL_BASE_PATH + "/data/**")
+                    .allowedOriginPatterns("*")
+                    .allowedMethods("GET", "HEAD", "OPTIONS")
+                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                    .allowCredentials(true);
             }
 
             @Override
             public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
+                configurer.setUseSuffixPatternMatch(true);
             }
         };
     }

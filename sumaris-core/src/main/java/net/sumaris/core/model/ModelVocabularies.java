@@ -29,7 +29,7 @@ public interface ModelVocabularies {
 
 
     // Shared (e.g. Status, ValidityStatus, Transcribing)
-    String COMMON = "shr";
+    String SHARED = "shr";
     String TRANSCRIBING = "tscb";
 
     // Functional referential
@@ -40,6 +40,6 @@ public interface ModelVocabularies {
     String LOCATION = "loc";
 
     // Default vocab
-    String DEFAULT = COMMON;
+    String DEFAULT = SHARED;
 
 }

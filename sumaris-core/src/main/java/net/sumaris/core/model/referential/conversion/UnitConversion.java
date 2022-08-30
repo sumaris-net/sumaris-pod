@@ -47,6 +47,7 @@ import java.util.Date;
  */
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "unit_conversion")
@@ -56,11 +57,13 @@ public class UnitConversion implements Serializable {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_unit_fk")
+    @EqualsAndHashCode.Include
     private Unit fromUnit;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "to_unit_fk")
+    @EqualsAndHashCode.Include
     private Unit toUnit;
 
     @Column(name = "conversion_coefficient", nullable = false)

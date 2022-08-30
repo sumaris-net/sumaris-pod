@@ -27,6 +27,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
@@ -55,6 +57,7 @@ import java.util.List;
                         "FROM TaxonName " +
                         "WHERE id=:id")
 })
+@OntologyEntity(vocab = ModelVocabularies.TAXON)
 public class TaxonName implements IItemReferentialEntity<Integer>,
         IWithDescriptionAndCommentEntity<Integer>,
     ITreeNodeEntity<Integer, TaxonName> {

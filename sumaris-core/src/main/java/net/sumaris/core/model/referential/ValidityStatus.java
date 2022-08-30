@@ -24,9 +24,10 @@ package net.sumaris.core.model.referential;
 
 import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -43,6 +44,7 @@ import java.util.Date;
 @Entity
 @Cacheable
 @Table(name="validity_status")
+@OntologyEntity(vocab = ModelVocabularies.SHARED)
 public class ValidityStatus implements IUpdateDateEntity<Integer, Date> {
 
     @Id

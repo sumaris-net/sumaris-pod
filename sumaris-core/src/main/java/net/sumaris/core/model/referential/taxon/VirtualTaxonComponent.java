@@ -25,6 +25,8 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -38,6 +40,7 @@ import java.io.Serializable;
 @FieldNameConstants
 @Entity
 @Table(name = "virtual_component")
+@OntologyEntity(vocab = ModelVocabularies.TAXON)
 public class VirtualTaxonComponent implements Serializable  {
 
     @Id

@@ -69,7 +69,7 @@ public class OntologyRdfRestController implements RdfRestPaths {
     // Schema path
     public static final String SCHEMA_PATH = SCHEMA_BASE_PATH + "/" + "{vocab:[a-zA-Z]+}";
     public static final String SCHEMA_PATH_SLASH = SCHEMA_PATH + "/";
-    public static final String SCHEMA_VERSION_PATH = SCHEMA_PATH_SLASH + "/" + "{version:[0-9.]+}";
+    public static final String SCHEMA_VERSION_PATH = SCHEMA_PATH_SLASH + "{version:[0-9.]+}";
     public static final String SCHEMA_VERSION_PATH_SLASH = SCHEMA_VERSION_PATH + "/";
     public static final String SCHEMA_VERSION_CLASS = SCHEMA_VERSION_PATH_SLASH + "{class:[a-zA-Z]+}";
     public static final String SCHEMA_VERSION_CLASS_SLASH = SCHEMA_VERSION_CLASS + "/";

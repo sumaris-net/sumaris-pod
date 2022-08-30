@@ -27,7 +27,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.ModelVocabularies;
 import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import org.hibernate.annotations.Cascade;
@@ -46,6 +48,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "reference_taxon")
+@OntologyEntity(vocab = ModelVocabularies.TAXON)
 public class ReferenceTaxon implements IUpdateDateEntity<Integer, Date> {
 
     @Id

@@ -57,7 +57,7 @@ public class SchemaServiceTest extends AbstractTest {
 
         // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .vocabulary(ModelVocabularies.COMMON)
+                .vocabulary(ModelVocabularies.SHARED)
                 .className(Status.class.getSimpleName())
                 // Will add RDFS equivalence between:
                 // - Status#name <--> rdfs:label
@@ -84,7 +84,7 @@ public class SchemaServiceTest extends AbstractTest {
 
         // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .vocabulary(ModelVocabularies.COMMON)
+                .vocabulary(ModelVocabularies.SHARED)
                 .className(Status.class.getSimpleName())
                 // Will add OWL equivalence between:
                 // - Status#name <--> rdfs:label

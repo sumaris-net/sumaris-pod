@@ -62,7 +62,7 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_MODEL_VERSION(
         "rdf.model.version",
         n("sumaris.config.option.rdf.model.version.description"),
-        "${sumaris.version}",
+        "0.1",
         String.class,
         false),
 

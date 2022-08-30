@@ -106,7 +106,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
 
             @Override
             public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
+                configurer.setUseSuffixPatternMatch(true);
             }
         };
     }

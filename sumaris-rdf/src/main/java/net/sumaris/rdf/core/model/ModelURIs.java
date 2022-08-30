@@ -102,7 +102,7 @@ public class ModelURIs {
         .put("geo", GEO.WGS84Pos.NS)
         .put("gn", "http://www.geonames.org/ontology") // Geo names
 
-        .put("foaf", "http://xmlns.com/foaf/spec/index.rdf")
+        .put("foaf", "https://raw.githubusercontent.com/apache/jena/main/jena-arq/Vocabularies/FOAF.rdf"/*http://xmlns.com/foaf/spec/index.rdf*/)
         .put("skos", SKOS.getURI())
         .put(W3NS.Org.PREFIX, W3NS.Org.NS + ".rdf")
 

@@ -26,6 +26,8 @@ import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.Status;
@@ -40,6 +42,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "transcribing_item_type")
+@OntologyEntity(vocab = ModelVocabularies.TRANSCRIBING)
 public class TranscribingItemType implements IItemReferentialEntity<Integer>  {
 
     @Id

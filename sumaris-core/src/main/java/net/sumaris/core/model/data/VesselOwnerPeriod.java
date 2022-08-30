@@ -31,6 +31,7 @@ import java.util.Date;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_owner_period")
@@ -39,16 +40,19 @@ public class VesselOwnerPeriod implements Serializable {
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vessel_fk", nullable = false)
+    @EqualsAndHashCode.Include
     private Vessel vessel;
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "vessel_owner_fk", nullable = false)
+    @EqualsAndHashCode.Include
     private VesselOwner vesselOwner;
 
     @Id
     @Column(name = "start_date", nullable = false)
     @Temporal(TemporalType.DATE)
+    @EqualsAndHashCode.Include
     private Date startDate;
 
     @Column(name = "end_date")

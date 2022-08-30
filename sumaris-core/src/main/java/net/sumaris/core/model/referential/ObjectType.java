@@ -26,6 +26,8 @@ import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -37,6 +39,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "object_type")
+@OntologyEntity(vocab = ModelVocabularies.SHARED)
 public class ObjectType implements IItemReferentialEntity<Integer> {
 
     @Id

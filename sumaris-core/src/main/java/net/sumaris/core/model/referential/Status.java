@@ -24,7 +24,6 @@ package net.sumaris.core.model.referential;
 
 import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ModelVocabularies;
 import net.sumaris.core.model.annotation.OntologyEntity;
@@ -40,7 +39,7 @@ import java.util.Date;
 @Entity
 @Table(name = "status")
 @Cacheable
-@OntologyEntity(vocab = ModelVocabularies.COMMON)
+@OntologyEntity(vocab = ModelVocabularies.SHARED)
 public class Status implements IReferentialEntity<Integer> {
 
     @Id
