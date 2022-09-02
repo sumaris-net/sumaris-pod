@@ -60,12 +60,10 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler implements SubProtocolCapable {
@@ -77,6 +75,10 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         String GQL_CONNECTION_ACK = "connection_ack";
         String GQL_CONNECTION_ERROR = "connection_error";
         String GQL_CONNECTION_KEEP_ALIVE = "ka";
+
+        String GQL_CONNECTION_PING = "ping";
+
+        String GQL_CONNECTION_PONG = "pong";
         String GQL_CONNECTION_TERMINATE = "connection_terminate";
         String GQL_START = "start";
         String GQL_STOP = "stop";
@@ -130,7 +132,9 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         if (taskScheduler != null) {
-            this.keepAlive.compareAndSet(null, taskScheduler.scheduleWithFixedDelay(keepAliveTask(session), Math.max(keepAliveInterval, 1000)));
+            this.keepAlive.compareAndSet(null,
+                taskScheduler.scheduleWithFixedDelay(keepAliveTask(session),
+                Math.max(keepAliveInterval, 5000))); // Should be >= 5 sec
         }
     }
 
@@ -140,14 +144,8 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         // Closing session's subscriptions
         cancelAll();
 
-        if (taskScheduler != null) {
-            this.keepAlive.getAndUpdate(task -> {
-                if (task != null) {
-                    task.cancel(false);
-                }
-                return null;
-            });
-        }
+        // Close keep alive task
+        cancelKeepAliveTask();
     }
 
     @Override
@@ -168,6 +166,14 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                     break;
                 case GqlTypes.GQL_STOP:
                     handleStopRequest(session, request);
+                    break;
+                case GqlTypes.GQL_CONNECTION_KEEP_ALIVE:
+                case GqlTypes.GQL_CONNECTION_PING:
+                    log.debug(I18n.t("sumaris.server.info.subscription.cancelKeepAliveTask", type));
+                    cancelKeepAliveTask();
+                    break;
+                case GqlTypes.GQL_CONNECTION_PONG:
+                    log.debug(I18n.t("sumaris.server.info.subscription.received", type));
                     break;
                 case GqlTypes.GQL_CONNECTION_TERMINATE:
                     session.close();
@@ -421,7 +427,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             if (session != null && session.isOpen()) {
                 sendResponse(session,
                     ImmutableMap.of(
-                        "type", GqlTypes.GQL_CONNECTION_KEEP_ALIVE
+                        "type", "ping" //GqlTypes.GQL_CONNECTION_KEEP_ALIVE
                     ),
                     // Error handler
                     (e) -> {
@@ -430,5 +436,16 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                     });
             }
         };
+    }
+
+    protected void cancelKeepAliveTask() {
+        if (taskScheduler != null) {
+            this.keepAlive.getAndUpdate(task -> {
+                if (task != null) {
+                    task.cancel(false);
+                }
+                return null;
+            });
+        }
     }
 }
