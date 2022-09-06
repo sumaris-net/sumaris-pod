@@ -22,6 +22,7 @@
 
 package net.sumaris.server.http.security.ldap;
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.server.http.security.AnonymousUserDetails;
 import net.sumaris.server.http.security.AuthService;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,7 @@ import org.springframework.security.ldap.userdetails.LdapUserDetails;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class LdapAuthenticationProvider
     extends org.springframework.security.ldap.authentication.LdapAuthenticationProvider {
 
@@ -56,7 +58,12 @@ public class LdapAuthenticationProvider
         if (AnonymousUserDetails.TOKEN.equals(authentication.getPrincipal())) return authentication;
 
         // Authenticate on LDAP server
-        authentication = super.authenticate(authentication);
+        try {
+            authentication = super.authenticate(authentication);
+        } catch (AuthenticationException e) {
+            log.debug("Failed to authenticate user {} using LDAP: {}", authentication.getPrincipal(), e.getMessage());
+            throw e;
+        }
 
         // Extract user login, to use as principal
         Object principal = authentication.getPrincipal();
