@@ -782,8 +782,6 @@ public class DataGraphQLService {
     /* -- Operation Groups -- */
 
     @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
-    @Transactional(readOnly = true)
-    @IsUser
     public List<OperationGroupVO> getOperationGroupsByTrip(@GraphQLContext TripVO trip) {
         if (trip.getOperationGroups() != null) return trip.getOperationGroups();
         if (trip.getId() == null) return null;
