@@ -33,12 +33,14 @@
         <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
         <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
         <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
+        <subselect alias="MONITORING_ID" type="number">CHILD_SA.RANK_ORDER</subselect>
 
         <from alias="S">&amp;stationTableName</from>
         <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
         <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
         <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
         <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
+        <from join="true">LEFT OUTER JOIN SAMPLE CHILD_SA ON CHILD_SA.PARENT_SAMPLE_FK = SA.ID AND CHILD_SA.LABEL LIKE UPPER('INDIVIDUAL_MONITORING#%')</from>
 
         <union>
           <subquery>
@@ -49,6 +51,7 @@
             <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
             <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
             <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
+            <subselect alias="MONITORING_ID" type="number">SA.RANK_ORDER</subselect>
 
             <from alias="S">&amp;stationTableName</from>
             <from join="true">INNER JOIN SAMPLE PARENT_SA ON PARENT_SA.OPERATION_FK = S.STATION_NUMBER AND PARENT_SA.LABEL LIKE UPPER('SAMPLE#%')</from>
@@ -91,12 +94,13 @@
     <select alias="TAG_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('TAG_ID')  THEN T.ALPHA_VALUE END)</select>
     <select alias="MONITORING_BOX_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('MONITORING_BOX_ID') THEN T.ALPHA_VALUE END)</select>
     <!-- INDIVIDUAL MONITORING -->
+    <select alias="MONITORING_ID" type="text">T.MONITORING_ID</select>
     <select alias="IS_DEAD" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('IS_DEAD') THEN (CASE T.NUM_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END) END)</select>
     <select alias="DEATH_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'DEATH_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
-    <select alias="DEATH_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('DEATH_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-dd HH24:MI:SS') END)</select>
+    <select alias="DEATH_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('DEATH_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
     <select alias="VERTEBRAL_COLUMN_ANALYSIS" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('VERTEBRAL_COLUMN_ANALYSIS') THEN (CASE T.NUM_VALUE WHEN 1 THEN 'Y' WHEN 0 THEN 'N' END) END)</select>
     <select alias="MEASURE_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
-    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-dd HH24:MI:SS') END)</select>
+    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
     <select alias="DO_PCT" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('DO_PCT') THEN T.NUM_VALUE END)</select>
     <select alias="SAL_PSU" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('SAL_PSU') THEN T.NUM_VALUE END)</select>
     <select alias="WATER_TEMP_C" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('WATER_TEMP_C') THEN T.NUM_VALUE END)</select>
@@ -110,7 +114,7 @@
 
     <groupby>
       RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
-      T.ID, TN.LABEL, TN.NAME, T.SAMPLE_DATE
+      T.ID, TN.LABEL, TN.NAME, T.SAMPLE_DATE, T.MONITORING_ID
     </groupby>
   </query>
 
