@@ -26,15 +26,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
-import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
-import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.model.data.IWithRecorderPersonEntity;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 
