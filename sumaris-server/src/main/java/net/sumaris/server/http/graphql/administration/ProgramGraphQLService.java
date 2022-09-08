@@ -68,6 +68,7 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityEventService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -236,7 +237,7 @@ public class ProgramGraphQLService {
         }
 
         if (ArrayUtils.isEmpty(filter.getAcquisitionlevels())) {
-            log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. It is not recommended in production!");
+            log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. Not recommended in production!");
         }
 
         filter.setProgramIds(new Integer[]{program.getId()});

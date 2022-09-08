@@ -179,16 +179,20 @@ public class SampleServiceImpl implements SampleService {
 
 	protected void saveMeasurements(List<SampleVO> result) {
 		result.stream()
-			.filter(sample -> !sample.hasFlag(ValueObjectFlags.SKIP_SAVED))
-			.forEach(savedSample -> {
-				checkUniqueTag(savedSample);
-				if (savedSample.getMeasurementValues() != null) {
-					measurementDao.saveSampleMeasurementsMap(savedSample.getId(), savedSample.getMeasurementValues());
+			// Excluded samples with same hash (= unchanged = not need to save children)
+			.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
+			.forEach(sample -> {
+				// Make sure sample tag is unique
+				checkUniqueTag(sample);
+
+				// Save measurements
+				if (sample.getMeasurementValues() != null) {
+					measurementDao.saveSampleMeasurementsMap(sample.getId(), sample.getMeasurementValues());
 				} else {
-					List<MeasurementVO> measurements = Beans.getList(savedSample.getMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(savedSample, m, SampleMeasurement.class));
-					measurements = measurementDao.saveSampleMeasurements(savedSample.getId(), measurements);
-					savedSample.setMeasurements(measurements);
+					List<MeasurementVO> measurements = Beans.getList(sample.getMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(sample, m, SampleMeasurement.class));
+					measurements = measurementDao.saveSampleMeasurements(sample.getId(), measurements);
+					sample.setMeasurements(measurements);
 				}
 			});
 	}

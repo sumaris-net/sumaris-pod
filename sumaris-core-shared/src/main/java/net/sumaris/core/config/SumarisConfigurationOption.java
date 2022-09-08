@@ -628,6 +628,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.FALSE.toString(),
         Boolean.class,
         false),
+
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),

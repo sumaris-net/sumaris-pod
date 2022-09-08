@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.dao.technical.model.IWithFlagsValueObject;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -48,6 +49,7 @@ import java.util.Map;
 @FieldNameConstants
 @EqualsAndHashCode
 public class SampleVO implements IRootDataVO<Integer>,
+    IWithFlagsValueObject<Integer>,
     ITreeNodeEntity<Integer, SampleVO> {
 
     @EqualsAndHashCode.Exclude
@@ -106,8 +108,4 @@ public class SampleVO implements IRootDataVO<Integer>,
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private int flags = 0;
-
-    public boolean hasFlag(int flag) {
-        return (flags & flag) != 0;
-    }
 }
