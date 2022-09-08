@@ -241,7 +241,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
             ParameterExpression<Collection> parameter = cb.parameter(Collection.class, ACQUISITION_LEVEL_LABELS);
 
             return cb.in(
-                        Daos.composePath(pmfmsInnerJoin, StringUtils.doting(PmfmStrategy.Fields.ACQUISITION_LEVEL, AcquisitionLevel.Fields.ID))
+                        Daos.composePath(pmfmsInnerJoin, StringUtils.doting(PmfmStrategy.Fields.ACQUISITION_LEVEL, AcquisitionLevel.Fields.LABEL))
                     )
                     .value(parameter);
         }).addBind(ACQUISITION_LEVEL_LABELS, Arrays.asList(acquisitionLevelLabels));
