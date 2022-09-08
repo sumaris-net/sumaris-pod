@@ -37,7 +37,6 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -260,7 +259,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
                     .programIds(new Integer[]{40}) // SIH-OBSBIO
-                    .acquisitionlevels(new String[]{AcquisitionLevelEnum.OBSERVED_LOCATION.getLabel()})
+                    .acquisitionLevels(new String[]{AcquisitionLevelEnum.OBSERVED_LOCATION.getLabel()})
                     .build();
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);

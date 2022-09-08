@@ -74,7 +74,7 @@ public class StrategyFilterVO implements IReferentialFilter {
     private Integer[] parameterIds;
     private PeriodVO[] periods;
 
-    private String[] acquisitionlevels;
+    private String[] acquisitionLevels;
 
     /* -- Synonym properties (need by IReferentialFilter) -- */
 

@@ -75,7 +75,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -238,7 +237,7 @@ public class ProgramGraphQLService {
         // Limit on user department, if enable in programs
         filter = fillStrategyFilter(filter);
 
-        if (ArrayUtils.isEmpty(filter.getAcquisitionlevels())) {
+        if (ArrayUtils.isEmpty(filter.getAcquisitionLevels())) {
             log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. Not recommended in production!");
         }
 

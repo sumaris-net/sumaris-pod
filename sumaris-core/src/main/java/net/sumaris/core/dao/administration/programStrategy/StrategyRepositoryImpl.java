@@ -52,7 +52,6 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.LocationFilterVO;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -642,7 +641,7 @@ public class StrategyRepositoryImpl
                 .and(hasLocationIds(filter.getLocationIds()))
                 .and(hasParameterIds(filter.getParameterIds()))
                 .and(hasPeriods(filter.getPeriods()))
-                .and(hasAcquisitionLevelLabels(filter.getAcquisitionlevels()));
+                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()));
     }
 
     @Override
