@@ -30,6 +30,7 @@ import net.sumaris.core.vo.referential.PmfmFetchOptions;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,11 +38,11 @@ import java.util.Optional;
 public interface PmfmService {
 
     @Transactional(readOnly = true)
-    List<PmfmVO> findByFilter(IReferentialFilter filter, Page page, PmfmFetchOptions fetchOptions);
+    List<PmfmVO> findByFilter(IReferentialFilter filter, Page page, @Nullable PmfmFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
-                              PmfmFetchOptions fetchOptions);
+                              @Nullable PmfmFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     List<Integer> findIdsByParts(PmfmPartsVO filter);

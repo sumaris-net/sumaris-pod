@@ -43,6 +43,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,12 +58,12 @@ public class PmfmServiceImpl implements PmfmService {
     protected ParameterRepository parameterRepository;
 
     @Override
-    public List<PmfmVO> findByFilter(IReferentialFilter filter, Page page, PmfmFetchOptions fetchOptions) {
+    public List<PmfmVO> findByFilter(IReferentialFilter filter, Page page, @Nullable PmfmFetchOptions fetchOptions) {
         return pmfmRepository.findAll(filter, page, fetchOptions);
     }
 
     @Override
-    public List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection, PmfmFetchOptions fetchOptions) {
+    public List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection, @Nullable PmfmFetchOptions fetchOptions) {
         return pmfmRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
     }
 

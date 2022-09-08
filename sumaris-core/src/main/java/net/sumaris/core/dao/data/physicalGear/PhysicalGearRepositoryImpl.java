@@ -192,8 +192,7 @@ public class PhysicalGearRepositoryImpl
         super.toEntity(source, target, copyIfNull);
 
         // Set the new Hash
-        // TODO: enable this code
-        //target.setHash(newHash);
+        target.setHash(newHash);
 
         // Gear
         Integer gearId = source.getGear() != null ? source.getGear().getId() : null;

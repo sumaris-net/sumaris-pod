@@ -69,7 +69,7 @@ public class PmfmServiceReadTest extends AbstractServiceTest {
     }
 
     private void assertFindResult(ReferentialFilterVO filter, int expectedSize) {
-        List<PmfmVO> pmfms = service.findByFilter(filter, 0, 100, "id", SortDirection.ASC);
+        List<PmfmVO> pmfms = service.findByFilter(filter, 0, 100, "id", SortDirection.ASC, null);
         Assert.assertNotNull(pmfms);
         Assert.assertEquals(expectedSize, pmfms.size());
     }

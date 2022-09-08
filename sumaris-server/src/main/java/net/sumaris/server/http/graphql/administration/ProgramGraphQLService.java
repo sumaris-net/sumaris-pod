@@ -75,6 +75,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -231,16 +232,16 @@ public class ProgramGraphQLService {
         if (program.getStrategies() != null) return program.getStrategies();
         filter = StrategyFilterVO.nullToEmpty(filter);
 
-        boolean enableStrategyDepartment = programService.hasPropertyValueByProgramId(program.getId(), ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString());
-        if (enableStrategyDepartment) {
-            filter = fillStrategyFilter(filter);
-        }
+        // Force parent program
+        filter.setProgramIds(new Integer[]{program.getId()});
+
+        // Limit on user department, if enable in programs
+        filter = fillStrategyFilter(filter);
 
         if (ArrayUtils.isEmpty(filter.getAcquisitionlevels())) {
             log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. Not recommended in production!");
         }
 
-        filter.setProgramIds(new Integer[]{program.getId()});
         return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
     }
 
@@ -623,19 +624,34 @@ public class ProgramGraphQLService {
         checkCanEditStrategy(programId, strategyId);
     }
 
+    protected StrategyFilterVO fillStrategyFilter(StrategyFilterVO filter) {
+        filter = StrategyFilterVO.nullToEmpty(filter);
+
+        // Is program filtered ?
+        boolean noProgramFilter = ArrayUtils.isEmpty(filter.getProgramIds()) && ArrayUtils.isEmpty(filter.getProgramLabels());
+
+        // Enable limit access from StrategyDepartment, when:
+        // - no program (avoid to read all strategies) - should never happen
+        // - If right by StrategyDepartment is enabled used (in program properties)
+        boolean enableStrategyDepartment = noProgramFilter
+            || Beans.getStream(filter.getProgramIds())
+                .anyMatch(programId -> programService.hasPropertyValueByProgramId(programId, ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString()))
+            || Beans.getStream(filter.getProgramLabels())
+                .anyMatch(programLabel -> programService.hasPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString()));
+        return fillStrategyFilter(filter, enableStrategyDepartment);
+    }
+
     /**
      * Restrict to self department data
      *
      * @param filter
      */
-    protected StrategyFilterVO fillStrategyFilter(StrategyFilterVO filter) {
+    protected StrategyFilterVO fillStrategyFilter(StrategyFilterVO filter, boolean enableStrategyDepartment) {
         filter = StrategyFilterVO.nullToEmpty(filter);
 
-        if (authService.isAdmin()) {
-            // No restriction on department (= show all)
-        }
-        else {
-            // Restrict to self department data
+        // Restrict to self department data
+        // (No restriction if admin)
+        if (enableStrategyDepartment && !authService.isAdmin()) {
             PersonVO user = authService.getAuthenticatedUser().orElse(null);
             if (user != null) {
                 Integer depId = user.getDepartment().getId();

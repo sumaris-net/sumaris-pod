@@ -124,10 +124,10 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	protected void saveMeasurements(List<PhysicalGearVO> result) {
 		result.stream()
-			// Exclude already unchanged entities
-			.filter(source -> source.hasNotFlag(ValueObjectFlags.SAME_HASH))
+		// Exclude already unchanged entities
+		.filter(source -> source.hasNotFlag(ValueObjectFlags.SAME_HASH))
 			// Save measurements
-			.forEach(source -> {
+		.forEach(source -> {
 			if (source.getMeasurementValues() != null) {
 				measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
 			}
