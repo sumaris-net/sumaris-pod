@@ -40,6 +40,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
