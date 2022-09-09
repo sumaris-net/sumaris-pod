@@ -51,10 +51,10 @@ public interface PmfmStrategySpecifications {
 
     default Specification<PmfmStrategy> hasProgramId(Integer programId) {
         if (programId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, PROGRAM_ID_PARAM);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, PROGRAM_ID_PARAM);
             Join<?, Program> programJoin = Daos.composeJoin(root, StringUtils.doting(PmfmStrategy.Fields.STRATEGY, Strategy.Fields.PROGRAM));
-            return criteriaBuilder.equal(programJoin.get(Program.Fields.ID), param);
+            return cb.equal(programJoin.get(Program.Fields.ID), param);
         }).addBind(PROGRAM_ID_PARAM, programId);
     }
 
@@ -62,18 +62,18 @@ public interface PmfmStrategySpecifications {
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(programLabels)) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, PROGRAM_LABELS_PARAM);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, PROGRAM_LABELS_PARAM);
             Join<?, Program> programJoin = Daos.composeJoin(root, StringUtils.doting(PmfmStrategy.Fields.STRATEGY, Strategy.Fields.PROGRAM));
-            return criteriaBuilder.in(programJoin.get(Program.Fields.LABEL)).value(param);
+            return cb.in(programJoin.get(Program.Fields.LABEL)).value(param);
         }).addBind(PROGRAM_LABELS_PARAM, Arrays.asList(programLabels));
     }
 
     default Specification<PmfmStrategy> hasAcquisitionLevelId(Integer acquisitionLevelId) {
         if (acquisitionLevelId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, ACQUISITION_LEVEL_ID_PARAM);
-            return criteriaBuilder.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, ACQUISITION_LEVEL_ID_PARAM);
+            return cb.equal(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID), param);
         }).addBind(ACQUISITION_LEVEL_ID_PARAM, acquisitionLevelId);
     }
 
@@ -81,18 +81,18 @@ public interface PmfmStrategySpecifications {
     default Specification<PmfmStrategy> inAcquisitionLevelIds(Integer[] acquisitionLevelIds) {
         // If empty: skip to avoid an unused join
         if (ArrayUtils.isEmpty(acquisitionLevelIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, ACQUISITION_LEVEL_IDS_PARAM);
-            return criteriaBuilder.in(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID)).value(param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, ACQUISITION_LEVEL_IDS_PARAM);
+            return cb.in(root.get(PmfmStrategy.Fields.ACQUISITION_LEVEL).get(AcquisitionLevel.Fields.ID)).value(param);
         }).addBind(ACQUISITION_LEVEL_IDS_PARAM, Arrays.asList(acquisitionLevelIds));
     }
 
     default Specification<PmfmStrategy> hasStrategyId(Integer strategyId) {
         if (strategyId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, STRATEGY_ID_PARAM);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, STRATEGY_ID_PARAM);
             Join<?, Strategy> strategyJoin = Daos.composeJoin(root, PmfmStrategy.Fields.STRATEGY);
-            return criteriaBuilder.equal(strategyJoin.get(Strategy.Fields.ID), param);
+            return cb.equal(strategyJoin.get(Strategy.Fields.ID), param);
         }).addBind(STRATEGY_ID_PARAM, strategyId);
     }
 

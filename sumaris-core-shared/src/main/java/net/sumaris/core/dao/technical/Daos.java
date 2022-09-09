@@ -328,11 +328,14 @@ public class Daos {
      * @return a {@link String} object.
      */
     public static String getJdbcUrl(File directory, String dbName) {
-        String jdbcUrl = JDBC_URL_PREFIX_HSQLDB_FILE + directory.getAbsolutePath() + "/" + dbName;
-        jdbcUrl = jdbcUrl.replaceAll("\\\\", "/");
-        return jdbcUrl;
+        return getJdbcUrl(directory.getAbsolutePath(), dbName);
     }
 
+    public static String getJdbcUrl(String directory, String dbName) {
+        directory = directory.replaceAll("\\\\", "/");
+        String jdbcUrl = JDBC_URL_PREFIX_HSQLDB_FILE + directory + "/" + dbName;
+        return jdbcUrl;
+    }
     public static String getDbms(String jdbcUrl) {
         Preconditions.checkNotNull(jdbcUrl);
         Preconditions.checkArgument(jdbcUrl.startsWith(JDBC_URL_PREFIX));

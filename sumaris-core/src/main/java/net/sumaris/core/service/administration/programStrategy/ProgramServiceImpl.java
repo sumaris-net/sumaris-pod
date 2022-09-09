@@ -159,23 +159,13 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public boolean hasPropertyValue(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
-		List<ProgramVO> programs = findByFilter(
-			ProgramFilterVO.builder()
-				.withProperty(property.getLabel())
-				.build(),
-			Page.builder()
-				.size(1).build(),
-			ProgramFetchOptions.builder()
-				.withProperties(true)
-				.build()
-		);
+	public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
+		return programRepository.hasPropertyValueByProgramLabel(label, property, expectedValue);
+	}
 
-		String value = CollectionUtils.isEmpty(programs)
-			? property.getDefaultValue()
-			: programs.get(0).getProperties().get(property.getLabel());
-
-		return expectedValue.equals(value);
+	@Override
+	public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
+		return programRepository.hasPropertyValueByProgramId(id, property, expectedValue);
 	}
 
 }

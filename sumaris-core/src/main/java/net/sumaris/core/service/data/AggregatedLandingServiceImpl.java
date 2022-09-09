@@ -578,9 +578,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
 
         Preconditions.checkNotNull(landing, "The landing should already exists.");
         Integer tripId = landing.getTrip() != null ? landing.getTrip().getId() : landing.getTripId();
-        // Check if trip ids corresponds (both null is ok)
-        Preconditions.checkArgument(Objects.equals(tripId, activity.getTripId()),
-            String.format("Landing tripId (%s) and activity tripId (%s) must corresponds", tripId, activity.getTripId()));
 
         boolean tripDirty = false;
 

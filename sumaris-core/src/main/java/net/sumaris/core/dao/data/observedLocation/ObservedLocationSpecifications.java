@@ -48,46 +48,46 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
 
     default Specification<ObservedLocation> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
-            return criteriaBuilder.equal(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, LOCATION_ID_PARAM);
+            return cb.equal(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     default Specification<ObservedLocation> hasLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, LOCATION_IDS_PARAM);
-            return criteriaBuilder.in(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID)).value(param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS_PARAM);
+            return cb.in(root.get(ObservedLocation.Fields.LOCATION).get(IEntity.Fields.ID)).value(param);
         }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
 
     default Specification<ObservedLocation> withStartDate(Date startDate) {
         if (startDate == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Date> param = criteriaBuilder.parameter(Date.class, START_DATE_PARAM);
-            return criteriaBuilder.greaterThanOrEqualTo(root.get(ObservedLocation.Fields.END_DATE_TIME), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> param = cb.parameter(Date.class, START_DATE_PARAM);
+            return cb.greaterThanOrEqualTo(root.get(ObservedLocation.Fields.END_DATE_TIME), param);
         }).addBind(START_DATE_PARAM, startDate);
     }
 
     default Specification<ObservedLocation> withEndDate(Date endDate) {
         if (endDate == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Date> param = criteriaBuilder.parameter(Date.class, END_DATE_PARAM);
-            return criteriaBuilder.lessThanOrEqualTo(root.get(ObservedLocation.Fields.START_DATE_TIME), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> param = cb.parameter(Date.class, END_DATE_PARAM);
+            return cb.lessThanOrEqualTo(root.get(ObservedLocation.Fields.START_DATE_TIME), param);
         }).addBind(END_DATE_PARAM, endDate);
     }
 
     default Specification<ObservedLocation> hasObserverPersonIds(Integer... observerPersonIds) {
         if (ArrayUtils.isEmpty(observerPersonIds)) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
-            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
-            return criteriaBuilder.in(Daos.composeJoin(root, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
+            return cb.in(Daos.composeJoin(root, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
                     .value(parameter);
         }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }

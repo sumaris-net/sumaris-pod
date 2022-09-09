@@ -368,7 +368,7 @@ public abstract class DatabaseResource implements TestRule {
             addToDestroy(targetDirectory);
         }
 
-        log.debug(String.format("Copy directory %s at %s", sourceDirectory.getPath(), targetDirectory.getPath()));
+        log.debug("Copy directory {} at {} (readonly: {})", sourceDirectory.getPath(), targetDirectory.getPath(), readonly);
         FileUtils.copyDirectory(sourceDirectory, targetDirectory);
 
         // Set readonly property
@@ -564,6 +564,10 @@ public abstract class DatabaseResource implements TestRule {
         configArgs.addAll(Lists.newArrayList(
                 "--option", SumarisConfigurationOption.BASEDIR.getKey(), resourceDirectory.getAbsolutePath()));
         if (dbDirectory != null) {
+            String jdbcUrl = Daos.getJdbcUrl(dbDirectory, SumarisConfigurationOption.DB_NAME.getDefaultValue());
+            configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.JDBC_URL.getKey(), jdbcUrl));
+
+            // /!\ DB directory must be defined AFTER Jdbc URL. If not application-hsqldb.properties can override Jdbc URL, with an invalid URL
             configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), dbDirectory));
         }
 

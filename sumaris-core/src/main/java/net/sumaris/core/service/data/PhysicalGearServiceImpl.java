@@ -30,6 +30,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.PhysicalGearMeasurement;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -122,7 +123,11 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	/* -- protected functions -- */
 
 	protected void saveMeasurements(List<PhysicalGearVO> result) {
-		result.forEach(source -> {
+		result.stream()
+		// Exclude already unchanged entities
+		.filter(source -> source.hasNotFlag(ValueObjectFlags.SAME_HASH))
+			// Save measurements
+		.forEach(source -> {
 			if (source.getMeasurementValues() != null) {
 				measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
 			}

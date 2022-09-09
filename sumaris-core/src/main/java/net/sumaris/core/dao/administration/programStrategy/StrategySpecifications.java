@@ -10,12 +10,12 @@ package net.sumaris.core.dao.administration.programStrategy;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,13 +23,16 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -54,6 +57,8 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     String DEPARTMENT_IDS = "departmentIds";
     String LOCATION_IDS = "locationIds";
     String PARAMETER_IDS = "parameterIds";
+
+    String ACQUISITION_LEVEL_LABELS = "acquisitionLevelLabels";
     String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
 
     default Specification<Strategy> hasProgramIds(Integer... programIds) {
@@ -61,9 +66,9 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     }
 
     default Specification<Strategy> newerThan(Date updateDate) {
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
-            return criteriaBuilder.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
+        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            return cb.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
         });
         specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
         return specification;
@@ -73,16 +78,16 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
 
-            Join<?,?> appliedPeriods = root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT)
-                    .join(AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
+            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+            Join<AppliedStrategy, AppliedPeriod> appliedPeriods = Daos.composeJoinList(appliedStrategies, AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
 
             // Start + end date
             if (startDate != null && endDate != null) {
                 return cb.not(
-                    cb.or(
-                        cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
-                        cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
-                    )
+                        cb.or(
+                                cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
+                                cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                        )
                 );
             }
             // Start date
@@ -99,10 +104,10 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     default Specification<Strategy> hasAnalyticReferences(String... analyticReferences) {
         if (ArrayUtils.isEmpty(analyticReferences)) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> parameter = criteriaBuilder.parameter(String.class, ANALYTIC_REFERENCES);
-            return criteriaBuilder.in(
-                    root.get(Strategy.Fields.ANALYTIC_REFERENCE))
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> parameter = cb.parameter(String.class, ANALYTIC_REFERENCES);
+            return cb.in(
+                            root.get(Strategy.Fields.ANALYTIC_REFERENCE))
                     .value(parameter);
         }).addBind(ANALYTIC_REFERENCES, Arrays.asList(analyticReferences));
     }
@@ -110,33 +115,33 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     default Specification<Strategy> hasReferenceTaxonIds(Integer... referenceTaxonIds) {
         if (ArrayUtils.isEmpty(referenceTaxonIds)) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
 
-            // Avoid duplicated entries (because of inner join)
-            query.distinct(true);
+                    // Avoid duplicated entries (because of inner join)
+                    query.distinct(true);
+                    Join<Strategy, ReferenceTaxonStrategy> referenceTaxons = Daos.composeJoinList(root, Strategy.Fields.REFERENCE_TAXONS, JoinType.LEFT);
 
-            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, REFERENCE_TAXON_IDS);
-            return criteriaBuilder.in(
-                    root.join(Strategy.Fields.REFERENCE_TAXONS, JoinType.INNER)
-                            .join(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON, JoinType.INNER)
-                            .get(ReferenceTaxon.Fields.ID))
-                    .value(parameter);
-        })
-            .addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
+                    ParameterExpression<Collection> parameter = cb.parameter(Collection.class, REFERENCE_TAXON_IDS);
+                    return cb.in(
+                                    Daos.composePath(referenceTaxons, StringUtils.doting(ReferenceTaxonStrategy.Fields.REFERENCE_TAXON, ReferenceTaxon.Fields.ID))
+                            )
+                            .value(parameter);
+                })
+                .addBind(REFERENCE_TAXON_IDS, Arrays.asList(referenceTaxonIds));
     }
 
     default Specification<Strategy> hasDepartmentIds(Integer... departmentIds) {
         if (ArrayUtils.isEmpty(departmentIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
-            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, DEPARTMENT_IDS);
-            return criteriaBuilder.in(
-                    root.join(Strategy.Fields.DEPARTMENTS, JoinType.INNER)
-                            .join(StrategyDepartment.Fields.DEPARTMENT, JoinType.INNER)
-                            .get(Department.Fields.ID))
+            Join<Strategy, StrategyDepartment> departments = Daos.composeJoinList(root, Strategy.Fields.DEPARTMENTS, JoinType.LEFT);
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, DEPARTMENT_IDS);
+            return cb.in(
+                            Daos.composePath(departments, StringUtils.doting(StrategyDepartment.Fields.DEPARTMENT, Department.Fields.ID))
+                    )
                     .value(parameter);
         }).addBind(DEPARTMENT_IDS, Arrays.asList(departmentIds));
     }
@@ -144,42 +149,38 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     default Specification<Strategy> hasLocationIds(Integer... locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
-            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, LOCATION_IDS);
-            return criteriaBuilder.in(
-                    root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.INNER)
-                            .join(AppliedStrategy.Fields.LOCATION, JoinType.INNER)
-                            .get(Location.Fields.ID))
+            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, LOCATION_IDS);
+            return cb.in(
+                            Daos.composePath(appliedStrategies, StringUtils.doting(AppliedStrategy.Fields.LOCATION, Location.Fields.ID))
+                    )
                     .value(parameter);
         }).addBind(LOCATION_IDS, Arrays.asList(locationIds));
     }
 
     default Specification<Strategy> hasParameterIds(Integer... parameterIds) {
         if (ArrayUtils.isEmpty(parameterIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
-            Join<Strategy, PmfmStrategy> pmfmsInnerJoin = root.joinList(Strategy.Fields.PMFMS, JoinType.INNER);
+            Join<Strategy, PmfmStrategy> pmfmsInnerJoin = Daos.composeJoinList(root, Strategy.Fields.PMFMS, JoinType.INNER);
 
-            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, PARAMETER_IDS);
-            return criteriaBuilder.or(
-                    criteriaBuilder.in(
-                            pmfmsInnerJoin
-                                    .join(PmfmStrategy.Fields.PMFM, JoinType.LEFT)
-                                    .join(Pmfm.Fields.PARAMETER, JoinType.LEFT)
-                                    .get(Parameter.Fields.ID))
-                            .value(parameter),
-                    criteriaBuilder.in(
-                            pmfmsInnerJoin
-                                    .join(PmfmStrategy.Fields.PARAMETER, JoinType.LEFT)
-                                    .get(Parameter.Fields.ID))
-                            .value(parameter)
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, PARAMETER_IDS);
+            return cb.or(
+                    cb.in(
+                        Daos.composePath(pmfmsInnerJoin, StringUtils.doting(PmfmStrategy.Fields.PMFM, Pmfm.Fields.PARAMETER, Parameter.Fields.ID))
+                    ).value(parameter),
+                    cb.in(
+                        Daos.composePath(pmfmsInnerJoin, StringUtils.doting(PmfmStrategy.Fields.PARAMETER, Parameter.Fields.ID))
+                    ).value(parameter)
             );
         }).addBind(PARAMETER_IDS, Arrays.asList(parameterIds));
     }
@@ -189,8 +190,8 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
         return (root, query, cb) -> {
             final List<Predicate> predicates = new ArrayList<Predicate>();
 
-            Join<?, ?> appliedPeriods = root.join(Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT)
-                    .join(AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
+            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+            Join<AppliedStrategy, AppliedPeriod> appliedPeriods = Daos.composeJoinList(appliedStrategies, AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
 
             for (PeriodVO dates : periods) {
                 Date startDate = dates.getStartDate();
@@ -226,6 +227,24 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
             if (CollectionUtils.isEmpty(predicates)) return null;
             return cb.or(predicates.toArray(new Predicate[predicates.size()]));
         };
+    }
+
+    default Specification<Strategy> hasAcquisitionLevelLabels(String... acquisitionLevelLabels) {
+        if (ArrayUtils.isEmpty(acquisitionLevelLabels)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            Join<Strategy, PmfmStrategy> pmfmsInnerJoin = Daos.composeJoinList(root, Strategy.Fields.PMFMS, JoinType.INNER);
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, ACQUISITION_LEVEL_LABELS);
+
+            return cb.in(
+                        Daos.composePath(pmfmsInnerJoin, StringUtils.doting(PmfmStrategy.Fields.ACQUISITION_LEVEL, AcquisitionLevel.Fields.LABEL))
+                    )
+                    .value(parameter);
+        }).addBind(ACQUISITION_LEVEL_LABELS, Arrays.asList(acquisitionLevelLabels));
     }
 
     List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources);

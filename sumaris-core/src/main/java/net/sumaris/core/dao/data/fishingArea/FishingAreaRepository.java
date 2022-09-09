@@ -39,12 +39,12 @@ public interface FishingAreaRepository
 
     default Specification<FishingArea> hasOperationId(Integer operationId) {
         if (operationId == null) return null;
-        BindableSpecification<FishingArea> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, FishingAreaVO.Fields.OPERATION_ID);
+        BindableSpecification<FishingArea> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, FishingAreaVO.Fields.OPERATION_ID);
 
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(param),
-                    criteriaBuilder.equal(root.get(FishingArea.Fields.OPERATION).get(IEntity.Fields.ID), param)
+            return cb.or(
+                    cb.isNull(param),
+                    cb.equal(root.get(FishingArea.Fields.OPERATION).get(IEntity.Fields.ID), param)
             );
         });
         specification.addBind(FishingAreaVO.Fields.OPERATION_ID, operationId);

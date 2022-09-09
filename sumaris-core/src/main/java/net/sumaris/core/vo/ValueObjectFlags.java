@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.vo;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2022 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,13 +22,8 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.Builder;
-import lombok.Data;
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
+public interface ValueObjectFlags {
 
-
-@Builder
-public class ReferentialFetchOptions implements IFetchOptions {
-
+    int SAME_HASH = 0x001; // Already saved (e.g. to skip children save)
 
 }

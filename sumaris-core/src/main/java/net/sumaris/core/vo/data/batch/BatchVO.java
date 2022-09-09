@@ -22,11 +22,13 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.dao.technical.model.IWithFlagsValueObject;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -44,7 +46,8 @@ import java.util.Map;
 @EqualsAndHashCode
 public class BatchVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>,
-    ITreeNodeEntity<Integer, BatchVO> {
+        IWithFlagsValueObject<Integer>,
+        ITreeNodeEntity<Integer, BatchVO> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include
@@ -98,4 +101,7 @@ public class BatchVO implements IDataVO<Integer>,
     private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
     private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private int flags = 0;
 }

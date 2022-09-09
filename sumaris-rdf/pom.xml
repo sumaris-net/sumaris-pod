@@ -3,12 +3,11 @@
     <parent>
         <artifactId>sumaris-pod</artifactId>
         <groupId>net.sumaris</groupId>
-        <version>1.28.1</version>
+        <version>1.29.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>sumaris-rdf</artifactId>
-    <packaging>jar</packaging>
     <name>SUMARiS:: RDF features</name>
     <description>SUMARiS RDF library</description>
 

@@ -4,11 +4,10 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.28.1</version>
+    <version>1.29.1</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
-  <packaging>jar</packaging>
   <name>SUMARiS:: Core</name>
   <description>SUMARiS core library</description>
 
@@ -158,7 +157,7 @@
 
     <!-- Unit test -->
     <dependency>
-      <groupId>net.sumaris</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>sumaris-test-shared</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

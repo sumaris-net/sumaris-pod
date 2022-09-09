@@ -42,21 +42,21 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
     String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
 
     default Specification<Batch> hasNoParent() {
-        return BindableSpecification.where((root, query, criteriaBuilder) ->
-            criteriaBuilder.isNull(root.get(Batch.Fields.PARENT))
+        return BindableSpecification.where((root, query, cb) ->
+            cb.isNull(root.get(Batch.Fields.PARENT))
         );
     }
 
     default Specification<Batch> hasOperationId(Integer operationId) {
         if (operationId == null) return null;
 
-        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, BatchVO.Fields.OPERATION_ID);
+        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, BatchVO.Fields.OPERATION_ID);
 
             // Sort by rank order
-            query.orderBy(criteriaBuilder.asc(root.get(Batch.Fields.RANK_ORDER)));
+            query.orderBy(cb.asc(root.get(Batch.Fields.RANK_ORDER)));
 
-            return criteriaBuilder.equal(root.get(Batch.Fields.OPERATION).get(IEntity.Fields.ID), param);
+            return cb.equal(root.get(Batch.Fields.OPERATION).get(IEntity.Fields.ID), param);
         });
         specification.addBind(BatchVO.Fields.OPERATION_ID, operationId);
         return specification;
@@ -65,13 +65,13 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
     default Specification<Batch> hasSaleId(Integer saleId) {
         if (saleId == null) return null;
 
-        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, BatchVO.Fields.SALE_ID);
+        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, BatchVO.Fields.SALE_ID);
 
             // Sort by rank order
-            query.orderBy(criteriaBuilder.asc(root.get(Batch.Fields.RANK_ORDER)));
+            query.orderBy(cb.asc(root.get(Batch.Fields.RANK_ORDER)));
 
-            return criteriaBuilder.equal(root.get(Batch.Fields.SALE).get(IEntity.Fields.ID), param);
+            return cb.equal(root.get(Batch.Fields.SALE).get(IEntity.Fields.ID), param);
         });
         specification.addBind(BatchVO.Fields.SALE_ID, saleId);
         return specification;
@@ -80,7 +80,7 @@ public interface BatchSpecifications extends DataSpecifications<Batch> {
     default Specification<Batch> addJoinFetch(BatchFetchOptions fetchOptions, boolean addQueryDistinct) {
         if (fetchOptions == null || !fetchOptions.isWithMeasurementValues()) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
             if (addQueryDistinct) query.distinct(true); // Need if findAll() is called, to avoid to many rows
             root.fetch(Batch.Fields.SORTING_MEASUREMENTS, JoinType.LEFT);
             return null;

@@ -33,7 +33,6 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
@@ -783,8 +782,6 @@ public class DataGraphQLService {
     /* -- Operation Groups -- */
 
     @GraphQLQuery(name = "operationGroups", description = "Get trip's operation groups")
-    @Transactional(readOnly = true)
-    @IsUser
     public List<OperationGroupVO> getOperationGroupsByTrip(@GraphQLContext TripVO trip) {
         if (trip.getOperationGroups() != null) return trip.getOperationGroups();
         if (trip.getId() == null) return null;
@@ -1334,7 +1331,7 @@ public class DataGraphQLService {
     // Measurement pmfm
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")
     public PmfmVO getMeasurementPmfm(@GraphQLContext MeasurementVO measurement) {
-        return pmfmService.get(measurement.getPmfmId());
+        return pmfmService.get(measurement.getPmfmId(), null);
     }
 
     // Vessel

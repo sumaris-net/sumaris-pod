@@ -37,6 +37,7 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
@@ -59,7 +60,7 @@ public class PhysicalGearRepositoryImpl
     private final ReferentialDao referentialDao;
     private final MeasurementDao measurementDao;
 
-    private boolean enableSaveUsingHash;
+    private boolean enableHashOptimization;
 
     @Autowired
     public PhysicalGearRepositoryImpl(EntityManager entityManager,
@@ -75,7 +76,7 @@ public class PhysicalGearRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enablePhysicalGearHashOptimization();
+        this.enableHashOptimization = getConfig().enablePhysicalGearHashOptimization();
     }
 
     @Override
@@ -133,7 +134,7 @@ public class PhysicalGearRepositoryImpl
 
     @Override
     public void toEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull) {
-        toEntity(source, target, copyIfNull, target.getId() != null && enableSaveUsingHash);
+        toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
     protected boolean toEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull, boolean allowSkipSameHash) {
@@ -225,7 +226,7 @@ public class PhysicalGearRepositoryImpl
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         if (debugTime != 0L)
-            log.debug(String.format("Saving trip {id:%s} physical gears... {hash_optimization:%s}", tripId, enableSaveUsingHash));
+            log.debug(String.format("Saving trip {id:%s} physical gears... {hash_optimization:%s}", tripId, enableHashOptimization));
 
         // Load parent entity
         Trip parent = getById(Trip.class, tripId);
@@ -274,9 +275,9 @@ public class PhysicalGearRepositoryImpl
                 target = sourcesByIds.remove(source.getId());
             }
             // Check can be skipped
-            boolean skip = enableSaveUsingHash && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
+            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
-                source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
+                source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
                 skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
 
                 // If not changed, skip all children
@@ -357,7 +358,14 @@ public class PhysicalGearRepositoryImpl
         boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
         // Stop here (without change on the update_date)
-        if (skipSave) return source;
+        if (skipSave) {
+            // Flag as same hash
+            source.addFlag(ValueObjectFlags.SAME_HASH);
+            return source;
+        }
+
+        // Remove same hash flag
+        source.removeFlag(ValueObjectFlags.SAME_HASH);
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);

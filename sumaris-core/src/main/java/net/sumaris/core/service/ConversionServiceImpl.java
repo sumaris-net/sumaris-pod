@@ -37,6 +37,7 @@ import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.LandingVO;
@@ -70,6 +71,7 @@ public class ConversionServiceImpl extends GenericConversionService {
     @Autowired
     private PersonRepository personRepository;
 
+
     @Autowired
     private ProgramRepository programRepository;
 
@@ -81,8 +83,10 @@ public class ConversionServiceImpl extends GenericConversionService {
 
         // Referential (@see ReferentialServiceImpl)
 
-        // Administration
-        addConverter(Person.class, PersonVO.class, personRepository::toVO);
+        // Person : use cacheable VO
+        addConverter(Person.class, PersonVO.class, p -> personRepository.findVOById(p.getId()).get());
+
+        // Program/Strategy
         addConverter(Program.class, ProgramVO.class, programRepository::toVO);
 
         // Data

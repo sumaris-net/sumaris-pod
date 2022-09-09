@@ -156,7 +156,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "spring.datasource.url",
         n("sumaris.config.option.spring.datasource.url.description"),
         "jdbc:hsqldb:file:${sumaris.persistence.db.directory}/${sumaris.persistence.db.name}",
-        String.class, false),
+        String.class),
 
     JDBC_CATALOG(
         "spring.jpa.properties.hibernate.default_catalog",
@@ -628,6 +628,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.FALSE.toString(),
         Boolean.class,
         false),
+
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),

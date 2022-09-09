@@ -27,15 +27,19 @@ import java.util.Arrays;
 
 public enum ProgramPropertyEnum implements Serializable {
 
-    TRIP_OPERATION_ALLOW_PARENT("sumaris.trip.operation.allowParent", Boolean.FALSE.toString()),
-    TRIP_OPERATION_ENABLE_SAMPLE("sumaris.trip.operation.sample.enable", Boolean.FALSE.toString())
+    TRIP_OPERATION_ALLOW_PARENT("sumaris.trip.operation.allowParent", Boolean.class, Boolean.FALSE.toString()),
+    TRIP_OPERATION_ENABLE_SAMPLE("sumaris.trip.operation.sample.enable", Boolean.class, Boolean.FALSE.toString()),
+
+    PROGRAM_STRATEGY_DEPARTMENT_ENABLE("sumaris.program.strategy.department.enable", Boolean.class, Boolean.FALSE.toString())
     ;
 
     private String label;
     private String defaultValue;
 
-    ProgramPropertyEnum(String label, String defaultValue) {
+    private Class type;
+    ProgramPropertyEnum(String label, Class type, String defaultValue) {
         this.label = label;
+        this.type = type;
         this.defaultValue = defaultValue;
     }
 
@@ -52,6 +56,10 @@ public enum ProgramPropertyEnum implements Serializable {
         this.label = label;
     }
 
+
+    public Class getType() {
+        return type;
+    }
 
     public String getDefaultValue() {
         return defaultValue;

@@ -11,6 +11,9 @@ JAVA_OPTS="${JAVA_OPTS} -Doracle.jdbc.timezoneAsRegion=false"
 [[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Dspring.profiles.active=${PROFILES}"
 [[ "_${TZ}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Duser.timezone=${TZ}"
 [[ "_${PORT}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Dserver.port=${PORT}"
+[[ "_${XMS}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Xms${XMS}"
+[[ "_${XMX}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Xmx${XMX}"
+
 ARGS=
 # TODO test this
 #ARGS=${@:2}

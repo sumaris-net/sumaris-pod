@@ -50,28 +50,28 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
 
     default Specification<E> excludedIds(Integer[] excludedIds) {
         if (ArrayUtils.isEmpty(excludedIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAM);
-            return criteriaBuilder.not(
-                criteriaBuilder.in(root.get(E.Fields.ID)).value(param)
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_IDS_PARAM);
+            return cb.not(
+                cb.in(root.get(E.Fields.ID)).value(param)
             );
         }).addBind(EXCLUDED_IDS_PARAM, Arrays.asList(excludedIds));
     }
 
     default Specification<E> id(Integer id) {
         if (id == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, ID_PARAM);
-            return criteriaBuilder.equal(root.get(E.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, ID_PARAM);
+            return cb.equal(root.get(E.Fields.ID), param);
         }).addBind(ID_PARAM, id);
     }
 
     default Specification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
         if (recorderDepartmentId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
             query.distinct(true); // Set distinct here because hasRecorderDepartmentId is always used (usually ...)
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_DEPARTMENT_ID_PARAM);
-            return criteriaBuilder.equal(root.get(E.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), param);
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, RECORDER_DEPARTMENT_ID_PARAM);
+            return cb.equal(root.get(E.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), param);
         }).addBind(RECORDER_DEPARTMENT_ID_PARAM, recorderDepartmentId);
     }
 
@@ -80,8 +80,8 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
      * @return
      */
     default Specification<E> isNotControlled() {
-        return (root, query, criteriaBuilder) ->
-            criteriaBuilder.isNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+        return (root, query, cb) ->
+            cb.isNull(root.get(IDataEntity.Fields.CONTROL_DATE));
     }
 
     /**
@@ -89,22 +89,22 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
      * @return
      */
     default Specification<E> isControlled() {
-        return (root, query, criteriaBuilder) ->
-            criteriaBuilder.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+        return (root, query, cb) ->
+            cb.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE));
     }
 
     default Specification<E> isValidated() {
-        return (root, query, criteriaBuilder) ->
+        return (root, query, cb) ->
             // Validation date not null
-            criteriaBuilder.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE));
+            cb.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE));
     }
 
     default Specification<E> isQualified() {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.and(
+        return (root, query, cb) -> cb.and(
             // Qualification date not null
-            criteriaBuilder.isNotNull(root.get(IDataEntity.Fields.QUALIFICATION_DATE)),
+            cb.isNotNull(root.get(IDataEntity.Fields.QUALIFICATION_DATE)),
             // Quality flag != 0
-            criteriaBuilder.notEqual(criteriaBuilder.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+            cb.notEqual(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
         );
     }
 
@@ -130,7 +130,7 @@ public interface DataSpecifications<E extends IDataEntity<? extends Serializable
             return withDataQualityStatus(dataQualityStatus[0]);
         }
 
-        return (root, query, criteriaBuilder) -> criteriaBuilder.or(
+        return (root, query, cb) -> cb.or(
             Arrays.stream(dataQualityStatus)
                 .map(this::withDataQualityStatus)
                 .filter(Objects::nonNull)

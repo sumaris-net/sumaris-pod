@@ -55,17 +55,17 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
 
     default Specification<E> hasId(Integer id) {
         if (id == null) return null;
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> idParam = criteriaBuilder.parameter(Integer.class, IEntity.Fields.ID);
-            return criteriaBuilder.equal(root.get(IEntity.Fields.ID), idParam);
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Integer> idParam = cb.parameter(Integer.class, IEntity.Fields.ID);
+            return cb.equal(root.get(IEntity.Fields.ID), idParam);
         }).addBind(IEntity.Fields.ID, id);
     }
 
     default Specification<E> hasLabel(String label) {
         if (label == null) return null;
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> labelParam = criteriaBuilder.parameter(String.class, IItemReferentialEntity.Fields.LABEL);
-            return criteriaBuilder.equal(criteriaBuilder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), labelParam);
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<String> labelParam = cb.parameter(String.class, IItemReferentialEntity.Fields.LABEL);
+            return cb.equal(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), labelParam);
         }).addBind(IItemReferentialEntity.Fields.LABEL, label.toUpperCase());
     }
 
@@ -95,9 +95,9 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
         if (ArrayUtils.isEmpty(levelLabels)) return null;
 
         return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(levelPropertyName ->
-                    BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-                        ParameterExpression<Collection> levelParam = criteriaBuilder.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
-                        return criteriaBuilder.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam);
+                    BindableSpecification.<E>where((root, query, cb) -> {
+                        ParameterExpression<Collection> levelParam = cb.parameter(Collection.class, LEVEL_LABEL_PARAMETER);
+                        return cb.in(root.join(levelPropertyName, JoinType.INNER).get(IItemReferentialEntity.Fields.LABEL)).value(levelParam);
                     }).addBind(LEVEL_LABEL_PARAMETER, Arrays.asList(levelLabels))
             )
         .orElse(null);
@@ -192,19 +192,19 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
 
     default Specification<E> includedIds(Integer[] includedIds) {
         if (ArrayUtils.isEmpty(includedIds)) return null;
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
-            return criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param);
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
+            return cb.in(root.get(IEntity.Fields.ID)).value(param);
         })
             .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
     }
 
     default Specification<E> excludedIds(Integer[] excludedIds) {
         if (ArrayUtils.isEmpty(excludedIds)) return null;
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
-            return criteriaBuilder.not(
-                    criteriaBuilder.in(root.get(IEntity.Fields.ID)).value(param)
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
+            return cb.not(
+                    cb.in(root.get(IEntity.Fields.ID)).value(param)
             );
         })
         .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
