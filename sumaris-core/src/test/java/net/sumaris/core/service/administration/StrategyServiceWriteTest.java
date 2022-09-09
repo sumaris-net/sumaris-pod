@@ -92,7 +92,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
         strategy.setDepartments(Lists.newArrayList(strategyDepartment));
         // Add an applied period
         AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
-        appliedPeriod.setAppliedStrategyId(11);
+        appliedPeriod.setAppliedStrategyId(null);
         appliedPeriod.setStartDate(Dates.getFirstDayOfYear(2020));
         appliedPeriod.setEndDate(Dates.getFirstDayOfYear(2021));
         appliedPeriod.setAcquisitionNumber(10);
