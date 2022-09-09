@@ -9,7 +9,6 @@
 	</parent>
 
 	<artifactId>sumaris-extraction</artifactId>
-	<packaging>jar</packaging>
 	<name>SUMARiS:: Extraction</name>
 	<description>SUMARiS extraction library</description>
 

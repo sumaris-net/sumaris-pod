@@ -8,7 +8,6 @@
   </parent>
 
   <artifactId>sumaris-core</artifactId>
-  <packaging>jar</packaging>
   <name>SUMARiS:: Core</name>
   <description>SUMARiS core library</description>
 

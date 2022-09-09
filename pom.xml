@@ -2023,7 +2023,6 @@
             </reportSets>
             <configuration>
               <include>sumaris-core-shared,sumaris-core,sumaris-server</include>
-              <i18nBundleName>sumaris-server-i18n</i18nBundleName>
               <verbose>true</verbose>
               <outputEncoding>UTF-8</outputEncoding>
             </configuration>

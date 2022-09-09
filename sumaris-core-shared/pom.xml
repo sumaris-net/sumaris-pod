@@ -8,7 +8,6 @@
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
-  <packaging>jar</packaging>
   <name>SUMARiS:: Core shared</name>
   <description>SUMARiS Core shared library</description>
 
