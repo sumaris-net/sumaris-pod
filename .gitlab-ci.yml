@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: maven:3.5.4-slim
+image: maven:3.8.6-jdk-11-slim
 
 # stages (main steps of pipeline)
 stages:
