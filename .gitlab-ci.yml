@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: maven:3.8.6-jdk-11-slim
+image: maven:3.8.6-openjdk-11-slim
 
 # stages (main steps of pipeline)
 stages:
@@ -20,6 +20,7 @@ stages:
 # ---------------------------------------------------------------
 
 variables:
+    DOCKER_IMAGE: maven:3.8.6-openjdk-11-slim
     DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
     CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
     #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
@@ -73,32 +74,45 @@ variables:
         - mkdir -p target
         - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
         - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
-    environment:
-        name: test
     artifacts:
         paths:
             - ${ARTIFACT_WAR_FILE}
             - ${ARTIFACT_CONFIG_FILES}
         reports:
             dotenv: ${ENV_FILE}
-        expire_in: 72 hours
+        expire_in: 12 hours
+    environment:
+        name: test
 
 build:
     extends: .build
     image: ${CI_BUILD_IMAGE}
-    except:
-      - tags
-      - master
+    only:
+      - develop
+      - imagine/develop
+
+build:feature:
+  extends: .build
+  image: ${CI_BUILD_IMAGE}
+  only:
+    - /^feature\/.*/
+  when: manual
 
 failsafe-build:
     extends: .build
     stage: alt_build
     when: on_failure
-    except:
-      - tags
-      - master
+    only:
+      - develop
+      - imagine/develop
+      - /^feature\/.*/
 
-docker:ci:
+# ---------------------------------------------------------------
+# Environment jobs : Create docker image for builds/release, this
+# offers possibility to cache project dependencies so we don't
+# have to download them every time.
+# ---------------------------------------------------------------
+build:env:
     extends: .docker
     stage: alt_build
     when: on_failure
@@ -108,20 +122,16 @@ docker:ci:
       - mkdir -p target/docker
       - cp -rf ${APP_WAR_MODULE}/src/main/docker/build/* target/docker
       # Build and push the CI image
-      - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
+      - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile target/maven
       - docker push ${CI_BUILD_IMAGE}
-    artifacts:
-        paths:
-            - target/docker
-        expire_in: 72 hours
-    except:
-      - tags
-      - master
+    only:
+      - develop
+      - imagine/develop
+      - /^feature\/.*/
 
 # ---------------------------------------------------------------
 # Tests jobs
 # ---------------------------------------------------------------
-
 .test:
     stage: test
     tags: [sih_public_runner]
@@ -133,10 +143,10 @@ docker:ci:
         paths:
           - ${APP_SHARED_MODULE}/site/surefire-report.html
           - ${APP_SHARED_MODULE}/target/surefire-reports/*
-          - ${ARTIFACT_CORE_MODULE}/site/surefire-report.html
-          - ${ARTIFACT_CORE_MODULE}/target/surefire-reports/*
-          - ${ARTIFACT_WAR_MODULE}/target/surefire-reports/*
-          - ${ARTIFACT_WAR_MODULE}/site/surefire-report.html
+          - ${APP_CORE_MODULE}/site/surefire-report.html
+          - ${APP_CORE_MODULE}/target/surefire-reports/*
+          - ${APP_WAR_MODULE}/target/surefire-reports/*
+          - ${APP_WAR_MODULE}/site/surefire-report.html
         expire_in: 72 hours
 
 test:
@@ -151,8 +161,7 @@ test:
 
 sonarqube:
     stage: test
-    tags:
-        - sih_public_runner
+    tags: [sih_public_runner]
     variables:
         SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
         SONAR_HOST_URL: http://visi-common-sonar.ifremer.fr:9000
@@ -168,9 +177,11 @@ sonarqube:
             -Dsonar.sourceEncoding=UTF-8
             -Dsonar.java.binaries=.
             -Dsonar.java.libraries=.
-    except:
-      - tags
-      - master
+    allow_failure: true
+    only:
+      - develop
+      - imagine/develop
+      - /^feature\/.*/
     when: manual
 
 # ---------------------------------------------------------------
@@ -187,11 +198,17 @@ sonarqube:
     - if [[ "_${RELEASE_VERSION}" != "_" ]]; then MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"; else exit 1; fi
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
-    - mvn clean install --batch-mode -DskipTests
+    - mvn clean package --batch-mode -DskipTests -DperformRelease
+    - echo "Deploy binaries to package registry"
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
+    - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - echo "Pushing changes to upstream"
+    - git diff --cached
+    - git commit -am "[CI] release performed"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
-    - mkdir target && echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
@@ -203,6 +220,7 @@ sonarqube:
     expire_in: 60 minutes
   allow_failure: false
   only:
+    - develop
     - imagine/develop
   when: manual
 
@@ -232,7 +250,6 @@ gitlab-release:
 # ---------------------------------------------------------------
 # Docker jobs
 # ---------------------------------------------------------------
-
 .docker-build:
     extends: .docker
     stage: docker
@@ -249,19 +266,29 @@ gitlab-release:
         - cd target/docker
         # Build docker image
         - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" .
-        #- docker build --no-cache -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" .
+        - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" --build-arg="USERID=${IMAGE_USERID}" --build-arg="GROUPID=${IMAGE_GROUPID}" .
         - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
     artifacts:
         paths:
             - target/docker
-        expire_in: 72 hours
+        expire_in: 12 hours
+
+# to run specific feature
+docker:feature:
+  extends: .docker-build
+  needs: ['build:feature']
+  variables:
+    IMAGE_TAG: 'feature'
+  only:
+    - /^feature\/.*/
 
 docker:develop:
     extends: .docker-build
     needs: [build]
     variables:
         IMAGE_TAG: 'develop'
+        IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
+        IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
         - develop
 
@@ -275,16 +302,6 @@ docker:imagine:
     only:
         - imagine/develop
 
-# to run specific feature
-docker:feature:
-    extends: .docker-build
-    needs: [build]
-    variables:
-        IMAGE_TAG: 'feature'
-    only:
-        - /^feature\/.*/
-    when: manual
-
 docker:release:
     extends: .docker-build
     needs: [release]
@@ -293,41 +310,8 @@ docker:release:
         IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
         IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
+        - develop
         - imagine/develop
-
-# ---------------------------------------------------------------
-# Publish jobs
-# ---------------------------------------------------------------
-
-.deploy-file:
-    stage: publish
-    tags: [sih_public_runner]
-    script:
-        - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-        - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout)
-        - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-
-deploy-file:
-    extends: .deploy-file
-    needs: [build]
-    only:
-        - develop
-    when: manual
-
-failsafe-deploy-file:develop:
-    extends: .deploy-file
-    needs: [failsafe-build]
-    only:
-        - develop
-    when: manual
-
-deploy-file:release:
-    extends: .deploy-file
-    image: ${CI_BUILD_IMAGE}
-    needs: [build]
-    allow_failure: true
-    only:
-        - tags
 
 # ---------------------------------------------------------------
 # Docs jobs
@@ -356,9 +340,11 @@ pages:develop:
   extends: .pages
   only:
       - develop
+      - imagine/develop
   when: manual
 
 pages:release:
   extends: .pages
   only:
       - tags
+  when: manual
