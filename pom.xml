@@ -1379,12 +1379,6 @@
           </configuration>
         </plugin>
 
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>4.2.1</version>
-        </plugin>
-
       </plugins>
     </pluginManagement>
 
@@ -1456,10 +1450,7 @@
       <!-- site -->
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${sitePluginVersion}</version>
       </plugin>
 
       <plugin>
