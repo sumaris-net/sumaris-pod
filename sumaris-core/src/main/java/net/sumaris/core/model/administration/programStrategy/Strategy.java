@@ -48,6 +48,7 @@ import java.util.Set;
                 @NamedAttributeNode(Strategy.Fields.PMFMS)
         }
 )
+@Cacheable
 public class Strategy implements IItemReferentialEntity<Integer> {
 
     public static final String GRAPH_PMFMS = "Strategy.pmfm";
