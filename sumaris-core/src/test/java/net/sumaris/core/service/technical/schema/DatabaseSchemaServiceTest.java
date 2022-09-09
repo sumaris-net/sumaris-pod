@@ -46,14 +46,12 @@ public class DatabaseSchemaServiceTest extends AbstractServiceTest {
     private DatabaseSchemaService service;
 
     @Test
-//    @Ignore
-    // FIXME: temp database could not be found
     public void updateSchema() {
         service.updateSchema();
 
         Version dbVersion = service.getSchemaVersion().orElse(null);
         Assert.assertNotNull(dbVersion);
-        log.debug("DB version is now: " + dbVersion.toString());
+        log.debug("DB version is now: {}", dbVersion);
     }
 
     @Test

@@ -529,6 +529,8 @@ public class LocationServiceImpl implements LocationService {
     }
 
     protected List<LocationVO> getLocationsByLocationLevelId(int locationLevelId) {
-        return locationRepository.findAll(ReferentialFilterVO.builder().levelId(locationLevelId).build());
+        return locationRepository.findAll(LocationFilterVO.builder()
+            .levelIds(new Integer[]{locationLevelId})
+            .build());
     }
 }

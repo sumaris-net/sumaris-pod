@@ -58,14 +58,14 @@ public class PmfmServiceReadTest extends AbstractServiceTest {
         // levelLabels
         assertFindResult(ReferentialFilterVO.builder()
                 .levelLabels(new String[]{"WEIGHT"})
-                .build(), 6);
+                .build(), 8);
 
         // levelLabels + searchText
         assertFindResult(ReferentialFilterVO.builder()
                 .levelLabels(new String[]{"WEIGHT"})
                 .searchText("wei")
                 .searchJoin("parameter")
-                .build(), 6);
+                .build(), 8);
     }
 
     private void assertFindResult(ReferentialFilterVO filter, int expectedSize) {

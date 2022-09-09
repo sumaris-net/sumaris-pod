@@ -64,6 +64,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
                     .withTaxonNames(true)
                     .withPmfms(true)
                     .withDepartments(true)
+                    .withAppliedStrategies(true)
                     .build());
         Assert.assertNotNull(strategy);
         Assert.assertNotNull(strategy.getId());

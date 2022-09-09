@@ -55,7 +55,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals(1, program.getId().intValue());
 
         Assert.assertNotNull(program.getProperties());
-        Assert.assertTrue(program.getProperties().size() > 9);
+        Assert.assertEquals(9, program.getProperties().size());
 
         Assert.assertNotNull(program.getGearClassificationId());
         Assert.assertNotNull(program.getTaxonGroupTypeId());
@@ -76,7 +76,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals(10, program.getId().intValue());
 
         Assert.assertNotNull(program.getProperties());
-        Assert.assertEquals(10, program.getProperties().size());
+        Assert.assertEquals(18, program.getProperties().size());
 
         Assert.assertNotNull(program.getGearClassificationId());
         Assert.assertNotNull(program.getTaxonGroupTypeId());
@@ -107,8 +107,8 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         programs = service.findByFilter(ProgramFilterVO.builder().withProperty("sumaris.trip.operation.batch.autoFill").build(), 0,10, Program.Fields.LABEL, SortDirection.ASC);
         Assert.assertNotNull(programs);
-        Assert.assertEquals(2, programs.size());
-        int[] expectedIds = new int[]{50, 10};
+        Assert.assertEquals(3, programs.size());
+        int[] expectedIds = new int[]{50, 10, 70};
         int[]  resultIds = programs.stream().mapToInt(ProgramVO::getId).toArray();
         Assert.assertArrayEquals(expectedIds, resultIds);
     }

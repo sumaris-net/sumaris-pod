@@ -368,7 +368,7 @@ public abstract class DatabaseResource implements TestRule {
             addToDestroy(targetDirectory);
         }
 
-        log.debug(String.format("Copy directory %s at %s", sourceDirectory.getPath(), targetDirectory.getPath()));
+        log.debug("Copy directory {} at {} (readonly: {})", sourceDirectory.getPath(), targetDirectory.getPath(), readonly);
         FileUtils.copyDirectory(sourceDirectory, targetDirectory);
 
         // Set readonly property

@@ -251,7 +251,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
                 .build();
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
             Assert.assertNotNull(strategies);
-            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals(2, strategies.size());
             Assert.assertEquals("20LEUCCIR001", strategies.get(0).getLabel());
         }
 
