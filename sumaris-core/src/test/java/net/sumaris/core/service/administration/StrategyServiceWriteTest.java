@@ -33,6 +33,7 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -57,15 +58,15 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
 
     @Test
     public void saveExisting() {
+        StrategyFetchOptions fetchOptions = StrategyFetchOptions.builder()
+            .withPmfms(true)
+            .withTaxonNames(true)
+            .withPmfms(true)
+            .withDepartments(true)
+            .withAppliedStrategies(true)
+            .build();
         Integer strategyId = null;
-        StrategyVO strategy = service.getByLabel("20LEUCCIR001",
-                StrategyFetchOptions.builder()
-                    .withPmfms(true)
-                    .withTaxonNames(true)
-                    .withPmfms(true)
-                    .withDepartments(true)
-                    .withAppliedStrategies(true)
-                    .build());
+        StrategyVO strategy = service.getByLabel("20LEUCCIR001", fetchOptions);
         Assert.assertNotNull(strategy);
         Assert.assertNotNull(strategy.getId());
         strategyId = strategy.getId();
@@ -83,16 +84,14 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
         // Modify departments
         StrategyDepartmentVO strategyDepartment = new StrategyDepartmentVO();
         ReferentialVO privilege = new ReferentialVO();
-        ReferentialVO department = new ReferentialVO();
+        DepartmentVO department = new DepartmentVO();
         Beans.copyProperties(referentialService.get(ProgramPrivilege.class, 3), privilege);
         Beans.copyProperties(referentialService.get(Department.class, 3), department);
         strategyDepartment.setPrivilege(privilege);
         strategyDepartment.setDepartment(department);
-        strategyDepartment.setId(-1);
         strategy.setDepartments(Lists.newArrayList(strategyDepartment));
         // Add an applied period
         AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
-        appliedPeriod.setAppliedStrategyId(null);
         appliedPeriod.setStartDate(Dates.getFirstDayOfYear(2020));
         appliedPeriod.setEndDate(Dates.getFirstDayOfYear(2021));
         appliedPeriod.setAcquisitionNumber(10);
@@ -102,7 +101,7 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
         service.save(strategy);
 
         // reload by id
-        strategy = service.get(strategyId);
+        strategy = service.get(strategyId, fetchOptions);
         Assert.assertNotNull(strategy);
         Assert.assertEquals("Strategy Name changed", strategy.getName());
 
