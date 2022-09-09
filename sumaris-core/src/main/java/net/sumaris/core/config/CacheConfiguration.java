@@ -37,27 +37,25 @@ import net.sumaris.core.vo.referential.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.hibernate.cache.jcache.ConfigSettings;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.Optional;
 
-@Configuration
-@ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class})
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class, javax.cache.CacheManager.class})
 @ConditionalOnProperty(
     prefix = "spring",
     name = {"cache.enabled"},
     havingValue = "true",
     matchIfMissing = true
 )
-@EnableCaching
 @Slf4j
 public class CacheConfiguration extends CachingConfigurerSupport {
 
@@ -80,9 +78,12 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Program
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
-        String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
-        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.getProgramIdsByUserId";
+        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
 
+        // Program privilege
+        String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
+        // Program property
+        String PROGRAM_PROPERTY_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
 
         // Strategy
         String STRATEGY_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategyById";
@@ -90,12 +91,15 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String STRATEGIES_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.strategiesByFilter";
 
         // Pmfm
+        String PMFM = "net.sumaris.core.dao.referential.pmfm";
         String PMFM_BY_ID = "net.sumaris.core.dao.referential.pmfmById";
         String PMFM_COMPLETE_NAME_BY_ID = "net.sumaris.core.dao.referential.pmfmCompleteNameById";
         String PMFM_HAS_PREFIX = "net.sumaris.core.dao.referential.pmfmHasPrefix";
         String PMFM_HAS_SUFFIX = "net.sumaris.core.dao.referential.pmfmHasSuffix";
         String PMFM_HAS_MATRIX = "net.sumaris.core.dao.referential.pmfmHasMatrix";
         String PMFM_HAS_PARAMETER_GROUP = "net.sumaris.core.dao.referential.pmfmHasParameterGroup";
+
+        // Pmfm strategies
         String PMFM_STRATEGIES_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.pmfmStrategiesByFilter";
         String DENORMALIZED_PMFM_BY_FILTER = "net.sumaris.core.dao.administration.programStrategy.denormalizedPmfmByFilter";
 
@@ -123,6 +127,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
     }
 
     @Bean
+    @ConditionalOnBean(value = {javax.cache.CacheManager.class})
     public HibernatePropertiesCustomizer hibernatePropertiesCustomizer(javax.cache.CacheManager cacheManager) {
         return hibernateProperties -> hibernateProperties.put(ConfigSettings.CACHE_MANAGER, cacheManager);
     }
@@ -171,6 +176,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Pmfm
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_BY_ID, Integer.class, PmfmVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_COMPLETE_NAME_BY_ID, Integer.class, String.class, 600);
+            Caches.createEternalHeapCache(cacheManager, Names.PMFM, PmfmVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_PREFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_SUFFIX, Boolean.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_HAS_MATRIX, Boolean.class, 600);

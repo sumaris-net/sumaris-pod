@@ -22,7 +22,9 @@
 
 package net.sumaris.core.vo.referential;
 
-public interface IReferentialWithLevelVO extends IReferentialVO {
+import java.io.Serializable;
+
+public interface IReferentialWithLevelVO<ID extends Serializable> extends IReferentialVO<ID> {
 
     interface Fields extends IReferentialVO.Fields {
         String LEVEL_ID = "levelId";

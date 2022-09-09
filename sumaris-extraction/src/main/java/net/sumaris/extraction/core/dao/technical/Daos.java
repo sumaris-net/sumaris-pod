@@ -48,7 +48,7 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
 
     private final static String SQL_TO_DATE = "TO_DATE('%s', '%s')";
 
-    private final static String NON_COLUMN_CHAR_REGEXP = "[^A-Z0-9_]";
+    private final static String NON_COLUMN_CHAR_REGEXP = "[^a-z0-9_]";
 
     protected Daos() {
         // Helper class
@@ -141,40 +141,28 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
     }
 
     /**
-     * Do column names replacement, but escape sql keyword (e.g. 'DATE' replacement will keep TO_DATE(...) unchanged)
+     * Do column names replacement, but escape sql keyword (e.g. 'DATE' replacement will keep TO_DATE(...) unchanged).
+     * If ignoreCase=true, replacement will ignore the case.
      * @param sqlQuery
      * @param columnNamesMapping
      * @return
      */
-    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping, Boolean lowercase) {
+    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping, boolean ignoreCase) {
         if (MapUtils.isEmpty(columnNamesMapping)) return sqlQuery; // Skip
 
-        sqlQuery = sqlQuery.toUpperCase();
-
+        String regexpOptions = (ignoreCase ? "(?i)" : "");
         for (Map.Entry<String, String> entry: columnNamesMapping.entrySet()) {
-            String sourceColumnName = entry.getKey().toUpperCase();
-            String targetColumnName = entry.getValue().toUpperCase();
+            String sourceColumnName = entry.getKey();
+            String targetColumnName = entry.getValue();
+
             sqlQuery = sqlQuery
-                .replaceAll("(^|" + NON_COLUMN_CHAR_REGEXP + ")"
+                // Do the replacement (should ignore case)
+                .replaceAll(regexpOptions
+                    + "(^|" + NON_COLUMN_CHAR_REGEXP + ")"
                         + sourceColumnName
                         + "("+NON_COLUMN_CHAR_REGEXP+"|$)",
                     "$1" + targetColumnName + "$2");
         }
-
-        // for postgresql, lowercase queries are needed.
-        if (lowercase){
-            sqlQuery = sqlQuery.toLowerCase();
-        }
         return sqlQuery;
-    }
-
-    /**
-     * Do column names replacement, but escape sql keyword (e.g. 'DATE' replacement will keep TO_DATE(...) unchanged)
-     * @param sqlQuery
-     * @param columnNamesMapping
-     * @return
-     */
-    public static String sqlReplaceColumnNames(String sqlQuery, Map<String, String> columnNamesMapping) {
-        return sqlReplaceColumnNames(sqlQuery, columnNamesMapping, false);
     }
 }

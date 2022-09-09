@@ -37,7 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "location_classification")
 @Cacheable
-public class LocationClassification implements IItemReferentialEntity {
+public class LocationClassification implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_CLASSIFICATION_SEQ")

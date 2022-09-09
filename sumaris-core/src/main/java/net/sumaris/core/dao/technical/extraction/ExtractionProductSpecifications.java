@@ -26,6 +26,8 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -42,29 +44,48 @@ public interface ExtractionProductSpecifications {
 
     default Specification<ExtractionProduct> withRecorderDepartmentId(Integer departmentId) {
         if (departmentId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, DEPARTMENT_ID_PARAM);
-            return criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameter = cb.parameter(Integer.class, DEPARTMENT_ID_PARAM);
+            return cb.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter);
         }).addBind(DEPARTMENT_ID_PARAM, departmentId);
     }
 
 
     default Specification<ExtractionProduct> withRecorderPersonIdOrPublic(Integer personId) {
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, PERSON_ID_ID_PARAM);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(parameter),
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameter = cb.parameter(Integer.class, PERSON_ID_ID_PARAM);
+            return cb.or(
+                    cb.isNull(parameter),
                     // ENABLE = public extraction type
-                    criteriaBuilder.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.ENABLE.getId()),
+                    cb.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.ENABLE.getId()),
                     // TEMPORARY = private extraction
-                    criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.TEMPORARY.getId()),
-                        criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), parameter)
+                    cb.and(
+                        cb.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.TEMPORARY.getId()),
+                        cb.equal(root.get(ExtractionProduct.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), parameter)
                     )
             );
         }).addBind(PERSON_ID_ID_PARAM, personId);
     }
 
-    List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(int id, String tableLabel);
+    default Specification<ExtractionProduct> isSpatial(Boolean isSpatial) {
+        if (isSpatial == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Boolean> parameter = cb.parameter(Boolean.class, ExtractionProduct.Fields.IS_SPATIAL);
+            return cb.equal(root.get(ExtractionProduct.Fields.IS_SPATIAL), parameter);
+        }).addBind(ExtractionProduct.Fields.IS_SPATIAL, isSpatial);
+    }
 
+    default Specification<ExtractionProduct> withParentId(Integer parentId) {
+        if (parentId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameter = cb.parameter(Integer.class, ExtractionProduct.Fields.PARENT);
+            return cb.equal(root.get(ExtractionProduct.Fields.PARENT).get(ExtractionProduct.Fields.ID), parameter);
+        }).addBind(ExtractionProduct.Fields.PARENT, parentId);
+    }
+
+    ExtractionProductVO save(ExtractionProductVO source, ExtractionProductSaveOptions saveOptions);
+
+    List<ExtractionTableColumnVO> getColumnsByIdAndTableLabel(Integer id, String tableLabel);
+
+    void dropTable(String tableName);
 }

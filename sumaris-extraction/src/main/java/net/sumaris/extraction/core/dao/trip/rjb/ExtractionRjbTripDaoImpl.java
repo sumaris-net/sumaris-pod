@@ -23,17 +23,22 @@ package net.sumaris.extraction.core.dao.trip.rjb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RjbTripSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
+
+import java.util.Set;
 
 /**
  * Extraction for RJB (Pocheteaux). We use individual count, instead of weight
@@ -47,15 +52,15 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         implements RjbTripSpecification {
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.RJB_TRIP;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.RJB_TRIP);
     }
 
     @Override
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
-        context.setFormat(LiveFormatEnum.RJB_TRIP);
+        context.setType(LiveExtractionTypeEnum.RJB_TRIP);
 
         return context;
     }
@@ -86,6 +91,11 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Special case for COST format:
         // - Hide GearType (not in the COST format)
         xmlQuery.setGroup("gearType", false);
+
+        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE);
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
+            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         return xmlQuery;
     }

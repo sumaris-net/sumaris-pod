@@ -53,10 +53,10 @@ public class ExtractionProductColumn implements IEntity<Integer> {
     @Column(length = IItemReferentialEntity.LENGTH_NAME)
     private String name;
 
-    @Column(name="column_name", nullable = false, length = 30)
+    @Column(name="column_name", nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
     private String columnName;
 
-    @Column(name="rank_order", length = 10)
+    @Column(name="rank_order")
     private Integer rankOrder;
 
     @Column(name="type", length = 30)

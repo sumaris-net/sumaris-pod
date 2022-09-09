@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "processing_frequency")
-public class ProcessingFrequency implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
+public class ProcessingFrequency implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_FREQ_SEQ")

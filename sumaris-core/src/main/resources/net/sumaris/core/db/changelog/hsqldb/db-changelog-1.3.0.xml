@@ -207,6 +207,15 @@
         <constraints foreignKeyName="FISHING_AREA_OPERATION_FKC" referencedTableName="OPERATION" referencedColumnNames="ID"/>
       </column>
     </createTable>
+  </changeSet>
+
+  <!-- add FISHING_AREA_SEQ sequence -->
+  <changeSet author="ludovic.pecquot@e-is.pro" id="1583765897916-10-0" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="FISHING_AREA_SEQ"/>
+      </not>
+    </preConditions>
     <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50"/>
   </changeSet>
 

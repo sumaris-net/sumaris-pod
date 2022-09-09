@@ -46,23 +46,23 @@ import java.util.Optional;
 /**
  * @author peck7 on 31/07/2020.
  */
-public interface TaxonNameSpecifications extends ReferentialSpecifications<TaxonName> {
+public interface TaxonNameSpecifications extends ReferentialSpecifications<Integer, TaxonName> {
 
     // TODO use BindableSpecification
 
     default Specification<TaxonName> withReferenceTaxonId(Integer referentTaxonId) {
         if (referentTaxonId == null) return null;
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), referentTaxonId);
+        return (root, query, cb) -> cb.equal(root.get(TaxonName.Fields.REFERENCE_TAXON).get(ReferenceTaxon.Fields.ID), referentTaxonId);
     }
 
     default Specification<TaxonName> withSynonyms(Boolean withSynonyms) {
         if (Boolean.TRUE.equals(withSynonyms)) return null;
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE);
+        return (root, query, cb) -> cb.equal(root.get(TaxonName.Fields.IS_REFERENT), Boolean.TRUE);
     }
 
     default Specification<TaxonName> withTaxonGroupId(Integer taxonGroupId) {
         if (taxonGroupId == null) return null;
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+        return (root, query, cb) -> cb.equal(
             root.join(TaxonName.Fields.REFERENCE_TAXON, JoinType.INNER)
                 .joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER)
                 .get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP)
@@ -73,7 +73,7 @@ public interface TaxonNameSpecifications extends ReferentialSpecifications<Taxon
 
     default Specification<TaxonName> withTaxonGroupIds(Integer[] taxonGroupIds) {
         if (ArrayUtils.isEmpty(taxonGroupIds)) return null;
-        return (root, query, criteriaBuilder) -> criteriaBuilder.in(
+        return (root, query, cb) -> cb.in(
             root.join(TaxonName.Fields.REFERENCE_TAXON, JoinType.INNER)
                 .joinList(ReferenceTaxon.Fields.PARENT_TAXON_GROUPS, JoinType.INNER)
                 .get(TaxonGroup2TaxonHierarchy.Fields.PARENT_TAXON_GROUP)

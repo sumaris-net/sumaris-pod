@@ -13,9 +13,9 @@ ARG GROUPID="20001"
 RUN apt update && apt -y install libsodium-dev
 
 # Create execution user/group
-RUN echo "Creatin group ${GROUPNAME}:${GROUPID}"
+RUN echo "Creating group ${GROUPNAME}:${GROUPID}"
 RUN groupadd -g ${GROUPID} ${GROUPNAME}
-RUN echo "Creatin user ${USERNAME}:${USERID}"
+RUN echo "Creating user ${USERNAME}:${USERID}"
 RUN useradd -g ${GROUPNAME} -d /app -u ${USERID} ${USERNAME}
 USER ${USERNAME}:${GROUPNAME}
 

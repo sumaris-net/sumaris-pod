@@ -38,7 +38,7 @@ import org.springframework.data.repository.query.Param;
  * @author peck7 on 24/08/2020.
  */
 public interface StrategyRepository
-    extends ReferentialRepository<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>,
+    extends ReferentialRepository<Integer, Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>,
     StrategySpecifications {
 
     @Caching(

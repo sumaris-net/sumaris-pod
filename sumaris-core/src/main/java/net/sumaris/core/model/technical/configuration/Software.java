@@ -39,7 +39,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "software")
-public class Software implements IItemReferentialEntity {
+public class Software implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_SEQ")

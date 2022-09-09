@@ -33,7 +33,7 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
  * @author peck7 on 18/08/2020.
  */
 public interface LocationRepository
-    extends ReferentialRepository<Location, LocationVO, IReferentialFilter, ReferentialFetchOptions>,
+    extends ReferentialRepository<Integer, Location, LocationVO, IReferentialFilter, ReferentialFetchOptions>,
     LocationSpecifications {
 
 }

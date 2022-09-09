@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateReleaseTable">
+
+  <query type="create" temp="false" table="&amp;releaseTableName">
+
+    <with alias="SAMPLE_WITH_MEAS">
+      <subquery>
+        <subselect alias="STATION_NUMBER" type="number">S.STATION_NUMBER</subselect>
+        <subselect alias="ID" type="number">PARENT_SA.ID</subselect>
+        <subselect alias="SAMPLE_DATE" type="date">PARENT_SA.SAMPLE_DATE</subselect>
+        <subselect alias="REFERENCE_TAXON_FK" type="text">PARENT_SA.REFERENCE_TAXON_FK</subselect>
+        <subselect alias="TAXON_GROUP_FK" type="text">PARENT_SA.TAXON_GROUP_FK</subselect>
+        <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
+        <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
+        <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
+        <subselect alias="COMMENTS" type="text">SA.COMMENTS</subselect>
+
+        <from alias="S">&amp;stationTableName</from>
+        <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('INDIVIDUAL_RELEASE#%')</from>
+        <from join="true">INNER JOIN SAMPLE PARENT_SA ON PARENT_SA.ID = SA.PARENT_SAMPLE_FK AND PARENT_SA.LABEL LIKE UPPER('SAMPLE#%')</from>
+        <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
+        <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
+        <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
+
+        <union>
+          <subquery>
+            <subselect alias="STATION_NUMBER" type="number">S.STATION_NUMBER</subselect>
+            <subselect alias="ID" type="number">SA.ID</subselect>
+            <subselect alias="SAMPLE_DATE" type="date">SA.SAMPLE_DATE</subselect>
+            <subselect alias="REFERENCE_TAXON_FK" type="text">SA.REFERENCE_TAXON_FK</subselect>
+            <subselect alias="TAXON_GROUP_FK" type="text">SA.TAXON_GROUP_FK</subselect>
+            <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
+            <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
+            <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
+            <subselect alias="COMMENTS" type="text">null</subselect>
+
+            <from alias="S">&amp;stationTableName</from>
+            <from join="true">INNER JOIN SAMPLE CHILD_SA ON CHILD_SA.OPERATION_FK = S.STATION_NUMBER AND CHILD_SA.LABEL LIKE UPPER('INDIVIDUAL_RELEASE#%')</from>
+            <from join="true">INNER JOIN SAMPLE SA ON SA.ID = CHILD_SA.PARENT_SAMPLE_FK AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
+            <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
+            <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
+            <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
+          </subquery>
+        </union>
+
+        <!-- TODO add release linked to batch (on TAG_ID) -->
+      </subquery>
+    </with>
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">UPPER('RL')</select>
+    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">S.YEAR</select>
+    <select alias="PROJECT" type="text">S.PROJECT</select>
+    <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
+    <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+    <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select><!-- hidden column, use to link in children table -->
+
+    <!-- SURVIVAL TEST -->
+    <select alias="SPECIES_CODE" type="number">COALESCE(TN.LABEL, TG.LABEL)</select>
+    <select alias="SPECIES_NAME" type="number">COALESCE(TN.NAME, TG.NAME)</select>
+    <select alias="TAG_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('TAG_ID') THEN T.ALPHA_VALUE END)</select>
+    <!-- INDIVIDUAL RELEASE -->
+    <select alias="MEASURE_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
+    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
+    <select alias="LATITUDE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LATITUDE') THEN T.NUM_VALUE END)</select>
+    <select alias="LONGITUDE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LONGITUDE') THEN T.NUM_VALUE END)</select>
+    <select alias="COMMENTS" type="text">MAX(T.COMMENTS)</select>
+
+    <from alias="S">&amp;stationTableName</from>
+    <from join="true">INNER JOIN SAMPLE_WITH_MEAS T ON T.STATION_NUMBER = S.STATION_NUMBER</from>
+    <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT=true</from>
+    <from join="true">LEFT OUTER JOIN TAXON_GROUP TG ON TG.ID = T.TAXON_GROUP_FK</from>
+
+    <groupby>
+      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT,
+      TRIP_CODE, S.STATION_NUMBER, INDIVIDUAL_ID, SPECIES_CODE, SPECIES_NAME
+    </groupby>
+  </query>
+
+</queries>

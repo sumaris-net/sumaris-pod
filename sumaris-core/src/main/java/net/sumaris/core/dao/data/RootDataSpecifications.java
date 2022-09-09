@@ -47,25 +47,25 @@ public interface RootDataSpecifications<E extends IRootDataEntity<? extends Seri
 
     default Specification<E> hasRecorderPersonId(Integer recorderPersonId) {
         if (recorderPersonId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, RECORDER_PERSON_ID_PARAM);
-            return criteriaBuilder.equal(root.get(E.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, RECORDER_PERSON_ID_PARAM);
+            return cb.equal(root.get(E.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), param);
         }).addBind(RECORDER_PERSON_ID_PARAM, recorderPersonId);
     }
 
     default Specification<E> hasProgramLabel(String programLabel) {
         if (programLabel == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROGRAM_LABEL_PARAM);
-            return criteriaBuilder.equal(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.LABEL), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> param = cb.parameter(String.class, PROGRAM_LABEL_PARAM);
+            return cb.equal(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.LABEL), param);
         }).addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
 
     default Specification<E> hasProgramIds(Integer[] programIds) {
         if (ArrayUtils.isEmpty(programIds)) return null;
-        return BindableSpecification.<E>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, PROGRAM_IDS_PARAM);
-            return criteriaBuilder.in(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.ID)).value(param);
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, PROGRAM_IDS_PARAM);
+            return cb.in(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.ID)).value(param);
         }).addBind(PROGRAM_IDS_PARAM, Arrays.asList(programIds));
     }
 

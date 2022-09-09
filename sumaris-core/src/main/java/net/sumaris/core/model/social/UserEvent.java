@@ -25,7 +25,7 @@ package net.sumaris.core.model.social;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ISignedEntityBean;
+import net.sumaris.core.dao.technical.model.ISignedEntity;
 import net.sumaris.core.model.data.IDataEntity;
 
 import javax.persistence.*;
@@ -38,7 +38,7 @@ import java.util.Date;
 @Entity
 @Table(name = "user_event")
 @Cacheable
-public class UserEvent implements ISignedEntityBean<Integer, Date> {
+public class UserEvent implements ISignedEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")

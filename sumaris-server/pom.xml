@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.19.5</version>
+    <version>1.28.6</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -128,10 +128,6 @@
       <artifactId>activemq-kahadb-store</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
-      <artifactId>rxjava</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
     </dependency>
@@ -156,6 +152,10 @@
     <dependency>
       <groupId>io.leangen.graphql</groupId>
       <artifactId>spqr</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
     </dependency>
     <dependency>
       <groupId>de.grundid.opendatalab</groupId>
@@ -202,6 +202,11 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.dom4j</groupId>
+      <artifactId>dom4j</artifactId>
       <scope>provided</scope>
     </dependency>
 

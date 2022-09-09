@@ -73,11 +73,10 @@ public class InitTests extends ExternalResource {
 
     /**
      * Main method is used by clients projects, to generate and deploy a test DB
-     * (e.g. for Dali project see http://doc.e-is.pro/dali/dali-data.properties)
      * @param args arguments
      * @throws Throwable if any
      */
-    public static void main(String[] args) throws Throwable{
+    public static void main(String[] args) throws Throwable {
 
         // Check arguments
         if (ArrayUtils.isEmpty(args)) {

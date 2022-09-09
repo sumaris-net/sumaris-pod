@@ -47,7 +47,6 @@ public interface RdfSchemaService {
      * @param options export options
      * @return a schema representation as an ontology
      */
-    @Cacheable(cacheNames = RdfCacheConfiguration.Names.ONTOLOGY_BY_NAME, key="#options.hashCode()", condition = " #options != null", unless = "#result == null")
     Model getOntology(RdfSchemaFetchOptions options);
 
     Model getOntology(ModelVocabulary voc);

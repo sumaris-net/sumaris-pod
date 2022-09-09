@@ -62,11 +62,13 @@ public interface OperationService {
 	@Transactional(readOnly = true)
 	OperationVO get(int id, OperationFetchOptions o);
 
-	OperationVO save(OperationVO operation);
+	OperationVO save(OperationVO source);
 
-	List<OperationVO> save(List<OperationVO> operations);
+	OperationVO control(OperationVO source);
 
-	List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
+	List<OperationVO> save(List<OperationVO> sources);
+
+	List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> sources);
 
 	void delete(int id);
 

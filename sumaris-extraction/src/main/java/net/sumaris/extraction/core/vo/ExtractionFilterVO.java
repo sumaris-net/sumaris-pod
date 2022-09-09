@@ -22,9 +22,12 @@ package net.sumaris.extraction.core.vo;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -34,11 +37,12 @@ import java.util.Set;
 @AllArgsConstructor
 @FieldNameConstants
 @EqualsAndHashCode
-public class ExtractionFilterVO {
+public class ExtractionFilterVO implements Serializable {
 
     public static ExtractionFilterVO nullToEmpty(ExtractionFilterVO filter) {
         return filter != null ? filter : new ExtractionFilterVO();
     }
+
 
     private String operator;
 
@@ -54,12 +58,23 @@ public class ExtractionFilterVO {
 
     private Set<String> excludeColumnNames;
 
+    @JsonIgnore
     public boolean isDistinct() {
-        return distinct != null ? distinct.booleanValue() : false;
+        return distinct != null && distinct;
     }
 
+    @JsonIgnore
     public boolean isPreview() {
-        return preview != null ? preview.booleanValue() : false;
+        return preview != null && preview;
+    }
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return sheetName == null
+            && distinct == null
+            && CollectionUtils.isEmpty(criteria)
+            && CollectionUtils.isEmpty(includeColumnNames)
+            && CollectionUtils.isEmpty(excludeColumnNames);
     }
 
 }

@@ -47,7 +47,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "grouping_level")
-public class GroupingLevel implements IItemReferentialEntity  {
+public class GroupingLevel implements IItemReferentialEntity<Integer>  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_LEVEL_SEQ")

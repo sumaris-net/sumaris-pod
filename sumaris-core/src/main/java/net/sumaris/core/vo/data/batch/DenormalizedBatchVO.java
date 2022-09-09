@@ -29,23 +29,14 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntityBean;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
-import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
-import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -55,8 +46,8 @@ import java.util.List;
 @EqualsAndHashCode
 public class DenormalizedBatchVO
         implements IValueObject<Integer>,
-        IUpdateDateEntityBean<Integer, Date>,
-        ITreeNodeEntityBean<Integer, DenormalizedBatchVO> {
+    IUpdateDateEntity<Integer, Date>,
+    ITreeNodeEntity<Integer, DenormalizedBatchVO> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include

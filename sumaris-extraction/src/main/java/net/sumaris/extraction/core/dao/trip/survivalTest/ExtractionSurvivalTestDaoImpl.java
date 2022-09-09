@@ -22,11 +22,13 @@ package net.sumaris.extraction.core.dao.trip.survivalTest;
  * #L%
  */
 
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
@@ -35,6 +37,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -50,8 +53,8 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.SURVIVAL_TEST;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.SURVIVAL_TEST);
     }
 
     @Override
@@ -60,9 +63,9 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormat(LiveFormatEnum.SURVIVAL_TEST);
-        context.setSurvivalTestTableName(String.format(ST_TABLE_NAME_PATTERN, context.getId()));
-        context.setReleaseTableName(String.format(RL_TABLE_NAME_PATTERN, context.getId()));
+        context.setType(LiveExtractionTypeEnum.SURVIVAL_TEST);
+        context.setSurvivalTestTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
+        context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
         // Stop here, if sheet already filled
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -129,6 +132,10 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("sortingDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_START_DATE_TIME.getId()));
         xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
 
+        // Compute groupBy (exclude columns with the 'agg' group)
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
+
         return xmlQuery;
     }
 
@@ -174,7 +181,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getSurvivalTestTableName());
 
         // Clean row using generic tripFilter
@@ -204,7 +211,7 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("releaseTableName", context.getReleaseTableName());
 
         // aggregate insertion
-        execute(xmlQuery);
+        execute(context, xmlQuery);
         long count = countFrom(context.getReleaseTableName());
 
         // Clean row using generic tripFilter

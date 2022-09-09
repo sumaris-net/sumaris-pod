@@ -55,7 +55,6 @@ import java.util.Properties;
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
-//@TestPropertySource(locations="classpath:sumaris-core-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
 public class AbstractServiceTest {
@@ -159,12 +158,6 @@ public class AbstractServiceTest {
 
 	protected ReferentialVO createReferentialVO(int id) {
 		ReferentialVO result = new ReferentialVO();
-		result.setId(id);
-		return result;
-	}
-
-	protected MetierVO createMetierVO(int id) {
-		MetierVO result = new MetierVO();
 		result.setId(id);
 		return result;
 	}

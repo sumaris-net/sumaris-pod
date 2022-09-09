@@ -35,14 +35,20 @@ public abstract class AbstractEntityEvent<ID extends Serializable, V extends Ser
 
     private final IEntityEvent.EntityEventOperation operation;
 
-    private final ID id;
+    private ID id;
 
-    private final String entityName;
+    private String entityName;
 
-    private final V data;
+    private V data;
 
-    @Override
-    public String getJmsDestinationName() {
-        return getOperation().name().toLowerCase() + getEntityName();
+    private String _type;
+
+    protected AbstractEntityEvent(IEntityEvent.EntityEventOperation operation) {
+        this.operation = operation;
     }
+
+    protected AbstractEntityEvent(IEntityEvent.EntityEventOperation operation, ID id, String entityName, V data){
+        this(operation, id, entityName, data, data != null ? data.getClass().getName() : null);
+    }
+
 }

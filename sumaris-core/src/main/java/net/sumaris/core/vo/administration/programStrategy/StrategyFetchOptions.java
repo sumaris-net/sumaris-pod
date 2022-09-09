@@ -58,13 +58,19 @@ public class StrategyFetchOptions implements IFetchOptions {
     private boolean withDepartments = false;
 
     /**
+     * Fetch appliedStrategies
+     */
+    @Builder.Default
+    private boolean withAppliedStrategies = false;
+
+    /**
      * Fetch gears
      */
     @Builder.Default
     private boolean withGears = false;
 
     /**
-     * Compute PmfmStrategy (normalized entities)
+     * Fetch PmfmStrategy (normalized entities)
      */
     @Builder.Default
     private boolean withPmfms = false;
@@ -74,6 +80,7 @@ public class StrategyFetchOptions implements IFetchOptions {
      */
     @Builder.Default
     private boolean withDenormalizedPmfms = false;
+
 
     /**
      * Fetch strategy for PSFM strategy

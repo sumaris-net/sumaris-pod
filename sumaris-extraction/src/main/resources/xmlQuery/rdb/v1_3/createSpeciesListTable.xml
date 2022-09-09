@@ -40,6 +40,7 @@
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">SL.COMMERCIAL_SIZE_CATEGORY</select>
     <select alias="SUBSAMPLING_CATEGORY" type="text">SL.SUBSAMPLING_CATEGORY</select>
     <select alias="SEX" type="text">SL.SEX</select><!-- always define in the HL table -->
+    <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
     <!-- other fields -->
     <select alias="WEIGHT" group="weight" type="number">CAST(SUM(SL.WEIGHT) * 1000 AS INTEGER)</select>

@@ -46,13 +46,13 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 
 	@Transactional(readOnly = true)
 	List<TripVO> findAll(TripFilterVO filter, Page page,
-						 TripFetchOptions fieldOptions);
+						 TripFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<TripVO> findAll(TripFilterVO filter, int offset, int size,
 						 String sortAttribute,
 						 SortDirection sortDirection,
-						 TripFetchOptions fieldOptions);
+						 TripFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	long countByFilter(TripFilterVO filter);
@@ -73,6 +73,7 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 	TripVO save(TripVO trip, TripSaveOptions saveOptions);
 
 	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
+
 
 	@Async
 	CompletableFuture<Boolean> asyncDelete(int id);

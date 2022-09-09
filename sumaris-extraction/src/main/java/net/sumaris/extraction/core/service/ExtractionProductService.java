@@ -22,10 +22,7 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import net.sumaris.extraction.core.config.ExtractionCacheConfiguration;
 import net.sumaris.core.vo.technical.extraction.*;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -40,13 +37,14 @@ import java.util.Optional;
 public interface ExtractionProductService {
 
     @Transactional(readOnly = true)
-    List<ExtractionProductVO> findByFilter(ExtractionProductFilterVO filter, ExtractionProductFetchOptions fetchOptions);
+    List<ExtractionProductVO> findByFilter(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     ExtractionProductVO get(int id, ExtractionProductFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     ExtractionProductVO getByLabel(String label, ExtractionProductFetchOptions fetchOptions);
+
 
     @Transactional(readOnly = true)
     Optional<ExtractionProductVO> findById(int id, ExtractionProductFetchOptions fetchOptions);
@@ -57,8 +55,10 @@ public interface ExtractionProductService {
     @Transactional(readOnly = true)
     List<ExtractionTableColumnVO> getColumnsBySheetName(int id, String sheetName, ExtractionTableColumnFetchOptions fetchOptions);
 
+    List<ExtractionTableColumnVO> getColumns(String tableName, ExtractionTableColumnFetchOptions fetchOptions);
+
     @Transactional
-    ExtractionProductVO save(ExtractionProductVO source);
+    ExtractionProductVO save(ExtractionProductVO source, ExtractionProductSaveOptions saveOptions);
 
     @Transactional
     void delete(int id);

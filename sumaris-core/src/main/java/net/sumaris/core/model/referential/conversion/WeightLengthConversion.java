@@ -59,7 +59,7 @@ import java.util.Date;
 @Entity
 @Table(name = "weight_length_conversion")
 @Cacheable
-public class WeightLengthConversion implements IReferentialWithStatusEntity {
+public class WeightLengthConversion implements IReferentialWithStatusEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "WEIGHT_LENGTH_CONVERSION_SEQ")

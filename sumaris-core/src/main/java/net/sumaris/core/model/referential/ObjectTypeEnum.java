@@ -23,6 +23,7 @@ package net.sumaris.core.model.referential;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 
 import java.io.Serializable;
@@ -40,8 +41,7 @@ public enum ObjectTypeEnum implements Serializable {
             .orElseThrow(() -> new IllegalArgumentException("Unknown ObjectTypeEnum: " + id));
     }
 
-    public static ObjectTypeEnum byLabel(final String label) {
-        Preconditions.checkNotNull(label);
+    public static ObjectTypeEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(level -> label.equals(level.label))
             .findFirst()

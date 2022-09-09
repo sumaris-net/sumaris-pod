@@ -40,10 +40,10 @@ import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.io.File;
@@ -64,6 +64,7 @@ import java.io.IOException;
 )
 @EnableEmailTools
 @EnableWebSocket
+@EnableCaching
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 
@@ -153,9 +154,6 @@ public class Application extends SpringBootServletInitializer {
     protected static void initCache(SumarisConfiguration config) {
         // Init EHCache directory (see 'ehcache.xml' file)
         System.setProperty(SumarisConfigurationOption.CACHE_DIRECTORY.getKey(), config.getCacheDirectory().getPath() + File.separator);
-
-        // Cache directory
-        //FileUtils.forceMkdir(config.getCacheDirectory());
     }
 
     /**

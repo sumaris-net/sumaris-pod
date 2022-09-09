@@ -23,13 +23,16 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +43,7 @@ import java.util.Optional;
  *    Service in charge of importing csv file into DB
  * 
  */
-@Transactional()
+@Transactional
 public interface ProgramService {
 
 	@Transactional(readOnly = true)
@@ -61,14 +64,31 @@ public interface ProgramService {
 	List<ProgramVO> getAll();
 
 	@Transactional(readOnly = true)
+	List<ProgramVO> findByFilter(@Nullable ProgramFilterVO filter,
+								 @Nullable Page page,
+								 @Nullable ProgramFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
 	List<ProgramVO> findByFilter(ProgramFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+
+	@Transactional(readOnly = true)
+	Long countByFilter(ProgramFilterVO filter);
 
 	ProgramVO save(ProgramVO program, ProgramSaveOptions options);
 
 	void delete(int id);
 
+	@Transactional(readOnly = true)
 	boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege);
 
+	@Transactional(readOnly = true)
 	boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
 
+	@Transactional(readOnly = true)
+	boolean hasPropertyValueByProgramId(Integer id, ProgramPropertyEnum property, String expectedValue);
+
+	@Transactional(readOnly = true)
+	boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
+
+	List<ReferentialVO> getAcquisitionLevelsById(int id);
 }

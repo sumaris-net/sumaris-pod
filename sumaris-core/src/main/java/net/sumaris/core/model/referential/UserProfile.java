@@ -39,7 +39,7 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @Table(name = "user_profile")
-public class UserProfile implements IItemReferentialEntity {
+public class UserProfile implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USER_PROFILE_SEQ")

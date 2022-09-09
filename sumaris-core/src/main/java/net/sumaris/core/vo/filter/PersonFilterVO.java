@@ -34,6 +34,10 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @AllArgsConstructor
 public class PersonFilterVO implements IReferentialFilter {
 
+    public static PersonFilterVO nullToEmpty(PersonFilterVO filter) {
+        return filter == null ? new PersonFilterVO() : filter;
+    }
+
     private Integer id;
     private String label;
     private String name;

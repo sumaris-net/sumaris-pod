@@ -25,9 +25,12 @@ package net.sumaris.core.service.referential.pmfm;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
+import net.sumaris.core.vo.referential.PmfmFetchOptions;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,19 +38,23 @@ import java.util.Optional;
 public interface PmfmService {
 
     @Transactional(readOnly = true)
-    List<PmfmVO> findByFilter(IReferentialFilter filter, Page page);
+    List<PmfmVO> findByFilter(IReferentialFilter filter, Page page, @Nullable PmfmFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
+                              @Nullable PmfmFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    Optional<PmfmVO> findByLabel(final String label);
+    List<Integer> findIdsByParts(PmfmPartsVO filter);
 
     @Transactional(readOnly = true)
-    PmfmVO getByLabel(String label);
+    Optional<PmfmVO> findByLabel(final String label, PmfmFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    PmfmVO get(int pmfmId);
+    PmfmVO getByLabel(String label, PmfmFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
+    PmfmVO get(int pmfmId, PmfmFetchOptions fetchOptions);
 
     PmfmVO save(PmfmVO pmfm);
 

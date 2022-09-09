@@ -45,6 +45,10 @@ public class ParameterRepositoryWriteTest extends AbstractDaoTest {
     @Autowired
     private ParameterRepository parameterRepository;
 
+    public ParameterRepositoryWriteTest() {
+        //setCommitOnTearDown(false);
+    }
+
     @Test
     public void saveParameter() {
 

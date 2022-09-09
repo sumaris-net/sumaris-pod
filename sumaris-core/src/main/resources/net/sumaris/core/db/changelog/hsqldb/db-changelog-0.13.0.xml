@@ -5,45 +5,45 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-0.13.0.xml">
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-9">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-9" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="LANDING_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="LANDING_SEQ"/>
+    <createSequence sequenceName="LANDING_SEQ" incrementBy="50"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-10">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-10" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="PRODUCT_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="PRODUCT_SEQ"/>
+    <createSequence sequenceName="PRODUCT_SEQ" incrementBy="50"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-11">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-11" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="QUANTIF_MEASUREMENT_P_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="QUANTIF_MEASUREMENT_P_SEQ"/>
+    <createSequence sequenceName="QUANTIF_MEASUREMENT_P_SEQ" incrementBy="50"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-12">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-12" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="SORTING_MEASUREMENT_P_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="SORTING_MEASUREMENT_P_SEQ"/>
+    <createSequence sequenceName="SORTING_MEASUREMENT_P_SEQ" incrementBy="50"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-13">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-13" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ"/>
+    <createSequence sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ" incrementBy="50"/>
   </changeSet>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-14">

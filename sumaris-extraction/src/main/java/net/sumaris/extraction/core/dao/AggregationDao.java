@@ -24,12 +24,14 @@ package net.sumaris.extraction.core.dao;
 
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithStratumVO;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
 import net.sumaris.extraction.core.vo.*;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -41,17 +43,17 @@ public interface AggregationDao<
 
     String TABLE_NAME_PREFIX = "AGG_";
 
-    ProductFormatEnum getFormat();
+    Set<IExtractionType> getManagedTypes();
 
-    <R extends C> R aggregate(ExtractionProductVO source,
+    <R extends C> R aggregate(IExtractionTypeWithTablesVO source,
                               @Nullable F filter,
                               S strata);
 
-    AggregationResultVO getAggBySpace(String tableName, @Nullable F filter, S strata, Page page);
+    AggregationResultVO read(String tableName, @Nullable F filter, S strata, Page page);
 
-    AggregationTechResultVO getAggByTech(String tableName, @Nullable F filter, S strata, String sortAttribute, SortDirection direction);
+    AggregationTechResultVO readByTech(String tableName, @Nullable F filter, S strata, String sortAttribute, SortDirection direction);
 
-    MinMaxVO getAggMinMaxByTech(String tableName, @Nullable F filter, S strata);
+    MinMaxVO getTechMinMax(String tableName, @Nullable F filter, S strata);
 
-    void clean(C context);
+    <R extends AggregationContextVO> void clean(R context);
 }

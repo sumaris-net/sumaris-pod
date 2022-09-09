@@ -31,8 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -53,7 +54,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -82,14 +82,14 @@ public class TrashServiceImpl implements TrashService {
         // Make sure sort attribute is updateDate
         // This is because we don't want to deserialize all files, then sort, but we prefer sort on file date,
         // then only deserialize files from the current page
-        String sortAttribute = IUpdateDateEntityBean.Fields.UPDATE_DATE;
+        String sortAttribute = IUpdateDateEntity.Fields.UPDATE_DATE;
         if (pageable.getSort() != null && pageable.getSort().isSorted()) {
             sortAttribute = pageable.getSort().stream().map(Sort.Order::getProperty)
                 .findFirst()
-                .orElse(IUpdateDateEntityBean.Fields.UPDATE_DATE);
+                .orElse(IUpdateDateEntity.Fields.UPDATE_DATE);
         }
-        Preconditions.checkArgument(IUpdateDateEntityBean.Fields.UPDATE_DATE.equals(sortAttribute),
-                String.format("Trash data can only be sorted on '%s'", IUpdateDateEntityBean.Fields.UPDATE_DATE));
+        Preconditions.checkArgument(IUpdateDateEntity.Fields.UPDATE_DATE.equals(sortAttribute),
+                String.format("Trash data can only be sorted on '%s'", IUpdateDateEntity.Fields.UPDATE_DATE));
 
         // Get sort direction
         boolean isDescending = SortDirection.fromSort(pageable.getSort()).orElse(SortDirection.DESC) == SortDirection.DESC;
@@ -211,7 +211,7 @@ public class TrashServiceImpl implements TrashService {
             try {
                 FileUtils.forceMkdir(this.trashDirectory);
                 checkTrashDirectory();
-                if (changed) log.info(String.format("Started trash service at {%s}", this.trashDirectory.getAbsolutePath()));
+                if (changed) log.info("Started trash service at {}", this.trashDirectory.getAbsolutePath());
             } catch (Exception e) {
                 log.error("Cannot enable trash service: " + e.getMessage());
                 this.enable = false;
@@ -223,10 +223,10 @@ public class TrashServiceImpl implements TrashService {
         }
     }
 
-    @JmsListener(destination = "deleteTrip", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deleteOperation", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deleteObservedLocation", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    @JmsListener(destination = "deleteLanding", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
+    @JmsListener(selector = "entityName = 'Trip' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    @JmsListener(selector = "entityName = 'Operation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    @JmsListener(selector = "entityName = 'ObservedLocation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    @JmsListener(selector = "entityName = 'Landing' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     protected void onEntityDeleted(IValueObject data) throws IOException {
         if (!this.enable) return; // Skip
 
@@ -382,9 +382,9 @@ public class TrashServiceImpl implements TrashService {
                 if (clazz != null && !clazz.isInstance(vo)) return null;
 
                 // Override update date, with file date (=deletion date)
-                if (vo instanceof IUpdateDateEntityBean) {
+                if (vo instanceof IUpdateDateEntity) {
                     Date lastModified = new Date(file.lastModified());
-                    ((IUpdateDateEntityBean<?, Date>) vo).setUpdateDate(lastModified);
+                    ((IUpdateDateEntity<?, Date>) vo).setUpdateDate(lastModified);
                 }
 
                 return (V)vo;

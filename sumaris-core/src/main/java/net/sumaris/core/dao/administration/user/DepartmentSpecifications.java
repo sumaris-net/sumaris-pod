@@ -30,14 +30,14 @@ import org.springframework.data.jpa.domain.Specification;
 /**
  * @author peck7 on 20/08/2020.
  */
-public interface DepartmentSpecifications extends ReferentialSpecifications<Department> {
+public interface DepartmentSpecifications extends ReferentialSpecifications<Integer, Department> {
 
     String LOGO_PARAMETER = "logo";
 
     default Specification<Department> withLogo(Boolean withLogo) {
         if (!Boolean.TRUE.equals(withLogo)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            return criteriaBuilder.isNotNull(root.get(Department.Fields.LOGO));
+        return BindableSpecification.where((root, query, cb) -> {
+            return cb.isNotNull(root.get(Department.Fields.LOGO));
         });
     }
 }

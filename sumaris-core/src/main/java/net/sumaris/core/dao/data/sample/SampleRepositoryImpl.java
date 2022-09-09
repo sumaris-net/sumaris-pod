@@ -41,6 +41,7 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -53,7 +54,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -74,7 +74,7 @@ public class SampleRepositoryImpl
     @Autowired
     private TaxonNameRepository taxonNameRepository;
 
-    private boolean enableSaveUsingHash;
+    private boolean enableHashOptimization;
 
     @Autowired
     public SampleRepositoryImpl(EntityManager entityManager) {
@@ -86,7 +86,7 @@ public class SampleRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
+        this.enableHashOptimization = getConfig().enableSampleHashOptimization();
     }
 
     @Override
@@ -149,7 +149,7 @@ public class SampleRepositoryImpl
             target.setBatchId(source.getBatch().getId());
         }
 
-        // Fetch children
+        // Fetch measurement values
         Integer sampleId = source.getId();
         if (fetchOptions != null && fetchOptions.isWithMeasurementValues() && sampleId != null) {
             target.setMeasurementValues(measurementDao.toMeasurementsMap(source.getMeasurements()));
@@ -158,12 +158,12 @@ public class SampleRepositoryImpl
 
     @Override
     public void toEntity(SampleVO source, Sample target, boolean copyIfNull) {
-        toEntity(source, target, copyIfNull, target.getId() != null && enableSaveUsingHash);
+        toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
     protected boolean toEntity(SampleVO source, Sample target, boolean copyIfNull, boolean allowSkipSameHash) {
 
-        // Copy some fields from parent
+        // Copy some fields from owner
         if (source.getOperation() != null) {
             source.setRecorderDepartment(source.getOperation().getRecorderDepartment());
         } else if (source.getLanding() != null) {
@@ -178,7 +178,7 @@ public class SampleRepositoryImpl
         Integer batchId = source.getBatchId() != null ? source.getBatchId() : (source.getBatch() != null ? source.getBatch().getId() : null);
 
         // Parent sample
-        if (copyIfNull || (parentId != null)) {
+        if (copyIfNull || parentId != null) {
 
             // Check if parent changed
             Sample previousParent = target.getParent();
@@ -299,11 +299,11 @@ public class SampleRepositoryImpl
     }
 
     @Override
-    protected void onBeforeSaveEntity(SampleVO vo, Sample entity, boolean isNew) {
-        if (!isNew && entity.getCreationDate() == null) {
-            log.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", entity.getId(), entity.getLabel()));
+    protected void onBeforeSaveEntity(SampleVO source, Sample target, boolean isNew) {
+        if (!isNew && target.getCreationDate() == null) {
+            log.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", target.getId(), target.getLabel()));
         }
-        super.onBeforeSaveEntity(vo, entity, isNew);
+        super.onBeforeSaveEntity(source, target, isNew);
     }
 
     @Override
@@ -317,24 +317,24 @@ public class SampleRepositoryImpl
     }
 
     @Override
-    public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> samples) {
+    public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableHashOptimization));
 
         // Load parent entity
         Operation parent = getById(Operation.class, operationId);
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getTrip().getProgram().getId());
 
-        samples.forEach(sample -> {
+        sources.forEach(sample -> {
             sample.setLandingId(null);
             sample.setOperationId(operationId);
             sample.setProgram(parentProgram);
         });
 
         // Save all, by parent
-        boolean dirty = saveAllByParent(parent, samples);
+        boolean dirty = saveAllByParent(parent, sources);
 
         if (dirty) {
             getEntityManager().flush();
@@ -343,14 +343,14 @@ public class SampleRepositoryImpl
 
         if (debugTime != 0L) log.debug("Saving operation {id: {}} samples [OK] in {}", operationId, TimeUtils.printDurationFrom(debugTime));
 
-        return samples;
+        return sources;
     }
 
     @Override
     public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> samples) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableSaveUsingHash));
+        if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableHashOptimization));
 
         // Load parent entity
         Landing parent = getById(Landing.class, landingId);
@@ -378,47 +378,51 @@ public class SampleRepositoryImpl
     }
 
     protected boolean saveAllByParent(IWithSamplesEntity<Integer, Sample> parent, List<SampleVO> sources) {
+        final boolean trace = log.isTraceEnabled();
 
         // Load existing entities
-        final Map<Integer, Sample> sourcesIdsToProcess = Beans.splitById(Beans.getList(parent.getSamples()));
+        final Map<Integer, Sample> sourcesByIds = Beans.splitById(parent.getSamples());
         final Set<Integer> sourcesIdsToSkip = Sets.newHashSet();
 
-        // Save each samples
-        final boolean trace = log.isTraceEnabled();
+        // Get current update date
         Date newUpdateDate = getDatabaseCurrentDate();
+
+        // Save each sources
         long updatesCount = sources.stream().map(source -> {
             Sample target = null;
             if (source.getId() != null) {
-                target = sourcesIdsToProcess.remove(source.getId());
+                target = sourcesByIds.remove(source.getId());
             }
-            // Check if batch save can be skipped
-            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            // Check can be skipped
+            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
-                source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
+                source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
                 skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
 
-                // If not changed, add children to the skip list
+                // If not changed, skip all children
                 if (skip) {
-                    getAllChildren(source).forEach(b -> sourcesIdsToSkip.add(b.getId()));
+                    streamRecursiveChildren(source)
+                        .map(SampleVO::getId)
+                        .forEach(sourcesIdsToSkip::add);
                 }
             }
             if (skip && trace) {
-                log.trace("Skip sample {id: {}, label: '{}'}", source.getId(), source.getLabel());
+                log.trace("Skip save {}", source);
             }
             return !skip;
         })
-            // Count updates
-            .filter(Boolean::booleanValue).count();
+        // Count updates
+        .filter(Boolean::booleanValue).count();
 
         boolean dirty = updatesCount > 0;
 
         // Remove unused entities
-        if (!sourcesIdsToProcess.isEmpty()) {
-            sourcesIdsToProcess.keySet().forEach(sampleId -> {
+        if (!sourcesByIds.isEmpty()) {
+            sourcesByIds.keySet().forEach(sampleId -> {
                 try {
                     this.deleteById(sampleId);
                 } catch (EmptyResultDataAccessException e) {
-                    // Continue (can occur because of delete cascade
+                    // Continue (can occur because of delete cascade)
                 }
             });
             dirty = true;
@@ -466,7 +470,14 @@ public class SampleRepositoryImpl
         boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
         // Stop here (without change on the update_date)
-        if (skipSave) return source;
+        if (skipSave) {
+            // Flag as same hash
+            source.addFlag(ValueObjectFlags.SAME_HASH);
+            return source;
+        }
+
+        // Remove same hash flag
+        source.removeFlag(ValueObjectFlags.SAME_HASH);
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
@@ -481,18 +492,18 @@ public class SampleRepositoryImpl
             // Add the new sample
             em.persist(entity);
             source.setId(entity.getId());
-            if (log.isTraceEnabled()) log.trace(String.format("Adding sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            if (log.isTraceEnabled()) log.trace("Adding {}...", entity);
         } else {
 
             // Workaround, to be sure to have a creation_date
             if (entity.getCreationDate() == null) {
-                log.warn(String.format("Updating a sample {id: %s, label: '%s'} without creation_date!", entity.getId(), entity.getLabel()));
+                log.warn("Updating {} without creation_date!", entity);
                 entity.setCreationDate(newUpdateDate);
                 source.setCreationDate(newUpdateDate);
             }
 
             // Update existing sample
-            if (log.isTraceEnabled()) log.trace(String.format("Updating sample {id: %s, label: '%s'}...", entity.getId(), entity.getLabel()));
+            if (log.isTraceEnabled()) log.trace("Updating {}...", entity);
             em.merge(entity);
         }
 
@@ -503,11 +514,11 @@ public class SampleRepositoryImpl
 
 
 
-    protected Stream<SampleVO> getAllChildren(SampleVO source) {
+    protected Stream<SampleVO> streamRecursiveChildren(SampleVO source) {
         if (CollectionUtils.isEmpty(source.getChildren())) {
             return Stream.empty();
         }
-        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), getAllChildren(c)));
+        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), streamRecursiveChildren(c)));
     }
 
 }

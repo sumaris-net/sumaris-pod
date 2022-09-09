@@ -24,6 +24,7 @@ package net.sumaris.core.exception;
 
 
 import net.sumaris.shared.exception.ErrorCodes;
+import org.nuiton.i18n.I18n;
 
 import java.util.List;
 
@@ -34,6 +35,9 @@ public class UnauthorizedException extends SumarisTechnicalException {
 
     public static final int ERROR_CODE = ErrorCodes.UNAUTHORIZED;
 
+    public UnauthorizedException(){
+        super(ERROR_CODE, I18n.t("sumaris.error.account.unauthorized"));
+    }
 
     /**
      * <p>Constructor for UnauthorizedException.</p>

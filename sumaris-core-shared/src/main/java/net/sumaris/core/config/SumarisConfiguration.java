@@ -33,8 +33,10 @@ import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.env.ConfigurableEnvironments;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.*;
 import org.nuiton.version.Version;
@@ -47,6 +49,7 @@ import javax.persistence.LockModeType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -178,9 +181,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         // Define Alias
         addAlias(applicationConfig);
 
-        // Override some external module default config (sumaris)
-        overrideExternalModulesDefaultOptions(applicationConfig);
-
         // parse config file and inline arguments
         try {
             applicationConfig.parse(args);
@@ -203,6 +203,32 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     }
 
+    public void doAllAction() throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        // Make sure all alias has been used, for parsing args, even those defined in modules (e.g. extraction)
+        parseUnparsedArgs();
+
+        applicationConfig.doAllAction();
+    }
+
+    /**
+     * Parse unparsed args. Useful when SumarisConfiguration is calling parse() before new alias
+     * (e.g. alias defined by external modules - see extraction module).
+     * Calling this method allow to parse missing args, that correspond to external module's alias.
+     */
+    public void parseUnparsedArgs() {
+        List<String> unparsedArgs = applicationConfig.getUnparsed();
+        if (CollectionUtils.isNotEmpty(unparsedArgs)) {
+
+            // Parse unparsed args
+            try {
+                applicationConfig.parse(unparsedArgs.toArray(new String[0]));
+
+            } catch (ArgumentsParserException e) {
+                throw new SumarisTechnicalException(t("sumaris.config.parse.error"), e);
+            }
+        }
+    }
+
     public void cleanCache() {
         complexOptionsCache.invalidateAll();
     }
@@ -222,19 +248,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.addAlias("--database", "--option", SumarisConfigurationOption.JDBC_URL.getKey());
 
         // CLI options
+        applicationConfig.addAlias("--daemon", "--option", SumarisConfigurationOption.CLI_DAEMONIZE.getKey(), "true");
+        applicationConfig.addAlias("-d", "--option", SumarisConfigurationOption.CLI_DAEMONIZE.getKey(), "true");
         applicationConfig.addAlias("--output", "--option", SumarisConfigurationOption.CLI_OUTPUT_FILE.getKey());
         applicationConfig.addAlias("-f", "--option", SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey(), "true");
         applicationConfig.addAlias("--year", "--option", SumarisConfigurationOption.CLI_FILTER_YEAR.getKey());
-
-    }
-
-    // Could be subclasses
-    /**
-     * <p>overrideExternalModulesDefaultOptions.</p>
-     *
-     * @param applicationConfig a {@link ApplicationConfig} object.
-     */
-    protected void overrideExternalModulesDefaultOptions(ApplicationConfig applicationConfig) {
 
     }
 
@@ -267,7 +285,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     protected void initTimeZone(ApplicationConfig applicationConfig) {
 
-        String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
+        String dbTimeZone = applicationConfig.getOption(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey());
         if (StringUtils.isNotBlank(dbTimeZone)) {
             if (log.isInfoEnabled()) {
                 log.info("Using timezone {{}} for database", dbTimeZone);
@@ -276,7 +294,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             log.info("Using default timezone {{}} for database", System.getProperty("user.timezone"));
         }
         // Set to system properties (need by JPA)
-        System.setProperty(SumarisConfigurationOption.DB_TIMEZONE.getKey(), dbTimeZone);
+        System.setProperty(SumarisConfigurationOption.HIBERNATE_JDBC_TIMEZONE.getKey(), dbTimeZone);
     }
 
 
@@ -487,6 +505,16 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
+     * <p>getDbTimezone.</p>
+     *
+     * @return a {@link TimeZone} object.
+     */
+    public TimeZone getTimezone() {
+        String tz = applicationConfig.getOption(SumarisConfigurationOption.TIMEZONE.getKey());
+        return StringUtils.isNotBlank(tz) ? TimeZone.getTimeZone(tz) : TimeZone.getDefault();
+    }
+
+    /**
      * <p>getDbAttachmentDirectory.</p>
      *
      * @return a {@link File} object.
@@ -569,15 +597,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>getDatasourceJndiName.</p>
-     *
-     * @return a {@link String} object.
-     */
-    public String getDatasourceJndiName() {
-        return applicationConfig.getOption(SumarisConfigurationOption.DATASOURCE_JNDI_NAME.getKey());
-    }
-
-    /**
      * <p>getJdbcDriver.</p>
      *
      * @return a {@link String} object.
@@ -615,6 +634,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public boolean isOracleDatabase() {
         return Daos.isOracleDatabase(getJdbcURL());
+    }
+
+    public DatabaseType getDatabaseType() {
+        return Daos.getDatabaseType(getJdbcURL());
     }
 
     /**
@@ -929,6 +952,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_TECHNICAL_TABLES_UPDATE.getKey());
     }
 
+    public int getGeometrySrid() {
+        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.GEOMETRY_SRID.getKey());
+    }
+
     public boolean enableBatchHashOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_BATCH_HASH_OPTIMIZATION.getKey());
     }
@@ -939,6 +966,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public boolean enableSampleUniqueTag() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_SAMPLE_UNIQUE_TAG.getKey());
+    }
+
+    public boolean enablePhysicalGearHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION.getKey());
     }
 
     /**

@@ -37,7 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "file_status")
 @Cacheable
-public class FileStatus implements IItemReferentialEntity {
+public class FileStatus implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_STATUS_SEQ")

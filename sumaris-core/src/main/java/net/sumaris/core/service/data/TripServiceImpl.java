@@ -24,11 +24,11 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
@@ -53,6 +53,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -113,13 +114,13 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
-                                SortDirection sortDirection, TripFetchOptions fieldOptions) {
-        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fieldOptions);
+                                SortDirection sortDirection, TripFetchOptions fetchOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
-    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, TripFetchOptions fieldOptions) {
-        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fieldOptions);
+    public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, TripFetchOptions fetchOptions) {
+        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fetchOptions);
     }
 
     @Override
@@ -165,10 +166,12 @@ public class TripServiceImpl implements TripService {
             // Operations
             else {
                 OperationFetchOptions operationFetchOptions = OperationFetchOptions.builder()
-                        .withObservers(fetchOptions.isWithObservers())
-                        .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                        .withRecorderPerson(fetchOptions.isWithRecorderPerson())
-                        .build();
+                    .withChildrenEntities(true)
+                    .withMeasurementValues(fetchOptions.isWithMeasurementValues())
+                    .withObservers(fetchOptions.isWithObservers())
+                    .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                    .withRecorderPerson(fetchOptions.isWithRecorderPerson())
+                    .build();
 
                 target.setOperations(operationService.findAllByTripId(id, operationFetchOptions));
             }
@@ -258,6 +261,9 @@ public class TripServiceImpl implements TripService {
         // Save
         TripVO target = tripRepository.save(source);
 
+        // Avoid sequence configuration mistake (see AllocationSize)
+        Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid Trip.id. Make sure your sequence has been well configured");
+
         // Save or update parent entity
         saveParent(target, options);
 
@@ -296,25 +302,37 @@ public class TripServiceImpl implements TripService {
 
         // Save physical gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
-            // Fille defaults, from the trip
-            source.getGears().forEach(gear -> {
+
+            List<PhysicalGearVO> gears = getGearsAsList(source);
+
+            // Fill defaults, from the trip
+            gears.forEach(gear -> {
                 fillDefaultProperties(target, gear);
-                if (withOperationGroup) {
-                    fillPhysicalGearMeasurementsFromOperationGroups(gear, source.getOperationGroups());
-                }
+                if (withOperationGroup) fillPhysicalGearMeasurementsFromOperationGroups(gear, source.getOperationGroups());
             });
 
             // Save
-            List<PhysicalGearVO> gears;
-            if (withOperationGroup){
-                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears(), physicalGearIdsToRemove);
+            if (withOperationGroup) {
+                gears = physicalGearService.saveAllByTripId(target.getId(), gears, physicalGearIdsToRemove);
             }
             else {
-                gears = physicalGearService.saveAllByTripId(target.getId(), source.getGears());
+                gears = physicalGearService.saveAllByTripId(target.getId(), gears);
             }
+
+            // Prepare saved gears (e.g. to be used as graphQL query response)
+            gears.forEach(gear -> {
+                // Set parentId (instead of parent object)
+                if (gear.getParentId() == null && gear.getParent() != null) {
+                    gear.setParentId(gear.getParent().getId());
+                }
+                // Remove link parent/children
+                gear.setParent(null);
+                gear.setChildren(null);
+            });
+
             target.setGears(gears);
         }
-        // Remove all
+        // No gears: remove all existing
         else if (!isNew) {
           physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
@@ -379,7 +397,7 @@ public class TripServiceImpl implements TripService {
             }
         }
 
-        if (physicalGearIdsToRemove.size() > 0){
+        if (CollectionUtils.isNotEmpty(physicalGearIdsToRemove)){
             physicalGearService.delete(physicalGearIdsToRemove);
         }
 
@@ -394,8 +412,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions) {
-        Preconditions.checkNotNull(trips);
+    public List<TripVO> save(@NonNull List<TripVO> trips, TripSaveOptions saveOptions) {
 
         return trips.stream()
             .map(t -> save(t, saveOptions))
@@ -505,6 +522,7 @@ public class TripServiceImpl implements TripService {
 
     protected void checkCanSave(TripVO source) {
         Preconditions.checkNotNull(source);
+        Preconditions.checkArgument(source.getId() == null || source.getId() >= 0, "Cannot save a trip with a local id: " + source.getId());
         Preconditions.checkNotNull(source.getProgram(), "Missing program");
         Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
         Preconditions.checkNotNull(source.getDepartureDateTime(), "Missing departureDateTime");
@@ -674,6 +692,20 @@ public class TripServiceImpl implements TripService {
         }
 
         sale.setTripId(parent.getId());
+
+        // Also set trip recorder department to expected sale's products, because expected sale don't have it
+        if (CollectionUtils.isNotEmpty(sale.getProducts())) {
+            sale.getProducts().stream()
+                .filter(product -> product.getRecorderDepartment() == null)
+                .forEach(product -> product.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
+
+        // Also set trip recorder department to measurements
+        if (CollectionUtils.isNotEmpty(sale.getMeasurements())) {
+            sale.getMeasurements().stream()
+                .filter(meas -> meas.getRecorderDepartment() == null)
+                .forEach(meas -> meas.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
     }
 
     protected void fillDefaultProperties(TripVO parent, ExpectedSaleVO expectedSale) {
@@ -694,8 +726,15 @@ public class TripServiceImpl implements TripService {
         // Also set trip recorder department to expected sale's products, because expected sale don't have it
         if (CollectionUtils.isNotEmpty(expectedSale.getProducts())) {
             expectedSale.getProducts().stream()
-                .filter(productVO -> productVO.getRecorderDepartment() == null)
-                .forEach(productVO -> productVO.setRecorderDepartment(parent.getRecorderDepartment()));
+                .filter(product -> product.getRecorderDepartment() == null)
+                .forEach(product -> product.setRecorderDepartment(parent.getRecorderDepartment()));
+        }
+
+        // Also set trip recorder department to expected measurements
+        if (CollectionUtils.isNotEmpty(expectedSale.getMeasurements())) {
+            expectedSale.getMeasurements().stream()
+                .filter(meas -> meas.getRecorderDepartment() == null)
+                .forEach(meas -> meas.setRecorderDepartment(parent.getRecorderDepartment()));
         }
     }
 
@@ -710,6 +749,11 @@ public class TripServiceImpl implements TripService {
         DataBeans.setDefaultRecorderPerson(gear, parent.getRecorderPerson());
 
         gear.setTripId(parent.getId());
+
+        // Fill children defaults
+        if (CollectionUtils.isNotEmpty(gear.getChildren())){
+            gear.getChildren().forEach(child -> fillDefaultProperties(parent, child));
+        }
     }
 
     protected void fillDefaultProperties(TripVO parent, MeasurementVO measurement) {
@@ -722,4 +766,20 @@ public class TripServiceImpl implements TripService {
         measurement.setEntityName(VesselUseMeasurement.class.getSimpleName());
     }
 
+    /**
+     * Get all samples, in the sample tree parent/children
+     *
+     * @param parent
+     * @return
+     */
+    protected List<PhysicalGearVO> getGearsAsList(final TripVO parent) {
+        final List<PhysicalGearVO> result = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(parent.getGears())) {
+            parent.getGears().forEach(source -> {
+                fillDefaultProperties(parent, source);
+                physicalGearService.treeToList(source, result);
+            });
+        }
+        return result;
+    }
 }

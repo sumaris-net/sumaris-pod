@@ -51,7 +51,7 @@ import java.util.Date;
 // FIXME: rename with quote ? BUT query on this table will failed ! (e.g. lastUpdateDate)
 @Table(name = "grouping",
        uniqueConstraints = @UniqueConstraint(name="grouping_unique_c", columnNames = {"label", "grouping_level_fk"}))
-public class Grouping implements IItemReferentialEntity,
+public class Grouping implements IItemReferentialEntity<Integer>,
         IWithValidityStatusEntity<Integer, ValidityStatus> {
 
     @Id

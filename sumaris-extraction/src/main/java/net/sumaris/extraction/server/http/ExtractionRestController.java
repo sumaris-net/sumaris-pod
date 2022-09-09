@@ -28,26 +28,28 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.ResourceUtils;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.service.ExtractionDocumentationService;
 import net.sumaris.extraction.core.service.ExtractionService;
+import net.sumaris.extraction.core.service.ExtractionTypeService;
+import net.sumaris.extraction.core.util.ExtractionProducts;
+import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.extraction.core.vo.filter.ExtractionTypeFilterVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
-import net.sumaris.server.security.IDownloadController;
 import net.sumaris.extraction.server.util.QueryParamUtils;
 import net.sumaris.server.http.MediaTypes;
+import net.sumaris.server.security.IDownloadController;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -97,6 +99,8 @@ public class ExtractionRestController implements ExtractionRestPaths {
     private ExtractionService extractionService;
 
     @Autowired
+    private ExtractionTypeService extractionTypeService;
+    @Autowired
     private ExtractionDocumentationService extractionDocumentationService;
 
     @Autowired
@@ -122,13 +126,13 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         // User can read all: return all types
         if (extractionSecurityService.canReadAll()) {
-            return extractionService.findAll();
+            return extractionTypeService.findAll();
         }
 
         ExtractionTypeFilterVO filter = new ExtractionTypeFilterVO();
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
-        return extractionService.findAll(filter, null);
+        return extractionTypeService.findAllByFilter(filter, null);
     }
 
     @GetMapping(
@@ -145,22 +149,21 @@ public class ExtractionRestController implements ExtractionRestPaths {
                     MediaType.APPLICATION_XHTML_XML_VALUE,
                     MediaType.TEXT_HTML_VALUE
             })
-    public ResponseEntity<Resource> getDocumentation(@PathVariable(name = "category", required = true) String category,
-                                                     @PathVariable(name = "label", required = true) String label,
+    public ResponseEntity<Resource> getDocumentation(@PathVariable(name = "label") String label,
                                                      @PathVariable(name = "version", required = false) String version,
-                                                     @RequestParam(name = "format", required = false) String userFormat,
+                                                     @RequestParam(name = "format", required = false) String outputFormat,
                                                      final HttpServletRequest request) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(category) && StringUtils.isNotBlank(label), "Invalid path. Expected: '/extraction/<lire|product>/<label>/doc'");
+        Preconditions.checkArgument(StringUtils.isNotBlank(label), "Invalid path. Expected: '/extraction/<label>/doc'");
 
         // Set user locale
         Locale locale = getLocale(request);
 
         // Find output format (default: HTML)
-        MediaType mediaType = getMediaType(request, userFormat, MediaType.TEXT_HTML);
+        MediaType mediaType = getMediaType(request, outputFormat, MediaType.TEXT_HTML);
 
         ExtractionTypeVO type = ExtractionTypeVO.builder()
-                .category(ExtractionCategoryEnum.valueOfIgnoreCase(category))
-                .label(StringUtils.changeCaseToUnderscore(label))
+                .label(label)
+                .format(ExtractionProducts.extractFormatFromLabel(label))
                 .version(version)
                 .build();
 
@@ -168,7 +171,7 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
             Resource resource = extractionDocumentationService.find(type, locale)
                     .orElseThrow(() -> new SumarisTechnicalException(ErrorCodes.NOT_FOUND,
-                            String.format("No documentation for extraction {category: '%s', label: '%s'}", category, label)));
+                            String.format("No documentation for extraction {label: '%s'}", label)));
 
             log.debug(String.format("Download resource {%s} as {%s}", resource.getFilename(), mediaType));
 
@@ -195,16 +198,15 @@ public class ExtractionRestController implements ExtractionRestPaths {
                     DOWNLOAD_WITH_VERSION_PATH,
                     DOWNLOAD_WITH_VERSION_PATH + EXTENSION_PATH_PARAM,
             })
-    public ResponseEntity executeAndDownload(@PathVariable(name = "category") String category,
-                                   @PathVariable(name = "label") String label,
-                                   @PathVariable(name = "version", required = false) String version,
-                                   @PathVariable(name = "extension", required = false) String extension,
-                                   @RequestParam(value = "q", required = false) String queryString,
-                                   HttpServletResponse response) throws IOException {
+    public ResponseEntity executeAndDownload(@PathVariable(name = "label") String label,
+                                             @PathVariable(name = "version", required = false) String version,
+                                             @PathVariable(name = "extension", required = false) String extension,
+                                             @RequestParam(value = "q", required = false) String queryString,
+                                             HttpServletResponse response) throws IOException {
 
         ExtractionTypeVO type = ExtractionTypeVO.builder()
-                .category(ExtractionCategoryEnum.valueOfIgnoreCase(category))
-                .label(StringUtils.changeCaseToUnderscore(label))
+                .label(label)
+                .format(ExtractionProducts.extractFormatFromLabel(label))
                 .version(version)
                 .build();
 
@@ -217,7 +219,8 @@ public class ExtractionRestController implements ExtractionRestPaths {
 
         extractionSecurityService.checkReadAccess(type);
 
-        File tempFile = extractionService.executeAndDump(type, filter);
+        ExtractionContextVO context = extractionService.execute(type, filter, null);
+        File tempFile = extractionService.dumpTablesToFile(context, filter);
 
         // Add to file register
         String path = downloadController.registerFile(tempFile, true);

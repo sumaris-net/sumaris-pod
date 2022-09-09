@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "depth_gradient")
-public class DepthGradient implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
+public class DepthGradient implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "depth_gradient_seq")

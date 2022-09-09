@@ -23,6 +23,7 @@
 package net.sumaris.core.service.referential.pmfm;
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
@@ -32,14 +33,17 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.model.referential.pmfm.ParameterGroupEnum;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.ParameterValueType;
+import net.sumaris.core.vo.referential.PmfmFetchOptions;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,28 +58,33 @@ public class PmfmServiceImpl implements PmfmService {
     protected ParameterRepository parameterRepository;
 
     @Override
-    public List<PmfmVO> findByFilter(IReferentialFilter filter, Page page) {
-        return pmfmRepository.findAll(filter, page, null);
+    public List<PmfmVO> findByFilter(IReferentialFilter filter, Page page, @Nullable PmfmFetchOptions fetchOptions) {
+        return pmfmRepository.findAll(filter, page, fetchOptions);
     }
 
     @Override
-    public List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-        return pmfmRepository.findAll(filter, offset, size, sortAttribute, sortDirection, null).getContent();
+    public List<PmfmVO> findByFilter(IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection, @Nullable PmfmFetchOptions fetchOptions) {
+        return pmfmRepository.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions).getContent();
     }
 
     @Override
-    public Optional<PmfmVO> findByLabel(final String label) {
-        return pmfmRepository.findByLabel(label);
+    public Optional<PmfmVO> findByLabel(final String label, PmfmFetchOptions fetchOptions) {
+        return pmfmRepository.findByLabel(label, fetchOptions);
     }
 
     @Override
-    public PmfmVO getByLabel(final String label) {
-        return pmfmRepository.getByLabel(label);
+    public List<Integer> findIdsByParts(@NonNull PmfmPartsVO filter) {
+        return pmfmRepository.findIdsByParts(filter);
     }
 
     @Override
-    public PmfmVO get(int pmfmId) {
-        return pmfmRepository.get(pmfmId);
+    public PmfmVO getByLabel(final String label, PmfmFetchOptions fetchOptions) {
+        return pmfmRepository.getByLabel(label, fetchOptions);
+    }
+
+    @Override
+    public PmfmVO get(int id, PmfmFetchOptions fetchOptions) {
+        return pmfmRepository.get(id, fetchOptions);
     }
 
 	@Override

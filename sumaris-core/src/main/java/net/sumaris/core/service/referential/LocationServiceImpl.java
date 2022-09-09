@@ -28,32 +28,48 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.*;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataAccessException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.io.PrintStream;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service("locationService")
 @Slf4j
-public class LocationServiceImpl implements LocationService{
+public class LocationServiceImpl implements LocationService {
 
     @Autowired
     protected LocationRepository locationRepository;
@@ -78,6 +94,47 @@ public class LocationServiceImpl implements LocationService{
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Autowired
+    protected SumarisConfiguration configuration;
+
+    private boolean enableTechnicalTablesUpdate = false;
+
+    @Async
+    @TransactionalEventListener(
+        value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
+        phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    protected void onConfigurationReady(ConfigurationEvent event) {
+
+        // Update technical tables (if option changed)
+        if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
+            enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
+            if (enableTechnicalTablesUpdate) {
+                updateLocationHierarchy();
+            }
+        }
+    }
+
+    @Override
+    public LocationVO get(int id) {
+        return locationRepository.get(id);
+    }
+
+    @Override
+    public List<LocationVO> findByFilter(LocationFilterVO filter) {
+        return findByFilter(filter, null, ReferentialFetchOptions.builder().build());
+    }
+
+    @Override
+    public List<LocationVO> findByFilter(LocationFilterVO filter, Page page, ReferentialFetchOptions fetchOptions) {
+        return locationRepository.findAll(filter, page, fetchOptions);
+    }
+
+    @Override
+    public long countByFilter(LocationFilterVO filter) {
+        return locationRepository.count(filter);
+    }
 
     @Override
     public void insertOrUpdateRectangleLocations() {
@@ -229,6 +286,10 @@ public class LocationServiceImpl implements LocationService{
 
     public void insertOrUpdateRectangleAndSquareAreas() {
 
+        long startTime = System.currentTimeMillis();
+        int srid = configuration.getGeometrySrid();
+        log.info("Updating location geometries (rectangles and squares)... (SRID: {})", srid);
+
         // Retrieve location levels
         Map<String, LocationLevel> locationLevels = createAndGetLocationLevels(ImmutableMap.<String, String>builder()
                 .put(LocationLevelEnum.RECTANGLE_ICES.getLabel(), "ICES rectangle")
@@ -270,25 +331,38 @@ public class LocationServiceImpl implements LocationService{
                 }
 
                 // Load rectangle geometry
-                LocationArea locationArea = locationAreaRepository.findById(objectId).orElse(null);
-                Geometry geometry = Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
-                Preconditions.checkNotNull(geometry, "No geometry found for rectangle with label:" + rectangleLabel);
+                try {
+                    LocationArea locationArea = locationAreaRepository.findById(objectId).orElse(null);
+                    Geometry geometry = Locations.getGeometryFromRectangleLabel(rectangleLabel, true);
+                    Preconditions.checkNotNull(geometry, "No geometry found for rectangle with label:" + rectangleLabel);
 
-                if (locationArea == null) {
-                    locationArea = new LocationArea();
-                    locationArea.setId(objectId);
-                    locationArea.setPosition(geometry);
-                    locationAreaRepository.save(locationArea);
-                    locationAreaInsertCount++;
-                } else if (locationArea.getPosition() == null
+                    // Set the geometry SRID
+                    geometry.setSRID(srid);
+
+                    if (locationArea == null) {
+                        locationArea = new LocationArea();
+                        locationArea.setId(objectId);
+                        locationArea.setPosition(geometry);
+                        locationAreaRepository.save(locationArea);
+                        locationAreaInsertCount++;
+                    } else if (locationArea.getPosition() == null
                         || !geometry.equals(locationArea.getPosition())) {
-                    locationArea.setPosition(geometry);
-                    locationAreaRepository.save(locationArea);
-                    locationAreaUpdateCount++;
-                }
+                        locationArea.setPosition(geometry);
+                        locationAreaRepository.save(locationArea);
+                        locationAreaUpdateCount++;
+                    }
 
-                // Store the rectangle for a later use
-                rectangleByLabelMap.put(rectangleLabel, location);
+                    // Store the rectangle for a later use
+                    rectangleByLabelMap.put(rectangleLabel, location);
+                }
+                // Location Area cannot be loaded (e.g. when geometry is invalid)
+                catch (DataAccessException e) {
+                    log.error("Error while loading LocationArea for id={}: {}", objectId, e.getLocalizedMessage());
+                }
+                // Geometry not found
+                catch (NullPointerException npe) {
+                    log.error(npe.getLocalizedMessage());
+                }
             }
 
             // Reset location list (could be fill if new rectangle are found
@@ -308,6 +382,9 @@ public class LocationServiceImpl implements LocationService{
                 LocationArea locationArea = locationAreaRepository.getById(objectId);
                 Geometry geometry = Locations.getGeometryFromMinuteSquareLabel(squareLabel, 10, true);
                 Preconditions.checkNotNull(geometry, "No geometry found for square with label:" + squareLabel);
+
+                // Set the geometry SRID
+                geometry.setSRID(srid);
 
                 if (locationArea == null) {
                     locationArea = new LocationArea();
@@ -360,10 +437,10 @@ public class LocationServiceImpl implements LocationService{
         }
 
         if (log.isInfoEnabled()) {
-            log.info(String.format("LOCATION: INSERT count: %s", locationInsertCount));
-            log.info(String.format("          UPDATE count: %s", locationUpdateCount));
-            log.info(String.format("LOCATION_AREA: INSERT count: %s", locationAreaInsertCount));
-            log.info(String.format("               UPDATE count: %s", locationAreaUpdateCount));
+            log.info("Updating location geometries (rectangles and squares) [OK] {} - LOCATION ({} inserts - {} updates) - LOCATION_AREA ({} inserts - {} updates)",
+                Dates.elapsedTime(startTime),
+                locationInsertCount, locationUpdateCount,
+                locationAreaInsertCount, locationAreaUpdateCount);
         }
     }
 

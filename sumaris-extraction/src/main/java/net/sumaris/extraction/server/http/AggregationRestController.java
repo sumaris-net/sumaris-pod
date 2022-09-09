@@ -22,23 +22,21 @@
 
 package net.sumaris.extraction.server.http;
 
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.extraction.core.config.ExtractionAutoConfiguration;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.ExtractionDocumentationService;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
-import net.sumaris.extraction.core.service.AggregationService;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
-import net.sumaris.extraction.core.vo.ExtractionResultVO;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.extraction.server.config.ExtractionWebAutoConfiguration;
-import net.sumaris.extraction.server.security.ExtractionSecurityService;
+import net.sumaris.extraction.core.vo.ExtractionResultVO;
+import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
+import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.extraction.server.util.QueryParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.geojson.FeatureCollection;
@@ -57,7 +55,7 @@ import java.text.ParseException;
 public class AggregationRestController implements ExtractionRestPaths {
 
     @Autowired
-    private AggregationService aggregationService;
+    private ExtractionService extractionService;
 
     @Autowired
     private ExtractionGeoJsonConverter geoJsonConverter;
@@ -85,12 +83,18 @@ public class AggregationRestController implements ExtractionRestPaths {
                                                @RequestParam(value = "agg", required = false) String aggStrata,
                                                @RequestParam(value = "q", required = false) String queryString) {
 
-        AggregationTypeVO type = new AggregationTypeVO();
-        type.setLabel(label);
-        type.setCategory(ExtractionCategoryEnum.PRODUCT);
+        // Check type
+        ExtractionProductVO product = getProductByExample(ExtractionTypeVO.builder()
+            .label(label)
+            .build(),
+            ExtractionProductFetchOptions.builder()
+            .withStratum(true)
+            .build());
+
+        checkIsSpatial(product);
 
         // Check access right
-        securityService.checkReadAccess(type);
+        securityService.checkReadAccess(product);
 
         ExtractionFilterVO filter;
         try {
@@ -104,20 +108,31 @@ public class AggregationRestController implements ExtractionRestPaths {
         // Limit to 1000 rows
         if (size > 1000) size = 1000;
 
-        AggregationStrataVO strata = new AggregationStrataVO();
-        strata.setTimeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggRdbSpecification.COLUMN_YEAR);
-        strata.setSpatialColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE);
-        strata.setAggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME);
-        strata.setTechColumnName(null);
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+            .timeColumnName(StringUtils.isNotBlank(timeStrata) ? timeStrata : AggRdbSpecification.COLUMN_YEAR)
+            .spatialColumnName(StringUtils.isNotBlank(spaceStrata) ? spaceStrata : AggRdbSpecification.COLUMN_SQUARE)
+            .aggColumnName(StringUtils.isNotBlank(aggStrata) ? aggStrata : AggRdbSpecification.COLUMN_FISHING_TIME)
+            .techColumnName(null)
+            .build();
 
-        ExtractionResultVO result =aggregationService.getAggBySpace(type, filter, strata,
+        ExtractionResultVO result = extractionService.executeAndRead(product, filter, strata,
             Page.builder()
                 .offset(offset)
                 .size(size)
-                .build());
+                .build(), null);
 
         return geoJsonConverter.toFeatureCollection(result, strata.getSpatialColumnName());
     }
 
+    protected ExtractionProductVO getProductByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
+        IExtractionType checkedType = extractionService.getByExample(source, fetchOptions);
 
+        if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
+
+        return (ExtractionProductVO)checkedType;
+    }
+
+    protected void checkIsSpatial(ExtractionProductVO target) {
+        if (!target.getIsSpatial()) throw new SumarisTechnicalException("Not a spatial product");
+    }
 }

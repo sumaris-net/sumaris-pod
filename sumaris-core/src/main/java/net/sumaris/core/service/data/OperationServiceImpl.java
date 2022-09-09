@@ -107,7 +107,7 @@ public class OperationServiceImpl implements OperationService {
     @Override
     public List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
                                              @NonNull OperationFetchOptions fetchOptions) {
-        return operationRepository.findAll(filter != null ? filter : OperationFilterVO.builder().build(), offset, size, sortAttribute, sortDirection, fetchOptions);
+        return operationRepository.findAll(OperationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
@@ -165,6 +165,11 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
+    public OperationVO control(OperationVO source) {
+        return operationRepository.control(source);
+    }
+
+    @Override
     public List<OperationVO> save(List<OperationVO> operations) {
         Preconditions.checkNotNull(operations);
 
@@ -205,6 +210,9 @@ public class OperationServiceImpl implements OperationService {
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
 
+
+        // Reset control date
+        source.setControlDate(null);
     }
 
     protected void saveChildrenEntities(final OperationVO source) {
@@ -268,7 +276,7 @@ public class OperationServiceImpl implements OperationService {
 
             List<BatchVO> batches = getAllBatches(source);
             batches.forEach(b -> fillDefaultProperties(source, b));
-            batches = batchService.saveByOperationId(source.getId(), batches);
+            batches = batchService.saveAllByOperationId(source.getId(), batches);
 
             // Transform saved batches into flat list (e.g. to be used as graphQL query response)
             batches.forEach(batch -> {

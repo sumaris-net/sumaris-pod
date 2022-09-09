@@ -38,7 +38,7 @@ import java.util.Date;
 @Cacheable
 @Table(name = "extraction_product_strata")
 @EqualsAndHashCode
-public class ExtractionProductStrata implements IItemReferentialEntity {
+public class ExtractionProductStrata implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_STRATA_SEQ")

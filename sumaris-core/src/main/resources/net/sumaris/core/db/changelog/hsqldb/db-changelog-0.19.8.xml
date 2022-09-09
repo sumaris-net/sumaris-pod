@@ -97,6 +97,7 @@
       <column name="LABEL">0.19.8</column>
       <column name="DESCRIPTION">
         - Add sequence VESSEL_REGISTRATION_PERIOD_SEQ
+        - Add table PROGRAM_PRIVILEGE
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>

@@ -22,14 +22,15 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntityBean;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public interface IReferentialVO extends IUpdateDateEntityBean<Integer, Date>, IValueObject<Integer> {
+public interface IReferentialVO<ID extends Serializable> extends IUpdateDateEntity<ID, Date>, IValueObject<ID> {
 
-    interface Fields extends IUpdateDateEntityBean.Fields {
+    interface Fields extends IUpdateDateEntity.Fields {
         String LABEL = "label";
         String NAME = "name";
     }

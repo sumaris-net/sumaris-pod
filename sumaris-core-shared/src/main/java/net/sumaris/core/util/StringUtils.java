@@ -67,6 +67,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return value.replaceAll(regex, replacement).toLowerCase();
     }
 
+
     public static String doting(String... strings) {
         return join(strings, '.');
     }

@@ -22,6 +22,7 @@
 
 package net.sumaris.core.model.referential;
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 
@@ -47,7 +48,7 @@ public enum QualityFlagEnum implements Serializable {
             .orElseThrow(() -> new IllegalArgumentException("Unknown QualityFlagEnum: " + id));
     }
 
-    public static QualityFlagEnum byLabel(final String label) {
+    public static QualityFlagEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(level -> label.equals(level.label))
             .findFirst()

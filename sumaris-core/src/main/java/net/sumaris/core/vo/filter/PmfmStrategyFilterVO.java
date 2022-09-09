@@ -36,7 +36,9 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class PmfmStrategyFilterVO implements Serializable {
 
+    private String[] programLabels;
     private Integer programId;
     private Integer strategyId;
     private Integer acquisitionLevelId;
+    private Integer[] acquisitionLevelIds;
 }

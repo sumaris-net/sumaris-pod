@@ -41,7 +41,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "department")
 @Cacheable
-public class Department implements IItemReferentialEntity {
+public class Department implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "DEPARTMENT_SEQ")

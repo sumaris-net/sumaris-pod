@@ -30,6 +30,7 @@ import fr.ifremer.common.xmlquery.*;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
 import org.jdom2.Attribute;
@@ -114,6 +115,10 @@ public class XMLQuery {
         });
     }
 
+    public Set<String> getAllColumnNames() {
+        return getColumnNames(element -> true);
+    }
+
     public Set<String> getColumnNames(final Predicate<Element> filter) {
         Preconditions.checkNotNull(filter);
 
@@ -137,6 +142,20 @@ public class XMLQuery {
         }
     }
 
+    public String getAttributeValue(final Element element, String attrName, boolean forceLowerCase) {
+        Attribute attr = element.getAttribute(attrName);
+        if (attr == null) return null;
+        String value = attr.getValue();
+        if (forceLowerCase) return value.toLowerCase();
+        return value;
+    }
+
+    public boolean hasGroup(final Element element, String groupName) {
+        String attrValue = getAttributeValue(element, "group", false);
+        if (StringUtils.isBlank(attrValue)) return false;
+        return Arrays.asList(attrValue.split(",")).contains(groupName);
+    }
+
     /**
      * Return if option="DISTINCT" has been set on the query
      *
@@ -157,14 +176,6 @@ public class XMLQuery {
     }
 
     /* -- delegated functions -- */
-
-    public boolean isLowercase() {
-        return delegate.isLowercase();
-    }
-
-    public void setLowercase(boolean lowercase) {
-        delegate.setLowercase(lowercase);
-    }
 
     public void manageRootElement() throws XMLQueryException {
         delegate.manageRootElement();

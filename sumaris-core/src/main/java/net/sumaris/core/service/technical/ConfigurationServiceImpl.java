@@ -136,8 +136,14 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
 
             else {
-                // Update the config, from the software properties
-                applySoftwareProperties();
+                // Version < 1.10.0 => Skip applying software properties (will fail on SOFTWARE, because of missing columns)
+                if (dbVersion.beforeOrequals(VersionBuilder.create("1.10.0").build())) {
+                    log.warn("DB version is prior to 1.10.0 - Cannot applying software properties. Please restart pod, after DB upgrade");
+                }
+                else {
+                    // Update the config, from the software properties
+                    applySoftwareProperties();
+                }
 
                 // Publish ready event
                 if (event instanceof SchemaReadyEvent) {
@@ -390,7 +396,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                             entityClassName,
                             enumContentBuilder.length() > 2 ? enumContentBuilder.substring(2) : "null",
                             configKeysBuilder.length() > 2 ? configKeysBuilder.substring(2) : "<unknown>"));
-                    Beans.setProperty(enumValue, IEntity.Fields.ID, -1);
+                    Beans.setProperty(enumValue, IEntity.Fields.ID, EntityEnums.UNRESOLVED_ENUMERATION_ID);
                 }
             });
         });

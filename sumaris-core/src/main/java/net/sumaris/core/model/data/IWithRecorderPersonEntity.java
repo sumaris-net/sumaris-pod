@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithRecorderPersonEntity<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
+public interface IWithRecorderPersonEntity<ID extends Serializable, P extends IEntity<Integer>> extends IEntity<ID> {
 
     interface Fields extends IEntity.Fields {
         String RECORDER_PERSON = "recorderPerson";

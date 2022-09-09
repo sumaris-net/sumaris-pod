@@ -40,6 +40,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.FileSystemResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import liquibase.structure.core.DatabaseObjectFactory;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
@@ -51,15 +52,15 @@ import org.hibernate.cfg.Environment;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PostConstruct;
@@ -68,7 +69,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,19 +80,18 @@ import java.util.regex.Pattern;
  */
 @Component
 @Slf4j
-public class Liquibase implements BeanNameAware, ResourceLoaderAware {
+public class Liquibase implements ResourceLoaderAware {
 
     /** Constant <code>CHANGE_LOG_SNAPSHOT_SUFFIX="-SNAPSHOT.xml"</code> */
     private final static String CHANGE_LOG_SNAPSHOT_SUFFIX = "-SNAPSHOT.xml";
-
-    private String beanName;
 
     private ResourceLoader resourceLoader;
 
     private DataSource dataSource;
 
-    private final SumarisConfiguration config;
+    private final SumarisConfiguration configuration;
 
+    @Value("${spring.liquibase.change-log}")
     private String changeLog;
 
     private String defaultSchema;
@@ -104,27 +106,24 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * Constructor used by Spring
      *
      * @param dataSource a {@link DataSource} object.
-     * @param config a {@link SumarisConfiguration} object.
+     * @param configuration a {@link SumarisConfiguration} object.
      */
     @Autowired
-    public Liquibase(DataSource dataSource, SumarisConfiguration config) {
+    public Liquibase(DataSource dataSource, SumarisConfiguration configuration) {
         this.dataSource = dataSource;
-        this.config = config;
-
-        // Redirect logger to custiom logger
-        LogFactory.setInstance(new LogFactory());
+        this.configuration = configuration;
     }
 
     /**
      * Constructor used when Spring is not started (no datasource, and @Resource not initialized)
      *
-     * @param config a {@link SumarisConfiguration} object.
+     * @param configuration a {@link SumarisConfiguration} object.
      */
-    public Liquibase(SumarisConfiguration config) {
+    public Liquibase(SumarisConfiguration configuration) {
         this.dataSource = null;
-        this.config = config;
+        this.configuration = configuration;
         // Init change log
-        setChangeLog(config.getLiquibaseChangeLogPath());
+        setChangeLog(configuration.getLiquibaseChangeLogPath());
     }
 
     /**
@@ -133,43 +132,16 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      */
     @PostConstruct
     public void init() throws LiquibaseException {
+
         // Update the change log path, from configuration
-        setChangeLog(config.getLiquibaseChangeLogPath());
+        setChangeLog(configuration.getLiquibaseChangeLogPath());
 
         // Default schema
-        setDefaultSchema(config.getJdbcSchema());
+        setDefaultSchema(configuration.getJdbcSchema());
 
         // Compute the max changelog file version
         computeMaxChangeLogFileVersion();
-    }
 
-    /**
-     * <p>getDatabaseProductName.</p>
-     *
-     * @return a {@link String} object.
-     * @throws DatabaseException if any.
-     */
-    public String getDatabaseProductName() throws DatabaseException {
-        Connection connection = null;
-        try {
-            connection = createConnection();
-            Database database =
-                    DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(dataSource.getConnection()));
-            return database.getDatabaseProductName();
-        } catch (SQLException e) {
-            throw new DatabaseException(e);
-        } finally {
-            if (connection != null) {
-                try {
-                    if (!connection.getAutoCommit()) {
-                        connection.rollback();
-                    }
-                } catch (Exception e) {
-                    getLog().warning("Problem rollback connection", e);
-                }
-                releaseConnection(connection);
-            }
-        }
     }
 
     /**
@@ -206,8 +178,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * @param dataModel a {@link String} object.
      */
     public void setChangeLog(String dataModel) {
-
-        this.changeLog = dataModel;
+        if (this.changeLog == null)
+            this.changeLog = dataModel;
     }
 
     /**
@@ -263,7 +235,6 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      */
     public void executeUpdate(Properties connectionProperties) throws LiquibaseException {
 
-
         Connection c = null;
         liquibase.Liquibase liquibase;
         try {
@@ -281,7 +252,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
             liquibase.forceReleaseLocks();
 
             // Compact database
-            if (config.useLiquibaseCompact()) {
+            if (configuration.useLiquibaseCompact()) {
                 Daos.compactDatabase(c);
             }
 
@@ -298,6 +269,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
                 releaseConnection(c);
             }
         }
+
     }
 
     /**
@@ -313,8 +285,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     /**
      * Execute liquibase status, using change log
      *
-     * @throws LiquibaseException if any.
      * @param writer a {@link Writer} object.
+     * @throws LiquibaseException if any.
      */
     public void reportStatus(Writer writer) throws LiquibaseException {
 
@@ -332,8 +304,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
             liquibase.forceReleaseLocks();
             if (writer != null) {
                 performReportStatus(liquibase, writer);
-            }
-            else {
+            } else {
                 myWriter = new OutputStreamWriter(System.out);
                 performReportStatus(liquibase, myWriter);
             }
@@ -365,7 +336,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * <p>performReportStatus.</p>
      *
      * @param liquibase a {@link liquibase.Liquibase} object.
-     * @param writer a {@link Writer} object.
+     * @param writer    a {@link Writer} object.
      * @throws LiquibaseException if any.
      */
     protected void performReportStatus(liquibase.Liquibase liquibase, Writer writer) throws LiquibaseException {
@@ -408,7 +379,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     protected Database createDatabase(Connection c) throws DatabaseException {
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(c));
         if (StringUtils.trimToNull(this.defaultSchema) != null
-                && !Daos.isHsqlDatabase(c)) {
+            && !Daos.isHsqlDatabase(c)) {
             database.setDefaultSchemaName(this.defaultSchema);
         }
         return database;
@@ -418,8 +389,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * Create a database connection to hibernate model.
      * This is useful for diff report
      *
-     * @throws DatabaseException if any.
      * @return a {@link Database} object.
+     * @throws DatabaseException if any.
      */
     protected Database createHibernateDatabase() throws DatabaseException {
 
@@ -429,15 +400,16 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
         ResourceAccessor accessor = new ClassLoaderResourceAccessor(this.getClass().getClassLoader());
 
         return CommandLineUtils.createDatabaseObject(accessor,
-                "hibernate:classic:hibernate.cfg.xml",
-                null,
-                null,
-                null,
-                config.getJdbcCatalog(), config.getJdbcSchema(),
-                false, false,
-                null,
-                null,
-                null, null, null, null, null
+            "hibernate:classic:hibernate.cfg.xml",
+            null,
+            null,
+            null,
+            configuration.getJdbcCatalog(),
+            configuration.getJdbcSchema(),
+            false, false,
+            null,
+            null,
+            null, null, null, null, null
         );
     }
 
@@ -456,42 +428,20 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * @return a {@link ResourceAccessor} object.
      */
     protected ResourceAccessor createResourceAccessor() {
-        // If Spring started, resolve using Spring
-        if (this.resourceLoader != null) {
-            return new SpringResourceOpener(getChangeLog());
-        }
-
         // Classpath resource accessor
         if (isClasspathPrefixPresent(changeLog)) {
             return new ClassLoaderResourceAccessor(this.getClass().getClassLoader());
         }
 
         // File resource accessor
-        return new FileSystemResourceAccessor(new File(adjustNoFilePrefix(changeLog)).getParent());
+        return new FileSystemResourceAccessor(new File(adjustNoFilePrefix(changeLog)).getParentFile());
     }
 
     /**
      * {@inheritDoc}
-     *
-     * Spring sets this automatically to the instance's configured bean name.
      */
     @Override
-    public void setBeanName(String name) {
-        this.beanName = name;
-    }
-
-    /**
-     * <p>Getter for the field <code>beanName</code>.</p>
-     *
-     * @return the Spring-name of this instance.
-     */
-    public String getBeanName() {
-        return beanName;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void setResourceLoader(ResourceLoader resourceLoader) {
+    public void setResourceLoader(@NonNull ResourceLoader resourceLoader) {
         this.resourceLoader = resourceLoader;
     }
 
@@ -504,7 +454,9 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
         return resourceLoader;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return getClass().getName() + "(" + this.getResourceLoader().toString() + ")";
@@ -547,6 +499,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
             if (ArrayUtils.isNotEmpty(resources)) {
                 for (Resource resource : resources) {
                     String filename = resource.getFilename();
+                    Assert.notNull(filename);
                     Matcher matcher = changeLogWithVersionPattern.matcher(filename);
 
                     // If the filename match the changelog with version pattern
@@ -563,7 +516,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
                                 }
                             } catch (IllegalArgumentException iae) {
                                 // Bad version format : log but continue
-                                getLog().warning(
+                                log.warn(
                                         String.format(
                                                 "Bad format version found in file: %s/%s. Ignoring this file when computing the max schema version.",
                                                 changeLogPath, filename));
@@ -647,10 +600,9 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
     /**
      * Generate a changelog file, with all diff found
      *
-     * @param changeLogFile a {@link File} object.
-     * @param typesToControl
-     *            a comma separated database object to check (i.e Table, View, Column...). If null, all types are
-     *            checked
+     * @param changeLogFile  a {@link File} object.
+     * @param typesToControl a comma separated database object to check (i.e Table, View, Column...). If null, all types are
+     *                       checked
      * @throws LiquibaseException if any.
      */
     public void generateDiffChangelog(File changeLogFile, String typesToControl) throws LiquibaseException {
@@ -719,68 +671,6 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
         return liquibase.diff(referenceDatabase, liquibase.getDatabase(), compareControl);
     }
 
-    public class SpringResourceOpener implements ResourceAccessor {
-
-        private final String parentFile;
-        public SpringResourceOpener(String parentFile) {
-            this.parentFile = parentFile;
-        }
-
-        @Override
-        public Set<String> list(String relativeTo, String path, boolean includeFiles, boolean includeDirectories, boolean recursive) throws IOException {
-            Set<String> returnSet = new HashSet<>();
-
-            Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(getResourceLoader()).getResources(adjustClasspath(path));
-
-            for (Resource res : resources) {
-                returnSet.add(res.getURL().toExternalForm());
-            }
-
-            return returnSet;
-        }
-
-        @Override
-        public Set<InputStream> getResourcesAsStream(String path) throws IOException {
-            Set<InputStream> returnSet = new HashSet<>();
-            Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(getResourceLoader()).getResources(adjustClasspath(path));
-
-            if (resources == null || resources.length == 0) {
-                return null;
-            }
-            for (Resource resource : resources) {
-                returnSet.add(resource.getURL().openStream());
-            }
-
-            return returnSet;
-        }
-
-        public Resource getResource(String file) {
-            return getResourceLoader().getResource(adjustClasspath(file));
-        }
-
-        private String adjustClasspath(String file) {
-            return isPrefixPresent(parentFile) && !isPrefixPresent(file) ? ResourceLoader.CLASSPATH_URL_PREFIX + file : file;
-        }
-
-        public boolean isPrefixPresent(String file) {
-            return file.startsWith("classpath") || file.startsWith("file:") || file.startsWith("url:");
-        }
-
-        @Override
-        public ClassLoader toClassLoader() {
-            return getResourceLoader().getClassLoader();
-        }
-    }
-
-    /**
-     * <p>getLog.</p>
-     *
-     * @return a {@link liquibase.logging.Logger} object.
-     */
-    protected liquibase.logging.Logger getLog() {
-        return liquibase.logging.LogFactory.getInstance().getLog();
-    }
-
     /**
      * <p>createConnection.</p>
      *
@@ -791,7 +681,7 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
         if (dataSource != null) {
             return DataSourceUtils.getConnection(dataSource);
         }
-        return Daos.createConnection(config.getConnectionProperties());
+        return Daos.createConnection(configuration.getConnectionProperties());
     }
 
     /**
@@ -803,9 +693,9 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      * @return a {@link Connection} object.
      */
     protected Connection createConnection(Properties connectionProperties) throws SQLException {
-        Properties targetConnectionProperties = (connectionProperties != null) ? connectionProperties : config.getConnectionProperties();
+        Properties targetConnectionProperties = (connectionProperties != null) ? connectionProperties : configuration.getConnectionProperties();
         String jdbcUrl = targetConnectionProperties.getProperty(Environment.URL);
-        if (Objects.equals(config.getJdbcURL(), jdbcUrl) && dataSource != null) {
+        if (Objects.equals(configuration.getJdbcURL(), jdbcUrl) && dataSource != null) {
             return DataSourceUtils.getConnection(dataSource);
         }
         return Daos.createConnection(targetConnectionProperties);
@@ -832,8 +722,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      */
     protected String adjustNoClasspath(String file) {
         return isClasspathPrefixPresent(file)
-                ? file.substring(ResourceLoader.CLASSPATH_URL_PREFIX.length())
-                : file;
+            ? file.substring(ResourceLoader.CLASSPATH_URL_PREFIX.length())
+            : file;
     }
 
     /**
@@ -864,8 +754,8 @@ public class Liquibase implements BeanNameAware, ResourceLoaderAware {
      */
     protected String adjustNoFilePrefix(String file) {
         return isFilePrefixPresent(file)
-                ? file.substring(ResourceUtils.FILE_URL_PREFIX.length())
-                : file;
+            ? file.substring(ResourceUtils.FILE_URL_PREFIX.length())
+            : file;
     }
 
 }

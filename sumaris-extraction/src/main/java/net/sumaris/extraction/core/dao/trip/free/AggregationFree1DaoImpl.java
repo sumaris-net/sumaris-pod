@@ -23,19 +23,22 @@ package net.sumaris.extraction.core.dao.trip.free;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.ProductFormatEnum;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -50,16 +53,17 @@ public class AggregationFree1DaoImpl<
     extends AggregationRdbTripDaoImpl<C, F, S>
     implements AggSurvivalTestSpecification {
 
+
     @Override
-    public ProductFormatEnum getFormat() {
-        return ProductFormatEnum.AGG_FREE;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(AggExtractionTypeEnum.AGG_FREE);
     }
 
     @Override
-    public <R extends C> R aggregate(ExtractionProductVO source, @Nullable F filter, S strata) {
+    public <R extends C> R aggregate(IExtractionTypeWithTablesVO source, @Nullable F filter, S strata) {
         R context = super.aggregate(source, filter, strata);
 
-        context.setFormat(ProductFormatEnum.AGG_FREE);
+        context.setType(AggExtractionTypeEnum.AGG_FREE);
 
         return context;
     }
@@ -83,7 +87,7 @@ public class AggregationFree1DaoImpl<
     }
 
     @Override
-    protected XMLQuery createStationQuery(ExtractionProductVO source, C context) {
+    protected XMLQuery createStationQuery(IExtractionTypeWithTablesVO source, C context) {
         XMLQuery xmlQuery = super.createStationQuery(source, context);
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
@@ -103,5 +107,4 @@ public class AggregationFree1DaoImpl<
                 return super.getQueryFullName(context, queryName);
         }
     }
-
 }

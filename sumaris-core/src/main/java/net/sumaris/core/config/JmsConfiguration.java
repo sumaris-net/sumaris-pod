@@ -27,16 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.StringUtils;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQPrefetchPolicy;
-import org.apache.activemq.broker.BrokerRegistry;
-import org.apache.activemq.broker.BrokerService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
@@ -47,9 +40,7 @@ import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
-import javax.annotation.PostConstruct;
 import javax.jms.ConnectionFactory;
-import java.net.URI;
 
 @Configuration(proxyBeanMethods = false)
 @Slf4j
@@ -57,10 +48,11 @@ import java.net.URI;
 @ConditionalOnProperty(name = "spring.jms.enabled", havingValue = "true")
 public class JmsConfiguration {
 
-    public static final String CONTAINER_FACTORY_NAME = "jmsListenerContainerFactory";
+    public static final String CONTAINER_FACTORY = "jmsListenerContainerFactory";
 
     @Bean
-    public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory, MessageConverter messageConverter) {
+    public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory,
+                                   MessageConverter messageConverter) {
         JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory);
         jmsTemplate.setMessageConverter(messageConverter);
         return jmsTemplate;

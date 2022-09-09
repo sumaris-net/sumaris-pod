@@ -33,7 +33,7 @@ import net.sumaris.core.model.referential.location.LocationAssociation;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.apache.commons.collections4.MapUtils;
@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  */
 @Slf4j
 public class LocationRepositoryImpl
-    extends ReferentialRepositoryImpl<Location, LocationVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Location, LocationVO, LocationFilterVO, ReferentialFetchOptions>
     implements LocationSpecifications {
 
     public LocationRepositoryImpl(EntityManager entityManager) {
@@ -65,14 +65,16 @@ public class LocationRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, unless = "#result==null")
-    public LocationVO get(int id) {
+    public LocationVO get(Integer id) {
         return super.get(id);
     }
 
     @Override
-    protected Specification<Location> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
+    protected Specification<Location> toSpecification(LocationFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(inLevelIds(Location.class, filter.getLevelIds()));
+            .and(inLevelIds(Location.class, filter.getLevelIds()))
+            .and(hasAncestors(filter.getAncestorIds()))
+            ;
     }
 
     @Override
@@ -130,6 +132,11 @@ public class LocationRepositoryImpl
         }
     }
 
+    @Override
+    public long count(LocationFilterVO filter) {
+        return super.count(filter);
+    }
+
     /* -- protected functions -- */
 
     protected void doUpdateLocationHierarchy() {
@@ -160,7 +167,7 @@ public class LocationRepositoryImpl
             iterationCounter++;
         }
 
-        log.info("Adding missing LocationHierarchy [OK] in {} - ({} inserts - {} iterations)",
+        log.info("Adding missing LocationHierarchy [OK] {} - ({} inserts - {} iterations)",
             Dates.elapsedTime(startTime),
             counter, iterationCounter);
     }

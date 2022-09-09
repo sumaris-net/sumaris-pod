@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.25.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Insert round weight conversion -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-401" runOnChange="true" failOnError="false">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM round_weight_conversion</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="../all/insert_round_weight_conversion.sql" relativeToChangelogFile="true" endDelimiter=";" />
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10
+                    AND PMFM_FK IN (SELECT ID FROM PMFM WHERE LABEL = 'BATCH_CALCULATED_WEIGHT_LENGTH' )</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='BATCH_CALCULATED_WEIGHT_LENGTH')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="6"/>
+            <column name="RANK_ORDER" valueNumeric="5"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAX_VALUE" valueNumeric="100"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="0"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL='ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-403" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM_STRATEGY WHERE STRATEGY_FK=10
+                    AND PMFM_FK IN (SELECT ID FROM PMFM WHERE LABEL = 'BATCH_CALCULATED_WEIGHT_LENGTH_SUM' )</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR pmfm_strategy_seq"/>
+            <column name="STRATEGY_FK" valueNumeric="10"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL='BATCH_CALCULATED_WEIGHT_LENGTH_SUM')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueNumeric="5"/>
+            <column name="RANK_ORDER" valueNumeric="5"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAX_VALUE" valueNumeric="500"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="0"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL='ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Rename ACQUISITION_LEVEL   -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-404" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT count(*) FROM ACQUISITION_LEVEL where label='SORTING_BATCH_INDIVIDUAL'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update ACQUISITION_LEVEL set NAME='Individual measure batch' where label='SORTING_BATCH_INDIVIDUAL';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Change option to set roundWeightConversion country -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-405" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.batch.roundWeightConversion.country.id'
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.batch.roundWeightConversion.country.id</column>
+            <column name="NAME" valueComputed="(SELECT to_char(ID) FROM LOCATION WHERE LABEL = 'FRA' and location_level_fk=1)"/>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Change option to enable weight length conversion -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-406" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.batch.lengthWeightConversion.enable'
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.batch.lengthWeightConversion.enable</column>
+            <column name="NAME">true</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";">
+            update PROGRAM set update_date=current_timestamp where LABEL = 'ADAP-MER';
+            commit;
+        </sql>
+    </changeSet>
+
+
+    <!-- Set option to limit imported locations -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-407" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.offline.import.location.level.ids'
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.offline.import.location.level.ids</column>
+            <column name="NAME">2,3</column> <!-- Port + Auction -->
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Update max decimals for weights -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-408" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">select count(*) from PMFM where label like ('BATCH_%_WEIGHT') and MAXIMUM_NUMBER_DECIMALS = 2</sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PMFM set MAXIMUM_NUMBER_DECIMALS=3 where label like ('BATCH_%_WEIGHT') and MAXIMUM_NUMBER_DECIMALS = 2;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Rename Weight parameter -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-409" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">select count(*) from PARAMETER where label = 'WEIGHT' and upper(name)='WEIGHT'</sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PARAMETER set name='Poids' where label = 'WEIGHT' and upper(name)='WEIGHT';
+            commit;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -23,7 +23,7 @@ package net.sumaris.extraction.core.dao.technical.table;
  */
 
 import com.google.common.collect.ImmutableMap;
-import net.sumaris.core.model.technical.extraction.IExtractionFormat;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
@@ -39,7 +39,7 @@ import java.util.Map;
  */
 public final class ExtractionTableColumnOrder {
 
-    public final static String key(String format, String sheetName) {
+    public static String key(String format, String sheetName) {
         return (format + "-" + sheetName).toUpperCase();
     }
 
@@ -186,14 +186,12 @@ public final class ExtractionTableColumnOrder {
      */
     public static void fillRankOrderByTableName(String tableName, List<ExtractionTableColumnVO> columns) {
 
-        String fixTableName = tableName.toUpperCase();
-        
         // Workaround need on SUMARiS DB
-        if (fixTableName.startsWith("P01_ICES")) {
-            fixTableName = fixTableName.replaceAll("P01_ICES_", "P01_RDB_");
+        if (tableName.toUpperCase().startsWith("P01_ICES")) {
+            tableName = tableName.toUpperCase().replaceAll("P01_ICES_", "P01_RDB_");
         }
 
-        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(fixTableName);
+        String[] orderedColumnNames = ExtractionTableColumnOrder.COLUMNS_BY_TABLE.get(tableName);
 
         // Important: skip if not known: MUST NOT fill any rankOrder if table not known!
         // This is required to let service apply another rankOrder later (e.g. from format and label)
@@ -207,7 +205,7 @@ public final class ExtractionTableColumnOrder {
      * @param tableName
      * @param columns
      */
-    public static void fillRankOrderByFormatAndSheet(IExtractionFormat format, String sheetName, List<ExtractionTableColumnVO> columns) {
+    public static void fillRankOrderByTypeAndSheet(IExtractionType format, String sheetName, List<ExtractionTableColumnVO> columns) {
         fillRankOrderByFormatAndSheet(format.getLabel(), sheetName, columns);
     }
 
@@ -216,8 +214,8 @@ public final class ExtractionTableColumnOrder {
      * @param tableName
      * @param columns
      */
-    public static void fillRankOrderByFormatAndSheet(String formatLabel, String sheetName, List<ExtractionTableColumnVO> columns) {
-        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_SHEET.get(key(formatLabel, sheetName)), columns);
+    public static void fillRankOrderByFormatAndSheet(String format, String sheetName, List<ExtractionTableColumnVO> columns) {
+        fillRankOrderByTableName(ExtractionTableColumnOrder.COLUMNS_BY_SHEET.get(key(format, sheetName)), columns);
     }
 
     /* -- internal methods -- */

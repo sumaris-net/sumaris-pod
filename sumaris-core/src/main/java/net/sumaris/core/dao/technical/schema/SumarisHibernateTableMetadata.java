@@ -28,6 +28,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.util.StringUtils;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.ForeignKey;
@@ -139,17 +140,10 @@ public class SumarisHibernateTableMetadata extends SumarisTableMetadata {
 		}
 
 		Map<String, SumarisColumnMetadata> result = Maps.newLinkedHashMap();
-		ResultSet rs;
-
-		if (Daos.isPostgresqlDatabase(jdbcDbMeta.getConnection())){
-			rs = jdbcDbMeta.getColumns(getCatalog().toLowerCase(), getSchema().toLowerCase(), getName().toLowerCase(), "%");
-		}
-		else {
-			rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName().toUpperCase(), "%");
-		}
+		ResultSet rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName(), "%");
 
 		try {
-			while(rs.next()) {
+			while (rs.next()) {
 				String columnName = rs.getString("COLUMN_NAME").toLowerCase();
 				String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
 

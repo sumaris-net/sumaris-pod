@@ -23,10 +23,10 @@
 package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLContext;
-import io.leangen.graphql.annotations.GraphQLMutation;
-import io.leangen.graphql.annotations.GraphQLQuery;
+import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
+import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
+
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.pmfm.Fraction;
 import net.sumaris.core.model.referential.pmfm.Matrix;
@@ -35,11 +35,13 @@ import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.ParameterService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.administration.programStrategy.TaxonNameStrategyVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.ParameterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.*;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.IsAdmin;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @GraphQLApi
@@ -71,12 +74,16 @@ public class PmfmGraphQLService {
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLEnvironment ResolutionEnvironment env
     ) {
+
+        PmfmFetchOptions fetchOptions = getPmfmFetchOptions(GraphQLUtils.fields(env));
 
         List<PmfmVO> res = pmfmService.findByFilter(
                 ReferentialFilterVO.nullToEmpty(filter),
-                offset, size, sort, SortDirection.fromString(direction, SortDirection.ASC));
+                offset, size, sort, SortDirection.fromString(direction, SortDirection.ASC),
+                fetchOptions);
 
         return res;
     }
@@ -85,13 +92,18 @@ public class PmfmGraphQLService {
     @Transactional(readOnly = true)
     public PmfmVO getPmfm(
             @GraphQLArgument(name = "label") String label,
-            @GraphQLArgument(name = "id") Integer id
-    ) {
-        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label));
+            @GraphQLArgument(name = "id") Integer id,
+            @GraphQLEnvironment ResolutionEnvironment env
+            ) {
+        Preconditions.checkArgument(id != null || StringUtils.isNotBlank(label), "Required 'id' or 'label' to get a pmfm");
+
+        PmfmFetchOptions fetchOptions = getPmfmFetchOptions(GraphQLUtils.fields(env));
+        fetchOptions.setWithInheritance(false);
+
         if (id != null) {
-            return pmfmService.get(id);
+            return pmfmService.get(id, fetchOptions);
         }
-        return pmfmService.getByLabel(label);
+        return pmfmService.getByLabel(label, fetchOptions);
     }
 
     @GraphQLMutation(name = "savePmfm", description = "Create or update a pmfm")
@@ -160,4 +172,12 @@ public class PmfmGraphQLService {
         return parameterService.save(source);
     }
 
+
+    protected PmfmFetchOptions getPmfmFetchOptions(Set<String> fields) {
+        return PmfmFetchOptions.builder()
+                .withQualitativeValue(
+                        fields.contains(net.sumaris.core.util.StringUtils.slashing(PmfmVO.Fields.QUALITATIVE_VALUES, ReferentialVO.Fields.ID))
+                )
+                .build();
+    }
 }

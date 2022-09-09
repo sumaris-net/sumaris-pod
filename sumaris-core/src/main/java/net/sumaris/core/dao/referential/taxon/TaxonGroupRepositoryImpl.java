@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class TaxonGroupRepositoryImpl
-    extends ReferentialRepositoryImpl<TaxonGroup, TaxonGroupVO, IReferentialFilter, ReferentialFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, TaxonGroup, TaxonGroupVO, IReferentialFilter, ReferentialFetchOptions>
     implements TaxonGroupSpecifications {
 
     @Autowired
@@ -79,7 +79,7 @@ public class TaxonGroupRepositoryImpl
     }
 
     @Override
-    public List<TaxonGroupVO> findTargetSpeciesByFilter(
+    public List<TaxonGroupVO> findAll(
             IReferentialFilter filter,
             int offset,
             int size,
@@ -103,9 +103,8 @@ public class TaxonGroupRepositoryImpl
 
     @Override
     public void updateTaxonGroupHierarchies() {
-        if (log.isInfoEnabled()) {
-            log.info("Updating technical tables {TAXON_GROUP_HIERARCHY} and {TAXON_GROUP2TAXON_HIERARCHY}...");
-        }
+        log.info("Updating technical tables {TAXON_GROUP_HIERARCHY} and {TAXON_GROUP2TAXON_HIERARCHY}...");
+
         updateTaxonGroupHierarchy();
         updateTaxonGroup2TaxonHierarchy();
     }
@@ -142,7 +141,7 @@ public class TaxonGroupRepositoryImpl
                             childId));
                 }
 
-                TaxonGroup parent = tg.getParentTaxonGroup();
+                TaxonGroup parent = tg.getParent();
                 while (parent != null) {
                     Integer parentId = parent.getId();
                     if (!existingLinksToRemove.remove(parentId, childId)
@@ -157,7 +156,7 @@ public class TaxonGroupRepositoryImpl
                                 parentId,
                                 childId));
                     }
-                    parent = parent.getParentTaxonGroup();
+                    parent = parent.getParent();
                 }
             });
 
@@ -340,19 +339,4 @@ public class TaxonGroupRepositoryImpl
             .getResultList();
     }
 
-    @Override
-    protected Specification<TaxonGroup> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
-        Preconditions.checkNotNull(filter);
-        Integer[] gearIds = filter.getLevelIds();
-        filter.setLevelIds(null);
-
-        Specification<TaxonGroup> result = super.toSpecification(filter, fetchOptions)
-            .and(hasType(TaxonGroupTypeEnum.METIER_SPECIES.getId()))
-            .and(inGearIds(gearIds));
-
-        // restore levelIds
-        filter.setLevelIds(gearIds);
-
-        return result;
-    }
 }

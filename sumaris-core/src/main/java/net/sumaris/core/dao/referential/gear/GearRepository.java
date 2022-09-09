@@ -33,6 +33,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
  * @author blavenie
  */
 public interface GearRepository
-    extends ReferentialRepository<Gear, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+    extends ReferentialRepository<Integer, Gear, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
 }

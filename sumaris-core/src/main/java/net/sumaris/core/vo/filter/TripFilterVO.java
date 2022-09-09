@@ -31,7 +31,6 @@ import net.sumaris.core.model.data.DataQualityStatusEnum;
 
 import javax.annotation.Nullable;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder
@@ -54,6 +53,7 @@ public class TripFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Integer vesselId;
     private Integer locationId;
+    private Integer[] locationIds;
 
     private Integer[] excludedIds;
     private Integer[] includedIds;
@@ -63,4 +63,5 @@ public class TripFilterVO implements IRootDataFilter, IVesselFilter {
     private DataQualityStatusEnum[] dataQualityStatus;
 
     private Integer[] programIds;
+    private Integer[] boundingBox;
 }

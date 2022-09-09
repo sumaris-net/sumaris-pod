@@ -126,6 +126,7 @@
     </sql>
   </changeSet>
 
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1562583263300-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

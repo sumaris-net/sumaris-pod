@@ -23,10 +23,12 @@
 package net.sumaris.core.dao.data.batch;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
-import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
@@ -42,6 +44,7 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
@@ -56,7 +59,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,7 +68,7 @@ public class BatchRepositoryImpl
         extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
         implements BatchSpecifications {
 
-    private boolean enableSaveUsingHash;
+    private boolean enableHashOptimization;
 
     private final ReferentialDao referentialDao;
     private final TaxonNameRepository taxonNameRepository;
@@ -87,7 +89,7 @@ public class BatchRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enableBatchHashOptimization();
+        this.enableHashOptimization = getConfig().enableBatchHashOptimization();
     }
 
     @Override
@@ -179,10 +181,10 @@ public class BatchRepositoryImpl
 
 
     @Override
-    public List<BatchVO> saveByOperationId(int operationId, List<BatchVO> sources) {
+    public List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources) {
 
         long startTime = System.currentTimeMillis();
-        log.debug("Saving operation {id: {}} batches... {hash_optimization: {}}", operationId, enableSaveUsingHash);
+        log.debug("Saving operation {id: {}} batches... {hash_optimization: {}}", operationId, enableHashOptimization);
 
         // Load parent entity
         Operation parent = getById(Operation.class, operationId);
@@ -207,7 +209,7 @@ public class BatchRepositoryImpl
     @Override
     public List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources) {
         long startTime = System.currentTimeMillis();
-        log.debug("Saving sale {id: {}} batches... {hash_optimization: {}}", saleId, enableSaveUsingHash);
+        log.debug("Saving sale {id: {}} batches... {hash_optimization: {}}", saleId, enableHashOptimization);
 
         // Load parent entity
         Sale parent = getById(Sale.class, saleId);
@@ -286,10 +288,11 @@ public class BatchRepositoryImpl
     protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
 
         // Load existing entities
-        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.HASH);
-        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(Beans.getList(parent.getBatches()), Batch.Fields.LABEL);
-        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(Beans.getList(parent.getBatches()));
-        final Set<Integer> sourcesIdsToSkip = enableSaveUsingHash ? Sets.newHashSet() : null;
+        final List<Batch> nonNullBatches = Beans.getList(parent.getBatches());
+        final Multimap<Integer, Batch> sourcesByHashCode = Beans.splitByNotUniqueProperty(nonNullBatches, Batch.Fields.HASH, 0);
+        final Multimap<String, Batch> sourcesByLabelMap = Beans.splitByNotUniqueProperty(nonNullBatches, Batch.Fields.LABEL, "!!MISSING_LABEL!!");
+        final Map<Integer, Batch> sourcesIdsToProcess = Beans.splitById(nonNullBatches);
+        final Set<Integer> sourcesIdsToSkip = enableHashOptimization ? Sets.newHashSet() : null;
 
         // Save each batches
         final boolean trace = log.isTraceEnabled();
@@ -305,7 +308,7 @@ public class BatchRepositoryImpl
                 // Try to find it by hash code
                 Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
                 // Not found by hash code: try by label
-                if (CollectionUtils.isEmpty(existingBatchs)) {
+                if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null) {
                     existingBatchs = sourcesByLabelMap.get(source.getLabel());
                 }
                 // If one on match => use it
@@ -318,11 +321,11 @@ public class BatchRepositoryImpl
             }
 
             // Check if batch save can be skipped
-            boolean skip = source.getId() != null && (enableSaveUsingHash && sourcesIdsToSkip.contains(source.getId()));
+            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
 
                 // Save the batch (using a dedicated function)
-                source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
+                source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
                 skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
 
                 // If skipped, all children are also skipped
@@ -343,11 +346,12 @@ public class BatchRepositoryImpl
 
         boolean dirty = updatesCount > 0;
 
-        // Remove not processed batches
+        // If there is some not processed batches
         if (MapUtils.isNotEmpty(sourcesIdsToProcess)) {
             // Delete linked produces first (ie. Sales of packets)
             productRepository.deleteProductsByBatchIdIn(sourcesIdsToProcess.keySet());
-            sourcesIdsToProcess.values().forEach(this::delete);
+            // Delete batches
+            this.deleteAll(sourcesIdsToProcess.values());
             dirty = true;
         }
 
@@ -376,7 +380,7 @@ public class BatchRepositoryImpl
                                     Batch entity,
                                     boolean checkUpdateDate,
                                     Date newUpdateDate,
-                                    boolean enableBatchHashOptimization) {
+                                    boolean enableHashOptimization) {
         Preconditions.checkNotNull(source);
 
         if (entity == null && source.getId() != null) {
@@ -400,10 +404,17 @@ public class BatchRepositoryImpl
         onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
-        boolean skipSave = toEntity(source, entity, true, !isNew && enableBatchHashOptimization);
+        boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
         // Stop here (without change on the update_date)
-        if (skipSave) return source;
+        if (skipSave) {
+            // Flag as same hash
+            source.addFlag(ValueObjectFlags.SAME_HASH);
+            return source;
+        }
+
+        // Remove same hash flag
+        source.removeFlag(ValueObjectFlags.SAME_HASH);
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);
@@ -478,9 +489,17 @@ public class BatchRepositoryImpl
      */
     @Override
     public void toEntity(BatchVO source, Batch target, boolean copyIfNull) {
-        toEntity(source, target, copyIfNull, target.getId() != null && enableSaveUsingHash);
+        toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
+    /**
+     *
+     * @param source
+     * @param target
+     * @param copyIfNull
+     * @param allowSkipSameHash
+     * @return true is save should be skip (same hash)
+     */
     protected boolean toEntity(BatchVO source, Batch target, boolean copyIfNull, boolean allowSkipSameHash) {
         // Get some parent ids
         Integer parentId = (source.getParent() != null ? source.getParent().getId() : source.getParentId());

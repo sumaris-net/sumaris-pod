@@ -75,4 +75,8 @@ public interface ReferentialDao {
 
     Long countByLevelId(String entityName, Integer... levelIds);
 
+    void clearCache();
+
+    void clearCache(String entityName);
+
 }

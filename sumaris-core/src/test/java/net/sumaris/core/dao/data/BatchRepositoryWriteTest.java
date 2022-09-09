@@ -30,14 +30,12 @@ import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.assertj.core.util.Lists;
 import org.junit.*;
@@ -133,7 +131,7 @@ public class BatchRepositoryWriteTest extends AbstractDaoTest {
     }
 
     @Test
-    public void saveByOperationId() {
+    public void saveAllByOperationId() {
 
         List<BatchVO> batches = Lists.newArrayList();
 
@@ -189,7 +187,7 @@ public class BatchRepositoryWriteTest extends AbstractDaoTest {
         }
 
         // Execute saveByOperationId()
-        List<BatchVO> savedResult = repository.saveByOperationId(parentOperation.getId(), batches);
+        List<BatchVO> savedResult = repository.saveAllByOperationId(parentOperation.getId(), batches);
         Assert.assertNotNull(savedResult);
         Assert.assertEquals(2, savedResult.size());
 

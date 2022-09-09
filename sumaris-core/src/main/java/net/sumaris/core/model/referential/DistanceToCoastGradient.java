@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "distance_to_coast_gradient")
-public class DistanceToCoastGradient implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
+public class DistanceToCoastGradient implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "distance_to_coast_gradient_seq")

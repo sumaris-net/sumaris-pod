@@ -22,23 +22,26 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
+import lombok.NonNull;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.model.administration.programStrategy.ProgramProperty;
+import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramDepartmentVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramPersonVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.ParameterExpression;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -47,23 +50,40 @@ public interface ProgramSpecifications {
 
     String PROPERTY_LABEL_PARAM = "propertyLabel";
     String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
+    String ACQUISITION_LEVELS_PARAM = "acquisitionLevels";
 
     default Specification<Program> hasProperty(String propertyLabel) {
         if (propertyLabel == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<String> param = criteriaBuilder.parameter(String.class, PROPERTY_LABEL_PARAM);
-            return criteriaBuilder.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(ProgramProperty.Fields.LABEL), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> param = cb.parameter(String.class, PROPERTY_LABEL_PARAM);
+            return cb.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(ProgramProperty.Fields.LABEL), param);
         })
         .addBind(PROPERTY_LABEL_PARAM, propertyLabel);
     }
 
     default Specification<Program> newerThan(Date updateDate) {
         if (updateDate == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Date> updateDateParam = criteriaBuilder.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
-            return criteriaBuilder.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            return cb.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
         })
         .addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
+    }
+
+    default Specification<Program> hasAcquisitionLevelLabels(String... acquisitionLevels) {
+        if (ArrayUtils.isEmpty(acquisitionLevels)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, ACQUISITION_LEVELS_PARAM);
+
+                // Avoid duplication, because of inner join
+                query.distinct(true);
+
+                ListJoin<Program, PmfmStrategy> pmfmStrategiesJoin = Daos.composeJoinList(root, StringUtils.doting(Program.Fields.STRATEGIES, Strategy.Fields.PMFMS), JoinType.INNER);
+                Join<Program, Strategy> acquisitionLevelJoin = Daos.composeJoin(pmfmStrategiesJoin, PmfmStrategy.Fields.ACQUISITION_LEVEL, JoinType.INNER);
+
+                return cb.in(acquisitionLevelJoin.get(AcquisitionLevel.Fields.LABEL)).value(param);
+            })
+            .addBind(ACQUISITION_LEVELS_PARAM, Arrays.asList(acquisitionLevels));
     }
 
     Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions);
@@ -85,4 +105,13 @@ public interface ProgramSpecifications {
     List<ProgramDepartmentVO> saveDepartmentsByProgramId(int programId, List<ProgramDepartmentVO> sources);
 
     List<ProgramPersonVO> savePersonsByProgramId(int programId, List<ProgramPersonVO> sources);
+
+    List<ReferentialVO> getAcquisitionLevelsByProgramId(int programId);
+
+    void clearCache();
+
+    Logger getLogger();
+
+    boolean hasPropertyValueByProgramId(Integer id, ProgramPropertyEnum property, String expectedValue);
+    boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
 }

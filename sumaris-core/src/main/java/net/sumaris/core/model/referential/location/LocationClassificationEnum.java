@@ -22,6 +22,7 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
 
 import java.io.Serializable;
@@ -40,7 +41,7 @@ public enum LocationClassificationEnum implements Serializable {
             .orElseThrow(() -> new IllegalArgumentException("Unknown LocationClassificationEnum: " + id));
     }
 
-    public static LocationClassificationEnum byLabel(final String label) {
+    public static LocationClassificationEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(classification -> label.equals(classification.label))
             .findFirst()

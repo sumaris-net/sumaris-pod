@@ -23,16 +23,21 @@
 package net.sumaris.extraction.core.dao.trip.free;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free1Specification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
+
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -44,8 +49,8 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         implements Free1Specification {
 
     @Override
-    public LiveFormatEnum getFormat() {
-        return LiveFormatEnum.FREE1;
+    public Set<IExtractionType> getManagedTypes() {
+        return ImmutableSet.of(LiveExtractionTypeEnum.FREE1);
     }
 
     @Override
@@ -53,7 +58,7 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         R context = super.execute(filter);
 
         // Override some context properties
-        context.setFormat(LiveFormatEnum.FREE1);
+        context.setType(LiveExtractionTypeEnum.FREE1);
 
         return context;
     }
@@ -97,6 +102,14 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         //        WIDTH_GEAR Largeur cumulée (drague),              missing in SUMARIS
         //        SEINE_LENGTH Longueur de la bolinche ou senne     missing in SUMARIS
 
+        // Bind groupBy columns
+        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE,
+            RdbSpecification.COLUMN_DATE, RdbSpecification.COLUMN_TIME
+        );
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
+            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
+
         return xmlQuery;
     }
 
@@ -139,4 +152,6 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
                 return super.getQueryFullName(context, queryName);
         }
     }
+
+
 }

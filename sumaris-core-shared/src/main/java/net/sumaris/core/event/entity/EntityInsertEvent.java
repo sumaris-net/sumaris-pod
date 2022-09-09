@@ -22,11 +22,17 @@
 
 package net.sumaris.core.event.entity;
 
+import lombok.Builder;
 import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 
+@Builder
 public class EntityInsertEvent extends AbstractEntityEvent {
+
+    public EntityInsertEvent(){
+        super(EntityEventOperation.INSERT);
+    }
 
     public EntityInsertEvent(Serializable id, String entityName, IValueObject data){
         super(EntityEventOperation.INSERT, id, entityName, data);

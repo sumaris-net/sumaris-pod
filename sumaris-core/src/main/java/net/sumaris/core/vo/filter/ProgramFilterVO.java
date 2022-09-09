@@ -25,12 +25,20 @@ package net.sumaris.core.vo.filter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Date;
+
 @Data
 @FieldNameConstants
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProgramFilterVO implements IReferentialFilter {
+
+    public static ProgramFilterVO nullToEmpty(ProgramFilterVO filter) {
+        return filter != null ? filter : ProgramFilterVO.builder().build();
+    }
+
+    // IReferentialFilter properties
 
     private Integer id;
     private String label;
@@ -45,13 +53,20 @@ public class ProgramFilterVO implements IReferentialFilter {
     private String searchText;
     private String searchAttribute;
 
-    private String withProperty;
 
     private Integer[] includedIds;
     private Integer[] excludedIds;
+
 
     @Deprecated
     private Integer levelId;
     @Deprecated
     private String levelLabel;
+
+    // Specific to ProgramFilterVO
+
+    private String withProperty;
+    private Date minUpdateDate;
+    private String[] acquisitionLevelLabels;
+
 }

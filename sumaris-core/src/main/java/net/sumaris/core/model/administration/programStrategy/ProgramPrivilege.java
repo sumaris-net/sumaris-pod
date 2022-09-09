@@ -37,7 +37,7 @@ import java.util.Date;
 @Entity
 @Cacheable
 @Table(name = "program_privilege")
-public class ProgramPrivilege implements IItemReferentialEntity {
+public class ProgramPrivilege implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_PRIVILEGE_SEQ")

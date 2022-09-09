@@ -35,7 +35,7 @@ import java.util.Map;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
-public class ProgramVO implements IReferentialVO {
+public class ProgramVO implements IReferentialVO<Integer>{
 
     @EqualsAndHashCode.Include
     private Integer id;
@@ -66,5 +66,8 @@ public class ProgramVO implements IReferentialVO {
 
     private List<ProgramDepartmentVO> departments;
     private List<ProgramPersonVO> persons;
+
+    private List<String> acquisitionLevelLabels;
+    private List<ReferentialVO> acquisitionLevels;
 
 }

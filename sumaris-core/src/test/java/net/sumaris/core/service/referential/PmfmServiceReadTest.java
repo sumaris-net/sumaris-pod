@@ -53,7 +53,7 @@ public class PmfmServiceReadTest extends AbstractServiceTest {
         assertFindResult(ReferentialFilterVO.builder().label("CONVEYOR_BELT").build(), 1);
         // searchText
         assertFindResult(ReferentialFilterVO.builder().searchText("CONVEYOR_BELT").build(), 1);
-        assertFindResult(ReferentialFilterVO.builder().searchText("NB").build(), 4);
+        assertFindResult(ReferentialFilterVO.builder().searchText("NB").build(), 5);
 
         // levelLabels
         assertFindResult(ReferentialFilterVO.builder()
@@ -69,7 +69,7 @@ public class PmfmServiceReadTest extends AbstractServiceTest {
     }
 
     private void assertFindResult(ReferentialFilterVO filter, int expectedSize) {
-        List<PmfmVO> pmfms = service.findByFilter(filter, 0, 100, "id", SortDirection.ASC);
+        List<PmfmVO> pmfms = service.findByFilter(filter, 0, 100, "id", SortDirection.ASC, null);
         Assert.assertNotNull(pmfms);
         Assert.assertEquals(expectedSize, pmfms.size());
     }

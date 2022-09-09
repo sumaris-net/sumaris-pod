@@ -29,7 +29,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.AggregationContextVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,7 +47,7 @@ public class ExtractionTripContextVO extends AggregationContextVO {
 
     TripFilterVO tripFilter;
 
-    Map<AcquisitionLevelEnum, List<ExtractionPmfmColumnVO>> pmfmsByAcquisitionLevel;
+    Map<String, List<ExtractionPmfmColumnVO>> pmfmsCacheMap;
 
     public Date getStartDate() {
         return tripFilter != null ? tripFilter.getStartDate() : null;

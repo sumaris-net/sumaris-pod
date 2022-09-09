@@ -22,7 +22,9 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-public interface IItemReferentialEntity extends IReferentialWithStatusEntity {
+import java.io.Serializable;
+
+public interface IItemReferentialEntity<ID extends Serializable> extends IReferentialWithStatusEntity<ID> {
 
     interface Fields extends IReferentialWithStatusEntity.Fields {
         String LABEL = "label";

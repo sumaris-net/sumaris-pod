@@ -86,8 +86,47 @@
     ALTER SEQUENCE VESSEL_TYPE_SEQ INCREMENT BY 1;
   ]]></sql></changeSet>
 
+  <!-- Create missing sequence on data (because Hibernate >= 5.5 not generated sequence when allocationSize != 1) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2-0" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <not><sequenceExists sequenceName="TRIP_SEQ"/></not>
+        <not><sequenceExists sequenceName="OPERATION_SEQ"/></not>
+        <not><sequenceExists sequenceName="BATCH_SEQ"/></not>
+      </and>
+    </preConditions>
+    <createSequence sequenceName="BATCH_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="GEAR_USE_MEASUREMENT_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="IMAGE_ATTACHMENT_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="OPERATION_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="PHYSICAL_GEAR_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="QUANTIF_MEASUREMENT_B_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="SALE_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="EXPECTED_SALE_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="SAMPLE_MEASUREMENT_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="SAMPLE_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="SORTING_MEASUREMENT_B_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="TRIP_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="VESSEL_FEATURES_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="VESSEL_POSITION_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="VESSEL_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="VESSEL_USE_MEASUREMENT_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50" startValue="1000"/>
+  </changeSet>
+
+  <!-- create missing sequences -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2-0-1" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <not><sequenceExists sequenceName="EXPECTED_SALE_SEQ"/></not>
+      </and>
+    </preConditions>
+    <createSequence sequenceName="EXPECTED_SALE_SEQ" incrementBy="50" startValue="1000"/>
+  </changeSet>
+
   <!-- Sequence on data (increment by 50) -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1579622351000-2-1" runOnChange="true">
     <sql endDelimiter=";"><![CDATA[
     ALTER SEQUENCE BATCH_SEQ INCREMENT BY 50;
     ALTER SEQUENCE EXTRACTION_PRODUCT_COLUMN_SEQ INCREMENT BY 50;
@@ -108,6 +147,7 @@
     ALTER SEQUENCE QUANTIF_MEASUREMENT_P_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SALE_MEASUREMENT_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SALE_SEQ INCREMENT BY 50;
+    ALTER SEQUENCE EXPECTED_SALE_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SAMPLE_MEASUREMENT_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SAMPLE_SEQ INCREMENT BY 50;
     ALTER SEQUENCE SORTING_MEASUREMENT_B_SEQ INCREMENT BY 50;

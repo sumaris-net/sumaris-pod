@@ -37,9 +37,8 @@ import javax.persistence.EntityManager;
 /**
  * @author blavenie
  */
-@Slf4j
 public class GearRepositoryImpl
-    extends ReferentialRepositoryImpl<Gear, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+    extends ReferentialRepositoryImpl<Integer, Gear, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     public GearRepositoryImpl(EntityManager entityManager) {
         super(Gear.class, ReferentialVO.class, entityManager);
@@ -47,7 +46,7 @@ public class GearRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, unless = "#result==null")
-    public ReferentialVO get(int id) {
+    public ReferentialVO get(Integer id) {
         return super.get(id);
     }
 

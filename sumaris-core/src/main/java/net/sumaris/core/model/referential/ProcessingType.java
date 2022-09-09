@@ -42,7 +42,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "processing_type")
-public class ProcessingType implements IItemReferentialEntity {
+public class ProcessingType implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_TYPE_SEQ")

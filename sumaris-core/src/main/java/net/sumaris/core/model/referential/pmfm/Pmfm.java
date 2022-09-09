@@ -26,10 +26,12 @@ import com.google.common.collect.Sets;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Formula;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -46,7 +48,16 @@ import java.util.Set;
         }
 )
 @Cacheable
-public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntity {
+@NamedEntityGraph(
+        name = Pmfm.GRAPH_QUALITATIVE_VALUES,
+        attributeNodes = {
+                @NamedAttributeNode(Pmfm.Fields.QUALITATIVE_VALUES)
+        }
+)
+public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithStatusEntity<Integer> {
+
+
+    public static final String GRAPH_QUALITATIVE_VALUES = "Pmfm.qualitativeValues";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
@@ -86,11 +97,10 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
     private Double maxValue;
 
     /**
-     * Valeur par défaut (peut etre redéfini dans les stratégies).
+     * Valeur par défaut (peut être redéfini dans les stratégies).
      */
     @Column(name = "default_value")
     private Double defaultValue;
-
 
     /**
      * Nombre de décimales significatives pour le résultat mesuré/analysé suivant le quadruplet lié.
@@ -104,6 +114,17 @@ public class Pmfm implements IItemReferentialEntity, IReferentialWithStatusEntit
     @Column(name = "signif_figures_number")
     private Integer signifFiguresNumber;
 
+    /**
+     * Seuil de détection des instruments de mesure et de la méthode associée.
+     */
+    @Column(name = "detection_threshold")
+    private Double detectionThreshold;
+
+    /**
+     * Précision de la mesure et de la méthode associée.
+     */
+    @Column(name = "precision")
+    private Double precision;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Parameter.class)
     @JoinColumn(name = "parameter_fk", nullable = false)

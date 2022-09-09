@@ -58,14 +58,4 @@ public class ExtractionProductValue implements IEntity<Integer> {
     @ToString.Exclude
     private ExtractionProductColumn column;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_fk")
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private ExtractionProductValue parent;
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductValue.class, mappedBy = Fields.PARENT)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<ExtractionProductValue> children;
-
 }

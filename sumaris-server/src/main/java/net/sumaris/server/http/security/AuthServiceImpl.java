@@ -23,15 +23,16 @@
 package net.sumaris.server.http.security;
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.JmsConfiguration;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.administration.user.Persons;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
@@ -55,7 +56,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("authService")
@@ -99,14 +103,33 @@ public class AuthServiceImpl implements AuthService {
         this.debug = log.isDebugEnabled();
     }
 
-    @JmsListener(destination = "updatePerson", containerFactory = JmsConfiguration.CONTAINER_FACTORY_NAME)
-    protected void onPersonSaved(PersonVO person) {
+    @Override
+    @JmsListener(destination = JmsEntityEvents.DESTINATION,
+        selector = "entityName = 'Person' AND (operation = 'update' OR operation = 'delete')",
+        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    public void cleanCacheForUser(@NonNull PersonVO person) {
 
-        if (!StringUtils.isNotBlank(person.getPubkey())) return;
-        List<String> tokens = accountService.getAllTokensByPubkey(person.getPubkey());
+        // Clean cached tokens (because user can be disabled)
+        if (StringUtils.isNotBlank(person.getPubkey())) {
 
-        // Clean cache (because user can be disabled)
-        Beans.getStream(tokens).forEach(checkedTokens::remove);
+            if (Persons.isDisableOrDeleted(person)) {
+                log.info("Disabling authentication for user with pubkey {{}}", person.getPubkey());
+                // Delete all tokens in database (and cache) to force user to logout
+                List<String> tokens =  accountService.deleteAllTokensByPubkey(person.getPubkey());
+                Beans.getStream(tokens).forEach(checkedTokens::remove);
+            }
+            else {
+                log.info("Clean authentication cache, for user with pubkey {{}}", person.getPubkey());
+
+                // Clean all tokens cache, to force user profile to be reload
+                List<String> tokens =  accountService.getAllTokensByPubkey(person.getPubkey());
+                Beans.getStream(tokens).forEach(checkedTokens::remove);
+            }
+        }
+        else {
+            log.info("Clean authentication cache, for user with id {{}}", person.getId());
+        }
+
         Optional.ofNullable(person.getUsername()).ifPresent(checkedUsernames::remove);
         Optional.ofNullable(person.getUsernameExtranet()).ifPresent(checkedUsernames::remove);
     }
@@ -328,10 +351,13 @@ public class AuthServiceImpl implements AuthService {
         return null;
     }
 
+    /**
+     * Cannot auth if user has been deleted or is disable
+     * @param person
+     * @throws DisabledException
+     */
     private void checkEnabledAccount(PersonVO person) throws DisabledException {
-        // Cannot auth if user has been deleted or is disable
-        StatusEnum status = StatusEnum.valueOf(person.getStatusId());
-        if (StatusEnum.DISABLE.equals(status) || StatusEnum.DELETED.equals(status)) {
+        if (Persons.isDisableOrDeleted(person)) {
             throw new DisabledException("Account is disabled");
         }
     }

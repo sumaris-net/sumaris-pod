@@ -61,7 +61,7 @@ import java.util.Set;
                 "        AND (:lastName is null OR upper(t.lastName) = upper(:lastName))"
         )
 })
-public class Person implements IReferentialWithStatusEntity {
+public class Person implements IReferentialWithStatusEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")

@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
-import it.ozimov.springboot.mail.service.EmailService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
@@ -39,6 +38,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
@@ -49,10 +49,10 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
 import net.sumaris.server.service.crypto.ServerCryptoService;
+import net.sumaris.server.service.social.UserMessageService;
 import org.apache.commons.collections.CollectionUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
@@ -64,11 +64,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("accountService")
@@ -80,16 +79,14 @@ public class AccountServiceImpl implements AccountService {
     private final UserSettingsRepository userSettingsRepository;
     private final UserTokenRepository userTokenRepository;
     private final PersonService personService;
-    private final EmailService emailService;
+    private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
     private final GenericConversionService conversionService;
 
     @Autowired
     private AccountService self; // loop back to force transactional handling
 
-    private InternetAddress mailFromAddress;
     private String serverUrl;
-    private boolean emailEnable = false; // Will be update after config ready
 
     public AccountServiceImpl(SumarisServerConfiguration serverConfiguration,
                               PersonService personService,
@@ -98,7 +95,7 @@ public class AccountServiceImpl implements AccountService {
                               UserTokenRepository userTokenRepository,
                               ServerCryptoService serverCryptoService,
                               GenericConversionService conversionService,
-                              Optional<EmailService> emailService) {
+                              UserMessageService userMessageService) {
         this.personService = personService;
         this.personRepository = personRepository;
         this.userSettingsRepository = userSettingsRepository;
@@ -106,7 +103,7 @@ public class AccountServiceImpl implements AccountService {
         this.configuration = serverConfiguration;
         this.serverCryptoService = serverCryptoService;
         this.conversionService = conversionService;
-        this.emailService = emailService.orElse(null);
+        this.userMessageService = userMessageService;
     }
 
     @PostConstruct
@@ -118,40 +115,8 @@ public class AccountServiceImpl implements AccountService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-
-        boolean emailEnable = (emailService != null && configuration.enableMailService());
-
-        // Get mail 'from'
-        String mailFrom = StringUtils.trimToNull(configuration.getMailFrom());
-        if (StringUtils.isBlank(mailFrom)) {
-            mailFrom = StringUtils.trimToNull(configuration.getAdminMail());
-        }
-        if (StringUtils.isBlank(mailFrom)) {
-            log.warn(I18n.t("sumaris.error.account.register.mail.disable", SumarisServerConfigurationOption.MAIL_FROM.name()));
-            this.mailFromAddress = null;
-            emailEnable = false;
-        }
-        else {
-            try {
-                this.mailFromAddress = new InternetAddress(mailFrom, configuration.getAppName());
-            } catch (UnsupportedEncodingException e) {
-                log.error(I18n.t("sumaris.error.email.invalid", mailFrom, e.getMessage()));
-                emailEnable = false;
-            }
-        }
-
         // Get server URL
         this.serverUrl = configuration.getServerUrl();
-
-        // Update enable state, if changed
-        if (this.emailEnable != emailEnable) {
-            this.emailEnable = emailEnable;
-            if (!emailEnable) {
-                log.warn("/!\\ Email service disabled! (see previous errors)");
-            } else {
-                log.info(I18n.t("sumaris.server.email.started", configuration.getMailHost(), configuration.getMailPort()));
-            }
-        }
     }
 
     @Override
@@ -209,7 +174,7 @@ public class AccountServiceImpl implements AccountService {
 
 
         // Skip mail confirmation
-        if (this.mailFromAddress == null) {
+        if (this.userMessageService.getEmailDefaultFrom() == null) {
             log.debug(I18n.t("sumaris.server.account.register.mail.skip"));
             account.setStatusId(StatusEnum.ENABLE.getId());
         }
@@ -293,7 +258,7 @@ public class AccountServiceImpl implements AccountService {
         // Check the matched account status
         if (valid) {
             account = matches.get(0);
-            valid = account.getStatusId() == StatusEnum.TEMPORARY.getId();
+            valid = Objects.equals(account.getStatusId(), StatusEnum.TEMPORARY.getId());
 
             if (valid) {
                 // Mark account status as valid
@@ -332,7 +297,7 @@ public class AccountServiceImpl implements AccountService {
         // Check the matched account status
         if (valid) {
             account = matches.get(0);
-            valid = account.getStatusId() == StatusEnum.TEMPORARY.getId();
+            valid = Objects.equals(account.getStatusId(), StatusEnum.TEMPORARY.getId());
 
             if (valid) {
                 // Sent the confirmation email
@@ -352,6 +317,15 @@ public class AccountServiceImpl implements AccountService {
         return userTokenRepository.findTokenByPubkey(pubkey).stream()
                 .map(UserTokenRepository.TokenOnly::getToken)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> deleteAllTokensByPubkey(String pubkey) {
+        List<UserToken> tokens = userTokenRepository.findByPubkey(pubkey);
+        userTokenRepository.deleteAll(tokens);
+        return tokens.stream()
+            .map(UserToken::getToken)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -427,7 +401,7 @@ public class AccountServiceImpl implements AccountService {
      * @param locale
      */
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {
-        if (!this.emailEnable) {
+        if (!this.userMessageService.isEmailEnabled()) {
             log.warn(I18n.t("sumaris.error.account.register.sentConfirmation.skipped"));
             return; // Skip if disable
         }
@@ -441,8 +415,8 @@ public class AccountServiceImpl implements AccountService {
                     .replace("{code}", signatureHash);
 
             final Email email = DefaultEmail.builder()
-                    .from(this.mailFromAddress)
-                    .replyTo(this.mailFromAddress)
+                    .from(this.userMessageService.getEmailDefaultFrom())
+                    .replyTo(this.userMessageService.getEmailDefaultFrom())
                     .to(Lists.newArrayList(new InternetAddress(toAddress)))
                     .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", configuration.getAppName())
                             + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
@@ -450,10 +424,10 @@ public class AccountServiceImpl implements AccountService {
                             this.serverUrl,
                             confirmationLinkURL,
                             configuration.getAppName()))
-                    .encoding(Charsets.UTF_8.name())
+                    .encoding(StandardCharsets.UTF_8.name())
                     .build();
 
-            emailService.send(email);
+            userMessageService.send(email);
         }
         catch(AddressException e) {
             throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
@@ -461,7 +435,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     protected void sendRegistrationToAdmins(PersonVO confirmedAccount) {
-        if (!this.emailEnable) return; // Skip if disable
+        if (!this.userMessageService.isEmailEnabled()) {
+            log.warn("New account registered, but no cannot send email to administrators!");
+            // TODO: send as internal message ?
+            return; // Skip if disable
+        }
 
         try {
 
@@ -476,18 +454,12 @@ public class AccountServiceImpl implements AccountService {
                 return;
             }
 
-            // No from address: log then skip
-            if (this.mailFromAddress == null) {
-                log.warn("New account registered, but no from address configured to send to administrators!!");
-                return;
-            }
-
             // TODO: group email by locales (find it with the email, from personService)
 
             // Send the email
             final Email email = DefaultEmail.builder()
-                    .from(this.mailFromAddress)
-                    .replyTo(this.mailFromAddress)
+                    .from(this.userMessageService.getEmailDefaultFrom())
+                    .replyTo(this.userMessageService.getEmailDefaultFrom())
                     .to(toInternetAddress(adminEmails))
                     .subject(I18n.t("sumaris.server.mail.subject.prefix", configuration.getAppName())
                             + " " + I18n.t("sumaris.server.account.register.admin.mail.subject"))
@@ -502,7 +474,7 @@ public class AccountServiceImpl implements AccountService {
                     .encoding(Charsets.UTF_8.name())
                     .build();
 
-            emailService.send(email);
+            userMessageService.send(email);
         }
         catch(Throwable e) {
             // Just log, but continue

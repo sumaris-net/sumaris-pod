@@ -497,7 +497,7 @@
     </changeSet>
 
     <!-- Insert WEIGHT_LENGTH_CONVERSION -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-410">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-410" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>

@@ -32,22 +32,27 @@ import java.util.stream.Collectors;
 public class ApplicationUtils {
 
     /**
-     * Tranform args as expected by nuiton-config.
-     * E.g. the argument '--key=value' will become '--option key value'
-     *
+     * Transform args as expected by nuiton-config.
+     * <p>
+     * E.g. <ul>
+     *     <li>the argument '--key=value' will become '--key value'</li>
+     *     <li>the argument '--key.path=value' will become '--option key.path value'</li>
+     *  </ul>
+     * </p>
      * @param args
      * @return
      */
     public static String[] toApplicationConfigArgs(String... args) {
 
-        final Pattern optionPattern = Pattern.compile("--([a-zA-Z0-9._]+)=([^ \t]+)");
+        final Pattern optionPattern = Pattern.compile("(--?)([a-zA-Z0-9._]+)=([^ \t]+)");
 
         List<String> configArgs = ImmutableList.copyOf(args).stream()
                 .flatMap(arg -> {
                     Matcher matcher = optionPattern.matcher(arg);
                     if (matcher.matches()) {
-                        String name = matcher.group(1);
-                        String value = matcher.group(2);
+                        String prefix = matcher.group(1);
+                        String name = matcher.group(2);
+                        String value = matcher.group(3);
                         // If composite property name (e.g. 'xxx.yyy'): add '--option' before name and value
                         if (name.contains(".")) {
                             return ImmutableList.of("--option", name, value).stream();
@@ -55,7 +60,7 @@ public class ApplicationUtils {
                         // If simple property (e.g. 'xxx'), separate name and value (do no add '--option')
                         // See alias defined in SumarisConfiguration
                         else {
-                            return ImmutableList.of("--"+name, value).stream();
+                            return ImmutableList.of(prefix + name, value).stream();
                         }
                     }
                     return ImmutableList.of(arg).stream();

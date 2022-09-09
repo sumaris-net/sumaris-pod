@@ -31,19 +31,22 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.*;
+import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
+import net.sumaris.core.vo.referential.TaxonNameVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.IsSupervisor;
-import net.sumaris.server.service.technical.ChangesPublisherService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -54,23 +57,20 @@ import java.util.Set;
 @Slf4j
 public class TaxonNameGraphQLService {
 
-    @Autowired
-    private ReferentialService referentialService;
 
     @Autowired
     private TaxonNameService taxonNameService;
 
     @Autowired
-    private ReferenceTaxonRepository referenceTaxonRepository;
+    private TaxonGroupService taxonGroupService;
 
     @Autowired
-    private ChangesPublisherService changesPublisherService;
+    private ReferenceTaxonRepository referenceTaxonRepository;
 
     @Autowired
     public TaxonNameGraphQLService() {
         super();
     }
-
 
     /* -- Taxon Name -- */
 
@@ -117,6 +117,16 @@ public class TaxonNameGraphQLService {
     @Transactional(readOnly = true)
     public Long getTaxonNameCount(@GraphQLArgument(name = "filter") TaxonNameFilterVO filter) {
         return taxonNameService.countByFilter(filter);
+    }
+
+    @GraphQLQuery(name = "taxonGroupIds", description = "Get taxon group's ids of a taxon name")
+    public List<Integer> getTaxonGroupIds(@GraphQLContext TaxonNameVO taxonNameVO) {
+        if (taxonNameVO.getTaxonGroupIds() != null) return taxonNameVO.getTaxonGroupIds();
+        if (taxonNameVO.getReferenceTaxonId() != null) {
+            return taxonGroupService.getAllIdByReferenceTaxonId(taxonNameVO.getReferenceTaxonId(), new Date(), null);
+        }
+        // Should never occur !
+        return null;
     }
 
     /* -- Mutations -- */

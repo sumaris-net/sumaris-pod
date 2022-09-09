@@ -25,6 +25,7 @@ package net.sumaris.core.model.referential.taxon;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
 import net.sumaris.core.model.administration.programStrategy.TaxonGroupStrategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
@@ -33,6 +34,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -52,7 +54,8 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group")
-public class TaxonGroup implements IItemReferentialEntity, IWithDescriptionAndCommentEntity {
+public class TaxonGroup implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer>,
+    ITreeNodeEntity<Integer, TaxonGroup> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
@@ -88,10 +91,6 @@ public class TaxonGroup implements IItemReferentialEntity, IWithDescriptionAndCo
     @JoinColumn(name = "taxon_group_type_fk", nullable = false)
     private TaxonGroupType taxonGroupType;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class)
-    @JoinColumn(name = "parent_taxon_group_fk")
-    private TaxonGroup parentTaxonGroup;
-
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.TAXON_GROUP)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<TaxonGroupStrategy> strategies;
@@ -99,4 +98,14 @@ public class TaxonGroup implements IItemReferentialEntity, IWithDescriptionAndCo
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Metier.class, mappedBy = Metier.Fields.TAXON_GROUP)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private List<Metier> metiers;
+
+    /* -- Tree link -- */
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class)
+    @JoinColumn(name = "parent_taxon_group_fk")
+    private TaxonGroup parent;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroup.class, mappedBy = TaxonGroup.Fields.PARENT)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    private List<TaxonGroup> children = new ArrayList<>();
 }

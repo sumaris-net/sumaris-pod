@@ -51,12 +51,15 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
+import net.sumaris.core.util.StringUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -64,7 +67,10 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,7 +80,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class StrategyRepositoryImpl
-    extends ReferentialRepositoryImpl<Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
+    extends ReferentialRepositoryImpl<Integer, Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
     implements StrategySpecifications {
 
     @Autowired
@@ -105,8 +111,8 @@ public class StrategyRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, condition = "#result.present")
-    public Optional<StrategyVO> findById(int id) {
-        return super.findById(id);
+    public Optional<StrategyVO> findVOById(Integer id) {
+        return super.findVOById(id);
     }
 
     @Override
@@ -129,23 +135,23 @@ public class StrategyRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#vo.id", condition = "#vo.id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#vo.label", condition = "#vo.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
-    public StrategyVO save(StrategyVO vo) {
-        Preconditions.checkNotNull(vo);
-        Preconditions.checkNotNull(vo.getProgramId(), "Missing 'programId'");
-        Preconditions.checkNotNull(vo.getName(), "Missing 'name'");
-        Preconditions.checkNotNull(vo.getStatusId(), "Missing 'statusId'");
+    public StrategyVO save(StrategyVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getProgramId(), "Missing 'programId'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        Preconditions.checkNotNull(source.getStatusId(), "Missing 'statusId'");
 
-        if (vo.getId() == null && vo.getStatusId() == null)
+        if (source.getId() == null && source.getStatusId() == null)
             // Set default status to Temporary
-            vo.setStatusId(StatusEnum.TEMPORARY.getId());
+            source.setStatusId(StatusEnum.TEMPORARY.getId());
 
-        return super.save(vo);
+        return super.save(source);
     }
 
     @Override
@@ -198,8 +204,8 @@ public class StrategyRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
-    public void deleteById(Integer integer) {
-        super.deleteById(integer);
+    public void deleteById(Integer id) {
+        super.deleteById(id);
     }
 
     @Override
@@ -299,22 +305,20 @@ public class StrategyRepositoryImpl
      * @return next strategy sample label for this strategy (ex: 20LEUCCIR001-0001)
      */
     @Override
-    public String computeNextSampleLabelByStrategy(String strategyLabel, String separator, int nbDigit) {
-        Preconditions.checkNotNull(strategyLabel);
-        separator = net.sumaris.core.util.StringUtils.nullToEmpty(separator);
-        final String prefix = strategyLabel.concat(separator);
+    public String computeNextSampleLabelByStrategy(@NonNull String strategyLabel, String separator, int nbDigit) {
+        final String prefix = strategyLabel.concat(StringUtils.nullToEmpty(separator));
 
         EntityManager em = getEntityManager();
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<String> query = builder.createQuery(String.class);
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<String> query = cb.createQuery(String.class);
         Root<Sample> root = query.from(Sample.class);
 
-        ParameterExpression<Integer> tagIdPmfmIdParam = builder.parameter(Integer.class);
-        ParameterExpression<String> tagLikeParam = builder.parameter(String.class);
-        ParameterExpression<Integer> strategyPmfmIdParam = builder.parameter(Integer.class);
-        ParameterExpression<String> strategyLabelParam = builder.parameter(String.class);
-        ParameterExpression<Integer> lpadSizeParam = builder.parameter(Integer.class);
-        ParameterExpression<String> lpadFillParam = builder.parameter(String.class);
+        ParameterExpression<Integer> tagIdPmfmIdParam = cb.parameter(Integer.class);
+        ParameterExpression<String> tagLikeParam = cb.parameter(String.class);
+        ParameterExpression<Integer> strategyPmfmIdParam = cb.parameter(Integer.class);
+        ParameterExpression<String> strategyLabelParam = cb.parameter(String.class);
+        ParameterExpression<Integer> lpadSizeParam = cb.parameter(Integer.class);
+        ParameterExpression<String> lpadFillParam = cb.parameter(String.class);
 
         Join<Sample, Operation> operationJoin = root.join(Sample.Fields.OPERATION, JoinType.INNER);
         Join<Operation, Trip> tripJoin = operationJoin.join(Operation.Fields.TRIP, JoinType.INNER);
@@ -322,8 +326,8 @@ public class StrategyRepositoryImpl
         Join<Landing, LandingMeasurement> landingMeasurementJoin = landingInnerJoin.joinList(Landing.Fields.LANDING_MEASUREMENTS, JoinType.INNER);
         Join<Sample, SampleMeasurement> sampleMeasurementJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 
-        Expression<String> lpadValue = builder.function(AdditionalSQLFunctions.lpad.name(), String.class,
-            builder.substring(
+        Expression<String> lpadValue = cb.function(AdditionalSQLFunctions.lpad.name(), String.class,
+            cb.substring(
                 sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE),
                 prefix.length()+1
             ),
@@ -333,15 +337,15 @@ public class StrategyRepositoryImpl
 
         query.select(lpadValue)
             .where(
-                    builder.and(
+                    cb.and(
                         // Sample measurement: select Pmfm = Tag id
-                        builder.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
-                        builder.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
+                        cb.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                        cb.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
                         // Sample measurement: select Pmfm = Strategy label
-                        builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
-                        builder.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
+                        cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
+                        cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
                     ))
-            .orderBy(builder.desc(lpadValue));
+            .orderBy(cb.desc(lpadValue));
 
         List<String> results = em
             .createQuery(query)
@@ -602,17 +606,17 @@ public class StrategyRepositoryImpl
 
 
     @Override
-    protected void onBeforeSaveEntity(StrategyVO vo, Strategy entity, boolean isNew) {
-        super.onBeforeSaveEntity(vo, entity, isNew);
+    protected void onBeforeSaveEntity(StrategyVO source, Strategy target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
 
         // Verify label is unique by program
         long count = this.findAll(StrategyFilterVO.builder()
-                .programIds(new Integer[]{vo.getProgramId()}).label(vo.getLabel()).build())
+                .programIds(new Integer[]{source.getProgramId()}).label(source.getLabel()).build())
             .stream()
-            .filter(s -> isNew || !Objects.equals(s.getId(), vo.getId()))
+            .filter(s -> isNew || !Objects.equals(s.getId(), source.getId()))
             .count();
         if (count > 0) {
-            throw new NotUniqueException(String.format("Strategy label '%s' already exists", vo.getLabel()));
+            throw new NotUniqueException(String.format("Strategy label '%s' already exists", source.getLabel()));
         }
     }
 
@@ -627,16 +631,17 @@ public class StrategyRepositoryImpl
 
     @Override
     protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
-        Specification<Strategy> spec = super.toSpecification(filter, fetchOptions);
-        if (filter.getId() != null) return spec;
-        return spec
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasAnalyticReferences(filter.getAnalyticReferences()))
-            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-            .and(hasDepartmentIds(filter.getDepartmentIds()))
-            .and(hasLocationIds(filter.getLocationIds()))
-            .and(hasParameterIds(filter.getParameterIds()))
-            .and(hasPeriods(filter.getPeriods()));
+        Specification<Strategy> specification = super.toSpecification(filter, fetchOptions);
+        if (filter.getId() != null) return specification;
+        return specification
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
+                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+                .and(hasDepartmentIds(filter.getDepartmentIds()))
+                .and(hasLocationIds(filter.getLocationIds()))
+                .and(hasParameterIds(filter.getParameterIds()))
+                .and(hasPeriods(filter.getPeriods()))
+                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()));
     }
 
     @Override
@@ -668,20 +673,22 @@ public class StrategyRepositoryImpl
             target.setTaxonNames(getTaxonNameStrategies(source));
         }
 
-        // Applied strategies
-        target.setAppliedStrategies(getAppliedStrategies(source));
+        // Applied Strategies
+        if (opts.isWithAppliedStrategies()) {
+            target.setAppliedStrategies(getAppliedStrategies(source));
+        }
 
         // Strategy departments
         if (opts.isWithDepartments()) {
             target.setDepartments(getDepartments(source));
         }
 
-        // Pmfm strategies
+        // Pmfms
         if (opts.isWithPmfms()) {
             target.setPmfms(getPmfms(source, opts.getPmfmsFetchOptions()));
         }
 
-        // Pmfm strategies
+        // Denormalized pmfms
         if (opts.isWithDenormalizedPmfms()) {
             target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
         }
@@ -744,8 +751,18 @@ public class StrategyRepositoryImpl
 
     protected List<AppliedStrategyVO> getAppliedStrategies(final Strategy source) {
         if (CollectionUtils.isEmpty(source.getAppliedStrategies())) return null;
-        return source.getAppliedStrategies()
-                .stream()
+
+        Integer[] locationIds = source.getAppliedStrategies()
+                .stream().map(AppliedStrategy::getLocation)
+                .filter(Objects::nonNull)
+                .map(Location::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toArray(Integer[]::new);
+        Map<Integer, LocationVO> locationsById = Beans.splitById(
+                locationRepository.findAll(LocationFilterVO.builder().includedIds(locationIds).build()));
+
+        return Beans.getStream(source.getAppliedStrategies())
                 // Sort by id (this is need for IMAGINE, as the first AppliedStrategy holds AppliedPeriod)
                 .sorted(Comparator.comparingInt(AppliedStrategy::getId))
                 .map(item -> {
@@ -754,7 +771,7 @@ public class StrategyRepositoryImpl
                     target.setStrategyId(source.getId());
 
                     if (item.getLocation() != null) {
-                        target.setLocation(locationRepository.get(item.getLocation().getId()));
+                        target.setLocation(locationsById.get(item.getLocation().getId()));
                     }
 
                     // AppliedPeriod
@@ -908,6 +925,19 @@ public class StrategyRepositoryImpl
         Integer privilegeId = source.getPrivilege() != null ? source.getPrivilege().getId() : null;
         if (copyIfNull || privilegeId != null) {
             target.setPrivilege(privilegeId != null ? getReference(ProgramPrivilege.class, privilegeId) : null);
+        }
+    }
+
+    protected void configureQuery(TypedQuery<Strategy> query, net.sumaris.core.dao.technical.Page page, @Nullable StrategyFetchOptions fetchOptions) {
+        super.configureQuery(query, page, fetchOptions);
+
+        if (page == null) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            if (fetchOptions != null && (fetchOptions.isWithPmfms() || fetchOptions.isWithDenormalizedPmfms())) {
+                EntityGraph<?> entityGraph = em.getEntityGraph(Strategy.GRAPH_PMFMS);
+                query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+            }
         }
     }
 }

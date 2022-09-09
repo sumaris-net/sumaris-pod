@@ -25,6 +25,7 @@ package net.sumaris.core.config;
  */
 
 import net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect;
+import net.sumaris.core.util.Geometries;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
@@ -125,31 +126,19 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "SELECT COUNT(*) FROM SYSTEM_VERSION",
         String.class),
 
+    DB_TIMEZONE(
+        "sumaris.persistence.db.timezone", // /!\ key uused by sumaris-app - DO NOT CHANGED
+        n("sumaris.config.option.db.timezone.description"),
+        "${user.timezone}",
+        String.class,
+        true),
+
     DB_CREATE_SCRIPT_PATH(
         "sumaris.persistence.db.script",
         n("sumaris.config.option.db.script.description"),
         "classpath:net/sumaris/core/db/changelog/sumaris.script",
         String.class,
         false),
-
-    DB_TIMEZONE(
-        "spring.jpa.properties.hibernate.jdbc.time_zone",
-        n("sumaris.config.option.spring.jpa.properties.hibernate.jdbc.time_zone.description"),
-        "${user.timezone}",
-        String.class,
-        false),
-
-    DATASOURCE_TYPE(
-        "sumaris.persistence.datasource.type",
-        n("sumaris.persistence.datasource.type.description"),
-        "local",
-        String.class),
-
-    DATASOURCE_JNDI_NAME(
-        "sumaris.persistence.jndi-name",
-        n("sumaris.config.option.persistence.jndi-name.description"),
-        "sumaris-ds",
-        String.class),
 
     JDBC_USERNAME(
         "spring.datasource.username",
@@ -204,6 +193,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.persistence.hibernate.entities.package.description"),
         "net.sumaris.core.model",
         Class.class),
+
+    HIBERNATE_JDBC_TIMEZONE(
+        "spring.jpa.properties.hibernate.jdbc.time_zone",
+        n("sumaris.config.option.spring.jpa.properties.hibernate.jdbc.time_zone.description"),
+        "${sumaris.persistence.db.timezone}", // Redirection to db timezone
+        String.class,
+        false),
 
     DEBUG_ENTITY_LOAD(
         "sumaris.persistence.hibernate.load.debug",
@@ -407,19 +403,30 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         boolean.class,
         false),
 
+    /* -- Geometry (JTS) -- */
+
+    GEOMETRY_SRID(
+        "sumaris.geometry.srid",
+        n("sumaris.config.option.sumaris.geometry.srid.description"),
+        Geometries.SRID.NONE.toString(),
+        Class.class,
+        false),
+
     /* -- Active MQ options-- */
 
     ACTIVEMQ_POOL_ENABLED(
         "spring.activemq.pool.enabled",
         n("sumaris.config.option.spring.activemq.pool.enabled.description"),
         "false",
-        Boolean.class),
+        Boolean.class,
+        false),
 
     ACTIVEMQ_BROKER_URL(
         "spring.activemq.broker-url",
         n("sumaris.config.option.spring.activemq.broker-url.description"),
         "vm://embedded?broker.persistent=true",
-        String.class),
+        String.class,
+        false),
 
     ACTIVEMQ_BROKER_USERNAME(
         "spring.activemq.broker-username",
@@ -437,7 +444,8 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "spring.activemq.prefetch.limit",
         n("sumaris.config.option.spring.activemq.prefetch.limit.description"),
         "10",
-        Integer.class),
+        Integer.class,
+        false),
 
     /* -- Functional features options-- */
 
@@ -479,6 +487,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     /*
      * CLI options
      */
+    CLI_DAEMONIZE(
+        "sumaris.cli.daemon",
+        n("sumaris.config.option.cli.daemon.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
 
     CLI_OUTPUT_FILE(
         "sumaris.cli.output.file",
@@ -607,6 +621,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             Boolean.FALSE.toString(),
             Boolean.class,
             false),
+
+    ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION(
+        "sumaris.persistence.physicalGear.hashOptimization",
+        n("sumaris.config.option.persistence.physicalGear.hashOptimization.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
 
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",

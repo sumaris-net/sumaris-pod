@@ -22,43 +22,49 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.format.LiveFormatEnum;
+import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
-import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.specification.data.trip.SurvivalTestSpecification;
-import net.sumaris.extraction.core.vo.AggregationTypeVO;
-import net.sumaris.extraction.core.vo.ExtractionTypeVO;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Test;
+import net.sumaris.extraction.core.specification.data.trip.*;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.*;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * @author peck7 on 17/12/2018.
+ * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public class ExtractionServiceTest extends AbstractServiceTest {
-
-    @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
+public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
     private ExtractionService service;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private ExtractionProductService productService;
+
 
     @Test
-    public void exportStratFormat() throws IOException {
+    public void executeStrat() throws IOException {
 
         // Test the Strategy format
-        File outputFile = service.executeAndDumpStrategies(LiveFormatEnum.STRAT, null);
-        File root = unpack(outputFile, LiveFormatEnum.STRAT.getLabel());
+        File outputFile = service.executeAndDumpStrategies(LiveExtractionTypeEnum.STRAT, null);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.STRAT.getLabel());
 
         // ST.csv (strategy)
         {
@@ -75,12 +81,12 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void exportRdbFormat() throws IOException {
+    public void executeRdb() throws IOException {
 
         // Test the RDB format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.RDB, null);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.RDB, null);
         Assert.assertTrue(outputFile.exists());
-        File root = unpack(outputFile, LiveFormatEnum.RDB.getLabel());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.RDB.getLabel());
 
         // TR.csv
         {
@@ -109,19 +115,19 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void exportFree1Format() {
+    public void executeFree1() {
 
         // Test the FREE 1 format
-        service.executeAndDumpTrips(LiveFormatEnum.FREE1, null);
+        service.executeAndDumpTrips(LiveExtractionTypeEnum.FREE1, null);
     }
 
     @Test
-    public void exportFree2Format() throws IOException {
+    public void executeFree2() throws IOException {
 
         // Test the FREE v2 format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.FREE2, null);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.FREE2, null);
 
-        File root = unpack(outputFile, LiveFormatEnum.FREE2);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.FREE2);
 
         // MAREES.csv
         File tripFile = new File(root, Free2Specification.TRIP_SHEET_NAME + ".csv");
@@ -132,16 +138,16 @@ public class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
 
         // ENGINS.csv
-        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME+".csv");
+        File gearFile = new File(root, Free2Specification.GEAR_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(gearFile) > 1);
     }
 
     @Test
-    public void exportSurvivalTestFormat() throws IOException  {
+    public void executeSurvivalTest() throws IOException  {
 
         // Test Survival test format
-        File outputFile = service.executeAndDumpTrips(LiveFormatEnum.SURVIVAL_TEST, null);
-        File root = unpack(outputFile, LiveFormatEnum.SURVIVAL_TEST);
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.SURVIVAL_TEST, null);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.SURVIVAL_TEST);
 
         // RL (release)
         File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
@@ -153,81 +159,490 @@ public class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void save() {
+    public void executePmfm() throws IOException {
 
-        ExtractionTypeVO type = new ExtractionTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE);
-        type.setLabel(LiveFormatEnum.RDB.name() + "-ext");
-        type.setName("Product - " + LiveFormatEnum.RDB.name());
-        type.setStatusId(StatusEnum.TEMPORARY.getId());
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(fixtures.getProgramLabelForPmfmExtraction(0));
 
-        DepartmentVO recDep = new DepartmentVO();
-        recDep.setId(fixtures.getDepartmentId(0));
-        type.setRecorderDepartment(recDep);
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel());
 
-        ExtractionTypeVO savedType = service.save(type, null);
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
 
-        Assert.assertNotNull(savedType);
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+
+            assertHasColumn(speciesLengthFile, "sex");
+        }
+
+        // ST.csv
+        {
+            File survivalTestFile = new File(root, PmfmTripSpecification.ST_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(survivalTestFile) > 1);
+
+            assertHasColumn(survivalTestFile, "picking_time");
+            assertHasColumn(survivalTestFile, "injuries_body");
+            assertHasColumn(survivalTestFile, "reflex_body_flex");
+        }
+
+        // RL.csv
+        {
+            File releaseFile = new File(root, PmfmTripSpecification.RL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
+
+            assertHasColumn(releaseFile, "measure_time");
+            assertHasColumn(releaseFile, "latitude");
+            assertHasColumn(releaseFile, "longitude");
+        }
     }
 
     @Test
-    public void getByFormat() {
+    public void aggregateRdb() throws IOException {
 
-        // Get valid live format
+        IExtractionType type = AggExtractionTypeEnum.AGG_RDB;
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
+
+        File outputFile = service.executeAndDump(type, null, strata);
+        File root = unpack(outputFile, type);
+
+        // HH.csv
+        File stationFile = new File(root, AggRdbSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRdbSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+        File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+    }
+
+    @Test
+    public void aggregateProductRdb() throws IOException {
+
+        IExtractionType parent = productService.getByLabel(fixtures.getRdbProductLabel(0), null);
+
+        ExtractionProductVO product = createAggProduct(AggExtractionTypeEnum.AGG_RDB, parent);
+
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+            .spatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE)
+            .timeColumnName(ProductRdbStation.COLUMN_YEAR)
+            .build();
+
+        // Prepare a filter on year
+        ExtractionFilterVO filter = new ExtractionFilterVO();
         {
-            AggregationTypeVO format = new AggregationTypeVO();
-            format.setLabel(LiveFormatEnum.RDB.getLabel());
-            format.setCategory(LiveFormatEnum.RDB.getCategory());
-            ExtractionTypeVO type = service.getByFormat(format);
-
-            Assert.assertNotNull(type);
-            Assert.assertEquals("type.label should be in lowerCase", format.getLabel().toLowerCase(), type.getLabel());
+            ExtractionFilterCriterionVO yearCriterion = ExtractionFilterCriterionVO.builder()
+                .sheetName(RdbSpecification.TR_SHEET_NAME)
+                .name(RdbSpecification.COLUMN_YEAR)
+                .operator("=")
+                .value(String.valueOf(fixtures.getYearRdbProduct()))
+                .build();
+            filter.setCriteria(ImmutableList.of(yearCriterion));
         }
 
-        // Get invalid live format
-        {
-            AggregationTypeVO format = new AggregationTypeVO();
-            format.setLabel("FAKE");
-            format.setCategory(ExtractionCategoryEnum.LIVE);
-            try {
-                service.getByFormat(format);
-                Assert.fail("Should failed on wrong format");
-            } catch (Exception e) {
-                // OK
+        File outputFile = service.executeAndDump(product, filter, strata);
+        File root = unpack(outputFile, product);
+
+        // HH.csv
+        File stationFile = new File(root, AggRdbSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRdbSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+        // Fixme BLA: Cannot link HL rowsto SL rows, so the generated HL is empty
+        //  - tests data mistake: P01_RDB_SPECIES_LENGTH should have same columns as SL rows, to be able to link to SL
+        //File speciesLengthFile = new File(root, AggRdbSpecification.HL_SHEET_NAME + ".csv");
+        //Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+    }
+
+    @Test
+    public void aggregateSurvivalTest() throws IOException {
+
+        IExtractionType type = AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
+
+        File outputFile = service.executeAndDump(type, null, strata);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, type);
+
+        // ST.csv
+        File survivalTestFile = new File(root, AggSurvivalTestSpecification.ST_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(survivalTestFile) > 1);
+
+        // RL.csv
+        File releaseFile = new File(root, AggSurvivalTestSpecification.RL_SHEET_NAME + ".csv");
+        Assert.assertTrue(releaseFile.exists()); // No release DATA in the test DB
+    }
+
+    @Test
+    public void executeAggCost() throws IOException {
+        IExtractionType source = LiveExtractionTypeEnum.COST;
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(AggRdbSpecification.COLUMN_QUARTER);
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+            .criteria(ImmutableList.of(
+                ExtractionFilterCriterionVO.builder()
+                    .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                    .name(ProductRdbStation.COLUMN_YEAR)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(""+fixtures.getYearRawData())
+                    .build()
+            ))
+            .build();
+
+        File outputFile = service.executeAndDump(source, filter, strata);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, source);
+
+        // HH.csv
+        File stationFile = new File(root, AggRjbTripSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRjbTripSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+        File speciesLengthFile = new File(root, AggRjbTripSpecification.HL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+    }
+
+    @Test
+    public void executeAggFree1() throws IOException {
+
+        IExtractionType source = LiveExtractionTypeEnum.FREE1;
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(AggRdbSpecification.COLUMN_QUARTER);
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+            .criteria(ImmutableList.of(
+                ExtractionFilterCriterionVO.builder()
+                    .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                    .name(ProductRdbStation.COLUMN_YEAR)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(""+fixtures.getYearRawData())
+                    .build()
+            ))
+            .build();
+
+        File outputFile = service.executeAndDump(source, filter, strata);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, source);
+
+        // HH.csv
+        File stationFile = new File(root, AggRjbTripSpecification.HH_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+        // SL.csv
+        File speciesListFile = new File(root, AggRjbTripSpecification.SL_SHEET_NAME + ".csv");
+        Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+        // HL.csv
+//        File speciesLengthFile = new File(root, AggRjbTripSpecification.HL_SHEET_NAME + ".csv");
+//        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+    }
+
+    @Test
+    @Ignore
+    // FIXME: add BATCH on RJB species, with individual count only (no weights) in ADAP XML data
+    public void executeAggRjbTrip() throws IOException {
+
+        IExtractionType type = AggExtractionTypeEnum.AGG_RJB_TRIP;
+
+        AggregationStrataVO strata = new AggregationStrataVO();
+        strata.setSpatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE);
+        strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+            .criteria(ImmutableList.of(
+                ExtractionFilterCriterionVO.builder()
+                    .name(ProductRdbStation.COLUMN_TRIP_CODE)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value("1379") // a ADAP RJB trip
+                    .build()
+            ))
+            .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, strata);
+            Assert.assertTrue(outputFile.exists());
+            File root = unpack(outputFile, type);
+
+            // HH.csv
+            File stationFile = new File(root, AggRjbTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // SL.csv
+            File speciesListFile = new File(root, AggRjbTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // HL.csv
+            File speciesLengthFile = new File(root, AggRjbTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+        }
+        catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+    }
+
+    @Test
+    public void executeAndReadAggSurvivalTest() {
+
+        IExtractionType type = AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(AggRdbSpecification.SL_SHEET_NAME)
+            .build();
+
+        filter.setCriteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
+                .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                .name(AggRdbSpecification.COLUMN_YEAR)
+                .operator("=")
+                .value(""+fixtures.getYearRawData())
+            .build()));
+
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+            .sheetName(AggRdbSpecification.SL_SHEET_NAME)
+            .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
+            .timeColumnName(AggRdbSpecification.COLUMN_MONTH)
+            .build();
+
+        ExtractionResultVO result = service.executeAndRead(
+            type,
+            filter, strata, Page.builder().size(100).build(), null);
+
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getRows());
+        Assert.assertTrue(result.getRows().size() > 0);
+
+        Preconditions.checkArgument(result instanceof AggregationResultVO);
+        AggregationResultVO aggResult = (AggregationResultVO)result;
+        Assert.assertNotNull(aggResult.getSpaceStrata());
+        Assert.assertTrue(aggResult.getSpaceStrata().size() > 0);
+        Assert.assertTrue(aggResult.getSpaceStrata().contains(AggRdbSpecification.COLUMN_AREA));
+
+        Assert.assertNotNull(aggResult.getTimeStrata());
+        Assert.assertTrue(aggResult.getTimeStrata().size() > 0);
+        Assert.assertTrue(aggResult.getTimeStrata().contains(AggRdbSpecification.COLUMN_MONTH));
+        Assert.assertTrue(aggResult.getTimeStrata().contains(AggRdbSpecification.COLUMN_QUARTER));
+        Assert.assertTrue(aggResult.getTimeStrata().contains(AggRdbSpecification.COLUMN_YEAR));
+    }
+
+    @Test
+    public void readAggSurvivalTest() {
+        ExtractionProductVO type = createAggProduct(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
+        ExtractionProductVO savedProduct;
+        // Save
+        try {
+            savedProduct = service.executeAndSave(type, null, null);
+            Assume.assumeNotNull(savedProduct);
+            Assume.assumeNotNull(savedProduct.getId());
+        }
+        catch (Exception e) {
+            Assume.assumeNoException(String.format("Error during aggregating: %s", type), e);
+            return;
+        }
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+            .criteria(ImmutableList.of(
+                    ExtractionFilterCriterionVO.builder()
+                        .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                        .name(AggRdbSpecification.COLUMN_YEAR)
+                        .operator("=")
+                        .value(""+fixtures.getYearRawData())
+                        .build()
+                )
+            ).build();
+
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+            .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
+            .build();
+
+        ExtractionResultVO result = service.read(savedProduct, filter, strata, Page.builder().size(1000).build(), null);
+
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getRows());
+        Assert.assertTrue(result.getRows().size() > 0);
+    }
+
+    @Test
+    public void readAggTechSurvivalTest() {
+
+        ExtractionProductVO type = createAggProduct(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
+        ExtractionProductVO savedProduct;
+        // Save
+        try {
+            savedProduct = service.executeAndSave(type, null, null);
+            Assume.assumeNotNull(savedProduct);
+            Assume.assumeNotNull(savedProduct.getId());
+        }
+        catch (Exception e) {
+            Assume.assumeNoException(String.format("Error during aggregating: %s", type), e);
+            return;
+        }
+
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+            .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+            .aggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME)
+            .spatialColumnName(AggRdbSpecification.COLUMN_SQUARE)
+            .techColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE)
+            .timeColumnName(AggRdbSpecification.COLUMN_YEAR)
+            .build();
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+            .sheetName(RdbSpecification.HH_SHEET_NAME)
+            .build();
+
+        filter.setCriteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
+                .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                .name(AggRdbSpecification.COLUMN_YEAR)
+                .operator("=")
+                .value(""+fixtures.getYearRawData())
+            .build()));
+
+        // 2. Access to tech aggregation
+        AggregationTechResultVO result = service.readByTech(savedProduct, filter, strata, null, null);
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getData());
+        Assert.assertTrue(result.getData().size() > 0);
+    }
+
+    @Test
+    public void updatePmfmTrip() {
+        IExtractionType type = createProduct(LiveExtractionTypeEnum.PMFM_TRIP);
+        ExtractionProductVO savedProduct;
+        // Save product
+        try {
+            // Prepare a filter, on year + project
+            ExtractionFilterVO filter = new ExtractionFilterVO();
+            {
+                ExtractionFilterCriterionVO projectCriterion = ExtractionFilterCriterionVO.builder()
+                    .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
+                    .name(PmfmTripSpecification.COLUMN_PROJECT)
+                    .operator("=")
+                    .value(fixtures.getProgramLabelForPmfmExtraction(0))
+                    .build();
+
+                ExtractionFilterCriterionVO yearCriterion = ExtractionFilterCriterionVO.builder()
+                    .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
+                    .name(PmfmTripSpecification.COLUMN_YEAR)
+                    .operator("=")
+                    .value("" + fixtures.getYearRawData())
+                    .build();
+
+                filter.setCriteria(ImmutableList.of(projectCriterion, yearCriterion));
             }
+
+            // Execute and save the product
+            savedProduct = service.executeAndSave(type, filter, null);
+            Assume.assumeNotNull(savedProduct);
+            Assume.assumeNotNull(savedProduct.getId());
+            Assume.assumeNotNull(type.getFormat(), savedProduct.getFormat());
+            Assume.assumeNotNull(type.getVersion(), savedProduct.getVersion());
+        }
+        catch (Exception e) {
+            Assume.assumeNoException(e);
+            return;
         }
 
-        // Get a valid product
-        {
-            AggregationTypeVO format = new AggregationTypeVO();
-            format.setLabel("rdb-01");
-            format.setCategory(ExtractionCategoryEnum.PRODUCT);
-            ExtractionTypeVO type = service.getByFormat(format);
-            Assert.assertNotNull(type);
-            Assert.assertEquals(format.getLabel(), type.getLabel());
-        }
-
-
+        // Update product
+        ExtractionProductVO updatedProduct = service.executeAndSave(savedProduct.getId());
+        Assert.assertNotNull(updatedProduct);
+        Assert.assertEquals(savedProduct.getId(), updatedProduct.getId()); // Same id
+        Assert.assertEquals(savedProduct.getLabel(), updatedProduct.getLabel()); // Same label
     }
-
 
     @Test
-    public void saveLiveRdb() {
-        ExtractionTypeVO type = new ExtractionTypeVO();
-        type.setCategory(ExtractionCategoryEnum.LIVE);
-        type.setLabel(LiveFormatEnum.RDB.name() + "-save");
-        type.setName("RDB live extraction saved as product");
-        type.setStatusId(StatusEnum.TEMPORARY.getId());
+    public void updateAggRdbProduct() {
 
-        DepartmentVO recDep = new DepartmentVO();
-        recDep.setId(fixtures.getDepartmentId(0));
-        type.setRecorderDepartment(recDep);
+        ExtractionProductVO savedProduct;
+        try {
+            IExtractionType parent = productService.getByLabel(fixtures.getRdbProductLabel(0), null);
+            ExtractionProductVO product = createAggProduct(AggExtractionTypeEnum.AGG_RDB, parent);
 
-        ExtractionTypeVO savedType = service.save(type, null);
-        Assert.assertNotNull(savedType);
-        Assert.assertNotNull(savedType.getId());
+            // Prepare a filter on year
+            ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .criteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
+                    .sheetName(RdbSpecification.TR_SHEET_NAME)
+                    .name(RdbSpecification.COLUMN_YEAR)
+                    .operator("=")
+                    .value("" + fixtures.getYearRdbProduct())
+                    .build()))
+                .build();
+            product.setFilterContent(objectMapper.writeValueAsString(filter));
 
+            // Prepare strata
+            product.setStratum(ImmutableList.of(AggregationStrataVO.builder()
+                .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                .spatialColumnName(AggRjbTripSpecification.COLUMN_STATISTICAL_RECTANGLE)
+                .timeColumnName(AggRjbTripSpecification.COLUMN_YEAR)
+                .aggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME)
+                .techColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE)
+                .build()));
+
+            // First execution
+            savedProduct = productService.save(product, ExtractionProductSaveOptions.WITH_TABLES_AND_STRATUM);
+            Assume.assumeNotNull(savedProduct);
+            Assume.assumeNotNull(savedProduct.getId());
+            Assume.assumeNotNull(savedProduct.getParentId());
+        } catch (Exception e) {
+            Assume.assumeNoException(e);
+            return;
+        }
+
+        // Update product
+        ExtractionProductVO updatedProduct = service.executeAndSave(savedProduct.getId());
+        Assert.assertNotNull(updatedProduct);
+        Assert.assertEquals(savedProduct.getId(), updatedProduct.getId()); // Same id
+        Assert.assertEquals(savedProduct.getLabel(), updatedProduct.getLabel()); // Same label
     }
+
 
     /* -- protected methods -- */
 

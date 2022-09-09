@@ -204,7 +204,7 @@ public class SumarisTableMetadata {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format(QUERY_SELECT_ALL,
 				(distinct ? "DISTINCT " : "") + createSelectParams(columnNames, tableAlias),
-				tableName.render().toUpperCase(),
+				tableName.render(),
 				tableAlias));
 
 		// Where clause
@@ -315,7 +315,7 @@ public class SumarisTableMetadata {
 
 	public String getDeleteQuery(String whereClauseContent) {
 		String result = String.format(QUERY_DELETE,
-				tableName.render().toUpperCase(),
+				tableName.render(),
 				tableAlias,
 				whereClauseContent == null ? "1=1" : whereClauseContent);
 		return result;
@@ -345,16 +345,10 @@ public class SumarisTableMetadata {
 
 		Map<String, SumarisColumnMetadata> result = Maps.newLinkedHashMap();
 
-		ResultSet rs;
-		if (Daos.isPostgresqlDatabase(jdbcDbMeta.getConnection())){
-			rs = jdbcDbMeta.getColumns(getCatalog().toLowerCase(), getSchema().toLowerCase(), getName().toLowerCase(), "%");
-		}
-		else {
-			rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName().toUpperCase(), "%");
-		}
+		ResultSet rs = jdbcDbMeta.getColumns(getCatalog(), getSchema(), getName(), "%");
 
 		try {
-			while(rs.next()) {
+			while (rs.next()) {
 				String columnName = rs.getString("COLUMN_NAME").toLowerCase();
 				String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
 
@@ -427,7 +421,7 @@ public class SumarisTableMetadata {
 	protected String createSelectAllQuery() {
 		return String.format(QUERY_SELECT_ALL,
 				createSelectParams(tableAlias),
-				tableName.render().toUpperCase(),
+				tableName.render(),
 				tableAlias);
 	}
 
@@ -446,7 +440,7 @@ public class SumarisTableMetadata {
 		}
 
 		String result = String.format(QUERY_INSERT,
-				tableName.render().toUpperCase(),
+				tableName.render(),
 				queryParams.substring(2),
 				valueParams.substring(2));
 		return result;
@@ -562,7 +556,7 @@ public class SumarisTableMetadata {
 	protected String createSelectAllToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
 		String query = String.format(QUERY_SELECT_ALL,
 				createSelectParams(tableAlias),
-				tableName.render().toUpperCase(),
+				tableName.render(),
 				tableAlias);
 
 		// add a tripFilter on update date column
@@ -579,7 +573,7 @@ public class SumarisTableMetadata {
 
 	protected String createCountDataToUpdateQuery(SumarisDatabaseMetadata dbMeta) {
 		String query = String.format(QUERY_SELECT_COUNT_ALL,
-				tableName.render().toUpperCase(),
+				tableName.render(),
 				tableAlias);
 
 		// add a tripFilter on update date column

@@ -46,8 +46,9 @@
       )
     </select>
 
-    <select alias="DAYS_AT_SEA" dbms="hsqldb,pgsql" type="number">CAST(EXTRACT(DAY FROM(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME)) AS INT)</select>
+    <select alias="DAYS_AT_SEA" dbms="hsqldb" type="number">CAST(EXTRACT(DAY FROM(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME)) AS INT)</select>
     <select alias="DAYS_AT_SEA" dbms="oracle" type="number">FLOOR(T.RETURN_DATE_TIME - T.DEPARTURE_DATE_TIME)</select>
+    <select alias="DAYS_AT_SEA" dbms="pgsql" type="number">F_DATEDIFF('day', T.DEPARTURE_DATE_TIME, T.RETURN_DATE_TIME)</select>
 
     <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_FK</select> <!-- TODO à anonymiser (hash ?)-->
     <select alias="SAMPLING_COUNTRY" type="text">COALESCE(DL.LABEL, PL.LABEL)</select>

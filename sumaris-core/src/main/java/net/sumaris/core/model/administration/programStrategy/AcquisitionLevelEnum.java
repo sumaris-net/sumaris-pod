@@ -22,7 +22,10 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+
+import java.util.Arrays;
 
 @EntityEnum(entity = AcquisitionLevel.class,
     joinAttributes = AcquisitionLevel.Fields.LABEL)
@@ -30,6 +33,8 @@ public enum AcquisitionLevelEnum {
 
     TRIP(1, "TRIP"),
     OPERATION(3, "OPERATION"),
+    CHILD_OPERATION(20, "CHILD_OPERATION"),
+    PHYSICAL_GEAR(2, "PHYSICAL_GEAR"),
     CATCH_BATCH(4, "CATCH_BATCH"),
     SORTING_BATCH(5, "SORTING_BATCH"),
     /**
@@ -38,7 +43,9 @@ public enum AcquisitionLevelEnum {
     @Deprecated
     SURVIVAL_TEST(7, "SURVIVAL_TEST"),
     INDIVIDUAL_MONITORING(8, "INDIVIDUAL_MONITORING"),
-    SAMPLE(12, "SAMPLE");
+    SAMPLE(12, "SAMPLE"),
+    OBSERVED_LOCATION(10, "OBSERVED_LOCATION")
+    ;
 
     private Integer id;
     private String label;
@@ -55,6 +62,12 @@ public enum AcquisitionLevelEnum {
         throw new IllegalArgumentException("Unknown AcquisitionLevelEnum: " + id);
     }
 
+    public static AcquisitionLevelEnum byLabel(@NonNull final String label) {
+        return Arrays.stream(values())
+            .filter(level -> label.equals(level.label))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown AcquisitionLevelEnum: " + label));
+    }
 
     public Integer getId() {
         return id;

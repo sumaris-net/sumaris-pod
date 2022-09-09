@@ -70,8 +70,8 @@
     ]]></from>
 
     <from dbms="hsqldb,pgsql" group="hasSampleIds"><![CDATA[
-      UNNEST(SL.SAMPLE_IDS) WITH ORDINALITY COORDS(SAMPLE_ID, POS)
-        INNER JOIN &rawSpeciesLengthTableName HL on HL.SAMPLE_ID = SAMPLE_ID
+      UNNEST(SL.SAMPLE_IDS) WITH ORDINALITY AS SAMPLE (SAMPLE_ID, POS)
+        INNER JOIN &rawSpeciesLengthTableName HL on HL.SAMPLE_ID = SAMPLE.SAMPLE_ID
     ]]></from>
     <from dbms="oracle" group="hasSampleIds"><![CDATA[
       TABLE(SPLIT(SL.SAMPLE_IDS, ',')) SAMPLE_ID
@@ -81,7 +81,7 @@
     <where>1=1</where>
 
     <groupby>
-      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT,
+      SL.SAMPLING_TYPE, SL.LANDING_COUNTRY, SL.VESSEL_FLAG_COUNTRY, SL.YEAR, SL.PROJECT,
       CATCH_REGISTRATION, SPECIES_REGISTRATION,
       VESSEL_LENGTH_CLASS
     </groupby>
@@ -98,8 +98,8 @@
     <groupby group="hasId">HL.ID</groupby>
 
     <groupby>
-      SPECIES, CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY,
-      SUBSAMPLING_CATEGORY, STATION_NUMBER
+      SL.SPECIES, SL.CATCH_CATEGORY, SL.LANDING_CATEGORY, SL.COMMERCIAL_SIZE_CATEGORY_SCALE, SL.COMMERCIAL_SIZE_CATEGORY,
+      SL.SUBSAMPLING_CATEGORY, SL.STATION_NUMBER
     </groupby>
     <groupby group="sex">INDIVIDUAL_SEX</groupby>
     <groupby group="lengthClass">LENGTH_CLASS</groupby>

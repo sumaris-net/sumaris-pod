@@ -23,7 +23,7 @@
 package net.sumaris.core.dao.technical;
 
 public enum DatabaseType {
-        oracle,
-        postgresql,
-        hsqldb
-    }
+    oracle,
+    postgresql,
+    hsqldb
+}

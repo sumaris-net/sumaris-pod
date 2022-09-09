@@ -34,6 +34,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,15 +43,15 @@ import java.util.Optional;
  */
 @NoRepositoryBean
 public interface ReferentialRepository<
-    E extends IItemReferentialEntity,
-    V extends IReferentialVO,
+    ID extends Serializable,
+    E extends IItemReferentialEntity<ID>,
+    V extends IReferentialVO<ID>,
     F extends IReferentialFilter,
     O extends IFetchOptions
     >
-    extends SumarisJpaRepository<E, Integer, V> {
+    extends SumarisJpaRepository<E, ID, V> {
 
     List<V> findAll(F filter);
-
 
     List<V> findAll(F filter, @Nullable O fetchOptions);
 
@@ -79,17 +80,17 @@ public interface ReferentialRepository<
 
     long count(F filter);
 
-    V get(int id);
+    V get(ID id);
 
-    V get(int id, O fetchOptions);
+    V get(ID id, O fetchOptions);
 
     V getByLabel(String label);
 
     V getByLabel(String label, O fetchOption);
 
-    Optional<V> findById(int id);
+    Optional<V> findVOById(ID id);
 
-    Optional<V> findById(int id, O fetchOptions);
+    Optional<V> findVOById(ID id, O fetchOptions);
 
     Optional<V> findByLabel(String label);
 

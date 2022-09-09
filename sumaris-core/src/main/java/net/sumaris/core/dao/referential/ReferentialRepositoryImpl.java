@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Pageables;
@@ -40,9 +41,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -57,9 +60,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @NoRepositoryBean
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity, V extends IReferentialVO, F extends IReferentialFilter, O extends IFetchOptions>
-    extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements ReferentialRepository<E, V, F, O>, ReferentialSpecifications<E> {
+public abstract class ReferentialRepositoryImpl<
+    ID extends Serializable,
+    E extends IItemReferentialEntity<ID>,
+    V extends IReferentialVO<ID>,
+    F extends IReferentialFilter,
+    O extends IFetchOptions>
+    extends SumarisJpaRepositoryImpl<E, ID, V>
+    implements ReferentialRepository<ID, E, V, F, O>, ReferentialSpecifications<ID, E> {
 
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
@@ -87,6 +95,10 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
     public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
         Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
         TypedQuery<E> query = getQuery(spec, page, getDomainClass());
+
+        // Add hints
+        configureQuery(query, page, fetchOptions);
+
         return streamQuery(query)
             .map(entity -> toVO(entity, fetchOptions))
             .collect(Collectors.toList());
@@ -142,12 +154,12 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
     }
 
     @Override
-    public V get(int id) {
+    public V get(ID id) {
         return toVO(this.getById(id));
     }
 
     @Override
-    public V get(int id, O fetchOptions) {
+    public V get(ID id, O fetchOptions) {
         return toVO(this.getById(id), fetchOptions);
     }
 
@@ -164,12 +176,12 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
     }
 
     @Override
-    public Optional<V> findById(int id) {
-        return findById(id, null);
+    public Optional<V> findVOById(ID id) {
+        return findVOById(id, null);
     }
 
     @Override
-    public Optional<V> findById(int id, O fetchOptions) {
+    public Optional<V> findVOById(ID id, O fetchOptions) {
         return super.findById(id).map(entity -> toVO(entity, fetchOptions));
     }
 
@@ -257,7 +269,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
         return toSpecification(filter, null);
     }
 
-    protected Specification<E> toSpecification(F filter, O fetchOptions) {
+    protected Specification<E> toSpecification(@NonNull F filter, O fetchOptions) {
         // Special case when filtering by ID:
         if (filter.getId() != null) {
             return BindableSpecification.where(hasId(filter.getId()));
@@ -266,7 +278,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
 
         // default specification
         return BindableSpecification
-            .where(inStatusIds(filter))
+            .where(inStatusIds(filter.getStatusIds()))
             .and(hasLabel(filter.getLabel()))
             .and(inLevelIds(clazz, filter.getLevelId() != null ? new Integer[]{filter.getLevelId()} : filter.getLevelIds()))
             .and(inLevelLabels(clazz, filter.getLevelLabel() != null ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels()))
@@ -276,4 +288,7 @@ public abstract class ReferentialRepositoryImpl<E extends IItemReferentialEntity
             .and(excludedIds(filter.getExcludedIds()));
     }
 
+    protected void configureQuery(TypedQuery<E> query, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {
+        // Can be override by subclasses
+    }
 }
