@@ -39,6 +39,7 @@ import net.sumaris.core.util.env.ConfigurableEnvironments;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.*;
+import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -200,7 +201,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         if (log.isTraceEnabled())
             log.trace(applicationConfig.getPrintableConfig(null, 4));
-
     }
 
     public void doAllAction() throws InvocationTargetException, IllegalAccessException, InstantiationException {
@@ -371,6 +371,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         if (log.isInfoEnabled()) {
             String appName = applicationConfig.getOption(SumarisConfigurationOption.APP_NAME.getKey());
             log.info(String.format("Starting {%s} on basedir {%s}", appName, appBasedir));
+            log.info(String.format("Database URL {%s}", getJdbcURL()));
         }
         applicationConfig.setOption(
             SumarisConfigurationOption.BASEDIR.getKey(),

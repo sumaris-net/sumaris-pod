@@ -31,6 +31,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.util.I18nUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -54,11 +55,12 @@ public abstract class TestConfiguration {
     }
 
     @Bean
+    @Primary
     public SumarisConfiguration configuration() {
         // If exists, use existing config (from DatabaseResource)
         SumarisConfiguration config = SumarisConfiguration.getInstance();
         if (config == null) {
-            return createConfiguration(getConfigFileName(), getConfigArgs());
+            config = createConfiguration(getConfigFileName(), getConfigArgs());
         }
 
         // Init i18n
