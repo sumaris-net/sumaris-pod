@@ -140,7 +140,7 @@
     <kalium.version>0.8.2</kalium.version>
     <scrypt.version>1.4.0</scrypt.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
-    <graphql-java.version>16.2</graphql-java.version>
+    <graphql-java.version>17.4</graphql-java.version>
     <graphql-java-tools.version>11.0.1</graphql-java-tools.version>
     <graphql-java-servlet.version>11.1.0</graphql-java-servlet.version>
     <graphql-spring-boot.version>11.1.0</graphql-spring-boot.version>
