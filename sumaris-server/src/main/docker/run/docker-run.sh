@@ -24,11 +24,11 @@ CONTAINER_NAME="${CONTAINER_PREFIX}-${VERSION}"
 CONFIG_FILE=${CONFIG}application-${PROFILES}.properties
 
 # Check arguments
-#if [[ (! $VERSION =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc|SNAPSHOT)[-0-9]*)?$ && $VERSION != 'imagine' ) ]]; then
-#  echo "ERROR: Invalid version"
-#  echo " Usage: $0 <version> <port>"
-#  exit 1
-#fi
+if [[ (! $VERSION =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc|SNAPSHOT)[-0-9]*)?$ && $VERSION != 'develop' && $VERSION != 'imagine' $VERSION =~ ^feature[/][a-zA-Z0-9_-]+$ ) ]]; then
+  echo "ERROR: Invalid version"
+  echo " Usage: $0 <version> <port>"
+  exit 1
+fi
 if [[ (! $PORT =~ ^[0-9]+$ ) ]]; then
   echo "ERROR: Invalid port"
   echo " Usage: $0 <version> <port>"
