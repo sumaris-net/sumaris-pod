@@ -3,10 +3,11 @@
 APP_NAME=sumaris
 BASEDIR=/app
 LOG_DIR=/app/logs
+TNS_ADMIN=/home/tnsnames
 JAVA_OPTS="${JAVA_OPTS} -D${APP_NAME}.basedir=${BASEDIR}"
 JAVA_OPTS="${JAVA_OPTS} -Dspring.config.location=file:${BASEDIR}/config/"
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.log.file=${LOG_DIR}/${APP_NAME}-pod.log"
-JAVA_OPTS="${JAVA_OPTS} -Doracle.net.tns_admin=/home/tnsnames"
+JAVA_OPTS="${JAVA_OPTS} -Doracle.net.tns_admin=${TNS_ADMIN}"
 JAVA_OPTS="${JAVA_OPTS} -Doracle.jdbc.timezoneAsRegion=false"
 [[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Dspring.profiles.active=${PROFILES}"
 [[ "_${TZ}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Duser.timezone=${TZ}"

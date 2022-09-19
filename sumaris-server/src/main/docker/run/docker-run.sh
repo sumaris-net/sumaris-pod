@@ -6,21 +6,22 @@ BASEDIR=$(cd "${SCRIPT_DIR}" && pwd -P)
 VERSION=$1
 PORT=$2
 PROFILES=$3
-CONFIG=/home/isi-projets/sih/gestion/tools/imagine/config/
+CONFIG=${BASEDIR}/config
 TIMEZONE=UTC
-[[ "_${VERSION}" = "_" ]] && VERSION=imagine
-[[ "_${PORT}" = "_" && "${VERSION}" = "imagine" ]] && PORT=8080
-[[ "_${PROFILES}" = "_" && "${VERSION}" = "imagine" ]] && PROFILES=dev
+[[ "_${VERSION}" = "_" ]] && VERSION=develop
+[[ "_${PORT}" = "_" && "${VERSION}" = "develop" ]] && PORT=8080
+[[ "_${PROFILES}" = "_" && "${VERSION}" = "develop" ]] && PROFILES=dev
 
 CI_REGISTRY=gitlab-registry.ifremer.fr
 CI_PROJECT_NAME=sumaris-pod
 CI_PROJECT_PATH=sih-public/sumaris/sumaris-pod
 CI_REGISTRY_IMAGE_PATH=${CI_REGISTRY}/${CI_PROJECT_PATH}
-CI_REGISTER_USER=
-CI_REGISTER_PWD=
+CI_REGISTER_USER=gitlab+deploy-token
+CI_REGISTER_PWD=<REPLACE_WITH_DEPLOY_TOKEN>
 CI_REGISTRY_IMAGE=${CI_REGISTRY_IMAGE_PATH}:${VERSION}
 CONTAINER_PREFIX="${CI_PROJECT_NAME}-${PORT}"
 CONTAINER_NAME="${CONTAINER_PREFIX}-${VERSION}"
+CONFIG_FILE=${CONFIG}application-${PROFILES}.properties
 
 # Check arguments
 #if [[ (! $VERSION =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc|SNAPSHOT)[-0-9]*)?$ && $VERSION != 'imagine' ) ]]; then
@@ -31,6 +32,15 @@ CONTAINER_NAME="${CONTAINER_PREFIX}-${VERSION}"
 if [[ (! $PORT =~ ^[0-9]+$ ) ]]; then
   echo "ERROR: Invalid port"
   echo " Usage: $0 <version> <port>"
+  exit 1
+fi
+# Check if config exists
+if [[ ! -d "${CONFIG}" ]]; then
+  echo "ERROR: Config directory not found: '${CONFIG}'"
+  exit 1
+fi
+if [[ ! -f ${CONFIG_FILE} ]]; then
+  echo "ERROR: Config file not found: '${CONFIG_FILE}'"
   exit 1
 fi
 
@@ -54,11 +64,6 @@ docker logout ${CI_REGISTRY}
 if [[ ! -z  $(docker ps -f name=${CONTAINER_PREFIX} -q) ]]; then
   echo "Stopping running instance..."
   docker stop $(docker ps -f name=${CONTAINER_PREFIX} -q)
-fi
-
-if [[ ! -d "${CONFIG}" ]]; then
-  echo "ERROR: Config (directory or file) not found: '${CONFIG}'"
-  exit 1
 fi
 
 # Waiting container really removed
