@@ -372,6 +372,11 @@ public class LandingServiceImpl implements LandingService {
                 // Remove link parent/children
                 sample.setParent(null);
                 sample.setChildren(null);
+
+                // landingId can have been deleted by saveByOperationId()
+                // TODO: review this with Ludo
+                // FIX IMAGINE issue, on samples table (when saving entities, sample.equals() always return false, because of landingId=null in received SampleVO)
+                sample.setLandingId(source.getId());
             });
 
             source.setSamples(samples);
