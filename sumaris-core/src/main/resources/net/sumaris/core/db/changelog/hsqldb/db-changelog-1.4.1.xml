@@ -27,13 +27,13 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.4.1.xml">
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443193-97">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1600856443193-97" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <sequenceExists sequenceName="USER_INTERACTION_SEQ"/>
       </not>
     </preConditions>
-    <createSequence incrementBy="50" sequenceName="USER_INTERACTION_SEQ" startValue="1"/>
+    <createSequence sequenceName="USER_INTERACTION_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1600856443193-98">
     <preConditions onFail="MARK_RAN">

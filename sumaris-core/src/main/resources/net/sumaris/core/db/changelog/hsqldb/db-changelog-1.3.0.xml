@@ -216,7 +216,7 @@
         <sequenceExists sequenceName="FISHING_AREA_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="FISHING_AREA_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
 
   <!-- Add table LOCATION_LINE -->
