@@ -36,8 +36,6 @@ import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 @EqualsAndHashCode(callSuper = true)
 public class ExtractionPmfmTripContextVO extends ExtractionRdbTripContextVO {
 
-    String sampleTableName; // ST (survival test) table
-
     String releaseTableName; // RL (release) table
 
 }
