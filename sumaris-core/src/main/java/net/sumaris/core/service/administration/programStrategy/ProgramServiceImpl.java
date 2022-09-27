@@ -31,6 +31,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
@@ -47,6 +48,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service("programService")
 @Slf4j
@@ -108,6 +110,19 @@ public class ProgramServiceImpl implements ProgramService {
 	@Override
 	public List<ReferentialVO> getAcquisitionLevelsById(int id) {
 		return programRepository.getAcquisitionLevelsByProgramId(id);
+	}
+
+	@Override
+	public boolean hasAcquisitionLevelById(int id, @NonNull AcquisitionLevelEnum acquisitionLevel) {
+		Preconditions.checkNotNull(acquisitionLevel.getLabel());
+		return Beans.getStream(this.getAcquisitionLevelsById(id))
+			.anyMatch(item -> item.getLabel().equalsIgnoreCase(item.getLabel()));
+	}
+
+	@Override
+	public boolean hasAcquisitionLevelByLabel(String label, AcquisitionLevelEnum acquisitionLevel) {
+		ProgramVO program = getByLabel(label);
+		return hasAcquisitionLevelById(program.getId(), acquisitionLevel);
 	}
 
 	@Override

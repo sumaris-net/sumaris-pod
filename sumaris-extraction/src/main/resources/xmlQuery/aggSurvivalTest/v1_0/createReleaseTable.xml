@@ -51,7 +51,7 @@
     <select alias="STATION_NUMBER" dbms="oracle" type="number">ORA_HASH(RL.TRIP_CODE || '-' || RL.STATION_NUMBER)</select>
 
     <!-- hidden column -->
-    <select alias="INDIVIDUAL_ID" type="hidden">RL.INDIVIDUAL_ID</select>
+    <select alias="SAMPLE_ID" type="hidden">RL.SAMPLE_ID</select>
 
     <!-- SURVIVAL TEST -->
     <select alias="SPECIES_CODE" type="number">RL.SPECIES_CODE</select>

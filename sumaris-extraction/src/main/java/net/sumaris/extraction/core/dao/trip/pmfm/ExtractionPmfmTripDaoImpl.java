@@ -30,6 +30,7 @@ import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnu
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
@@ -79,11 +80,16 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         List<String> programLabels = getTripProgramLabels(context);
 
+        // Check if samples have been enabled:
+        // - by program properties
+        // - or by pmfm strategies
         boolean hasSamples = programLabels.stream()
-            .anyMatch(label -> this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()));
+            .anyMatch(label ->
+                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()))
+            || programLabels.stream().anyMatch(label -> this.programService.hasAcquisitionLevelByLabel(label, AcquisitionLevelEnum.SAMPLE));
 
         if (hasSamples) {
-            context.setSurvivalTestTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
+            context.setSampleTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
             context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
             // Stop here, if sheet already filled
@@ -91,7 +97,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             if (sheetName != null && context.hasSheet(sheetName)) return context;
             try {
                 // Survival test table
-                long rowCount = createSurvivalTestTable(context);
+                long rowCount = createSampleTable(context);
                 if (rowCount == 0) return context;
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
 
@@ -251,36 +257,49 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         return xmlQuery;
     }
 
-    protected long createSurvivalTestTable(C context) {
+    protected long createSampleTable(C context) {
 
-        log.debug(String.format("Extraction #%s > Creating survival tests table...", context.getId()));
-        XMLQuery xmlQuery = createXMLQuery(context, "createSurvivalTestTable");
+        log.debug(String.format("Extraction #%s > Creating sample table...", context.getId()));
+        XMLQuery xmlQuery = createXMLQuery(context, "createSampleTable");
 
-        injectPmfmColumns(context, xmlQuery,
-                getTripProgramLabels(context),
-                AcquisitionLevelEnum.SAMPLE);
+        List<String> programLabels = getTripProgramLabels(context);
+
+        // Inject PMFM columns on SAMPLE
+        List<ExtractionPmfmColumnVO> samplePmfms = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.SAMPLE);
+        URL samplePmfmInjectionQuery = getInjectionQueryByAcquisitionLevel(context, AcquisitionLevelEnum.SAMPLE);
+        injectPmfmColumns(context, xmlQuery, samplePmfms, samplePmfmInjectionQuery, null);
+
+        // Inject PMFM columns on INDIVIDUAL MONITORING
+        {
+            Integer[] excludedPmfmIds = samplePmfms.stream().map(ExtractionPmfmColumnVO::getPmfmId).toArray(Integer[]::new);
+            List<ExtractionPmfmColumnVO> individualMonitoringPmfms = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.INDIVIDUAL_MONITORING);
+            URL individualMonitoringPmfmInjectionQuery = getInjectionQueryByAcquisitionLevel(context, AcquisitionLevelEnum.INDIVIDUAL_MONITORING);
+            injectPmfmColumns(context, xmlQuery, individualMonitoringPmfms, individualMonitoringPmfmInjectionQuery, null,
+                excludedPmfmIds // Excludes all samples ids, to avoid duplicated column names
+            );
+        }
 
         xmlQuery.bind("stationTableName", context.getStationTableName());
-        xmlQuery.bind("survivalTestTableName", context.getSurvivalTestTableName());
+        xmlQuery.bind("sampleTableName", context.getSampleTableName());
 
         // aggregate insertion
         execute(context, xmlQuery);
-        long count = countFrom(context.getSurvivalTestTableName());
+        long count = countFrom(context.getSampleTableName());
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getSurvivalTestTableName(), context.getFilter(), ST_SHEET_NAME);
+            count -= cleanRow(context.getSampleTableName(), context.getFilter(), ST_SHEET_NAME);
         }
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getSurvivalTestTableName(),
+            context.addTableName(context.getSampleTableName(),
                     ST_SHEET_NAME,
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
-            log.debug(String.format("Extraction #%s > Survival test table: %s rows inserted", context.getId(), count));
+            log.debug(String.format("Extraction #%s > Sample table: %s rows inserted", context.getId(), count));
         } else {
-            context.addRawTableName(context.getSurvivalTestTableName());
+            context.addRawTableName(context.getSampleTableName());
         }
         return count;
     }
@@ -325,14 +344,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionParentOperationPmfm":
             case "injectionRawSpeciesListPmfm":
             case "injectionSpeciesListPmfm":
-            case "injectionSurvivalTestPmfm":
+            case "injectionSamplePmfm":
             case "injectionTripTable":
             case "injectionStationTable":
             case "injectionRawSpeciesListTable":
             case "injectionSpeciesListTable":
             case "injectionSpeciesLengthTable":
             case "createReleaseTable":
-            case "createSurvivalTestTable":
+            case "createSampleTable":
                 return getQueryFullName(PmfmTripSpecification.FORMAT, PmfmTripSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
@@ -388,8 +407,10 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
             .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfm));
 
-        return pmfmColumns.stream().filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-            .map(ExtractionPmfmColumnVO::getLabel).collect(Collectors.joining(","));
+        return pmfmColumns.stream()
+            .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
+            .map(ExtractionPmfmColumnVO::getLabel)
+            .collect(Collectors.joining(","));
     }
 
     protected URL getInjectionQueryByAcquisitionLevel(C context, AcquisitionLevelEnum acquisitionLevel) {
@@ -405,7 +426,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case SORTING_BATCH:
                 return getXMLQueryURL(context, "injectionRawSpeciesListPmfm");
             case SAMPLE:
-                return getXMLQueryURL(context, "injectionSurvivalTestPmfm");
+            case INDIVIDUAL_MONITORING:
+                return getXMLQueryURL(context, "injectionSamplePmfm");
             default:
                 return null;
         }
