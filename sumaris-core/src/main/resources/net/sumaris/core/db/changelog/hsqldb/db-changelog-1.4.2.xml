@@ -32,7 +32,7 @@
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ"/></not>
     </preConditions>
-    <createSequence sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ" startValue="50"/>
+    <createSequence sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-100" runOnChange="true">
     <preConditions onFail="MARK_RAN">
