@@ -24,13 +24,14 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
+import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
@@ -42,17 +43,18 @@ import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.pmfm.AggregationPmfmTripContextVO;
 import net.sumaris.extraction.core.vo.trip.rdb.AggregationRdbTripContextVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -133,8 +135,7 @@ public class AggregationPmfmTripDaoImpl<
 
         switch (queryName) {
             case "injectionSpeciesLengthTable":
-            case "injectionSamplePmfm":
-            case "injectionReleasePmfm":
+            case "injectionPmfm":
                 return getQueryFullName(AggPmfmTripSpecification.FORMAT, AggPmfmTripSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
@@ -206,17 +207,19 @@ public class AggregationPmfmTripDaoImpl<
         List<String> columnNames = rawSampleTable.getColumnNames().stream()
             .map(String::toLowerCase)
             .collect(Collectors.toList());
-        int startIndex = columnNames.indexOf(AggPmfmTripSpecification.COLUMN_INDIVIDUAL_COUNT.toLowerCase());
-        if (startIndex != -1) {
-           URL injectionQuery = getXMLQueryURL(context, "injectionSamplePmfm");
-           for(int i = startIndex + 1; i < columnNames.size(); i++) {
-               String columnName = columnNames.get(i).toLowerCase();
-               String bindSuffix = StringUtils.underscoreToChangeCase(columnName).toLowerCase();
-               xmlQuery.injectQuery(injectionQuery, "%bindSuffix%", bindSuffix);
-               xmlQuery.bind("columnalias" + bindSuffix, columnName);
-               xmlQuery.bind("columnname" + bindSuffix, columnName);
-           }
+        int lastStaticColumnIndex = columnNames.indexOf(AggPmfmTripSpecification.COLUMN_INDIVIDUAL_COUNT);
+
+        // If Pmfm columns exists: inject all
+        if (lastStaticColumnIndex != -1 && lastStaticColumnIndex < columnNames.size() - 1) {
+            injectPmfmColumns(context, xmlQuery,
+                "ST",
+                rawSampleTable,
+                columnNames.subList(
+                    lastStaticColumnIndex + 1,
+                    columnNames.size() - 1)
+            );
         }
+
         return xmlQuery;
     }
 
@@ -281,5 +284,36 @@ public class AggregationPmfmTripDaoImpl<
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
         return xmlQuery;
+    }
+
+    protected void injectPmfmColumns(C context,
+                                     XMLQuery xmlQuery,
+                                     String tableAlias,
+                                     SumarisTableMetadata rawTable,
+                                     List<String> columnNames){
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(columnNames));
+        injectPmfmColumns(context,
+            xmlQuery,
+            tableAlias,
+            columnNames.stream().map(rawTable::getColumnMetadata)
+        );
+    }
+    protected void injectPmfmColumns(C context,
+                                     @NonNull final XMLQuery xmlQuery,
+                                     @NonNull final String tableAlias,
+                                     @NonNull Stream<SumarisColumnMetadata> columns){
+        final URL injectionQuery = getXMLQueryURL(context, "injectionPmfm");
+        columns
+            .forEach(column -> {
+                String columnName = column.getName();
+                String aliasedColumnName = SumarisTableMetadatas.getAliasedColumnName(tableAlias, column.getName());
+                boolean isNumericColumn = SumarisTableMetadatas.isNumericColumn(column);
+                String suffix = StringUtils.capitalize(StringUtils.underscoreToChangeCase(columnName));
+                xmlQuery.injectQuery(injectionQuery, "%suffix%", suffix);
+                xmlQuery.bind("columnAlias" + suffix, columnName);
+                xmlQuery.bind("columnName" + suffix, aliasedColumnName);
+                xmlQuery.setGroup("number" + suffix, isNumericColumn);
+                xmlQuery.setGroup("text" + suffix, !isNumericColumn);
+            });
     }
 }

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="aggregationCreateReleaseTable">
+
+  <query type="create" temp="false" table="&amp;releaseTableName">
+
+    <select alias="RECORD_TYPE" type="text">UPPER('RL')</select>
+
+    <!-- PK -->
+    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">S.YEAR</select>
+    <select alias="PROJECT" type="text">S.PROJECT</select>
+    <select alias="CATCH_REGISTRATION" type="text">S.CATCH_REGISTRATION</select>
+    <select alias="SPECIES_REGISTRATION" type="text">S.SPECIES_REGISTRATION</select>
+    <select alias="VESSEL_LENGTH_CLASS" type="text">S.VESSEL_LENGTH_CLASS</select>
+
+    <select alias="MONTH" group="month" type="number">S.MONTH</select>
+    <select alias="QUARTER" group="quarter" type="number">S.QUARTER</select>
+    <select alias="AREA" group="area" type="text">S.AREA</select>
+    <select alias="STATISTICAL_RECTANGLE" group="rect" type="text">S.STATISTICAL_RECTANGLE</select>
+    <select alias="SQUARE" group="square" type="text">S.SQUARE</select>
+    <select alias="NATIONAL_METIER" group="nationalMetier" type="text">S.NATIONAL_METIER</select>
+    <select alias="EU_METIER_LEVEL5" group="euMetierLevel5" type="text">S.EU_METIER_LEVEL5</select>
+    <select alias="EU_METIER_LEVEL6" group="euMetierLevel6" type="text">S.EU_METIER_LEVEL6</select>
+    <select alias="GEAR_TYPE" group="gearType" type="text">S.GEAR_TYPE</select>
+
+    <!-- Unique identifier for station -->
+    <select alias="STATION_NUMBER" dbms="hsqldb,pgsql" type="number">ABS(F_HASH_CODE(RL.TRIP_CODE || '-' || RL.STATION_NUMBER))</select>
+    <select alias="STATION_NUMBER" dbms="oracle" type="number">ORA_HASH(RL.TRIP_CODE || '-' || RL.STATION_NUMBER)</select>
+
+    <!-- hidden column -->
+    <select alias="SAMPLE_ID" type="hidden">RL.SAMPLE_ID</select>
+
+    <!-- SURVIVAL TEST -->
+    <select alias="SPECIES_CODE" type="number">RL.SPECIES_CODE</select>
+    <select alias="SPECIES_NAME" type="number">RL.SPECIES_NAME</select>
+    <select alias="TAG_ID" type="text">RL.TAG_ID</select>
+
+    <!-- INDIVIDUAL RELEASE -->
+    <select alias="MEASURE_TIME" type="text">RL.MEASURE_TIME</select>
+    <select alias="LATITUDE" type="text">RL.LATITUDE</select>
+    <select alias="LONGITUDE" type="text">RL.LONGITUDE</select>
+
+    <from alias="S">&amp;stationTableName</from>
+    <from dbms="hsqldb"><![CDATA[
+          UNNEST(S.TRIP_CODES, S.STATION_NUMBERS) WITH ORDINALITY COORDS(TRIP_CODE, STATION_NUMBER, POS)
+            INNER JOIN &rawReleaseTableName RL on RL.TRIP_CODE = TRIP_CODE and RL.STATION_NUMBER = STATION_NUMBER
+        ]]></from>
+    <from group="pgsql"><![CDATA[
+          UNNEST(S.TRIP_CODES, S.STATION_NUMBERS) WITH ORDINALITY COORDS(T_CODE, S_NUMBER, POS)
+            INNER JOIN &rawReleaseTableName RL on RL.TRIP_CODE = T_CODE and RL.STATION_NUMBER = S_NUMBER
+        ]]></from>
+    <from dbms="oracle"><![CDATA[
+          TABLE(SPLIT(S.STATION_NUMBERS, ',')) STATION_NUMBER
+            INNER JOIN &rawReleaseTableName RL on RL.STATION_NUMBER = STATION_NUMBER.COLUMN_VALUE
+        ]]></from>
+
+  </query>
+
+</queries>

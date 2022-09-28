@@ -22,7 +22,8 @@
 
 <query type="select">
 
-  <select alias="&amp;columnalias%bindSuffix%" type="number">ST.&amp;columnname%bindSuffix% </select>
+  <select alias="&amp;columnAlias%suffix%" type="number" group="&amp;number%suffix%">&amp;columnName%suffix%</select>
+  <select alias="&amp;columnAlias%suffix%" type="text" group="&amp;text%suffix%">&amp;columnName%suffix%</select>
 
-  <groupby>&amp;columnname%bindSuffix%</groupby>
+  <groupby>&amp;columnName%suffix%</groupby>
 </query>
