@@ -71,4 +71,8 @@ public interface EntityEventService {
 
     <ID extends Serializable, T extends IEntity<ID>>
     Observable<IEntityEvent> watchEntityEvents(Class<T> entityClass);
+
+    <O> Observable<O>  watchByLoader(Callable<Optional<O>> loader,
+                                     int intervalInSeconds,
+                                     boolean startWithActualValue);
 }

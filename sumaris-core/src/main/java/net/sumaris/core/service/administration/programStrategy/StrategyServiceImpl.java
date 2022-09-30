@@ -88,6 +88,11 @@ public class StrategyServiceImpl implements StrategyService {
 	}
 
 	@Override
+	public Date maxUpdateDateByFilter(StrategyFilterVO filter) {
+		return strategyRepository.maxUpdateDateByFilter(filter);
+	}
+
+	@Override
 	public List<StrategyVO> findByFilter(StrategyFilterVO filter, Page page, StrategyFetchOptions fetchOptions) {
 		return strategyRepository.findAll(filter, page, fetchOptions);
 	}
