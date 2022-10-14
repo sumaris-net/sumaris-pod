@@ -42,6 +42,7 @@ public class AggregationRdbTripContextVO extends AggregationTripContextVO {
     String stationTableName; // HH table
     String speciesListTableName; // SL table
     String speciesLengthTableName; // HL table
+
     String sampleTableName; // CA table
 
     String speciesLengthMapTableName; // Map to get SL.ID from HL.ID

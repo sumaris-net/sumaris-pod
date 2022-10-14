@@ -47,6 +47,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -118,17 +119,20 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
 
         String sheetName = strata != null && strata.getSheetName() != null ? strata.getSheetName() : filter.getSheetName();
         strata = nullToEmptyStrata(source, strata, sheetName);
-        sheetName = sheetName != null ? sheetName : strata.getSheetName();
-        Preconditions.checkArgument(StringUtils.isNotBlank(sheetName), String.format("Missing 'filter.%s' or 'strata.%s",
+        final String finalSheetName = sheetName != null ? sheetName : strata.getSheetName();
+        Preconditions.checkArgument(StringUtils.isNotBlank(finalSheetName), String.format("Missing 'filter.%s' or 'strata.%s",
             ExtractionFilterVO.Fields.SHEET_NAME,
             AggregationStrataVO.Fields.SHEET_NAME));
 
         // Force strata and filter to have the same sheet
-        strata.setSheetName(sheetName);
+        strata.setSheetName(finalSheetName);
 
         // Prepare the read filter
         ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
-            .sheetName(filter.getSheetName())
+            .sheetName(finalSheetName)
+            .criteria(filter.getCriteria().stream()
+                .filter(criteria -> finalSheetName.equals(criteria.getSheetName()))
+                .collect(Collectors.toList()))
             .build();
 
         String tableName = StringUtils.isNotBlank(sheetName) ? source.findTableNameBySheetName(sheetName).orElse(null) : null;

@@ -50,7 +50,8 @@ public class ExtractionFilterVO implements Serializable {
 
     private String sheetName;
 
-    private Boolean preview;
+    @Builder.Default
+    private Boolean preview = false;
 
     private Boolean distinct;
 

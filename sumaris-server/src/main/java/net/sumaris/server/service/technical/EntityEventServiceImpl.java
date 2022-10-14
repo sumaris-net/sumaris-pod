@@ -184,7 +184,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         // Add timer
         if (intervalInSeconds != null && intervalInSeconds > 0) {
             result = Observable.merge(result,
-                watchCollection(loader, intervalInSeconds, false));
+                watchAtInterval(loader, intervalInSeconds));
         }
 
         // Distinguish changed (by hash code)
@@ -196,6 +196,32 @@ public class EntityEventServiceImpl implements EntityEventService {
                 if (initialVOs != null) {
                     hashCode.set(initialVOs.hashCode());
                     result = result.startWith(initialVOs);
+                }
+            } catch (Exception e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public <O> Observable<O>  watchByLoader(Callable<Optional<O>> loader,
+                                            int intervalInSeconds,
+                                            boolean startWithActualValue) {
+        AtomicReference<Integer> hashCode = new AtomicReference<>();
+
+        // Distinguish changed (by hash code)
+        Observable<O> result = Observables.distinctUntilChanged(
+            watchAtInterval(loader, intervalInSeconds),
+            hashCode);
+
+        if (startWithActualValue) {
+            try {
+                O initial = loader.call().orElse(null);
+                if (initial != null) {
+                    hashCode.set(initial.hashCode());
+                    result = result.startWith(initial);
                 }
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -224,6 +250,13 @@ public class EntityEventServiceImpl implements EntityEventService {
                     if (newMaxUpdateDate == null) {
                         lastUpdateDate.set(null);
                         lastHashCode.set(null);
+                        return Optional.of(list); // OK
+                    }
+
+                    // first time we compute the max(updateDate)
+                    if (lastUpdateDate.get() == null
+                        || lastUpdateDate.get().before(newMaxUpdateDate)) {
+                        lastUpdateDate.set(newMaxUpdateDate);
                         return Optional.of(list); // OK
                     }
 

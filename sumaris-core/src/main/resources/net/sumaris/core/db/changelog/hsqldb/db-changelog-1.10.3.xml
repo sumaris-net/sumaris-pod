@@ -94,7 +94,7 @@
 				<sequenceExists sequenceName="survey_measurement_seq"/>
 			</not>
 		</preConditions>
-		<createSequence sequenceName="survey_measurement_seq" incrementBy="50"/>
+		<createSequence sequenceName="survey_measurement_seq" incrementBy="50" startValue="50"/>
 	</changeSet>
 
 	<!-- update SYSTEM_VERSION -->

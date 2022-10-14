@@ -105,9 +105,6 @@ public class ExtractionDaoDispatcherImpl implements ExtractionDaoDispatcher {
 
         filter = ExtractionFilterVO.nullToEmpty(filter);
 
-        // Force full extraction (not a preview)
-        filter.setPreview(false);
-
         return getDao(type).execute(filter);
     }
 

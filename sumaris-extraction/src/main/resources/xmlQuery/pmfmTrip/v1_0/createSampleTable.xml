@@ -22,7 +22,7 @@
 
 <queries name="extractionCreateSurvivalTestTable">
 
-  <query type="create" temp="false" table="&amp;survivalTestTableName">
+  <query type="create" temp="false" table="&amp;sampleTableName">
 
     <with alias="SAMPLE_WITH_MEAS">
       <subquery>
@@ -34,11 +34,14 @@
         <subselect alias="PMFM_FK" type="number">SM.PMFM_FK</subselect>
         <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
         <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
+        <subselect alias="INDIVIDUAL_COUNT" type="number">SA.INDIVIDUAL_COUNT</subselect>
+        <subselect alias="MONITORING_ID" type="number">CHILD_SA.RANK_ORDER</subselect>
 
         <from alias="S">&amp;stationTableName</from>
         <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
-        <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
+        <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = SA.ID</from>
         <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
+        <from join="true">LEFT OUTER JOIN SAMPLE CHILD_SA ON CHILD_SA.PARENT_SAMPLE_FK = SA.ID AND CHILD_SA.LABEL LIKE UPPER('INDIVIDUAL_MONITORING#%')</from>
 
         <union>
           <subquery>
@@ -50,6 +53,8 @@
             <subselect alias="PMFM_FK" type="number">SM.PMFM_FK</subselect>
             <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
             <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
+            <subselect alias="INDIVIDUAL_COUNT" type="number">PARENT_SA.INDIVIDUAL_COUNT</subselect>
+            <subselect alias="MONITORING_ID" type="number">SA.RANK_ORDER</subselect>
 
             <from alias="S">&amp;stationTableName</from>
             <from join="true">INNER JOIN SAMPLE PARENT_SA ON PARENT_SA.OPERATION_FK = S.STATION_NUMBER AND PARENT_SA.LABEL LIKE UPPER('SAMPLE#%')</from>
@@ -69,12 +74,13 @@
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
-    <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select> <!-- hidden column -->
+    <select alias="SAMPLE_ID" type="hidden">T.ID</select> <!-- hidden column -->
 
-    <!-- SURVIVAL TEST -->
-    <select alias="SPECIES_CODE" type="number">COALESCE(TN.LABEL, TG.LABEL)</select>
-    <select alias="SPECIES_NAME" type="number">COALESCE(TN.NAME, TG.NAME)</select>
-    <select alias="SAMPLE_DATE" type="number">T.SAMPLE_DATE</select>
+    <!-- SAMPLE -->
+    <select alias="SPECIES_CODE" type="text">COALESCE(TN.LABEL, TG.LABEL)</select>
+    <select alias="SPECIES_NAME" type="text">COALESCE(TN.NAME, TG.NAME)</select>
+    <select alias="SAMPLE_DATE" type="text">T.SAMPLE_DATE</select>
+    <select alias="INDIVIDUAL_COUNT" type="number">COALESCE(T.INDIVIDUAL_COUNT, 1)</select>
 
     <from alias="S">&amp;stationTableName</from>
     <from join="true">INNER JOIN SAMPLE_WITH_MEAS T ON T.STATION_NUMBER = S.STATION_NUMBER</from>
@@ -83,8 +89,10 @@
 
     <groupby>
       RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
-      T.ID, SPECIES_CODE, SPECIES_NAME, T.SAMPLE_DATE
+      SPECIES_CODE, SPECIES_NAME, SAMPLE_ID, T.SAMPLE_DATE, T.INDIVIDUAL_COUNT, T.MONITORING_ID
     </groupby>
+
+    <orderby direction="ASC">SAMPLE_ID,T.MONITORING_ID</orderby>
   </query>
 
 </queries>

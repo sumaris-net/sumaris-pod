@@ -30,6 +30,7 @@
         <subselect alias="ID" type="number">SA.ID</subselect>
         <subselect alias="SAMPLE_DATE" type="date">SA.SAMPLE_DATE</subselect>
         <subselect alias="REFERENCE_TAXON_FK" type="text">SA.REFERENCE_TAXON_FK</subselect>
+        <subselect alias="TAXON_GROUP_FK" type="text">SA.TAXON_GROUP_FK</subselect>
         <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
         <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
         <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
@@ -37,7 +38,7 @@
 
         <from alias="S">&amp;stationTableName</from>
         <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
-        <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
+        <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = SA.ID</from>
         <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
         <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
         <from join="true">LEFT OUTER JOIN SAMPLE CHILD_SA ON CHILD_SA.PARENT_SAMPLE_FK = SA.ID AND CHILD_SA.LABEL LIKE UPPER('INDIVIDUAL_MONITORING#%')</from>
@@ -48,6 +49,7 @@
             <subselect alias="ID" type="number">PARENT_SA.ID</subselect>
             <subselect alias="SAMPLE_DATE" type="date">PARENT_SA.SAMPLE_DATE</subselect>
             <subselect alias="REFERENCE_TAXON_FK" type="text">PARENT_SA.REFERENCE_TAXON_FK</subselect>
+            <subselect alias="TAXON_GROUP_FK" type="text">PARENT_SA.TAXON_GROUP_FK</subselect>
             <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
             <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
             <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
@@ -72,50 +74,53 @@
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
-    <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select> <!-- hidden column -->
+    <select alias="SAMPLE_ID" type="hidden">T.ID</select>
 
     <!-- SURVIVAL TEST -->
-    <select alias="SPECIES_CODE" type="number">TN.LABEL</select>
-    <select alias="SPECIES_NAME" type="number">TN.NAME</select>
-    <select alias="SCORING_DATE" type="number">T.SAMPLE_DATE</select>
-    <select alias="PICKING_TIME" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('PICKING_TIME') THEN T.ALPHA_VALUE END)</select>
-    <select alias="VITALITY_SCORE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('VITALITY_SCORE') THEN T.ALPHA_VALUE END)</select>
-    <select alias="REFLEX_TAIL_GRAB" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('REFLEX_TAIL_GRAB') THEN T.ALPHA_VALUE END)</select>
-    <select alias="REFLEX_STARTLE_TOUCH" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('REFLEX_STARTLE_TOUCH') THEN T.ALPHA_VALUE END)</select>
-    <select alias="REFLEX_SPIRACLES" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('REFLEX_SPIRACLES') THEN T.ALPHA_VALUE END)</select>
-    <select alias="REFLEX_BODY_FLEX" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('REFLEX_BODY_FLEX') THEN T.ALPHA_VALUE END)</select>
-    <select alias="INJURIES_OPEN_WOUNDS" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('INJURIES_OPEN_WOUNDS') THEN T.ALPHA_VALUE END)</select>
-    <select alias="INJURIES_HEAD" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('INJURIES_HEAD') THEN T.ALPHA_VALUE END)</select>
-    <select alias="INJURIES_BODY" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('INJURIES_BODY') THEN T.ALPHA_VALUE END)</select>
-    <select alias="INJURIES_TAIL" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('INJURIES_TAIL') THEN T.ALPHA_VALUE END)</select>
-    <select alias="INJURIES_FIN_DAMAGE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('INJURIES_FIN_DAMAGE') THEN T.ALPHA_VALUE END)</select>
-    <select alias="SEX" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('SEX') THEN T.ALPHA_VALUE END)</select>
-    <select alias="LENGTH_TOTAL_CM" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LENGTH_TOTAL_CM') THEN T.NUM_VALUE END)</select>
-    <select alias="TAG_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('TAG_ID')  THEN T.ALPHA_VALUE END)</select>
-    <select alias="MONITORING_BOX_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('MONITORING_BOX_ID') THEN T.ALPHA_VALUE END)</select>
+    <select alias="SPECIES_CODE" type="text">COALESCE(TN.LABEL, TG.LABEL)</select>
+    <select alias="SPECIES_NAME" type="text">COALESCE(TN.NAME, TG.NAME)</select>
+    <select alias="SCORING_DATE" type="text">T.SAMPLE_DATE</select>
+    <select alias="PICKING_TIME" type="text">MAX(CASE T.PMFM_LABEL WHEN 'PICKING_TIME' THEN T.ALPHA_VALUE END)</select>
+    <select alias="VITALITY_SCORE" type="text">MAX(CASE T.PMFM_LABEL WHEN 'VITALITY_SCORE' THEN T.ALPHA_VALUE END)</select>
+    <select alias="REFLEX_TAIL_GRAB" type="text">MAX(CASE T.PMFM_LABEL WHEN 'REFLEX_TAIL_GRAB' THEN T.ALPHA_VALUE END)</select>
+    <select alias="REFLEX_STARTLE_TOUCH" type="text">MAX(CASE T.PMFM_LABEL WHEN 'REFLEX_STARTLE_TOUCH' THEN T.ALPHA_VALUE END)</select>
+    <select alias="REFLEX_SPIRACLES" type="text">MAX(CASE T.PMFM_LABEL WHEN 'REFLEX_SPIRACLES' THEN T.ALPHA_VALUE END)</select>
+    <select alias="REFLEX_BODY_FLEX" type="text">MAX(CASE T.PMFM_LABEL WHEN 'REFLEX_BODY_FLEX' THEN T.ALPHA_VALUE END)</select>
+    <select alias="INJURIES_OPEN_WOUNDS" type="text">MAX(CASE T.PMFM_LABEL WHEN 'INJURIES_OPEN_WOUNDS' THEN T.ALPHA_VALUE END)</select>
+    <select alias="INJURIES_HEAD" type="text">MAX(CASE T.PMFM_LABEL WHEN 'INJURIES_HEAD' THEN T.ALPHA_VALUE END)</select>
+    <select alias="INJURIES_BODY" type="text">MAX(CASE T.PMFM_LABEL WHEN 'INJURIES_BODY' THEN T.ALPHA_VALUE END)</select>
+    <select alias="INJURIES_TAIL" type="text">MAX(CASE T.PMFM_LABEL WHEN 'INJURIES_TAIL' THEN T.ALPHA_VALUE END)</select>
+    <select alias="INJURIES_FIN_DAMAGE" type="text">MAX(CASE T.PMFM_LABEL WHEN 'INJURIES_FIN_DAMAGE' THEN T.ALPHA_VALUE END)</select>
+    <select alias="SEX" type="text">MAX(CASE T.PMFM_LABEL WHEN 'SEX' THEN T.ALPHA_VALUE END)</select>
+    <select alias="LENGTH_TOTAL_CM" type="text">MAX(CASE T.PMFM_LABEL WHEN 'LENGTH_TOTAL_CM' THEN T.NUM_VALUE END)</select>
+    <select alias="TAG_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN 'TAG_ID'  THEN T.ALPHA_VALUE END)</select>
+    <select alias="MONITORING_BOX_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN 'MONITORING_BOX_ID' THEN T.ALPHA_VALUE END)</select>
     <!-- INDIVIDUAL MONITORING -->
-    <select alias="MONITORING_ID" type="text">T.MONITORING_ID</select>
-    <select alias="IS_DEAD" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('IS_DEAD') THEN (CASE T.NUM_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END) END)</select>
+    <select alias="MONITORING_ID" type="number">T.MONITORING_ID</select>
+    <select alias="IS_DEAD" type="text">MAX(CASE T.PMFM_LABEL WHEN 'IS_DEAD' THEN (CASE T.NUM_VALUE WHEN 1 THEN 'Y' WHEN 0 THEN 'N' END) END)</select>
     <select alias="DEATH_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'DEATH_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
-    <select alias="DEATH_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('DEATH_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
-    <select alias="VERTEBRAL_COLUMN_ANALYSIS" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('VERTEBRAL_COLUMN_ANALYSIS') THEN (CASE T.NUM_VALUE WHEN 1 THEN 'Y' WHEN 0 THEN 'N' END) END)</select>
+    <select alias="DEATH_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN 'DEATH_TIME' THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
+    <select alias="VERTEBRAL_COLUMN_ANALYSIS" type="text">MAX(CASE T.PMFM_LABEL WHEN 'VERTEBRAL_COLUMN_ANALYSIS' THEN (CASE T.NUM_VALUE WHEN 1 THEN 'Y' WHEN 0 THEN 'N' END) END)</select>
     <select alias="MEASURE_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
-    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
-    <select alias="DO_PCT" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('DO_PCT') THEN T.NUM_VALUE END)</select>
-    <select alias="SAL_PSU" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('SAL_PSU') THEN T.NUM_VALUE END)</select>
-    <select alias="WATER_TEMP_C" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('WATER_TEMP_C') THEN T.NUM_VALUE END)</select>
-    <select alias="AIR_TEMP_C" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('AIR_TEMP_C') THEN T.NUM_VALUE END)</select>
-    <select alias="CLOUD_COVER_PCT" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('CLOUD_COVER_PCT') THEN T.NUM_VALUE END)</select>
-    <select alias="COMMENTS" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('CLOUD_COVER_PCT') THEN T.NUM_VALUE END)</select>
+    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
+    <select alias="DO_PCT" type="text">MAX(CASE T.PMFM_LABEL WHEN 'DO_PCT' THEN T.NUM_VALUE END)</select>
+    <select alias="SAL_PSU" type="text">MAX(CASE T.PMFM_LABEL WHEN 'SAL_PSU' THEN T.NUM_VALUE END)</select>
+    <select alias="WATER_TEMP_C" type="text">MAX(CASE T.PMFM_LABEL WHEN 'WATER_TEMP_C' THEN T.NUM_VALUE END)</select>
+    <select alias="AIR_TEMP_C" type="text">MAX(CASE T.PMFM_LABEL WHEN 'AIR_TEMP_C' THEN T.NUM_VALUE END)</select>
+    <select alias="CLOUD_COVER_PCT" type="text">MAX(CASE T.PMFM_LABEL WHEN 'CLOUD_COVER_PCT' THEN T.NUM_VALUE END)</select>
+    <select alias="COMMENTS" type="text">MAX(CASE T.PMFM_LABEL WHEN 'CLOUD_COVER_PCT' THEN T.NUM_VALUE END)</select>
 
     <from alias="S">&amp;stationTableName</from>
     <from join="true">INNER JOIN SAMPLE_WITH_MEAS T ON T.STATION_NUMBER = S.STATION_NUMBER</from>
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT=true</from>
+    <from join="true">LEFT OUTER JOIN TAXON_GROUP TG ON TG.ID = T.TAXON_GROUP_FK</from>
 
     <groupby>
       RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
-      T.ID, TN.LABEL, TN.NAME, T.SAMPLE_DATE, T.MONITORING_ID
+      T.ID, SPECIES_CODE, SPECIES_NAME, T.SAMPLE_DATE, T.MONITORING_ID
     </groupby>
+
+    <orderby direction="ASC">T.ID,T.MONITORING_ID</orderby>
   </query>
 
 </queries>

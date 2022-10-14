@@ -46,7 +46,7 @@
 			alter sequence SALE_SEQ rename to EXPECTED_SALE_SEQ;
 			commit;
 		</sql>
-		<createSequence sequenceName="SALE_SEQ" incrementBy="50"/>
+		<createSequence sequenceName="SALE_SEQ" incrementBy="50" startValue="50"/>
 	</changeSet>
 
   <!-- move data from SALE to EXPECTED_SALE -->
