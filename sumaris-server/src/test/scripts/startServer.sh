@@ -13,6 +13,7 @@ LOG_PREFIX="--------------"
 #MVN_INSTALL_OPTS="-DskipTests --quiet --offline"
 MVN_INSTALL_OPTS="-DskipTests --quiet"
 PROJECT_ROOT=$(cd ${PROJECT_DIR}/.. && pwd)
+HOME=`eval echo "~$USER"`
 APP_BASEDIR="${PROJECT_ROOT}/.local"
 LOG_DIR="${APP_BASEDIR}/log/sumaris-pod.log"
 DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
@@ -21,6 +22,8 @@ ARGS=$*
 PROFILE=hsqldb
 
 echo "Project root: ${PROJECT_ROOT}"
+mkdir -p ${APP_BASEDIR}
+
 
 # ------------------------------------
 echo "${LOG_PREFIX} Installing [core-shared], [core] and [server]... ${LOG_PREFIX}"
@@ -35,8 +38,8 @@ WAR_FILE="${PROJECT_DIR}/target/sumaris-server-${VERSION}.war"
 
 JAVA_OPTS=""
 JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m"
+JAVA_OPTS="$JAVA_OPTS -Dspring.main.banner-mode=off"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${APP_BASEDIR}"
-#JAVA_OPTS="$JAVA_OPTS -Dsumaris.data.directory=${DATA_DIRECTORY}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${LOG_DIR}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.datasource.url=${DB_URL}"
 if [[ -d "${CONFIG_DIR}" ]]; then
@@ -47,7 +50,8 @@ fi;
 JAVA_CMD="java ${JAVA_OPTS} -jar ${WAR_FILE} ${ARGS}"
 
 # ------------------------------------
-echo "${LOG_PREFIX} Running ${WAR_FILE}... ${LOG_PREFIX}"
+echo "${LOG_PREFIX} Running pod from '${WAR_FILE}'... ${LOG_PREFIX}"
+echo "Executing command: ${JAVA_CMD}"
+echo "${LOG_PREFIX}"
 # ------------------------------------
-mkdir -p ${APP_BASEDIR}
 ${JAVA_CMD}
