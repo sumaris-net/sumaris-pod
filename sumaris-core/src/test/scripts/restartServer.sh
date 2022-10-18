@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# Get to the root project
+if [[ "_" == "_${PROJECT_DIR}" ]]; then
+  SCRIPT_DIR=$(dirname $0)
+  PROJECT_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
+  export PROJECT_DIR
+fi;
+
 # ------------------------------------
 # Init variables
-SCRIPT_DIR=`pwd`
-PROJECT_DIR="../../.."
-cd "${PROJECT_DIR}"
-PROJECT_DIR=`pwd`
 LOG_PREFIX="--------------"
 #MVN_INSTALL_OPTS="-DskipTests --quiet --offline"
 MVN_INSTALL_OPTS="-DskipTests --quiet"
