@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.29.3-SNAPSHOT</version>
+  <version>1.29.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
