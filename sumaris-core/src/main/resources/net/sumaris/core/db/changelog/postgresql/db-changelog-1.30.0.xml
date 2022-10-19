@@ -44,7 +44,7 @@
 			<column name="ID" valueComputed="nextval('system_version_seq')"/>
 			<column name="LABEL">1.30.0</column>
 			<column name="DESCRIPTION">
-				- Drop not null constraint on PRODUCE.RANK_ORDER
+				- Drop not null constraint on PRODUCT.RANK_ORDER
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
