@@ -55,7 +55,7 @@ public class Product
     @Column(length = 40)
     private String label;
 
-    @Column(name = "rank_order", nullable = false)
+    @Column(name = "rank_order")
     private Integer rankOrder;
 
     @Column(name = "individual_count")
