@@ -102,7 +102,7 @@
     <elasticsearch.version>7.10.2</elasticsearch.version>
     <jna.version>5.9.0</jna.version>
     <tyrus.version>1.17</tyrus.version>
-    <jackson.version>2.12.1</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
+    <jackson.version>2.13.4.1</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
     <stringtemplate.version>4.1</stringtemplate.version>
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
