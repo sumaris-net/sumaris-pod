@@ -198,10 +198,12 @@ public class BatchRepositoryImpl
         if (dirty) {
             EntityManager entityManager = getEntityManager();
             entityManager.flush();
-            entityManager.clear();
+
+            // Avoid to clear (because to lost some cache !)
+            //entityManager.clear();
         }
 
-        log.debug("Saving operation {id: {}} batches [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
+        if (log.isDebugEnabled()) log.debug("Saving operation {id: {}} batches [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
@@ -223,10 +225,12 @@ public class BatchRepositoryImpl
         if (dirty) {
             EntityManager entityManager = getEntityManager();
             entityManager.flush();
-            entityManager.clear();
+
+            // Avoid to clear (because to lost some cache !)
+            //entityManager.clear();
         }
 
-        log.debug("Saving sale {id: {}} batches [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
+        if (log.isDebugEnabled()) log.debug("Saving sale {id: {}} batches [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
