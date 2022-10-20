@@ -6,7 +6,7 @@ SUMARiS use a database engine to store data.
 
 
 It can exists many SUMARiS databases instances on the web.
-Each databases instance is accessible through a [server software](https://en.wikipedia.org/wiki/Server_(computing)), called **SUMARiS Pod**.
+Each database instance is accessible through a [server software](https://en.wikipedia.org/wiki/Server_(computing)), called **SUMARiS Pod**.
 
 A Pod manage only one database instance.
 
@@ -89,7 +89,7 @@ spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsn
 
  1. Install Pod's dependencies: 
     * Install LibSodium (Unix only) : https://download.libsodium.org/doc/installation/
-    * Install Java SDK 8
+    * Install Java SDK 11
     
  2. Download the latest WAR file at: https://github.com/sumaris-net/sumaris-pod/releases
 
