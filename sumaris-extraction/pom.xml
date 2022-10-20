@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>net.sumaris</groupId>
 		<artifactId>sumaris-pod</artifactId>
-		<version>1.29.3</version>
+		<version>1.30.0</version>
 	</parent>
 
 	<artifactId>sumaris-extraction</artifactId>
@@ -141,6 +141,7 @@
 						<id>make-bundle</id>
 						<goals>
 							<goal>bundle</goal>
+							<goal>generate-csv-bundle</goal>
 						</goals>
 					</execution>
 				</executions>
