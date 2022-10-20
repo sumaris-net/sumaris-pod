@@ -150,7 +150,7 @@ To change the Pod's configuration, follow this steps:
 
 ## Build from source
 
- 1. Installe project dependencies:
+ 1. Install project dependencies:
     * Install build tools (Make, GCC, Git)
       ```bash 
       sudo apt-get install build-essential
@@ -158,7 +158,7 @@ To change the Pod's configuration, follow this steps:
    * Install LibSodium (Unix only):
      https://download.libsodium.org/doc/installation/
 
-   * Install Java SDK 8
+   * Install Java SDK 11
 
    * Install Apache Maven 3
 
