@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -113,4 +114,20 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
         }
     }
 
+    @Test
+    public void remplaceTemporaryVessel() {
+
+        // First, set vessel as temporary
+        int vesselId = fixtures.getVesselId(0);
+        VesselVO vessel1 = service.get(vesselId);
+        Assert.assertNotNull(vessel1);
+        Assert.assertEquals(StatusEnum.ENABLE.getId(), vessel1.getStatusId());
+        vessel1.setStatusId(StatusEnum.TEMPORARY.getId());
+        service.save(vessel1);
+
+        // Replace it
+        int replVesselId = fixtures.getVesselId(1);
+        service.replaceTemporaryVessel(List.of(vesselId), replVesselId);
+
+    }
 }

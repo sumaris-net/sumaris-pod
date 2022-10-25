@@ -235,6 +235,15 @@ public class VesselGraphQLService {
         vesselService.delete(ids);
     }
 
+    @GraphQLMutation(name = "replaceVessels", description = "Replace temporary vessels")
+    @IsUser
+    public void replaceVessel(
+        @GraphQLNonNull @GraphQLArgument(name = "temporaryVesselIds") List<Integer> temporaryVesselIds,
+        @GraphQLNonNull @GraphQLArgument(name = "validVesselId") int validVesselId
+        ) {
+        vesselService.replaceTemporaryVessel(temporaryVesselIds, validVesselId);
+    }
+
     public <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(T bean, Set<String> fields) {
         // Add vessel if need
         VesselSnapshotVO result = bean.getVesselSnapshot();
