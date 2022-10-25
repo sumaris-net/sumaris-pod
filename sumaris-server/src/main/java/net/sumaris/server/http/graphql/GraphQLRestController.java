@@ -47,15 +47,12 @@ public class GraphQLRestController {
     private final GraphQL graphQL;
     private final ObjectMapper objectMapper;
     private boolean ready = false;
-    private final ConfigurationService configurationService;
 
     @Autowired
     public GraphQLRestController(GraphQL graphQL,
-                                 ObjectMapper objectMapper,
-                                 ConfigurationService configurationService) {
+                                 ObjectMapper objectMapper) {
         this.graphQL = graphQL;
         this.objectMapper = objectMapper;
-        this.configurationService = configurationService;
         log.info("Starting GraphQL endpoint {{}}...", GraphQLPaths.BASE_PATH);
     }
 
