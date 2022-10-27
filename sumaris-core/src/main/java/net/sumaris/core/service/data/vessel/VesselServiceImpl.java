@@ -22,7 +22,6 @@ package net.sumaris.core.service.data.vessel;
  * #L%
  */
 
-
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +30,14 @@ import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
-import net.sumaris.core.dao.technical.Pageables;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -131,6 +130,39 @@ public class VesselServiceImpl implements VesselService {
 		return vesselRegistrationPeriodRepository.findAll(
 			VesselFilterVO.builder().vesselId(vesselId).build(),
 			pageable);
+	}
+
+	@Override
+	public void replaceTemporaryVessel(List<Integer> temporaryVesselIds, int targetVesselId) {
+		if (CollectionUtils.isEmpty(temporaryVesselIds)) {
+			log.warn("No temporary vessel ids provided");
+			return;
+		}
+
+		// Load and check vessels
+		temporaryVesselIds.forEach(temporaryVesselId -> {
+			VesselVO temporaryVessel = get(temporaryVesselId);
+			Preconditions.checkNotNull(temporaryVessel, "Temporary vessel (id={}) should exists", temporaryVesselId);
+			Preconditions.checkArgument(Objects.equals(temporaryVessel.getStatusId(), StatusEnum.TEMPORARY.getId()), "Vessel (id={}) to replace must be temporary", temporaryVesselId);
+		});
+		VesselVO validVessel = get(targetVesselId);
+		Preconditions.checkNotNull(validVessel);
+		Preconditions.checkArgument(Objects.equals(validVessel.getStatusId(), StatusEnum.ENABLE.getId()), "Replacement vessel must be enabled");
+
+		temporaryVesselIds.forEach(temporaryVesselId -> {
+			log.info("Vessel replacement from (id={}) to (id={})", temporaryVesselId, targetVesselId);
+
+			int nbTripsUpdated = vesselRepository.updateTrips(temporaryVesselId, targetVesselId);
+			log.info("nb trips updated: {}", nbTripsUpdated);
+			int nbLandingsUpdated = vesselRepository.updateLandings(temporaryVesselId, targetVesselId);
+			log.info("nb landings updated: {}", nbLandingsUpdated);
+			int nbSalesUpdated = vesselRepository.updateSales(temporaryVesselId, targetVesselId);
+			log.info("nb sales updated: {}", nbSalesUpdated);
+
+			// Delete temporary vessel
+			delete(temporaryVesselId);
+		});
+
 	}
 
 	@Override
