@@ -152,6 +152,10 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         List<String> programLabels = getTripProgramLabels(context);
 
+        // Add some join, to keep only child operation, if parent/child are allowed (in program properties)
+        // + Add operation and gear comments
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
+
         // Special case for COST format:
         // - Hide GearType (not in the COST format)
         xmlQuery.setGroup("gearType", false);
@@ -195,8 +199,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             PmfmEnum.TRIP_PROGRESS.getId()
         );
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionStationTable"));
-        xmlQuery.setGroup("allowParent", hasProgramAllowParent);
+         xmlQuery.setGroup("allowParent", hasProgramAllowParent);
 
         return xmlQuery;
     }

@@ -22,6 +22,8 @@
 
 <query type="select">
 
+  <select alias="TRIP_COMMENTS" type="text">T.COMMENTS</select>
+
   <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.TRIP_FK = T.ID</from>
   <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
 
