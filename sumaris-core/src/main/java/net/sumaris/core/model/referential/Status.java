@@ -25,6 +25,8 @@ package net.sumaris.core.model.referential;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.annotation.OntologyEntity;
+import net.sumaris.core.model.ModelVocabularies;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -35,6 +37,7 @@ import java.util.Date;
 @Entity
 @Table(name = "status")
 @Cacheable
+@OntologyEntity(vocab = ModelVocabularies.COMMON)
 public class Status implements IReferentialEntity<Integer> {
 
     @Id
