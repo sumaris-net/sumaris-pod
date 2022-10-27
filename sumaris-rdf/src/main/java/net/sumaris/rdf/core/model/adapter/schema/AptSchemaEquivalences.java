@@ -26,6 +26,7 @@ import fr.eaufrance.sandre.schema.apt.APT;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -40,6 +41,10 @@ import org.springframework.stereotype.Component;
         matchIfMissing = true)
 @Slf4j
 public class AptSchemaEquivalences extends AbstractSchemaVisitor {
+
+    public AptSchemaEquivalences(RdfSchemaService rdfSchemaService) {
+        super(rdfSchemaService);
+    }
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

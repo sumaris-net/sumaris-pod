@@ -20,7 +20,7 @@
  * #L%
  */
 
-package fr.eaufrance.sandre.schema.inc;
+package fr.eaufrance.sandre.schema.par;
 
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
@@ -31,12 +31,12 @@ import org.apache.jena.rdf.model.ResourceFactory;
  *
  * see http://www.sandre.eaufrance.fr/atlas/srv/fre/catalog.search#/metadata/0bea2eb9-a4ee-4a81-b494-bd4fb5338ef8
  */
-public class INC {
-    public static final String NS = "http://id.eaufrance.fr/ddd/INC/1.0/";
+public class PAR {
+    public static final String NS = "http://id.eaufrance.fr/ddd/par/3/";
 
-    public static final String PREFIX = "inc";
+    public static final String PREFIX = "par";
 
-    public static final String MODEL_URL = "http://owl.sandre.eaufrance.fr/inc/1/sandre_fmt_owl_inc.owl";
+    public static final String MODEL_URL = "http://owl.sandre.eaufrance.fr/par/3/sandre_fmt_owl_par.owl";
 
     public static String getURI() {
         return NS;
@@ -52,17 +52,6 @@ public class INC {
 
     public static final Resource NAMESPACE = resource(NS);
 
-    public static final Resource Interlocuteur = resource("Interlocuteur");
-
-    public static final Resource AdresseInterlocuteur = resource("AdresseInterlocuteur");
-    public static final Resource Compl2Adresse = property("Compl2Adresse");
-    public static final Resource Compl3Adresse = property("Compl3Adresse");
-    public static final Resource NumLbVoieAdresse = property("NumLbVoieAdresse");
-    public static final Resource LgAcheAdresse = property("LgAcheAdresse");
-
-    public static final Resource PaysInterlocuteur = resource("PaysInterlocuteur");
-
-    public static final Resource DateCreInterlocuteur = property("DateCreInterlocuteur");
-    public static final Resource DateMAJInterlocuteur = property("DateMAJInterlocuteur");
+    public static final Resource Parametre = resource("Parametre");
 
 }

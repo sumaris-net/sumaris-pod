@@ -29,9 +29,9 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.util.Dates;
 import net.sumaris.rdf.core.config.RdfConfiguration;
-import net.sumaris.rdf.core.dao.EntitiesDao;
-import net.sumaris.rdf.core.model.ModelVocabulary;
+import net.sumaris.rdf.core.dao.OntologyEntitiesDao;
 import net.sumaris.rdf.core.model.ModelEntities;
+import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import net.sumaris.rdf.core.util.Bean2Owl;
@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.function.Function;
 
 
-@Service("rdfIndividualRemoteService")
+@Service
 @ConditionalOnBean({RdfConfiguration.class})
 @Slf4j
 public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteService {
@@ -79,7 +79,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
     protected RdfConfiguration config;
 
     @Autowired
-    protected EntitiesDao modelDao;
+    protected OntologyEntitiesDao ontologyEntitiesDao;
 
     @Autowired
     private RdfSchemaService schemaService;
@@ -89,9 +89,9 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
     @PostConstruct
     protected void afterPropertiesSet() {
 
-        beanConverter = new Bean2Owl(config.getModelBaseUri());
+        beanConverter = new Bean2Owl(ontologyEntitiesDao);
 
-        owlConverter = new Owl2Bean(this.entityManager, config.getModelBaseUri()) {
+        owlConverter = new Owl2Bean(config, this.entityManager) {
             @Override
             protected List getCacheStatus() {
                 return RdfIndividualRemoteServiceImpl.this.getCacheStatus();
@@ -105,33 +105,33 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
     }
 
     @Override
-    public OntModel getRemoteModel(String url) {
+    public OntModel getRemoteModel(java.lang.String url) {
 
-        log.info(String.format("Reading ontology model at {%s}...", url));
+        log.info(java.lang.String.format("Reading ontology model at {%s}...", url));
         long start = System.currentTimeMillis();
         OntModel model = ModelFactory.createOntologyModel();
 
         try {
             new JenaReader().read(model, url);
-            log.info(String.format("Model successfully read %s. %s triples found.", Dates.elapsedTime(start), model.size()));
+            log.info(java.lang.String.format("Model successfully read %s. %s triples found.", Dates.elapsedTime(start), model.size()));
         } catch (JenaException e) {
-            throw new SumarisTechnicalException(String.format("Error while reading ontology model at {%s}: %s", url, e.getMessage()), e);
+            throw new SumarisTechnicalException(java.lang.String.format("Error while reading ontology model at {%s}: %s", url, e.getMessage()), e);
         }
 
         return model;
     }
 
     @Override
-    public Model importFromRemote(String remoteUrl,
-                                     String remoteOntUri,
-                                     ModelVocabulary domain,
-                                     String baseTargetPackage) {
+    public Model importFromRemote(java.lang.String remoteUrl,
+                                  java.lang.String remoteOntUri,
+                                  String vocab,
+                                  java.lang.String baseTargetPackage) {
 
         // Reading remote model
         OntModel sourceModel = getRemoteModel(remoteUrl);
 
         // Recomposed object, from the remote model
-        RdfOwlConversionContext context = createImportContext(domain.name().toLowerCase(), baseTargetPackage);
+        RdfOwlConversionContext context = createImportContext(vocab.toLowerCase(), baseTargetPackage);
 
         long start = System.currentTimeMillis();
         List<? extends Object> recomposed = objectsFromOnt(sourceModel, context);
@@ -139,18 +139,18 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
             log.info("Remote model has no instance ! Make sure the remote URL is valid");
             return null;
         }
-        log.info(String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
+        log.info(java.lang.String.format("Mapped ont to list of %s objects, Making it OntClass again %s", recomposed.size(), Dates.elapsedTime(start)));
 
         Model targetModel = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(domain)
-                .withInterfaces(true)
-                .build());
-        String modelUri = schemaService.getNamespace();
+            .vocabulary(vocab)
+            .withInterfaces(true)
+            .build());
+        java.lang.String modelUri = schemaService.getNamespace();
 
         recomposed.forEach(r -> beanConverter.bean2Owl(targetModel, modelUri, r, 2, ModelEntities.propertyIncludes, ModelEntities.propertyExcludes));
 
         float successPct = Math.round((targetModel.size() / sourceModel.size()) * 10000) / 100f;
-        log.info(String.format("Recomposed list of %s objects from %s triples. %s - %s%%", recomposed.size(), targetModel.size(), Dates.elapsedTime(start), successPct));
+        log.info(java.lang.String.format("Recomposed list of %s objects from %s triples. %s - %s%%", recomposed.size(), targetModel.size(), Dates.elapsedTime(start), successPct));
 
         if (sourceModel.size() == targetModel.size()) {
             log.info(" QUANTITATIVE SUCCESS   ");
@@ -185,7 +185,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
         m.listClasses().toList().forEach(ontClass -> {
 
             if (log.isTraceEnabled())
-                log.trace(String.format("Deserialize %s objects from %s ", ontClass, CollectionUtils.size(ontClass.listInstances().toList())));
+                log.trace(java.lang.String.format("Deserialize %s objects from %s ", ontClass, CollectionUtils.size(ontClass.listInstances().toList())));
 
             owlConverter.ontToJavaClass(ontClass, context)
                 .ifPresent(clazz -> {
@@ -199,18 +199,18 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
                             owlConverter.owl2Bean(schema, ontResource, clazz, context).ifPresent(ret::add);
                         }
                     });
-            });
+                });
         });
         return ret;
     }
 
-    protected RdfOwlConversionContext createImportContext(String domain, String basePackage) {
+    protected RdfOwlConversionContext createImportContext(java.lang.String domain, java.lang.String basePackage) {
         RdfOwlConversionContext context = new RdfOwlConversionContext();
 
 
         new Reflections(basePackage, new SubTypesScanner(false))
-                .getSubTypesOf(Object.class)
-                .forEach(c -> context.URI_2_CLASS.put(c.getSimpleName(), c));
+            .getSubTypesOf(Object.class)
+            .forEach(c -> context.URI_2_CLASS.put(c.getSimpleName(), c));
 
         context.URI_2_CLASS.put("definedURI", TaxonomicLevel.class);
 
@@ -221,13 +221,13 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
 
         context.B2O_ARBITRARY_MAPPER.put(OwlUtils.ADAGIO_PREFIX + "TaxonomicLevel", ontResource -> {
 
-            String classUri = OwlUtils.ADAGIO_PREFIX + TaxonomicLevel.class.getTypeName();
+            java.lang.String classUri = OwlUtils.ADAGIO_PREFIX + TaxonomicLevel.class.getTypeName();
             TaxonomicLevel tl = (TaxonomicLevel) context.URI_2_OBJ_REF.get(ontResource.getURI());
 
             try {
                 // first try to find it from cache
                 Property propCode = ontResource.getModel().getProperty(classUri + "#code");
-                String label = ontResource.asIndividual().getPropertyValue(propCode).toString();
+                java.lang.String label = ontResource.asIndividual().getPropertyValue(propCode).toString();
 
 
                 for (Object ctl : getCacheTL()) {
@@ -240,11 +240,11 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
                 // not in cache, create a new object
                 Property name = ontResource.getModel().getProperty(classUri + "#name");
                 tl.setName(ontResource
-                        .asIndividual()
-                        .getProperty(name)
-                        .getObject()
-                        .asLiteral()
-                        .getString());
+                    .asIndividual()
+                    .getProperty(name)
+                    .getObject()
+                    .asLiteral()
+                    .getString());
 
                 Property cd = ontResource.getModel().getProperty(classUri + "#creationDate");
                 LocalDateTime ld = LocalDateTime.parse(ontResource.asIndividual().getPropertyValue(cd).asLiteral().getString(), OwlUtils.DATE_TIME_FORMATTER);
@@ -269,7 +269,7 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
         });
 
         context.B2O_ARBITRARY_MAPPER.put(OwlUtils.ADAGIO_PREFIX + "Status", ontResource -> {
-            String clName = OwlUtils.ADAGIO_PREFIX + Status.class.getTypeName();
+            java.lang.String clName = OwlUtils.ADAGIO_PREFIX + Status.class.getTypeName();
             Status st = new Status();
 
             try {
@@ -289,11 +289,11 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
 
                 Property name = ontResource.getModel().getProperty(clName + "#Name");
                 st.setLabel(ontResource
-                        .asIndividual()
-                        .getProperty(name)
-                        .getObject()
-                        .asLiteral()
-                        .getString());
+                    .asIndividual()
+                    .getProperty(name)
+                    .getObject()
+                    .asLiteral()
+                    .getString());
 
                 Property cd = ontResource.getModel().getProperty(clName + "#UpdateDate");
 
@@ -317,8 +317,8 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
     protected List getCacheStatus() {
         if (statuses == null || statuses.isEmpty())
             statuses.addAll(entityManager
-                    .createQuery("from Status")
-                    .getResultList());
+                .createQuery("from Status")
+                .getResultList());
         return statuses;
     }
 
@@ -327,8 +327,8 @@ public class RdfIndividualRemoteServiceImpl implements RdfIndividualRemoteServic
 
         if (tl == null || tl.isEmpty())
             tl.addAll(entityManager
-                    .createQuery("from TaxonomicLevel")
-                    .getResultList());
+                .createQuery("from TaxonomicLevel")
+                .getResultList());
         return tl;
     }
 

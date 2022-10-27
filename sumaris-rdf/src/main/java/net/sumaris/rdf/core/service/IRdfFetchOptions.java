@@ -20,27 +20,10 @@
  * #L%
  */
 
-package net.sumaris.rdf;
+package net.sumaris.rdf.core.service;
 
-import net.sumaris.core.model.ModelVocabularies;
+public interface IRdfFetchOptions {
 
-/**
- * Fixtures for RDF tests
- * 
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- * @since 1.0
- */
-public class DatabaseFixtures {
-
-	public String getRemoteOntologyUrl() {
-		return "https://id.milieumarinfrance.fr/data/shr/Status";
-	}
-
-	public String getRemoteOntologyIri() {
-		return "https://id.milieumarinfrance.fr/schema/shr";
-	}
-
-	public String getRemoteOntologyVocabulary() {
-		return ModelVocabularies.COMMON;
-	}
+    String getVocabulary();
+    String getClassName();
 }

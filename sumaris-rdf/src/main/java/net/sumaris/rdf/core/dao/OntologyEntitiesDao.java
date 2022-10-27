@@ -23,24 +23,34 @@
 package net.sumaris.rdf.core.dao;
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.lang.reflect.Type;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public interface EntitiesDao {
+public interface OntologyEntitiesDao {
 
-    <T> T getById(ModelVocabulary domain, String className, Class<T> aClass, Serializable id);
+    <T> T getById(String vocabulary, String ontClassName, Class<T> aClass, Serializable id);
 
-    <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass);
+    <T> T getByLabel(String vocabulary, String ontClassName, Class<T> aClass, String label);
 
-    <T> Stream<T> streamAll(ModelVocabulary domain, String className, Class<T> aClass, Page page);
+    <T> T getByProperty(String vocabulary, String ontClassName, Class<T> aClass, String propertyName, Object propertyValue);
 
-    Set<String> getClassNamesByDomain(ModelVocabulary domain);
+    <T> Stream<T> streamAll(String vocabulary, String ontClassName);
 
-    ModelVocabulary getDomainByClassName(String className);
+    <T> Stream<T> streamAll(String vocabulary, String ontClassName, Page page);
 
-    Set<String> getClassNamesByRootClass(@Nullable ModelVocabulary domain, String className);
+    Set<String> getAllClassNamesByVocabulary(String vocabulary);
+
+    Set<Class<?>> getAllTypesByVocabulary(String vocabulary);
+
+    Class<?> getTypeByVocabularyAndClassName(String vocabulary, String ontClassName);
+
+    String getVocabularyByClassName(String ontClassName);
+
+    Optional<String> findTypeUri(Type type);
+
+    Set<String> getAllVocabularies();
 }

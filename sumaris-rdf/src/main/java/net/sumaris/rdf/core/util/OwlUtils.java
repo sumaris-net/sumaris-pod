@@ -136,21 +136,20 @@ public abstract class OwlUtils {
     }
 
 
-    public static String classToURI(Resource schema, Class clazz) {
-        return ModelURIs.getClassUri(schema, clazz);
+    public static String classToURI(Resource schema, Class type) {
+        return ModelURIs.getTypeUri(schema, type);
     }
 
-    public static String classToURI(String schemaUri, Class clazz) {
-        return ModelURIs.getClassUri(schemaUri, clazz);
+    public static String classToURI(String schemaUri, Class type) {
+        return ModelURIs.getTypeUri(schemaUri, type);
     }
 
-    public static String beanToURI(Resource schema, Class clazz) {
-        return ModelURIs.getBeanUri(schema, clazz);
+    public static String beanToURI(Resource schema, Class type) {
+        return ModelURIs.getDataUri(schema, type);
     }
 
-
-    public static String beanToURI(String schemaUri, Class clazz) {
-        return ModelURIs.getBeanUri(schemaUri, clazz);
+    public static String beanToURI(String schemaUri, Class type) {
+        return ModelURIs.getDataUri(schemaUri, type);
     }
 
     public static boolean isJavaType(Type type) {

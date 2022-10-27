@@ -20,27 +20,30 @@
  * #L%
  */
 
-package net.sumaris.rdf;
+package net.sumaris.core.dao.technical.model.annotation;
 
-import net.sumaris.core.model.ModelVocabularies;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Fixtures for RDF tests
- * 
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- * @since 1.0
- */
-public class DatabaseFixtures {
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface OntologyEntity {
 
-	public String getRemoteOntologyUrl() {
-		return "https://id.milieumarinfrance.fr/data/shr/Status";
-	}
+    String vocab() default "";
+    String name() default "";
+    String version() default "";
 
-	public String getRemoteOntologyIri() {
-		return "https://id.milieumarinfrance.fr/schema/shr";
-	}
+    /**
+     * Query to export all individuals
+     * @return
+     */
+    String query() default "";
 
-	public String getRemoteOntologyVocabulary() {
-		return ModelVocabularies.COMMON;
-	}
+    /**
+     * Named query to export all individuals
+     * @return
+     */
+    String namedQuery() default "";
 }

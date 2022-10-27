@@ -28,6 +28,7 @@ import net.sumaris.core.model.referential.location.LocationArea;
 import net.sumaris.core.model.referential.location.LocationLine;
 import net.sumaris.core.model.referential.location.LocationPoint;
 import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.eclipse.rdf4j.model.vocabulary.GEO;
@@ -43,6 +44,10 @@ import org.springframework.stereotype.Component;
         matchIfMissing = true)
 @Slf4j
 public class GeoSchemaEquivalences extends AbstractSchemaVisitor {
+
+    public GeoSchemaEquivalences(RdfSchemaService rdfSchemaService) {
+        super(rdfSchemaService);
+    }
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

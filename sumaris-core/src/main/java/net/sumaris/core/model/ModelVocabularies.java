@@ -20,27 +20,23 @@
  * #L%
  */
 
-package net.sumaris.rdf;
-
-import net.sumaris.core.model.ModelVocabularies;
+package net.sumaris.core.model;
 
 /**
- * Fixtures for RDF tests
- * 
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
- * @since 1.0
+ * Vocabularies, used to classified entities into ontologies
  */
-public class DatabaseFixtures {
+public interface ModelVocabularies {
 
-	public String getRemoteOntologyUrl() {
-		return "https://id.milieumarinfrance.fr/data/shr/Status";
-	}
 
-	public String getRemoteOntologyIri() {
-		return "https://id.milieumarinfrance.fr/schema/shr";
-	}
+    // Shared (e.g. Status, ValidityStatus, Transcribing)
+    String COMMON = "shr";
+    String TRANSCRIBING = "tscb";
 
-	public String getRemoteOntologyVocabulary() {
-		return ModelVocabularies.COMMON;
-	}
+    // Functional referential
+
+    // Functional data
+
+    // Default vocab
+    String DEFAULT = COMMON;
+
 }

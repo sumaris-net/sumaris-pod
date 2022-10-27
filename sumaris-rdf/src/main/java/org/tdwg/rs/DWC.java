@@ -47,18 +47,18 @@ public class DWC {
     }
 
     public static class Terms {
-        public static final String NS = "http://rs.tdwg.org/dwc/terms/";
+        public static final String URI = "http://rs.tdwg.org/dwc/terms/";
         public static final String PREFIX = "dwc";
         public static String getURI() {
-            return NS;
+            return URI;
         }
 
         protected final static Resource resource(String local) {
-            return ResourceFactory.createResource(NS + local);
+            return ResourceFactory.createResource(URI + local);
         }
 
         protected final static Property property(String local) {
-            return ResourceFactory.createProperty(NS + local);
+            return ResourceFactory.createProperty(URI + local);
         }
 
         public static final Resource Taxon = resource("Taxon");

@@ -28,7 +28,7 @@ import net.sumaris.rdf.core.loader.AbstractNamedRdfLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component("mnhnTaxonLoader")
+@Component
 @Slf4j
 public class MnhnTaxonLoader extends AbstractNamedRdfLoader {
 
@@ -46,6 +46,11 @@ public class MnhnTaxonLoader extends AbstractNamedRdfLoader {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public boolean enable() {
+        return false; // NMHN taxon not used anymore
     }
 
     @Override

@@ -28,20 +28,17 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
-
-import java.lang.annotation.Annotation;
-import java.util.List;
+import net.sumaris.rdf.core.service.IRdfFetchOptions;
 
 @Data
 @Builder
 @FieldNameConstants
 @EqualsAndHashCode
 @ToString
-public class RdfIndividualFetchOptions {
+public class RdfIndividualFetchOptions implements IRdfFetchOptions {
 
-    private ModelVocabulary domain;
+    private String vocabulary;
     private String className;
     private String id;
 
@@ -50,11 +47,6 @@ public class RdfIndividualFetchOptions {
 
     @Builder.Default
     private ReasoningLevel reasoningLevel = ReasoningLevel.OWL; // Need OWL for individual, because of owl:class
-
-    private Class<? extends Annotation> annotatedType;
-    private Class type;
-
-    private List<String> packages;
 
     private Page page;
 }

@@ -20,25 +20,17 @@
  * #L%
  */
 
-package net.sumaris.rdf.core.config;
+package net.sumaris.rdf.server.http.rest;
 
-import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+public interface RdfRestPaths {
+    String SCHEMA = "schema"; // Should be same as ModelType.SCHEMA (but in lowercase);
+    String DATA = "data"; // Should be same as ModelType.DATA (but in lowercase);
 
-@Configuration
-@ConditionalOnProperty(name = "rdf.enabled")
-@Slf4j
-public class RdfAutoConfiguration {
+    String SCHEMA_BASE_PATH = "/" + SCHEMA;
+    String DATA_BASE_PATH = "/" + DATA;
 
-    public RdfAutoConfiguration() {
-        log.info("Starting RDF module...");
-    }
+    String SCHEMA_FILES_BASE_PATH = SCHEMA_BASE_PATH + "/files";
 
-    @Bean
-    public RdfConfiguration rdfConfiguration(SumarisConfiguration configuration) {
-        return new RdfConfiguration(configuration);
-    }
+    String SPARQL_ENDPOINT = "/sparql";
+    String WEBVOWL_BASE_PATH = "/webvowl";
 }

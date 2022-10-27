@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface RdfIndividualRemoteService {
 
-    OntModel getRemoteModel(String url);
+    OntModel getRemoteModel(java.lang.String url);
 
     @Transactional()
     Model importFromRemote(String remoteUrl,
                            String remoteOntUri,
-                           ModelVocabulary domain,
+                           String vocab,
                            String baseTargetPackage);
 }

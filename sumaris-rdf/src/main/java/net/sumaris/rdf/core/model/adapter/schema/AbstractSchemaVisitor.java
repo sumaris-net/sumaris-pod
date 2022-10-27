@@ -33,14 +33,12 @@ import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.util.Objects;
 
 
 public abstract class AbstractSchemaVisitor implements IModelVisitor<Model, RdfSchemaFetchOptions> {
 
-    @Resource
-    protected RdfSchemaService schemaService;
+    protected final RdfSchemaService rdfSchemaService;
 
     @Value("${rdf.equivalences.owl.enabled:false}")
     protected boolean useOwlEquivalences;
@@ -50,10 +48,14 @@ public abstract class AbstractSchemaVisitor implements IModelVisitor<Model, RdfS
     protected String basePrefix = org.eclipse.rdf4j.model.vocabulary.RDFS.PREFIX;
     protected String baseUri = org.eclipse.rdf4j.model.vocabulary.RDFS.NAMESPACE;
 
+    protected AbstractSchemaVisitor(RdfSchemaService rdfSchemaService) {
+        this.rdfSchemaService = rdfSchemaService;
+    }
+
     @PostConstruct
     protected void init() {
         // Register to schema service
-        schemaService.register(this);
+        rdfSchemaService.register(this);
 
         if (this.useOwlEquivalences) {
             equivalentClass = OWL2.equivalentClass;
@@ -65,7 +67,7 @@ public abstract class AbstractSchemaVisitor implements IModelVisitor<Model, RdfS
 
     @Override
     public boolean accept(Model model, String prefix, String namespace, RdfSchemaFetchOptions options) {
-        return options.isWithEquivalences() && Objects.equals(schemaService.getNamespace(), namespace);
+        return options.isWithEquivalences() && Objects.equals(rdfSchemaService.getNamespace(), namespace);
     }
 
 }
