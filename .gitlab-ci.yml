@@ -89,13 +89,13 @@ build:
     image: ${CI_BUILD_IMAGE}
     only:
       - develop
-      - imagine/develop
 
 build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
   only:
     - /^feature\/.*/
+    - /^features\/.*/
   when: manual
 
 failsafe-build:
@@ -104,8 +104,8 @@ failsafe-build:
     when: on_failure
     only:
       - develop
-      - imagine/develop
       - /^feature\/.*/
+      - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Environment jobs : Create docker image for builds/release, this
@@ -126,8 +126,8 @@ build:env:
       - docker push ${CI_BUILD_IMAGE}
     only:
       - develop
-      - imagine/develop
       - /^feature\/.*/
+      - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Tests jobs
@@ -180,8 +180,8 @@ sonarqube:
     allow_failure: true
     only:
       - develop
-      - imagine/develop
       - /^feature\/.*/
+      - /^features\/.*/
     when: manual
 
 # ---------------------------------------------------------------
@@ -198,7 +198,7 @@ sonarqube:
     - if [[ "_${RELEASE_VERSION}" != "_" ]]; then MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"; else exit 1; fi
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
-    - mvn clean package --batch-mode -DskipTests -DperformRelease
+    - mvn clean package --batch-mode -DskipTests -DperformRelease -Phsqldb -Denv=hsqldb
     - echo "Deploy binaries to package registry"
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
     - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
@@ -221,7 +221,6 @@ sonarqube:
   allow_failure: false
   only:
     - develop
-    - imagine/develop
   when: manual
 
 release:
@@ -292,16 +291,6 @@ docker:develop:
     only:
         - develop
 
-docker:imagine:
-    extends: .docker-build
-    needs: [build]
-    variables:
-        IMAGE_TAG: 'imagine'
-        IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
-        IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
-    only:
-        - imagine/develop
-
 docker:release:
     extends: .docker-build
     needs: [release]
@@ -311,7 +300,6 @@ docker:release:
         IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
         - develop
-        - imagine/develop
 
 # ---------------------------------------------------------------
 # Docs jobs
@@ -340,7 +328,6 @@ pages:develop:
   extends: .pages
   only:
       - develop
-      - imagine/develop
   when: manual
 
 pages:release:

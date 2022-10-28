@@ -127,6 +127,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
     }
 
     @Bean
+    @ConditionalOnBean({javax.cache.CacheManager.class})
     public HibernatePropertiesCustomizer hibernatePropertiesCustomizer(javax.cache.CacheManager cacheManager) {
         return hibernateProperties -> hibernateProperties.put(ConfigSettings.CACHE_MANAGER, cacheManager);
     }

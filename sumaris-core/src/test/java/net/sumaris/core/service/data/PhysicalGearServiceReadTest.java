@@ -112,7 +112,7 @@ public class PhysicalGearServiceReadTest extends AbstractServiceTest{
             .recorderDepartmentId(1)
             .excludeChildGear(true)
             .build(),
-            5);
+            4);
 
         assertFindAll(PhysicalGearFilterVO.builder()
             .recorderPersonId(2)

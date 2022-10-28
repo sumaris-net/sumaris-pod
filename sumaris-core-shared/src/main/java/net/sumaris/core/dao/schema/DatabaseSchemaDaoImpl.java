@@ -579,8 +579,10 @@ public class DatabaseSchemaDaoImpl
                 "ALTER USER ", // for HslDB 2.3+
                 "CREATE SCHEMA ",
                 "GRANT DBA TO ",
+                "GRANT USAGE ON ",
                 "INSERT INTO ", // In case there is memory tables
-                "CREATE FUNCTION "
+                "CREATE FUNCTION ",
+                "ALTER SPECIFIC ROUTINE "
             );
 
             @Override
@@ -620,8 +622,8 @@ public class DatabaseSchemaDaoImpl
                         line = line.replaceAll("\\\\U000A", "\n");
                     }
 
-                    // Reset sequence to zero
-                    if (line.startsWith("CREATE SEQUENCE")) {
+                    // Reset sequence to initial value
+                    if (line.startsWith("CREATE SEQUENCE") || line.startsWith("ALTER SEQUENCE")) {
                         line = line.replaceAll("START WITH [0-9]+", "START WITH " + sequenceStartWithValue);
                     }
 

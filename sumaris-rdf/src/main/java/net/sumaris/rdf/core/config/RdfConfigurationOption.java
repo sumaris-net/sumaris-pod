@@ -55,7 +55,7 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_MODEL_PREFIX(
         "rdf.model.prefix",
         n("sumaris.config.option.rdf.model.prefix.description"),
-        "${spring.application.name}",
+        "${sumaris.name}",
         String.class,
         false),
 
