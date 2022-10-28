@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 
 public interface RdfDatasetService {
 
-    void registerNameModel(final INamedRdfLoader producer, final long maxStatements);
+    void registerNamedModel(final INamedRdfLoader producer, final long maxLimit);
 
     void registerNamedModel(final String name, final Callable<Model> producer);
 
@@ -49,7 +49,7 @@ public interface RdfDatasetService {
      * Fill dataset
      * @return
      */
-    void loadDataset();
+    void initDataset();
 
     /**
      * Get the dataset
@@ -57,9 +57,13 @@ public interface RdfDatasetService {
      */
     Dataset getDataset();
 
+    String getProviderName();
+
     /**
      * Get named models
      * @return
      */
-    Set<String> getModelNames() ;
+    Set<String> getModelNames();
+
+    void loadModels(boolean replaceIfExists);
 }

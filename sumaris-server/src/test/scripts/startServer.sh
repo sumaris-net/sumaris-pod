@@ -29,7 +29,8 @@ mkdir -p ${APP_BASEDIR}
 echo "${LOG_PREFIX} Installing [core-shared], [core] and [server]... ${LOG_PREFIX}"
 # ------------------------------------
 cd ${PROJECT_ROOT}
-mvn install -pl sumaris-core-shared,sumaris-core,sumaris-server $MVN_INSTALL_OPTS
+#mvn install -pl sumaris-core-shared,sumaris-core,sumaris-server $MVN_INSTALL_OPTS
+mvn install -pl sumaris-core-shared,sumaris-core,sumaris-rdf,sumaris-server $MVN_INSTALL_OPTS
 [[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}
@@ -42,6 +43,7 @@ JAVA_OPTS="$JAVA_OPTS -Dspring.main.banner-mode=off"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${APP_BASEDIR}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${LOG_DIR}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.datasource.url=${DB_URL}"
+#JAVA_OPTS="$JAVA_OPTS -Drdf.enabled=true"
 if [[ -d "${CONFIG_DIR}" ]]; then
   JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${PROJECT_ROOT}/.local/config/"
 fi;

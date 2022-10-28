@@ -24,9 +24,11 @@ package net.sumaris.rdf.core.service;
 
 import net.sumaris.rdf.core.util.RdfFormat;
 import org.apache.jena.rdf.model.Model;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 
+@Transactional(readOnly = true)
 public interface RdfModelService {
 
     boolean isLocalIri(String iri);

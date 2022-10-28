@@ -104,4 +104,10 @@ public interface VesselService {
 	@Transactional(readOnly = true)
 	Page<VesselRegistrationPeriodVO> getRegistrationPeriodsByVesselId(int vesselId, Pageable pageable);
 
+	@CacheEvict(cacheNames = {
+		CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE,
+		CacheConfiguration.Names.VESSEL_SNAPSHOTS_BY_FILTER,
+		CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER
+	}, allEntries = true)
+	void replaceTemporaryVessel(List<Integer> temporaryVesselIds, int targetVesselId);
 }

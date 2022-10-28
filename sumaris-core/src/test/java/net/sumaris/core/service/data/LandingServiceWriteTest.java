@@ -64,6 +64,28 @@ public class LandingServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
+    public void saveWithImages() {
+        LandingVO vo = createLanding();
+
+        // Add samples + images
+        // TODO
+
+        LandingVO savedVO = service.save(vo);
+
+        Assert.assertNotNull(savedVO);
+        Assert.assertNotNull(savedVO.getId());
+
+        // Reload
+        LandingVO reloadedVO = service.get(savedVO.getId());
+        Assert.assertNotNull(reloadedVO);
+
+        // Check images
+        // TODO
+        //Assert.assertNotNull(reloadedVO.getObservers());
+        //Assert.assertEquals(2, reloadedVO.getObservers().size());
+    }
+
+    @Test
     public void delete() {
         service.delete(fixtures.getLandingId(0));
     }

@@ -3,7 +3,7 @@
     <parent>
         <artifactId>sumaris-pod</artifactId>
         <groupId>net.sumaris</groupId>
-        <version>1.30.0</version>
+        <version>1.31.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -34,7 +34,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>net.sumaris</groupId>
+            <artifactId>sumaris-core-shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
@@ -68,7 +78,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
-            <artifactId>jena-fuseki-main</artifactId>
+            <artifactId>jena-fuseki-core</artifactId>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>

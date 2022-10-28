@@ -22,32 +22,19 @@
 
 package net.sumaris.rdf.server.taxon;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.core.config.RdfConfiguration;
-import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.util.RdfMediaType;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
 
 
 @RestController
@@ -90,8 +77,7 @@ public class TaxonSearchRestController {
                     MediaType.APPLICATION_XHTML_XML_VALUE,
                     MediaType.TEXT_HTML_VALUE
             })
-    public ResponseEntity<byte[]> searchTaxonFromFile(@RequestParam("file") MultipartFile file,
-                                                      final HttpServletRequest request) {
+    public ResponseEntity<byte[]> searchTaxonFromFile(@RequestParam("file") MultipartFile file) {
 
         log.info("Receiving taxon file to process {{}}", file.getOriginalFilename());
 
@@ -105,47 +91,4 @@ public class TaxonSearchRestController {
 
     /* -- protected methods -- */
 
-    protected Map<String, String> parseQueryParams(URI uri) {
-        Preconditions.checkNotNull(uri);
-
-        Map<String, String> result = Maps.newHashMap();
-
-        String query = uri.getQuery();
-        if (StringUtils.isNotBlank(query)) {
-            for (String paramStr : Splitter.on('&').omitEmptyStrings().trimResults().split(query)) {
-                String[] paramParts = paramStr.split("=");
-                if (paramParts.length == 1) {
-                    result.put(paramParts[0], "true");
-                }
-                else if (paramParts.length == 2) {
-                    result.put(paramParts[0], paramParts[1]);
-                }
-                else {
-                    // Ignore
-                    if (log.isInfoEnabled()) log.info("Skipping invalid IRI's query parameter: " + paramStr);
-                }
-            }
-        }
-        return result;
-    }
-
-    protected RdfFormat findRdfFormat(final HttpServletRequest request, @Nullable final String userFormat, @Nullable final RdfFormat defaultFormat) {
-        if (StringUtils.isNotBlank(userFormat)) {
-            return RdfFormat.fromUserString(userFormat)
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown output format: " + userFormat));
-        }
-
-        // Analyse HTTP header 'Accept' content types
-        else {
-            return RdfFormat.fromUrlExtension(request.getRequestURI())
-                    .orElseGet(() -> {
-                        Collection<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(request.getHeader(HttpHeaders.ACCEPT));
-                        return acceptedContentTypes.stream()
-                                .map(contentType -> RdfFormat.fromContentType(contentType).orElse(null))
-                                .filter(Objects::nonNull)
-                                .findFirst()
-                                .orElse(defaultFormat);
-                    });
-        }
-    }
 }

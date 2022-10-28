@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.30.0</version>
+    <version>1.31.0</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>

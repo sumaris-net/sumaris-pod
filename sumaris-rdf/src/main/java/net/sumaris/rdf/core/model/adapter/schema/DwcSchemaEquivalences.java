@@ -26,14 +26,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.tdwg.rs.DWC;
 
-@Component("dwcSchemaEquivalences")
+@Service("dwcSchemaEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
         prefix = "rdf.equivalences",
@@ -41,6 +43,10 @@ import org.tdwg.rs.DWC;
         matchIfMissing = true)
 @Slf4j
 public class DwcSchemaEquivalences extends AbstractSchemaVisitor {
+
+    public DwcSchemaEquivalences(RdfSchemaService rdfSchemaService) {
+        super(rdfSchemaService);
+    }
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

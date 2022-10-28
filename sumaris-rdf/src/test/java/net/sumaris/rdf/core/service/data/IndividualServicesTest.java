@@ -23,10 +23,10 @@
 package net.sumaris.rdf.core.service.data;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.referential.taxon.TaxonName;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.core.service.schema.RdfSchemaService;
@@ -65,21 +65,21 @@ public class IndividualServicesTest extends AbstractTest {
     private File dataModelFile;
 
 
-    final String SELECT_ALL_QUERY = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-            "PREFIX this: <%s/schema/>\n" +
-            "SELECT * WHERE {\n" +
-            "  ?sub ?pred ?obj .\n" +
-            "} LIMIT 10";
+    final java.lang.String SELECT_ALL_QUERY = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+        "PREFIX this: <%s/schema/>\n" +
+        "SELECT * WHERE {\n" +
+        "  ?sub ?pred ?obj .\n" +
+        "} LIMIT 10";
 
-    final String SELECT_BY_LABEL_QUERY = "PREFIX rdf: <" + RDF.getURI() + ">\n" +
-            "PREFIX rdfs: <"+ RDFS.getURI() +">\n" +
-            "PREFIX this: <%sschema/>\n" +
-            "SELECT DISTINCT ?sub\n" +
-            "WHERE {\n" +
-            "  ?sub rdf:type this:"+ TaxonName.class.getSimpleName() +" ;\n" +
-            "    rdfs:label ?label .\n" +
-            "  FILTER( regex( ?label, \"^Lophius.*\" ) )\n" +
-            "} LIMIT 10";
+    final java.lang.String SELECT_BY_LABEL_QUERY = "PREFIX rdf: <" + RDF.getURI() + ">\n" +
+        "PREFIX rdfs: <"+ RDFS.getURI() +">\n" +
+        "PREFIX this: <%sschema/>\n" +
+        "SELECT DISTINCT ?sub\n" +
+        "WHERE {\n" +
+        "  ?sub rdf:type this:"+ Status.class.getSimpleName() +" ;\n" +
+        "    rdfs:label ?label .\n" +
+        "  FILTER( regex( ?label, \"^Structure.*\", \"i\" ) )\n" +
+        "} LIMIT 10";
 
     @Before
     public void setup() throws IOException {
@@ -88,21 +88,21 @@ public class IndividualServicesTest extends AbstractTest {
     }
 
     @Test
-    public void executeQuery() throws IOException {
+    public void executeQuery() {
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .withEquivalences(false)
-                .build());
+            .vocabulary(ModelVocabularies.COMMON)
+            .withEquivalences(false)
+            .build());
 
         Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
-                .className("TaxonName")
-                .id("1001")
-                .build());
+            .className(Status.class.getSimpleName())
+            .id("1")
+            .build());
 
         Dataset dataset = DatasetFactory.create(schema)
             .setDefaultModel(instances) ;
 
-        String queryString = String.format(SELECT_ALL_QUERY, config.getModelBaseUri());
+        java.lang.String queryString = java.lang.String.format(SELECT_ALL_QUERY, config.getModelBaseUri());
 
         try (QueryExecution qExec = QueryExecutionFactory.create(queryString, dataset)) {
             ResultSet rs = qExec.execSelect() ;
@@ -115,20 +115,20 @@ public class IndividualServicesTest extends AbstractTest {
     @Test
     public void executeUsingConnectionQuery() throws IOException {
         Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className("TaxonName")
-                .build());
+            .vocabulary(ModelVocabularies.COMMON)
+            .className(Status.class.getSimpleName())
+            .build());
 
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className("TaxonName")
-                .withEquivalences(true)
-                .build());
+            .vocabulary(ModelVocabularies.COMMON)
+            .className(Status.class.getSimpleName())
+            .withEquivalences(true)
+            .build());
 
         Dataset dataset = DatasetFactory.create() ;
         dataset.setDefaultModel(instances);
 
-        String queryString = String.format(SELECT_BY_LABEL_QUERY, config.getModelBaseUri());
+        java.lang.String queryString = java.lang.String.format(SELECT_BY_LABEL_QUERY, config.getModelBaseUri());
 
 
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
@@ -147,23 +147,23 @@ public class IndividualServicesTest extends AbstractTest {
 
     protected File createSchemaModelFile(boolean forceIfExists)  throws IOException {
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .reasoningLevel(ReasoningLevel.NONE)
-                .className("TaxonName")
-                .build());
+            .vocabulary(ModelVocabularies.COMMON)
+            .reasoningLevel(ReasoningLevel.NONE)
+            .className(Status.class.getSimpleName())
+            .build());
         return createModelFile("schema", model, forceIfExists);
     }
 
     protected File createDataModelFile(boolean forceIfExists)  throws IOException {
         Model model = service.getIndividuals(RdfIndividualFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .reasoningLevel(ReasoningLevel.NONE)
-                .className("TaxonName")
-                .build());
+            .vocabulary(ModelVocabularies.COMMON)
+            .reasoningLevel(ReasoningLevel.NONE)
+            .className(Status.class.getSimpleName())
+            .build());
         return createModelFile("data", model, forceIfExists);
     }
 
-    protected File createModelFile(String basename, Model model, boolean forceIfExists)  throws IOException {
+    protected File createModelFile(java.lang.String basename, Model model, boolean forceIfExists)  throws IOException {
 
         File testFile = new File(config.getRdfDirectory(), basename + ".ttl");
 
@@ -187,7 +187,7 @@ public class IndividualServicesTest extends AbstractTest {
     }
 
     protected void outputToFile(Model model, Path path, RdfFormat format) throws IOException {
-        String content = ModelUtils.toString(model, format);
+        java.lang.String content = ModelUtils.toString(model, format);
         Files.write(path, content.getBytes());
     }
 

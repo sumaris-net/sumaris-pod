@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Bean;
 public abstract class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-core";
-    public static final String CONFIG_FILE_PREFIX = "application";
+    public static final String CONFIG_FILE_PREFIX = "application-test";
     public static final String CONFIG_FILE_NAME = CONFIG_FILE_PREFIX + ".properties";
     public static final String I18N_BUNDLE_NAME = MODULE_NAME + "-i18n";
 

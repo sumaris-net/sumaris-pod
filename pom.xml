@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.30.0</version>
+  <version>1.31.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -191,7 +191,7 @@
     <gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
-    <jreVersion>1.8.77</jreVersion>
+    <jreVersion>11.0.16</jreVersion>
 
     <!-- nuiton maven plugins version -->
     <helperPluginVersion>2.3.2</helperPluginVersion>
@@ -930,7 +930,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.jena</groupId>
-        <artifactId>jena-fuseki-main</artifactId>
+        <artifactId>jena-fuseki-core</artifactId>
         <version>${jena.version}</version>
         <exclusions>
           <exclusion>
@@ -940,6 +940,10 @@
           <exclusion>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-cmds</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
           </exclusion>
           <exclusion>
             <groupId>io.micrometer</groupId>

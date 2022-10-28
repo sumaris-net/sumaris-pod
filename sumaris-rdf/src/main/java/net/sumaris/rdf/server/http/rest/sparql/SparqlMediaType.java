@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.server.sparql;
+package net.sumaris.rdf.server.http.rest.sparql;
 
 import org.springframework.http.MediaType;
 

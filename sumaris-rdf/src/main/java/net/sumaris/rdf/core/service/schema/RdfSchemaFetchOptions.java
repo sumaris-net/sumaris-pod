@@ -27,18 +27,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
-
-import java.lang.annotation.Annotation;
-import java.util.List;
+import net.sumaris.rdf.core.service.IRdfFetchOptions;
 
 @Data
 @Builder
 @FieldNameConstants
 @EqualsAndHashCode
 @ToString
-public class RdfSchemaFetchOptions {
+public class RdfSchemaFetchOptions implements IRdfFetchOptions {
 
     @Builder.Default
     private boolean withDisjoints = true;
@@ -52,11 +49,9 @@ public class RdfSchemaFetchOptions {
     @Builder.Default
     private ReasoningLevel reasoningLevel = ReasoningLevel.RDFS;
 
-    private ModelVocabulary domain;
+    private String vocabulary;
+
+    private String version;
+
     private String className;
-
-    private Class<? extends Annotation> annotatedType;
-    private Class type;
-
-    private List<String> packages;
 }

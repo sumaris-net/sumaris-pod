@@ -394,17 +394,18 @@ public class InitTests extends ExternalResource {
 
         IDatabaseConnection dbUnitConnection;
 
-        // HsqldDB connecion
+        // HsqldDB
         if (Daos.isHsqlDatabase(config.getJdbcURL())) {
             dbUnitConnection = new DatabaseConnection(jdbcConnection);
             dbUnitConnection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new HsqldbDataTypeFactory());
         }
-        // Oracle connecion
+        // Oracle
         else if (Daos.isOracleDatabase(config.getJdbcURL())){
             dbUnitConnection = new DatabaseConnection(jdbcConnection, config.getJdbcSchema());
             dbUnitConnection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new Oracle10DataTypeFactory());
             dbUnitConnection.getConfig().setProperty(DatabaseConfig.FEATURE_SKIP_ORACLE_RECYCLEBIN_TABLES, Boolean.TRUE);
         }
+        // Postgresql
         else if (Daos.isPostgresqlDatabase(config.getJdbcURL())){
             dbUnitConnection = new DatabaseConnection(jdbcConnection);
             dbUnitConnection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new PostgresqlDataTypeFactory());

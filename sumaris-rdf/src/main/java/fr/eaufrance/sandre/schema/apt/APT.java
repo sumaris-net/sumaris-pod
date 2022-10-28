@@ -22,7 +22,9 @@
 
 package fr.eaufrance.sandre.schema.apt;
 
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
  * Appellation taxon du SANDRE
@@ -30,8 +32,10 @@ import org.apache.jena.rdf.model.*;
  * see http://www.sandre.eaufrance.fr/atlas/srv/fre/catalog.search#/metadata/0bea2eb9-a4ee-4a81-b494-bd4fb5338ef8
  */
 public class APT {
-    public static final String NS = "http://id.eaufrance.fr/ddd/APT/2.1/";
+    public static final String NS = "http://id.eaufrance.fr/ddd/apt/2.1/";
     public static final String PREFIX = "apt";
+    public static final String MODEL_URL = "http://owl.sandre.eaufrance.fr/apt/2.1/sandre_fmt_owl_apt.owl";
+
     public static String getURI() {
         return NS;
     }

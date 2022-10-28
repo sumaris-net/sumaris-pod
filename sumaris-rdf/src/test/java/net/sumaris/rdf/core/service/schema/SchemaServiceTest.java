@@ -22,6 +22,8 @@
 
 package net.sumaris.rdf.core.service.schema;
 
+import net.sumaris.core.model.ModelVocabularyEnum;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.core.model.ModelVocabulary;
@@ -36,6 +38,7 @@ import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.tdwg.rs.DWC;
@@ -58,80 +61,40 @@ public class SchemaServiceTest extends AbstractTest {
 
         // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className(TaxonName.class.getSimpleName())
+                .vocabulary(ModelVocabularyEnum.COMMON.getLabel())
+                .className(Status.class.getSimpleName())
                 // Will add RDFS equivalence between:
-                // - TaxonName#name <--> rdfs:label
-                // - TaxonName#name <--> dwc:scientificName
+                // - CoastalStructureType#name <--> rdfs:label
                 .withEquivalences(true)
                 .reasoningLevel(ReasoningLevel.RDFS)
                 .build())
-                // Add individuals
-                .add(individuals);
+            // Add individuals
+            .add(individuals);
 
         // Get by rdfs:label
         assertQueryHasResult(model, StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ RDFS.label.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
-                "}"));
+            "SELECT * ",
+            "WHERE { ",
+            "  ?x <"+ RDFS.label.getURI() +"> ?label .",
+            "  FILTER ( ?label=\"Digue\" )",
+            "}"));
 
-        // Get by dwc:scientificName
-        assertQueryHasResult(model,  StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ DWC.Terms.scientificName.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
-                "}"));
-    }
-
-    @Test
-    public void getOntologyWithOwlReasoner() {
-
-        // load some data that uses RDFS
-        Model individuals = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
-
-        // Get schema ontology
-        Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .domain(ModelVocabulary.REFERENTIAL)
-                .className(TaxonName.class.getSimpleName())
-                // Will add OWL equivalence between:
-                // - TaxonName#name <--> rdfs:label
-                // - TaxonName#name <--> dwc:scientificName
-                .withEquivalences(true)
-                .reasoningLevel(ReasoningLevel.OWL)
-                .build())
-                // Add individuals
-                .add(individuals);
-
-        ModelUtils.toString(model, RdfFormat.TURTLE);
-
-        // Get by rdfs:label
-        assertQueryHasResult(model, StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ RDFS.label.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
-                "}"));
-
-        // Get by dwc:scientificName
-        assertQueryHasResult(model,  StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ DWC.Terms.scientificName.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Lophius budegassa\" )",
-                "}"));
+        // Get by exact label
+//        assertQueryHasResult(model,  StrUtils.strjoinNL(
+//            "SELECT * ",
+//            "WHERE { ",
+//            "  ?x <"+ COMMON.CoastalStructureType.getURI() +"#name> ?label .",
+//            "  FILTER ( ?label=\"Digue\" )",
+//            "}"));
     }
 
     /* -- protected functions -- */
 
-    protected void assertQueryHasResult(Model model, String queryString) {
+    protected void assertQueryHasResult(Model model, java.lang.String queryString) {
         Query query = QueryFactory.create(queryString);
         try (QueryExecution qExec = QueryExecutionFactory.create(query, model)) {
             ResultSet resultSet = qExec.execSelect();
             Assert.assertTrue(resultSet.hasNext());
         };
-
     }
 }

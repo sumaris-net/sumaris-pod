@@ -7,8 +7,7 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX dwc: <http://rs.tdwg.org/dwc/terms/>
 PREFIX dwctax: <http://rs.tdwg.org/ontology/voc/TaxonName#>
-PREFIX apt: <http://id.eaufrance.fr/ddd/APT/>
-PREFIX apt2: <http://id.eaufrance.fr/ddd/APT/2.1/>
+PREFIX apt: <http://id.eaufrance.fr/ddd/APT/2.1/>
 PREFIX taxref: <http://taxref.mnhn.fr/lod/>
 PREFIX taxrefprop: <http://taxref.mnhn.fr/lod/property/>
 CONSTRUCT {
@@ -24,13 +23,13 @@ CONSTRUCT {
       owl:sameAs ?match ;
       rdfs:seeAlso ?seeAlso .
 }
-WHERE { 
-  ?sub dwc:scientificName ?label ;
+WHERE {
+  ?sub rdfs:label ?label ;
        rdf:type ?type .
   FILTER ( ?type = dwctax:TaxonName || URI(?type) = apt:AppelTaxon )
   OPTIONAL {
-      ?sub taxrefprop:hasAuthority|apt2:AuteurAppelTaxon ?author ;
-         taxrefprop:hasRank|apt2:NiveauTaxonomique ?rank .
+      ?sub taxrefprop:hasAuthority|apt:AuteurAppelTaxon ?author ;
+         taxrefprop:hasRank|apt:NiveauTaxonomique ?rank .
     }
   OPTIONAL {
       ?sub skos:exactMatch|owl:sameAs ?match .
@@ -39,10 +38,10 @@ WHERE {
       ?sub rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .
     }
   OPTIONAL {
-      ?sub dc:created|dcterms:created|apt2:DateCreationAppelTaxon ?created ;
-          dc:modified|dcterms:modified|apt2:DateMajAppelTaxon ?modified .
+      ?sub dc:created|dcterms:created|apt:DateCreationAppelTaxon ?created ;
+          dc:modified|dcterms:modified|apt:DateMajAppelTaxon ?modified .
     }
   OPTIONAL {
-      ?sub skos:broader|apt2:AppelTaxonParent ?parent .
+      ?sub skos:broader|apt:AppelTaxonParent ?parent .
     }
 }

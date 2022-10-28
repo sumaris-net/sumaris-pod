@@ -39,6 +39,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 /**
  * <p>
@@ -49,7 +50,7 @@ import java.io.OutputStream;
 @Slf4j
 public class RdfDatasetAction {
 
-	public static final String LOAD_ALIAS = "--load";
+	public static final String INIT_ALIAS = "--init";
 	public static final String DUMP_ALIAS = "--dump";
 
 	private RdfDatasetService service;
@@ -60,20 +61,20 @@ public class RdfDatasetAction {
 	 * Loading RDF dataset
 	 * </p>
 	 */
-	public void load() {
-		init();
+	public void init() {
+		initBeans();
 
-		service.loadDataset();
+		service.initDataset();
 	}
 
 	public void dump() throws Throwable {
-		init();
+		initBeans();
 
 		// Get output format
 		RdfFormat format = config.getRdfOutputFormat()
-				// Dataset dump can be done only on TRIG or NQUADS
-				.filter(f -> f == RdfFormat.TRIG || f == RdfFormat.NQUADS)
-				.orElse(RdfFormat.TRIG);
+			// Dataset dump can be done only on TRIG or NQUADS
+			.filter(f -> f == RdfFormat.TRIG || f == RdfFormat.NQUADS)
+			.orElse(RdfFormat.TRIG);
 
 		File outputFile = config.getCliOutputFile();
 		Dataset ds = service.getDataset();
@@ -81,9 +82,9 @@ public class RdfDatasetAction {
 		// Dump to file
 		if (outputFile != null) {
 			outputFile = ActionUtils.checkAndGetOutputFile(false,
-					this.getClass());
+				this.getClass());
 
-			try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+			try (OutputStream fos = new BufferedOutputStream(Files.newOutputStream(outputFile.toPath()))) {
 				Txn.executeRead(ds, () -> RDFDataMgr.write(fos, ds, format.toJenaLang()));
 			}
 		}
@@ -98,7 +99,7 @@ public class RdfDatasetAction {
 
 	/* -- protected functions -- */
 
-	protected void init() {
+	protected void initBeans() {
 		if (this.service == null) this.service = getDatasetService();
 		if (this.config == null) this.config = getConfig();
 

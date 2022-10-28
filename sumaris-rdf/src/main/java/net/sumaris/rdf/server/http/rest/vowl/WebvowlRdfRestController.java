@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.server.vowl;
+package net.sumaris.rdf.server.http.rest.vowl;
 
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ import net.sumaris.rdf.core.service.RdfModelService;
 import net.sumaris.rdf.core.util.ModelUtils;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.util.RdfMediaType;
-import net.sumaris.rdf.server.RdfRestPaths;
+import net.sumaris.rdf.server.http.rest.RdfRestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -43,7 +43,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -67,7 +66,7 @@ public class WebvowlRdfRestController implements RdfRestPaths {
     public static final String CONVERSION_DONE_PATH = WEBVOWL_BASE_PATH + "/conversionDone";
 
     @Resource
-    private RdfModelService modelService;
+    private RdfModelService rdfModelService;
 
     @PostConstruct
     public void start() {
@@ -124,7 +123,7 @@ public class WebvowlRdfRestController implements RdfRestPaths {
 
         try {
 
-            byte[] content = modelService.unionThenConvert(iris, null, targetFormat);
+            byte[] content = rdfModelService.unionThenConvert(iris, null, targetFormat);
 
             return ResponseEntity.ok()
                     .contentType(targetFormat.mineType())
