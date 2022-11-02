@@ -52,7 +52,7 @@
         <select alias="STATION_NUMBER" dbms="oracle" type="number">ORA_HASH(ST.TRIP_CODE || '-' || ST.STATION_NUMBER)</select>
 
         <!-- hidden column -->
-        <select alias="INDIVIDUAL_ID" type="hidden">ST.INDIVIDUAL_ID</select>
+        <select alias="SAMPLE_ID" type="hidden">ST.SAMPLE_ID</select>
 
         <!-- SURVIVAL TEST -->
         <select alias="SPECIES_CODE" type="number">ST.SPECIES_CODE</select>
@@ -86,7 +86,7 @@
         <select alias="CLOUD_COVER_PCT" type="text">ST.CLOUD_COVER_PCT</select>
 
         <!-- Add -->
-        <select alias="NUMBER_AT_LENGTH" type="number">1</select>
+        <select alias="INDIVIDUAL_COUNT" type="number">1</select>
 
         <from alias="S">&amp;stationTableName</from>
         <from dbms="hsqldb"><![CDATA[

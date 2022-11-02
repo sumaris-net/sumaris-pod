@@ -19,6 +19,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
 package net.sumaris.rdf.core.cache;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +29,13 @@ import net.sumaris.core.dao.technical.cache.Caches;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnBean({CacheConfiguration.class})
-//@ConditionalOnProperty(name = "rdf.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = "rdf.enabled")
 @Slf4j
 public class RdfCacheConfiguration {
 
@@ -52,4 +54,5 @@ public class RdfCacheConfiguration {
             Caches.createCollectionHeapCache(cacheManager, Names.CLASS_FOR_INDIVIDUALS, Integer.class, String.class, CacheTTL.LONG.asDuration(), 50);
         };
     }
+
 }

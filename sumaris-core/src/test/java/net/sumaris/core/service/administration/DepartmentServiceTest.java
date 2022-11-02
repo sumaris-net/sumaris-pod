@@ -47,12 +47,12 @@ public class DepartmentServiceTest extends AbstractServiceTest {
     public void a_findDepartments() {
 
         // without filter
-        assertFindResult(null, 12);
+        assertFindResult(null, 11);
 
         // Find with logo = false
         DepartmentFilterVO filter = new DepartmentFilterVO();
         filter.setWithLogo(false);
-        assertFindResult(filter, 12); // should be same as previous
+        assertFindResult(filter, 11); // should be same as previous
 
         // Find with logo = true
         filter.setWithLogo(true);

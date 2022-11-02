@@ -22,6 +22,7 @@
 
 package net.sumaris.rdf;
 
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +35,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 /**
  * Abstract class for unit test on services.
  */
-@ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {TestConfiguration.class})
-@TestPropertySource(locations= "classpath:application.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class AbstractTest {
+public abstract class AbstractTest {
 
 	@Autowired
 	protected RdfConfiguration config;
 
 	@Autowired
 	protected DatabaseFixtures fixtures;
-
 
 }

@@ -24,10 +24,7 @@ package net.sumaris.rdf.core.service.schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -54,7 +51,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.*;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
@@ -73,13 +69,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RdfSchemaServiceImpl implements RdfSchemaService {
 
-    @Autowired
-    protected RdfConfiguration config;
+    @javax.annotation.Resource
+    protected RdfConfiguration rdfConfiguration;
 
-    @Autowired
-    protected RdfCacheConfiguration cacheConfiguration;
-
-    @Autowired
+    @javax.annotation.Resource
     protected OntologyEntitiesDao ontologyEntitiesDao;
 
     protected Bean2Owl beanConverter;
@@ -100,7 +93,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
         // Clean options cache
-        config.cleanCache();
+        rdfConfiguration.cleanCache();
         // Recompute prefix and base uri
         loadPrefixAndBaseUri();
     }
@@ -164,9 +157,9 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
      */
     protected void loadPrefixAndBaseUri() {
 
-        String prefix = config.getModelPrefix();
+        String prefix = rdfConfiguration.getModelPrefix();
         modelPrefix = StringUtils.isNotBlank(prefix) ? prefix : "this";
-        this.modelBaseUri = config.getModelBaseUri();
+        this.modelBaseUri = rdfConfiguration.getModelBaseUri();
 
         // Validate namespace, as an URI
         String uri = getNamespace();
@@ -186,8 +179,8 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
     protected RdfSchemaFetchOptions createOptions(String vocabulary) {
         RdfSchemaFetchOptions options = RdfSchemaFetchOptions.builder()
-                .vocabulary(vocabulary)
-                .build();
+            .vocabulary(vocabulary)
+            .build();
         fillOptions(options);
         return options;
     }
@@ -212,31 +205,31 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     protected Resource createSchemaResource(OntModel ontology, String namespace) {
 
         // Add ontology metadata
-        String modelLanguage = config.getModelDefaultLanguage();
+        String modelLanguage = rdfConfiguration.getModelDefaultLanguage();
         Resource schema =  ontology.createResource(namespace)
-                .addProperty(RDF.type, OWL.Ontology.asResource())
-                .addProperty(OWL2.versionInfo, config.getModelVersion())
-                .addProperty(OWL2.versionIRI, namespace)
-                // Dublin Core
-                .addProperty(DC.language, modelLanguage)
-                .addProperty(DC.description, config.getModelDescription(), modelLanguage)
-                .addProperty(DC.title, config.getModelTitle(), modelLanguage)
-                .addProperty(DC.date, config.getModelDate(), modelLanguage)
-                .addProperty(DC.rights, config.getModelLicense(), modelLanguage)
-                .addProperty(DC.publisher, config.getModelPublisher(), modelLanguage)
-                // RDFS
-                .addProperty(RDFS.label, config.getModelLabel(), modelLanguage)
-                .addProperty(RDFS.comment, config.getModelComment(), modelLanguage);
+            .addProperty(RDF.type, OWL.Ontology.asResource())
+            .addProperty(OWL2.versionInfo, rdfConfiguration.getModelVersion())
+            .addProperty(OWL2.versionIRI, namespace)
+            // Dublin Core
+            .addProperty(DC.language, modelLanguage)
+            .addProperty(DC.description, rdfConfiguration.getModelDescription(), modelLanguage)
+            .addProperty(DC.title, rdfConfiguration.getModelTitle(), modelLanguage)
+            .addProperty(DC.date, rdfConfiguration.getModelDate(), modelLanguage)
+            .addProperty(DC.rights, rdfConfiguration.getModelLicense(), modelLanguage)
+            .addProperty(DC.publisher, rdfConfiguration.getModelPublisher(), modelLanguage)
+            // RDFS
+            .addProperty(RDFS.label, rdfConfiguration.getModelLabel(), modelLanguage)
+            .addProperty(RDFS.comment, rdfConfiguration.getModelComment(), modelLanguage);
 
         if ("en".equalsIgnoreCase(modelLanguage)) {
-            schema.addProperty(RDFS.comment, config.getModelCommentFr(), "fr");
+            schema.addProperty(RDFS.comment, rdfConfiguration.getModelCommentFr(), "fr");
         }
         else if ("fr".equalsIgnoreCase(modelLanguage)) {
-            schema.addProperty(RDFS.comment, config.getModelCommentEn(), "en");
+            schema.addProperty(RDFS.comment, rdfConfiguration.getModelCommentEn(), "en");
         }
 
         // Add authors
-        Iterable<String> authors = Splitter.on(',').omitEmptyStrings().trimResults().split(config.getModelAuthors());
+        Iterable<String> authors = Splitter.on(',').omitEmptyStrings().trimResults().split(rdfConfiguration.getModelAuthors());
         authors.forEach(author -> schema.addProperty(DC.creator, author));
 
         return schema;
@@ -254,7 +247,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
         OntModel model = ModelUtils.createOntologyModel(prefix, namespace, options.getReasoningLevel());
 
         //if (StringUtils.isBlank(options.getClassName())) {
-            createSchemaResource(model, namespace);
+        createSchemaResource(model, namespace);
         //}
 
         // Filter visitors, then notify them
@@ -278,7 +271,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
                 catch(Exception e) {
                     log.error(e.getMessage(), e);
                 }
-        });
+            });
 
         if (options.isWithDisjoints()) withDisjoints(mutuallyDisjoint);
 
@@ -355,19 +348,19 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
 
             // add mutually disjoint classes
             mutuallyDisjoint.keys().stream()
-                    .forEach(clazz -> {
-                        Collection<OntClass> subClassesCollection = mutuallyDisjoint.get(clazz);
-                        if (subClassesCollection.size() > 1) {
-                            OntClass[] subClasses = subClassesCollection.toArray(new OntClass[subClassesCollection.size()]);
-                            for (int i = 0; i < subClasses.length; i++) {
-                                for (int j = i + 1; j < subClasses.length; j++) {
-                                    if (debug) log.trace("Adding disjoint between {{}} and {{}}", subClasses[i], subClasses[j]);
-                                    subClasses[i].addDisjointWith(subClasses[j]);
-                                }
+                .forEach(clazz -> {
+                    Collection<OntClass> subClassesCollection = mutuallyDisjoint.get(clazz);
+                    if (subClassesCollection.size() > 1) {
+                        OntClass[] subClasses = subClassesCollection.toArray(new OntClass[subClassesCollection.size()]);
+                        for (int i = 0; i < subClasses.length; i++) {
+                            for (int j = i + 1; j < subClasses.length; j++) {
+                                if (debug) log.trace("Adding disjoint between {{}} and {{}}", subClasses[i], subClasses[j]);
+                                subClasses[i].addDisjointWith(subClasses[j]);
                             }
                         }
+                    }
 
-                    });
+                });
         }
 
     }

@@ -142,7 +142,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     DB_CREATE_SCRIPT_PATH(
         "sumaris.persistence.db.script",
         n("sumaris.config.option.db.script.description"),
-        "classpath:net/sumaris/core/db/changelog/sumaris.script",
+        "classpath:net/sumaris/core/db/changelog/${spring.datasource.platform}/sumaris.script",
         String.class,
         false),
 
@@ -162,7 +162,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "spring.datasource.url",
         n("sumaris.config.option.spring.datasource.url.description"),
         "jdbc:hsqldb:file:${sumaris.persistence.db.directory}/${sumaris.persistence.db.name}",
-        String.class, false),
+        String.class),
 
     JDBC_CATALOG(
         "spring.jpa.properties.hibernate.default_catalog",
@@ -634,6 +634,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.FALSE.toString(),
         Boolean.class,
         false),
+
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),

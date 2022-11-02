@@ -33,11 +33,9 @@ public interface ModelVocabularies {
     String TRANSCRIBING = "tscb";
 
     // Functional referential
-    String TRIP = "trp"; // TODO
-    String TAXON = "tax";
-    String ORGANIZATION = "org";
+    String TAXON = "taxon";
 
-    String LOCATION = "loc";
+    // Functional data
 
     // Default vocab
     String DEFAULT = SHARED;

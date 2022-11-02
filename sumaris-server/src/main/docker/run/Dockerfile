@@ -1,4 +1,6 @@
-FROM openjdk:11-jdk
+ARG IMAGE_REGISTRY
+ARG DOCKER_IMAGE="openjdk:11-jdk-slim"
+FROM $IMAGE_REGISTRY$DOCKER_IMAGE
 
 # Build arg
 ARG ENTRYPOINT=app.sh

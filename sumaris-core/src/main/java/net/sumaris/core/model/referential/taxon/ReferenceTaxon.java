@@ -54,14 +54,12 @@ public class ReferenceTaxon implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
     @SequenceGenerator(name = "REFERENCE_TAXON_SEQ", sequenceName="REFERENCE_TAXON_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
-
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.REFERENCE_TAXON)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)

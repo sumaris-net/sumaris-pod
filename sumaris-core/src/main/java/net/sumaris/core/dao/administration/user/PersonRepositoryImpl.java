@@ -57,6 +57,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.Date;
@@ -115,7 +116,8 @@ public class PersonRepositoryImpl
 
     @Override
     public Optional<PersonVO> findByUsername(String username) {
-        return findAll(hasUsername(username)).stream().filter(p -> StatusEnum.ENABLE.getId().equals(p.getStatus().getId())).findFirst().map(this::toVO);
+        return findAll(hasUsername(username)).stream().filter(p -> StatusEnum.ENABLE.getId().equals(p.getStatus().getId()))
+                .findFirst().map(this::toVO);
     }
 
     @Override

@@ -66,6 +66,9 @@ public interface StrategyService {
 	Long countByFilter(StrategyFilterVO filter);
 
 	@Transactional(readOnly = true)
+	Date maxUpdateDateByFilter(StrategyFilterVO filter);
+
+	@Transactional(readOnly = true)
 	List<StrategyVO> findByFilter(StrategyFilterVO filter, Page page, StrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)

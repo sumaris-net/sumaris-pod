@@ -45,7 +45,8 @@ public final class EntityEnums {
 
     public static final int UNRESOLVED_ENUMERATION_ID = -1;
 
-    private static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
+    public static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
+    public static final String DESCRIPTION_PROPERTY_PREFIX = "sumaris.config.option.enumeration.";
 
     private EntityEnums(){
         // Helper class
@@ -84,14 +85,12 @@ public final class EntityEnums {
             }
             final String configPrefix = configPrefixTemp;
 
-            String descriptionPrefix = "sumaris.config.option.enumeration.";
-
             Stream.of(enumClass.getEnumConstants()).forEach(enumValue -> Stream.of(joinAttributes)
                 .forEach(joinAttribute -> {
                     Object defaultJoinValue = Beans.getProperty(enumValue, joinAttribute);
                     String key = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute);
                     Class type = defaultJoinValue != null ? defaultJoinValue.getClass() : String.class;
-                    String description = descriptionPrefix + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute, "description");
+                    String description = DESCRIPTION_PROPERTY_PREFIX + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute, "description");
                     options.add(new ConfigOption(key, type, description, String.valueOf(defaultJoinValue), false, false));
                 }));
         });

@@ -38,7 +38,7 @@ import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.Resource;
@@ -47,7 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-@Component("rdfModelService")
+@Service("rdfModelService")
 @ConditionalOnBean({RdfConfiguration.class})
 @Slf4j
 public class RdfModelServiceImpl implements RdfModelService {

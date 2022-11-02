@@ -30,11 +30,17 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.rdf.core.model.ModelType;
 import net.sumaris.rdf.core.util.RdfFormat;
 import org.nuiton.config.ApplicationConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.Optional;
 
 @Slf4j
+@Component
+@ConditionalOnProperty(name = "rdf.enabled")
 public class RdfConfiguration  {
 
     private static RdfConfiguration INSTANCE;

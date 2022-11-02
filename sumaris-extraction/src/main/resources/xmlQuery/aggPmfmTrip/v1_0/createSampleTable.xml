@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<queries name="aggregationCreateSurvivalTestTable">
+
+    <query type="create" temp="false" table="&amp;sampleTableName">
+
+        <select alias="RECORD_TYPE" type="text">UPPER('ST')</select>
+
+        <!-- PK (inherited) -->
+        <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
+        <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
+        <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
+        <select alias="YEAR" type="number">S.YEAR</select>
+        <select alias="PROJECT" type="text">S.PROJECT</select>
+        <select alias="CATCH_REGISTRATION" type="text">S.CATCH_REGISTRATION</select>
+        <select alias="SPECIES_REGISTRATION" type="text">S.SPECIES_REGISTRATION</select>
+        <select alias="VESSEL_LENGTH_CLASS" type="text">S.VESSEL_LENGTH_CLASS</select>
+
+        <select alias="MONTH" group="month" type="number">S.MONTH</select>
+        <select alias="QUARTER" group="quarter" type="number">S.QUARTER</select>
+        <select alias="AREA" group="area" type="text">S.AREA</select>
+        <select alias="STATISTICAL_RECTANGLE" group="rect" type="text">S.STATISTICAL_RECTANGLE</select>
+        <select alias="SQUARE" group="square" type="text">S.SQUARE</select>
+        <select alias="NATIONAL_METIER" group="nationalMetier" type="text">S.NATIONAL_METIER</select>
+        <select alias="EU_METIER_LEVEL5" group="euMetierLevel5" type="text">S.EU_METIER_LEVEL5</select>
+        <select alias="EU_METIER_LEVEL6" group="euMetierLevel6" type="text">S.EU_METIER_LEVEL6</select>
+        <select alias="GEAR_TYPE" group="gearType" type="text">S.GEAR_TYPE</select>
+
+        <!-- Unique identifier for station -->
+        <select alias="STATION_NUMBER" dbms="hsqldb,pgsql" type="number">ABS(F_HASH_CODE(ST.TRIP_CODE || '-' || ST.STATION_NUMBER))</select>
+        <select alias="STATION_NUMBER" dbms="oracle" type="number">ORA_HASH(ST.TRIP_CODE || '-' || ST.STATION_NUMBER)</select>
+
+        <!-- hidden column -->
+        <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(ST.SAMPLE_ID)</select>
+        <select alias="SAMPLE_IDS" dbms="oracle" type="hidden">LISTAGG(ST.SAMPLE_ID, ',')</select>
+
+        <!-- SAMPLE -->
+        <select alias="SPECIES_CODE" type="number">ST.SPECIES_CODE</select>
+        <select alias="SPECIES_NAME" type="number">ST.SPECIES_NAME</select>
+        <select alias="INDIVIDUAL_COUNT" type="number">SUM(ST.INDIVIDUAL_COUNT)</select>
+
+        <from alias="S">&amp;stationTableName</from>
+        <from dbms="hsqldb"><![CDATA[
+          UNNEST(S.TRIP_CODES, S.STATION_NUMBERS) WITH ORDINALITY COORDS(TRIP_CODE, STATION_NUMBER, POS)
+            INNER JOIN &rawSampleTableName ST on ST.TRIP_CODE = TRIP_CODE and ST.STATION_NUMBER = STATION_NUMBER
+        ]]></from>
+        <from group="pgsql"><![CDATA[
+          UNNEST(S.TRIP_CODES, S.STATION_NUMBERS) WITH ORDINALITY COORDS(T_CODE, S_NUMBER, POS)
+            INNER JOIN &rawSampleTableName ST on ST.TRIP_CODE = T_CODE and ST.STATION_NUMBER = S_NUMBER
+        ]]></from>
+        <from dbms="oracle"><![CDATA[
+          TABLE(SPLIT(S.STATION_NUMBERS, ',')) STATION_NUMBER
+            INNER JOIN &rawSampleTableName ST on ST.STATION_NUMBER = STATION_NUMBER.COLUMN_VALUE
+        ]]></from>
+
+        <groupby>
+            S.SAMPLING_TYPE, S.LANDING_COUNTRY, S.VESSEL_FLAG_COUNTRY, S.YEAR, S.PROJECT,
+            S.CATCH_REGISTRATION, S.SPECIES_REGISTRATION,
+            S.VESSEL_LENGTH_CLASS
+        </groupby>
+        <groupby group="quarter">QUARTER</groupby>
+        <groupby group="month">MONTH</groupby>
+        <groupby group="area">S.AREA</groupby>
+        <groupby group="rect">S.STATISTICAL_RECTANGLE</groupby>
+        <groupby group="square">SQUARE</groupby>
+        <groupby group="nationalMetier">S.NATIONAL_METIER</groupby>
+        <groupby group="euMetierLevel5">S.EU_METIER_LEVEL5</groupby>
+        <groupby group="euMetierLevel6">S.EU_METIER_LEVEL6</groupby>
+        <groupby group="gearType">S.GEAR_TYPE</groupby>
+        <groupby>ST.TRIP_CODE, ST.STATION_NUMBER, ST.SPECIES_CODE, ST.SPECIES_NAME</groupby>
+    </query>
+
+</queries>

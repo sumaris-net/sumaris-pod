@@ -22,10 +22,12 @@
 
 package net.sumaris.rdf.core.service.schema;
 
+import net.sumaris.rdf.core.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.core.model.IModelVisitor;
 import net.sumaris.rdf.core.service.IRdfFetchOptions;
 import net.sumaris.rdf.core.service.data.RdfIndividualFetchOptions;
 import org.apache.jena.rdf.model.Model;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;

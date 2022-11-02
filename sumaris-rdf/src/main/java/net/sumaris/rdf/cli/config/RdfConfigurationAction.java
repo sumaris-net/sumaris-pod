@@ -32,7 +32,7 @@ import org.nuiton.config.ConfigActionDef;
  */
 public enum RdfConfigurationAction implements ConfigActionDef {
 
-    LOAD(RdfDatasetAction.class.getName() + "#load", "Load Triple store", RdfDatasetAction.INIT_ALIAS),
+    LOAD(RdfDatasetAction.class.getName() + "#init", "Init Triple store", RdfDatasetAction.INIT_ALIAS),
 
     DUMP(RdfDatasetAction.class.getName() + "#dump", "Dump Triple store", RdfDatasetAction.DUMP_ALIAS)
 

@@ -48,6 +48,5 @@ public class RdfIndividualFetchOptions implements IRdfFetchOptions {
     @Builder.Default
     private ReasoningLevel reasoningLevel = ReasoningLevel.OWL; // Need OWL for individual, because of owl:class
 
-
     private Page page;
 }

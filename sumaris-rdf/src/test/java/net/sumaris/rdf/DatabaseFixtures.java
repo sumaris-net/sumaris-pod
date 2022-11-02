@@ -22,6 +22,8 @@
 
 package net.sumaris.rdf;
 
+import net.sumaris.core.model.ModelVocabularies;
+
 /**
  * Fixtures for RDF tests
  * 
@@ -31,10 +33,14 @@ package net.sumaris.rdf;
 public class DatabaseFixtures {
 
 	public String getRemoteOntologyUrl() {
-		return "http://server.e-is.pro/ontologies/data/TaxonName";
+		return "https://id.milieumarinfrance.fr/data/shr/Status";
 	}
 
 	public String getRemoteOntologyIri() {
-		return "http://server.e-is.pro/ontology/schema/";
+		return "https://id.milieumarinfrance.fr/schema/shr";
+	}
+
+	public String getRemoteOntologyVocabulary() {
+		return ModelVocabularies.SHARED;
 	}
 }

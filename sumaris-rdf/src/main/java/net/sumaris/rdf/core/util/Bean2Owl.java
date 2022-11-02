@@ -25,7 +25,6 @@ package net.sumaris.rdf.core.util;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.referential.IWithUriEntity;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.core.dao.OntologyEntitiesDao;
 import net.sumaris.rdf.core.model.ModelURIs;
@@ -80,96 +79,96 @@ public class Bean2Owl {
 
             if (mutuallyDisjoint != null && withInterfaces) {
                 Stream.of(clazz.getGenericInterfaces())
-                    .filter(interfaze -> !ParameterizedType.class.equals(interfaze))
-                    .forEach(interfaze -> {
-                        if (debug) log.debug(String.format("%s %s %s", interfaze, Class.class, interfaze.getClass()));
-                        OntClass interfaceUri = typeToUri(schema, interfaze);
-                        if (!mutuallyDisjoint.containsEntry(interfaceUri, aClass)) {
-                            mutuallyDisjoint.put(interfaceUri, aClass);
-                        }
+                        .filter(interfaze -> !ParameterizedType.class.equals(interfaze))
+                        .forEach(interfaze -> {
+                            if (debug) log.debug(String.format("%s %s %s", interfaze, Class.class, interfaze.getClass()));
+                            OntClass interfaceUri = typeToUri(schema, interfaze);
+                            if (!mutuallyDisjoint.containsEntry(interfaceUri, aClass)) {
+                                mutuallyDisjoint.put(interfaceUri, aClass);
+                            }
 
-                        aClass.addSuperClass(interfaceUri);
-                    });
+                            aClass.addSuperClass(interfaceUri);
+                        });
             }
 
 
             Stream.of(clazz.getGenericSuperclass())
-                .filter(c -> c != null && !Object.class.equals(c))
-                .forEach(i -> {
-                        OntClass ont = typeToUri(schema, i);
-                        aClass.addSuperClass(ont);
-                    }
-                );
+                    .filter(c -> c != null && !Object.class.equals(c))
+                    .forEach(i -> {
+                                OntClass ont = typeToUri(schema, i);
+                                aClass.addSuperClass(ont);
+                            }
+                    );
 
             Stream.of(clazz.getMethods())
-                .filter(OwlUtils::isGetter)
-                .map(OwlUtils::getFieldOrNullByGetter)
-                .forEach(field -> {
-                    String propertyUri = classUri + "#" + field.getName();
+                    .filter(OwlUtils::isGetter)
+                    .map(OwlUtils::getFieldOrNullByGetter)
+                    .forEach(field -> {
+                        String propertyUri = classUri + "#" + field.getName();
 
-                    // Simple java type
-                    if (OwlUtils.isJavaType(field)) {
-                        Resource range = OwlUtils.getStdType(field);
+                        // Simple java type
+                        if (OwlUtils.isJavaType(field)) {
+                            Resource range = OwlUtils.getStdType(field);
 
-                        OntProperty property = ontology.createDatatypeProperty(propertyUri, true);
+                            OntProperty property = ontology.createDatatypeProperty(propertyUri, true);
 
-                        property.setDomain(aClass.asResource());
-                        property.setRange(range);
-                        property.setIsDefinedBy(schema);
+                            property.setDomain(aClass.asResource());
+                            property.setRange(range);
+                            property.setIsDefinedBy(schema);
 
-                        property.addLabel(field.getName(), "en");
+                            property.addLabel(field.getName(), "en");
 
-                    } else if (field.getDeclaringClass().isArray()) {
-                        log.warn("Property {} is an array: NOT implemented yet. Skip", propertyUri);
-                    }
-
-                    // List
-                    else if (OwlUtils.isListType(field.getGenericType())) {
-                        Type listParametrizedType = OwlUtils.getListParametrizedType(field.getGenericType());
-                        if (debug) log.debug(String.format("List property %s %s", propertyUri, listParametrizedType.getTypeName()));
-
-                        OntProperty listProperty;
-                        Resource range;
-                        if (OwlUtils.isJavaType(listParametrizedType)) {
-                            listProperty = ontology.createDatatypeProperty(propertyUri, true);
-
-                            // TODO: use Bag for Set ?
-                            range = OwlUtils.getStdType(listParametrizedType);
-                        } else {
-                            listProperty = ontology.createObjectProperty(propertyUri, false);
-                            range = typeToUri(schema, listParametrizedType);
+                        } else if (field.getDeclaringClass().isArray()) {
+                            log.warn("Property {} is an array: NOT implemented yet. Skip", propertyUri);
                         }
 
-                        listProperty.addRange(range);
-                        listProperty.addDomain(aClass.asResource());
-                        listProperty.setIsDefinedBy(schema);
-                        listProperty.addLabel(field.getName(), "en");
+                        // List
+                        else if (OwlUtils.isListType(field.getGenericType())) {
+                            Type listParametrizedType = OwlUtils.getListParametrizedType(field.getGenericType());
+                            if (debug) log.debug(String.format("List property %s %s", propertyUri, listParametrizedType.getTypeName()));
 
-                        // TODO: add a description ? comment ?
-                        // list.addComment(, "en");
+                            OntProperty listProperty;
+                            Resource range;
+                            if (OwlUtils.isJavaType(listParametrizedType)) {
+                                listProperty = ontology.createDatatypeProperty(propertyUri, true);
 
-                        OwlUtils.createZeroToMany(ontology, aClass, listProperty, range);
+                                // TODO: use Bag for Set ?
+                                range = OwlUtils.getStdType(listParametrizedType);
+                            } else {
+                                listProperty = ontology.createObjectProperty(propertyUri, false);
+                                range = typeToUri(schema, listParametrizedType);
+                            }
 
-                    }
+                            listProperty.addRange(range);
+                            listProperty.addDomain(aClass.asResource());
+                            listProperty.setIsDefinedBy(schema);
+                            listProperty.addLabel(field.getName(), "en");
 
-                    // Another entity
-                    else {
+                            // TODO: add a description ? comment ?
+                            // list.addComment(, "en");
 
-                        if (debug) log.debug(String.format("Entity property %s %s", propertyUri, field.getType().getSimpleName()));
+                            OwlUtils.createZeroToMany(ontology, aClass, listProperty, range);
 
-                        // var type = ontology.createObjectProperty();
-                        OntProperty property = ontology.createObjectProperty(propertyUri, true);
-                        property.addDomain(aClass.asResource());
-                        property.addRange(typeToUri(schema, field.getType()));
-                        property.setIsDefinedBy(schema);
-                        property.addLabel(field.getName(), "en");
-                        // LOG.info("Default Object property x " + link);
+                        }
 
-                        // TODO: add a description ? comment ?
-                        // bean.addComment(, "en");
+                        // Another entity
+                        else {
 
-                    }
-                });
+                            if (debug) log.debug(String.format("Entity property %s %s", propertyUri, field.getType().getSimpleName()));
+
+                            // var type = ontology.createObjectProperty();
+                            OntProperty property = ontology.createObjectProperty(propertyUri, true);
+                            property.addDomain(aClass.asResource());
+                            property.addRange(typeToUri(schema, field.getType()));
+                            property.setIsDefinedBy(schema);
+                            property.addLabel(field.getName(), "en");
+                            // LOG.info("Default Object property x " + link);
+
+                            // TODO: add a description ? comment ?
+                            // bean.addComment(, "en");
+
+                        }
+                    });
             return aClass;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -232,9 +231,9 @@ public class Bean2Owl {
         String individualUri = null;
 
         // Try to get entity URI
-        if (obj instanceof IWithUriEntity) {
+        /*if (obj instanceof IWithUriEntity) {
             individualUri = ((IWithUriEntity)obj).getUri();
-        }
+        }*/
 
         // Or try using the ID field if exists to represent the node
         if (StringUtils.isBlank(individualUri)) {
@@ -259,64 +258,64 @@ public class Bean2Owl {
 
         // Handle Methods
         Stream.of(clazz.getMethods())
-            .filter(OwlUtils::isGetter)
-            .filter(getter -> {
-                boolean exclude = excludes.stream().anyMatch(x -> x.equals(getter)) || OwlUtils.isManyToOne(getter);
-                boolean include = includes.contains(getter);
-                if (debug) log.debug(String.format(" filtering %s {include: %s, exclude: %s}", getter, include, exclude));
-                return (!exclude || include);
-            })
-            .forEach(getter -> {
-                Field field = OwlUtils.getFieldOrNullByGetter(getter);
-                if (debug) log.debug("processing method " + field.getDeclaringClass().getSimpleName()+"."+ field.getName()+" "+field.getGenericType());
+                .filter(OwlUtils::isGetter)
+                .filter(getter -> {
+                    boolean exclude = excludes.stream().anyMatch(x -> x.equals(getter)) || OwlUtils.isManyToOne(getter);
+                    boolean include = includes.contains(getter);
+                    if (debug) log.debug(String.format(" filtering %s {include: %s, exclude: %s}", getter, include, exclude));
+                    return (!exclude || include);
+                })
+                .forEach(getter -> {
+                    Field field = OwlUtils.getFieldOrNullByGetter(getter);
+                    if (debug) log.debug("processing method " + field.getDeclaringClass().getSimpleName()+"."+ field.getName()+" "+field.getGenericType());
 
-                try {
-                    Object propertyValue = getter.invoke(obj);
-                    if (propertyValue == null) return; // Stop here
+                    try {
+                        Object propertyValue = getter.invoke(obj);
+                        if (propertyValue == null) return; // Stop here
 
-                    Property propertyResource = model.createProperty(classUri, "#" + field.getName());
+                        Property propertyResource = model.createProperty(classUri, "#" + field.getName());
 
-                    if (OwlUtils.isId(field)) {
-                        individual.addProperty(propertyResource, propertyValue + "");
-                    } else if ("class".equals(field.getName())) {
-                        individual.addProperty(RDF.type, propertyResource);
-                    } else if (field.getType().getCanonicalName().contains("$")) {
-                        // Inner class: Skip
-                        if (debug) {
-                            log.debug(" skip inner class " + field.getName());
+                        if (OwlUtils.isId(field)) {
+                            individual.addProperty(propertyResource, propertyValue + "");
+                        } else if ("class".equals(field.getName())) {
+                            individual.addProperty(RDF.type, propertyResource);
+                        } else if (field.getType().getCanonicalName().contains("$")) {
+                            // Inner class: Skip
+                            if (debug) {
+                                log.debug(" skip inner class " + field.getName());
+                            }
+                        } else if (!OwlUtils.isJavaType(field)) {
+                            if (debug) {
+                                log.debug(" recurse for " + field.getName());
+                                log.debug(" not java generic, recurse on node..." + propertyValue);
+                            }
+
+                            Resource propertyValueResource = bean2Owl(model, schemaUri, propertyValue, (depth - 1), includes, excludes, field.getType());
+                            if (propertyValueResource != null) individual.addProperty(propertyResource, propertyValueResource);
+
+                        } else if (field.getGenericType() instanceof ParameterizedType) {
+
+                            Resource anonId = model.createResource(new AnonId("params" + new Random().nextInt(1000000)));
+                            Optional<Resource> listNode = fillDataList(model, schemaUri, field.getGenericType(), propertyValue, propertyResource, anonId, depth - 1,
+                                    includes,
+                                    excludes);
+                            if (listNode.isPresent()) {
+                                if (debug) log.debug(" --and res  : " + listNode.get().getURI());
+                                individual.addProperty(propertyResource, listNode.get());
+                            }
+                        } else if (OwlUtils.isDateType(field)) {
+
+                            individual.addProperty(propertyResource, OwlUtils.DATE_ISO_FORMAT.format((Date) propertyValue), XSDDatatype.XSDdateTime);
+
+                        } else {
+                            individual.addProperty(propertyResource, propertyValue + "");
                         }
-                    } else if (!OwlUtils.isJavaType(field)) {
-                        if (debug) {
-                            log.debug(" recurse for " + field.getName());
-                            log.debug(" not java generic, recurse on node..." + propertyValue);
-                        }
 
-                        Resource propertyValueResource = bean2Owl(model, schemaUri, propertyValue, (depth - 1), includes, excludes, field.getType());
-                        if (propertyValueResource != null) individual.addProperty(propertyResource, propertyValueResource);
-
-                    } else if (field.getGenericType() instanceof ParameterizedType) {
-
-                        Resource anonId = model.createResource(new AnonId("params" + new Random().nextInt(1000000)));
-                        Optional<Resource> listNode = fillDataList(model, schemaUri, field.getGenericType(), propertyValue, propertyResource, anonId, depth - 1,
-                            includes,
-                            excludes);
-                        if (listNode.isPresent()) {
-                            if (debug) log.debug(" --and res  : " + listNode.get().getURI());
-                            individual.addProperty(propertyResource, listNode.get());
-                        }
-                    } else if (OwlUtils.isDateType(field)) {
-
-                        individual.addProperty(propertyResource, OwlUtils.DATE_ISO_FORMAT.format((Date) propertyValue), XSDDatatype.XSDdateTime);
-
-                    } else {
-                        individual.addProperty(propertyResource, propertyValue + "");
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
                     }
 
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
-
-            });
+                });
 
         return individual;
     }

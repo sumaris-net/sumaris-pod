@@ -25,11 +25,10 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,7 +86,17 @@ public interface ProgramService {
 	boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
 
 	@Transactional(readOnly = true)
-	boolean hasPropertyValue(String label, ProgramPropertyEnum property, String expectedValue);
+	boolean hasPropertyValueByProgramId(Integer id, ProgramPropertyEnum property, String expectedValue);
 
-    List<ReferentialVO> getAcquisitionLevelsById(int id);
+	@Transactional(readOnly = true)
+	boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
+
+	@Transactional(readOnly = true)
+	List<ReferentialVO> getAcquisitionLevelsById(int id);
+
+	@Transactional(readOnly = true)
+	boolean hasAcquisitionLevelById(int id, AcquisitionLevelEnum acquisitionLevel);
+
+	@Transactional(readOnly = true)
+	boolean hasAcquisitionLevelByLabel(String label, AcquisitionLevelEnum acquisitionLevel);
 }

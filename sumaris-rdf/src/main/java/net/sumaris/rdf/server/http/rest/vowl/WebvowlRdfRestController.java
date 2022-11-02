@@ -25,24 +25,17 @@ package net.sumaris.rdf.server.http.rest.vowl;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.ModelVocabularyEnum;
-import net.sumaris.core.model.annotation.OntologyEntities;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.exception.JenaExceptions;
 import net.sumaris.rdf.core.model.ModelURIs;
 import net.sumaris.rdf.core.service.RdfModelService;
-import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
-import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import net.sumaris.rdf.core.util.ModelUtils;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.util.RdfMediaType;
 import net.sumaris.rdf.server.http.rest.RdfRestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
-import org.nuiton.version.Version;
-import org.nuiton.version.VersionBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.http.HttpStatus;
@@ -52,6 +45,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -71,44 +65,12 @@ public class WebvowlRdfRestController implements RdfRestPaths {
     public static final String LOADING_STATUS_PATH = WEBVOWL_BASE_PATH + "/loadingStatus";
     public static final String CONVERSION_DONE_PATH = WEBVOWL_BASE_PATH + "/conversionDone";
 
-    private final RdfModelService modelService;
-    private final RdfSchemaService schemaService;
-    private final RdfConfiguration config;
+    @Resource
+    private RdfModelService rdfModelService;
 
-    private Map<String, String> modelVocabulariesVersions = Maps.newHashMap();
-
-    @Autowired
-    public WebvowlRdfRestController(RdfConfiguration config,
-                                    RdfModelService modelService,
-                                    RdfSchemaService schemaService) {
-        this.config = config;
-        this.modelService = modelService;
-        this.schemaService = schemaService;
-    }
     @PostConstruct
     public void start() {
         log.info("Starting WebVOWL endpoint {{}}...", WEBVOWL_BASE_PATH);
-
-        // WebVOWL schema files: from internal vocabularies
-        OntologyEntities.getOntologyEntityDefs(config.getDelegate(), ModelVocabularyEnum.DEFAULT.getLabel(), config.getModelVersion())
-            .stream()
-            .sorted((def1, def2) -> {
-                // Sort by name
-                int result = def1.getName().compareTo(def2.getName());
-                if (result != 0) return result;
-
-                // Sort by version (greatest version first)
-                Version v1 = VersionBuilder.create(def1.getVersion()).build();
-                Version v2 = VersionBuilder.create(def1.getVersion()).build();
-                return v1.compareTo(v2) * -1;
-            })
-            .forEach(def -> {
-                // Insert first [vocabulary, version]
-                if (!modelVocabulariesVersions.containsKey(def.getVocabulary())) {
-                    modelVocabulariesVersions.put(def.getVocabulary(), def.getVersion());
-                }
-            });
-
     }
 
 
@@ -161,7 +123,7 @@ public class WebvowlRdfRestController implements RdfRestPaths {
 
         try {
 
-            byte[] content = modelService.unionThenConvert(iris, null, targetFormat);
+            byte[] content = rdfModelService.unionThenConvert(iris, null, targetFormat);
 
             return ResponseEntity.ok()
                     .contentType(targetFormat.mineType())

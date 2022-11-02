@@ -86,16 +86,16 @@ public class OntologyRdfRestController implements RdfRestPaths {
 
 
     @Resource
-    private RdfModelService  modelService;
+    private RdfModelService rdfModelService;
 
     @Resource
-    private RdfSchemaService schemaService;
+    private RdfSchemaService rdfSchemaService;
 
     @Resource
-    private RdfIndividualService individualService;
+    private RdfIndividualService rdfIndividualService;
 
     @Resource
-    private RdfConfiguration config;
+    private RdfConfiguration rdfConfiguration;
 
     @PostConstruct
     public void init() {
@@ -155,11 +155,11 @@ public class OntologyRdfRestController implements RdfRestPaths {
 
         // Check version
         if (StringUtils.isBlank(version)) {
-            version = config.getModelVersion();
+            version = rdfConfiguration.getModelVersion();
         }
 
         // Generate the schema ontology
-        Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
+        Model schema = rdfSchemaService.getOntology(RdfSchemaFetchOptions.builder()
             .vocabulary(vocabulary)
             .version(version)
             .className(className)
@@ -234,7 +234,7 @@ public class OntologyRdfRestController implements RdfRestPaths {
         }
 
         // Get individuals
-        Model individuals = individualService.getIndividuals(options);
+        Model individuals = rdfIndividualService.getIndividuals(options);
 
         // Add schema
         //individuals = ModelFactontology/convertry.createInfModel(ReasonerRegistry.getOWLReasoner(), schemaExportService.getOntology(className, extension, ));
@@ -291,7 +291,7 @@ public class OntologyRdfRestController implements RdfRestPaths {
         }
 
         // Read then convert IRI models
-        byte[] content = modelService.unionThenConvert(iris, inputFormat, outputFormat);
+        byte[] content = rdfModelService.unionThenConvert(iris, inputFormat, outputFormat);
 
         return ResponseEntity.ok()
             .contentType(outputFormat.mineType())

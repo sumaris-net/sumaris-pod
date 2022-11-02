@@ -28,6 +28,7 @@ import net.sumaris.core.dao.referential.location.LocationLevelRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevel;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
@@ -86,24 +87,24 @@ public class LocationRepositoryReadTest extends AbstractDaoTest {
     @Test
     public void searchLocation() {
         // France
-        assertFilterResult(ReferentialFilterVO.builder().label("FRA").build(), 1);
+        assertFilterResult(LocationFilterVO.builder().label("FRA").build(), 1);
         // France
-        assertFilterResult(ReferentialFilterVO.builder().searchAttribute(Location.Fields.LABEL).searchText("fra").build(), 1);
+        assertFilterResult(LocationFilterVO.builder().searchAttribute(Location.Fields.LABEL).searchText("fra").build(), 1);
 
         // Port-en-Bessin, Saint-Quay-Portrieux and Port du Bloscon - Roscoff
-        assertFilterResult(ReferentialFilterVO.builder().searchText("port").build(), 3);
+        assertFilterResult(LocationFilterVO.builder().searchText("port").build(), 3);
         // Port-en-Bessin and Port du Bloscon - Roscoff (Saint-Quay-Portrieux not beginning by 'port', with search attribute the like parameter is more restrictive)
-        assertFilterResult(ReferentialFilterVO.builder().searchAttribute(Location.Fields.NAME).searchText("port").build(), 2);
+        assertFilterResult(LocationFilterVO.builder().searchAttribute(Location.Fields.NAME).searchText("port").build(), 2);
 
         // All countries by search
-        assertFilterResult(ReferentialFilterVO.builder().searchJoin(Location.Fields.LOCATION_LEVEL).searchAttribute(LocationLevel.Fields.NAME).searchText("Country").build(), 4);
+        assertFilterResult(LocationFilterVO.builder().searchJoin(Location.Fields.LOCATION_LEVEL).searchAttribute(LocationLevel.Fields.NAME).searchText("Country").build(), 4);
         // All countries by level
-        assertFilterResult(ReferentialFilterVO.builder().levelId(1).build(), 4);
+        assertFilterResult(LocationFilterVO.builder().levelId(1).build(), 4);
         // All countries and port by level
-        assertFilterResult(ReferentialFilterVO.builder().levelIds(new Integer[]{1,2}).build(), 19);
+        assertFilterResult(LocationFilterVO.builder().levelIds(new Integer[]{1,2}).build(), 19);
     }
 
-    private void assertFilterResult(ReferentialFilterVO filter, int expectedSize) {
+    private void assertFilterResult(LocationFilterVO filter, int expectedSize) {
         List<LocationVO> locations = locationRepository.findAll(filter);
         Assert.assertNotNull(locations);
         Assert.assertEquals(expectedSize, locations.size());

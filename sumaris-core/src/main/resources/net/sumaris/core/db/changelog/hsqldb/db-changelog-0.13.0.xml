@@ -11,7 +11,7 @@
         <sequenceExists sequenceName="LANDING_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="LANDING_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="LANDING_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-10" runOnChange="true">
     <preConditions onFail="MARK_RAN">
@@ -19,7 +19,7 @@
         <sequenceExists sequenceName="PRODUCT_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="PRODUCT_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="PRODUCT_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-11" runOnChange="true">
     <preConditions onFail="MARK_RAN">
@@ -27,7 +27,7 @@
         <sequenceExists sequenceName="QUANTIF_MEASUREMENT_P_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="QUANTIF_MEASUREMENT_P_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="QUANTIF_MEASUREMENT_P_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-12" runOnChange="true">
     <preConditions onFail="MARK_RAN">
@@ -35,7 +35,7 @@
         <sequenceExists sequenceName="SORTING_MEASUREMENT_P_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="SORTING_MEASUREMENT_P_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="SORTING_MEASUREMENT_P_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-13" runOnChange="true">
     <preConditions onFail="MARK_RAN">
@@ -43,7 +43,7 @@
         <sequenceExists sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ"/>
       </not>
     </preConditions>
-    <createSequence sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ" incrementBy="50"/>
+    <createSequence sequenceName="VESSEL_PHYSICAL_MEASUREMEN_SEQ" incrementBy="50" startValue="50"/>
   </changeSet>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1560431295119-14">

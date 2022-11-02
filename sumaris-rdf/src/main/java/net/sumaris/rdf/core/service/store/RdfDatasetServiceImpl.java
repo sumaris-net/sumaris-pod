@@ -58,13 +58,12 @@ import org.apache.jena.system.Txn;
 import org.apache.jena.tdb2.TDB2Factory;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.tdwg.rs.DWC;
 import org.w3.W3NS;
 
@@ -72,7 +71,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.Set;
@@ -80,7 +82,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component("rdfDatasetService")
+@Service("rdfDatasetService")
 @ConditionalOnBean({RdfConfiguration.class})
 @Slf4j
 public class RdfDatasetServiceImpl implements RdfDatasetService {
@@ -89,13 +91,13 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     public static final String MEMORY_PROVIDER_NAME = "memory";
 
     @Resource
-    private RdfSchemaService schemaService;
+    private RdfSchemaService rdfSchemaService;
 
     @Resource
-    private RdfIndividualService individualService;
+    private RdfIndividualService rdfIndividualService;
 
     @Resource
-    private RdfConfiguration config;
+    private RdfConfiguration rdfConfiguration;
 
     @Resource
     private CryptoService cryptoService;
@@ -107,19 +109,13 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
 
     private Dataset dataset;
 
-    @Resource(name = "sandreTaxonRdfLoader")
-    private INamedRdfLoader sandreTaxonRdfLoader;
-
-    @Resource(name = "sandreOrganizationRdfLoader")
-    private INamedRdfLoader sandreOrganizationRdfLoader;
-
-    @Autowired(required = false)
+    @Resource
     protected TaskExecutor taskExecutor;
 
-    @Autowired
+    @Resource
     private ApplicationContext appContext;
-    private Map<String, Callable<Model>> namedGraphFactories = Maps.newHashMap();
 
+    private final Map<String, Callable<Model>> namedGraphFactories = Maps.newHashMap();
 
     @PostConstruct
     public void init() {
@@ -136,12 +132,12 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
         boolean isReadyEvent = event instanceof ConfigurationReadyEvent;
 
         // If auto import, load dataset
-        if (config.enableDataImport()) {
+        if (rdfConfiguration.enableDataImport()) {
             if (!containsAllTypes(this.dataset, W3NS.Org.Organization, DWC.Voc.TaxonName)) {
                 this.scheduleInitDataset();
             }
             else {
-                if (isReadyEvent) log.info("RDF datasets found in {{}}. Skip loading datasets", config.getRdfTdb2Directory().getAbsoluteFile());
+                if (isReadyEvent) log.info("RDF datasets found in {{}}. Skip loading datasets", rdfConfiguration.getRdfTdb2Directory().getAbsoluteFile());
             }
         }
         else {
@@ -155,10 +151,10 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     }
 
     public void registerNameModel(final INamedRdfLoader loader) {
-        registerNameModel(loader, -1L /*all*/);
+        registerNamedModel(loader, -1L /*all*/);
     }
 
-    public void registerNameModel(final INamedRdfLoader loader, final long maxLimit) {
+    public void registerNamedModel(final INamedRdfLoader loader, final long maxLimit) {
         if (loader == null) return; // Skip if empty
         String modelName = loader.getName();
         registerNamedModel(modelName, () -> {
@@ -203,7 +199,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
 
     /**
      * Construct a dataset for a query
-     * @param query
+     * @param query the SparQL to preapre
      * @return a dataset
      */
     public Dataset prepareDatasetForQuery(Query query) {
@@ -282,7 +278,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
      */
     public void loadFromDatabase(@NotNull Dataset dataset, boolean replaceIfExists) {
         // Load exported entities into dataset
-        Set<String> vocabularies = schemaService.getAllVocabularies();
+        Set<String> vocabularies = rdfSchemaService.getAllVocabularies();
         if (CollectionUtils.isNotEmpty(vocabularies)) {
             vocabularies
                 .stream()
@@ -301,7 +297,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
 
     /**
      * Fill dataset
-     * @return
+     * @return the Jena dataset
      */
     public Dataset getDataset() {
         return DatasetFactory.wrap(this.dataset.getUnionModel());
@@ -327,7 +323,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     public void loadModels(boolean replaceIfExists) {
 
         // Load data from DB
-        if (config.enableDataImportFromDatabase()) {
+        if (rdfConfiguration.enableDataImportFromDatabase()) {
             try {
                 loadFromDatabase(this.dataset, replaceIfExists);
             } catch (Exception e) {
@@ -336,7 +332,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
         }
 
         // Load data from external (e.g. external service, partners, etc.)
-        if (config.enableDataImportFromExternal()) {
+        if (rdfConfiguration.enableDataImportFromExternal()) {
             try {
                 loadAllNamedModels(this.dataset, replaceIfExists);
             } catch (Exception e) {
@@ -352,7 +348,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
         if (enableTdb2) {
 
             // Connect or create the TDB2 dataset
-            File tdb2Dir = config.getRdfTdb2Directory();
+            File tdb2Dir = rdfConfiguration.getRdfTdb2Directory();
             log.info("Starting {{}} triple store at {{}}...", TDB2_PROVIDER_NAME, tdb2Dir);
 
             // Check access write
@@ -384,24 +380,24 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     /**
      * Fill dataset
      * @param dataset
-     * @return
+     * @param replaceIfExists
      */
     protected void loadSchema(@NotNull Dataset dataset, boolean replaceIfExists) {
 
         // Generate schema, and store it into the dataset
-        this.defaultModel = schemaService.getAllOntologies();
-        FileManager.get().addCacheModel(schemaService.getNamespace(), this.defaultModel);
+        this.defaultModel = rdfSchemaService.getAllOntologies();
+        FileManager.get().addCacheModel(rdfSchemaService.getNamespace(), this.defaultModel);
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             Txn.executeWrite(conn, () -> {
 
-                if (dataset.containsNamedModel(schemaService.getNamespace())) {
+                if (dataset.containsNamedModel(rdfSchemaService.getNamespace())) {
                     if (replaceIfExists) {
-                        log.info("Updating schema {{}} to RDF dataset...", schemaService.getNamespace());
-                        dataset.replaceNamedModel(schemaService.getNamespace(), this.defaultModel);
+                        log.info("Updating schema {{}} to RDF dataset...", rdfSchemaService.getNamespace());
+                        dataset.replaceNamedModel(rdfSchemaService.getNamespace(), this.defaultModel);
                     }
                 } else {
-                    log.info("Adding schema {{}} to the RDF dataset...", schemaService.getNamespace());
-                    dataset.addNamedModel(schemaService.getNamespace(), this.defaultModel);
+                    log.info("Adding schema {{}} to the RDF dataset...", rdfSchemaService.getNamespace());
+                    dataset.addNamedModel(rdfSchemaService.getNamespace(), this.defaultModel);
                 }
             });
         }
@@ -413,9 +409,9 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
         try (RDFConnection conn = RDFConnectionFactory.connect(dataset)) {
             Txn.executeWrite(conn, () -> {
 
-                String graphName = config.getModelBaseUri() + ModelType.DATA.name().toLowerCase() + "/" + vocabulary;
+                String graphName = rdfConfiguration.getModelBaseUri() + ModelType.DATA.name().toLowerCase() + "/" + vocabulary;
                 log.info("Loading data from database, into {{}} dataset...", graphName);
-                Model instances = individualService.getIndividuals(RdfIndividualFetchOptions.builder()
+                Model instances = rdfIndividualService.getIndividuals(RdfIndividualFetchOptions.builder()
                     .maxDepth(1)
                     .vocabulary(vocabulary)
                     .build());
@@ -438,12 +434,12 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
     public Model unionModel(String modelName, Stream<Model> stream) throws Exception {
 
         // Init the temp directory
-        FileUtils.forceMkdir(config.getTempDirectory());
+        FileUtils.forceMkdir(rdfConfiguration.getTempDirectory());
 
         final String cacheFileFormat = RdfFormat.TURTLE.toJenaFormat();
         String baseFilename = cryptoService.hash(modelName) + ".ttl";
-        File tempFile = new File(config.getTempDirectory(), baseFilename + ".tmp");
-        File cacheFile = new File(config.getRdfDirectory(), baseFilename);
+        File tempFile = new File(rdfConfiguration.getTempDirectory(), baseFilename + ".tmp");
+        File cacheFile = new File(rdfConfiguration.getRdfDirectory(), baseFilename);
 
         try {
             if (!cacheFile.exists() && !tempFile.exists()) {
@@ -526,6 +522,7 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
                     initDataset();
 
                 } catch (InterruptedException e) {
+                    // Silence is gold
                 }
             });
         } else {
@@ -584,8 +581,8 @@ public class RdfDatasetServiceImpl implements RdfDatasetService {
 
         // Init the temp directory
         String baseFilename = cryptoService.hash(modelName) + ".ttl";
-        File tempFile = new File(config.getTempDirectory(), baseFilename + ".tmp");
-        File cacheFile = new File(config.getRdfDirectory(), baseFilename);
+        File tempFile = new File(rdfConfiguration.getTempDirectory(), baseFilename + ".tmp");
+        File cacheFile = new File(rdfConfiguration.getRdfDirectory(), baseFilename);
 
         if (tempFile.exists() && !tempFile.isDirectory()) {
             log.debug("Deleting temp file {{}}: {}", modelName, tempFile.getAbsolutePath());

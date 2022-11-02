@@ -36,12 +36,13 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Objects;
 
 
-@Component("rdfIndividualEquivalences")
+@Service("rdfIndividualEquivalences")
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
         prefix = "rdf.equivalences",
@@ -52,23 +53,27 @@ public class RdfIndividualEquivalences implements IModelVisitor<Model, RdfIndivi
 
     private boolean debug;
 
-    @javax.annotation.Resource
-    protected RdfIndividualService individualService;
+    protected final RdfIndividualService rdfIndividualService;
 
-    @javax.annotation.Resource
-    protected RdfSchemaService schemaService;
+    protected final RdfSchemaService rdfSchemaService;
+
+    public RdfIndividualEquivalences(RdfIndividualService rdfIndividualService,
+                                     RdfSchemaService rdfSchemaService) {
+        this.rdfIndividualService = rdfIndividualService;
+        this.rdfSchemaService = rdfSchemaService;
+    }
 
     @PostConstruct
     protected void init() {
         // Register to individual service
-        individualService.register(this);
+        rdfIndividualService.register(this);
 
         debug = log.isDebugEnabled();
     }
 
     @Override
     public boolean accept(Model model, String prefix, String namespace, RdfIndividualFetchOptions options) {
-        return options.getReasoningLevel() != ReasoningLevel.NONE && Objects.equals(schemaService.getNamespace(), namespace);
+        return options.getReasoningLevel() != ReasoningLevel.NONE && Objects.equals(rdfSchemaService.getNamespace(), namespace);
     }
 
     @Override

@@ -9,6 +9,7 @@
 
     <!-- ****** SUMARiS properties ****** -->
 
+    <SOFTWARE_PROPERTY ID="1"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.batch.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="2"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="en"/>
     <SOFTWARE_PROPERTY ID="3"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
     <SOFTWARE_PROPERTY ID="5"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
@@ -27,7 +28,6 @@
     <SOFTWARE_PROPERTY ID="22" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.forum.url" NAME="https://forum.sumaris.net/"/>
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.help.url" NAME="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md"/>
-
 
 
     <!-- ****** ADAP properties ****** -->

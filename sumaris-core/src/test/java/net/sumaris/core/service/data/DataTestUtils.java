@@ -89,7 +89,7 @@ public class DataTestUtils {
         vo.setMetier(createMetierVO(fixtures.getMetierIdForOTB(0)));
 
         // Measurements (= vessel use measurements)
-        PmfmVO bottomDepthPmfm = pmfmService.getByLabel("BOTTOM_DEPTH_M");
+        PmfmVO bottomDepthPmfm = pmfmService.getByLabel("BOTTOM_DEPTH_M", null);
         MeasurementVO meas1 = new MeasurementVO();
         meas1.setNumericalValue(15.0);
         meas1.setPmfmId(bottomDepthPmfm.getId());
@@ -107,7 +107,7 @@ public class DataTestUtils {
             date.add(Calendar.MINUTE, 5);
             sample.setSampleDate(date.getTime());
             sample.setRankOrder(1);
-            sample.setLabel(AcquisitionLevelEnum.SURVIVAL_TEST.getLabel() + "#1");
+            sample.setLabel(AcquisitionLevelEnum.SAMPLE.getLabel() + "#1");
             sample.setMatrix(createReferentialVO(fixtures.getMatrixIdForIndividual()));
             sample.setComments("A survival test sample #1");
             sample.setProgram(fixtures.getDefaultProgram());

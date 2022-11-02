@@ -28,13 +28,6 @@ public enum ModelVocabularyEnum implements ModelVocabularies {
     DEFAULT(COMMON),
     TRANSCRIBING(ModelVocabularies.TRANSCRIBING, "Transcribing"),
 
-    // Referential
-    TAXON(ModelVocabularies.TAXON, "Taxonomy"),
-    ORGANIZATION(ModelVocabularies.ORGANIZATION, "Organization"),
-
-    // Data
-    TRIP(ModelVocabularies.TRIP, "Sea Trip")
-
     ;
 
     private String label;

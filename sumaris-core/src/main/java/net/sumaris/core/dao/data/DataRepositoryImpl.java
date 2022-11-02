@@ -47,6 +47,7 @@ import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -56,10 +57,7 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -316,12 +314,17 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
         // Observers
         if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            Set<Person> sourceObservers = ((IWithObserversEntity<Integer, Person>) source).getObservers();
-            if ((fetchOptions == null || fetchOptions.isWithObservers()) && CollectionUtils.isNotEmpty(sourceObservers)) {
-                Set<PersonVO> observers = sourceObservers.stream()
-                    .map(person -> personRepository.toVO(person, PERSON_FETCH_OPTIONS))
-                    .collect(Collectors.toSet());
-                ((IWithObserversEntity<Integer, PersonVO>) target).setObservers(observers);
+            if (fetchOptions == null || fetchOptions.isWithObservers()) {
+                Set<Person> sourceObservers = ((IWithObserversEntity<Integer, Person>) source).getObservers();
+                if (CollectionUtils.isNotEmpty(sourceObservers)) {
+                    Set<PersonVO> observers = sourceObservers.stream()
+                            .map(Person::getId)
+                            .map(personRepository::findVOById)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toSet());
+                    ((IWithObserversEntity<Integer, PersonVO>) target).setObservers(observers);
+                }
             }
         }
     }

@@ -25,8 +25,8 @@ package net.sumaris.core.dao.referential;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
+import net.sumaris.core.vo.referential.PmfmFetchOptions;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -88,7 +88,7 @@ public class PmfmRepositoryReadTest extends AbstractDaoTest {
         Assert.assertEquals(6, pmfm.getQualitativeValues().size());
 
         // Without qualitative values
-        pmfm = pmfmRepository.get(5, ReferentialFetchOptions.builder().withInheritance(false).build());
+        pmfm = pmfmRepository.get(5, PmfmFetchOptions.builder().withInheritance(false).build());
         Assert.assertNotNull(pmfm);
         Assert.assertNull(pmfm.getQualitativeValues());
 

@@ -28,7 +28,7 @@ import net.sumaris.rdf.core.loader.AbstractNamedRdfLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component("mnhnTaxonLoader")
+@Component
 @Slf4j
 public class MnhnTaxonLoader extends AbstractNamedRdfLoader {
 

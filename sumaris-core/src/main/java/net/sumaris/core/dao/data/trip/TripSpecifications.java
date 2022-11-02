@@ -47,31 +47,31 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
 
     default Specification<Trip> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID), param),
-                criteriaBuilder.equal(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID), param)
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, LOCATION_ID_PARAM);
+            return cb.or(
+                cb.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID), param),
+                cb.equal(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID), param)
             );
         }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     default Specification<Trip> hasLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, LOCATION_IDS_PARAM);
-            return criteriaBuilder.or(
-                criteriaBuilder.in(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID)).value(param),
-                criteriaBuilder.in(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID)).value(param)
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS_PARAM);
+            return cb.or(
+                cb.in(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID)).value(param),
+                cb.in(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID)).value(param)
             );
         }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
 
     default Specification<Trip> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
+            return cb.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param);
         }).addBind(VESSEL_ID_PARAM, vesselId);
     }
 
@@ -101,31 +101,31 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
     default Specification<Trip> hasObserverPersonIds(Integer... observerPersonIds) {
         if (ArrayUtils.isEmpty(observerPersonIds)) return null;
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
+        return BindableSpecification.where((root, query, cb) -> {
 
             // Avoid duplicated entries (because of inner join)
             query.distinct(true);
 
-            ParameterExpression<Collection> parameter = criteriaBuilder.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
-            return criteriaBuilder.in(Daos.composeJoin(root, Trip.Fields.OBSERVERS).get(IEntity.Fields.ID))
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
+            return cb.in(Daos.composeJoin(root, Trip.Fields.OBSERVERS).get(IEntity.Fields.ID))
                 .value(parameter);
         }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }
 
     default Specification<Trip> includedIds(Integer[] includedIds) {
         if (ArrayUtils.isEmpty(includedIds)) return null;
-        return BindableSpecification.<Trip>where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, INCLUDED_IDS_PARAM);
-            return criteriaBuilder.in(root.get(Trip.Fields.ID)).value(param);
+        return BindableSpecification.<Trip>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAM);
+            return cb.in(root.get(Trip.Fields.ID)).value(param);
         })
                 .addBind(INCLUDED_IDS_PARAM, Arrays.asList(includedIds));
     }
 
     default Specification<Trip> hasQualityFlagIds(Integer[] qualityFlagIds) {
         if (ArrayUtils.isEmpty(qualityFlagIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-                ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
-                return criteriaBuilder.in(root.get(Trip.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
+                return cb.in(root.get(Trip.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
             })
             .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
     }

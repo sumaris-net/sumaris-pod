@@ -26,5 +26,10 @@ public interface AggPmfmTripSpecification extends AggRdbSpecification {
 
     String FORMAT = AggSpecification.FORMAT_PREFIX + PmfmTripSpecification.FORMAT;
     String VERSION_1_0 = PmfmTripSpecification.VERSION_1_0;
+    String ST_SHEET_NAME = "ST"; // Sample
+    String RL_SHEET_NAME = "RL"; // Release
 
+    String COLUMN_INDIVIDUAL_COUNT = "individual_count";
+
+    String[] SHEET_NAMES = {HH_SHEET_NAME, SL_SHEET_NAME, HL_SHEET_NAME, ST_SHEET_NAME, RL_SHEET_NAME};
 }

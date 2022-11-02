@@ -59,30 +59,17 @@ public class InitTests extends net.sumaris.core.test.InitTests {
             log.error(ex.getLocalizedMessage(), ex);
         }
     }
+    public InitTests() {
+        super();
+    }
+
+    public InitTests(String datasourcePlatform) {
+        super(datasourcePlatform);
+    }
 
     @Override
     public String getTargetDbDirectory() {
-        return "target/db";
-    }
-
-    public String getRdfDirectory() {
-        return "target/rdf";
-    }
-
-    protected String[] getConfigArgs() {
-        return new String[]{
-                // Data source
-                "--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), getTargetDbDirectory(),
-                "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue(),
-                // Enable RDF, and TDB2
-                "--option", RdfConfigurationOption.RDF_ENABLED.getKey(), Boolean.TRUE.toString(),
-                "--option", RdfConfigurationOption.RDF_DIRECTORY.getKey(), getRdfDirectory(),
-                "--option", RdfConfigurationOption.RDF_TDB2_ENABLED.getKey(), Boolean.TRUE.toString(),
-                // Disable auto-load
-                "--option", RdfConfigurationOption.RDF_DATA_IMPORT_ENABLED.getKey(), Boolean.FALSE.toString(),
-                // Disable load external data (Sandre, MNHN, etc)
-                "--option", RdfConfigurationOption.RDF_DATA_IMPORT_EXTERNAL_ENABLED.getKey(), Boolean.FALSE.toString(),
-        };
+        return "../sumaris-core/target/db";
     }
 
     @Override
@@ -91,11 +78,36 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     }
 
     @Override
+    protected  String getConfigFileName(){
+        return TestConfiguration.CONFIG_FILE_PREFIX + "-" + this.datasourcePlatform + ".properties";
+    }
+
+    @Override
     protected void before() throws Throwable {
 
         super.before();
 
         loadRdfDataset();
+    }
+
+    public String getRdfDirectory() {
+        return "target/rdf";
+    }
+
+    protected String[] getConfigArgs() {
+        return new String[]{
+            // Data source
+            "--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), getTargetDbDirectory(),
+            "--option", SumarisConfigurationOption.JDBC_URL.getKey(), SumarisConfigurationOption.JDBC_URL.getDefaultValue(),
+            // Enable RDF, and TDB2
+            "--option", RdfConfigurationOption.RDF_ENABLED.getKey(), Boolean.TRUE.toString(),
+            "--option", RdfConfigurationOption.RDF_DIRECTORY.getKey(), getRdfDirectory(),
+            "--option", RdfConfigurationOption.RDF_TDB2_ENABLED.getKey(), Boolean.TRUE.toString(),
+            // Disable auto-load
+            "--option", RdfConfigurationOption.RDF_DATA_IMPORT_ENABLED.getKey(), Boolean.FALSE.toString(),
+            // Disable load external data (Sandre, MNHN, etc)
+            "--option", RdfConfigurationOption.RDF_DATA_IMPORT_EXTERNAL_ENABLED.getKey(), Boolean.FALSE.toString(),
+        };
     }
 
     protected void loadRdfDataset() {
@@ -124,7 +136,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
                 .add(RdfDatasetAction.INIT_ALIAS)
                 .addAll(Arrays.asList(getConfigArgs()))
                 .build().toArray(new String[0]);
-        Application.run(args, getModuleName() + "-test.properties");
+        Application.run(args, "classpath:" + getConfigFileName());
 
         log.info("Test {TDB2} triple store has been loaded, in {}", TimeUtils.printDurationFrom(startTime));
         if (isFileDatabase) {

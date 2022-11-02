@@ -27,10 +27,12 @@ import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Formula;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -49,7 +51,16 @@ import java.util.Set;
         }
 )
 @Cacheable
+@NamedEntityGraph(
+        name = Pmfm.GRAPH_QUALITATIVE_VALUES,
+        attributeNodes = {
+                @NamedAttributeNode(Pmfm.Fields.QUALITATIVE_VALUES)
+        }
+)
 public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithStatusEntity<Integer> {
+
+
+    public static final String GRAPH_QUALITATIVE_VALUES = "Pmfm.qualitativeValues";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")

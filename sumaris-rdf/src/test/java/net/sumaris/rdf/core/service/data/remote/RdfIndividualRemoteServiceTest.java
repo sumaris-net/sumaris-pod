@@ -23,8 +23,6 @@
 package net.sumaris.rdf.core.service.data.remote;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.IModel;
-import net.sumaris.core.model.ModelVocabularies;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import org.apache.jena.ontology.OntModel;
@@ -53,12 +51,12 @@ public class RdfIndividualRemoteServiceTest extends AbstractTest {
     }
 
     @Test
-    @Ignore
+    //@Ignore
     public void testSynchro() {
         String ontologyUrl = fixtures.getRemoteOntologyUrl();
         String ontologyIri = fixtures.getRemoteOntologyIri();
-        Model mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, ModelVocabularies.SHARED,
-            IModel.MODEL_REFERENTIAL_PACKAGE_NAME);
+        String ontologyVocabulary = fixtures.getRemoteOntologyVocabulary();
+        Model mappedModel = service.importFromRemote(ontologyUrl, ontologyIri, ontologyVocabulary, "net.sumaris.core.model.referential");
         Assert.assertNotNull(mappedModel);
     }
 }

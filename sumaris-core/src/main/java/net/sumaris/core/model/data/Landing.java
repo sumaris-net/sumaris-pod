@@ -45,6 +45,7 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
+@Table(name = "landing")
 @NamedEntityGraph(
     name = Landing.GRAPH_LOCATION_AND_PROGRAM,
     attributeNodes = {

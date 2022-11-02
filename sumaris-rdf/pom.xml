@@ -3,14 +3,13 @@
     <parent>
         <artifactId>sumaris-pod</artifactId>
         <groupId>net.sumaris</groupId>
-        <version>1.28.2-SNAPSHOT</version>
+        <version>1.31.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>sumaris-rdf</artifactId>
-    <packaging>jar</packaging>
-    <name>SUMARiS:: RDF</name>
-    <description>SUMARiS RDF features</description>
+    <name>SUMARiS:: RDF features</name>
+    <description>SUMARiS RDF library</description>
 
     <properties>
         <!-- i18n configuration -->
@@ -26,11 +25,6 @@
         <!-- Project dependencies -->
         <dependency>
             <groupId>net.sumaris</groupId>
-            <artifactId>sumaris-core-shared</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sumaris</groupId>
             <artifactId>sumaris-core</artifactId>
             <version>${project.version}</version>
             <exclusions>
@@ -40,7 +34,17 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>net.sumaris</groupId>
+            <artifactId>sumaris-core-shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
@@ -54,10 +58,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
         </dependency>
 
         <dependency>
@@ -81,25 +81,12 @@
             <artifactId>jena-fuseki-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-        <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
             <artifactId>owlapi-distribution</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.VisualDataWeb</groupId>
             <artifactId>OWL2VOWL</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- Unit test -->
@@ -127,7 +114,6 @@
         <dependency>
             <groupId>com.mattbertolini</groupId>
             <artifactId>liquibase-slf4j</artifactId>
-            <version>${liquibase-slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

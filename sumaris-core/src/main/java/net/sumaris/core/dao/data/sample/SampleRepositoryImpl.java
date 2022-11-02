@@ -41,6 +41,7 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -73,7 +74,7 @@ public class SampleRepositoryImpl
     @Autowired
     private TaxonNameRepository taxonNameRepository;
 
-    private boolean enableSaveUsingHash;
+    private boolean enableHashOptimization;
 
     @Autowired
     public SampleRepositoryImpl(EntityManager entityManager) {
@@ -85,7 +86,7 @@ public class SampleRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableSaveUsingHash = getConfig().enableSampleHashOptimization();
+        this.enableHashOptimization = getConfig().enableSampleHashOptimization();
     }
 
     @Override
@@ -157,7 +158,7 @@ public class SampleRepositoryImpl
 
     @Override
     public void toEntity(SampleVO source, Sample target, boolean copyIfNull) {
-        toEntity(source, target, copyIfNull, target.getId() != null && enableSaveUsingHash);
+        toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
     protected boolean toEntity(SampleVO source, Sample target, boolean copyIfNull, boolean allowSkipSameHash) {
@@ -319,7 +320,7 @@ public class SampleRepositoryImpl
     public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableSaveUsingHash));
+        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableHashOptimization));
 
         // Load parent entity
         Operation parent = getById(Operation.class, operationId);
@@ -349,7 +350,7 @@ public class SampleRepositoryImpl
     public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> samples) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableSaveUsingHash));
+        if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableHashOptimization));
 
         // Load parent entity
         Landing parent = getById(Landing.class, landingId);
@@ -393,9 +394,9 @@ public class SampleRepositoryImpl
                 target = sourcesByIds.remove(source.getId());
             }
             // Check can be skipped
-            boolean skip = enableSaveUsingHash && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
+            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
-                source = optimizedSave(source, target, false, newUpdateDate, enableSaveUsingHash);
+                source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
                 skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
 
                 // If not changed, skip all children
@@ -469,7 +470,14 @@ public class SampleRepositoryImpl
         boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
         // Stop here (without change on the update_date)
-        if (skipSave) return source;
+        if (skipSave) {
+            // Flag as same hash
+            source.addFlag(ValueObjectFlags.SAME_HASH);
+            return source;
+        }
+
+        // Remove same hash flag
+        source.removeFlag(ValueObjectFlags.SAME_HASH);
 
         // Update update_dt
         entity.setUpdateDate(newUpdateDate);

@@ -41,6 +41,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
@@ -94,6 +95,10 @@ public abstract class ReferentialRepositoryImpl<
     public List<V> findAll(F filter, net.sumaris.core.dao.technical.Page page, O fetchOptions) {
         Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
         TypedQuery<E> query = getQuery(spec, page, getDomainClass());
+
+        // Add hints
+        configureQuery(query, page, fetchOptions);
+
         return streamQuery(query)
             .map(entity -> toVO(entity, fetchOptions))
             .collect(Collectors.toList());
@@ -283,4 +288,7 @@ public abstract class ReferentialRepositoryImpl<
             .and(excludedIds(filter.getExcludedIds()));
     }
 
+    protected void configureQuery(TypedQuery<E> query, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {
+        // Can be override by subclasses
+    }
 }

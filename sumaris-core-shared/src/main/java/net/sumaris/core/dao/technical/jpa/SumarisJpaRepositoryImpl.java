@@ -657,6 +657,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                 CT target = source.getId() != null ? entitiesToRemove.remove(source.getId()) : null;
                 boolean isNew = (target == null);
                 if (isNew) {
+                    source.setId(null); // Reset id, because not found (to avoid copy into target)
                     try {
                         target = targetClass.newInstance();
                     } catch (IllegalAccessException | InstantiationException e) {

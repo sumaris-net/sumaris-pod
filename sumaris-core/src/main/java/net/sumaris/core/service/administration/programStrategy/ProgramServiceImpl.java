@@ -31,6 +31,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
@@ -47,6 +48,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service("programService")
 @Slf4j
@@ -111,6 +113,19 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public boolean hasAcquisitionLevelById(int id, @NonNull AcquisitionLevelEnum acquisitionLevel) {
+		Preconditions.checkNotNull(acquisitionLevel.getLabel());
+		return Beans.getStream(this.getAcquisitionLevelsById(id))
+			.anyMatch(item -> item.getLabel().equalsIgnoreCase(item.getLabel()));
+	}
+
+	@Override
+	public boolean hasAcquisitionLevelByLabel(String label, AcquisitionLevelEnum acquisitionLevel) {
+		ProgramVO program = getByLabel(label);
+		return hasAcquisitionLevelById(program.getId(), acquisitionLevel);
+	}
+
+	@Override
 	public Optional<ProgramVO> findNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
 		Preconditions.checkNotNull(updateDate);
 		return programRepository.findIfNewerById(id, updateDate, fetchOptions);
@@ -159,23 +174,13 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public boolean hasPropertyValue(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
-		List<ProgramVO> programs = findByFilter(
-			ProgramFilterVO.builder()
-				.withProperty(property.getLabel())
-				.build(),
-			Page.builder()
-				.size(1).build(),
-			ProgramFetchOptions.builder()
-				.withProperties(true)
-				.build()
-		);
+	public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
+		return programRepository.hasPropertyValueByProgramLabel(label, property, expectedValue);
+	}
 
-		String value = CollectionUtils.isEmpty(programs)
-			? property.getDefaultValue()
-			: programs.get(0).getProperties().get(property.getLabel());
-
-		return expectedValue.equals(value);
+	@Override
+	public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
+		return programRepository.hasPropertyValueByProgramId(id, property, expectedValue);
 	}
 
 }

@@ -805,6 +805,7 @@ public class AggregationRdbTripDaoImpl<
 
         return Stream.concat(xmlQuery.getNotNumericColumnNames().stream(), Stream.of(includedNumericColumnNames))
                 .filter(columnName -> !excludeHiddenColumns || !hiddenColumns.contains(columnName))
+                .filter(columnName -> !columnName.contains("&")) // Skip injected pmfm columns
                 .collect(Collectors.toMap(
                         c -> c,
                         c -> query(

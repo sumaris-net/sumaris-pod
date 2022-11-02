@@ -119,7 +119,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
             .map(base64 -> {
                 try {
                     String value = new String(Base64.getDecoder().decode(base64));
-                    String[] parts = value.split(":");
+                    String[] parts = value.split(":", 2);
                     return new UsernamePasswordAuthenticationToken(parts[0], parts[1]);
                 }
                 catch (Exception e) {

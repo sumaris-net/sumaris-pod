@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.28.2-SNAPSHOT</version>
+  <version>1.31.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -191,7 +191,7 @@
     <gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
-    <jreVersion>1.8.77</jreVersion>
+    <jreVersion>11.0.16</jreVersion>
 
     <!-- nuiton maven plugins version -->
     <helperPluginVersion>2.3.2</helperPluginVersion>
@@ -1390,12 +1390,6 @@
           </configuration>
         </plugin>
 
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>4.2.1</version>
-        </plugin>
-
       </plugins>
     </pluginManagement>
 
@@ -1467,10 +1461,7 @@
       <!-- site -->
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${sitePluginVersion}</version>
       </plugin>
 
       <plugin>
@@ -2034,7 +2025,6 @@
             </reportSets>
             <configuration>
               <include>sumaris-core-shared,sumaris-core,sumaris-server</include>
-              <i18nBundleName>sumaris-server-i18n</i18nBundleName>
               <verbose>true</verbose>
               <outputEncoding>UTF-8</outputEncoding>
             </configuration>

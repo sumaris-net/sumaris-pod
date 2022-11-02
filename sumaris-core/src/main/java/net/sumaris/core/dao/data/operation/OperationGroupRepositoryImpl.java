@@ -96,22 +96,22 @@ public class OperationGroupRepositoryImpl
     protected Specification<Operation> toSpecification(OperationGroupFilterVO filter, DataFetchOptions fetchOptions) {
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(filter.getTripId());
-        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            query.orderBy(criteriaBuilder.asc(root.get(Operation.Fields.RANK_ORDER_ON_PERIOD))); // Default sort
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, OperationGroupVO.Fields.TRIP_ID);
+        BindableSpecification<Operation> specification = BindableSpecification.where((root, query, cb) -> {
+            query.orderBy(cb.asc(root.get(Operation.Fields.RANK_ORDER_ON_PERIOD))); // Default sort
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, OperationGroupVO.Fields.TRIP_ID);
             if (filter.isOnlyUndefined()) {
-                return criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
-                        criteriaBuilder.equal(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME)),
-                        criteriaBuilder.equal(root.get(Operation.Fields.END_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME))
+                return cb.and(
+                        cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
+                        cb.equal(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME)),
+                        cb.equal(root.get(Operation.Fields.END_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME))
                 );
             } else if (filter.isOnlyDefined()) {
-                return criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
-                        criteriaBuilder.notEqual(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME))
+                return cb.and(
+                        cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
+                        cb.notEqual(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME))
                 );
             } else {
-                return criteriaBuilder.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param);
+                return cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param);
             }
         });
         specification.addBind(OperationGroupVO.Fields.TRIP_ID, filter.getTripId());

@@ -53,9 +53,7 @@ import java.util.Optional;
 @Slf4j
 public class ResourceUtils {
 
-	/**
-	 * <p>Constructor for Springs.</p>
-	 */
+
 	protected ResourceUtils() {
 		// Helper class : do not instantiate
 	}

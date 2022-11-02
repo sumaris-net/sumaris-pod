@@ -25,7 +25,6 @@ package net.sumaris.rdf.server.config;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.ModelVocabularyEnum;
 import net.sumaris.core.model.annotation.OntologyEntities;
-import net.sumaris.rdf.core.config.RdfAutoConfiguration;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.model.ModelURIs;
 import net.sumaris.rdf.core.util.RdfFormat;
@@ -34,12 +33,13 @@ import net.sumaris.rdf.server.http.rest.ontology.OntologyRdfRestController;
 import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -48,10 +48,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Configuration
-@ConditionalOnBean({RdfAutoConfiguration.class})
+@ConditionalOnProperty(name = "rdf.enabled")
 @ConditionalOnWebApplication
+@EnableScheduling
 @Slf4j
 public class RdfWebAutoConfiguration {
 
@@ -115,7 +118,7 @@ public class RdfWebAutoConfiguration {
                     String DATA_FILE_PATH = WEBVOWL_PATH_SLASH + "data/%s.json";
 
                     // WebVOWL schema files: from internal vocabularies
-                    Map<String, String> lastVersionByVobabulary = Maps.newHashMap();
+                    Map<String, OntologyEntities.Definition> ontologyDefByVocabulary = Maps.newHashMap();
                     OntologyEntities.getOntologyEntityDefs(config.getDelegate(), ModelVocabularyEnum.DEFAULT.getLabel(), config.getModelVersion())
                         .stream()
                         .sorted((def1, def2) -> {
@@ -130,14 +133,12 @@ public class RdfWebAutoConfiguration {
                         })
                         .forEach(def -> {
                             // Insert first [vocabulary, version]
-                            if (!lastVersionByVobabulary.containsKey(def.getVocabulary())) {
-                                lastVersionByVobabulary.put(def.getVocabulary(), def.getVersion());
+                            if (!ontologyDefByVocabulary.containsKey(def.getVocabulary())) {
+                                ontologyDefByVocabulary.put(def.getVocabulary(), def);
                             }
                         });
-                    lastVersionByVobabulary.forEach((vocabulary, version) -> {
-                            registry.addViewController(String.format(DATA_FILE_PATH, vocabulary))
-                                .setViewName(String.format("forward:%s/%s/%s?format=vowl", RdfRestPaths.SCHEMA_BASE_PATH, vocabulary, version));
-                    });
+                    ontologyDefByVocabulary.forEach((vocabulary, def) -> registry.addViewController(String.format(DATA_FILE_PATH, vocabulary))
+                        .setViewName(String.format("forward:%s/%s/%s?format=vowl", RdfRestPaths.SCHEMA_BASE_PATH, vocabulary, def.getVersion())));
 
                     // WebVOWL schema files: from external URI
                     ModelURIs.RDF_URL_BY_PREFIX.keySet()
@@ -153,6 +154,14 @@ public class RdfWebAutoConfiguration {
                     registry.addRedirectViewController("/api/sparql/ui/", YASGUI_PATH);
                     registry.addViewController(YASGUI_PATH).setViewName("forward:/yasgui/index.html");
                 }
+
+                // Use case > Taxon search
+                {
+                    final String TAXON_PATH = "/api/search/taxon";
+                    registry.addRedirectViewController(TAXON_PATH + "/", TAXON_PATH);
+                    registry.addViewController(TAXON_PATH)
+                        .setViewName("forward:/taxon/index.html");
+                }
             }
 
             @Override
@@ -160,29 +169,38 @@ public class RdfWebAutoConfiguration {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping(RdfRestPaths.SPARQL_ENDPOINT + "/**")
-                    .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                    .allowCredentials(true);
+                        .allowedOriginPatterns("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
+                        .allowCredentials(true);
 
                 registry.addMapping(RdfRestPaths.SCHEMA_BASE_PATH + "/**")
                     .allowedOriginPatterns("*")
                     .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                     .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
                     .allowCredentials(true);
-
-
-                registry.addMapping(RdfRestPaths.WEBVOWL_BASE_PATH + "/data/**")
-                    .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "HEAD", "OPTIONS")
-                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                    .allowCredentials(true);
             }
 
             @Override
             public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(true);
+                configurer.setUseSuffixPatternMatch(false);
             }
         };
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = "rdf.scheduling",
+        name = {"enabled"},
+        matchIfMissing = true
+    )
+    public SchedulingConfigurer rdfSchedulingConfigurer() {
+        log.debug("Starting RDF scheduler...");
+        return taskRegistrar -> taskRegistrar.setScheduler(rdfTaskExecutor());
+    }
+
+    @Bean
+    public Executor rdfTaskExecutor() {
+        return Executors.newScheduledThreadPool(10);
     }
 }

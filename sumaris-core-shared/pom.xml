@@ -4,11 +4,10 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.28.2-SNAPSHOT</version>
+    <version>1.31.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-core-shared</artifactId>
-  <packaging>jar</packaging>
   <name>SUMARiS:: Core shared</name>
   <description>SUMARiS Core shared library</description>
 

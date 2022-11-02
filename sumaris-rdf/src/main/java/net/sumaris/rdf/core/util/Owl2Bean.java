@@ -173,62 +173,62 @@ public abstract class Owl2Bean {
             }
         } catch (Exception e) {
             log.warn("fillObjectWithStdAttribute could not reconstruct attribute "
-                + setter.getDeclaringClass().getSimpleName() + "." + setter.getName() + "(" + setterParam.getSimpleName() + ") for val " + val, e);
+                    + setter.getDeclaringClass().getSimpleName() + "." + setter.getName() + "(" + setterParam.getSimpleName() + ") for val " + val, e);
         }
     }
 
     public Optional<Object> owl2Bean(Resource ont, OntResource ontResource, Class clazz, RdfOwlConversionContext context) {
         log.info("processing ont Instance " + ontResource + " - " +
-            ontResource
-                .asIndividual()
-                .listProperties().toList().size());
+                ontResource
+                        .asIndividual()
+                        .listProperties().toList().size());
 
         try {
             Object obj = clazz.newInstance();
 
             ontResource
-                .asIndividual()
-                .listProperties()
-                .toList()
-                .forEach(stmt -> {
-                    String pred = stmt.getPredicate().getURI();
-                    RDFNode val = stmt.getObject();
-                    if ((pred.startsWith(getModelBaseUri()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
-                        String fName = attributeOf(pred);
-                        try {
+                    .asIndividual()
+                    .listProperties()
+                    .toList()
+                    .forEach(stmt -> {
+                        String pred = stmt.getPredicate().getURI();
+                        RDFNode val = stmt.getObject();
+                        if ((pred.startsWith(getModelBaseUri()) || pred.startsWith(OwlUtils.ADAGIO_PREFIX)) && pred.contains("#")) {
+                            String fName = attributeOf(pred);
+                            try {
 
-                            Optional<Method> setter;
-                            if ("setId".equals(fName)) {
-                                setter = findSetterAnnotatedID(ont, clazz, context);
-                            } else {
-                                setter = OwlUtils.setterOfField(ont, clazz, fName, context);
-                            }
-
-                            if (setter.isPresent()) {
-                                Class<?> setterParam = setter.get().getParameterTypes()[0];
-
-                                if (log.isTraceEnabled()) log.trace("Trying to insert  " + fName + " => " + val + " using method ??");
-
-                                if (OwlUtils.isJavaType(setterParam)) {
-                                    fillObjectWithStdAttribute(setter.get(), obj, val);
+                                Optional<Method> setter;
+                                if ("setId".equals(fName)) {
+                                    setter = findSetterAnnotatedID(ont, clazz, context);
                                 } else {
-                                    //FIXME if entity  is different we shouldn't use the invoked method
-                                    setter.get().invoke(obj, getTranslatedReference(val, setterParam, obj, context));
+                                    setter = OwlUtils.setterOfField(ont, clazz, fName, context);
                                 }
+
+                                if (setter.isPresent()) {
+                                    Class<?> setterParam = setter.get().getParameterTypes()[0];
+
+                                    if (log.isTraceEnabled()) log.trace("Trying to insert  " + fName + " => " + val + " using method ??");
+
+                                    if (OwlUtils.isJavaType(setterParam)) {
+                                        fillObjectWithStdAttribute(setter.get(), obj, val);
+                                    } else {
+                                        //FIXME if entity  is different we shouldn't use the invoked method
+                                        setter.get().invoke(obj, getTranslatedReference(val, setterParam, obj, context));
+                                    }
+                                }
+
+                            } catch (Exception e) {
+                                log.error(String.format("%s on field %s => %s using class %s using method %s %s",
+                                        e.getClass().getSimpleName(), fName, val, clazz, OwlUtils.setterOfField(ont, clazz, fName, context), e.getMessage()), e);
                             }
 
-                        } catch (Exception e) {
-                            log.error(String.format("%s on field %s => %s using class %s using method %s %s",
-                                e.getClass().getSimpleName(), fName, val, clazz, OwlUtils.setterOfField(ont, clazz, fName, context), e.getMessage()), e);
+                            //values.put(fName, safeCastRDFNode(val, fName, clazz));
                         }
 
-                        //values.put(fName, safeCastRDFNode(val, fName, clazz));
-                    }
-
-                });
+                    });
             if (obj instanceof TaxonName) {
                 TaxonName tn = (TaxonName) obj;
-                // tn.setName("tn");
+               // tn.setName("tn");
                 tn.setReferenceTaxon(null);
                 getEntityManager().merge(tn);
             }

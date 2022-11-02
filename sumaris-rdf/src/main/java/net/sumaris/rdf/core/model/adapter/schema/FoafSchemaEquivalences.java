@@ -27,6 +27,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -42,6 +43,10 @@ import org.springframework.stereotype.Component;
         matchIfMissing = true)
 @Slf4j
 public class FoafSchemaEquivalences extends AbstractSchemaVisitor {
+
+    public FoafSchemaEquivalences(RdfSchemaService rdfSchemaService) {
+        super(rdfSchemaService);
+    }
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

@@ -25,15 +25,14 @@ package net.sumaris.core.model.referential;
 import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.ModelVocabularies;
 import net.sumaris.core.model.annotation.OntologyEntity;
+import net.sumaris.core.model.ModelVocabularies;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -45,12 +44,10 @@ public class Status implements IReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
     @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    
     private String label;
 
     @Column(nullable = false)

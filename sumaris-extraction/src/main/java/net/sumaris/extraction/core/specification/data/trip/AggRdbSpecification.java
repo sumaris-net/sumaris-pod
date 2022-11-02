@@ -38,6 +38,7 @@ public interface AggRdbSpecification {
     String HH_SHEET_NAME = "HH";
     String SL_SHEET_NAME = "SL";
     String HL_SHEET_NAME = "HL";
+    String CA_SHEET_NAME = "CA";
     String CL_SHEET_NAME = "CL";
 
     // Time columns

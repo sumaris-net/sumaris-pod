@@ -73,9 +73,9 @@ public interface VesselFeaturesSpecifications<
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.equal(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
+            return cb.equal(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID), param);
         })
             .addBind(VESSEL_ID_PARAM, vesselId);
     }

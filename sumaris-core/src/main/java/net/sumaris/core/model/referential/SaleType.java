@@ -32,7 +32,6 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity

@@ -77,7 +77,7 @@
     <select alias="PROJECT" type="text">S.PROJECT</select>
     <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
-    <select alias="INDIVIDUAL_ID" type="hidden">T.ID</select><!-- hidden column, use to link in children table -->
+    <select alias="SAMPLE_ID" type="hidden">T.ID</select><!-- hidden column, use to link in children table -->
 
     <!-- SURVIVAL TEST -->
     <select alias="SPECIES_CODE" type="number">COALESCE(TN.LABEL, TG.LABEL)</select>
@@ -85,7 +85,7 @@
     <select alias="TAG_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('TAG_ID') THEN T.ALPHA_VALUE END)</select>
     <!-- INDIVIDUAL RELEASE -->
     <select alias="MEASURE_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
-    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-dd HH24:MI:SS') END)</select>
+    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
     <select alias="LATITUDE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LATITUDE') THEN T.NUM_VALUE END)</select>
     <select alias="LONGITUDE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LONGITUDE') THEN T.NUM_VALUE END)</select>
     <select alias="COMMENTS" type="text">MAX(T.COMMENTS)</select>
@@ -97,7 +97,7 @@
 
     <groupby>
       RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT,
-      TRIP_CODE, S.STATION_NUMBER, INDIVIDUAL_ID, SPECIES_CODE, SPECIES_NAME
+      TRIP_CODE, S.STATION_NUMBER, SAMPLE_ID, SPECIES_CODE, SPECIES_NAME
     </groupby>
   </query>
 

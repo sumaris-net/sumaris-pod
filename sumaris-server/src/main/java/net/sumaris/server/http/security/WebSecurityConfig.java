@@ -61,7 +61,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-@Order(value = 10)
+@Order(10)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final RequestMatcher ACTUATOR_URLS = new OrRequestMatcher(

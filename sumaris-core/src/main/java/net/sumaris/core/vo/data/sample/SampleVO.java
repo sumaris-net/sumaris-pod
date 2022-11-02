@@ -22,11 +22,13 @@
 
 package net.sumaris.core.vo.data.sample;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
+import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -45,8 +47,9 @@ import java.util.Map;
 @Data
 @ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
-@EqualsAndHashCode()
+@EqualsAndHashCode
 public class SampleVO implements IRootDataVO<Integer>,
+    IWithFlagsValueObject<Integer>,
     ITreeNodeEntity<Integer, SampleVO> {
 
     @EqualsAndHashCode.Exclude
@@ -102,4 +105,7 @@ public class SampleVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // = sample_measurement  (from a map)
     private List<MeasurementVO> measurements; // = sample_measurement (from a list)
 
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private int flags = 0;
 }

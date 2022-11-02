@@ -653,4 +653,27 @@ public class ProgramRepositoryImpl
             }
         }
     }
+
+    @Override
+    public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
+        String value = findVOById(id)
+                .map(program -> program.getProperties().get(property.getLabel()))
+                .orElse(property.getDefaultValue());
+
+        // If boolean: true = TRUE
+        if (property.getType() == Boolean.class) {
+            return expectedValue.equalsIgnoreCase(value);
+        }
+
+        return expectedValue.equals(value);
+    }
+
+    @Override
+    public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
+        String value = findByLabel(label)
+                .map(program -> program.getProperties().get(property.getLabel()))
+                .orElse(property.getDefaultValue());
+
+        return expectedValue.equals(value);
+    }
 }

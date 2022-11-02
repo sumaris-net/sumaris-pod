@@ -89,7 +89,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
     private final boolean debug;
 
-    private Map<String, Disposable> subscriptions = Maps.newConcurrentMap();
+    private final Map<String, Disposable> subscriptions = Maps.newConcurrentMap();
     private final AtomicReference<ScheduledFuture<?>> keepAlive = new AtomicReference<>();
 
     private final AtomicBoolean ready = new AtomicBoolean(false);

@@ -34,7 +34,7 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_ENABLED(
         "rdf.enabled",
         n("sumaris.config.option.rdf.enabled.description"),
-        "false",
+        "true",
         Boolean.class,
         false),
 
@@ -76,14 +76,14 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_MODEL_LANGUAGE(
         "rdf.model.language",
         n("sumaris.config.option.rdf.model.language.description"),
-        "en",
+        "fr",
         String.class,
         false),
 
     RDF_MODEL_DESCRIPTION(
         "rdf.model.description",
         n("sumaris.config.option.rdf.model.description.description"),
-        "A representation of the ${sumaris.name} model",
+        "Modèle de données du ${spring.application.name}",
         String.class,
         false),
 
@@ -97,7 +97,7 @@ public enum RdfConfigurationOption implements ConfigOptionDef {
     RDF_MODEL_AUTHORS(
         "rdf.model.authors",
         n("sumaris.config.option.rdf.model.authors.description"),
-        "${sumaris.organizationName}",
+        "${sumaris.organization.name}",
         String.class,
         false),
 

@@ -46,7 +46,16 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @Table(name = "strategy")
+@NamedEntityGraph(
+        name = Strategy.GRAPH_PMFMS,
+        attributeNodes = {
+                @NamedAttributeNode(Strategy.Fields.PMFMS)
+        }
+)
+@Cacheable
 public class Strategy implements IItemReferentialEntity<Integer> {
+
+    public static final String GRAPH_PMFMS = "Strategy.pmfm";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")

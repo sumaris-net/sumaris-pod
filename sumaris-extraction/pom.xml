@@ -5,11 +5,10 @@
 	<parent>
 		<groupId>net.sumaris</groupId>
 		<artifactId>sumaris-pod</artifactId>
-		<version>1.28.2-SNAPSHOT</version>
+		<version>1.31.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>sumaris-extraction</artifactId>
-	<packaging>jar</packaging>
 	<name>SUMARiS:: Extraction</name>
 	<description>SUMARiS extraction library</description>
 
@@ -142,6 +141,7 @@
 						<id>make-bundle</id>
 						<goals>
 							<goal>bundle</goal>
+							<goal>generate-csv-bundle</goal>
 						</goals>
 					</execution>
 				</executions>

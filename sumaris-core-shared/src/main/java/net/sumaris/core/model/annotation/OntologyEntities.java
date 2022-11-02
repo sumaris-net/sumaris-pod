@@ -69,9 +69,9 @@ public final class OntologyEntities {
                 String namedQuery = StringUtils.isNotBlank(annotation.namedQuery()) ? annotation.namedQuery() : null;
                 String query = StringUtils.isNotBlank(annotation.query()) ? annotation.query() : null;
                 if (namedQuery != null && query != null) {
-                   throw new SumarisTechnicalException("Invalid annotation @OntologyEntity() on " + entityClass.getSimpleName() + ". Cannot have both 'namedQuery' and 'query'!");
+                    throw new SumarisTechnicalException("Invalid annotation @OntologyEntity() on " + entityClass.getSimpleName() + ". Cannot have both 'namedQuery' and 'query'!");
                 }
-                return Definition.builder()
+                return OntologyEntities.Definition.builder()
                     .vocabulary(vocabulary)
                     .name(name)
                     .version(version)

@@ -20,25 +20,26 @@
  * #L%
  */
 
-package net.sumaris.rdf.core.config;
+package net.sumaris.core.util;
 
-import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-@ConditionalOnProperty(name = "rdf.enabled")
-@Slf4j
-public class RdfAutoConfiguration {
-
-    public RdfAutoConfiguration() {
-        log.info("Starting RDF module...");
+public class Flags {
+    protected Flags() {
+        // Helper class : do not instantiate
     }
 
-    @Bean
-    public RdfConfiguration rdfConfiguration(SumarisConfiguration configuration) {
-        return new RdfConfiguration(configuration);
+    public static int addFlag(int flags, int newFlag) {
+        return flags | newFlag;
+    }
+
+    public static int removeFlag(int flags, int newFlag) {
+        return flags - (flags & newFlag);
+    }
+
+    public static boolean hasFlag(int flags, int newFlag) {
+        return (flags & newFlag) == newFlag;
+    }
+
+    public static boolean hasNotFlag(int flags, int aFlag) {
+        return (flags & aFlag) == 0;
     }
 }

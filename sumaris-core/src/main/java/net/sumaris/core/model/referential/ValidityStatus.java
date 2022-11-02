@@ -26,8 +26,8 @@ import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.ModelVocabularies;
 import net.sumaris.core.model.annotation.OntologyEntity;
+import net.sumaris.core.model.ModelVocabularies;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -38,7 +38,6 @@ import java.util.Date;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -50,12 +49,10 @@ public class ValidityStatus implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VALIDITY_STATUS_SEQ")
     @SequenceGenerator(name = "VALIDITY_STATUS_SEQ", sequenceName="VALIDITY_STATUS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    
     private String label;
 
     @Column(nullable = false)

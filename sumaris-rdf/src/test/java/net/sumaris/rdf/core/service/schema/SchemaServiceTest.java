@@ -22,13 +22,11 @@
 
 package net.sumaris.rdf.core.service.schema;
 
-import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.ModelVocabularyEnum;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.rdf.AbstractTest;
 import net.sumaris.rdf.DatabaseResource;
 import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
-import net.sumaris.rdf.core.util.ModelUtils;
-import net.sumaris.rdf.core.util.RdfFormat;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
@@ -57,63 +55,40 @@ public class SchemaServiceTest extends AbstractTest {
 
         // Get schema ontology
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .vocabulary(ModelVocabularies.SHARED)
+                .vocabulary(ModelVocabularyEnum.COMMON.getLabel())
                 .className(Status.class.getSimpleName())
                 // Will add RDFS equivalence between:
-                // - Status#name <--> rdfs:label
+                // - CoastalStructureType#name <--> rdfs:label
                 .withEquivalences(true)
                 .reasoningLevel(ReasoningLevel.RDFS)
                 .build())
-                // Add individuals
-                .add(individuals);
+            // Add individuals
+            .add(individuals);
 
         // Get by rdfs:label
         assertQueryHasResult(model, StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ RDFS.label.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Actif\" )",
-                "}"));
-    }
+            "SELECT * ",
+            "WHERE { ",
+            "  ?x <"+ RDFS.label.getURI() +"> ?label .",
+            "  FILTER ( ?label=\"Digue\" )",
+            "}"));
 
-    @Test
-    public void getOntologyWithOwlReasoner() {
-
-        // load some data that uses RDFS
-        Model individuals = FileManager.get().loadModel("file:src/test/resources/rdf-test-data.ttl");
-
-        // Get schema ontology
-        Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .vocabulary(ModelVocabularies.SHARED)
-                .className(Status.class.getSimpleName())
-                // Will add OWL equivalence between:
-                // - Status#name <--> rdfs:label
-                .withEquivalences(true)
-                .reasoningLevel(ReasoningLevel.OWL)
-                .build())
-                // Add individuals
-                .add(individuals);
-
-        ModelUtils.toString(model, RdfFormat.TURTLE);
-
-        // Get by rdfs:label
-        assertQueryHasResult(model, StrUtils.strjoinNL(
-                "SELECT * ",
-                "WHERE { ",
-                "  ?x <"+ RDFS.label.getURI() +"> ?label .",
-                "  FILTER ( ?label=\"Actif\" )",
-                "}"));
-
+        // Get by exact label
+//        assertQueryHasResult(model,  StrUtils.strjoinNL(
+//            "SELECT * ",
+//            "WHERE { ",
+//            "  ?x <"+ COMMON.CoastalStructureType.getURI() +"#name> ?label .",
+//            "  FILTER ( ?label=\"Digue\" )",
+//            "}"));
     }
 
     /* -- protected functions -- */
 
-    protected void assertQueryHasResult(Model model, String queryString) {
+    protected void assertQueryHasResult(Model model, java.lang.String queryString) {
         Query query = QueryFactory.create(queryString);
         try (QueryExecution qExec = QueryExecutionFactory.create(query, model)) {
             ResultSet resultSet = qExec.execSelect();
             Assert.assertTrue(resultSet.hasNext());
         };
-
     }
 }

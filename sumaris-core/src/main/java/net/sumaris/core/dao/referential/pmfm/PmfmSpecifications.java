@@ -44,32 +44,32 @@ public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Pmfm
     default Specification<Pmfm> hasPmfmPart(PmfmPartsVO filter) {
         if (filter == null || filter.isEmpty()) return null; // Skip
 
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> parameterParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.PARAMETER_ID);
-            ParameterExpression<Integer> matrixParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.MATRIX_ID);
-            ParameterExpression<Integer> fractionParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.FRACTION_ID);
-            ParameterExpression<Integer> methodParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.METHOD_ID);
-            ParameterExpression<Integer> unitParam = criteriaBuilder.parameter(Integer.class, PmfmVO.Fields.UNIT_ID);
-            return criteriaBuilder.and(
-                    criteriaBuilder.or(
-                            criteriaBuilder.isNull(parameterParam),
-                            criteriaBuilder.equal(root.get(Pmfm.Fields.PARAMETER).get(Parameter.Fields.ID), parameterParam)
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameterParam = cb.parameter(Integer.class, PmfmVO.Fields.PARAMETER_ID);
+            ParameterExpression<Integer> matrixParam = cb.parameter(Integer.class, PmfmVO.Fields.MATRIX_ID);
+            ParameterExpression<Integer> fractionParam = cb.parameter(Integer.class, PmfmVO.Fields.FRACTION_ID);
+            ParameterExpression<Integer> methodParam = cb.parameter(Integer.class, PmfmVO.Fields.METHOD_ID);
+            ParameterExpression<Integer> unitParam = cb.parameter(Integer.class, PmfmVO.Fields.UNIT_ID);
+            return cb.and(
+                    cb.or(
+                            cb.isNull(parameterParam),
+                            cb.equal(root.get(Pmfm.Fields.PARAMETER).get(Parameter.Fields.ID), parameterParam)
                     ),
-                    criteriaBuilder.or(
-                            criteriaBuilder.isNull(matrixParam),
-                            criteriaBuilder.equal(root.get(Pmfm.Fields.MATRIX).get(Matrix.Fields.ID), matrixParam)
+                    cb.or(
+                            cb.isNull(matrixParam),
+                            cb.equal(root.get(Pmfm.Fields.MATRIX).get(Matrix.Fields.ID), matrixParam)
                     ),
-                    criteriaBuilder.or(
-                            criteriaBuilder.isNull(fractionParam),
-                            criteriaBuilder.equal(root.get(Pmfm.Fields.FRACTION).get(Fraction.Fields.ID), fractionParam)
+                    cb.or(
+                            cb.isNull(fractionParam),
+                            cb.equal(root.get(Pmfm.Fields.FRACTION).get(Fraction.Fields.ID), fractionParam)
                     ),
-                    criteriaBuilder.or(
-                            criteriaBuilder.isNull(methodParam),
-                            criteriaBuilder.equal(root.get(Pmfm.Fields.METHOD).get(Method.Fields.ID), methodParam)
+                    cb.or(
+                            cb.isNull(methodParam),
+                            cb.equal(root.get(Pmfm.Fields.METHOD).get(Method.Fields.ID), methodParam)
                     ),
-                    criteriaBuilder.or(
-                        criteriaBuilder.isNull(methodParam),
-                        criteriaBuilder.equal(root.get(Pmfm.Fields.UNIT).get(Method.Fields.ID), unitParam)
+                    cb.or(
+                        cb.isNull(methodParam),
+                        cb.equal(root.get(Pmfm.Fields.UNIT).get(Method.Fields.ID), unitParam)
                     )
             );
         })

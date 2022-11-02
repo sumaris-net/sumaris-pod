@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -37,8 +38,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class VesselServiceWriteTest extends AbstractServiceTest{
 
@@ -60,18 +63,23 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(vessel1.getVesselFeatures().getStartDate());
         Assert.assertNull(vessel1.getVesselFeatures().getEndDate());
         Assert.assertNotNull(vessel1.getVesselFeatures().getExteriorMarking());
-        Assert.assertEquals("Vessel 1", vessel1.getVesselFeatures().getName());
+        Assert.assertEquals("Navire 1", vessel1.getVesselFeatures().getName());
 
         VesselVO vessel2 = service.get(vesselId);
         Assert.assertNotNull(vessel2);
 
-        // close period
-        Date changeDate = DateUtils.addMonths(vessel1.getVesselFeatures().getStartDate(), 1);
-        vessel1.getVesselFeatures().setEndDate(DateUtils.addSeconds(changeDate, -1));
+        // close period, on vessel 1
+        Integer vessel1FeaturesId = vessel1.getVesselFeatures().getId();
+        Date newEndDate = DateUtils.addMonths(vessel1.getVesselFeatures().getStartDate(), 1);
+        newEndDate = DateUtils.addSeconds(newEndDate, -1);
+        vessel1.getVesselFeatures().setEndDate(newEndDate);
 
-        // declare new period
+        // declare new period, on vessel 2
+        Integer vessel2FeaturesId = vessel2.getVesselFeatures().getId();
         vessel2.getVesselFeatures().setId(null);
-        vessel2.getVesselFeatures().setStartDate(changeDate);
+        vessel2.getVesselFeatures().setStartDate(newEndDate);
+        vessel2.getVesselFeatures().setUpdateDate(null);
+        vessel2.getVesselFeatures().setCreationDate(null);
         vessel2.getVesselFeatures().setName("new name");
 
         List<VesselVO> savedVessels = service.save(ImmutableList.of(vessel1, vessel2));
@@ -80,25 +88,46 @@ public class VesselServiceWriteTest extends AbstractServiceTest{
         VesselVO savedVessel1 = savedVessels.get(0);
         VesselVO savedVessel2 = savedVessels.get(1);
 
-        Assert.assertEquals(1, savedVessel1.getVesselFeatures().getId().intValue());
-        Assert.assertNotEquals(1, savedVessel2.getVesselFeatures().getId().intValue());
-        int featuresId2 = savedVessel2.getVesselFeatures().getId();
-        Assert.assertEquals("Vessel 1", savedVessel1.getVesselFeatures().getName());
+        Assert.assertEquals(vessel1FeaturesId, savedVessel1.getVesselFeatures().getId());
+        Assert.assertNotEquals(vessel2FeaturesId, savedVessel2.getVesselFeatures().getId());
+        Integer savedVessel2FeaturesId2 = savedVessel2.getVesselFeatures().getId();
+        Assert.assertEquals("Navire 1", savedVessel1.getVesselFeatures().getName());
         Assert.assertEquals("new name", savedVessel2.getVesselFeatures().getName());
 
-        // read features history
-        Page<VesselFeaturesVO> featuresPage = service.getFeaturesByVesselId(vessel1.getId(), Pageables.create(0, 10, "id", SortDirection.ASC),
-            DataFetchOptions.MINIMAL);
-        Assert.assertNotNull(featuresPage);
-        Assert.assertFalse(featuresPage.isEmpty());
-        VesselFeaturesVO[] features = featuresPage.get().toArray(VesselFeaturesVO[]::new);
+        // read features history, and check all changes OK
+        {
+            Page<VesselFeaturesVO> vessel1FeaturesPage = service.getFeaturesByVesselId(vesselId, Pageables.create(0, 10, "id", SortDirection.ASC),
+                DataFetchOptions.MINIMAL);
+            Assert.assertNotNull(vessel1FeaturesPage);
+            Assert.assertFalse(vessel1FeaturesPage.isEmpty());
+            VesselFeaturesVO[] savedVesselFeatures = vessel1FeaturesPage.get().toArray(VesselFeaturesVO[]::new);
 
-        Assert.assertNotNull(features[0]);
-        Assert.assertEquals(1, features[0].getId().intValue());
+            VesselFeaturesVO savedFeatures1 = Arrays.stream(savedVesselFeatures)
+                .filter(vf -> Objects.equals(vf.getId(), vessel1FeaturesId))
+                .findFirst().orElseGet(null);
+            Assert.assertNotNull(savedFeatures1);
 
-        Assert.assertNotNull(features[1]);
-        Assert.assertEquals(featuresId2, features[1].getId().intValue());
-
+            VesselFeaturesVO savedFeatures2 = Arrays.stream(savedVesselFeatures)
+                .filter(vf -> Objects.equals(vf.getId(), vessel2FeaturesId))
+                .findFirst().orElseGet(null);
+            Assert.assertNotNull(savedFeatures2);
+        }
     }
 
+    @Test
+    public void remplaceTemporaryVessel() {
+
+        // First, set vessel as temporary
+        int vesselId = fixtures.getVesselId(0);
+        VesselVO vessel1 = service.get(vesselId);
+        Assert.assertNotNull(vessel1);
+        Assert.assertEquals(StatusEnum.ENABLE.getId(), vessel1.getStatusId());
+        vessel1.setStatusId(StatusEnum.TEMPORARY.getId());
+        service.save(vessel1);
+
+        // Replace it
+        int replVesselId = fixtures.getVesselId(1);
+        service.replaceTemporaryVessel(List.of(vesselId), replVesselId);
+
+    }
 }

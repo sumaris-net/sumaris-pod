@@ -36,8 +36,8 @@ import java.util.List;
 public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V extends DenormalizedBatchVO> {
 
     default Specification<E> hasNoParent() {
-        return BindableSpecification.where((root, query, criteriaBuilder) ->
-            criteriaBuilder.isNull(root.get(DenormalizedBatch.Fields.PARENT))
+        return BindableSpecification.where((root, query, cb) ->
+            cb.isNull(root.get(DenormalizedBatch.Fields.PARENT))
         );
     }
 
@@ -45,13 +45,13 @@ public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V 
     default Specification<E> hasOperationId(Integer operationId) {
         if (operationId == null) return null;
 
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, DenormalizedBatchVO.Fields.OPERATION_ID);
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, DenormalizedBatchVO.Fields.OPERATION_ID);
 
             // Sort by flat rank order
-            query.orderBy(criteriaBuilder.asc(root.get(DenormalizedBatch.Fields.FLAT_RANK_ORDER)));
+            query.orderBy(cb.asc(root.get(DenormalizedBatch.Fields.FLAT_RANK_ORDER)));
 
-            return criteriaBuilder.equal(root.get(DenormalizedBatch.Fields.OPERATION).get(IEntity.Fields.ID), param);
+            return cb.equal(root.get(DenormalizedBatch.Fields.OPERATION).get(IEntity.Fields.ID), param);
         });
         specification.addBind(DenormalizedBatchVO.Fields.OPERATION_ID, operationId);
         return specification;
@@ -60,13 +60,13 @@ public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V 
     default Specification<E> hasSaleId(Integer saleId) {
         if (saleId == null) return null;
 
-        BindableSpecification<E> specification = BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, DenormalizedBatchVO.Fields.SALE_ID);
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, DenormalizedBatchVO.Fields.SALE_ID);
 
             // Sort by flat rank order
-            query.orderBy(criteriaBuilder.asc(root.get(DenormalizedBatch.Fields.FLAT_RANK_ORDER)));
+            query.orderBy(cb.asc(root.get(DenormalizedBatch.Fields.FLAT_RANK_ORDER)));
 
-            return criteriaBuilder.equal(root.get(DenormalizedBatch.Fields.SALE).get(IEntity.Fields.ID), param);
+            return cb.equal(root.get(DenormalizedBatch.Fields.SALE).get(IEntity.Fields.ID), param);
         });
         specification.addBind(DenormalizedBatchVO.Fields.SALE_ID, saleId);
         return specification;

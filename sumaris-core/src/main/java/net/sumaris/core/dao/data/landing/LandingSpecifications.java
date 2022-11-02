@@ -51,49 +51,49 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
 
     default Specification<Landing> hasObservedLocationId(Integer observedLocationId) {
         if (observedLocationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, OBSERVED_LOCATION_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, OBSERVED_LOCATION_ID_PARAM);
+            return cb.equal(root.get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(OBSERVED_LOCATION_ID_PARAM, observedLocationId);
     }
 
     default Specification<Landing> hasTripId(Integer tripId) {
         if (tripId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, TRIP_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, TRIP_ID_PARAM);
+            return cb.equal(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID), param);
         }).addBind(TRIP_ID_PARAM, tripId);
     }
 
     default Specification<Landing> hasTripIds(Collection<Integer> tripIds) {
         if (CollectionUtils.isEmpty(tripIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, TRIP_IDS_PARAM);
-            return criteriaBuilder.in(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID)).value(param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, TRIP_IDS_PARAM);
+            return cb.in(root.get(Landing.Fields.TRIP).get(IEntity.Fields.ID)).value(param);
         }).addBind(TRIP_IDS_PARAM, tripIds);
     }
 
     default Specification<Landing> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, LOCATION_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, LOCATION_ID_PARAM);
+            return cb.equal(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     default Specification<Landing> inLocationIds(Integer... locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, LOCATION_IDS_PARAM);
-            return criteriaBuilder.in(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID)).value(param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS_PARAM);
+            return cb.in(root.get(Landing.Fields.LOCATION).get(IEntity.Fields.ID)).value(param);
         }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
 
     default Specification<Landing> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> param = criteriaBuilder.parameter(Integer.class, VESSEL_ID_PARAM);
-            return criteriaBuilder.equal(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID), param);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
+            return cb.equal(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID), param);
         }).addBind(VESSEL_ID_PARAM, vesselId);
     }
 
@@ -104,9 +104,9 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
 
     default Specification<Landing> hasExcludeVesselIds(List<Integer> excludeVesselIds) {
         if (CollectionUtils.isNotEmpty(excludeVesselIds)) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, EXCLUDE_VESSEL_IDS_PARAM);
-            return criteriaBuilder.not(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID).in(param));
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDE_VESSEL_IDS_PARAM);
+            return cb.not(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID).in(param));
         }).addBind(EXCLUDE_VESSEL_IDS_PARAM, excludeVesselIds);
     }
 

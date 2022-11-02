@@ -22,11 +22,13 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
+import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -41,7 +43,8 @@ import java.util.Map;
 @FieldNameConstants
 @EqualsAndHashCode
 public class PhysicalGearVO implements IRootDataVO<Integer>,
-        ITreeNodeEntity<Integer, PhysicalGearVO> {
+    IWithFlagsValueObject<Integer>,
+    ITreeNodeEntity<Integer, PhysicalGearVO> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
@@ -77,4 +80,7 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private TripVO trip;
     private Integer tripId;
 
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private int flags = 0;
 }

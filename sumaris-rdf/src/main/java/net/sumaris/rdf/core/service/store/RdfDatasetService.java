@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 
 public interface RdfDatasetService {
 
-    void registerNameModel(final INamedRdfLoader producer, final long maxStatements);
+    void registerNamedModel(final INamedRdfLoader producer, final long maxLimit);
 
     void registerNamedModel(final String name, final Callable<Model> producer);
 

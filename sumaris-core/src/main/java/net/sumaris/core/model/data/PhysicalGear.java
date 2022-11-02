@@ -65,8 +65,8 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    @Column
-    private Integer hash;
+    //@Column
+    //private Integer hash;
 
     /* -- Quality insurance -- */
 
@@ -120,6 +120,9 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @JoinColumn(name = "parent_physical_gear_fk")
     private PhysicalGear parent;
 
+    @Column(name = "hash")
+    private Integer hash;
+
     /* -- measurements -- */
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGearMeasurement.class, mappedBy = PhysicalGearMeasurement.Fields.PHYSICAL_GEAR)
@@ -131,6 +134,7 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk", nullable = false)
     private Trip trip;
+
 
     public String toString() {
         return String.format("PhysicalGear{id=%s,rankOrder=%s}", id, rankOrder);

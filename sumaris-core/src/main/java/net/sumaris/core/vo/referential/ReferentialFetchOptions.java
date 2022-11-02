@@ -26,11 +26,9 @@ import lombok.Builder;
 import lombok.Data;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
-@Data
+
 @Builder
 public class ReferentialFetchOptions implements IFetchOptions {
 
-    @Builder.Default
-    private boolean withInheritance = true;
 
 }

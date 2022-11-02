@@ -44,24 +44,24 @@ public interface ExtractionProductSpecifications {
 
     default Specification<ExtractionProduct> withRecorderDepartmentId(Integer departmentId) {
         if (departmentId == null) return null;
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, DEPARTMENT_ID_PARAM);
-            return criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter);
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameter = cb.parameter(Integer.class, DEPARTMENT_ID_PARAM);
+            return cb.equal(root.get(ExtractionProduct.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID), parameter);
         }).addBind(DEPARTMENT_ID_PARAM, departmentId);
     }
 
 
     default Specification<ExtractionProduct> withRecorderPersonIdOrPublic(Integer personId) {
-        return BindableSpecification.where((root, query, criteriaBuilder) -> {
-            ParameterExpression<Integer> parameter = criteriaBuilder.parameter(Integer.class, PERSON_ID_ID_PARAM);
-            return criteriaBuilder.or(
-                    criteriaBuilder.isNull(parameter),
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> parameter = cb.parameter(Integer.class, PERSON_ID_ID_PARAM);
+            return cb.or(
+                    cb.isNull(parameter),
                     // ENABLE = public extraction type
-                    criteriaBuilder.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.ENABLE.getId()),
+                    cb.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.ENABLE.getId()),
                     // TEMPORARY = private extraction
-                    criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.TEMPORARY.getId()),
-                        criteriaBuilder.equal(root.get(ExtractionProduct.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), parameter)
+                    cb.and(
+                        cb.equal(root.get(ExtractionProduct.Fields.STATUS).get(IEntity.Fields.ID), StatusEnum.TEMPORARY.getId()),
+                        cb.equal(root.get(ExtractionProduct.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), parameter)
                     )
             );
         }).addBind(PERSON_ID_ID_PARAM, personId);
