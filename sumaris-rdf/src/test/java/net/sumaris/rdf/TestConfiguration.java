@@ -54,9 +54,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableJpaRepositories(basePackages = {
         "net.sumaris.core.dao",
-    "net.sumaris.rdf.core.dao"
+        "net.sumaris.rdf.core.dao"
 }, considerNestedRepositories = true)
-@org.springframework.boot.test.context.TestConfiguration
 public abstract class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-rdf";

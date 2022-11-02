@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.server.sparql;
+package net.sumaris.rdf.server.http.rest.sparql;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -34,7 +34,7 @@ import net.sumaris.rdf.core.service.store.RdfDatasetService;
 import net.sumaris.rdf.core.util.ModelUtils;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.util.RdfMediaType;
-import net.sumaris.rdf.server.RdfRestPaths;
+import net.sumaris.rdf.server.http.rest.RdfRestPaths;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -51,7 +51,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -68,77 +67,63 @@ import java.util.Optional;
 @Slf4j
 public class SparqlRdfRestController implements RdfRestPaths {
 
-    @Resource
-    private RdfSchemaService schemaService;
-
-    @Resource
-    private RdfConfiguration config;
-
     @Value("${rdf.sparql.maxLimit:10000}")
     private long maxLimit;
 
     @Resource
-    private RdfDatasetService datasetService;
-
-    private String sparqlEndpointUrl;
+    private RdfDatasetService rdfDatasetService;
 
     @PostConstruct
     public void init() {
         log.info("Starting SparQL endpoint {{}}...", SPARQL_ENDPOINT);
-        String serverUrl = config.getApplicationConfig().getOption("server.url");
-        if (serverUrl.endsWith("/")) {
-            serverUrl = serverUrl.substring(0, serverUrl.length() -1);
-        }
-        this.sparqlEndpointUrl = serverUrl + SPARQL_ENDPOINT;
     }
 
-
     @RequestMapping(
-            method = {RequestMethod.GET, RequestMethod.POST},
-            value = {
-                    SPARQL_ENDPOINT
-            },
-            produces = {
-                    // Ask, Select
-                    SparqlMediaType.APPLICATION_XML_VALUE,
-                    SparqlMediaType.APPLICATION_SPARQL_RESULT_XML_VALUE,
-                    SparqlMediaType.APPLICATION_JSON_VALUE,
-                    SparqlMediaType.APPLICATION_JSON_UTF8_VALUE,
-                    SparqlMediaType.APPLICATION_SPARQL_RESULT_JSON_VALUE,
-                    SparqlMediaType.TEXT_CSV_VALUE,
-                    SparqlMediaType.APPLICATION_SPARQL_RESULT_CSV_VALUE,
-                    SparqlMediaType.TEXT_TSV_VALUE,
-                    SparqlMediaType.APPLICATION_SPARQL_RESULT_TSV_VALUE,
-                    SparqlMediaType.APPLICATION_SPARQL_RESULT_SSE_VALUE,
-                    SparqlMediaType.APPLICATION_SPARQL_RESULT_THRIFT_VALUE,
-                    // Construct, Describe
-                    RdfMediaType.APPLICATION_RDF_XML_VALUE,
-                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
-                    RdfMediaType.APPLICATION_JSON_LD_VALUE,
-                    RdfMediaType.TEXT_N3_VALUE,
-                    RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
-                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
-                    RdfMediaType.APPLICATION_TRIG_VALUE,
-                    RdfMediaType.TEXT_TRIG_VALUE,
-                    RdfMediaType.APPLICATION_TRIX_VALUE,
-                    RdfMediaType.TEXT_TRIX_VALUE,
-                    RdfMediaType.APPLICATION_TURTLE_VALUE,
-                    RdfMediaType.TEXT_TURTLE_VALUE,
-                    RdfMediaType.TEXT_TURTLE_VALUE,
-                    // Text and Html (for browsers)
-                    MediaType.TEXT_HTML_VALUE,
-                    MediaType.TEXT_PLAIN_VALUE
+        method = {RequestMethod.GET, RequestMethod.POST},
+        value = {
+            SPARQL_ENDPOINT
+        },
+        produces = {
+            // Ask, Select
+            SparqlMediaType.APPLICATION_XML_VALUE,
+            SparqlMediaType.APPLICATION_SPARQL_RESULT_XML_VALUE,
+            SparqlMediaType.APPLICATION_JSON_VALUE,
+            SparqlMediaType.APPLICATION_JSON_UTF8_VALUE,
+            SparqlMediaType.APPLICATION_SPARQL_RESULT_JSON_VALUE,
+            SparqlMediaType.TEXT_CSV_VALUE,
+            SparqlMediaType.APPLICATION_SPARQL_RESULT_CSV_VALUE,
+            SparqlMediaType.TEXT_TSV_VALUE,
+            SparqlMediaType.APPLICATION_SPARQL_RESULT_TSV_VALUE,
+            SparqlMediaType.APPLICATION_SPARQL_RESULT_SSE_VALUE,
+            SparqlMediaType.APPLICATION_SPARQL_RESULT_THRIFT_VALUE,
+            // Construct, Describe
+            RdfMediaType.APPLICATION_RDF_XML_VALUE,
+            RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+            RdfMediaType.APPLICATION_JSON_LD_VALUE,
+            RdfMediaType.TEXT_N3_VALUE,
+            RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
+            RdfMediaType.APPLICATION_N_QUADS_VALUE,
+            RdfMediaType.APPLICATION_TRIG_VALUE,
+            RdfMediaType.TEXT_TRIG_VALUE,
+            RdfMediaType.APPLICATION_TRIX_VALUE,
+            RdfMediaType.TEXT_TRIX_VALUE,
+            RdfMediaType.APPLICATION_TURTLE_VALUE,
+            RdfMediaType.TEXT_TURTLE_VALUE,
+            RdfMediaType.TEXT_TURTLE_VALUE,
+            // Text and Html (for browsers)
+            MediaType.TEXT_HTML_VALUE,
+            MediaType.TEXT_PLAIN_VALUE
 
-            })
-    public ResponseEntity<byte[]> executeRequest(@RequestParam(name = "query") String queryString,
-                                                 @RequestParam(name = "service", required = false) String service,
-                                                 @RequestHeader(name = HttpHeaders.ACCEPT) String acceptHeader) {
+        })
+    public ResponseEntity<byte[]> executeRequest(@RequestParam(name = "query") java.lang.String queryString,
+                                                 @RequestParam(name = "service", required = false) java.lang.String service,
+                                                 @RequestHeader(name = HttpHeaders.ACCEPT) java.lang.String acceptHeader) {
 
-        List<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(acceptHeader);
+        List<java.lang.String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(acceptHeader);
         Query query = QueryFactory.create(queryString);
 
         long limit = query.getLimit() < 0 ? -1L : query.getLimit();
-        log.info(String.format("Received SparQL query {limit: %s, accept: %s}: \n%s", limit, acceptHeader, queryString));
+        log.info(java.lang.String.format("Received SparQL query {limit: %s, accept: %s}: \n%s", limit, acceptHeader, queryString));
 
         // Limit to the max
         if (limit > maxLimit) {
@@ -156,7 +141,7 @@ public class SparqlRdfRestController implements RdfRestPaths {
         // Local execution
         else {
             // Construct the dataset for this query
-            Dataset dataset = datasetService.prepareDatasetForQuery(query);
+            Dataset dataset = rdfDatasetService.prepareDatasetForQuery(query);
 
             try (RDFConnection conn = RDFConnectionFactory.connect(dataset); QueryExecution qexec = conn.query(query)) {
                 return executeQuery(conn, qexec, acceptedContentTypes);
@@ -166,7 +151,7 @@ public class SparqlRdfRestController implements RdfRestPaths {
 
     protected ResponseEntity<byte[]> executeQuery(Transactional transactional,
                                                   QueryExecution qExec,
-                                                  List<String> acceptedContentTypes ) {
+                                                  List<java.lang.String> acceptedContentTypes ) {
         Preconditions.checkNotNull(transactional);
         Preconditions.checkNotNull(qExec);
         Preconditions.checkNotNull(acceptedContentTypes);
@@ -180,10 +165,10 @@ public class SparqlRdfRestController implements RdfRestPaths {
                 if (!transactional.isInTransaction()) transactional.begin(ReadWrite.READ);
                 Dataset resultDataset = qExec.execConstructDataset();
                 response = outputDataset(resultDataset,
-                        new ImmutableList.Builder<String>()
-                                .addAll(acceptedContentTypes)
-                                .add(ResultsFormat.FMT_RDF_TRIG.getSymbol())
-                                .build());
+                    new ImmutableList.Builder<java.lang.String>()
+                        .addAll(acceptedContentTypes)
+                        .add(ResultsFormat.FMT_RDF_TRIG.getSymbol())
+                        .build());
             }
 
             // Construct query
@@ -217,15 +202,15 @@ public class SparqlRdfRestController implements RdfRestPaths {
             // Unknown, or not supported type
             else if (query.isUnknownType()) {
                 return ResponseEntity.badRequest()
-                        .body("Unknown query type".getBytes());
+                    .body("Unknown query type".getBytes());
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                        .body(String.format("SparQL query of type %s is not supported yet by this endpoint.", query.getQueryType()).getBytes());
+                    .body(java.lang.String.format("SparQL query of type %s is not supported yet by this endpoint.", query.queryType()).getBytes());
             }
 
             return response
-                    .orElseGet(() -> ResponseEntity.badRequest()
-                            .body(String.format("Invalid header {Accept: %s}. Unknown content type.", acceptedContentTypes).getBytes()));
+                .orElseGet(() -> ResponseEntity.badRequest()
+                    .body(java.lang.String.format("Invalid header {Accept: %s}. Unknown content type.", acceptedContentTypes).getBytes()));
         }
         finally {
             if (transactional.isInTransaction())  transactional.end();
@@ -233,89 +218,77 @@ public class SparqlRdfRestController implements RdfRestPaths {
     }
 
     protected Optional<ResponseEntity<byte[]>> outputResultSet(
-            final ResultSet rs,
-            final Collection<String> acceptedContentTypes) {
+        final ResultSet rs,
+        final Collection<java.lang.String> acceptedContentTypes) {
 
 
         return firstValidFormat(acceptedContentTypes, SparqlResultSetFormat::fromContentType)
-                .map(format -> {
-                    // Convert result set to bytes
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    ResultSetFormatter.output(os, rs, format.toResultsFormat());
+            .map(format -> {
+                // Convert result set to bytes
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                ResultSetFormatter.output(os, rs, format.toResultsFormat());
 
-                    // Return response
-                    return ResponseEntity.ok()
-                            .contentType(format.mineType())
-                            .body(os.toByteArray());
-                });
+                // Return response
+                return ResponseEntity.ok()
+                    .contentType(format.mineType())
+                    .body(os.toByteArray());
+            });
     }
 
 
     protected Optional<ResponseEntity<byte[]>> outputModel(
-            final Model model,
-            final Collection<String> acceptedContentTypes) {
+        final Model model,
+        final Collection<java.lang.String> acceptedContentTypes) {
 
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
-                .map(format -> {
-                    // Convert model to bytes
-                    byte[] content = ModelUtils.toBytes(model, format);
-                    // Return response
-                    return ResponseEntity.ok()
-                            .contentType(format.mineType())
-                            .body(content);
-                });
+            .map(format -> {
+                // Convert model to bytes
+                byte[] content = ModelUtils.toBytes(model, format);
+                // Return response
+                return ResponseEntity.ok()
+                    .contentType(format.mineType())
+                    .body(content);
+            });
     }
 
     protected Optional<ResponseEntity<byte[]>> outputDataset(
-            final Dataset dataset,
-            final Collection<String> acceptedContentTypes) {
+        final Dataset dataset,
+        final Collection<java.lang.String> acceptedContentTypes) {
 
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
-                .map(format -> {
-                    // Convert model to bytes
-                    byte[] content = ModelUtils.toBytes(dataset, format);
-                    // Return response
-                    return ResponseEntity.ok()
-                            .contentType(format.mineType())
-                            .body(content);
-                });
+            .map(format -> {
+                // Convert model to bytes
+                byte[] content = ModelUtils.toBytes(dataset, format);
+                // Return response
+                return ResponseEntity.ok()
+                    .contentType(format.mineType())
+                    .body(content);
+            });
     }
 
     protected Optional<ResponseEntity<byte[]>> outputBoolean(
-            final boolean result,
-            final Collection<String> acceptedContentTypes) {
+        final boolean result,
+        final Collection<java.lang.String> acceptedContentTypes) {
 
 
         return firstValidFormat(acceptedContentTypes, RdfFormat::fromContentType)
-                .map(format -> {
-                    // Convert boolean to bytes
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    ResultSetFormatter.output(os, result, format);
+            .map(format -> {
+                // Convert boolean to bytes
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                ResultSetFormatter.output(os, result, format);
 
-                    // Return response
-                    return ResponseEntity.ok()
-                            .contentType(format.mineType())
-                            .body(os.toByteArray());
-                });
+                // Return response
+                return ResponseEntity.ok()
+                    .contentType(format.mineType())
+                    .body(os.toByteArray());
+            });
     }
 
-    protected <U> Optional<U> firstValidFormat(Collection<String> acceptedContentTypes, Converter<String, Optional<U>> converter) {
+    protected <U> Optional<U> firstValidFormat(Collection<java.lang.String> acceptedContentTypes, Converter<java.lang.String, Optional<U>> converter) {
         return acceptedContentTypes.stream()
-                .map(acceptedContentType -> converter.convert(acceptedContentType).orElse(null))
-                .filter(Objects::nonNull)
-                .findFirst();
-    }
-
-    protected Model getFullSchemaOntology() {
-        return ModelFactory.createDefaultModel().add(getReferentialSchemaOntology()).add(getDataSchemaOntology());
-    }
-
-    protected Model getReferentialSchemaOntology() {
-        return schemaService.getOntology(ModelVocabulary.REFERENTIAL);
-    }
-
-    protected Model getDataSchemaOntology() {
-        return schemaService.getOntology(ModelVocabulary.DATA);
+            .map(acceptedContentType -> converter.convert(acceptedContentType).orElse(null))
+            .filter(Objects::nonNull)
+            .findFirst();
     }
 
 }

@@ -25,7 +25,6 @@ package fr.eaufrance.sandre.schema.inc;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.w3.GEO;
 
 /**
  * Appellation taxon du SANDRE
@@ -36,6 +35,9 @@ public class INC {
     public static final String NS = "http://id.eaufrance.fr/ddd/INC/1.0/";
 
     public static final String PREFIX = "inc";
+
+    public static final String MODEL_URL = "http://owl.sandre.eaufrance.fr/inc/1/sandre_fmt_owl_inc.owl";
+
     public static String getURI() {
         return NS;
     }
@@ -53,13 +55,14 @@ public class INC {
     public static final Resource Interlocuteur = resource("Interlocuteur");
 
     public static final Resource AdresseInterlocuteur = resource("AdresseInterlocuteur");
-    public static final Resource Compl2Adresse = resource("Compl2Adresse");
-    public static final Resource Compl3Adresse = resource("Compl3Adresse");
-    public static final Resource NumLbVoieAdresse = resource("NumLbVoieAdresse");
-    public static final Resource LgAcheAdresse = resource("LgAcheAdresse");
+    public static final Resource Compl2Adresse = property("Compl2Adresse");
+    public static final Resource Compl3Adresse = property("Compl3Adresse");
+    public static final Resource NumLbVoieAdresse = property("NumLbVoieAdresse");
+    public static final Resource LgAcheAdresse = property("LgAcheAdresse");
+
     public static final Resource PaysInterlocuteur = resource("PaysInterlocuteur");
-    public static final Resource CdPays = resource("CdPays");
-    public static final Resource DateCreInterlocuteur = resource("DateCreInterlocuteur");
-    public static final Resource DateMAJInterlocuteur = resource("DateMAJInterlocuteur");
+
+    public static final Resource DateCreInterlocuteur = property("DateCreInterlocuteur");
+    public static final Resource DateMAJInterlocuteur = property("DateMAJInterlocuteur");
 
 }

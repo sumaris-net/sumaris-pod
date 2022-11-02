@@ -30,6 +30,7 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -37,11 +38,12 @@ import org.apache.jena.vocabulary.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 
 
-@Component("rdfSchemaEquivalences")
+@Service
 @ConditionalOnBean({RdfConfiguration.class})
 @ConditionalOnProperty(
         prefix = "rdf.equivalences",
@@ -52,6 +54,9 @@ public class RdfSchemaEquivalences extends AbstractSchemaVisitor {
 
     private boolean debug;
 
+    public RdfSchemaEquivalences(RdfSchemaService rdfSchemaService) {
+        super(rdfSchemaService);
+    }
 
     @PostConstruct
     protected void init() {
@@ -79,7 +84,7 @@ public class RdfSchemaEquivalences extends AbstractSchemaVisitor {
         if (debug) log.debug("Adding {{}} equivalence on Class {{}}...", basePrefix, clazz.getSimpleName());
         String classUri = ontClass.getURI();
 
-        Resource schema = model.getResource(schemaService.getNamespace());
+        Resource schema = model.getResource(rdfSchemaService.getNamespace());
 
         // Entity
         if (IEntity.class.isAssignableFrom(clazz)) {

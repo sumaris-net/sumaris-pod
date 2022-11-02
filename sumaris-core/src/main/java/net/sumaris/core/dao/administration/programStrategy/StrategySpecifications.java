@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
@@ -35,10 +34,10 @@ import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.PeriodVO;
+import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
@@ -279,4 +278,5 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
 
     boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege);
 
+    Date maxUpdateDateByFilter(StrategyFilterVO filter);
 }

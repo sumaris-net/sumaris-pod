@@ -22,12 +22,15 @@
 
 package net.sumaris.rdf.core.service.schema;
 
-import net.sumaris.rdf.core.config.RdfCacheConfiguration;
+import net.sumaris.rdf.core.cache.RdfCacheConfiguration;
 import net.sumaris.rdf.core.model.IModelVisitor;
-import net.sumaris.rdf.core.model.ModelVocabulary;
+import net.sumaris.rdf.core.service.IRdfFetchOptions;
+import net.sumaris.rdf.core.service.data.RdfIndividualFetchOptions;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 @Transactional(readOnly = true)
 public interface RdfSchemaService {
@@ -35,6 +38,10 @@ public interface RdfSchemaService {
     String getPrefix();
 
     String getNamespace();
+
+    String getNamespace(String vocabulary);
+
+    String getNamespace(String vocabulary, String version);
 
     /**
      * Register a schema visitor
@@ -49,5 +56,19 @@ public interface RdfSchemaService {
      */
     Model getOntology(RdfSchemaFetchOptions options);
 
-    Model getOntology(ModelVocabulary voc);
+    Model getOntology(String vocabulary);
+
+
+    Set<String> getAllVocabularies();
+
+    Model getAllOntologies();
+
+    /**
+     * Get classes to export when accessing individuals
+     * @param options the export context
+     * @return
+     */
+    Set<Class<?>> getAllTypes(RdfIndividualFetchOptions options);
+
+    Set<String> getAllClassNames(IRdfFetchOptions options);
 }

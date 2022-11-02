@@ -27,9 +27,24 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface VesselRepository extends
     RootDataRepository<Vessel, VesselVO, VesselFilterVO, VesselFetchOptions>,
     VesselSpecifications {
+
+    @Query("update Trip t set t.vessel.id = :validVesselId where t.vessel.id = :temporaryVesselId")
+    @Modifying
+    int updateTrips(@Param("temporaryVesselId") int temporaryVesselId, @Param("validVesselId") int validVesselId);
+
+    @Query("update Landing t set t.vessel.id = :validVesselId where t.vessel.id = :temporaryVesselId")
+    @Modifying
+    int updateLandings(@Param("temporaryVesselId") int temporaryVesselId, @Param("validVesselId") int validVesselId);
+
+    @Query("update Sale t set t.vessel.id = :validVesselId where t.vessel.id = :temporaryVesselId")
+    @Modifying
+    int updateSales(@Param("temporaryVesselId") int temporaryVesselId, @Param("validVesselId") int validVesselId);
 
 }

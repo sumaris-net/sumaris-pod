@@ -25,6 +25,7 @@ package net.sumaris.rdf.core.model.adapter.schema;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.rdf.core.config.RdfConfiguration;
+import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -41,6 +42,10 @@ import org.w3.W3NS;
         matchIfMissing = true)
 @Slf4j
 public class OrgSchemaEquivalences extends AbstractSchemaVisitor {
+
+    public OrgSchemaEquivalences(RdfSchemaService rdfSchemaService) {
+        super(rdfSchemaService);
+    }
 
     @Override
     public void visitModel(Model model, String ns, String schemaUri) {

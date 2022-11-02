@@ -43,9 +43,6 @@ import org.junit.Assume;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.nuiton.i18n.I18n;
-import org.nuiton.i18n.init.DefaultI18nInitializer;
-import org.nuiton.i18n.init.UserI18nInitializer;
 
 import java.io.*;
 import java.sql.Connection;
@@ -80,6 +77,8 @@ public abstract class DatabaseResource implements TestRule {
     private File resourceDirectory;
 
     private String dbDirectory;
+
+    String jdbcUrl;
 
     private final boolean readOnly;
 
@@ -255,6 +254,9 @@ public abstract class DatabaseResource implements TestRule {
                         log.warn(String.format("Database running in server mode! Please remove the property '%s' in file %s, to use a file database.",
                             SumarisConfigurationOption.JDBC_URL.getKey(), configFilename));
                     }
+                    // Reset (needed by getConfigArgs()
+                    dbDirectory = null;
+                    this.jdbcUrl = jdbcUrl;
                 }
                 else {
                     Tests.checkDbExists(testClass, dbDirectory);
@@ -569,6 +571,8 @@ public abstract class DatabaseResource implements TestRule {
 
             // /!\ DB directory must be defined AFTER Jdbc URL. If not application-hsqldb.properties can override Jdbc URL, with an invalid URL
             configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.DB_DIRECTORY.getKey(), dbDirectory));
+        } else if (jdbcUrl != null) {
+            configArgs.addAll(Lists.newArrayList("--option", SumarisConfigurationOption.JDBC_URL.getKey(), jdbcUrl));
         }
 
         // Push sequence to 1000

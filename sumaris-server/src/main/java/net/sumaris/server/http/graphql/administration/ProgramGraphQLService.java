@@ -75,10 +75,12 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -86,6 +88,8 @@ import java.util.stream.Collectors;
 @GraphQLApi
 @Slf4j
 public class ProgramGraphQLService {
+
+    static final Integer MIN_WATCH_INTERVAL_IN_SECONDS = 30;
 
     @Autowired
     private SumarisServerConfiguration configuration;
@@ -403,15 +407,15 @@ public class ProgramGraphQLService {
     @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
     @IsUser
     public Publisher<ProgramVO> updateProgram(@GraphQLArgument(name = "id") final int id,
-                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer minIntervalInSecond,
+                                              @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer intervalInSeconds,
                                               @GraphQLEnvironment ResolutionEnvironment env) {
         ProgramFetchOptions fetchOptions = getProgramFetchOptions(GraphQLUtils.fields(env));
 
-        if (minIntervalInSecond != null && minIntervalInSecond < 30) {
-            minIntervalInSecond = 30;
+        if (intervalInSeconds != null && intervalInSeconds < MIN_WATCH_INTERVAL_IN_SECONDS) {
+            intervalInSeconds = MIN_WATCH_INTERVAL_IN_SECONDS;
         }
 
-        log.info("Checking changes Program#{}, every {} sec", id, minIntervalInSecond);
+        log.info("Checking changes Program#{}, every {}s", id, intervalInSeconds);
 
         return entityEventService.watchEntity(updateDate -> {
                 // Get actual program
@@ -420,22 +424,54 @@ public class ProgramGraphQLService {
                 }
                 // Get if newer
                 return programService.findNewerById(id, updateDate, fetchOptions);
-            }, minIntervalInSecond, true)
+            }, intervalInSeconds, true)
+            .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLSubscription(name = "lastStrategiesUpdateDate", description = "Subscribe to last strategies update date")
+    @IsUser
+    public Publisher<Date> lastStrategiesUpdateDate(@GraphQLNonNull @GraphQLArgument(name = "filter") StrategyFilterVO filter,
+                                                   @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to check, in seconds.") Integer intervalInSeconds
+    ) {
+        Preconditions.checkArgument(filter != null && ArrayUtils.isNotEmpty(filter.getProgramIds()),
+            String.format("Required 'filter.programIds' to listen for strategies changes"));
+
+        if (intervalInSeconds != null && intervalInSeconds < MIN_WATCH_INTERVAL_IN_SECONDS) {
+            intervalInSeconds = MIN_WATCH_INTERVAL_IN_SECONDS;
+        }
+
+        log.debug("Checking strategies max update date, on Program#{} every {}s", filter.getProgramIds(), intervalInSeconds);
+
+        AtomicReference<Date> lastUpdateDate = new AtomicReference<>(null);
+
+        return entityEventService.watchByLoader(() -> {
+                Date current = strategyService.maxUpdateDateByFilter(filter);
+                Date previous = lastUpdateDate.get();
+                if (previous == null || (current != null && current.after(previous))) {
+                    lastUpdateDate.set(current);
+                    return Optional.of(current);
+                }
+
+                return Optional.empty();
+            }, intervalInSeconds, false /*only changes, but not actual value*/)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 
     @GraphQLSubscription(name = "updateProgramStrategies", description = "Subscribe to changes on program's strategies")
     @IsUser
     public Publisher<List<StrategyVO>> updateProgramStrategies(@GraphQLNonNull @GraphQLArgument(name = "programId") final int programId,
-                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSeconds,
+                                                               @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer intervalInSeconds,
                                                                @GraphQLEnvironment ResolutionEnvironment env) {
 
         Set<String> fields = GraphQLUtils.fields(env);
         StrategyFetchOptions fetchOptions = getStrategyFetchOptions(fields);
+        if (intervalInSeconds != null && intervalInSeconds < MIN_WATCH_INTERVAL_IN_SECONDS) {
+            intervalInSeconds = MIN_WATCH_INTERVAL_IN_SECONDS;
+        }
 
         Preconditions.checkArgument(programId >= 0, "Invalid programId");
 
-        log.info("Checking strategies changes on Program#{}, every {} sec", programId, intervalInSeconds);
+        log.info("Checking strategies changes on Program#{}, every {}s", programId, intervalInSeconds);
 
         return entityEventService.watchEntities((lastUpdateDate) -> {
                 // Get actual values

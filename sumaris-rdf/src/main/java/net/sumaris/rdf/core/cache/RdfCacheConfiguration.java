@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.core.config;
+package net.sumaris.rdf.core.cache;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
@@ -40,14 +40,18 @@ import org.springframework.context.annotation.Configuration;
 public class RdfCacheConfiguration {
 
     public interface Names {
-        String ONTOLOGY = "net.sumaris.rdf.core.service.schema.ontologyByName";
+        String ONTOLOGY = "net.sumaris.rdf.service.schema.ontology";
+        String TYPES_FOR_INDIVIDUALS = "net.sumaris.rdf.service.schema.individualTypes";
+        String CLASS_FOR_INDIVIDUALS = "net.sumaris.rdf.service.schema.individualClassNames";
     }
 
     @Bean
-    public JCacheManagerCustomizer rdfCacheManagerCustomizer() {
+    public JCacheManagerCustomizer rdfCacheCustomizer() {
         return cacheManager -> {
             log.info("Adding {RDF} caches...");
             Caches.createHeapCache(cacheManager, Names.ONTOLOGY, Integer.class, Model.class, CacheTTL.DEFAULT.asDuration(), 50);
+            Caches.createCollectionHeapCache(cacheManager, Names.TYPES_FOR_INDIVIDUALS, Integer.class, Class.class, CacheTTL.LONG.asDuration(), 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.CLASS_FOR_INDIVIDUALS, Integer.class, String.class, CacheTTL.LONG.asDuration(), 50);
         };
     }
 

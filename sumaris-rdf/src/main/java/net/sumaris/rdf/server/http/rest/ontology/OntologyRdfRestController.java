@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.server.ontology;
+package net.sumaris.rdf.server.http.rest.ontology;
 
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import net.sumaris.rdf.core.util.ModelUtils;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.core.util.RdfMediaType;
-import net.sumaris.rdf.server.RdfRestPaths;
+import net.sumaris.rdf.server.http.rest.RdfRestPaths;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -60,7 +59,7 @@ import java.util.Objects;
 
 
 @RestController
-@ConditionalOnBean({RdfConfiguration.class})
+@ConditionalOnBean({ RdfConfiguration.class})
 @ConditionalOnWebApplication
 @Slf4j
 public class OntologyRdfRestController implements RdfRestPaths {
@@ -68,72 +67,81 @@ public class OntologyRdfRestController implements RdfRestPaths {
     protected static final String EXTENSION_PATH_PARAM = ".{extension:[a-z0-9-_]+}";
 
     // Schema path
-    public static final String ONT_SCHEMA_PATH = ONTOLOGY_BASE_PATH + "/schema";
-    public static final String ONT_SCHEMA_PATH_SLASH = ONTOLOGY_BASE_PATH + "/";
-    public static final String ONT_SCHEMA_BY_CLASS = ONT_SCHEMA_PATH_SLASH + "{class:[a-zA-Z]+}";
-    public static final String ONT_SCHEMA_BY_CLASS_SLASH = ONT_SCHEMA_BY_CLASS + "/";
+    public static final String SCHEMA_PATH = SCHEMA_BASE_PATH + "/" + "{vocab:[a-zA-Z]+}";
+    public static final String SCHEMA_PATH_SLASH = SCHEMA_PATH + "/";
+    public static final String SCHEMA_VERSION_PATH = SCHEMA_PATH_SLASH + "{version:[0-9.]+}";
+    public static final String SCHEMA_VERSION_PATH_SLASH = SCHEMA_VERSION_PATH + "/";
+    public static final String SCHEMA_VERSION_CLASS = SCHEMA_VERSION_PATH_SLASH + "{class:[a-zA-Z]+}";
+    public static final String SCHEMA_VERSION_CLASS_SLASH = SCHEMA_VERSION_CLASS + "/";
+
+    // Vocab conversion
+    public static final String SCHEMA_CONVERT_PATH = SCHEMA_BASE_PATH + "/convert";
 
     // Data path
-    public static final String ONT_DATA_PATH = ONTOLOGY_BASE_PATH + "/data";
-    public static final String ONT_DATA_SLASH_PATH = ONT_DATA_PATH + "/";
-    public static final String ONT_DATA_BY_CLASS_PATH = ONT_DATA_SLASH_PATH + "{class:[a-zA-Z]+}";
-    public static final String ONT_DATA_BY_CLASS_SLASH_PATH = ONT_DATA_BY_CLASS_PATH + "/";
-    public static final String ONT_DATA_BY_OBJECT_PATH = ONT_DATA_BY_CLASS_SLASH_PATH + "{id:[0-9a-zA-Z]+}";
+    public static final String INDIVIDUAL_PATH = DATA_BASE_PATH + "/" + "{vocab:[a-zA-Z]+}";
+    public static final String INDIVIDUAL_PATH_SLASH = INDIVIDUAL_PATH + "/";
+    public static final String INDIVIDUAL_CLASS_PATH = INDIVIDUAL_PATH_SLASH + "{class:[a-zA-Z]+}";
+    public static final String INDIVIDUAL_CLASS_SLASH = INDIVIDUAL_CLASS_PATH + "/";
+    public static final String INDIVIDUAL_CLASS_ID = INDIVIDUAL_CLASS_SLASH + "{id:[0-9a-zA-Z]+}";
 
-    public static final String ONT_CONVERT_PATH = ONTOLOGY_BASE_PATH + "/convert";
-
-    @Resource
-    private RdfModelService  modelService;
 
     @Resource
-    private RdfSchemaService schemaService;
+    private RdfModelService rdfModelService;
 
     @Resource
-    private RdfIndividualService individualService;
+    private RdfSchemaService rdfSchemaService;
 
     @Resource
-    private RdfConfiguration config;
+    private RdfIndividualService rdfIndividualService;
 
+    @Resource
+    private RdfConfiguration rdfConfiguration;
 
     @PostConstruct
     public void init() {
-        log.info("Starting Ontology endpoint {{}}...", ONT_SCHEMA_PATH_SLASH);
-        log.info("Starting Ontology endpoint {{}}...", ONT_DATA_SLASH_PATH);
+        log.info("Starting Ontology endpoint {{}}...", SCHEMA_PATH_SLASH);
+        log.info("Starting Ontology endpoint {{}}...", INDIVIDUAL_PATH_SLASH);
     }
 
     @GetMapping(
-            value = {
-                ONT_SCHEMA_PATH,
-                    ONT_SCHEMA_PATH + EXTENSION_PATH_PARAM,
-                ONT_SCHEMA_PATH_SLASH,
-                ONT_SCHEMA_BY_CLASS,
-                    ONT_SCHEMA_BY_CLASS + EXTENSION_PATH_PARAM,
-                ONT_SCHEMA_BY_CLASS_SLASH
-            },
-            produces = {
-                    RdfMediaType.APPLICATION_RDF_XML_VALUE,
-                    RdfMediaType.APPLICATION_XML_VALUE,
-                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
-                    RdfMediaType.APPLICATION_JSON_VALUE,
-                    RdfMediaType.APPLICATION_JSON_LD_VALUE,
-                    RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
-                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
-                    RdfMediaType.TEXT_N3_VALUE,
-                    RdfMediaType.APPLICATION_TRIG_VALUE,
-                    RdfMediaType.TEXT_TRIG_VALUE,
-                    RdfMediaType.APPLICATION_TRIX_VALUE,
-                    RdfMediaType.TEXT_TRIX_VALUE,
-                    RdfMediaType.APPLICATION_TURTLE_VALUE,
-                    RdfMediaType.TEXT_TURTLE_VALUE,
-                    // Browser HTML requests
-                    MediaType.APPLICATION_XHTML_XML_VALUE,
-                    MediaType.TEXT_HTML_VALUE
-            })
-    public ResponseEntity<byte[]> getSchemaOntology(@PathVariable(name = "class", required = false) String className,
+        value = {
+            SCHEMA_PATH,
+            SCHEMA_PATH + EXTENSION_PATH_PARAM,
+            SCHEMA_PATH_SLASH,
+            SCHEMA_VERSION_PATH,
+            SCHEMA_VERSION_PATH + EXTENSION_PATH_PARAM,
+            SCHEMA_VERSION_PATH_SLASH,
+            SCHEMA_VERSION_CLASS,
+            SCHEMA_VERSION_CLASS + EXTENSION_PATH_PARAM,
+            SCHEMA_VERSION_CLASS_SLASH
+        },
+        produces = {
+            RdfMediaType.APPLICATION_RDF_XML_VALUE,
+            RdfMediaType.APPLICATION_XML_VALUE,
+            RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+            RdfMediaType.APPLICATION_JSON_VALUE,
+            RdfMediaType.APPLICATION_JSON_LD_VALUE,
+            RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
+            RdfMediaType.APPLICATION_N_QUADS_VALUE,
+            RdfMediaType.TEXT_N3_VALUE,
+            RdfMediaType.APPLICATION_TRIG_VALUE,
+            RdfMediaType.TEXT_TRIG_VALUE,
+            RdfMediaType.APPLICATION_TRIX_VALUE,
+            RdfMediaType.TEXT_TRIX_VALUE,
+            RdfMediaType.APPLICATION_TURTLE_VALUE,
+            RdfMediaType.TEXT_TURTLE_VALUE,
+            // Browser HTML requests
+            MediaType.APPLICATION_XHTML_XML_VALUE,
+            MediaType.TEXT_HTML_VALUE
+        })
+    public ResponseEntity<byte[]> getSchemaOntology(@PathVariable(name = "vocab") String vocabulary,
+                                                    @PathVariable(name = "version", required = false) String version,
+                                                    @PathVariable(name = "class", required = false) String className,
                                                     @RequestParam(name = "extension", required = false) String extension,
                                                     @RequestParam(name = "format", required = false) String userFormat,
                                                     @RequestParam(name = "disjoints", defaultValue = "true", required = false) String disjoints,
                                                     @RequestParam(name = "equivalences", defaultValue = "true", required = false) String equivalences,
+                                                    @RequestParam(name = "interfaces", defaultValue = "false", required = false) String interfaces,
                                                     final HttpServletRequest request) {
 
         // Find the output format
@@ -145,46 +153,55 @@ public class OntologyRdfRestController implements RdfRestPaths {
             outputFormat = findRdfFormat(request, userFormat, RdfFormat.RDFXML);
         }
 
+        // Check version
+        if (StringUtils.isBlank(version)) {
+            version = rdfConfiguration.getModelVersion();
+        }
+
         // Generate the schema ontology
-        Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-                .className(className)
-                .withDisjoints(!"false".equalsIgnoreCase(disjoints)) // True by default
-                .withEquivalences(!"false".equalsIgnoreCase(equivalences))
-                .build());
+        Model schema = rdfSchemaService.getOntology(RdfSchemaFetchOptions.builder()
+            .vocabulary(vocabulary)
+            .version(version)
+            .className(className)
+            .withDisjoints(!"false".equalsIgnoreCase(disjoints)) // True by default
+            .withEquivalences(!"false".equalsIgnoreCase(equivalences))
+            .withInterfaces(!"false".equalsIgnoreCase(interfaces))
+            .build());
 
         return ResponseEntity.ok()
-                .contentType(outputFormat.mineType())
-                .body(ModelUtils.toBytes(schema, outputFormat));
+            .contentType(outputFormat.mineType())
+            .body(ModelUtils.toBytes(schema, outputFormat));
     }
 
     @GetMapping(
-            value = {
-                ONT_DATA_BY_CLASS_PATH,
-                    ONT_DATA_BY_CLASS_PATH + EXTENSION_PATH_PARAM,
-                ONT_DATA_BY_CLASS_SLASH_PATH,
-                ONT_DATA_BY_OBJECT_PATH,
-                    ONT_DATA_BY_OBJECT_PATH + EXTENSION_PATH_PARAM
-            },
-            produces = {
-                    RdfMediaType.APPLICATION_RDF_XML_VALUE,
-                    RdfMediaType.APPLICATION_XML_VALUE,
-                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
-                    RdfMediaType.APPLICATION_JSON_VALUE,
-                    RdfMediaType.APPLICATION_JSON_LD_VALUE,
-                    RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
-                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
-                    RdfMediaType.TEXT_N3_VALUE,
-                    RdfMediaType.APPLICATION_TRIG_VALUE,
-                    RdfMediaType.TEXT_TRIG_VALUE,
-                    RdfMediaType.APPLICATION_TRIX_VALUE,
-                    RdfMediaType.TEXT_TRIX_VALUE,
-                    RdfMediaType.APPLICATION_TURTLE_VALUE,
-                    RdfMediaType.TEXT_TURTLE_VALUE,
-                    // Browser HTML requests
-                    MediaType.APPLICATION_XHTML_XML_VALUE,
-                    MediaType.TEXT_HTML_VALUE
-            })
-    public ResponseEntity<byte[]> getIndividuals(@PathVariable(name = "class") String className,
+        value = {
+            INDIVIDUAL_CLASS_PATH,
+            INDIVIDUAL_CLASS_PATH + EXTENSION_PATH_PARAM,
+            INDIVIDUAL_CLASS_SLASH,
+            INDIVIDUAL_CLASS_ID,
+            INDIVIDUAL_CLASS_ID + EXTENSION_PATH_PARAM
+        },
+        produces = {
+            RdfMediaType.APPLICATION_RDF_XML_VALUE,
+            RdfMediaType.APPLICATION_XML_VALUE,
+            RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+            RdfMediaType.APPLICATION_JSON_VALUE,
+            RdfMediaType.APPLICATION_JSON_LD_VALUE,
+            RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
+            RdfMediaType.APPLICATION_N_QUADS_VALUE,
+            RdfMediaType.TEXT_N3_VALUE,
+            RdfMediaType.APPLICATION_TRIG_VALUE,
+            RdfMediaType.TEXT_TRIG_VALUE,
+            RdfMediaType.APPLICATION_TRIX_VALUE,
+            RdfMediaType.TEXT_TRIX_VALUE,
+            RdfMediaType.APPLICATION_TURTLE_VALUE,
+            RdfMediaType.TEXT_TURTLE_VALUE,
+            // Browser HTML requests
+            MediaType.APPLICATION_XHTML_XML_VALUE,
+            MediaType.TEXT_HTML_VALUE
+        })
+    public ResponseEntity<byte[]> getIndividuals(@PathVariable(name = "vocab") String vocabulary,
+                                                 @PathVariable(name = "class") String className,
                                                  @PathVariable(name = "id", required = false) String objectId,
                                                  @PathVariable(name = "extension", required = false) String extension,
                                                  @RequestParam(name = "schema", required = false) String schema,
@@ -194,14 +211,15 @@ public class OntologyRdfRestController implements RdfRestPaths {
                                                  final HttpServletRequest request) {
 
         RdfIndividualFetchOptions options = RdfIndividualFetchOptions.builder()
-                .className(className)
-                .id(objectId)
-                .maxDepth(1)
-                .page(Page.builder()
-                        .offset(objectId == null ? offset : 0)
-                        .size(objectId == null ? size : 1)
-                        .build())
-                .build();
+            .vocabulary(vocabulary)
+            .className(className)
+            .id(objectId)
+            .maxDepth(1)
+            .page(Page.builder()
+                .offset(objectId == null ? offset : 0)
+                .size(objectId == null ? size : 1)
+                .build())
+            .build();
 
         boolean withSchema = "".equalsIgnoreCase(schema) || "true".equalsIgnoreCase(schema);
         if (!withSchema) options.setReasoningLevel(ReasoningLevel.NONE);
@@ -216,31 +234,31 @@ public class OntologyRdfRestController implements RdfRestPaths {
         }
 
         // Get individuals
-        Model individuals = individualService.getIndividuals(options);
+        Model individuals = rdfIndividualService.getIndividuals(options);
 
         // Add schema
         //individuals = ModelFactontology/convertry.createInfModel(ReasonerRegistry.getOWLReasoner(), schemaExportService.getOntology(className, extension, ));
 
         return ResponseEntity.ok()
-                .contentType(outputFormat.mineType())
-                .body(ModelUtils.toBytes(individuals, outputFormat));
+            .contentType(outputFormat.mineType())
+            .body(ModelUtils.toBytes(individuals, outputFormat));
     }
 
-    @GetMapping(value = ONT_CONVERT_PATH,
-            produces = {
-                    MediaType.APPLICATION_XML_VALUE,
-                    RdfMediaType.APPLICATION_RDF_XML_VALUE,
-                    MediaType.APPLICATION_JSON_VALUE,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    RdfMediaType.APPLICATION_RDF_JSON_VALUE,
-                    RdfMediaType.APPLICATION_JSON_LD_VALUE,
-                    RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
-                    RdfMediaType.APPLICATION_N_QUADS_VALUE,
-                    RdfMediaType.TEXT_N3_VALUE,
-                    RdfMediaType.TEXT_TRIG_VALUE,
-                    RdfMediaType.TEXT_TRIX_VALUE,
-                    RdfMediaType.TEXT_TURTLE_VALUE
-                })
+    @GetMapping(value = SCHEMA_CONVERT_PATH,
+        produces = {
+            MediaType.APPLICATION_XML_VALUE,
+            RdfMediaType.APPLICATION_RDF_XML_VALUE,
+            MediaType.APPLICATION_JSON_VALUE,
+            MediaType.APPLICATION_JSON_UTF8_VALUE,
+            RdfMediaType.APPLICATION_RDF_JSON_VALUE,
+            RdfMediaType.APPLICATION_JSON_LD_VALUE,
+            RdfMediaType.APPLICATION_N_TRIPLES_VALUE,
+            RdfMediaType.APPLICATION_N_QUADS_VALUE,
+            RdfMediaType.TEXT_N3_VALUE,
+            RdfMediaType.TEXT_TRIG_VALUE,
+            RdfMediaType.TEXT_TRIX_VALUE,
+            RdfMediaType.TEXT_TURTLE_VALUE
+        })
     public ResponseEntity<byte[]> convertFromUri(@RequestParam(name = "uri", required = false) String uri,
                                                  @RequestParam(name = "prefix", required = false) String prefix,
                                                  @RequestParam(name = "sourceFormat", required = false) String sourceFormat,
@@ -251,7 +269,7 @@ public class OntologyRdfRestController implements RdfRestPaths {
         RdfFormat inputFormat = null;
         if (StringUtils.isNotBlank(sourceFormat)) {
             inputFormat = RdfFormat.fromUserString(sourceFormat)
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown sourceFormat: " + sourceFormat));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown sourceFormat: " + sourceFormat));
         }
 
         // Find the output format
@@ -273,11 +291,11 @@ public class OntologyRdfRestController implements RdfRestPaths {
         }
 
         // Read then convert IRI models
-        byte[] content = modelService.unionThenConvert(iris, inputFormat, outputFormat);
+        byte[] content = rdfModelService.unionThenConvert(iris, inputFormat, outputFormat);
 
         return ResponseEntity.ok()
-                .contentType(outputFormat.mineType())
-                .body(content);
+            .contentType(outputFormat.mineType())
+            .body(content);
     }
 
     /* -- protected methods -- */
@@ -285,7 +303,7 @@ public class OntologyRdfRestController implements RdfRestPaths {
     protected RdfFormat findRdfFormat(final HttpServletRequest request, @Nullable final String userFormat, @Nullable final RdfFormat defaultFormat) {
         if (StringUtils.isNotBlank(userFormat)) {
             return RdfFormat.fromUserString(userFormat)
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown output format: " + userFormat));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown output format: " + userFormat));
         }
 
         // Analyse URL extension
@@ -294,10 +312,10 @@ public class OntologyRdfRestController implements RdfRestPaths {
             .orElseGet(() -> {
                 Collection<String> acceptedContentTypes = Splitter.on(",").trimResults().splitToList(request.getHeader(HttpHeaders.ACCEPT));
                 return acceptedContentTypes.stream()
-                        .map(contentType -> RdfFormat.fromContentType(contentType).orElse(null))
-                        .filter(Objects::nonNull)
-                        .findFirst()
-                        .orElse(defaultFormat);
+                    .map(contentType -> RdfFormat.fromContentType(contentType).orElse(null))
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(defaultFormat);
             });
     }
 }

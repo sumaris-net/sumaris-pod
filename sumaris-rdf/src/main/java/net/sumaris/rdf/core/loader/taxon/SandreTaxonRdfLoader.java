@@ -28,7 +28,7 @@ import net.sumaris.rdf.core.loader.AbstractNamedRdfLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component("sandreTaxonLoader")
+@Component
 @Slf4j
 public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
 
@@ -47,6 +47,11 @@ public class SandreTaxonRdfLoader extends AbstractNamedRdfLoader {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public boolean enable() {
+        return true;
     }
 
     @Override

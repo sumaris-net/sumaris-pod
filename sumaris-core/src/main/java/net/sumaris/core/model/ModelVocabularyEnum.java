@@ -20,13 +20,34 @@
  * #L%
  */
 
-package net.sumaris.rdf.server;
+package net.sumaris.core.model;
 
-public interface RdfRestPaths {
-    String SCHEMA_BASE_PATH = "/schema"; // Should be same as ModelType.SCHEMA (but in lowercase);
-    String DATA_BASE_PATH = "/data"; // Should be same as ModelType.DATA (but in lowercase);
+public enum ModelVocabularyEnum implements ModelVocabularies {
 
-    String SPARQL_ENDPOINT = "/sparql";
-    String ONTOLOGY_BASE_PATH = "/ontology";
-    String WEBVOWL_BASE_PATH = "/webvowl";
+    COMMON(ModelVocabularies.COMMON, "Shared"),
+    DEFAULT(COMMON),
+    TRANSCRIBING(ModelVocabularies.TRANSCRIBING, "Transcribing"),
+
+    ;
+
+    private String label;
+    private String name;
+
+    ModelVocabularyEnum(String label, String name) {
+        this.label = label;
+        this.name = name;
+    }
+
+    ModelVocabularyEnum(ModelVocabularyEnum other) {
+        this.label = other.label;
+        this.name = other.name;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

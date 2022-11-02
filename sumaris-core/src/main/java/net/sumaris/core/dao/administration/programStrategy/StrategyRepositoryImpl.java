@@ -50,6 +50,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
@@ -58,7 +59,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import net.sumaris.core.util.StringUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -600,6 +600,28 @@ public class StrategyRepositoryImpl
                 .setParameter("departmentId", departmentId)
                 .setParameter("privilegeId", privilege.getId())
                 .getSingleResult() > 0;
+    }
+
+    @Override
+    public Date maxUpdateDateByFilter(StrategyFilterVO filter) {
+        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Date> criteriaQuery = cb.createQuery(Date.class);
+        Root<Strategy> root = criteriaQuery.from(Strategy.class);
+
+        // Select max(update date)
+        criteriaQuery.select(cb.greatest(root.get(Strategy.Fields.UPDATE_DATE).as(Date.class)));
+
+        Specification<Strategy> spec = toSpecification(filter);
+        if (spec != null) {
+            criteriaQuery.where(spec.toPredicate(root, criteriaQuery, cb));
+        }
+
+        TypedQuery<Date> query = getEntityManager().createQuery(criteriaQuery);
+
+        // Bind parameters
+        applyBindings(query, spec);
+
+        return query.getSingleResult();
     }
 
     /* -- protected methods -- **/

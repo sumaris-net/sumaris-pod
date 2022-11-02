@@ -42,6 +42,7 @@ import java.util.Set;
 @Data
 @FieldNameConstants
 @Entity
+@Table(name = "landing")
 @NamedEntityGraph(
     name = Landing.GRAPH_LOCATION_AND_PROGRAM,
     attributeNodes = {

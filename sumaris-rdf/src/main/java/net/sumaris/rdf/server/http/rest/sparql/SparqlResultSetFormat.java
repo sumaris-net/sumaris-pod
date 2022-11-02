@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.rdf.server.sparql;
+package net.sumaris.rdf.server.http.rest.sparql;
 
 import net.sumaris.rdf.core.util.RdfMediaType;
 import org.apache.jena.sparql.resultset.ResultsFormat;
