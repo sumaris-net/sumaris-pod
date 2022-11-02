@@ -209,7 +209,7 @@ sonarqube:
     - git commit -am "[CI] release performed"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
     - PWD=$(pwd)
-    - echo "Working directory: ${PWD}"
+    - echo "Working directory is '$PWD'"
     - echo "Creating env file at '${ENV_FILE}' with 'APP_VERSION=${APP_VERSION}'"
     - mkdir -p target
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
