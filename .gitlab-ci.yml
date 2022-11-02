@@ -206,7 +206,7 @@ sonarqube:
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - echo "Pushing changes to upstream"
     - git diff --cached
-    - git commit -am "[CI] release performed"
+    - git commit -am "[CI] release performed" || echo "Nothing to commit"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
     - PWD=$(pwd)
     - echo "Working directory is '$PWD'"
