@@ -219,7 +219,7 @@ sonarqube:
       - ${ARTIFACT_WAR_FILE}
       - ${ARTIFACT_CONFIG_FILES}
       # FIXME: BLA - comment out to avoid an error "Request Entity Too Large"
-      - ${APP_WAR_MODULE}/target/*.zip
+      #- ${APP_WAR_MODULE}/target/*.zip
     reports:
       dotenv: ${ENV_FILE}
     expire_in: 60 minutes
