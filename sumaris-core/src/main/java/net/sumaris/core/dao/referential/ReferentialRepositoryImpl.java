@@ -67,7 +67,9 @@ public abstract class ReferentialRepositoryImpl<
     F extends IReferentialFilter,
     O extends IFetchOptions>
     extends SumarisJpaRepositoryImpl<E, ID, V>
-    implements ReferentialRepository<ID, E, V, F, O>, ReferentialSpecifications<ID, E> {
+    implements
+    ReferentialRepository<ID, E, V, F, O>,
+    ReferentialSpecifications<ID, E> {
 
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
@@ -284,8 +286,8 @@ public abstract class ReferentialRepositoryImpl<
             .and(inLevelLabels(clazz, filter.getLevelLabel() != null ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))
             .and(inSearchJoinLevelIds(filter.getSearchJoin(), filter.getSearchJoinLevelIds()))
-            .and(includedIds(filter.getIncludedIds()))
-            .and(excludedIds(filter.getExcludedIds()));
+            .and(includedIds((ID[])filter.getIncludedIds()))
+            .and(excludedIds((ID[])filter.getExcludedIds()));
     }
 
     protected void configureQuery(TypedQuery<E> query, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {

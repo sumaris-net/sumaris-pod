@@ -21,148 +21,126 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import fr.ifremer.quadrige3.core.dao.BindableSpecification;
-import fr.ifremer.quadrige3.core.dao.system.JobRepository;
-import fr.ifremer.quadrige3.core.model.IEntity;
-import fr.ifremer.quadrige3.core.model.administration.user.User;
-import fr.ifremer.quadrige3.core.model.enumeration.JobStatusEnum;
-import fr.ifremer.quadrige3.core.model.enumeration.JobTypeEnum;
-import fr.ifremer.quadrige3.core.model.option.NoFetchOptions;
-import fr.ifremer.quadrige3.core.model.option.SaveOptions;
-import fr.ifremer.quadrige3.core.model.system.Job;
-import fr.ifremer.quadrige3.core.service.AbstractEntityServiceImpl;
-import fr.ifremer.quadrige3.core.service.referential.ReferentialSpecifications;
-import fr.ifremer.quadrige3.core.util.Dates;
-import fr.ifremer.quadrige3.core.util.StringUtils;
-import fr.ifremer.quadrige3.core.vo.system.JobFilterVO;
-import fr.ifremer.quadrige3.core.vo.system.JobVO;
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.data.jpa.domain.Specification;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.technical.history.ProcessingHistoryRepository;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.referential.ProcessingType;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.technical.job.JobFilterVO;
+import net.sumaris.core.vo.technical.job.JobVO;
+import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import java.io.IOException;
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
-public class JobServiceImpl
-    extends AbstractEntityServiceImpl<Job, Integer, JobRepository, JobVO, JobFilterVO, NoFetchOptions, SaveOptions>
-    implements JobService {
+public class JobServiceImpl implements JobService {
 
-    private final ObjectMapper objectMapper;
-    private final XmlMapper xmlMapper;
 
-    public JobServiceImpl(EntityManager entityManager, JobRepository repository, ObjectMapper objectMapper) {
-        super(entityManager, repository, Job.class, JobVO.class);
-        this.objectMapper = objectMapper;
-        xmlMapper = new XmlMapper();
-        setEmitEvent(true);
-    }
+    private final ProcessingHistoryRepository processingHistoryRepository;
 
-    @Override
-    protected void toVO(Job source, JobVO target, NoFetchOptions fetchOptions) {
-        super.toVO(source, target, fetchOptions);
+    private final ReferentialDao referentialDao;
 
-        target.setType(JobTypeEnum.byId(source.getTypeName()));
-        target.setStatus(JobStatusEnum.byId(source.getStatus()));
-        target.setUserId(Optional.ofNullable(source.getUser()).map(User::getId).orElse(null));
+    private final SumarisConfiguration configuration;
 
-        if (source.getConfiguration() != null) {
-            try {
-                JsonNode node = xmlMapper.readTree(source.getConfiguration().getBytes());
-                target.setConfiguration(objectMapper.writeValueAsString(node));
-            } catch (IOException e) {
-                log.error("Unable to convert XML to JSON", e);
-                if (log.isDebugEnabled()) {
-                    log.debug("XML to convert: {}", source.getConfiguration());
-                }
-            }
-        }
+    private boolean enableTechnicalTablesUpdate = false;
 
-        if (source.getReport() != null) {
-            try {
-                JsonNode node = xmlMapper.readTree(source.getReport().getBytes());
-                target.setReport(objectMapper.writeValueAsString(node));
-            } catch (IOException e) {
-                log.error("Unable to convert XML to JSON", e);
-                if (log.isDebugEnabled()) {
-                    log.debug("XML to deserialize: {}", source.getReport());
-                }
-            }
+
+    @PostConstruct
+    protected void init() {
+
+        // Update technical tables (if option changed)
+        if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
+            this.enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
+
+            // Insert missing processing types
+            if (this.enableTechnicalTablesUpdate) initProcessingTypes();
         }
     }
 
-    @Override
-    protected void toEntity(JobVO source, Job target, SaveOptions saveOptions) {
-        super.toEntity(source, target, saveOptions);
-
-        target.setTypeName(source.getType().getId());
-        target.setStatus(source.getStatus().getId());
-        target.setUser(Optional.ofNullable(source.getUserId()).map(id -> load(User.class, id)).orElse(null));
-
-        if (source.getConfiguration() != null) {
-            try {
-                JsonNode node = objectMapper.readTree(source.getConfiguration().getBytes());
-                target.setConfiguration(xmlMapper.writeValueAsString(node));
-            } catch (IOException e) {
-                log.error("Unable to convert JSON to XML", e);
-                if (log.isDebugEnabled()) {
-                    log.debug("JSON to convert: {}", source.getConfiguration());
-                }
-            }
-        }
-
-        if (source.getReport() != null) {
-            try {
-                JsonNode node = objectMapper.readTree(source.getReport().getBytes());
-                target.setReport(xmlMapper.writeValueAsString(node));
-            } catch (IOException e) {
-                log.error("Unable to convert JSON to XML", e);
-                if (log.isDebugEnabled()) {
-                    log.debug("JSON to convert: {}", source.getReport());
-                }
-            }
-        }
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        init();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected BindableSpecification<Job> toSpecification(JobFilterVO filter) {
-        if (filter == null)
-            return null;
+    public JobVO save(@NonNull JobVO source) {
+        Preconditions.checkNotNull(source.getStatus());
+        Preconditions.checkNotNull(source.getType());
+        Preconditions.checkNotNull(source.getName());
 
-        BindableSpecification<Job> specification = BindableSpecification
-            .where(ReferentialSpecifications.hasValue(StringUtils.doting(Job.Fields.USER, IEntity.Fields.ID), filter.getUserId()))
-            .and(ReferentialSpecifications.withCollectionValues(
-                Job.Fields.TYPE_NAME,
-                CollectionUtils.emptyIfNull(filter.getTypes()).stream().map(JobTypeEnum::getId).collect(Collectors.toList())
-            ))
-            .and(ReferentialSpecifications.withCollectionValues(
-                Job.Fields.STATUS,
-                CollectionUtils.emptyIfNull(filter.getStatus()).stream().map(JobStatusEnum::getId).collect(Collectors.toList())
-            ));
+        return processingHistoryRepository.save(source);
+    }
 
-        if (filter.getLastUpdateDate() != null) {
-            specification.and(Specification.where((root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(
-                    root.get(Job.Fields.UPDATE_DATE),
-                    criteriaBuilder.literal(Dates.addMilliseconds(filter.getLastUpdateDate(), 1))
-                ))
-            );
+    @Override
+    public JobVO get(int id) {
+        return processingHistoryRepository.toVO(processingHistoryRepository.getById(id));
+    }
+
+    @Override
+    public Optional<JobVO> findById(int id) {
+        return processingHistoryRepository.findById(id)
+            .map(processingHistoryRepository::toVO);
+    }
+
+    @Override
+    public List<JobVO> findAll(JobFilterVO filter) {
+        return processingHistoryRepository.findAll(filter);
+    }
+
+    @Override
+    public Page<JobVO> findAll(JobFilterVO filter, Pageable page) {
+        return processingHistoryRepository.findAll(filter, page);
+    }
+
+    @Transactional
+    protected boolean initProcessingTypes() {
+        try {
+            String entityName = ProcessingType.class.getSimpleName();
+            List<String> newTypeLabels = Arrays.stream(ProcessingTypeEnum.values())
+                .map(ProcessingTypeEnum::getLabel)
+                // Filter if not exists
+                .filter(label -> referentialDao.countByFilter(
+                    ProcessingType.class.getSimpleName(),
+                    ReferentialFilterVO.builder()
+                        .label(label)
+                        .build()) == 0)
+                // Transform to new VO
+                .map(label -> ReferentialVO.builder().label(label).entityName(entityName).build())
+                // Save VO
+                .map(referentialDao::save)
+                // Update the enum id
+                .map(vo -> {
+                    ProcessingTypeEnum.byLabel(vo.getLabel()).setId(vo.getId());
+                    return vo.getLabel();
+                })
+                .collect(Collectors.toList());
+            if (!newTypeLabels.isEmpty()) {
+                log.info("Adding {} processing types: {}", newTypeLabels.size(), newTypeLabels);
+            }
+            return true;
+        } catch (Throwable t) {
+            log.error("Error while initializing processing type: {}", t.getMessage(), t);
+            return false;
         }
-        if (filter.getStartedBefore() != null) {
-            specification.and(Specification.where((root, query, criteriaBuilder) -> criteriaBuilder.lessThan(
-                    root.get(Job.Fields.START_DATE),
-                    criteriaBuilder.literal(filter.getStartedBefore())
-                ))
-            );
-        }
-
-        return specification;
     }
 }

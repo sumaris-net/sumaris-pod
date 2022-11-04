@@ -35,7 +35,9 @@ public enum EventTypeEnum implements Serializable {
 
     EMAIL("EMAIL"),
 
-    FEED("FEED")
+    FEED("FEED"),
+
+    JOB("JOB")
     ;
 
 

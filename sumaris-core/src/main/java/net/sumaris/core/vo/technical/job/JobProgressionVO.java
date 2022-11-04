@@ -21,9 +21,9 @@ package net.sumaris.core.vo.technical.job;
  * #L%
  */
 
-import fr.ifremer.quadrige3.core.vo.IValueObject;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IValueObject;
 
 /**
  * Job progression

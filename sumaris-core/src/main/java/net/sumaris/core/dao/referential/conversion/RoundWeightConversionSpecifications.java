@@ -38,24 +38,24 @@ import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 
-public interface RoundWeightConversionSpecifications extends IEntityWithStatusSpecifications<RoundWeightConversion> {
+public interface RoundWeightConversionSpecifications extends IEntityWithStatusSpecifications<Integer, RoundWeightConversion> {
 
     String DATE_PARAMETER = "date";
 
     default Specification<RoundWeightConversion> hasTaxonGroupIds(Integer... ids) {
-        return hasJoinIds(RoundWeightConversion.Fields.TAXON_GROUP, ids);
+        return hasInnerJoinIds(RoundWeightConversion.Fields.TAXON_GROUP, ids);
     }
 
     default Specification<RoundWeightConversion> hasLocationIds(Integer... ids) {
-        return hasJoinIds(RoundWeightConversion.Fields.LOCATION, ids);
+        return hasInnerJoinIds(RoundWeightConversion.Fields.LOCATION, ids);
     }
 
     default Specification<RoundWeightConversion> hasDressingIds(Integer... ids) {
-        return hasJoinIds(RoundWeightConversion.Fields.DRESSING, ids);
+        return hasInnerJoinIds(RoundWeightConversion.Fields.DRESSING, ids);
     }
 
     default Specification<RoundWeightConversion> hasPreservingIds(Integer... ids) {
-        return hasJoinIds(RoundWeightConversion.Fields.PRESERVING, ids);
+        return hasInnerJoinIds(RoundWeightConversion.Fields.PRESERVING, ids);
     }
 
     default Specification<RoundWeightConversion> atDate(Date aDate) {

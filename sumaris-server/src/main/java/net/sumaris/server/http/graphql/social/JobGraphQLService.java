@@ -29,23 +29,30 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Observable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.exception.ForbiddenException;
+import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
+import net.sumaris.core.vo.technical.job.JobProgressionVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.security.ISecurityContext;
 import net.sumaris.server.service.technical.EntityEventService;
 import org.apache.activemq.security.SecurityContext;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,20 +65,17 @@ public class JobGraphQLService {
 
     private final JobService jobService;
     private final JobExecutionService jobExecutionService;
-    private final SecurityContext securityContext;
+    private final ISecurityContext<PersonVO> securityContext;
     private final EntityEventService entityEventService;
 
-    @Autowired
-    private AuthService authService;
-
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
-    public List<JobVO> findJobs(@GraphQLArgument(name = "filter") JobFilterVO filter) {
+    public List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter) {
         return jobService.findAll(filter);
     }
 
     @GraphQLQuery(name = "job", description = "Get a job")
     public JobVO getJob(@GraphQLArgument(name = "id") int id) {
-        return jobService.find(id).orElse(null);
+        return jobService.findById(id).orElse(null);
     }
 
     @GraphQLSubscription(name = "updateJobs", description = "Subscribe to changes on jobs")
@@ -81,35 +85,31 @@ public class JobGraphQLService {
     ) {
 
         filter = JobFilterVO.nullToDefault(filter);
-        // Is user is NOT an admin
-        if (!authService.isAdmin()) {
-            PersonVO user = authService.getAuthenticatedUser().orElse(null);
-            if (filter.getUserId() == null) {
-                // default user
-                filter.setUserId(user.getId());
-            }
-//        if (CollectionUtils.isEmpty(filter.getStatus())) {
-//            // Default status (only active jobs)
-//            filter.setStatus(List.of(JobStatusEnum.PENDING, JobStatusEnum.RUNNING));
-//        }
 
-        log.info("Checking jobs for User#{} by events and every {} sec", filter.getUserId(), interval);
+        // Is user is NOT an admin, or if no issuer: force issuer to the authenticated user
+        if (!securityContext.isAdmin() || filter.getIssuer() == null) {
+            PersonVO user = securityContext.getAuthenticatedUser()
+                .orElseThrow(() -> new AccessDeniedException("Forbidden"));
+            filter.setIssuer(user.getPubkey());
+        }
+
+        log.info("Checking jobs for issuer {} by every {} sec", filter.getIssuer(), interval);
 
         JobFilterVO finalFilter = filter;
-        return entityEventService.watchEntities(
-                Job.class,
+        return entityEventService.watchEntities(ProcessingHistory.class,
                 Observables.distinctUntilChanged(() -> {
-                    log.debug("Checking jobs for User#{}", finalFilter.getUserId());
+                    log.debug("Checking jobs for {} ...", finalFilter.getIssuer());
                     // find next 10 events
                     List<JobVO> list = jobService.findAll(
                         finalFilter,
-                        Pageables.create(0, 10, Sort.Direction.DESC, UserEvent.Fields.UPDATE_DATE)
+                        Pageables.create(0L, 10, Sort.Direction.DESC, UserEvent.Fields.UPDATE_DATE)
                     ).getContent();
 
                     // get max event date of current result and set next filter
-                    list.stream().map(JobVO::getUpdateDate).max(Timestamp::compareTo).ifPresent(finalFilter::setLastUpdateDate);
+                    list.stream().map(JobVO::getUpdateDate).max(Date::compareTo).ifPresent(finalFilter::setLastUpdateDate);
 
-                    return list.isEmpty() ? Optional.empty() : Optional.of(list);
+                    if (list.isEmpty()) return Optional.empty();
+                    return Optional.of(list);
                 }),
                 interval,
                 false)
@@ -122,7 +122,7 @@ public class JobGraphQLService {
         @GraphQLArgument(name = "interval") Integer interval
     ) {
 
-        if (jobService.find(id).isEmpty()) {
+        if (jobService.findById(id).isEmpty()) {
             log.debug("Job not found (id={})", id);
             //noinspection unchecked
             return (Publisher<JobProgressionVO>) Observable.empty();
@@ -132,6 +132,5 @@ public class JobGraphQLService {
 
         return jobExecutionService.watchJobProgression(id)
             .toFlowable(BackpressureStrategy.LATEST);
-
     }
 }

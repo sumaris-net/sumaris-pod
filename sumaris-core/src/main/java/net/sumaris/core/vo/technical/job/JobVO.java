@@ -21,22 +21,24 @@ package net.sumaris.core.vo.technical.job;
  * #L%
  */
 
-import fr.ifremer.quadrige3.core.model.enumeration.JobStatusEnum;
-import fr.ifremer.quadrige3.core.model.enumeration.JobTypeEnum;
-import fr.ifremer.quadrige3.core.vo.IValueObjectWithUpdateDate;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.technical.job.JobStatusEnum;
+import net.sumaris.core.model.technical.job.JobTypeEnum;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-public class JobVO implements IValueObjectWithUpdateDate<Integer>, Comparable<JobVO> {
+public class JobVO implements
+    IValueObject<Integer>,
+    IUpdateDateEntity<Integer, Date>, Comparable<JobVO> {
 
     @EqualsAndHashCode.Include
     @ToString.Include
@@ -44,7 +46,7 @@ public class JobVO implements IValueObjectWithUpdateDate<Integer>, Comparable<Jo
     @ToString.Include
     private String name;
     @ToString.Include
-    private JobTypeEnum type;
+    private String type;
     @EqualsAndHashCode.Include
     private JobStatusEnum status;
     @EqualsAndHashCode.Include
@@ -55,10 +57,12 @@ public class JobVO implements IValueObjectWithUpdateDate<Integer>, Comparable<Jo
     private String configuration;
     private String report;
 
-    @ToString.Include
-    private Integer userId;
+    private Integer userEventId;
 
-    private Timestamp updateDate;
+    @ToString.Include
+    private String issuer;
+
+    private Date updateDate;
 
     @Override
     public int compareTo(JobVO o) {

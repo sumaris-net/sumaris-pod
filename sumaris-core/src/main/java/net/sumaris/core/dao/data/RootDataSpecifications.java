@@ -37,9 +37,8 @@ import java.util.Collection;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface RootDataSpecifications<E extends IRootDataEntity<? extends Serializable>>
-        extends DataSpecifications<E> {
-
+public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
+        extends DataSpecifications<Integer, E> {
 
     String RECORDER_PERSON_ID_PARAM = "recorderPersonId";
     String PROGRAM_LABEL_PARAM = "programLabel";

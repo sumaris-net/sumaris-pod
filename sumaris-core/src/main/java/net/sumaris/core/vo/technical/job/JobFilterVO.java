@@ -21,8 +21,6 @@ package net.sumaris.core.vo.technical.job;
  * #L%
  */
 
-import fr.ifremer.quadrige3.core.model.enumeration.JobStatusEnum;
-import fr.ifremer.quadrige3.core.model.enumeration.JobTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,14 +47,16 @@ public class JobFilterVO implements Serializable {
     }
 
     private Integer id;
-    private Integer userId;
+    private String issuer;
+    private String issuerEmail;
 
     @Builder.Default
-    private List<JobTypeEnum> types = new ArrayList<>();
-    @Builder.Default
-    private List<JobStatusEnum> status = new ArrayList<>();
+    private String[] types = null;
 
-    private Timestamp lastUpdateDate;
+    @Builder.Default
+    private JobStatusEnum[] status = null;
+
+    private Date lastUpdateDate;
     private Date startedBefore;
 
 }

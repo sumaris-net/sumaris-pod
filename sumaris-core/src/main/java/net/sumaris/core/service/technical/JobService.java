@@ -1,39 +1,31 @@
 package net.sumaris.core.service.technical;
 
-/*-
- * #%L
- * Quadrige3 Core :: Server API
- * %%
- * Copyright (C) 2017 - 2022 Ifremer
- * %%
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * #L%
- */
 
-import fr.ifremer.quadrige3.core.model.option.NoFetchOptions;
-import fr.ifremer.quadrige3.core.model.option.SaveOptions;
-import fr.ifremer.quadrige3.core.model.system.Job;
-import fr.ifremer.quadrige3.core.service.AbstractEntityService;
-import fr.ifremer.quadrige3.core.vo.system.JobFilterVO;
-import fr.ifremer.quadrige3.core.vo.system.JobVO;
+
+import io.leangen.graphql.annotations.GraphQLArgument;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
-import org.apache.activemq.broker.scheduler.Job;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
+@Transactional
 public interface JobService {
 
-    Optional<JobVO> find(int id);
+    JobVO save(JobVO source);
+
+    @Transactional(readOnly = true)
+    JobVO get(int id);
+
+    @Transactional(readOnly = true)
+    Optional<JobVO> findById(int id);
+
+    @Transactional(readOnly = true)
+    List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter);
+
+    @Transactional(readOnly = true)
+    Page<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter, Pageable page);
 }

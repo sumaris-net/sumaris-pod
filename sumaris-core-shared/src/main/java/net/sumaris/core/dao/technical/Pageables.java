@@ -42,22 +42,37 @@ public class Pageables  {
     }
 
     public static Pageable create(long offset, int size) {
-        return create(offset, size, null, null);
+        return create(offset, size, (Sort.Direction)null, null);
     }
 
+    /**
+     * @deprecated
+     * @param offset
+     * @param size
+     * @param sortAttribute
+     * @param sortDirection
+     * @return
+     */
+    @Deprecated
     public static Pageable create(long offset, int size, String sortAttribute, SortDirection sortDirection) {
-        // Make sure offset is valid, for the page size
-        //Preconditions.checkArgument(offset % size == 0, "Invalid offset. Must be a multiple of the given 'size'");
+        return create(offset, size,
+                sortDirection,
+                sortAttribute);
+    }
 
+    public static Pageable create(Long offset, Integer size, SortDirection sortDirection, String... sortAttributes) {
+        return create(offset, size, Sort.Direction.fromOptionalString(sortDirection.toString()).orElse(Sort.Direction.ASC), sortAttributes);
+    }
+
+    public static Pageable create(Long offset, Integer size, Sort.Direction sortDirection, String... sortAttributes) {
+        if (offset == null || size == null) {
+            return Pageable.unpaged();
+        }
         int page = (int)((offset - offset % size) / size);
-        if (sortAttribute != null) {
-            return PageRequest.of(page, size,
-                    (sortDirection == null) ? Sort.Direction.ASC :
-                            Sort.Direction.fromString(sortDirection.toString()),
-                    sortAttribute);
+        if (sortDirection != null && sortAttributes != null) {
+            return PageRequest.of(page, size, sortDirection, sortAttributes);
         }
         return PageRequest.of(page, size);
     }
-
 }
 

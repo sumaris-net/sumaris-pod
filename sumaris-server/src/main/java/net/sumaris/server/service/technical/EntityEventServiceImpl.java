@@ -30,7 +30,7 @@ import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.JmsConfiguration;
+import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.dao.technical.cache.CacheManager;
 import net.sumaris.core.dao.technical.model.Entities;
 import net.sumaris.core.dao.technical.model.IEntity;

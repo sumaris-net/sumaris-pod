@@ -41,7 +41,7 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationGroupSpecifications
-    extends DataSpecifications<Operation> {
+    extends DataSpecifications<Integer, Operation> {
 
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);

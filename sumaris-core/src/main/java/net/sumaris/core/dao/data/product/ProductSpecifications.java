@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface ProductSpecifications extends DataSpecifications<Product> {
+public interface ProductSpecifications extends DataSpecifications<Integer, Product> {
 
     String LANDING_ID_PARAM = "landingId";
     String OPERATION_ID_PARAM = "operationId";

@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends IDataFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements DataRepository<E, V, F, O>, DataSpecifications<E> {
+    implements DataRepository<E, V, F, O>, DataSpecifications<Integer, E> {
 
     protected static PersonFetchOptions PERSON_FETCH_OPTIONS = PersonFetchOptions.builder()
         .withDepartment(true)

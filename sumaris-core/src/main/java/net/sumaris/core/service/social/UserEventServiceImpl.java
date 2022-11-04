@@ -28,11 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.social.EventTypeEnum;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.annotation.JmsListener;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,17 +45,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserEventServiceImpl implements UserEventService {
 
-    private final UserEventRepository userEventRepository;
+    private final UserEventRepository repository;
 
     @Autowired
     public UserEventServiceImpl(UserEventRepository userEventRepository) {
-        this.userEventRepository = userEventRepository;
+        this.repository = userEventRepository;
     }
 
     @Override
     public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
-        return userEventRepository.findAllVO(userEventRepository.toSpecification(filter), page)
+        return repository.findAllVO(repository.toSpecification(filter), page)
                 .stream().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserEventVO> findAll(UserEventFilterVO filter, Pageable page) {
+        return repository.findAllVO(repository.toSpecification(filter), page)
+            .stream().collect(Collectors.toList());
     }
 
     @Override
@@ -69,12 +74,12 @@ public class UserEventServiceImpl implements UserEventService {
         // Check event type exists
         EventTypeEnum.byLabel(event.getEventType());
 
-        return userEventRepository.save(event);
+        return repository.save(event);
     }
 
     @Override
     public void delete(int id) {
-        userEventRepository.deleteById(id);
+        repository.deleteById(id);
     }
 
     @Override

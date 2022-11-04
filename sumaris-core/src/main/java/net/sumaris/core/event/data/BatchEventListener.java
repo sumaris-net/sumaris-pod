@@ -24,7 +24,7 @@ package net.sumaris.core.event.data;
 
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.JmsConfiguration;
+import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.vo.data.batch.BatchVO;

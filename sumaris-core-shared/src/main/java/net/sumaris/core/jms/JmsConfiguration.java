@@ -20,10 +20,11 @@
  * #L%
  */
 
-package net.sumaris.core.config;
+package net.sumaris.core.jms;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.util.StringUtils;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQPrefetchPolicy;

@@ -21,33 +21,49 @@ package net.sumaris.core.model.technical.job;
  * #L%
  */
 
+import net.sumaris.core.model.referential.ProcessingStatusEnum;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
 public enum JobStatusEnum implements Serializable {
 
-    PENDING("PENDING"),
-    RUNNING("RUNNING"),
-    SUCCESS("SUCCESS"),
-    ERROR("ERROR"),
-    FAILED("FAILED"),
-    WARNING("WARNING"),
-    CANCELLED("CANCELLED")
+    PENDING("PENDING", ProcessingStatusEnum.WAITING_EXECUTION),
+    SUCCESS("SUCCESS", ProcessingStatusEnum.SUCCESS),
+    ERROR("ERROR", ProcessingStatusEnum.ERROR),
+    WARNING("WARNING", ProcessingStatusEnum.WARNING),
+
+    RUNNING("RUNNING", ProcessingStatusEnum.WAITING_EXECUTION), // TODO: add CANCELLED in ProcessingStatusEnum ?
+    FATAL("FATAL", ProcessingStatusEnum.ERROR), // TODO: add FATAL in ProcessingStatusEnum ?
+    CANCELLED("CANCELLED", ProcessingStatusEnum.ERROR) // TODO: add CANCELLED in ProcessingStatusEnum ?
     ;
 
     private final String id;
 
-    JobStatusEnum(String id) {
+    private final ProcessingStatusEnum processingStatus;
+
+    JobStatusEnum(String id, ProcessingStatusEnum processingStatus) {
         this.id = id;
+        this.processingStatus = processingStatus;
     }
 
     public String getId() {
         return id;
     }
 
-    public static JobStatusEnum byId(final String id) {
-        return Arrays.stream(values()).filter(enumValue -> enumValue.getId().equals(id)).findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown JobStatusEnum: " + id));
+    public ProcessingStatusEnum getProcessingStatus() {
+        return processingStatus;
     }
 
+    public static JobStatusEnum byLabel(final String label) {
+        return Arrays.stream(values()).filter(enumValue -> enumValue.getId().equals(label)).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown JobStatusEnum: " + label));
+    }
+
+    public static JobStatusEnum byProcessingStatus(final ProcessingStatusEnum processingStatus) {
+        return Arrays.stream(values())
+            .filter(enumValue -> enumValue.processingStatus == processingStatus)
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown ProcessingStatusEnum: " + processingStatus.name()));
+    }
 }

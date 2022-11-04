@@ -25,6 +25,7 @@ package net.sumaris.core.service.social;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -33,6 +34,8 @@ import java.util.List;
 public interface UserEventService {
 
     List<UserEventVO> findAll(UserEventFilterVO filter, Page page);
+
+    List<UserEventVO> findAll(UserEventFilterVO filter, Pageable page);
 
     UserEventVO save(UserEventVO event);
 
