@@ -30,7 +30,6 @@ package net.sumaris.importation;
  */
 public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
-
 	public static DatabaseResource readDb() {
 		return new DatabaseResource("", true);
 	}
@@ -51,13 +50,8 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 		this(configName, null, readOnly);
 	}
 
-	protected DatabaseResource(String configName, String datasourcePlatform, boolean readOnly) {
-		super(configName, datasourcePlatform, readOnly);
-	}
-
-	@Override
-	public String getDatasourcePlatform() {
-		return TestConfiguration.DATASOURCE_PLATFORM;
+	protected DatabaseResource(String configFileSuffix, String datasourcePlatform, boolean readOnly) {
+		super(configFileSuffix, datasourcePlatform, readOnly);
 	}
 
 	@Override
@@ -69,6 +63,5 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 	protected String getModuleDirectory() {
 		return TestConfiguration.MODULE_NAME;
 	}
-
 
 }
