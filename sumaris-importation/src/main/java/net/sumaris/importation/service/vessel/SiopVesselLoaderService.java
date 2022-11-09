@@ -35,12 +35,11 @@ public interface SiopVesselLoaderService {
      * Import a CL file (landing statistics) into the database
      *
      * @param inputFile the input data file to import
-     * @param format the file format
      * @param validate Should apply a validation before importation ?
      * @param appendData Should append data, or remove previous before (using the country) ?
      * @return
      * @throws IOException
      */
-    void loadFromFile(File inputFile, String format, boolean validate, boolean appendData) throws IOException,
+    void loadFromFile(int userId, File inputFile, boolean validate, boolean appendData) throws IOException,
             FileValidationException;
 }

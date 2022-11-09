@@ -494,7 +494,7 @@ public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 			Map<String, String> exactHeaderReplacements = Maps.newHashMap();
 			for (String header: headerReplacements.keySet()) {
 				String regexp = "(^|" + separator + ")\"?" + header + "\"?(" + separator + "|$)";
-				String replacement = separator + headerReplacements.get(header) + separator;
+				String replacement = "$1" + headerReplacements.get(header) + "$2";
 				exactHeaderReplacements.put(regexp, replacement);
 			}
 			Files.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);

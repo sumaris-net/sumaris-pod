@@ -23,6 +23,7 @@
 package net.sumaris.core.vo.data;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -37,16 +38,22 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class VesselFeaturesVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
+
     private String name;
     private String exteriorMarking;
     private Integer administrativePower;
+    private Integer auxiliaryPower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
+    private Integer constructionYear;
+    private String ircs;
     private LocationVO basePortLocation;
     private String comments;
     private ProgramVO program;
@@ -61,13 +68,18 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Date qualificationDate;
     private String qualificationComments;
     private Integer qualityFlagId;
+
+    @EqualsAndHashCode.Exclude
     private DepartmentVO recorderDepartment;
+
+    @EqualsAndHashCode.Exclude
     private PersonVO recorderPerson;
 
     private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private VesselVO vessel;
 
 }

@@ -69,6 +69,14 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
         }).addBind(IItemReferentialEntity.Fields.LABEL, label.toUpperCase());
     }
 
+    default Specification<E> hasName(String name) {
+        if (name == null) return null;
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<String> labelParam = cb.parameter(String.class, IItemReferentialEntity.Fields.NAME);
+            return cb.equal(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), labelParam);
+        }).addBind(IItemReferentialEntity.Fields.NAME, name.toUpperCase());
+    }
+
     default Specification<E> inLevelIds(Class<E> entityClass, Integer... levelIds) {
         if (ArrayUtils.isEmpty(levelIds)) return null;
         return ReferentialEntities.getLevelPropertyNameByClass(entityClass).map(p -> inJoinPropertyIds(p, levelIds))

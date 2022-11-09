@@ -280,6 +280,7 @@ public abstract class ReferentialRepositoryImpl<
         return BindableSpecification
             .where(inStatusIds(filter.getStatusIds()))
             .and(hasLabel(filter.getLabel()))
+            .and(hasName(filter.getName()))
             .and(inLevelIds(clazz, filter.getLevelId() != null ? new Integer[]{filter.getLevelId()} : filter.getLevelIds()))
             .and(inLevelLabels(clazz, filter.getLevelLabel() != null ? new String[]{filter.getLevelLabel()} : filter.getLevelLabels()))
             .and(searchOrJoinSearchText(filter))

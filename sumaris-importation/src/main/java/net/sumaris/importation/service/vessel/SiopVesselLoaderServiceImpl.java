@@ -22,123 +22,323 @@ package net.sumaris.importation.service.vessel;
  * #L%
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.data.VesselOwner;
-import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
-import net.sumaris.core.model.technical.extraction.rdb.*;
-import net.sumaris.core.service.referential.taxon.TaxonNameService;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.VesselTypeEnum;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.data.VesselVO;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.importation.exception.FileValidationException;
-import net.sumaris.importation.service.DataLoaderService;
 import net.sumaris.importation.util.csv.CSVFileReader;
+import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Service("siopVesselLoaderService")
 @Slf4j
 public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 
-	/**
-	 * Allow to override the default column headers array, on a given table
-	 * Should return the new headers array
-	 */
-	public interface HeaderAdapter extends BiFunction<DatabaseTableEnum, String[], String[]> {
-
-		@Override
-		String[] apply(DatabaseTableEnum table, String[] headers);
-	}
-
-	protected static final char DEFAULT_SEPARATOR = ',';
-	protected static final char SIOP_DEFAULT_SEPARATOR = ';';
-
+	protected final static String LABEL_NAME_SEPARATOR_REGEXP = "[ \t]+-[ \t]+";
+	protected static final String[] INPUT_DATE_PATTERNS = new String[] {
+		"dd/MM/yyyy"
+	};
 	protected static final Map<String, String> headerReplacements = ImmutableMap.<String, String>builder()
-		// SIOP synonyms (for LPDB)
-		.put("Numéro CFR", VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)
-		.put("Quart. mar.", VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)
-		.put("Immatr.", VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-		.put("Nom", VesselFeatures.Fields.NAME)
-		.put("Jauge", VesselFeatures.Fields.GROSS_TONNAGE_GRT) // TODO ou GT ?
-		.put("Longueur HT", VesselFeatures.Fields.LENGTH_OVER_ALL)
-		.put("Puissance motrice", VesselFeatures.Fields.ADMINISTRATIVE_POWER)
-		.put("Date adh.", VesselFeatures.Fields.START_DATE)
-		.put("Date Départ", VesselFeatures.Fields.END_DATE)
-		.put("Comment. 1", VesselFeatures.Fields.COMMENTS)
+		// Siop vessel synonyms (for LPDB)
+		.put("Numéro CFR", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE))
+		.put("Quart. mar.", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION))
+		.put("Immatr.", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
+		.put("Nom", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME))
+		.put("Jauge", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.GROSS_TONNAGE_GT))
+		.put("Longueur HT", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.LENGTH_OVER_ALL))
+		.put("Puissance motrice", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.ADMINISTRATIVE_POWER))
+		.put("Lieu vente 1", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION, "4"))
+		.put("Lieu vente 2", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION, "3"))
+		.put("Lieu débarquement 1", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION))
+		.put("Lieu débarquement 2", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION, "2"))
+		.put("Date adh.", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.START_DATE))
+		.put("Date Départ", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.END_DATE))
+		.put("Comment. 1", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.COMMENTS))
 
 		.build();
+
+	protected static final Map<String, LocationVO> harbourReplacements = ImmutableMap.<String, String>builder()
+		// Lieu débarquement -> Harbour
+		.put("Ondarroa", "ESOND - Ondarroa")
+		.put("CASTLETOWNBERE", "IECSW - Castletownbere")
+		.put("KILLYBEGS", "IEKBS - Killybegs")
+		.put("La Coruña", "ESLCG - La Coruña")
+		.put("Lochinver", "GBLOV - Lochinver")
+		.put("Pasajes", "ESPAS - Pasajes")
+		.put("Saint-Guénolé (JBE_V3)", "FRGN2 - Saint-Guénolé (Penmarch)")
+		.put("Yeu port / Joinville (L'Ile-d'Yeu)", "FRPRJ - Port-Joinville (L''Ile-d''Yeu)")
+		.put("Quiberon", "FRQUI - Quiberon (Port-Maria)")
+		.put("Plougasnou", "FRPLO - Plougasnou (Le Diben-Primel)")
+		.put("Roscoff", "FRGMX - Roscoff")
+
+		// CRIEE -> Harbour
+		.put("CRIEE CONCARNEAU", "FRCOC - Concarneau")
+		.put("CRIEE QUIBERON", "FRQUI - Quiberon (Port-Maria)")
+		.put("CRIEE ST GUENOLE", "FRGN2 - Saint-Guénolé (Penmarch)")
+		.put("CRIEE LE CROISIC", "FROII - Le Croisic")
+		.put("CRIEE SAINT QUAY", "FRHSB - Saint-Quay-Portrieux")
+		.put("CRIEE LOGUIVY", "FRGPA - Loguivy de la mer (Ploubazlanec)")
+		.put("CRIEE LORIENT", "FRLRT - Lorient")
+		.put("CRIEE ERQUY", "FRLFY - Erquy")
+		.put("CRIEE AUDIERNE", "FRAUD - Audierne")
+		.put("CRIEE ROSCOFF", "FRGMX - Roscoff")
+		.put("CRIEE BREST", "FRBES - Brest")
+		.put("CRIEE LE GUILVINEC", "FRGVC - Guilvinec")
+		.put("CRIEE DOUARNENEZ", "FRDRZ - Douarnenez")
+		.put("CRIEE LES SABLES D'OLONNE", "FRLSO - Les Sables-d'Olonne")
+		.put("CRIEE LOCTUDY", "FRLOC - Loctudy")
+		.put("CRIEE LA TURBALLE", "FRTBE - La Turballe")
+		.put("CRIEE SAINT JEAN DE LUZ", "FRZJZ - Saint-Jean-de-Luz, Ciboure")
+		.put("CRIEE GRANVILLE", "FRGFR - Granville")
+		.build()
+		.entrySet()
+		.stream()
+		.collect(Collectors.toMap(
+			Map.Entry::getKey,
+			entry -> {
+				String[] parts = entry.getValue().split(LABEL_NAME_SEPARATOR_REGEXP);
+				LocationVO location = new LocationVO();
+				location.setLabel(parts[0]);
+				location.setName(parts[1]);
+				location.setLevelId(LocationLevelEnum.HARBOUR.getId());
+				return location;
+			})
+		);
+	protected Map<Integer, LocationVO> locationByFilterCache = Maps.newConcurrentMap();
+
+
+	protected final static LocationVO UNRESOLVED_LOCATION = new LocationVO();
+
+	protected static final Date DEFAULT_START_DATE = Dates.safeParseDate("01/01/1990", INPUT_DATE_PATTERNS);
+	protected static final String DEFAULT_REGISTRATION_COUNTRY_LABEL = "FRA";
 
 	@Autowired
 	protected SumarisConfiguration config;
 
 	@Autowired
-	protected SumarisDatabaseMetadata databaseMetadata;
+	protected ReferentialService referentialService;
+	@Autowired
+	protected LocationService locationService;
 
 	@Autowired
-	protected DataLoaderService dataLoaderService;
+	protected VesselService vesselService;
 
 	@Autowired
-	protected TaxonNameService taxonNameService;
+	protected PersonService personService;
 
 	@Override
-	public void loadFromFile(File inputFile, String format, boolean validate, boolean appendData) throws IOException, FileValidationException {
+	public void loadFromFile(int userId,
+							 File inputFile,
+							 boolean validate,
+							 boolean appendData) throws IOException, FileValidationException {
 		Files.checkExists(inputFile);
+		PersonVO recorderPerson = personService.getById(userId);
 
 		// If not append : then remove old data
 		if (!appendData) {
-			// TODO
+			throw new SumarisTechnicalException("Full import (with historical data) not allowed");
 		}
+
+
+		String uniqueKeyPropertyName = StringUtils.doting(
+			VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriodVO.Fields.INT_REGISTRATION_CODE
+		);
+
+		// Make sure to create all locations
+		locationByFilterCache.clear();
+		for (LocationVO location : harbourReplacements.values()) {
+			this.fillOrCreateLocation(location, LocationLevelEnum.HARBOUR.getId());
+		}
+
+		Date startDate = Dates.resetTime(new Date());
 
 		File tempFile = null;
 		try {
-			tempFile = prepareFile(inputFile, format);
+			tempFile = prepareFile(inputFile);
+
+			Set<String> includedHeaders = new HashSet<>(headerReplacements.values());
+			String uniqueKeyHeaderName = headerReplacements.entrySet().stream()
+				.filter(entry -> uniqueKeyPropertyName.equals(entry.getValue()))
+				.map(Map.Entry::getKey)
+				.findFirst().orElseThrow(() -> new IllegalArgumentException("Cannot resolve CSV header corresponding to the model property " + uniqueKeyPropertyName));
 
 			// Do load
-			//dataLoaderService.load(tempFile, table, validate);
+			try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
+
+
+				Map<String, Integer> existingKeys = collectExistingVessels(uniqueKeyPropertyName);
+				Set<String> processedKeys = Sets.newHashSet();
+
+				MutableShort inserts = new MutableShort(0);
+				MutableShort updates = new MutableShort(0);
+				MutableShort disables = new MutableShort(0);
+				MutableShort errors = new MutableShort(0);
+				MutableShort rowCounter = new MutableShort(1);
+
+				List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
+					.map(this::toVO)
+					.collect(Collectors.toList());
+
+				for (VesselVO vessel: vessels) {
+
+					// Get the unique key
+					String uniqueKey = Beans.getProperty(vessel, uniqueKeyPropertyName);
+					if (uniqueKey == null) {
+						log.warn("Invalid row #{}: no value for the required header '{}'. Skipping", rowCounter, uniqueKeyHeaderName);
+					}
+
+					// Check if not already processed (duplicated key)
+					else if (processedKeys.contains(uniqueKey)) {
+						log.warn("Invalid row #{}: duplicated value '{}={}' (same value has been already processed). Skipping", rowCounter, uniqueKeyHeaderName, uniqueKey);
+					}
+					else {
+						// Fill default properties
+						fillVessel(vessel, recorderPerson);
+
+						try {
+							boolean isNew = !existingKeys.containsKey(uniqueKey);
+
+							if (isNew) {
+								log.debug("Inserting new vessel {} ...", uniqueKey);
+								insert(vessel);
+								inserts.increment();
+
+							} else {
+								log.debug("Updating existing vessel: {}", uniqueKey);
+								Integer vesselId = existingKeys.get(uniqueKey);
+								vessel.setId(vesselId);
+								boolean updated = update(vessel, startDate);
+								if (updated) updates.increment();
+							}
+
+							processedKeys.add(uniqueKey);
+						}
+						catch (SumarisBusinessException e) {
+							errors.increment();
+							log.error("Failed to import vessel #{} at line #{}: {}", uniqueKey, rowCounter, e.getMessage(), e);
+							// Continue
+						}
+						catch (Exception e) {
+							errors.increment();
+							if (log.isDebugEnabled()) {
+								log.error("Failed to import vessel #{} at line #{}: {}", uniqueKey, rowCounter, e.getMessage(), e);
+							}
+							else {
+								log.error("Failed to import vessel #{} at line #{}: {}", uniqueKey, rowCounter, e.getMessage());
+							}
+							// Continue
+						}
+						finally {
+							rowCounter.increment();
+						}
+					}
+				}
+
+				// Disable not present vessels
+				Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
+					.filter(e -> !processedKeys.contains(e.getKey()))
+					.map(Map.Entry::getValue)
+					.collect(Collectors.toSet());
+				if (CollectionUtils.isNotEmpty(vesselIdsToDisable)) {
+
+					vesselIdsToDisable.forEach(vesselId -> {
+						try {
+							disable(vesselId, startDate);
+							disables.increment();
+						} catch (Exception e) {
+							if (log.isDebugEnabled()) {
+								log.error("Failed to disable vessel #{}: {}", vesselId, e.getMessage(), e);
+							}
+							else {
+								log.error("Failed to disable vessel #{}: {}", vesselId, e.getMessage());
+							}
+						}
+					});
+
+				}
+
+				if (errors.intValue() == 0) {
+					log.info("Successfully import vessels. {} inserts, {} updates, {} disables", inserts, updates, disables);
+				}
+				else {
+					log.warn("Successfully import vessels with ERROR. {} inserts, {} updates, {} disables, {} errors",
+						inserts, updates, disables, errors);
+				}
+
+				Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
+				if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
+					log.warn("Some temporary harbours exists in database. Please check : name(s):\n\t- {}",
+						String.join("\n\t- ", temporaryHarbourNames));
+				}
+
+			}
 		}
 		catch(Exception e) {
 			log.error(e.getMessage(), e);
 			throw e;
 		}
 		finally {
-
 			Files.deleteQuietly(tempFile);
 			Files.deleteFiles(inputFile.getParentFile(), "^.*.tmp[0-9]+$");
+
+			locationByFilterCache.clear();
 		}
+
 	}
 
 
 	/* -- protected methods -- */
 
-	protected File prepareFile(File inputFile, String format) {
-		if ("SIOP".equals(format)) {
-			return prepareFile(inputFile, format, SIOP_DEFAULT_SEPARATOR);
-		}
-		return prepareFile(inputFile, format, DEFAULT_SEPARATOR);
+	protected File prepareFile(File inputFile) throws IOException {
+		char separator = detectSeparator(inputFile);
+
+		return prepareFile(inputFile, separator);
 	}
 
-	protected File prepareFile(File inputFile, String format, char separator) {
+	protected File prepareFile(File inputFile, char separator) {
 
 		try {
 			File tempFile = Files.getNewTemporaryFile(inputFile);
@@ -162,29 +362,496 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 	}
 
 	/**
-	 * Generate a new headers adapter, depending on the file origin. E.g. in GBR data, remove the fishing_activity column that is not present
-	 * @param inputFile
-	 * @param format
+	 * Read file's rows, as map
+	 * @param reader
+	 * @param includedHeaders
 	 * @return
 	 */
-	public HeaderAdapter getHeadersAdapter(final File inputFile, final String format) {
+	public List<Map<String, String>> readRows(final CSVFileReader reader,
+											  Set<String> includedHeaders) throws IOException {
+		List<Map<String, String>> rows = Lists.newArrayList();
+		// Read column headers :
+		String[] headers = reader.getHeaders();
 
-		// Special case for GBR
-		if ("SIOP".equals(format)) {
-			return (table, headers) -> {
-				if (table == ProductRdbStation.TABLE) {
-					List<String> result = Lists.newArrayList(headers);
+		// Read rows
+		String[] cols;
+		while ((cols = reader.readNext()) != null) {
+			int colIndex = 0;
 
-					// Remove missing columns in the GRB file
-					result.remove(ProductRdbStation.COLUMN_FISHING_VALIDITY);
-
-					return result.toArray(new String[result.size()]);
+			Map<String, String> row = new HashMap<>();
+			for (String cellValue : cols) {
+				String headerName =  headers[colIndex++];
+				if (includedHeaders.contains(headerName)) {
+					row.put(headerName, cellValue);
 				}
-				return headers;
-			};
+			}
+
+			if (!row.isEmpty()) {
+				rows.add(row);
+			}
+		}
+		return rows;
+	}
+
+	protected char detectSeparator(File inputFile) throws IOException {
+		try (CSVFileReader reader = new CSVFileReader(inputFile, true, true, Charsets.UTF_8.name())) {
+			return reader.getSeparator();
+		}
+	}
+
+	protected <T>  Map<T, Integer> collectExistingVessels(final String uniquePropertyName) {
+		Page page = Page.builder()
+			.offset(0)
+			.size(100)
+			.sortBy(VesselVO.Fields.ID)
+			.build();
+		boolean fetchMore;
+		Map<T, Integer> result = Maps.newHashMap();
+		do {
+			List<VesselVO> vessels = vesselService.findAll(VesselFilterVO.builder()
+				.programLabel(ProgramEnum.SIH.getLabel())
+				.build(), page, VesselFetchOptions.builder()
+					.withVesselRegistrationPeriod(uniquePropertyName.startsWith(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD))
+					.withVesselFeatures(uniquePropertyName.startsWith(VesselVO.Fields.VESSEL_FEATURES))
+				.build());
+			vessels.stream()
+				.forEach(v -> {
+					try {
+						T uniqueKeyValue = Beans.<VesselVO, T>getProperty(v, uniquePropertyName);
+						if (uniqueKeyValue != null) {
+							result.put(uniqueKeyValue, v.getId());
+						}
+					}
+					catch (NestedNullException ne) {
+						// SKip
+					}
+				});
+			fetchMore = vessels.size() >= page.getSize();
+			page.setOffset(page.getOffset() + page.getSize());
+		} while (fetchMore);
+
+		return result;
+	}
+
+	protected VesselVO insert(VesselVO source) {
+		Preconditions.checkNotNull(source.getVesselFeatures());
+		Preconditions.checkNotNull(source.getVesselRegistrationPeriod());
+
+		Preconditions.checkArgument(source.getId() == null);
+		Preconditions.checkArgument(source.getVesselFeatures().getId() == null);
+		Preconditions.checkArgument(source.getVesselRegistrationPeriod().getId() == null);
+
+		return vesselService.save(source);
+	}
+
+	protected boolean update(VesselVO source, Date startDate) {
+		Preconditions.checkNotNull(source.getId());
+		Preconditions.checkNotNull(source.getVesselFeatures());
+		Preconditions.checkNotNull(source.getVesselRegistrationPeriod());
+
+		// Retrieve existing vessel
+		VesselVO previousVessel = vesselService.get(source.getId());
+		Preconditions.checkNotNull(previousVessel);
+		Preconditions.checkArgument(source != previousVessel);
+
+		// Check if changed
+		boolean changes = false;
+		if (source.getVesselFeatures() != null) {
+			changes = previousVessel.getVesselFeatures() == null
+				|| previousVessel.getVesselFeatures().hashCode() != source.getVesselFeatures().hashCode();
+		}
+		if (source.getVesselRegistrationPeriod() != null) {
+			changes = previousVessel.getVesselRegistrationPeriod() == null
+				|| previousVessel.getVesselRegistrationPeriod().hashCode() != source.getVesselRegistrationPeriod().hashCode();
 		}
 
-		return null;
+		if (!changes) return false; // No changes
+
+		// Update current data periods
+		if (source.getVesselFeatures() != null) {
+			source.getVesselFeatures().setId(null);
+			source.getVesselFeatures().setStartDate(startDate);
+		}
+		if (source.getVesselRegistrationPeriod() != null) {
+			source.getVesselRegistrationPeriod().setId(null);
+			source.getVesselRegistrationPeriod().setStartDate(startDate);
+		}
+
+		// Close previous data periods
+		Date previousEndDate = Dates.addSeconds(startDate, -1);
+		if (previousVessel.getVesselFeatures() != null && previousVessel.getVesselFeatures().getEndDate() == null) {
+			previousVessel.getVesselFeatures().setEndDate(previousEndDate);
+		}
+		if (previousVessel.getVesselRegistrationPeriod() != null && previousVessel.getVesselRegistrationPeriod().getEndDate() == null) {
+			previousVessel.getVesselRegistrationPeriod().setEndDate(previousEndDate);
+		}
+
+		vesselService.save(Lists.newArrayList(previousVessel, source));
+
+		return true;
+	}
+
+	protected void disable(int vesselId, Date startDate) {
+
+		// Retrieve existing vessel
+		VesselVO vessel = vesselService.get(vesselId);
+		Preconditions.checkNotNull(vessel);
+
+		// Close previous data periods
+		Date previousEndDate = Dates.addSeconds(startDate, -1);
+		if (vessel.getVesselFeatures() != null) {
+			vessel.getVesselFeatures().setEndDate(previousEndDate);
+		}
+		if (vessel.getVesselRegistrationPeriod() != null) {
+			vessel.getVesselRegistrationPeriod().setEndDate(previousEndDate);
+		}
+
+		vesselService.save(vessel);
+	}
+
+	protected boolean hasPropertySet(Object obj, String propertyName) {
+		try {
+			return Beans.getProperty(obj, propertyName) != null;
+		}
+		catch (SumarisTechnicalException e) {
+			return false;
+		}
+	}
+
+	protected void setPropertyToNull(Object obj, String propertyName) {
+		try {
+			Beans.setProperty(obj, propertyName, null);
+		}
+		catch (SumarisTechnicalException e) {
+			// Continue
+		}
+	}
+
+	protected void setProperty(@NonNull VesselVO target, @NonNull String propertyName, String value) throws ParseException {
+		if (propertyName.endsWith(".1")
+			|| propertyName.endsWith(".2")
+			|| propertyName.endsWith(".3")
+			|| propertyName.endsWith(".4")) {
+			propertyName = propertyName.substring(0, propertyName.length() - 2);
+			if (hasPropertySet(target, propertyName) || StringUtils.isBlank(value)) return; // Already set: ignore
+		}
+
+		if (StringUtils.isBlank(value)) {
+			return; // Nothing to do
+		}
+
+		switch (propertyName) {
+			case "vesselFeatures.startDate":
+			case "vesselFeatures.endDate":
+				Date date = Dates.parseDate(value, INPUT_DATE_PATTERNS);
+				Beans.setProperty(target, propertyName, date);
+				break;
+			case "vesselFeatures.grossTonnageGrt":
+			case "vesselFeatures.grossTonnageGt":
+			case "vesselFeatures.lengthOverAll":
+				Double dblValue = Double.parseDouble(value.replaceAll(",", "."));
+				Beans.setProperty(target, propertyName, dblValue);
+				break;
+			case "vesselFeatures.administrativePower":
+				Integer intValue = Integer.parseInt(value);
+				Beans.setProperty(target, propertyName, intValue);
+				break;
+
+			case "vesselFeatures.basePortLocation":
+			case "vesselRegistrationPeriod.registrationLocation":
+				if (harbourReplacements.containsKey(value)) {
+					LocationVO location = harbourReplacements.get(value);
+					Beans.setProperty(target, propertyName, location);
+				}
+				else {
+					String[] parts = value.split(LABEL_NAME_SEPARATOR_REGEXP);
+					Object existingObject = Beans.getProperty(target, propertyName);
+					LocationVO location = existingObject != null ? (LocationVO) existingObject : new LocationVO();
+					if (parts.length == 1) {
+						location.setName(parts[0]);
+					} else if (parts.length == 2) {
+						location.setLabel(parts[0]);
+						location.setName(parts[1]);
+					} else {
+						throw new SumarisTechnicalException(String.format("Unknown format for a location: '%s'", value));
+					}
+					Beans.setProperty(target, propertyName, location);
+				}
+				break;
+			default:
+				Beans.setProperty(target, propertyName, value);
+		}
+	}
+
+	protected VesselVO toVO(Map<String, String> source) {
+		VesselVO target = new VesselVO();
+		VesselFeaturesVO features = new VesselFeaturesVO();
+		target.setVesselFeatures(features);
+
+		VesselRegistrationPeriodVO registrationPeriod = new VesselRegistrationPeriodVO();
+		target.setVesselRegistrationPeriod(registrationPeriod);
+
+		// Vessel type
+		ReferentialVO vesselType = new ReferentialVO();
+		vesselType.setId(VesselTypeEnum.FISHING_VESSEL.getId());
+		target.setVesselType(vesselType);
+
+		// Fill properties, using the map key (= replaced headers) as propertyName
+		source.forEach((propertyName, value) -> {
+			try {
+				setProperty(target, propertyName, value);
+			} catch (ParseException e) {
+				throw new IllegalArgumentException(String.format("Cannot set property '%s' with value '%s'", propertyName, value), e);
+			}
+		});
+
+		return target;
+	}
+
+	protected void fillVessel(@NonNull VesselVO target, @NonNull PersonVO recorderPerson) {
+
+		VesselRegistrationPeriodVO vrp = target.getVesselRegistrationPeriod();
+		VesselFeaturesVO features = target.getVesselFeatures();
+
+		// Fill status
+		if (target.getStatusId() == null) {
+			target.setStatusId(StatusEnum.ENABLE.getId());
+		}
+
+		// Fill recorder department
+		if (target.getRecorderDepartment() == null) {
+			target.setRecorderDepartment(recorderPerson.getDepartment());
+		}
+
+		// Fill recorder department
+		if (target.getRecorderPerson() == null) {
+			target.setRecorderPerson(recorderPerson);
+		}
+
+		// Fill Vessel features
+		{
+			// Fill base port location
+			if (features.getBasePortLocation() != null) {
+				fillOrCreateLocation(features.getBasePortLocation(), LocationLevelEnum.HARBOUR.getId());
+			}
+
+			// Fill start Date (if not set)
+			if (features.getStartDate() == null) {
+				features.setStartDate(DEFAULT_START_DATE);
+			}
+
+			// Exterior marking
+			if (features.getExteriorMarking() == null) {
+				if (StringUtils.isNotBlank(vrp.getRegistrationCode())
+					&& !DEFAULT_REGISTRATION_COUNTRY_LABEL.equals(vrp.getRegistrationLocation().getLabel())) {
+					String exteriorMarking = vrp.getRegistrationLocation().getLabel()
+						+ vrp.getRegistrationCode();
+					features.setExteriorMarking(exteriorMarking);
+				} else {
+					features.setExteriorMarking(vrp.getIntRegistrationCode());
+				}
+			}
+
+			// Fill recorder department
+			if (features.getRecorderDepartment() == null) {
+				features.setRecorderDepartment(recorderPerson.getDepartment());
+			}
+
+			// Fill recorder department
+			if (features.getRecorderPerson() == null) {
+				features.setRecorderPerson(recorderPerson);
+			}
+		}
+
+		// Fill registration period
+		{
+			// Fill registration start date
+			if (vrp.getStartDate() == null) {
+				vrp.setStartDate(features.getStartDate());
+			}
+
+			// Fill registration location
+			if (vrp.getRegistrationLocation() != null) {
+				boolean found;
+				try {
+					fillLocation(vrp.getRegistrationLocation(), LocationLevelEnum.MARITIME_DISTRICT.getId());
+					found = vrp.getRegistrationLocation().getId() != null;
+				} catch (DataNotFoundException e) {
+					found = false;
+				}
+				// Use country, if cannot be found
+				if (!found) {
+					LocationVO registrationCountry = new LocationVO();
+					registrationCountry.setLabel(DEFAULT_REGISTRATION_COUNTRY_LABEL);
+					vrp.setRegistrationLocation(registrationCountry);
+					fillOrCreateLocation(vrp.getRegistrationLocation(), LocationLevelEnum.COUNTRY.getId());
+				}
+			}
+		}
+	}
+
+	protected void fillOrCreateLocation(@NonNull LocationVO target,
+										int levelId) throws DataNotFoundException{
+		boolean found;
+		try {
+			fillLocation(target, levelId);
+			found = target.getId() != null;
+		} catch (DataNotFoundException e) {
+			found = false;
+		}
+
+		if (!found) {
+			createLocation(target, levelId);
+		}
+	}
+
+	protected void fillLocation(@NonNull LocationVO target,
+								Integer... levelIds) throws DataNotFoundException{
+		if (target.getId() != null) return; // OK
+
+		List<LocationFilterVO> filters = Lists.newArrayList();
+		// Exact match
+		if (StringUtils.isNotBlank(target.getLabel()) && StringUtils.isNotBlank(target.getName())) {
+			filters.add(LocationFilterVO.builder()
+				.name(target.getName())
+				.levelIds(levelIds)
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+				.build());
+		}
+		// Match name
+		if (StringUtils.isNotBlank(target.getName())) {
+			filters.add(LocationFilterVO.builder()
+				.name(target.getName())
+				.levelIds(levelIds)
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+				.build());
+			filters.add(LocationFilterVO.builder()
+				.searchText(target.getName())
+				.levelIds(levelIds)
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+				.build());
+		}
+		// Match label (enable only)
+		if (StringUtils.isNotBlank(target.getLabel())) {
+			filters.add(LocationFilterVO.builder()
+				.label(target.getLabel())
+				.levelIds(levelIds)
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+				.build());
+			filters.add(LocationFilterVO.builder()
+				.searchText(target.getLabel())
+				.levelIds(levelIds)
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+				.build());
+		}
+
+		// Search, using filters in the given order
+		LocationVO resolvedLocation = null;
+		for (LocationFilterVO filter: filters) {
+			resolvedLocation = findLocations(filter);
+			// OK found: stop search
+			if (resolvedLocation != null) break;
+		}
+
+		// Not found
+		if (resolvedLocation == null) {
+			throw new DataNotFoundException(String.format("Cannot resolve location {label: %s; name: %s} on levelIds: %s", target.getLabel(), target.getName(),
+				Beans.getStream(levelIds).map(Object::toString).collect(Collectors.joining(",")))
+			);
+		}
+
+		target.setId(resolvedLocation.getId());
+		target.setLevelId(resolvedLocation.getLevelId());
+	}
+
+	protected LocationVO findLocations(LocationFilterVO filter) {
+		LocationVO result;
+		int cacheKey = filter.hashCode();
+		if (locationByFilterCache.containsKey(cacheKey)) {
+			result = locationByFilterCache.get(cacheKey);
+		}
+		else {
+			List<LocationVO> matches = locationService.findByFilter(filter,
+				Page.builder().offset(0).size(2).build(),
+				ReferentialFetchOptions.builder().build());
+			int matchCount = matches.size();
+
+			if (matchCount > 1) {
+				matches = matches.stream()
+					.filter(item -> StatusEnum.ENABLE.getId().equals(item.getStatusId()))
+					.collect(Collectors.toList());
+				if (StringUtils.isNotBlank(filter.getLabel()) && StringUtils.isNotBlank(filter.getName())) {
+					log.warn("More than one match for location {label: {}, name: {}} on level {}", filter.getLabel(), filter.getName(),
+						Arrays.stream(filter.getLevelIds()).map(Object::toString).collect(Collectors.joining(",")));
+				}
+			}
+			if (CollectionUtils.isEmpty(matches)) {
+				result = UNRESOLVED_LOCATION;
+			}
+			else {
+				result = matches.get(0);
+			}
+
+			// Add to cache
+			locationByFilterCache.put(filter.hashCode(), result);
+		}
+
+		return (result != UNRESOLVED_LOCATION) ? result : null;
+	}
+
+	protected LocationVO createLocation(@NonNull LocationVO source,
+										int levelId) {
+		return createLocation(source, levelId, StatusEnum.ENABLE.getId());
+	}
+
+	protected LocationVO createLocation(@NonNull LocationVO source,
+										int levelId,
+										int statusId) {
+
+		source.setLevelId(levelId);
+		source.setStatusId(statusId);
+		Preconditions.checkArgument(StringUtils.isNotBlank(source.getLabel())
+			|| StringUtils.isNotBlank(source.getName()), "Missing label or name");
+
+		// Fill required label
+		if (StringUtils.isBlank(source.getLabel())) {
+			source.setLabel("?");
+			// Mark as temporary
+			source.setStatusId(StatusEnum.TEMPORARY.getId());
+		}
+
+		// Fill required name
+		if (StringUtils.isBlank(source.getName())) {
+			source.setName("?");
+			// Mark as temporary
+			source.setStatusId(StatusEnum.TEMPORARY.getId());
+		}
+
+		log.info("Creating Location {label: '{}', name: '{}', levelId: {}, statusId: {}}",
+			source.getLabel(), source.getName(), source.getLevelId(), source.getStatusId());
+		ReferentialVO target = referentialService.save(source);
+		source.setId(target.getId());
+
+		// Invalidate cache
+		locationByFilterCache.clear();
+
+		return source;
+	}
+
+	protected List<LocationVO> findAllTemporaryLocation(int levelId) {
+		LocationFilterVO filter = LocationFilterVO.builder()
+			.label("?")
+			.statusIds(new Integer[]{StatusEnum.TEMPORARY.getId()})
+			.build();
+		return locationService.findByFilter(filter,
+			Page.builder().offset(0).size(1000).build(),
+			ReferentialFetchOptions.builder().build());
+	}
+
+	protected Set<String> findAllTemporaryLocationNames(int levelId) {
+		return findAllTemporaryLocation(levelId)
+			.stream().map(LocationVO::getName)
+			.collect(Collectors.toSet());
 	}
 }
 

@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.model.IEntity;
@@ -33,8 +34,10 @@ import java.util.Date;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class VesselRegistrationPeriodVO implements IEntity<Integer>, IValueObject<Integer> {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private String registrationCode;
     private String intRegistrationCode;
@@ -46,6 +49,7 @@ public class VesselRegistrationPeriodVO implements IEntity<Integer>, IValueObjec
     private Integer qualityFlagId;
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private VesselVO vessel;
 
 
