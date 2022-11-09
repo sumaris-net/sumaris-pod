@@ -49,6 +49,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
@@ -63,6 +64,7 @@ import net.sumaris.importation.exception.FileValidationException;
 import net.sumaris.importation.util.csv.CSVFileReader;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -96,6 +98,8 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 		.put("Lieu débarquement 2", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION, "2"))
 		.put("Date adh.", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.START_DATE))
 		.put("Date Départ", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.END_DATE))
+		.put("Indicatif radio", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.IRCS))
+		.put("Année mise en service", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.CONSTRUCTION_YEAR))
 		.put("Comment. 1", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.COMMENTS))
 
 		.build();
@@ -410,6 +414,7 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 		do {
 			List<VesselVO> vessels = vesselService.findAll(VesselFilterVO.builder()
 				.programLabel(ProgramEnum.SIH.getLabel())
+				.statusIds(Lists.newArrayList(StatusEnum.ENABLE.getId()))
 				.build(), page, VesselFetchOptions.builder()
 					.withVesselRegistrationPeriod(uniquePropertyName.startsWith(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD))
 					.withVesselFeatures(uniquePropertyName.startsWith(VesselVO.Fields.VESSEL_FEATURES))
@@ -457,33 +462,46 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 		// Check if changed
 		boolean changes = false;
 		if (source.getVesselFeatures() != null) {
-			changes = previousVessel.getVesselFeatures() == null
-				|| previousVessel.getVesselFeatures().hashCode() != source.getVesselFeatures().hashCode();
+			changes = changes
+				|| previousVessel.getVesselFeatures() == null
+				|| !equals(previousVessel.getVesselFeatures(), source.getVesselFeatures(), VesselFeaturesVO.Fields.BASE_PORT_LOCATION)
+				|| !previousVessel.getVesselFeatures().getId().equals(source.getVesselFeatures().getBasePortLocation().getId());
 		}
 		if (source.getVesselRegistrationPeriod() != null) {
-			changes = previousVessel.getVesselRegistrationPeriod() == null
-				|| previousVessel.getVesselRegistrationPeriod().hashCode() != source.getVesselRegistrationPeriod().hashCode();
+			changes = changes
+				|| previousVessel.getVesselRegistrationPeriod() == null
+				|| !equals(previousVessel.getVesselRegistrationPeriod(), source.getVesselRegistrationPeriod(), VesselRegistrationPeriodVO.Fields.REGISTRATION_LOCATION)
+				|| !previousVessel.getVesselRegistrationPeriod().getId().equals(source.getVesselRegistrationPeriod().getRegistrationLocation().getId());
 		}
 
 		if (!changes) return false; // No changes
 
+		Date previousEndDate = Dates.addSeconds(startDate, -1);
+
 		// Update current data periods
 		if (source.getVesselFeatures() != null) {
-			source.getVesselFeatures().setId(null);
+			// Reuse previous ids
+			if (previousVessel.getVesselFeatures() != null && previousVessel.getVesselFeatures().getStartDate().equals(startDate)) {
+				source.getVesselFeatures().setId(previousVessel.getVesselFeatures().getId());
+			}
+			else {
+				source.getVesselFeatures().setId(null);
+				// Close period of previous data
+				previousVessel.getVesselFeatures().setEndDate(previousEndDate);
+			}
 			source.getVesselFeatures().setStartDate(startDate);
 		}
 		if (source.getVesselRegistrationPeriod() != null) {
-			source.getVesselRegistrationPeriod().setId(null);
+			// Reuse previous ids
+			if (previousVessel.getVesselRegistrationPeriod() != null && previousVessel.getVesselRegistrationPeriod().getStartDate().equals(startDate)) {
+				source.getVesselRegistrationPeriod().setId(previousVessel.getVesselRegistrationPeriod().getId());
+			}
+			else {
+				source.getVesselRegistrationPeriod().setId(null);
+				// Close period of previous data
+				previousVessel.getVesselRegistrationPeriod().setEndDate(previousEndDate);
+			}
 			source.getVesselRegistrationPeriod().setStartDate(startDate);
-		}
-
-		// Close previous data periods
-		Date previousEndDate = Dates.addSeconds(startDate, -1);
-		if (previousVessel.getVesselFeatures() != null && previousVessel.getVesselFeatures().getEndDate() == null) {
-			previousVessel.getVesselFeatures().setEndDate(previousEndDate);
-		}
-		if (previousVessel.getVesselRegistrationPeriod() != null && previousVessel.getVesselRegistrationPeriod().getEndDate() == null) {
-			previousVessel.getVesselRegistrationPeriod().setEndDate(previousEndDate);
 		}
 
 		vesselService.save(Lists.newArrayList(previousVessel, source));
@@ -553,6 +571,7 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 				Beans.setProperty(target, propertyName, dblValue);
 				break;
 			case "vesselFeatures.administrativePower":
+			case "vesselFeatures.constructionYear":
 				Integer intValue = Integer.parseInt(value);
 				Beans.setProperty(target, propertyName, intValue);
 				break;
@@ -595,6 +614,12 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 		ReferentialVO vesselType = new ReferentialVO();
 		vesselType.setId(VesselTypeEnum.FISHING_VESSEL.getId());
 		target.setVesselType(vesselType);
+
+		// Program
+		ProgramVO program = new ProgramVO();
+		program.setId(ProgramEnum.SIH.getId());
+		program.setLabel(ProgramEnum.SIH.getLabel());
+		target.setProgram(program);
 
 		// Fill properties, using the map key (= replaced headers) as propertyName
 		source.forEach((propertyName, value) -> {
@@ -853,6 +878,16 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 			.stream().map(LocationVO::getName)
 			.collect(Collectors.toSet());
 	}
+
+	protected <T> boolean equals(T o1, T o2, String... excludePropertyNames) {
+		if (ArrayUtils.isNotEmpty(excludePropertyNames)) {
+			o1 = Beans.clone(o1, (Class<T>)o1.getClass(), excludePropertyNames);
+			o2 = Beans.clone(o2, (Class<T>)o2.getClass(), excludePropertyNames);
+		}
+		return o1 == o2 || o1.equals(o2);
+	}
+
+
 }
 
 

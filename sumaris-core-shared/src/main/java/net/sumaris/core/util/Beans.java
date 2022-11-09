@@ -460,6 +460,12 @@ public class Beans {
         return target;
     }
 
+    public static <T> T clone(T source, Class<T> sourceClass, String... excludedPropertyNames) {
+        T target = newInstance(sourceClass);
+        copyProperties(source, target, excludedPropertyNames);
+        return target;
+    }
+
     public static Map<Class<?>, Map<Class<?>, String[]>> cacheCopyPropertiesIgnored = Maps.newConcurrentMap();
 
     /**

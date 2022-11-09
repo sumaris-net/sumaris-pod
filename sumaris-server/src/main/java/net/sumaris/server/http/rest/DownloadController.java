@@ -25,11 +25,14 @@ package net.sumaris.server.http.rest;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.exception.InvalidPathException;
 import net.sumaris.server.http.MediaTypes;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.security.IAuthService;
 import net.sumaris.server.security.IDownloadController;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,16 +54,32 @@ import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Controller
 @Slf4j
 public class DownloadController implements IDownloadController {
 
-    @Autowired
-    private ServletContext servletContext;
+    private final Path downloadDirectory;
+    private final ServletContext servletContext;
 
-    @Autowired
-    private SumarisServerConfiguration configuration;
+    private final SumarisServerConfiguration configuration;
+
+
+    public DownloadController(ServletContext servletContext,
+                            SumarisServerConfiguration configuration) {
+        this.configuration = configuration;
+        this.servletContext = servletContext;
+        this.downloadDirectory = Paths.get(configuration.getDownloadDirectory().getAbsolutePath())
+            .toAbsolutePath().normalize();
+
+        try {
+            Files.createDirectories(this.downloadDirectory);
+        } catch (Exception ex) {
+            throw new SumarisTechnicalException("Could not create the directory where the downloaded files will be stored.", ex);
+        }
+    }
 
     @RequestMapping({RestPaths.DOWNLOAD_PATH + "/{username}/{filename}", RestPaths.DOWNLOAD_PATH + "/{filename}"})
     public ResponseEntity<InputStreamResource> downloadFileAsPath(
@@ -98,34 +117,34 @@ public class DownloadController implements IDownloadController {
             throw new AuthenticationCredentialsNotFoundException("Bad authentication token");
         }
 
-        File userDirectory = new File(configuration.getDownloadDirectory(), userPath);
-        FileUtils.forceMkdir(userDirectory);
-        File targetFile = new File(userDirectory, sourceFile.getName());
+        Path userDirectory = this.downloadDirectory.resolve(userPath);
+        Files.createDirectories(userDirectory);
+        Path targetFile = userDirectory.resolve(sourceFile.getName());
 
-        if (targetFile.exists()) {
+        if (Files.exists(targetFile)) {
             int counter = 1;
             String baseName = Files.getNameWithoutExtension(sourceFile);
-            String extension = Files.getExtension(sourceFile)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid argument 'sourcePath': missing file extension"));
+            String extension = Files.getExtension(sourceFile).orElse("");
             do {
-                targetFile = new File(userDirectory, String.format("%s-%s.%s",
-                        baseName,
-                        counter++,
-                        extension));
-            } while (targetFile.exists());
+                String fileName = String.format("%s-%s.%s",
+                    baseName,
+                    counter++);
+                fileName += extension;
+                targetFile = userDirectory.resolve(fileName);
+            } while (Files.exists(targetFile));
         }
 
         if (moveSourceFile) {
-            FileUtils.moveFile(sourceFile, targetFile);
+            Files.moveFile(sourceFile, targetFile.toFile());
         }
         else {
-            FileUtils.copyFile(sourceFile, targetFile);
+            Files.copyFile(sourceFile, targetFile.toFile());
         }
 
         return Joiner.on('/').join(
                 configuration.getServerUrl() + RestPaths.DOWNLOAD_PATH,
                 userPath,
-                targetFile.getName());
+                targetFile.getFileName().toString());
     }
 
     /* -- protected method -- */

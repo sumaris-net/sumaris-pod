@@ -27,11 +27,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class FileUploadResponse {
+public class UploadResponse {
     private String fileName;
     private String fileDownloadUri;
     private String fileType;
     private long size;
-
-
+    private String message;
 }
