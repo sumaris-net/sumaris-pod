@@ -27,16 +27,28 @@ import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Transactional
 public interface UserEventService {
 
+    Long count(UserEventFilterVO filter);
+
+    List<UserEventVO> findAll(UserEventFilterVO filter);
+
     List<UserEventVO> findAll(UserEventFilterVO filter, Page page);
+
+    Timestamp getLastCreationDate(String ...recipients);
+
+    Timestamp getLastReadDate(String ...recipients);
 
     UserEventVO save(UserEventVO event);
 
     void delete(int id);
 
     void delete(List<Integer> ids);
+
+    @Transactional
+    void markAsRead(List<Integer> userEventIds);
 }

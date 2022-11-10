@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data.sample;
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Sample;
 import net.sumaris.core.model.data.SampleMeasurement;

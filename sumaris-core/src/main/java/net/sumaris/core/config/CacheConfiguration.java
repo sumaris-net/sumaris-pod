@@ -32,6 +32,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -45,8 +46,8 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.Date;
-import java.util.Optional;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class, javax.cache.CacheManager.class})
@@ -66,10 +67,12 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Department
         String DEPARTMENT_BY_ID = "net.sumaris.core.dao.administration.user.departmentById";
         String DEPARTMENT_BY_LABEL = "net.sumaris.core.dao.administration.user.departmentByLabel";
+        String DEPARTMENT_LOGO_BY_LABEL = "net.sumaris.core.dao.administration.user.departmentLogoByLabel";
 
         // Person
         String PERSON_BY_ID = "net.sumaris.core.dao.administration.user.personById";
         String PERSON_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personByPubkey";
+        String PERSON_AVATAR_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personAvatarByPubkey";
 
         // Location
         String LOCATION_LEVEL_BY_LABEL = "net.sumaris.core.dao.referential.location.locationLevelByLabel";
@@ -148,10 +151,12 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Department
             Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_ID, Integer.class, DepartmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_LABEL, String.class, DepartmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.DEPARTMENT_LOGO_BY_LABEL, String.class, ImageAttachmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Person
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_ID, Integer.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.PERSON_AVATAR_BY_PUBKEY, String.class, ImageAttachmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Location
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_LEVEL_BY_LABEL, String.class, ReferentialVO.class, 600);

@@ -24,7 +24,6 @@ package net.sumaris.core.event.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IValueObject;
 
 import java.io.Serializable;
 

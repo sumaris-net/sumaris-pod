@@ -34,6 +34,7 @@ import net.sumaris.core.util.StringUtils;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
@@ -206,6 +207,7 @@ public class Application {
 	@Bean
 	@Primary
 	@ConditionalOnMissingBean
+	@ConditionalOnClass({ObjectMapper.class})
 	ObjectMapper jacksonObjectMapper() {
 		return new ObjectMapper();
 	}

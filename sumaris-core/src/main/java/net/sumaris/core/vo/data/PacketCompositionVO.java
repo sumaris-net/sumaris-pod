@@ -25,8 +25,8 @@ package net.sumaris.core.vo.data;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.List;

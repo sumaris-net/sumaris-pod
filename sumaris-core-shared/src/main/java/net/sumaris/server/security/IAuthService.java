@@ -22,7 +22,7 @@
 
 package net.sumaris.server.security;
 
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 
 import java.util.Optional;
 

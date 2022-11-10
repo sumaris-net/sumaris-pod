@@ -30,6 +30,7 @@
     <title>Pod Api - WebVOWL</title>
 
     <base href="/webvowl/">
+
     <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
     <meta name="author" content="Vincent Link, Steffen Lohmann, Eduard Marbach, Stefan Negru, Vitalis Wiens" />
@@ -159,19 +160,22 @@
                     <li><a href="#skos" id="skos">SKOS</a></li>
                     <li><a href="#foaf" id="foaf">FOAF: Friend of a Friend</a></li>
                     <li><a href="#gr" id="gr">GoodRelations Vocabulary for E-Commerce</a></li>
+                    <li><a href="#dcat" id="dcat">DCAT: Data Catalog</a></li>
+                    <li><a href="#org" id="org">ORG: Organization</a></li>
 
                     <li><a href="#txn" id="txn">TaxonConcept.org</a></li>
 
                     <li><a href="#dwc" id="dwc">[DWC] Darwin Core</a></li>
                     <li><a href="#dwctax" id="dwctax">[DWC] TaxonName</a></li>
+
+                    <!-- Sandre schema -->
                     <li><a href="#apt" id="apt">[APT] Sandre AppelTaxon</a></li>
                     <li><a href="#inc" id="inc">[INC] Sandre Interlocuteur</a></li>
 
-                    <li><a href="#dcat" id="dcat">DCAT: Data Catalog</a></li>
-
-                    <li><a href="#taxon" id="taxon">[Project] Taxon</a></li>
-                    <li><a href="#department" id="department">[Project] Organization</a></li>
-                    <li><a href="#gear" id="gear">[Project] Gear</a></li>
+                    <!-- Project specific schema -->
+<!--                    <li><a href="#cst" id="cst">[CST] SAR Costal Structure schema</a></li>-->
+                    <li><a href="#tscb" id="tscb">[TSCB] SUMARiS Transcribing schema</a></li>
+                    <li><a href="#shr" id="shr">[SHR] SUMARiS Shared schema</a></li>
 
 
 <!--                    <li><a href="#muto" id="muto">Modular and Unified Tagging Ontology (MUTO)</a></li>-->
@@ -555,19 +559,17 @@
 
     </main>
 
-    <script type="text/javascript" src="/core/js/jquery.slim.min.js"></script>
-    <script type="text/javascript" src="/core/js/app-menu.js"></script>
+    <script type="text/javascript" src="/api/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/api/js/app-menu.js"></script>
 
     <script src="/webvowl/js/d3.min.js"></script>
     <script src="/webvowl/js/webvowl.js"></script>
     <script src="/webvowl/js/webvowl.app.js"></script>
 
     <script>
-        const menu = new AppMenu();
-
-        function goHome() {
-            menu.goHome();
-        }
+        const menu = new AppMenu(null, {
+            title: 'SAR' // Show title
+        });
 
         window.addEventListener("load", () => {
 
@@ -577,7 +579,7 @@
             // Add link to API Home, in the menu
             $('#menuElementContainer')
                 .prepend('<li id="c_home" class="inner-addon left-addon">'
-                    +'<a draggable="false" href="#" onclick="goHome()"><i><img class="menuElementSvgElement" src="/api/favicon" alt=""></i>'
+                    +'<a draggable="false" href="#" onclick="return menu.goHome();"><i><img class="menuElementSvgElement" src="/api/favicon" alt=""></i>'
                     +'&nbsp;<span class="menu-title"></span>'
                     +'</a></li>');
             menu.loadTitle('.menu-title');

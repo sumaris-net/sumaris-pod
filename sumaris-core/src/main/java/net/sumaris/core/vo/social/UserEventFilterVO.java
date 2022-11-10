@@ -22,13 +22,34 @@
 
 package net.sumaris.core.vo.social;
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+
+import java.util.Date;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
+@EqualsAndHashCode
 public class UserEventFilterVO {
 
+    public static UserEventFilterVO nullToEmpty(UserEventFilterVO f) {
+        return f != null ? f : UserEventFilterVO.builder().build();
+    }
+
+    @Deprecated
     private String issuer;
+    @Deprecated
     private String recipient;
+
+    private Integer[] includedIds;
+    private String[] types;
+    private String[] levels;
+    private String[] recipients;
+    private String[] issuers;
+    private Date startDate;
+    private boolean excludeRead = false;
 }

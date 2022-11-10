@@ -22,7 +22,7 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
@@ -30,7 +30,10 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "applied_period")

@@ -39,7 +39,9 @@ import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
+import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.StreamUtils;
@@ -56,6 +58,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.mail.internet.AddressException;
@@ -187,11 +190,14 @@ public class UserMessageServiceImpl implements UserMessageService {
             // Send the email
             send(email, fallbackAsUserEvent);
         } catch(NullPointerException npe) {
-            // Missing from: add default, then loop
+            // Missing 'from:' : try using default address (if any), then loop
             if ("from".equals(npe.getMessage())) {
-                emailBuilder.from(this.getEmailDefaultFrom());
-                send(emailBuilder);
-                return;
+                InternetAddress defaultFromAddress = this.getEmailDefaultFrom();
+                if (defaultFromAddress != null) {
+                    emailBuilder.from(this.getEmailDefaultFrom());
+                    send(emailBuilder);
+                    return;
+                }
             }
             throw npe;
         }
@@ -224,7 +230,8 @@ public class UserMessageServiceImpl implements UserMessageService {
 
         // Create a builder
         UserEventVO.UserEventVOBuilder builder = UserEventVO.builder()
-            .eventType(message.getType().toEventType().getLabel())
+            .type(message.getType().toEventType().getLabel())
+            .level(EventLevelEnum.INFO.getLabel())
             .creationDate(new Date());
 
         // Get issuer
@@ -272,14 +279,14 @@ public class UserMessageServiceImpl implements UserMessageService {
         else if (ArrayUtils.isNotEmpty(message.getRecipients())) {
             recipients = Arrays.stream(message.getRecipients())
                 .map(p -> (StringUtils.isNotBlank(p.getEmail())) ? p.getEmail()
-                    : (p.getId() != null ? personService.getEmailById(p.getId()) : null)
+                    : (p.getId() != null ? personService.getPubkeyById(p.getId()) : null)
                 )
                 .filter(StringUtils::isNotBlank);
         }
 
         // Recipients resolved by filter
         else if (message.getRecipientFilter() != null) {
-            recipients = personService.findByFilter(message.getRecipientFilter(), null)
+            recipients = personService.findByFilter(message.getRecipientFilter(), Pageable.unpaged())
                 .map(PersonVO::getPubkey)
                 .filter(StringUtils::isNotBlank)
                 .get();
@@ -373,18 +380,56 @@ public class UserMessageServiceImpl implements UserMessageService {
             builder.bcc(recipients);
         }
 
+        // Set issuer
+        Integer issuerId = message.getIssuerId() != null
+            ? message.getIssuerId()
+            : (message.getIssuer() != null ? message.getIssuer().getId() : null);
+        if (issuerId != null) {
+
+            String email = personService.getEmailById(issuerId);
+
+            // No email address
+            if (StringUtils.isBlank(email))
+                throw new DataNotFoundException(I18n.t("sumaris.error.person.noEmail"));
+
+            // Parse address
+            try {
+                builder.from(new InternetAddress(email));
+            }
+            catch (AddressException e) {
+                throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.email.sendMessageFailed",
+                    I18n.t("sumaris.error.email.invalid", email)), e);
+            }
+        }
+
         return builder;
     }
 
 
     protected List<UserEventVO> toUserEvents(@NonNull Email email) {
         UserEventVO.UserEventVOBuilder builder = UserEventVO.builder()
-            .eventType(EventTypeEnum.INBOX_MESSAGE.getLabel())
+            .type(EventTypeEnum.INBOX_MESSAGE.getLabel())
+            .level(EventLevelEnum.INFO.getLabel())
             .creationDate(new Date());
 
         // Set content
         String content = toJsonString(email.getSubject(), email.getBody());
         builder.content(content);
+
+        // Resolve issuer
+        if (email.getFrom().equals(getEmailDefaultFrom())) {
+            builder.issuer(SystemRecipientEnum.SYSTEM.getLabel());
+        }
+        else {
+            String fromEmail = email.getFrom().getAddress();
+            try {
+                PersonVO person = personService.getByEmail(fromEmail);
+                builder.issuer(person.getPubkey());
+            } catch (DataNotFoundException e) {
+                log.warn(e.getMessage() + " - email: " + fromEmail);
+                throw new InvalidMessageException(I18n.t("sumaris.error.email.noIssuer"));
+            }
+        }
 
         // Resolve recipients, by emails
         Stream<String> recipients;
@@ -409,6 +454,7 @@ public class UserMessageServiceImpl implements UserMessageService {
         else {
             throw new InvalidMessageException(I18n.t("sumaris.error.email.noRecipient"));
         }
+
 
         List<UserEventVO> events = recipients
             .map(recipient -> builder.recipient(recipient).build())

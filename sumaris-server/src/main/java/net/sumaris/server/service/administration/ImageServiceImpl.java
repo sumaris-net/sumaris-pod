@@ -31,10 +31,12 @@ import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.rest.RestPaths;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -71,6 +73,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
+    @Cacheable(cacheNames = ServerCacheConfiguration.Names.IMAGE_BY_ID, unless = "#result==null")
     public ImageAttachmentVO find(int id) {
         return imageAttachmentService.find(id);
     }

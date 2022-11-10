@@ -1,0 +1,145 @@
+<!doctype html>
+<!--
+  #%L
+  SUMARiS:: Server
+  %%
+  Copyright (C) 2018 SUMARiS Consortium
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Pod Api - Home</title>
+
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="icon" href="/api/favicon" type="image/x-icon" />
+    <link rel="stylesheet" href="/api/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/api/css/theme.css" />
+    <link rel="stylesheet" href="/api/css/app-home.css" />
+
+
+</head>
+<body>
+
+    <!-- Top menu-->
+    <nav id="menu" class="navbar navbar-expand-lg bg-white">
+
+        <!-- Menu toggle -->
+        <button class="navbar-toggler col d-block d-md-none btn btn-outline-primary" type="button" data-toggle="collapse"
+                data-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+            <!-- title -->
+            <a class="navbar-brand col-auto"  href="/api">
+                <img src="/api/favicon" width="30" height="30" alt="">
+            </a>
+            <a class="navbar-brand menu-title col d-none d-md-block" href="/api">
+               <div class="spinner-border spinner-border-sm" role="status"></div>
+            </a>
+
+        <div class="collapse navbar-collapse col" id="main-nav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item" id="nav-item-home">
+                    <a class="nav-link" href="/" onclick="menu.goHome()">Home</a>
+                </li>
+                <li class="nav-item dropdown dropdown-show-hover" id="nav-item-documentation">
+                    <a class="nav-link dropdown-toggle" href="#" id="docDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Documentation
+                    </a>
+                    <div class="dropdown-menu menu-documentation" aria-labelledby="docDropdown">
+                        <a class="dropdown-item" href="#">Loading...</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown dropdown-show-hover" id="nav-item-tools">
+                    <a class="nav-link dropdown-toggle" href="#" id="toolsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Tools
+                    </a>
+                    <div class="dropdown-menu menu-tools" aria-labelledby="toolsDropdown">
+                        <a class="dropdown-item" href="#">Loading...</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- title header -->
+    <div class="container-fluid mb-5 title-header">
+        <h1>Home</h1>
+    </div>
+
+    <!-- main content -->
+    <div class="container">
+
+        <p>Welcome to documentation web site!</p>
+
+        <h2>Documentation</h2>
+        <p>
+            <ul id="ul-documentation">
+                <li><a href="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md">User manual</a></li>
+                <li><a href="https://github.com/sumaris-net/sumaris-doc/">Functional specification</a> (Use cases, Class diagrams)</li>
+                <li><a href="http://doc.e-is.pro/sumaris/">Project technical web site</a> (installation manual, configuration)</li>
+                <li><a href="https://github.com/sumaris-net/">Source code</a> (GitHub)</li>
+            </ul>
+        </p>
+
+        <h2>Tools</h2>
+        <p>
+            <ul id="ul-tools">
+                <li class="divider">GraphQL Tools</li>
+                <li><a href="/api/graphiql">Graph<i>i</i>QL</a>: data access query editor, that use the GraphQL API (HTTP Rest);</li>
+                <li><a href="/graphql/websocket/test">GraphQL subscription</a>: a subscription query editor, that use the GraphQL subscription API (WebSocket);</li>
+
+                <li class="divider">Web Semantic Tools</li>
+                <li><a href="/sparql/ui">SparQL editor</a>: build and run your SparQL query, using YasGUI;</li>
+                <li><a href="/webvowl">Ontology graph viewer</a>: visualize an ontology, using WebVOWL;</li>
+                <li><a href="/schema/uri">URI builder</a>: create URI to access schema and data, using several output formats (RDF, JSON-LD, ...);</li>
+
+                <li class="divider">Other Tools</li>
+                <li><a href="/api/extraction/doc">Extraction doc generator</a></li>
+            </ul>
+        </p>
+
+        <h2>License</h2>
+
+        <p>
+            All documentation and tools are under Free License (GPL, MIT, or Apache licenses).
+        </p>
+
+        <h2>Contribute</h2>
+
+        <p>
+            Source code are available here: <a href="https://github.com/sumaris-net/">github.com/sumaris-net</a>.<br/>
+            Please send your remark as <a href="https://github.com/sumaris-net/sumaris-pod/issues/new">a new issue</a>.
+        </p>
+    </div>
+
+    <script type="text/javascript" src="/api/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/api/js/popper.min.js"></script>
+    <script type="text/javascript" src="/api/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/api/js/app-menu.js"></script>
+
+    <script type="text/javascript">
+        const menu = new AppMenu('#menu', {active: '#nav-item-home'});
+    </script>
+</body>
+</html>

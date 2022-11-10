@@ -22,14 +22,19 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "location_hierarchy")
@@ -49,10 +54,12 @@ public class LocationHierarchy implements Serializable {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "child_location_fk")
+    @EqualsAndHashCode.Include
     private Location childLocation;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_location_fk")
+    @EqualsAndHashCode.Include
     private Location parentLocation;
 }

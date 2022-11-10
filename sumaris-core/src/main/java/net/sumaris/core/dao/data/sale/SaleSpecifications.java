@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data.sale;
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.vo.data.SaleVO;
 import org.springframework.data.jpa.domain.Specification;

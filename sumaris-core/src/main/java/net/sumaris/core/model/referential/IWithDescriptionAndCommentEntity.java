@@ -22,8 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 
 import java.io.Serializable;
 

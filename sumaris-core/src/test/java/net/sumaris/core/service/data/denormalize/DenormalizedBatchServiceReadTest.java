@@ -23,7 +23,7 @@
 package net.sumaris.core.service.data.denormalize;
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.technical.model.TreeNodeEntities;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.DataTestUtils;
 import net.sumaris.core.service.data.DenormalizedBatchService;

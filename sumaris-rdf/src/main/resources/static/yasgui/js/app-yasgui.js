@@ -19,12 +19,21 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-function AppYasgui(yasGuiDivId) {
+function AppYasgui(yasGuiDivId, config) {
+
+    const defaultConfig = {
+        ids: {
+            examples: 'examples',
+            prefixes: 'prefixes'
+        }
+    };
 
     let defaultEndpoint,
-        defaultPrefixUri,
         endpoints,
-        yasgui;
+        yasgui,
+        debug = false;
+
+    const utils = new AppUtils();
 
     const endpointsById = {
         THIS: 'this',
@@ -43,21 +52,23 @@ function AppYasgui(yasGuiDivId) {
     const exampleQueries = [
         // default query
         {
-            name: "Simple",
-            prefixes: ['rdf', 'dwc', 'dwctax', 'this'],
+            name: "Interlocuteurs",
+            prefixes: ['rdf', 'rdfs', 'org', 'this'],
+            debug: false,
             query: "SELECT DISTINCT *\n" +
                 "WHERE {\n" +
-                "  ?sub rdf:type ?type ; \n" +
-                "       dwc:scientificName ?label .  \n" +
+                "  ?sub a org:Organization ;  \n" +
+                "       rdfs:label ?label ;  \n" +
+                "       ?pred ?obj . \n" +
                 "  # Filter by name\n" +
                 "  FILTER( \n" +
-                "    ( ?type=sar:TaxonName || ?type=dwctax:TaxonName ) \n" +
-                "     && regex( ?label, \"^Lophius\" ) \n" +
+                "     regex( ?label, \"environnement\", \"i\" ) \n" +
                 "  )\n" +
                 "} LIMIT 10"
         },
         {
             name: "Taxon by name (Sandre)",
+            debug: true,
             endpoint: endpointsById.EAU_FRANCE,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'apt', 'apt2', 'aptdata', 'taxref'],
             query: "SELECT DISTINCT ?tax ?label ?exactMatch \n" +
@@ -75,6 +86,7 @@ function AppYasgui(yasGuiDivId) {
         },
         {
             name: "Taxon by code (Sandre)",
+            debug: true,
             endpoint: endpointsById.EAU_FRANCE,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'skos', 'foaf', 'apt', 'apt2', 'aptdata'],
             query: "SELECT *\n" +
@@ -84,6 +96,7 @@ function AppYasgui(yasGuiDivId) {
         },
         {
             name: "Taxon by code (TaxRef)",
+            debug: true,
             endpoint: endpointsById.MNHN,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'skos', 'dwc', 'dwciri', 'dwctax', 'taxref'],
             query: "SELECT *\n" +
@@ -93,6 +106,7 @@ function AppYasgui(yasGuiDivId) {
         },
         {
             name: "Taxon by name (TaxRef)",
+            debug: true,
             endpoint: endpointsById.MNHN,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'skos', 'dwc', 'dwciri', 'dwctax', 'taxref'],
             query: "SELECT DISTINCT *\n" +
@@ -108,6 +122,7 @@ function AppYasgui(yasGuiDivId) {
         },
         {
             name: "Organization by name (Sandre)",
+            debug: true,
             endpoint: endpointsById.EAU_FRANCE,
             prefixes: ['dc', 'rdf', 'rdfs', 'owl', 'foaf', 'inc1', 'inc', 'incdata'],
             query: "SELECT DISTINCT\n" +
@@ -127,6 +142,11 @@ function AppYasgui(yasGuiDivId) {
     ];
 
     function init() {
+
+        config = {
+            ...defaultConfig,
+            config
+        };
 
         if (window.location && window.location.origin) {
 
@@ -149,7 +169,14 @@ function AppYasgui(yasGuiDivId) {
             .reduce((res, ep) => (!ep || res.findIndex(endpoint => endpoint === ep) !== -1) ? res : res.concat(ep),
                 [defaultEndpoint]);
 
+
+        // Restore previous query
+        restoreQueryParam();
+
         connect();
+
+        displayExamples(config.ids.examples);
+        displayPrefixes(config.ids.prefixes);
     }
 
     function connect() {
@@ -181,13 +208,17 @@ function AppYasgui(yasGuiDivId) {
 
     function displayExamples(elementId) {
 
+        console.debug('[app-yasgui] Adding SparQL examples links');
+
         // Queries
-        const links = exampleQueries.reduce(function(res, example, index) {
+        const links = exampleQueries
+          .filter(query => debug || query.debug !== true)
+          .reduce((res, example, index) => {
             if (!example.name) return res; // Skip if no name (e.g. default)
-            return res.concat("<a href=\"#\" onclick=\"app.showExampleQuery("+index+")\">"+example.name+"</a>");
+            return res.concat("<a href=\"#\" onclick=\"return app.showExampleQuery("+index+") && false;\">"+example.name+"</a>");
         }, []);
 
-        const innerHTML = links.length && ("Examples: " + links.join(" | ") + "<br/>") || "";
+        const innerHTML = links.length && (i18n('EXAMPLE_DOTS') + links.join(" | ") + "<br/>") || "";
 
         const element = document.getElementById(elementId);
         element.innerHTML = innerHTML;
@@ -195,13 +226,15 @@ function AppYasgui(yasGuiDivId) {
 
     function displayPrefixes(elementId) {
 
+        console.debug('[app-yasgui] Adding SparQL prefixes links');
+
         // Prefixes
         const links = prefixDefs.reduce((res, def, index) => {
             if (!def.name || !def.prefix || !def.namespace) return res; // Skip if no name (e.g. default)
-            return res.concat("<a href=\"#\" title=\""+def.name+"\" onclick=\"app.addPrefix("+index+")\">"+def.prefix+"</a>");
+            return res.concat("<a href=\"#\" title=\""+def.name+"\" onclick=\"return app.addPrefix("+index+") && false;\">"+def.prefix+"</a>");
         }, []);
 
-        const innerHTML = links.length &&  ("Prefixes: " + links.join(" | "));
+        const innerHTML = links.length &&  (i18n('PREFIXES_DOTS') + links.join(" | "));
 
         const element = document.getElementById(elementId);
         element.innerHTML = innerHTML;
@@ -256,17 +289,52 @@ function AppYasgui(yasGuiDivId) {
         prefix[def.prefix] = def.namespace;
         tab.yasqe.addPrefixes(prefix);
 
+        return tab;
     }
 
+    function showDebug(enable, opts) {
+        if (enable) {
+            $('.debug').removeClass('d-none');
+        }
+        else {
+            $('.debug').addClass('d-none');
+        }
+        if (enable !== debug) debug = enable;
 
+        // Update the location hash
+        if (!opts || opts.emitEvent !== false) {
+            updateLocationHash();
+        }
+    }
 
-    window.addEventListener("load", init, false);
+    function restoreQueryParam() {
+
+        const params = utils.parseLocationHash();
+        if (!params) return false;
+
+        if (params.debug) {
+            showDebug(true, {emitEvent: false});
+        }
+    }
+
+    function updateLocationHash() {
+        if (!window.location) return;
+
+        let hash = '';
+        if (debug) {
+            hash += "&debug";
+        }
+
+        // Update location hash
+        window.location.hash = hash.substr(1); // Remove first '&'
+    }
+
+    // Start
+    $(document).ready(() => init());
 
     const exports = {
         connect,
         disconnect,
-        displayExamples,
-        displayPrefixes,
         showExampleQuery,
         addPrefix
     };

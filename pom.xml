@@ -123,7 +123,7 @@
     <javassist.version>3.28.0-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
     <ehcache.version>3.8.1</ehcache.version>
-    <lombok.version>1.18.20</lombok.version>
+    <lombok.version>1.18.22</lombok.version>
     <xmlquery.version>1.8</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
@@ -197,6 +197,8 @@
     <helperPluginVersion>2.3.2</helperPluginVersion>
 
     <!-- apache maven plugins version -->
+    <assemblyPluginVersion>3.3.0</assemblyPluginVersion>
+    <compilerPluginVersion>3.8.1</compilerPluginVersion>
     <jarPluginVersion>3.1.2</jarPluginVersion>
     <sitePluginVersion>3.9.1</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
@@ -269,9 +271,9 @@
         <version>3.4</version>
       </dependency>
       <dependency>
-        <groupId>org.antlr</groupId>
-        <artifactId>ST4</artifactId>
-        <version>${stringtemplate.version}</version>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.15</version>
       </dependency>
       <dependency>
         <groupId>commons-lang</groupId>
@@ -317,6 +319,11 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.antlr</groupId>
+        <artifactId>ST4</artifactId>
+        <version>${stringtemplate.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.websocket</groupId>
@@ -1149,7 +1156,7 @@
 
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>${assemblyPluginVersion}</version>
         </plugin>
 
         <plugin>
@@ -1175,7 +1182,7 @@
 
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
+          <version>${compilerPluginVersion}</version>
           <configuration>
             <source>${javaVersion}</source>
             <target>${javaVersion}</target>

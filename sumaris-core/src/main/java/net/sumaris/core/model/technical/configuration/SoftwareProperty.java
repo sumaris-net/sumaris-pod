@@ -22,7 +22,8 @@ package net.sumaris.core.model.technical.configuration;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -31,8 +32,10 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "software_property")
@@ -41,15 +44,16 @@ public class SoftwareProperty implements IItemReferentialEntity<Integer>  {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_PROPERTY_SEQ")
     @SequenceGenerator(name = "SOFTWARE_PROPERTY_SEQ", sequenceName="SOFTWARE_PROPERTY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = 255)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = 2000) // Increase, need to large URL in images
-    @ToString.Include
+    
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -22,11 +22,11 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
-import net.sumaris.core.dao.technical.model.annotation.OntologyEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.ModelVocabularies;
 
 import javax.persistence.*;
@@ -36,23 +36,23 @@ import java.util.Date;
  * Etat de validation d'une donnée du référentiel. Utile pour les responsables de référentiel.<br/>
  * Validity status of a referential data.
  */
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
 @Table(name="validity_status")
-@OntologyEntity(vocab = ModelVocabularies.COMMON)
+@OntologyEntity(vocab = ModelVocabularies.SHARED)
 public class ValidityStatus implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VALIDITY_STATUS_SEQ")
     @SequenceGenerator(name = "VALIDITY_STATUS_SEQ", sequenceName="VALIDITY_STATUS_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    @ToString.Include
     private String label;
 
     @Column(nullable = false)
