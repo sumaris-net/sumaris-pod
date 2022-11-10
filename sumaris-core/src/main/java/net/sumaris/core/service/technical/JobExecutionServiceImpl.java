@@ -47,12 +47,8 @@ import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.jms.Message;
@@ -320,7 +316,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 .id(job.getUserEventId())
                 .recipient(job.getIssuer())
                 .level(level)
-                .eventType(EventTypeEnum.JOB.getLabel())
+                .type(EventTypeEnum.JOB)
                 .content(content)
                 .build();
 

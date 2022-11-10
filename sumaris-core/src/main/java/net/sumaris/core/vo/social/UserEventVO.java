@@ -28,6 +28,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.social.EventLevelEnum;
+import net.sumaris.core.model.social.EventTypeEnum;
 
 import java.util.Date;
 
@@ -46,7 +47,7 @@ public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Int
     private String issuer;
     private String recipient;
 
-    private String type;
+    private EventTypeEnum type;
     private EventLevelEnum level;
 
     private String hash;

@@ -22,35 +22,14 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.NonNull;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
 public enum EventLevelEnum implements Serializable {
 
-    ERROR("ERROR"),
-    WARNING("WARNING"),
-    INFO("INFO"),
-    DEBUG("DEBUG");
-
-    private final String id;
-
-    EventLevelEnum(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public static EventLevelEnum byId(final String id) {
-        return Arrays.stream(values()).filter(enumValue -> enumValue.getId().equals(id)).findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown EventLevelEnum: " + id));
-    }
-
-    public static EventLevelEnum byIdOrNull(final String id) {
-        return Arrays.stream(values()).filter(enumValue -> enumValue.getId().equals(id)).findFirst().orElse(null);
-    }
+    ERROR,
+    WARNING,
+    INFO,
+    DEBUG;
 
 }

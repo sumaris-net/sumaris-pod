@@ -230,8 +230,8 @@ public class UserMessageServiceImpl implements UserMessageService {
 
         // Create a builder
         UserEventVO.UserEventVOBuilder builder = UserEventVO.builder()
-            .type(message.getType().toEventType().getLabel())
-            .level(EventLevelEnum.INFO.getLabel())
+            .type(message.getType().toEventType())
+            .level(EventLevelEnum.INFO)
             .creationDate(new Date());
 
         // Get issuer
@@ -408,8 +408,8 @@ public class UserMessageServiceImpl implements UserMessageService {
 
     protected List<UserEventVO> toUserEvents(@NonNull Email email) {
         UserEventVO.UserEventVOBuilder builder = UserEventVO.builder()
-            .type(EventTypeEnum.INBOX_MESSAGE.getLabel())
-            .level(EventLevelEnum.INFO.getLabel())
+            .type(EventTypeEnum.INBOX_MESSAGE)
+            .level(EventLevelEnum.INFO)
             .creationDate(new Date());
 
         // Set content

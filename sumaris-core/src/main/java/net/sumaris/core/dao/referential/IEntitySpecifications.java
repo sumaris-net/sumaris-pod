@@ -24,9 +24,7 @@ package net.sumaris.core.dao.referential;
 
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.technical.history.ProcessingHistory;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;

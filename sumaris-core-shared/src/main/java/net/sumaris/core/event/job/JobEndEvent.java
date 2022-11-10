@@ -22,7 +22,7 @@ package net.sumaris.core.event.job;
  */
 
 
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 
 public class JobEndEvent extends AbstractJobEvent<IValueObject> {
 

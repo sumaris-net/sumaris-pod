@@ -31,6 +31,7 @@ import net.sumaris.core.model.social.EventTypeEnum;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data

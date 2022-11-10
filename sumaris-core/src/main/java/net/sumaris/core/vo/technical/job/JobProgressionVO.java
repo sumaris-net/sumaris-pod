@@ -23,7 +23,7 @@ package net.sumaris.core.vo.technical.job;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 
 /**
  * Job progression

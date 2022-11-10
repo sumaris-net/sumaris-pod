@@ -21,7 +21,7 @@ package net.sumaris.core.event.job;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 
 public class JobStartEvent extends AbstractJobEvent<IValueObject> {
 

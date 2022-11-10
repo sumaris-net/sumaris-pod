@@ -22,16 +22,11 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
 import lombok.NonNull;
-import lombok.ToString;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.EntityEnum;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Date;
 
 /**
  * Etat d'un traitement.

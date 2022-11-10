@@ -36,7 +36,6 @@ import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.service.social.UserEventService;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -197,11 +196,11 @@ public class UserEventGraphQLService {
 
         // Compatibility with version < 1.29.0
         if (event.getType() == null && event.getEventType() != null) {
-            event.setType(event.getEventType());
+            event.setType(EventTypeEnum.valueOf(event.getEventType()));
         }
 
         // Read type
-        EventTypeEnum type = EventTypeEnum.byLabel(event.getType());
+        EventTypeEnum type = event.getType();
 
         // Is user is NOT an admin
         if (!authService.isAdmin()) {
@@ -218,7 +217,7 @@ public class UserEventGraphQLService {
 
             // Check event type = DEBUG_DATA or INBOX_MESSAGE
             Preconditions.checkArgument (type == EventTypeEnum.DEBUG_DATA || type == EventTypeEnum.INBOX_MESSAGE,
-                "Invalid user event type: " + type.getLabel());
+                "Invalid user event type: " + type.name());
         }
 
         // Use SYSTEM as default recipient, for debug data
@@ -226,13 +225,13 @@ public class UserEventGraphQLService {
             event.setRecipient(SystemRecipientEnum.SYSTEM.getLabel());
             // Fill default level as DEBUG
             if (event.getLevel() == null) {
-                event.setType(EventLevelEnum.DEBUG.getLabel());
+                event.setLevel(EventLevelEnum.DEBUG);
             }
         }
 
         // Fill default level
         if (event.getLevel() == null) {
-            event.setType(EventLevelEnum.INFO.getLabel());
+            event.setLevel(EventLevelEnum.INFO);
         }
 
         return userEventService.save(event);

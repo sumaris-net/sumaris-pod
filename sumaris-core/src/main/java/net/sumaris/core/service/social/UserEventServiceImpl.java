@@ -45,11 +45,11 @@ import java.util.*;
 @Slf4j
 public class UserEventServiceImpl implements UserEventService {
 
-    private final UserEventRepository repository;
+    private final UserEventRepository userEventRepository;
 
     @Autowired
     public UserEventServiceImpl(UserEventRepository userEventRepository) {
-        this.repository = userEventRepository;
+        this.userEventRepository = userEventRepository;
     }
 
     @Override
@@ -76,18 +76,12 @@ public class UserEventServiceImpl implements UserEventService {
         Preconditions.checkNotNull(event.getType());
         Preconditions.checkNotNull(event.getLevel());
 
-        // Check event type exists
-        EventTypeEnum.byLabel(event.getType());
-
-        // Check event level exists
-        EventLevelEnum.byLabel(event.getLevel());
-
-        return repository.save(event);
+        return userEventRepository.save(event);
     }
 
     @Override
     public void delete(int id) {
-        repository.deleteById(id);
+        userEventRepository.deleteById(id);
     }
 
     @Override
