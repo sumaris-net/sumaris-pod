@@ -28,15 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
-import net.sumaris.server.exception.FileUploadException;
-import net.sumaris.server.http.security.AnonymousUserDetails;
-import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
-import net.sumaris.server.security.IAuthService;
 import net.sumaris.server.security.IDownloadController;
-import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -55,7 +49,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 
 @RestController
