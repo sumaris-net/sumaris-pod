@@ -22,6 +22,7 @@ package net.sumaris.extraction.server.security;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
@@ -35,6 +36,8 @@ import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.service.social.UserEventService;
+import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
@@ -65,17 +68,23 @@ import java.util.Optional;
 @ConditionalOnWebApplication
 public class ExtractionSecurityServiceImpl implements ExtractionSecurityService {
 
-    @Autowired
-    private SumarisConfiguration configuration;
+    private final SumarisConfiguration configuration;
 
-    @Autowired
-    private ExtractionProductService productService;
-    @Autowired
-    private ExtractionTypeService extractionTypeService;
-    @Autowired
-    private ISecurityContext<PersonVO> securityContext;
+    private final ExtractionProductService productService;
+    private final ExtractionTypeService extractionTypeService;
+    private final ISecurityContext<PersonVO> securityContext;
 
     private String accessNotSelfExtractionMinRole;
+
+    public ExtractionSecurityServiceImpl(SumarisConfiguration configuration,
+                                         ExtractionProductService productService,
+                                         ExtractionTypeService extractionTypeService,
+                                         Optional<ISecurityContext<PersonVO>> securityContext) {
+        this.configuration = configuration;
+        this.productService = productService;
+        this.extractionTypeService = extractionTypeService;
+        this.securityContext = securityContext.orElse(null);
+    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
