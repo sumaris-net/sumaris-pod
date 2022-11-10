@@ -39,9 +39,8 @@ public class RdbLoaderWriteTest extends AbstractServiceTest {
     private RdbDataLoaderServiceImpl service = null;
 
     @Test
-    @Ignore
     public void loadTestFiles() {
-        String basePath = "src/test/data/import/";
+        String basePath = "src/test/data/rdb/";
 
         // Import FRA sample file
         File file = new File(basePath, "FRA-CL-test.csv");

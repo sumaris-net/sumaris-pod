@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -36,12 +37,14 @@ import java.util.Date;
  */
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class VesselVO implements IRootDataVO<Integer> {
 
     private Integer id;
     private ReferentialVO vesselType;
     private Integer statusId;
     private String comments;
+
     private ProgramVO program;
 
     private Date creationDate;
@@ -51,7 +54,10 @@ public class VesselVO implements IRootDataVO<Integer> {
     private Date qualificationDate;
     private String qualificationComments;
     private Integer qualityFlagId;
+
+    @EqualsAndHashCode.Exclude
     private DepartmentVO recorderDepartment;
+    @EqualsAndHashCode.Exclude
     private PersonVO recorderPerson;
 
     // Features

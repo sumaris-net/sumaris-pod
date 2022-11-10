@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.ProgressionModel;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.Resource;
@@ -35,6 +36,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -49,7 +51,7 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class Files {
-
+	private static final int DEFAULT_IO_BUFFER_SIZE = 131072; // 128kb
 	public static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 	public static final String TEMPORARY_FILE_DEFAULT_EXTENSION =".tmp";
 
@@ -405,6 +407,22 @@ public class Files {
 		return org.apache.commons.io.FileUtils.deleteQuietly(file);
 	}
 
+	public static void deleteQuietly(final List<Path> paths) {
+		if (paths == null) return;
+		paths.forEach(Files::deleteQuietly);
+	}
+
+	public static void deleteQuietly(final Path path) {
+		if (path == null) return;
+		try {
+			if (java.nio.file.Files.isDirectory(path)) {
+				cleanDirectory(path, "unable to clean " + path);
+			}
+			java.nio.file.Files.deleteIfExists(path);
+		} catch (IOException ignored) {
+		}
+	}
+
 	public static void deleteTemporaryFiles(File file) {
 		deleteTemporaryFiles(file, TEMPORARY_FILE_DEFAULT_EXTENSION);
 	}
@@ -429,6 +447,10 @@ public class Files {
 		org.apache.commons.io.FileUtils.moveFile(srcFile, dstFile);
 	}
 
+	public static OutputStream newOutputStream(Path path, OpenOption... options) throws IOException {
+		return java.nio.file.Files.newOutputStream(path, options);
+	}
+
 	public static String getNameWithoutExtension(File srcFile) {
 		return com.google.common.io.Files.getNameWithoutExtension(srcFile.getName());
 	}
@@ -451,21 +473,46 @@ public class Files {
 		return Optional.empty();
 	}
 
-	/**
-	 * <p>cleanDirectory.</p>
-	 *
-	 * @param directory   a {@link File} object.
-	 * @param failMessage a {@link String} object.
-	 */
-	public static void cleanDirectory(File directory, String failMessage) {
+	public static Path createDirectories(Path dir, FileAttribute<?>... attrs) throws IOException {
+		return java.nio.file.Files.createDirectories(dir, attrs);
+	}
 
-		Path path = directory.toPath();
+	public static boolean exists(Path file, LinkOption... options) {
+		return java.nio.file.Files.exists(file, options);
+	}
+
+	public static void copyStream(final InputStream inputStream, final OutputStream outputStream) throws IOException {
+		copyStream(inputStream, outputStream, null);
+	}
+
+	public static void copyStream(final InputStream inputStream, final OutputStream outputStream, ProgressionModel progressionModel) throws IOException {
+		byte[] buffer = new byte[DEFAULT_IO_BUFFER_SIZE];
+		int n;
+		while (-1 != (n = inputStream.read(buffer))) {
+			outputStream.write(buffer, 0, n);
+			if (progressionModel != null) {
+				progressionModel.increments(n);
+			}
+		}
+	}
+
+
+	public static void cleanDirectory(final Path directory, final String failMessage) {
+		cleanDirectory(directory, failMessage, null);
+	}
+
+	public static void cleanDirectory(final Path directory, final String failMessage, ProgressionModel progressionModel) {
+
+		if (progressionModel != null) {
+			progressionModel.setTotal(getDirectoryFileCount(directory));
+		}
+
 		int nbAttempt = 0;
 		IOException lastException = null;
-		while (isDirectoryNotEmpty(path) && nbAttempt < 10) {
+		while (isDirectoryNotEmpty(directory) && nbAttempt < 10) {
 			nbAttempt++;
 			try {
-				java.nio.file.Files.walkFileTree(path, new RecursiveDeleteFileVisitor(path));
+				java.nio.file.Files.walkFileTree(directory, new RecursiveDeleteFileVisitor(directory, progressionModel));
 				lastException = null;
 			} catch (NoSuchFileException ignored) {
 			} catch (AccessDeniedException ade) {
@@ -477,6 +524,7 @@ public class Files {
 				lastException = e;
 				// wait a while
 				try {
+					//noinspection BusyWait
 					Thread.sleep(500);
 				} catch (InterruptedException ignored) {
 				}
@@ -486,7 +534,18 @@ public class Files {
 			throw new SumarisTechnicalException(failMessage, lastException);
 		}
 		if (log.isWarnEnabled() && nbAttempt > 1) {
-			log.warn(String.format("cleaning the directory '%s' successful after %d attempts", directory.getAbsolutePath(), nbAttempt));
+			log.warn(String.format("cleaning the directory '%s' successful after %d attempts", directory, nbAttempt));
+		}
+	}
+
+	public static long getDirectoryFileCount(Path directory) {
+		if (directory == null || !java.nio.file.Files.exists(directory) || !java.nio.file.Files.isDirectory(directory))
+			return 0;
+		try {
+			return java.nio.file.Files.walk(directory).parallel().filter(path -> !java.nio.file.Files.isDirectory(path)).count();
+		} catch (IOException e) {
+			// simply ignore it
+			return 0;
 		}
 	}
 
@@ -506,9 +565,11 @@ public class Files {
 	private static class RecursiveDeleteFileVisitor extends SimpleFileVisitor<Path> {
 
 		private final Path root;
+		private final ProgressionModel progressionModel;
 
-		private RecursiveDeleteFileVisitor(Path root) {
+		private RecursiveDeleteFileVisitor(Path root, ProgressionModel progressionModel) {
 			this.root = root;
+			this.progressionModel = progressionModel;
 		}
 
 		@Override
@@ -516,6 +577,8 @@ public class Files {
 
 			// delete the file
 			java.nio.file.Files.deleteIfExists(file);
+			if (progressionModel != null)
+				progressionModel.increments(1);
 			return FileVisitResult.CONTINUE;
 		}
 

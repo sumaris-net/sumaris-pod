@@ -86,6 +86,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     protected static Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> initParentPropertiesMap() {
         Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> result = ArrayListMultimap.create();
 
+        // Vessel
+        result.put(VesselPhysicalMeasurement.class, BeanUtils.getPropertyDescriptor(VesselPhysicalMeasurement.class, VesselPhysicalMeasurement.Fields.VESSEL_FEATURES));
+
         // Trip
         result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.TRIP));
 

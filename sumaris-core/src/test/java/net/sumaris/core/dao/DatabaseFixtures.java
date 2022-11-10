@@ -191,10 +191,12 @@ public class DatabaseFixtures {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
-				return 1;
+				return 10;
+			case 1:
+				return 11;
 
 			default:
-				return 1;
+				return 10;
 		}
 	}
 

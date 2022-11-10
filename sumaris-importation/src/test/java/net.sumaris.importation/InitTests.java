@@ -51,18 +51,23 @@ public class InitTests extends net.sumaris.core.test.InitTests {
     }
 
     @Override
-    protected String getModuleName() {
-        return TestConfiguration.MODULE_NAME;
-    }
-
-    @Override
     public String getTargetDbDirectory() {
         return "target/db";
     }
 
     @Override
+    protected String getModuleName() {
+        return TestConfiguration.MODULE_NAME;
+    }
+
+    @Override
     protected void beforeInsert(Connection conn) throws SQLException {
         super.beforeInsert(conn);
+    }
+
+    @Override
+    protected  String getConfigFileName(){
+        return TestConfiguration.CONFIG_FILE_PREFIX + "-" + this.datasourcePlatform + ".properties";
     }
 
     @Override

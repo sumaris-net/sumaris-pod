@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-1.32.0.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-1" failOnError="false">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<not><columnExists tableName="vessel_features" columnName="auxiliary_power"/></not>
+				<not><columnExists tableName="vessel_features" columnName="construction_year"/></not>
+				<not><columnExists tableName="vessel_features" columnName="ircs"/></not>
+				<not><columnExists tableName="vessel_features" columnName="hull_material_qv_fk"/></not>
+			</and>
+		</preConditions>
+		<addColumn tableName="vessel_features">
+			<column name="auxiliary_power" type="integer"/>
+			<column name="construction_year" type="integer"/>
+			<column name="ircs" type="VARCHAR(10)"/>
+			<column name="hull_material_qv_fk" type="integer"/>
+		</addColumn>
+		<addForeignKeyConstraint constraintName="vessel_features_hull_mat_fkc"
+														 baseTableName="vessel_features" baseColumnNames="hull_material_qv_fk"
+														 referencedTableName="qualitative_value" referencedColumnNames="id"/>
+	</changeSet>
+
+	<!-- update SYSTEM_VERSION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-200" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='1.32.0'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+			<column name="LABEL">1.32.0</column>
+			<column name="DESCRIPTION">
+				- Add some columns into VESSEL_FEATURES
+			</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
+			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+			<column name="COMMENTS"/>
+		</insert>
+	</changeSet>
+</databaseChangeLog>

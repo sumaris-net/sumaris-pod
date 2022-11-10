@@ -22,15 +22,21 @@
 
 package net.sumaris.server.http.rest;
 
-import com.google.common.base.Preconditions;
+import com.google.common.base.Joiner;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.exception.FileUploadException;
+import net.sumaris.server.http.security.AnonymousUserDetails;
+import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.security.IAuthService;
 import net.sumaris.server.security.IDownloadController;
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.compress.utils.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -39,18 +45,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -82,24 +84,43 @@ public class UploadController {
     }
 
     @PostMapping(RestPaths.UPLOAD_PATH)
-    public FileUploadResponse uploadFile(@RequestParam("file") MultipartFile file,
-                              @RequestParam("objectType") String objectType,
-                              @RequestParam("objectId") Integer objectId) throws IOException {
+    @IsUser
+    public ResponseEntity<UploadResponse>  uploadFile(@RequestParam("file") MultipartFile file,
+                                                      @RequestParam("resourceType") String resourceType,
+                                                      @RequestParam("resourceId") String resourceId,
+                                                      @RequestParam(value = "replace", defaultValue = "false", required = false) String replaceStr) throws IOException {
 
-        File uploadedFile = storeFile(file, objectType, objectId);
+        boolean replace = Boolean.parseBoolean(replaceStr);
+        Path targetFile = getResourcePath(file, resourceType, resourceId, replace);
+        if (targetFile == null) {
+            log.warn(String.format("Reject upload request: invalid resource type {%s}", resourceType));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
 
-        String fileDownloadUri = downloadController.registerFile(uploadedFile, false);
+        try {
+            copyResource(file, targetFile, replace);
+        } catch (IOException ioe) {
+            log.error(ioe.toString());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UploadResponse.builder().message(ioe.toString()).build());
+        }
 
-        return FileUploadResponse.builder()
-            .fileName(uploadedFile.getName())
-            .fileDownloadUri(fileDownloadUri)
-            .fileType(file.getContentType())
-            .size(file.getSize())
-            .build();
+        String userPath = targetFile.getParent().getFileName().toString();
+
+        String fileUrl = Joiner.on('/').join(
+            configuration.getServerUrl() + RestPaths.UPLOAD_PATH,
+            userPath,
+            targetFile.getFileName().toString());
+
+        return ResponseEntity.ok()
+            .body(UploadResponse.builder().message("OK")
+                .fileName(targetFile.getFileName().toString())
+                .fileDownloadUri(fileUrl)
+                .fileType(file.getContentType())
+                .size(file.getSize())
+                .build());
     }
 
-
-    public File storeFile(MultipartFile file, @NonNull String objectType, @NonNull Integer objectId) {
+    public Path getResourcePath(MultipartFile file, @NonNull String resourceType, @NonNull String resourceId, boolean replace) {
 
         // Normalize file name
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
@@ -108,26 +129,26 @@ public class UploadController {
         String username = getAuthenticatedUsername();
         RestPaths.checkSecuredPath(username);
 
-        String fileName = "";
-        try {
+        Path targetDirectory = uploadDirectory.resolve(username);
 
-            String fileExtension = "";
-            try {
-                fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-            } catch (Exception e) {
-                fileExtension = "";
-            }
-            fileName = username + "_" + objectType + "_" + objectId + fileExtension;
-            // Copy file to the target location (Replacing existing file with the same name)
-            Path targetLocation = uploadDirectory.resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        // Append the original file extension
+        String extension = net.sumaris.core.util.Files.getExtension(originalFileName)
+            .orElse(null);
 
-            // TODO: store
+        // Copy file to the target location (Replacing existing file with the same name)
+        Path targetLocation;
+        int counter = 1;
+        String fileName;
+        do {
+            fileName = Joiner.on("-").join(resourceType, resourceId).trim();
+            if (counter > 1) fileName += "-" + counter;
+            if (extension != null) fileName += "." + extension;
+            targetLocation = targetDirectory.resolve(fileName);
+            counter++;
+        } while (!replace && Files.exists(targetLocation));
 
-            return targetLocation.toFile();
-        } catch (IOException ex) {
-            throw new FileUploadException(String.format("Could not store file {}. Please try again !", fileName), ex);
-        }
+        return targetLocation;
+
     }
 
     public Resource loadFileAsResource(String fileName) throws Exception {
@@ -157,4 +178,17 @@ public class UploadController {
         }
         return null;
     }
+
+    protected void copyResource(MultipartFile source, Path target, boolean replace) throws IOException {
+        if (replace) {
+            Files.deleteQuietly(target);
+        }
+        Files.createDirectories(target.getParent());
+        Files.copyStream(source.getInputStream(), Files.newOutputStream(target));
+    }
+
+    protected void deleteResource(Path resource) {
+        Files.deleteQuietly(resource);
+    }
+
 }
