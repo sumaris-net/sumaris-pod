@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 /**
  * @author peck7 on 19/08/2020.
  */
-public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Pmfm> {
+public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Integer, Pmfm> {
 
     default Specification<Pmfm> hasPmfmPart(PmfmPartsVO filter) {
         if (filter == null || filter.isEmpty()) return null; // Skip

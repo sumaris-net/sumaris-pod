@@ -1,0 +1,214 @@
+package net.sumaris.core.dao.technical.history;
+
+/*-
+ * #%L
+ * SUMARiS:: Core
+ * %%
+ * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.model.referential.ProcessingStatus;
+import net.sumaris.core.model.referential.ProcessingStatusEnum;
+import net.sumaris.core.model.referential.ProcessingType;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
+import net.sumaris.core.model.technical.job.JobStatusEnum;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.technical.job.JobFilterVO;
+import net.sumaris.core.vo.technical.job.JobVO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import javax.persistence.EntityManager;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * @author peck7 on 21/08/2020.
+ */
+@Slf4j
+public class ProcessingHistoryRepositoryImpl
+    extends SumarisJpaRepositoryImpl<ProcessingHistory, Integer, JobVO>
+    implements ProcessingHistorySpecifications {
+
+    private final ObjectMapper objectMapper;
+    private final XmlMapper xmlMapper;
+
+    protected ProcessingHistoryRepositoryImpl(EntityManager entityManager,
+                                              ObjectMapper objectMapper) {
+        super(ProcessingHistory.class, JobVO.class, entityManager);
+        this.objectMapper = objectMapper;
+        xmlMapper = new XmlMapper();
+        setLockForUpdate(false);
+        setCheckUpdateDate(false);
+    }
+
+    @Override
+    public List<JobVO> findAll(JobFilterVO filter) {
+        return super.streamAll(toSpecification(filter))
+            .map(this::toVO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<JobVO> findAll(JobFilterVO filter, Pageable pageable) {
+        return super.findAll(toSpecification(filter), pageable)
+            .map(this::toVO);
+    }
+
+    protected Specification<ProcessingHistory> toSpecification(JobFilterVO filter) {
+        return BindableSpecification
+            .where(id(filter.getId(), Integer.class))
+            .and(hasIssuers(filter.getIssuer(), filter.getIssuerEmail()))
+            .and(hasTypes(filter.getTypes()))
+            .and(hasJobStatus(filter.getStatus()));
+    }
+
+    @Override
+    public void toVO(ProcessingHistory source, JobVO target, boolean copyIfNull) {
+        super.toVO(source, target, copyIfNull);
+
+        target.setIssuer(source.getDataTransfertAddress());
+
+        // Status
+        ProcessingStatusEnum sourceStatus = ProcessingStatusEnum.valueOf(source.getProcessingStatus().getId());
+        JobStatusEnum targetStatus = JobStatusEnum.byProcessingStatus(sourceStatus);
+        target.setStatus(targetStatus);
+
+        // Type
+        ProcessingTypeEnum sourceType = ProcessingTypeEnum.valueOf(source.getProcessingType().getId());
+        target.setType(sourceType.getLabel());
+
+        // Start date
+        target.setStartDate(source.getDate());
+
+        // End date
+        if (ProcessingStatusEnum.isFinished(sourceStatus)) {
+            target.setEndDate(Dates.max(source.getUpdateDate(), source.getDate()));
+        }
+        else {
+            target.setEndDate(null); // Running or pending
+        }
+
+        // Configuration
+        if (StringUtils.isNotBlank(source.getXmlConfiguration())) {
+            try {
+                JsonNode node = xmlMapper.readTree(source.getXmlConfiguration().getBytes());
+                target.setConfiguration(objectMapper.writeValueAsString(node));
+            } catch (IOException e) {
+                log.error("Unable to convert XML to JSON", e);
+                if (log.isDebugEnabled()) {
+                    log.debug("XML to convert: {}", source.getConfiguration());
+                }
+            }
+        }
+        else if (StringUtils.isNotBlank(source.getConfiguration())) {
+            target.setConfiguration(source.getConfiguration());
+        }
+
+        // Report
+        if (StringUtils.isNotBlank(source.getXmlReport())) {
+            try {
+                JsonNode node = xmlMapper.readTree(source.getXmlReport().getBytes());
+                target.setReport(objectMapper.writeValueAsString(node));
+            } catch (IOException e) {
+                log.error("Unable to convert XML to JSON", e);
+                if (log.isDebugEnabled()) {
+                    log.debug("XML to deserialize: {}", source.getXmlReport());
+                }
+            }
+        }
+    }
+
+    @Override
+    public JobVO save(@NonNull JobVO source) {
+
+        // Call the inherited method
+        JobVO result = super.save(source);
+
+        return result;
+    }
+
+    @Override
+    public void toEntity(JobVO source, ProcessingHistory target, boolean copyIfNull) {
+        super.toEntity(source, target, copyIfNull);
+
+        EntityManager em = getEntityManager();
+
+        // Issuer
+        target.setDataTransfertAddress(source.getIssuer());
+
+        Date date = source.getStartDate();
+        if (date == null) date = new Date();
+        target.setDate(date);
+
+        // Type
+        ProcessingTypeEnum targetType = ProcessingTypeEnum.valueOf(source.getType());
+        target.setProcessingType(find(ProcessingType.class, targetType.getId()));
+
+        // Status
+        ProcessingStatusEnum targetStatus = source.getStatus().getProcessingStatus();
+        if (targetStatus == null) {
+            targetStatus = ProcessingStatusEnum.WAITING_EXECUTION;
+        }
+        target.setProcessingStatus(find(ProcessingStatus.class, targetStatus.getId()));
+
+        // Configuration
+        if (StringUtils.isNotBlank(source.getConfiguration())) {
+            try {
+                JsonNode node = objectMapper.readTree(source.getConfiguration().getBytes());
+                target.setXmlConfiguration(xmlMapper.writeValueAsString(node));
+            } catch (IOException e) {
+                log.error("Unable to convert JSON to XML", e);
+                if (log.isDebugEnabled()) {
+                    log.debug("JSON to convert: {}", source.getConfiguration());
+                }
+            }
+        }
+
+        // Report
+        if (StringUtils.isNotBlank(source.getReport())) {
+            try {
+                JsonNode node = objectMapper.readTree(source.getConfiguration().getBytes());
+                target.setXmlReport(xmlMapper.writeValueAsString(node));
+            } catch (IOException e) {
+                log.error("Unable to convert JSON to XML", e);
+                if (log.isDebugEnabled()) {
+                    log.debug("JSON to deserialize: {}", source.getReport());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void deleteById(Integer id) {
+        super.deleteById(id);
+    }
+
+}

@@ -121,14 +121,12 @@ public class LocationRepositoryImpl
         // If running on Hsqldb, or Postgrsql: run java implementation
         if (Daos.isHsqlDatabase(jdbcUrl) || Daos.isPostgresqlDatabase(jdbcUrl)) {
             doUpdateLocationHierarchy();
-            return;
         }
 
         // If Oracle, call PL/SQL procédure
-        if (Daos.isOracleDatabase(jdbcUrl)) {
+        else if (Daos.isOracleDatabase(jdbcUrl)) {
             getEntityManager().createStoredProcedureQuery("P_FILL_LOCATION_HIERARCHY")
                     .execute();
-            return;
         }
     }
 

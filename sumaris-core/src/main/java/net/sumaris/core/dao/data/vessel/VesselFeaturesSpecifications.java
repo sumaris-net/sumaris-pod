@@ -57,7 +57,7 @@ public interface VesselFeaturesSpecifications<
     F extends VesselFilterVO,
     O extends IFetchOptions
     >
-    extends DataSpecifications<VesselFeatures>, DataRepository<E, V, F, O> {
+    extends DataSpecifications<Integer, VesselFeatures>, DataRepository<E, V, F, O> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String VESSEL_TYPE_ID_PARAM = "vesselTypeId";

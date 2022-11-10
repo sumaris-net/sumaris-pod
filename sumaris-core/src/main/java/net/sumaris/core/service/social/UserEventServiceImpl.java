@@ -76,12 +76,6 @@ public class UserEventServiceImpl implements UserEventService {
         Preconditions.checkNotNull(event.getType());
         Preconditions.checkNotNull(event.getLevel());
 
-        // Check event type exists
-        EventTypeEnum.byLabel(event.getType());
-
-        // Check event level exists
-        EventLevelEnum.byLabel(event.getLevel());
-
         return userEventRepository.save(event);
     }
 

@@ -22,42 +22,14 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.NonNull;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
 public enum EventLevelEnum implements Serializable {
 
-    DEBUG("DEBUG"),
-
-    INFO("INFO"),
-
-    WARNING("WARNING"),
-
-    ERROR("ERROR")
-    ;
-
-
-    public static EventLevelEnum byLabel(@NonNull final String label) {
-        return Arrays.stream(values())
-                .filter(item -> label.equals(item.label))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown EventLevelEnum: " + label));
-    }
-
-    private String label;
-
-    EventLevelEnum(String label) {
-        this.label = label;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
+    ERROR,
+    WARNING,
+    INFO,
+    DEBUG;
 
 }

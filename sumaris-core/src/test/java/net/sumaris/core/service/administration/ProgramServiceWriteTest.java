@@ -33,6 +33,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.util.Lists;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
@@ -84,17 +85,18 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
     public void saveWithStrategies() {
-        ProgramVO program = service.getByLabel("PARAM-BIO");
+        ProgramVO program = service.getByLabel("SIH-OBSBIO");
         Assert.assertNotNull(program);
         Assert.assertNotNull(program.getId());
         Assert.assertEquals(40, program.getId().intValue());
 
+        StrategyFetchOptions fetchOptions = StrategyFetchOptions.builder()
+            .withPmfms(true)
+            .withAppliedStrategies(true).build();
         // Modify strategies
         //strategies = program.getStrategies();
-        List<StrategyVO> strategies = strategyService.findByProgram(program.getId(),
-                StrategyFetchOptions.builder().withPmfms(true).build());
+        List<StrategyVO> strategies = strategyService.findByProgram(program.getId(), fetchOptions);
         List<AppliedStrategyVO> appliedStrategies = Lists.newArrayList();
         List<AppliedPeriodVO> appliedPeriods = Lists.newArrayList();
         Assert.assertNotNull(strategies);
@@ -133,9 +135,18 @@ public class ProgramServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(actualProgram.getId());
 
         //strategies = program.getStrategies();
-        List<StrategyVO> actualStrategies = strategyService.findByProgram(actualProgram.getId(),
-                StrategyFetchOptions.builder().withPmfms(true).build());
-        Assert.assertEquals(strategies, actualStrategies);
+        List<StrategyVO> reloadedStrategies = strategyService.findByProgram(actualProgram.getId(), fetchOptions);
+        Assert.assertEquals(strategies.size(), reloadedStrategies.size());
+        reloadedStrategies.forEach(actualStrategy -> {
+            Assert.assertNotNull(actualStrategy.getId());
+            StrategyVO expectedStrategy = strategies.stream().filter(s -> actualStrategy.getId().equals(s.getId()))
+                .findFirst().orElse(null);
+            Assert.assertNotNull(expectedStrategy);
+            Assert.assertEquals(expectedStrategy.getLabel(), actualStrategy.getLabel());
+            Assert.assertEquals(
+                CollectionUtils.size(expectedStrategy.getAppliedStrategies()),
+                CollectionUtils.size(actualStrategy.getAppliedStrategies()));
+        });
     }
 
     @Test

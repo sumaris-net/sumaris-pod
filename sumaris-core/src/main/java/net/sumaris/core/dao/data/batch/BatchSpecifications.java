@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface BatchSpecifications extends DataSpecifications<Batch> {
+public interface BatchSpecifications extends DataSpecifications<Integer, Batch> {
 
     String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
 

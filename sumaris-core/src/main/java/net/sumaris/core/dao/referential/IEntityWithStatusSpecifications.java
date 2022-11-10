@@ -22,15 +22,18 @@
 
 package net.sumaris.core.dao.referential;
 
-import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.IWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import org.springframework.data.jpa.domain.Specification;
 
-public interface IEntityWithStatusSpecifications<E extends IWithStatusEntity<?, Status>>
-    extends IEntityWithJoinSpecifications<E> {
+import java.io.Serializable;
+
+public interface IEntityWithStatusSpecifications<
+    ID extends Serializable,
+    E extends IWithStatusEntity<ID, Status>>
+    extends IEntityWithJoinSpecifications<ID, E> {
 
     default Specification<E> inStatusIds(Integer... ids) {
-        return hasJoinIds(IReferentialWithStatusEntity.Fields.STATUS, ids);
+        return hasInnerJoinIds(IWithStatusEntity.Fields.STATUS, ids);
     }
 }

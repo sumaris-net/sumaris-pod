@@ -22,16 +22,22 @@
 
 package net.sumaris.core.vo.social;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.*;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.model.social.EventTypeEnum;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldNameConstants
 @EqualsAndHashCode
 public class UserEventFilterVO {

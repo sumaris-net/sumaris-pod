@@ -39,31 +39,10 @@ public enum MessageTypeEnum {
         return type != null ? type : defaultType;
     }
 
-    public static MessageTypeEnum byLabel(@NonNull final String label) {
-        return Arrays.stream(values())
-            .filter(item -> label.equals(item.label))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown MessageTypeEnum: " + label));
-    }
-
-    private String label;
     private EventTypeEnum eventType;
 
     MessageTypeEnum(EventTypeEnum eventType) {
-        this(eventType.getLabel());
         this.eventType = eventType;
-    }
-
-    MessageTypeEnum(String label) {
-        this.label = label;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
     }
 
     public EventTypeEnum toEventType() {

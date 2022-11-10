@@ -32,20 +32,34 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 
-public interface IEntityWithJoinSpecifications<E extends IWithStatusEntity<?, Status>> {
+public interface IEntityWithJoinSpecifications<ID extends Serializable, E extends IEntity<ID>>
+    extends IEntitySpecifications<ID, E> {
 
-    default Specification<E> hasJoinIds(final String joinPropertyName, Integer... ids) {
+    default Specification<E> hasInnerJoinIds(final String joinIdPath, Integer... ids) {
         if (ArrayUtils.isEmpty(ids)) return null;
 
-        String paramName = joinPropertyName + "Id";
+        String paramName = joinIdPath.replaceAll("\\.", "_")  + "Id";
 
         return BindableSpecification.where((root, query, cb) -> {
-            Join<?,?> join = Daos.composeJoin(root, joinPropertyName, JoinType.INNER);
+            Join<?,?> join = Daos.composeJoin(root, joinIdPath, JoinType.INNER);
             ParameterExpression<Collection> parameter = cb.parameter(Collection.class, paramName);
             return cb.in(join.get(IEntity.Fields.ID)).value(parameter);
         }).addBind(paramName, Arrays.asList(ids));
+    }
+
+    default <T> Specification<E> hasInnerJoinValues(final String joinPropertyPath, T... values) {
+        if (ArrayUtils.isEmpty(values)) return null;
+
+        String paramName = joinPropertyPath.replaceAll("\\.", "_")  + "Values";
+
+        return BindableSpecification.where((root, query, cb) -> {
+            Join<?,?> join = Daos.composeJoin(root, joinPropertyPath, JoinType.INNER);
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, paramName);
+            return cb.in(join.get(IEntity.Fields.ID)).value(parameter);
+        }).addBind(paramName, Arrays.asList(values));
     }
 }
