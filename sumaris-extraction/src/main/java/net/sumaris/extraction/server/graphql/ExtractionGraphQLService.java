@@ -179,7 +179,7 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
-    public Object getGeoJsonAggregation(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+    public Object getGeoJsonAggregation(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -251,7 +251,7 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "aggregationTech", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
-    public AggregationTechResultVO readByTech(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+    public AggregationTechResultVO readByTech(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                               @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                               @GraphQLArgument(name = "strata") AggregationStrataVO strata,
                                               @GraphQLArgument(name = "sortBy") String sort,
@@ -270,7 +270,7 @@ public class ExtractionGraphQLService {
 
     @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
     @Transactional(readOnly = true)
-    public MinMaxVO getTechMinMax(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+    public MinMaxVO getTechMinMax(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata) {
 

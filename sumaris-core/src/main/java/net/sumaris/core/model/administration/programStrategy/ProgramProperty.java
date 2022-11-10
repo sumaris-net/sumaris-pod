@@ -22,7 +22,7 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -31,8 +31,10 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "program_property")
@@ -41,15 +43,16 @@ public class ProgramProperty implements IItemReferentialEntity<Integer>  {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_PROPERTY_SEQ")
     @SequenceGenerator(name = "PROGRAM_PROPERTY_SEQ", sequenceName="PROGRAM_PROPERTY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = 255)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = 255)
-    @ToString.Include
+    
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

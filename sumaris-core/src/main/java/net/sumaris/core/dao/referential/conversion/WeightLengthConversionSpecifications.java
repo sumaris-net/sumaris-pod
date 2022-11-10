@@ -46,7 +46,7 @@ import javax.persistence.criteria.Root;
 import java.util.*;
 
 public interface WeightLengthConversionSpecifications
-    extends IEntityWithStatusSpecifications<WeightLengthConversion> {
+    extends IEntityWithStatusSpecifications<Integer, WeightLengthConversion> {
 
     String MONTH_PARAMETER = "month";
     String RECTANGLE_LABELS_PARAMETER = "rectangleLabels";
@@ -54,11 +54,11 @@ public interface WeightLengthConversionSpecifications
     String LEANGTH_PMFM_IDS_PARAMETER = "lengthPmfmIds";
 
     default Specification<WeightLengthConversion> hasReferenceTaxonIds(Integer... ids) {
-        return hasJoinIds(WeightLengthConversion.Fields.REFERENCE_TAXON, ids);
+        return hasInnerJoinIds(WeightLengthConversion.Fields.REFERENCE_TAXON, ids);
     }
 
     default Specification<WeightLengthConversion> hasLocationIds(Integer... ids) {
-        return hasJoinIds(WeightLengthConversion.Fields.LOCATION, ids);
+        return hasInnerJoinIds(WeightLengthConversion.Fields.LOCATION, ids);
     }
 
     default Specification<WeightLengthConversion> hasRectangleLabels(String... rectangleLabels) {
@@ -95,15 +95,15 @@ public interface WeightLengthConversionSpecifications
 
 
     default Specification<WeightLengthConversion> hasSexIds(Integer... ids) {
-        return hasJoinIds(WeightLengthConversion.Fields.SEX, ids);
+        return hasInnerJoinIds(WeightLengthConversion.Fields.SEX, ids);
     }
 
     default Specification<WeightLengthConversion> hasLengthParameterIds(Integer... ids) {
-        return hasJoinIds(WeightLengthConversion.Fields.LENGTH_PARAMETER, ids);
+        return hasInnerJoinIds(WeightLengthConversion.Fields.LENGTH_PARAMETER, ids);
     }
 
     default Specification<WeightLengthConversion> hasLengthUnitIds(Integer... ids) {
-        return hasJoinIds(WeightLengthConversion.Fields.LENGTH_UNIT, ids);
+        return hasInnerJoinIds(WeightLengthConversion.Fields.LENGTH_UNIT, ids);
     }
     default Specification<WeightLengthConversion> hasLengthPmfmIds(Integer... lengthPmfmIds) {
         if (ArrayUtils.isEmpty(lengthPmfmIds)) return null;

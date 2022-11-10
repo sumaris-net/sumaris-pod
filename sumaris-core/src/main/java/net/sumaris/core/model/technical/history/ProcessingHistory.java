@@ -22,9 +22,11 @@ package net.sumaris.core.model.technical.history;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingType;
@@ -41,15 +43,20 @@ import java.util.Date;
  *
  *  L’exécution des traitements en erreur peuvent également être tracée.
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_history")
-public class ProcessingHistory implements IEntity<Integer> {
+public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_HISTORY_SEQ")
     @SequenceGenerator(name = "PROCESSING_HISTORY_SEQ", sequenceName="PROCESSING_HISTORY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+
+    @EqualsAndHashCode.Include
     private Integer id;
 
     /**
@@ -110,6 +117,7 @@ public class ProcessingHistory implements IEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
+    /* -- type and status -- */
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ProcessingType.class)
     @JoinColumn(name = "processing_type_fk", nullable = false)
@@ -120,7 +128,6 @@ public class ProcessingHistory implements IEntity<Integer> {
     private ProcessingStatus processingStatus;
 
     /* -- child entities -- */
-
 
 
 }

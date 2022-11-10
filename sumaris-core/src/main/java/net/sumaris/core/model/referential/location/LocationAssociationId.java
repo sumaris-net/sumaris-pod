@@ -22,12 +22,15 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 public class LocationAssociationId implements Serializable {
     private int parentLocation;

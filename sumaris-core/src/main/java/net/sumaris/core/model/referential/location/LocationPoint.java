@@ -22,7 +22,10 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.locationtech.jts.geom.Geometry;
 
@@ -30,13 +33,16 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="location_point")
 public class LocationPoint implements Serializable {
 
     @Id
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)

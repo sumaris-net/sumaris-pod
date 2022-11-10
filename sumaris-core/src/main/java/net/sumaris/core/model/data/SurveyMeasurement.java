@@ -22,7 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
@@ -33,7 +33,10 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name="survey_measurement")
@@ -42,6 +45,8 @@ public class SurveyMeasurement implements IMeasurementEntity, ISortedMeasurement
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SURVEY_MEASUREMENT_SEQ")
     @SequenceGenerator(name = "SURVEY_MEASUREMENT_SEQ", sequenceName="SURVEY_MEASUREMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

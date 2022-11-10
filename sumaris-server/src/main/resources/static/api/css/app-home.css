@@ -1,0 +1,11 @@
+
+ul > li.divider {
+    list-style-type: none;
+    display: block;
+    margin-left: -18px;
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-size: .875rem;
+    color: #6c757d;
+    white-space: nowrap;
+}

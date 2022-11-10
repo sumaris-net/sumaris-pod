@@ -22,32 +22,32 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.annotation.OntologyEntity;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.ModelVocabularies;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "status")
 @Cacheable
-@OntologyEntity(vocab = ModelVocabularies.COMMON)
+@OntologyEntity(vocab = ModelVocabularies.SHARED)
 public class Status implements IReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "STATUS_SEQ")
     @SequenceGenerator(name = "STATUS_SEQ", sequenceName="STATUS_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    @ToString.Include
     private String label;
 
     @Column(nullable = false)

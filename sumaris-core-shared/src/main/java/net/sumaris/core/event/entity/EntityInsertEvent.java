@@ -23,7 +23,7 @@
 package net.sumaris.core.event.entity;
 
 import lombok.Builder;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 
 import java.io.Serializable;
 

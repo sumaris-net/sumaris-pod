@@ -22,17 +22,32 @@
 
 package net.sumaris.rdf.core.loader;
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
+
+import java.util.Map;
 
 /**
  * Helper class for SparQL queries
  */
 public class SparqlQueries {
 
-    public static final String LIMIT_CLAUSE = "LIMIT %s OFFSET %s";
+    public static final String LIMIT_CLAUSE = "OFFSET %s LIMIT %s";
 
-    public static String getConstructQuery(String baseQuery, Page page) {
+    public static String asPageableQuery(String baseQuery, Page page) {
         if (page == null || page.getSize() < 0 || page.getOffset() < 0) return baseQuery;
-        return baseQuery + "\n" + String.format(LIMIT_CLAUSE, page.getSize(), page.getOffset());
+        return baseQuery + "\n" + String.format(LIMIT_CLAUSE, page.getOffset(), page.getSize());
+    }
+
+    public static String bindParameters(@NonNull String baseQuery, @NonNull Map<String, String> parameters) {
+        String query = baseQuery;
+        for (Map.Entry<String, String> param : parameters.entrySet()) {
+            query = bindParameter(query, param.getKey(), param.getValue());
+        }
+        return query;
+    }
+
+    public static String bindParameter(String query, String parameterName, String value) {
+        return query.replaceAll("\\$\\{" + parameterName + "\\}", value);
     }
 }

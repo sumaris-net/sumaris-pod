@@ -26,7 +26,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -45,7 +45,7 @@ import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
-import net.sumaris.server.security.IAuthService;
+import net.sumaris.server.security.ISecurityContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -73,7 +73,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     @Autowired
     private ExtractionTypeService extractionTypeService;
     @Autowired
-    private IAuthService<PersonVO> authService;
+    private ISecurityContext<PersonVO> securityContext;
 
     private String accessNotSelfExtractionMinRole;
 
@@ -85,8 +85,8 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     @Override
     public boolean canReadAll() {
         return (StringUtils.isNotBlank(accessNotSelfExtractionMinRole)
-                && authService.hasAuthority(accessNotSelfExtractionMinRole))
-                || authService.isAdmin();
+                && securityContext.hasAuthority(accessNotSelfExtractionMinRole))
+                || securityContext.isAdmin();
     }
 
     @Override
@@ -120,12 +120,12 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public boolean canWrite() {
-        return authService.isSupervisor();
+        return securityContext.isSupervisor();
     }
 
     @Override
     public boolean canWriteAll() {
-        return authService.isAdmin();
+        return securityContext.isAdmin();
     }
 
     @Override
@@ -160,7 +160,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
-        return authService.getAuthenticatedUser();
+        return securityContext.getAuthenticatedUser();
     }
 
     @Override

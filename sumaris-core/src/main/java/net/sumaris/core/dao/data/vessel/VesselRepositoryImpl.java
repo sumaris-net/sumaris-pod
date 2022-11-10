@@ -140,7 +140,7 @@ public class VesselRepositoryImpl
     public Specification<Vessel> toSpecification(VesselFilterVO filter, VesselFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             // by ID
-            .and(id(filter.getVesselId()))
+            .and(id(filter.getVesselId(), Integer.class))
             .and(vesselFeaturesId(filter.getVesselFeaturesId()))
             // by locations
             .and(registrationLocationId(filter.getRegistrationLocationId()))

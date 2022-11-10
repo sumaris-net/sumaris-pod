@@ -25,7 +25,7 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
@@ -45,13 +45,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public interface ReferentialSpecifications<ID extends Serializable, E extends IReferentialWithStatusEntity<ID>>
-    extends IEntityWithStatusSpecifications<E> {
+    extends IEntityWithStatusSpecifications<ID, E> {
 
-    String PROPERTY_PARAMETER_PREFIX = "property";
+
     String LEVEL_LABEL_PARAMETER = "levelLabel";
     String SEARCH_TEXT_PARAMETER = "searchText";
-    String INCLUDED_IDS_PARAMETER = "includedIds";
-    String EXCLUDED_IDS_PARAMETER = "excludedIds";
 
     default Specification<E> hasId(Integer id) {
         if (id == null) return null;
@@ -196,36 +194,6 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
             .map(levelPath -> StringUtils.doting(StringUtils.uncapitalize(searchJoin), levelPath)) // Create the full path
             .map(fullLevelPath -> inJoinPropertyIds(fullLevelPath, joinLevelIds))
             .orElse(null);
-    }
-
-    default Specification<E> includedIds(Integer[] includedIds) {
-        if (ArrayUtils.isEmpty(includedIds)) return null;
-        return BindableSpecification.<E>where((root, query, cb) -> {
-            ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
-            return cb.in(root.get(IEntity.Fields.ID)).value(param);
-        })
-            .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
-    }
-
-    default Specification<E> excludedIds(Integer[] excludedIds) {
-        if (ArrayUtils.isEmpty(excludedIds)) return null;
-        return BindableSpecification.<E>where((root, query, cb) -> {
-            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
-            return cb.not(
-                    cb.in(root.get(IEntity.Fields.ID)).value(param)
-            );
-        })
-        .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
-    }
-
-    default Specification<E> withPropertyValue(String propertyName, Class<?> propertyClass, Object value) {
-        if (value == null) return null;
-        final String parameterName = PROPERTY_PARAMETER_PREFIX + StringUtils.capitalize(propertyName.replaceAll("[.]", "_"));
-        return BindableSpecification.<E>where((root, query, cb) -> {
-                ParameterExpression<?> parameter = cb.parameter(propertyClass, parameterName);
-                return cb.equal(Daos.composePath(root, propertyName), parameter);
-            })
-            .addBind(parameterName, value);
     }
 
     default boolean shouldQueryDistinct(String joinProperty) {

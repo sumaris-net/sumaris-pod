@@ -61,7 +61,7 @@ public class TripRepositoryImpl
     @Override
     public Specification<Trip> toSpecification(TripFilterVO filter, TripFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(id(filter.getTripId()))
+            .and(id(filter.getTripId(), Integer.class))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))

@@ -31,7 +31,6 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.dao.OntologyEntitiesDao;
 import net.sumaris.rdf.core.model.ModelEntities;
-import net.sumaris.rdf.core.model.ModelVocabulary;
 import net.sumaris.rdf.core.service.schema.RdfSchemaFetchOptions;
 import net.sumaris.rdf.core.service.schema.RdfSchemaService;
 import net.sumaris.rdf.core.util.Bean2Owl;

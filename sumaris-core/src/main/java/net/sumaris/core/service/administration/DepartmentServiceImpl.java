@@ -24,7 +24,9 @@ package net.sumaris.core.service.administration;
 
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.user.Department;
@@ -35,6 +37,7 @@ import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
@@ -74,8 +77,8 @@ public class DepartmentServiceImpl implements DepartmentService {
 	}
 
 	@Override
-	public ImageAttachmentVO getLogoByLabel(final String label) {
-		Preconditions.checkNotNull(label);
+	@Cacheable(cacheNames = CacheConfiguration.Names.DEPARTMENT_LOGO_BY_LABEL, key = "#label", unless="#result==null")
+	public ImageAttachmentVO getLogoByLabel(@NonNull final String label) {
 		Optional<Department> department = Optional.of(departmentRepository.getById(departmentRepository.getByLabel(label).getId()));
 
 		int logoId = department

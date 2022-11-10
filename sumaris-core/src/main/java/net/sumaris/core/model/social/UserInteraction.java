@@ -22,10 +22,11 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ISignedEntity;
+import net.sumaris.core.model.ISignedEntity;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.ObjectType;
 
@@ -33,8 +34,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_interaction")
@@ -44,6 +47,8 @@ public class UserInteraction implements ISignedEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_INTERACTION_SEQ")
     @SequenceGenerator(name = "USER_INTERACTION_SEQ", sequenceName="USER_INTERACTION_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -55,11 +60,10 @@ public class UserInteraction implements ISignedEntity<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
-    @ToString.Include
+    
     private String issuer;
 
     @Column(name = "interaction_type", nullable = false, length = 30)
-    @ToString.Include(rank = 1)
     private String interactionType;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
@@ -73,7 +77,7 @@ public class UserInteraction implements ISignedEntity<Integer, Date> {
     private String comment;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
-    @ToString.Include
+    
     private String hash;
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)

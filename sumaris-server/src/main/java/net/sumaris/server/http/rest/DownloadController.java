@@ -24,6 +24,7 @@ package net.sumaris.server.http.rest;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Files;
@@ -38,7 +39,6 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -87,10 +87,10 @@ public class DownloadController implements IDownloadController {
             @PathVariable(name="filename") String filename
     ) throws IOException {
         if (StringUtils.isNotBlank(username)) {
-            return doDownloadFile(username + "/" + filename);
+            return getFileResponse(username + "/" + filename);
         }
         else {
-            return doDownloadFile(filename);
+            return getFileResponse(filename);
         }
     }
 
@@ -100,10 +100,10 @@ public class DownloadController implements IDownloadController {
             @RequestParam(name = "filename") String filename
     ) throws IOException{
         if (StringUtils.isNotBlank(username)) {
-            return doDownloadFile(username + "/" + filename);
+            return getFileResponse(username + "/" + filename);
         }
         else {
-            return doDownloadFile(filename);
+            return getFileResponse(filename);
         }
     }
 
@@ -147,42 +147,45 @@ public class DownloadController implements IDownloadController {
                 targetFile.getFileName().toString());
     }
 
-    /* -- protected method -- */
+    public ResponseEntity<InputStreamResource> getFileResponse(@NonNull File baseDirectory, String filename) throws IOException {
+        if (StringUtils.isBlank(filename)) return ResponseEntity.badRequest().build();
 
-    protected ResponseEntity<InputStreamResource> doDownloadFile(String filename) throws IOException {
-        if (StringUtils.isBlank(filename)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
-        // Avoid '..' in the filename
+        // Avoid '..' in the path
         if (!RestPaths.isSecuredPath(filename)) {
-            log.warn(String.format("Reject download request: invalid filename {}", filename));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .build();
+            log.warn("Reject request to a file {} - Unsecured path", filename);
+            return ResponseEntity.badRequest().build();
         }
 
         MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
-                .orElse(MediaType.APPLICATION_OCTET_STREAM);
+            .orElse(MediaType.APPLICATION_OCTET_STREAM);
 
-        File file = new File(configuration.getDownloadDirectory(), filename);
+        File file = new File(baseDirectory, filename);
         if (!file.exists()) {
-            log.warn(String.format("Reject download request: file {%s} not found, or invalid path", filename));
+            log.warn("Reject request to file {} - File not found, or invalid path", file.getAbsolutePath());
             return ResponseEntity.notFound().build();
         }
         if (!file.canRead()) {
-            log.warn(String.format("Reject download request: file {%s} not readable", filename));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            log.warn("Reject request to file {} - File not readable", file.getAbsolutePath());
+            return ResponseEntity.badRequest().build();
         }
 
-        log.debug(String.format("Download request to file {%s} of type {%s}", filename, mediaType));
+        log.debug("Request to file {} of type {}", filename, mediaType);
         InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
 
         return ResponseEntity.ok()
-                // Content-Disposition
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + file.getName())
-                // Content-Type
-                .contentType(mediaType)
-                // Content-Length
-                .contentLength(file.length())
-                .body(resource);
+            // Content-Disposition
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + file.getName())
+            // Content-Type
+            .contentType(mediaType)
+            // Content-Length
+            .contentLength(file.length())
+            .body(resource);
+    }
+
+    /* -- protected method -- */
+
+    protected ResponseEntity<InputStreamResource> getFileResponse(String filename) throws IOException {
+        return getFileResponse(configuration.getDownloadDirectory(), filename);
     }
 
     protected String getAuthenticatedUsername() {

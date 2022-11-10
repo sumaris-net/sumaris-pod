@@ -23,7 +23,7 @@
 package net.sumaris.core.vo.technical.extraction;
 
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;

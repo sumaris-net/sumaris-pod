@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationAssociation;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
@@ -121,14 +121,12 @@ public class LocationRepositoryImpl
         // If running on Hsqldb, or Postgrsql: run java implementation
         if (Daos.isHsqlDatabase(jdbcUrl) || Daos.isPostgresqlDatabase(jdbcUrl)) {
             doUpdateLocationHierarchy();
-            return;
         }
 
         // If Oracle, call PL/SQL procédure
-        if (Daos.isOracleDatabase(jdbcUrl)) {
+        else if (Daos.isOracleDatabase(jdbcUrl)) {
             getEntityManager().createStoredProcedureQuery("P_FILL_LOCATION_HIERARCHY")
                     .execute();
-            return;
         }
     }
 

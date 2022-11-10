@@ -23,7 +23,8 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.Landing;
@@ -38,8 +39,10 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "pmfm",
@@ -62,7 +65,8 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_SEQ")
     @SequenceGenerator(name = "PMFM_SEQ", sequenceName="PMFM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,7 +82,7 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
     private Date updateDate;
 
     @Column(length = IItemReferentialEntity.LENGTH_LABEL, unique = true)
-    @ToString.Include
+    
     private String label;
 
     @Formula("(select p.name from parameter p where p.id = parameter_fk)")

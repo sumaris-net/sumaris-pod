@@ -85,7 +85,7 @@ public class ModelUtils {
             byte[] bytes = toBytes(model, format);
             return new String(bytes, "UTF8");
         } catch (IOException e) {
-           throw new SumarisTechnicalException(e);
+            throw new SumarisTechnicalException(e);
         }
     }
 
@@ -351,12 +351,12 @@ public class ModelUtils {
             default:
                 Reasoner reasoner = ReasonerRegistry.getOWLMicroReasoner();
                 InfModel infModel = schema != null ?
-                        ModelFactory.createInfModel(reasoner, schema, ModelFactory.createDefaultModel()) :
-                        ModelFactory.createInfModel(reasoner, ModelFactory.createDefaultModel());
+                    ModelFactory.createInfModel(reasoner, schema, ModelFactory.createDefaultModel()) :
+                    ModelFactory.createInfModel(reasoner, ModelFactory.createDefaultModel());
                 ontology = ModelFactory.createOntologyModel(
-                        OntModelSpec.OWL_MEM_MICRO_RULE_INF
-                        //OntModelSpec.OWL_DL_MEM
-                        , infModel);
+                    OntModelSpec.OWL_MEM_MICRO_RULE_INF
+                    //OntModelSpec.OWL_DL_MEM
+                    , infModel);
         }
 
         ontology.setNsPrefix(prefix, namespace);
@@ -386,17 +386,17 @@ public class ModelUtils {
             return RdfFormat.RDFXML;
         }
         return RdfFormat.fromUserString(userFormat)
-                .orElse(RdfFormat.RDFXML);
+            .orElse(RdfFormat.RDFXML);
     }
 
 
     protected static Model readOwl(String iri) {
 
         String rdfFilenameFromUri = iri.replaceAll("(http|https)", "")
-                .replaceAll("[:]+", "")
-                .replaceAll("[/]+", "_")
-                .replace("^[_]+", "")
-                .replace(".owl$", ".rdf");
+            .replaceAll("[:]+", "")
+            .replaceAll("[/]+", "_")
+            .replace("^[_]+", "")
+            .replace(".owl$", ".rdf");
         File pivotRdfFile = new File(RdfConfiguration.instance().getRdfDirectory(), rdfFilenameFromUri);
 
         // Reuse the pivot file if exists
@@ -432,7 +432,7 @@ public class ModelUtils {
         try {
             // Init the pivot file, if need
             pivotRdfFile = pivotRdfFile != null ? pivotRdfFile :
-                    File.createTempFile("owl2rdf", "tmp", config.getRdfDirectory());
+                File.createTempFile("owl2rdf", "tmp", config.getRdfDirectory());
             if (pivotRdfFile.exists() && !pivotRdfFile.delete()) {
                 throw new SumarisTechnicalException("Pivot RDF file already exists, and cannot be deleted!");
             }
@@ -456,7 +456,7 @@ public class ModelUtils {
         File tempRdfFile = null;
         try {
             tempRdfFile = Files.createTempFile("rdf2owl",
-                    RdfConfiguration.instance().getTempDirectory());
+                RdfConfiguration.instance().getTempDirectory());
 
             // Write OWL
             write(model, RdfFormat.RDFXML, tempRdfFile);

@@ -31,7 +31,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends IDataFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements DataRepository<E, V, F, O>, DataSpecifications<E> {
+    implements DataRepository<E, V, F, O>, DataSpecifications<Integer, E> {
 
     protected static PersonFetchOptions PERSON_FETCH_OPTIONS = PersonFetchOptions.builder()
         .withDepartment(true)

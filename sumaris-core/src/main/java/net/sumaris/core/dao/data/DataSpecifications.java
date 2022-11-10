@@ -22,8 +22,9 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IWithDataQualityEntity;
@@ -42,29 +43,11 @@ import java.util.Objects;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface DataSpecifications<E extends IDataEntity<? extends Serializable>> {
+public interface DataSpecifications<ID extends Serializable,
+    E extends IDataEntity<ID>>
+    extends IEntitySpecifications<ID, E> {
 
-    String ID_PARAM = "id";
-    String EXCLUDED_IDS_PARAM = "excludedIds";
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
-
-    default Specification<E> excludedIds(Integer[] excludedIds) {
-        if (ArrayUtils.isEmpty(excludedIds)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_IDS_PARAM);
-            return cb.not(
-                cb.in(root.get(E.Fields.ID)).value(param)
-            );
-        }).addBind(EXCLUDED_IDS_PARAM, Arrays.asList(excludedIds));
-    }
-
-    default Specification<E> id(Integer id) {
-        if (id == null) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, ID_PARAM);
-            return cb.equal(root.get(E.Fields.ID), param);
-        }).addBind(ID_PARAM, id);
-    }
 
     default Specification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
         if (recorderDepartmentId == null) return null;

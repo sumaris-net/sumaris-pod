@@ -23,7 +23,9 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -37,8 +39,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "strategy")
@@ -56,7 +60,8 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")
     @SequenceGenerator(name = "STRATEGY_SEQ", sequenceName="STRATEGY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,11 +77,11 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = 50)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = 100)
-    @ToString.Include
+    
     private String name;
 
     private String description;
@@ -89,7 +94,7 @@ public class Strategy implements IItemReferentialEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_fk", nullable = false)
-    @ToString.Include
+    
     private Program program;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)

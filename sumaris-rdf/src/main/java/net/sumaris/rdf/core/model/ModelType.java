@@ -30,22 +30,4 @@ public enum ModelType {
     SCHEMA,
     DATA;
 
-    public static ModelType fromUserString(String userType) {
-        Preconditions.checkNotNull(userType);
-
-        switch(userType.toLowerCase()) {
-            case "voc":
-            case "vocabulary":
-            case "term":
-            case "terms":
-            case "schema":
-                return SCHEMA;
-            case "data":
-            case "entities":
-            case "object":
-                return DATA;
-            default:
-                throw new IllegalArgumentException("Unknown model type: " + userType);
-        }
-    }
 }

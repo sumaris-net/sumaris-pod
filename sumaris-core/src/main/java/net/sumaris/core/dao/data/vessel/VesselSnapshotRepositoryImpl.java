@@ -181,7 +181,7 @@ public class VesselSnapshotRepositoryImpl
     public Specification<VesselFeatures> toSpecification(@NonNull VesselFilterVO filter, VesselFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             // IDs
-            .and(id(filter.getVesselFeaturesId()))
+            .and(id(filter.getVesselFeaturesId(), Integer.class))
             .and(vesselId(filter.getVesselId()))
             .and(vesselTypeId(filter.getVesselTypeId()))
             // by locations

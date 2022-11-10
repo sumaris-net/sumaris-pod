@@ -22,18 +22,11 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.data.DataSpecifications;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.vo.data.OperationGroupVO;
-import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +34,7 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationGroupSpecifications
-    extends DataSpecifications<Operation> {
+    extends DataSpecifications<Integer, Operation> {
 
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);

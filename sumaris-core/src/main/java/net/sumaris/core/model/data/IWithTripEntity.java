@@ -22,10 +22,9 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 
 import java.io.Serializable;
-import java.util.List;
 
 public interface IWithTripEntity<T extends Serializable, B extends IEntity<Integer>> extends IEntity<T> {
 
