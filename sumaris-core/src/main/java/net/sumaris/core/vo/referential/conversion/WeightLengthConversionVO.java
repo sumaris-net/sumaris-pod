@@ -24,8 +24,8 @@ package net.sumaris.core.vo.referential.conversion;
 
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;

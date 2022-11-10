@@ -27,16 +27,16 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  * @author <benoit.lavenier@e-is.pro> on 08/07/2020.
@@ -53,15 +53,19 @@ public class UserEventServiceImpl implements UserEventService {
     }
 
     @Override
-    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
-        return repository.findAllVO(repository.toSpecification(filter), page)
-                .stream().collect(Collectors.toList());
+    public Long count(UserEventFilterVO filter) {
+        return userEventRepository.count(filter);
+    }
+
+
+    @Override
+    public List<UserEventVO> findAll(UserEventFilterVO filter) {
+        return userEventRepository.findAllVO(filter, null);
     }
 
     @Override
-    public List<UserEventVO> findAll(UserEventFilterVO filter, Pageable page) {
-        return repository.findAllVO(repository.toSpecification(filter), page)
-            .stream().collect(Collectors.toList());
+    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
+        return userEventRepository.findAllVO(filter, page);
     }
 
     @Override
@@ -69,10 +73,14 @@ public class UserEventServiceImpl implements UserEventService {
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getIssuer());
         Preconditions.checkNotNull(event.getRecipient());
-        Preconditions.checkNotNull(event.getEventType());
+        Preconditions.checkNotNull(event.getType());
+        Preconditions.checkNotNull(event.getLevel());
 
         // Check event type exists
-        EventTypeEnum.byLabel(event.getEventType());
+        EventTypeEnum.byLabel(event.getType());
+
+        // Check event level exists
+        EventLevelEnum.byLabel(event.getLevel());
 
         return repository.save(event);
     }
@@ -90,5 +98,28 @@ public class UserEventServiceImpl implements UserEventService {
                 .forEach(this::delete);
     }
 
+    @Override
+    public Timestamp getLastCreationDate(String... recipients) {
+        return userEventRepository.getMaxCreationDateByRecipient(Arrays.asList(recipients));
+    }
 
+    @Override
+    public Timestamp getLastReadDate(String... recipients) {
+        return userEventRepository.getMaxReadDateByRecipient(Arrays.asList(recipients));
+    }
+
+    @Override
+    public void markAsRead(List<Integer> userEventIds) {
+        if (CollectionUtils.isEmpty(userEventIds)) return;
+
+        Timestamp readDate = userEventRepository.getDatabaseCurrentTimestamp();
+        userEventIds.stream()
+            .map(userEventRepository::findById)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .forEach(userEventVO -> {
+                userEventVO.setReadDate(readDate);
+                userEventRepository.save(userEventVO);
+            });
+    }
 }

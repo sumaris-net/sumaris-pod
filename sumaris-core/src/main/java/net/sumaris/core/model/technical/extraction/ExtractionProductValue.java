@@ -22,19 +22,20 @@ package net.sumaris.core.model.technical.extraction;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
-import java.util.List;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "extraction_product_value")
@@ -43,7 +44,8 @@ public class ExtractionProductValue implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_VALUE_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_VALUE_SEQ", sequenceName="EXTRACTION_PRODUCT_VALUE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    @EqualsAndHashCode.Exclude
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
@@ -54,8 +56,6 @@ public class ExtractionProductValue implements IEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_column_fk", nullable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private ExtractionProductColumn column;
 
 }

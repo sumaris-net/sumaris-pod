@@ -24,7 +24,7 @@ package net.sumaris.core.vo.social;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.social.EventTypeEnum;
@@ -38,17 +38,23 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldNameConstants
+@EqualsAndHashCode
 public class UserEventFilterVO {
 
+    public static UserEventFilterVO nullToEmpty(UserEventFilterVO f) {
+        return f != null ? f : UserEventFilterVO.builder().build();
+    }
+
+    @Deprecated
     private String issuer;
+    @Deprecated
     private String recipient;
 
-    @Builder.Default
-    private List<EventTypeEnum> types = new ArrayList<>();
-
-    @Builder.Default
-    private List<Integer> jobIds = new ArrayList<>();
-
-    private Boolean excludeRead;
-    private Timestamp startDate;
+    private Integer[] includedIds;
+    private String[] types;
+    private String[] levels;
+    private String[] recipients;
+    private String[] issuers;
+    private Date startDate;
+    private boolean excludeRead = false;
 }

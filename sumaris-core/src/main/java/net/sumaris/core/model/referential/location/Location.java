@@ -22,7 +22,8 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -33,8 +34,10 @@ import net.sumaris.core.model.referential.ValidityStatus;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "location")
@@ -44,7 +47,8 @@ public class Location implements IItemReferentialEntity<Integer>, IWithValidityS
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
     @SequenceGenerator(name = "LOCATION_SEQ", sequenceName="LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,7 +64,7 @@ public class Location implements IItemReferentialEntity<Integer>, IWithValidityS
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

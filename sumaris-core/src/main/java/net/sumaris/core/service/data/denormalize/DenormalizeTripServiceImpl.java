@@ -26,6 +26,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.service.data.DenormalizedBatchService;
@@ -35,6 +36,7 @@ import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
@@ -169,9 +171,13 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             operations.forEach(operation -> {
                 try {
                     List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
-                    batchesCount.add(batches.size());
-                } catch (Exception e) {
-                    log.error(e.getMessage());
+                    batchesCount.add(CollectionUtils.size(batches));
+                } catch (SumarisBusinessException be) {
+                    log.error(be.getMessage());
+                    errorCount.increment();
+                }
+                catch (Exception e) {
+                    log.error(e.getMessage(), e);
                     errorCount.increment();
                 }
             });

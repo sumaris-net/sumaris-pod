@@ -22,8 +22,8 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 

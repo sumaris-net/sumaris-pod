@@ -26,8 +26,6 @@ import net.sumaris.rdf.core.model.IModelVisitor;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-
 @Transactional(readOnly = true)
 public interface RdfIndividualService {
 
@@ -37,7 +35,7 @@ public interface RdfIndividualService {
      */
     void register(IModelVisitor<Model, RdfIndividualFetchOptions> visitor);
 
-    Model getIndividuals(@Nullable RdfIndividualFetchOptions options);
+    Model getIndividuals(RdfIndividualFetchOptions options);
 
 
 }

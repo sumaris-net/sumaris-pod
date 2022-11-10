@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>1.31.2-SNAPSHOT</version>
+    <version>1.31.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -286,6 +286,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compilerPluginVersion}</version>
         <configuration>
           <source>${javaVersion}</source>
           <target>${javaVersion}</target>

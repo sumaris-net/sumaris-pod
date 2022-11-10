@@ -23,8 +23,8 @@
 package net.sumaris.rdf.server.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.model.annotation.OntologyEntities;
 import net.sumaris.core.model.ModelVocabularyEnum;
+import net.sumaris.core.model.annotation.OntologyEntities;
 import net.sumaris.rdf.core.config.RdfConfiguration;
 import net.sumaris.rdf.core.model.ModelURIs;
 import net.sumaris.rdf.core.util.RdfFormat;

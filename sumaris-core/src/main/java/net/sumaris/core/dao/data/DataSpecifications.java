@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IWithDataQualityEntity;

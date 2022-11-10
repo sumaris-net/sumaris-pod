@@ -195,7 +195,8 @@ sonarqube:
   script:
     - echo "Preparing release..."
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false"
-    - if [[ "_${RELEASE_VERSION}" != "_" ]]; then MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"; else exit 1; fi
+    - if [[ "_${RELEASE_VERSION}" == "_" ]]; then echo "Missing pipeline variable 'RELEASE_VERSION' !" && exit 1; fi
+    - MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
     - mvn clean package --batch-mode -DskipTests -DperformRelease -Phsqldb -Denv=hsqldb
@@ -206,23 +207,19 @@ sonarqube:
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - echo "Pushing changes to upstream"
     - git diff --cached
-    - git commit -am "[CI] release performed"
+    - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
-    - PWD=$(pwd)
-    - echo "Working directory is '$PWD'"
-    - echo "Creating env file at '${ENV_FILE}' with 'APP_VERSION=${APP_VERSION}'"
-    - mkdir -p target
-    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
-    - echo "-- WAR files:"
+    - echo "-- Generated WAR files:"
     - ls -la ${ARTIFACT_WAR_FILE}
-    - echo "-- Config files:"
+    - echo "-- Generated config files:"
     - ls -la  ${ARTIFACT_CONFIG_FILES}
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
       - ${ARTIFACT_CONFIG_FILES}
       # FIXME: BLA - comment out to avoid an error "Request Entity Too Large"
-      - ${APP_WAR_MODULE}/target/*.zip
+      #- ${APP_WAR_MODULE}/target/*.zip
     reports:
       dotenv: ${ENV_FILE}
     expire_in: 60 minutes

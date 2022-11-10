@@ -22,7 +22,7 @@ package net.sumaris.core.model.technical.extraction;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
@@ -35,7 +35,10 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
@@ -45,7 +48,8 @@ public class ExtractionProductTable implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_TABLE_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_TABLE_SEQ", sequenceName="EXTRACTION_PRODUCT_TABLE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @EqualsAndHashCode.Exclude
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = LENGTH_LABEL)
@@ -83,8 +87,6 @@ public class ExtractionProductTable implements IItemReferentialEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private ExtractionProduct product;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductColumn.class, mappedBy = ExtractionProductColumn.Fields.TABLE)

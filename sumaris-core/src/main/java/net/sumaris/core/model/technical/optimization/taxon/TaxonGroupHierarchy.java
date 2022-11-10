@@ -22,7 +22,7 @@ package net.sumaris.core.model.technical.optimization.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
@@ -37,7 +37,10 @@ import java.io.Serializable;
  *  Cette table est remplie à partir du contenu de TaxonGroup, par un procédure stockée à lancer depuis la base de données.
  *
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_group_hierarchy")

@@ -22,18 +22,19 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ISignedEntity;
+import net.sumaris.core.model.ISignedEntity;
 import net.sumaris.core.model.data.IDataEntity;
 
 import javax.persistence.*;
 import java.util.Date;
 
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_event")
@@ -43,6 +44,7 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")
     @SequenceGenerator(name = "USER_EVENT_SEQ", sequenceName="USER_EVENT_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -54,26 +56,31 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
-    @ToString.Include
+    
     private String issuer;
 
     @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String recipient;
 
     @Column(name = "event_type", nullable = false, length = 30)
-    @ToString.Include(rank = 1)
-    private String eventType;
+    private String type;
+
+    @Column(name = "level", nullable = false, length = 30)
+    private String level;
 
     @Lob
     @Column(length=20971520)
     private String content;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
-    @ToString.Include
     private String hash;
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
+
+    @Column(name = "read_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date readDate;
 
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;

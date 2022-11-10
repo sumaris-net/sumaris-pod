@@ -22,9 +22,9 @@ package net.sumaris.core.model.technical.history;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
@@ -43,7 +43,10 @@ import java.util.Date;
  *
  *  L’exécution des traitements en erreur peuvent également être tracée.
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_history")
@@ -52,6 +55,8 @@ public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<In
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_HISTORY_SEQ")
     @SequenceGenerator(name = "PROCESSING_HISTORY_SEQ", sequenceName="PROCESSING_HISTORY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+
+    @EqualsAndHashCode.Include
     private Integer id;
 
     /**

@@ -26,12 +26,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
+import java.math.BigDecimal;
+
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
 public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
 
-    private Double elevateFactor;
+    private BigDecimal elevateFactor;
 
     //private Double contextWeight;
     //private Double sumChildContextWeight;

@@ -28,10 +28,10 @@
 package net.sumaris.core.model.data;
 
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -45,7 +45,10 @@ import javax.persistence.*;
  * ATTENTION : Table technique. (RAZ des données possible).
  * Elle est remplie par le traitement de dénormalisation des lots.
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "denormalized_batch_sort_val")
@@ -54,6 +57,8 @@ public class DenormalizedBatchSortingValue implements IEntity<Integer>
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DENORMALIZED_BATCH_SORT_VA_SEQ")
     @SequenceGenerator(name = "DENORMALIZED_BATCH_SORT_VA_SEQ", sequenceName="DENORMALIZED_BATCH_SORT_VA_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "rank_order", nullable = false)

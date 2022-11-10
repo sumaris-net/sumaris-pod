@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import org.apache.commons.lang3.ArrayUtils;
