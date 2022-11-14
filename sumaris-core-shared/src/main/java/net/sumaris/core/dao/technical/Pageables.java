@@ -22,14 +22,11 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
-import lombok.Builder;
-import lombok.Data;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Helper class
@@ -61,7 +58,11 @@ public class Pageables  {
     }
 
     public static Pageable create(Long offset, Integer size, SortDirection sortDirection, String... sortAttributes) {
-        return create(offset, size, Sort.Direction.fromOptionalString(sortDirection.toString()).orElse(Sort.Direction.ASC), sortAttributes);
+        Sort.Direction direction = Optional.ofNullable(sortDirection)
+                .map(SortDirection::name)
+                .map(Sort.Direction::fromString)
+                .orElse(Sort.Direction.ASC);
+        return create(offset, size, direction, sortAttributes);
     }
 
     public static Pageable create(Long offset, Integer size, Sort.Direction sortDirection, String... sortAttributes) {

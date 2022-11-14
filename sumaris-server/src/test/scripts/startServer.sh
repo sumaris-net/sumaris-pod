@@ -17,7 +17,7 @@ HOME=`eval echo "~$USER"`
 APP_BASEDIR="${PROJECT_ROOT}/.local"
 LOG_DIR="${APP_BASEDIR}/log/sumaris-pod.log"
 DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
-#CONFIG_DIR="${PROJECT_ROOT}/.local/config/"
+CONFIG_DIR="${PROJECT_ROOT}/.local/config/"
 ARGS=$*
 PROFILE=hsqldb
 
@@ -26,11 +26,11 @@ mkdir -p ${APP_BASEDIR}
 
 
 # ------------------------------------
-echo "${LOG_PREFIX} Installing [core-shared], [core] and [server]... ${LOG_PREFIX}"
+echo "${LOG_PREFIX} Building [core-shared], [core] and [server]... ${LOG_PREFIX}"
 # ------------------------------------
 cd ${PROJECT_ROOT}
 #mvn install -pl sumaris-core-shared,sumaris-core,sumaris-server $MVN_INSTALL_OPTS
-mvn install -pl sumaris-core-shared,sumaris-core,sumaris-rdf,sumaris-server $MVN_INSTALL_OPTS
+mvn install -pl sumaris-core-shared,sumaris-core,sumaris-extraction,sumaris-importation,sumaris-rdf,sumaris-server $MVN_INSTALL_OPTS
 [[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}

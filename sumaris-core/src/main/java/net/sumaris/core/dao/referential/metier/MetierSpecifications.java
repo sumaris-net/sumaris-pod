@@ -129,5 +129,4 @@ public interface MetierSpecifications
             int size,
             String sortAttribute,
             SortDirection sortDirection);
-
 }
