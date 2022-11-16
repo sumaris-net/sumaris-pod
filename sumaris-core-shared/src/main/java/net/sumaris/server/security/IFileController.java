@@ -22,26 +22,13 @@
 
 package net.sumaris.server.security;
 
-import net.sumaris.core.model.IValueObject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
-import java.util.Optional;
+public interface IFileController {
 
-public interface ISecurityContext<V extends IValueObject> {
+    String registerFile(File sourceFile, boolean moveSourceFile) throws IOException;
 
-    Optional<Integer> getAuthenticatedUserId();
-
-    Optional<V> getAuthenticatedUser();
-
-    Optional<String> getAuthenticatedUsername();
-
-    boolean hasAuthority(String authority);
-
-    boolean isAdmin();
-
-    boolean isGuest();
-
-    boolean isUser();
-
-    boolean isSupervisor();
-
+    File getUserUploadFile(String filename);
 }

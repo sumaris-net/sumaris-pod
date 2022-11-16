@@ -20,17 +20,27 @@
  * #L%
  */
 
-package net.sumaris.server.http.rest;
+package net.sumaris.importation.core.service.vessel.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-public class UploadResponse {
-    private String fileName;
-    private String fileDownloadUri;
-    private String fileType;
-    private long size;
+@NoArgsConstructor
+@AllArgsConstructor
+public class SiopVesselImportResultVO {
+
+    private Integer inserts;
+    private Integer updates;
+    private Integer disables;
+    private Integer errors;
+
     private String message;
+
+    public boolean hasError() {
+        return this.errors != null && this.errors > 0;
+    }
 }

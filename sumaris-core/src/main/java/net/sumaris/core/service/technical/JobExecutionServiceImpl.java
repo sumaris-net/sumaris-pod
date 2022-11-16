@@ -41,7 +41,7 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
-import net.sumaris.core.vo.technical.job.JobProgressionVO;
+import net.sumaris.core.event.job.JobProgressionVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
@@ -93,7 +93,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
 
     @Override
-    public JobVO run(JobVO job, Function<JobVO, FutureTask<?>> asyncMethod) {
+    public JobVO run(JobVO job, Function<JobVO, Future<?>> asyncMethod) {
         Assert.notBlank(job.getName());
         Assert.notNull(job.getType());
 

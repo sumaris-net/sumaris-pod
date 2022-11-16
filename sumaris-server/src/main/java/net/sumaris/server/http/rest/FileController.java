@@ -27,23 +27,27 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.MediaTypes;
-import net.sumaris.server.security.IDownloadController;
+import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.security.IFileController;
+import net.sumaris.server.security.ISecurityContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletContext;
 import java.io.File;
@@ -54,25 +58,38 @@ import java.nio.file.Paths;
 
 @Controller
 @Slf4j
-public class DownloadController implements IDownloadController {
+public class FileController implements IFileController {
 
     private final Path downloadDirectory;
+    private final Path uploadDirectory;
     private final ServletContext servletContext;
 
     private final SumarisServerConfiguration configuration;
 
+    private final ISecurityContext<PersonVO> securityContext;
 
-    public DownloadController(ServletContext servletContext,
-                            SumarisServerConfiguration configuration) {
+
+    public FileController(ServletContext servletContext,
+                          SumarisServerConfiguration configuration,
+                          ISecurityContext<PersonVO> securityContext) {
         this.configuration = configuration;
         this.servletContext = servletContext;
-        this.downloadDirectory = Paths.get(configuration.getDownloadDirectory().getAbsolutePath())
-            .toAbsolutePath().normalize();
+        this.securityContext = securityContext;
 
         try {
+            this.downloadDirectory = Paths.get(configuration.getDownloadDirectory().getAbsolutePath())
+                .toAbsolutePath().normalize();
             Files.createDirectories(this.downloadDirectory);
         } catch (Exception ex) {
             throw new SumarisTechnicalException("Could not create the directory where the downloaded files will be stored.", ex);
+        }
+
+        try {
+            this.uploadDirectory = Paths.get(configuration.getUploadDirectory().getAbsolutePath())
+                .toAbsolutePath().normalize();
+            Files.createDirectories(this.uploadDirectory);
+        } catch (Exception ex) {
+            throw new SumarisTechnicalException("Could not create the directory where the uploaded files will be stored.", ex);
         }
     }
 
@@ -82,10 +99,10 @@ public class DownloadController implements IDownloadController {
             @PathVariable(name="filename") String filename
     ) throws IOException {
         if (StringUtils.isNotBlank(username)) {
-            return getFileResponse(username + "/" + filename);
+            return getDownloadFileResponse(username + "/" + filename);
         }
         else {
-            return getFileResponse(filename);
+            return getDownloadFileResponse(filename);
         }
     }
 
@@ -95,16 +112,53 @@ public class DownloadController implements IDownloadController {
             @RequestParam(name = "filename") String filename
     ) throws IOException{
         if (StringUtils.isNotBlank(username)) {
-            return getFileResponse(username + "/" + filename);
+            return getDownloadFileResponse(username + "/" + filename);
         }
         else {
-            return getFileResponse(filename);
+            return getDownloadFileResponse(filename);
         }
+    }
+
+    @PostMapping(RestPaths.UPLOAD_PATH)
+    @IsUser
+    public ResponseEntity<UploadFileResponse>  uploadFile(@RequestParam("file") MultipartFile file,
+                                                          @RequestParam("resourceType") String resourceType,
+                                                          @RequestParam("resourceId") String resourceId,
+                                                          @RequestParam(value = "replace", defaultValue = "false", required = false) String replaceStr) throws IOException {
+
+        boolean replace = Boolean.parseBoolean(replaceStr);
+        Path targetFile = getUploadPath(file.getOriginalFilename(), resourceType, resourceId, replace);
+        if (targetFile == null) {
+            log.warn(String.format("Reject upload request: invalid resource type {%s}", resourceType));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        try {
+            writeMultipartFile(file, targetFile, replace);
+        } catch (IOException ioe) {
+            log.error(ioe.toString());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UploadFileResponse.builder().message(ioe.toString()).build());
+        }
+
+        String userPath = targetFile.getParent().getFileName().toString();
+
+        String fileUrl = Joiner.on('/').join(
+            configuration.getServerUrl() + RestPaths.UPLOAD_PATH,
+            userPath,
+            targetFile.getFileName().toString());
+
+        return ResponseEntity.ok()
+            .body(UploadFileResponse.builder().message("OK")
+                .fileName(targetFile.getFileName().toString())
+                .fileUri(fileUrl)
+                .fileType(file.getContentType())
+                .size(file.getSize())
+                .build());
     }
 
     public String registerFile(File sourceFile, boolean moveSourceFile) throws IOException {
 
-        String username = getAuthenticatedUsername();
+        String username = securityContext.getAuthenticatedUsername().orElseThrow(UnauthorizedException::new);
 
         // Make sure the username can be used as a path (fail if '../' injection in the username token)
         String userPath =  asSecuredPath(username);
@@ -142,7 +196,7 @@ public class DownloadController implements IDownloadController {
                 targetFile.getFileName().toString());
     }
 
-    public ResponseEntity<InputStreamResource> getFileResponse(@NonNull File baseDirectory, String filename) throws IOException {
+    public ResponseEntity<InputStreamResource> getDownloadFileResponse(@NonNull File baseDirectory, String filename) throws IOException {
         if (StringUtils.isBlank(filename)) return ResponseEntity.badRequest().build();
 
         // Avoid '..' in the path
@@ -177,21 +231,23 @@ public class DownloadController implements IDownloadController {
             .body(resource);
     }
 
-    /* -- protected method -- */
+    @Override
+    public File getUserUploadFile(String filename) {
 
-    protected ResponseEntity<InputStreamResource> getFileResponse(String filename) throws IOException {
-        return getFileResponse(configuration.getDownloadDirectory(), filename);
+        String username = securityContext.getAuthenticatedUsername().orElseThrow(UnauthorizedException::new);
+        username = asSecuredPath(username);
+
+        Path userPath = uploadDirectory.resolve(username);
+
+        Path targetPath = userPath.resolve(asSecuredPath(filename));
+
+        return targetPath.toFile();
     }
 
-    protected String getAuthenticatedUsername() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            Object principal = auth.getPrincipal();
-            if (principal instanceof UserDetails) {
-                return ((UserDetails) principal).getUsername();
-            }
-        }
-        return null;
+    /* -- protected method -- */
+
+    protected ResponseEntity<InputStreamResource> getDownloadFileResponse(String filename) throws IOException {
+        return getDownloadFileResponse(configuration.getDownloadDirectory(), filename);
     }
 
     protected String asSecuredPath(String path) {
@@ -199,5 +255,44 @@ public class DownloadController implements IDownloadController {
         Preconditions.checkArgument(path.trim().length() > 0);
         // Avoid '../' in the filename
         return path.trim().replaceAll("[.][.]/?", "");
+    }
+
+    public Path getUploadPath(String originalFileName, @NonNull String resourceType, @NonNull String resourceId, boolean replace) {
+
+        // Normalize file name
+        originalFileName = StringUtils.cleanPath(originalFileName);
+        RestPaths.checkSecuredPath(originalFileName);
+
+        String username = securityContext.getAuthenticatedUsername().orElseThrow(UnauthorizedException::new);
+        RestPaths.checkSecuredPath(username);
+
+        Path targetDirectory = uploadDirectory.resolve(username);
+
+        // Append the original file extension
+        String extension = net.sumaris.core.util.Files.getExtension(originalFileName)
+            .orElse(null);
+
+        // Copy file to the target location (Replacing existing file with the same name)
+        Path targetLocation;
+        int counter = 1;
+        String fileName;
+        do {
+            fileName = Joiner.on("-").join(resourceType, resourceId).trim();
+            if (counter > 1) fileName += "-" + counter;
+            if (extension != null) fileName += "." + extension;
+            targetLocation = targetDirectory.resolve(fileName);
+            counter++;
+        } while (!replace && Files.exists(targetLocation));
+
+        return targetLocation;
+
+    }
+
+    protected void writeMultipartFile(MultipartFile source, Path target, boolean replace) throws IOException {
+        if (replace) {
+            Files.deleteQuietly(target);
+        }
+        Files.createDirectories(target.getParent());
+        Files.copyStream(source.getInputStream(), Files.newOutputStream(target));
     }
 }

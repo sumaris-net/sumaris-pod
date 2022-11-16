@@ -20,28 +20,23 @@
  * #L%
  */
 
-package net.sumaris.server.security;
+package net.sumaris.importation.core.util.csv;
 
-import net.sumaris.core.model.IValueObject;
+import net.sumaris.importation.core.service.vo.DataLoadResult;
 
-import java.util.Optional;
+import java.io.Closeable;
+import java.io.IOException;
 
-public interface ISecurityContext<V extends IValueObject> {
+public interface FileReader extends Closeable {
 
-    Optional<Integer> getAuthenticatedUserId();
+    String[] readNext() throws IOException;
 
-    Optional<V> getAuthenticatedUser();
+    String[] getHeaders();
 
-    Optional<String> getAuthenticatedUsername();
+    int getCurrentLine();
 
-    boolean hasAuthority(String authority);
+    DataLoadResult getResult();
 
-    boolean isAdmin();
-
-    boolean isGuest();
-
-    boolean isUser();
-
-    boolean isSupervisor();
+    String getFileName();
 
 }

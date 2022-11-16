@@ -24,13 +24,13 @@ package net.sumaris.core.event.job;
 
 import net.sumaris.core.model.IProgressionModel;
 
-public class JobProgressionEvent extends AbstractJobEvent<IProgressionModel> {
+public class JobProgressionEvent extends AbstractJobEvent<JobProgressionVO> {
 
     public JobProgressionEvent() {
         super(JobEventOperation.PROGRESS);
     }
 
-    public JobProgressionEvent(int id, IProgressionModel data) {
+    public JobProgressionEvent(int id, JobProgressionVO data) {
         super(id, JobEventOperation.PROGRESS, data);
     }
 

@@ -77,6 +77,9 @@ public interface AuthService extends ISecurityContext<PersonVO> {
     @Transactional(readOnly = true)
     Optional<Integer> getAuthenticatedUserId();
 
+    @Transactional(readOnly = true)
+    Optional<String> getAuthenticatedUsername();
+
     @Transactional
     UserDetails authenticateByToken(String token) throws AuthenticationException;
 

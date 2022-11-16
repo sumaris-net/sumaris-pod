@@ -1,46 +1,57 @@
-package net.sumaris.importation.service.vessel;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core Importation
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+package net.sumaris.importation.core.service.vessel;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.event.job.JobEndEvent;
+import net.sumaris.core.event.job.JobProgressionEvent;
+import net.sumaris.core.event.job.JobProgressionVO;
+import net.sumaris.core.event.job.JobStartEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IProgressionModel;
+import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.LocationService;
@@ -49,6 +60,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -60,24 +72,34 @@ import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.importation.exception.FileValidationException;
-import net.sumaris.importation.util.csv.CSVFileReader;
+import net.sumaris.core.vo.technical.job.JobVO;
+import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
+import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportResultVO;
+import net.sumaris.importation.core.util.csv.CSVFileReader;
 import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.nuiton.i18n.I18n.t;
 
 @Service("siopVesselLoaderService")
 @Slf4j
-public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
+public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 	protected final static String LABEL_NAME_SEPARATOR_REGEXP = "[ \t]+-[ \t]+";
 	protected static final String[] INPUT_DATE_PATTERNS = new String[] {
@@ -173,19 +195,25 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 	@Autowired
 	protected PersonService personService;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
+	@Autowired
+	private ApplicationEventPublisher publisher;
+
 	@Override
-	public void loadFromFile(int userId,
-							 File inputFile,
-							 boolean validate,
-							 boolean appendData) throws IOException, FileValidationException {
-		Files.checkExists(inputFile);
-		PersonVO recorderPerson = personService.getById(userId);
+	public SiopVesselImportResultVO importFromFile(@NonNull SiopVesselImportContextVO context,
+												   IProgressionModel progressionModel) throws IOException {
+		Files.checkExists(context.getProcessingFile());
+		Preconditions.checkNotNull(context.getRecorderPersonId());
 
-		// If not append : then remove old data
-		if (!appendData) {
-			throw new SumarisTechnicalException("Full import (with historical data) not allowed");
-		}
+		SiopVesselImportResultVO result = context.getResult();
 
+		// Init progression model
+		progressionModel = Optional.ofNullable(progressionModel).orElse(new ProgressionModel());
+		progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
+
+		PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
 
 		String uniqueKeyPropertyName = StringUtils.doting(
 			VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriodVO.Fields.INT_REGISTRATION_CODE
@@ -201,7 +229,7 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 
 		File tempFile = null;
 		try {
-			tempFile = prepareFile(inputFile);
+			tempFile = prepareFile(context.getProcessingFile());
 
 			Set<String> includedHeaders = new HashSet<>(headerReplacements.values());
 			String uniqueKeyHeaderName = headerReplacements.entrySet().stream()
@@ -318,6 +346,13 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 						String.join("\n\t- ", temporaryHarbourNames));
 				}
 
+				// Update result
+				result.setInserts(inserts.intValue());
+				result.setUpdates(updates.intValue());
+				result.setDisables(disables.intValue());
+				result.setErrors(errors.intValue());
+
+				return result;
 			}
 		}
 		catch(Exception e) {
@@ -326,13 +361,94 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 		}
 		finally {
 			Files.deleteQuietly(tempFile);
-			Files.deleteFiles(inputFile.getParentFile(), "^.*.tmp[0-9]+$");
+			Files.deleteTemporaryFiles(context.getProcessingFile());
 
 			locationByFilterCache.clear();
 		}
 
 	}
 
+	@Override
+	public Future<SiopVesselImportResultVO> asyncImportFromFile(SiopVesselImportContextVO context, JobVO job) {
+		int jobId = job.getId();
+
+		try {
+			// Affect context to job (as json)
+			job.setConfiguration(objectMapper.writeValueAsString(context));
+		} catch (JsonProcessingException e) {
+			throw new SumarisTechnicalException(e);
+		}
+
+		// Publish job start event
+		publisher.publishEvent(new JobStartEvent(jobId, job));
+
+		// Create progression model and listener to throttle events
+		ProgressionModel progressionModel = new ProgressionModel();
+		io.reactivex.Observable<JobProgressionVO> progressionObservable = Observable.create(emitter -> {
+
+			// Create listener on bean property and emit the value
+			PropertyChangeListener listener = evt -> {
+				ProgressionModel progression = (ProgressionModel) evt.getSource();
+				JobProgressionVO jobProgression = JobProgressionVO.fromModelBuilder(progression)
+					.id(jobId)
+					.name(job.getName())
+					.build();
+				emitter.onNext(jobProgression);
+
+				if (progression.isCompleted()) {
+					// complete observable
+					emitter.onComplete();
+				}
+			};
+
+			// Add listener on current progression and message
+			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.CURRENT, listener);
+			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, listener);
+		});
+
+		Disposable progressionSubscription = progressionObservable
+			// throttle for 500ms to filter unnecessary flow
+			.throttleLatest(500, TimeUnit.MILLISECONDS, true)
+			// Publish job progression event
+			.subscribe(jobProgressionVO -> publisher.publishEvent(new JobProgressionEvent(jobId, jobProgressionVO)));
+
+		// Execute import
+		try {
+			SiopVesselImportResultVO result;
+
+			try {
+				result = importFromFile(context, progressionModel);
+
+				// Set result status
+				job.setStatus(result.hasError() ? JobStatusEnum.ERROR : JobStatusEnum.SUCCESS);
+
+			} catch (Exception e) {
+				// Result is kept in context
+				result = context.getResult();
+				result.setMessage(t("sumaris.import.vessel.error.detail", ExceptionUtils.getStackTrace(e)));
+
+				// Set failed status
+				// TODO
+				//job.setStatus(JobStatusEnum.FAILED);
+				job.setStatus(JobStatusEnum.ERROR);
+			}
+
+			try {
+				// Serialize result in job report (as json)
+				job.setReport(objectMapper.writeValueAsString(result));
+			} catch (JsonProcessingException e) {
+				throw new SumarisTechnicalException(e);
+			}
+
+			return new AsyncResult<>(result);
+
+		} finally {
+
+			// Publish job end event
+			publisher.publishEvent(new JobEndEvent(jobId, job));
+			Observables.dispose(progressionSubscription);
+		}
+	}
 
 	/* -- protected methods -- */
 
@@ -419,18 +535,17 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 					.withVesselRegistrationPeriod(uniquePropertyName.startsWith(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD))
 					.withVesselFeatures(uniquePropertyName.startsWith(VesselVO.Fields.VESSEL_FEATURES))
 				.build());
-			vessels.stream()
-				.forEach(v -> {
-					try {
-						T uniqueKeyValue = Beans.<VesselVO, T>getProperty(v, uniquePropertyName);
-						if (uniqueKeyValue != null) {
-							result.put(uniqueKeyValue, v.getId());
-						}
+			vessels.forEach(v -> {
+				try {
+					T uniqueKeyValue = Beans.<VesselVO, T>getProperty(v, uniquePropertyName);
+					if (uniqueKeyValue != null) {
+						result.put(uniqueKeyValue, v.getId());
 					}
-					catch (NestedNullException ne) {
-						// SKip
-					}
-				});
+				}
+				catch (NestedNullException ne) {
+					// SKip
+				}
+			});
 			fetchMore = vessels.size() >= page.getSize();
 			page.setOffset(page.getOffset() + page.getSize());
 		} while (fetchMore);
@@ -533,15 +648,6 @@ public class SiopVesselLoaderServiceImpl implements SiopVesselLoaderService {
 		}
 		catch (SumarisTechnicalException e) {
 			return false;
-		}
-	}
-
-	protected void setPropertyToNull(Object obj, String propertyName) {
-		try {
-			Beans.setProperty(obj, propertyName, null);
-		}
-		catch (SumarisTechnicalException e) {
-			// Continue
 		}
 	}
 

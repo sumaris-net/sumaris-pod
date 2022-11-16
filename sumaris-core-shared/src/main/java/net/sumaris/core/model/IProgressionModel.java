@@ -64,4 +64,6 @@ public interface IProgressionModel extends Serializable {
     void setJobId(Integer jobId);
 
     Integer getJobId();
+
+    public boolean isCompleted();
 }

@@ -1,42 +1,37 @@
-package net.sumaris.importation.util.csv;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core Importation
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.importation.service.vo.DataLoadResult;
+package net.sumaris.server.http.rest;
 
-import java.io.Closeable;
-import java.io.IOException;
+import lombok.Builder;
+import lombok.Data;
 
-public interface FileReader extends Closeable {
-
-    String[] readNext() throws IOException;
-
-    String[] getHeaders();
-
-    int getCurrentLine();
-
-    DataLoadResult getResult();
-
-    String getFileName();
-
+@Data
+@Builder
+public class UploadFileResponse {
+    private String fileUri;
+    private String fileName;
+    private String fileType;
+    private long size;
+    private String message;
+    private Integer jobId;
 }

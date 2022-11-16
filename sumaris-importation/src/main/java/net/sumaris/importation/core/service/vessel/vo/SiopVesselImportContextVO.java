@@ -20,12 +20,29 @@
  * #L%
  */
 
-package net.sumaris.server.security;
+package net.sumaris.importation.core.service.vessel.vo;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NonNull;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
 
-public interface IDownloadController {
+@Data
+@Builder
+public class SiopVesselImportContextVO {
 
-    String registerFile(File sourceFile, boolean moveSourceFile) throws IOException;
+    @NonNull
+    private Integer recorderPersonId;
+
+    @NonNull
+    private File processingFile;
+
+    // result object containing messages and errors during process
+    @NonNull
+    @Builder.Default
+    @JsonIgnore
+    private SiopVesselImportResultVO result = new SiopVesselImportResultVO();
 }

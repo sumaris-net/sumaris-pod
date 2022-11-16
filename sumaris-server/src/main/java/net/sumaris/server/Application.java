@@ -54,6 +54,7 @@ import java.io.IOException;
     scanBasePackages = {
         "net.sumaris.core",
         "net.sumaris.extraction",
+        "net.sumaris.importation",
         "net.sumaris.rdf",
         "net.sumaris.server"
     },

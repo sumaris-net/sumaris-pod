@@ -1,26 +1,26 @@
-package net.sumaris.importation.service.rdb;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core Importation
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.importation.core.service.rdb;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -37,9 +37,9 @@ import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.referential.TaxonNameVO;
-import net.sumaris.importation.exception.FileValidationException;
-import net.sumaris.importation.service.DataLoaderService;
-import net.sumaris.importation.util.csv.CSVFileReader;
+import net.sumaris.importation.core.exception.FileValidationException;
+import net.sumaris.importation.core.service.DataLoaderService;
+import net.sumaris.importation.core.util.csv.CSVFileReader;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
