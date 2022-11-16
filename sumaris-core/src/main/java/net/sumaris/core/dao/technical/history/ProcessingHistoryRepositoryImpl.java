@@ -159,8 +159,6 @@ public class ProcessingHistoryRepositoryImpl
     public void toEntity(JobVO source, ProcessingHistory target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
 
-        EntityManager em = getEntityManager();
-
         // Issuer
         target.setDataTransfertAddress(source.getIssuer());
 
@@ -171,6 +169,8 @@ public class ProcessingHistoryRepositoryImpl
         // Type
         ProcessingTypeEnum targetType = ProcessingTypeEnum.valueOf(source.getType());
         target.setProcessingType(find(ProcessingType.class, targetType.getId()));
+
+        // TODO insert if not exists ?
 
         // Status
         ProcessingStatusEnum targetStatus = source.getStatus().getProcessingStatus();

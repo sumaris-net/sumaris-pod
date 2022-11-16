@@ -314,6 +314,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         // Build events
         UserEventVO userEvent = UserEventVO.builder()
                 .id(job.getUserEventId())
+                .issuer(SystemRecipientEnum.SYSTEM.getLabel())
                 .recipient(job.getIssuer())
                 .level(level)
                 .type(EventTypeEnum.JOB)
