@@ -19,7 +19,7 @@
     </preConditions>
 
     <!-- Insert harbours need by importation of vessels SIOP file  -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-300" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-400" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -27,6 +27,28 @@
             </and>
         </preConditions>
         <sqlFile path="insert_location-1.32.0.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+
+
+    <!-- enable vessel import -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.referential.vessel.import.enable' AND SOFTWARE_FK=2
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="SOFTWARE_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
+            <column name="LABEL" value="sumaris.referential.vessel.import.enable"/>
+            <column name="NAME" value="true"/>
+            <column name="SOFTWARE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
     </changeSet>
 
 </databaseChangeLog>
