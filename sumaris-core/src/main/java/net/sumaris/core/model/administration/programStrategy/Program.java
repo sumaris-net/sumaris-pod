@@ -66,7 +66,6 @@ public class Program implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
-    
     private String label;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)

@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
@@ -82,6 +83,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
@@ -98,6 +100,7 @@ import java.util.stream.Collectors;
 import static org.nuiton.i18n.I18n.t;
 
 @Service("siopVesselLoaderService")
+@RequiredArgsConstructor
 @Slf4j
 public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
@@ -181,25 +184,22 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 	protected static final Date DEFAULT_START_DATE = Dates.safeParseDate("01/01/1990", INPUT_DATE_PATTERNS);
 	protected static final String DEFAULT_REGISTRATION_COUNTRY_LABEL = "FRA";
 
-	@Autowired
-	protected SumarisConfiguration config;
 
-	@Autowired
-	protected ReferentialService referentialService;
-	@Autowired
-	protected LocationService locationService;
+	protected final SumarisConfiguration config;
 
-	@Autowired
-	protected VesselService vesselService;
+	protected final ReferentialService referentialService;
 
-	@Autowired
-	protected PersonService personService;
+	protected final LocationService locationService;
 
-	@Autowired
-	private ObjectMapper objectMapper;
+	protected final VesselService vesselService;
 
-	@Autowired
-	private ApplicationEventPublisher publisher;
+	protected final PersonService personService;
+
+	protected final ApplicationContext applicationContext;
+
+	private final ObjectMapper objectMapper;
+
+	private final ApplicationEventPublisher publisher;
 
 	@Override
 	public SiopVesselImportResultVO importFromFile(@NonNull SiopVesselImportContextVO context,
@@ -336,7 +336,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 					log.info("Successfully import vessels. {} inserts, {} updates, {} disables", inserts, updates, disables);
 				}
 				else {
-					log.warn("Successfully import vessels with ERROR. {} inserts, {} updates, {} disables, {} errors",
+					log.warn("Successfully import vessels, with errors. {} inserts, {} updates, {} disables, {} errors",
 						inserts, updates, disables, errors);
 				}
 
@@ -371,6 +371,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 	@Override
 	public Future<SiopVesselImportResultVO> asyncImportFromFile(SiopVesselImportContextVO context, JobVO job) {
 		int jobId = job.getId();
+
+		final SiopVesselImportService self = applicationContext.getBean(SiopVesselImportService.class);
 
 		try {
 			// Affect context to job (as json)
@@ -417,7 +419,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			SiopVesselImportResultVO result;
 
 			try {
-				result = importFromFile(context, progressionModel);
+				result = self.importFromFile(context, progressionModel);
 
 				// Set result status
 				job.setStatus(result.hasError() ? JobStatusEnum.ERROR : JobStatusEnum.SUCCESS);

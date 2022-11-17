@@ -27,6 +27,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingType;
@@ -45,17 +46,16 @@ import java.util.Date;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_history")
+@Comment("Liste des traitements lancés")
 public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_HISTORY_SEQ")
     @SequenceGenerator(name = "PROCESSING_HISTORY_SEQ", sequenceName="PROCESSING_HISTORY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -97,18 +97,21 @@ public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<In
      * Configuration du traitement, par exemple les paramètres utilisés dans la ligne de commande.
      */
     @Column(name="configuration")
+    @Lob()
     private String configuration;
 
     /**
      * La configuration, sous forme XML (utilisé par les traitements CQ automatique)
      */
     @Column(name="xml_configuration", length = 3000)
+    @Lob()
     private String xmlConfiguration;
 
     /**
      * Use to store execution reports
      */
     @Column(name="xml_report", length = 3000)
+    @Lob()
     private String xmlReport;
 
     /* -- quality insurance -- */

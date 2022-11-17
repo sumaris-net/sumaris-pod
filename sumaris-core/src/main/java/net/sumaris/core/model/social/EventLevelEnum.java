@@ -32,4 +32,9 @@ public enum EventLevelEnum implements Serializable {
     INFO,
     DEBUG;
 
+    public static EventLevelEnum valueOfOrNull(final String level) {
+        return Arrays.stream(values()).filter(enumValue -> enumValue.name().equalsIgnoreCase(level))
+            .findFirst()
+            .orElse(null);
+    }
 }

@@ -21,23 +21,29 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
-import net.sumaris.core.dao.technical.history.ProcessingHistoryRepository;
+import net.sumaris.core.dao.technical.JobRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.ProcessingType;
 import net.sumaris.core.model.referential.ProcessingTypeEnum;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
+import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
+import org.nuiton.i18n.I18n;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,13 +56,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service("jobService")
 @RequiredArgsConstructor
 @Slf4j
 public class JobServiceImpl implements JobService {
 
 
-    private final ProcessingHistoryRepository processingHistoryRepository;
+    private final JobRepository jobRepository;
 
     private final ReferentialDao referentialDao;
 
@@ -64,22 +70,23 @@ public class JobServiceImpl implements JobService {
 
     private boolean enableTechnicalTablesUpdate = false;
 
+    private final ApplicationContext applicationContext;
 
-    @PostConstruct
-    protected void init() {
-
-        // Update technical tables (if option changed)
-        if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
-            this.enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
-
-            // Insert missing processing types
-            if (this.enableTechnicalTablesUpdate) initProcessingTypes();
-        }
-    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
-        init();
+
+        // Update technical tables (if option changed)
+        if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
+            enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
+            if (enableTechnicalTablesUpdate) {
+                // Get self (by interface) to force transaction creation
+                JobService self = applicationContext.getBean(JobService.class);
+
+                // Insert missing processing types
+                self.updateProcessingTypes();
+            }
+        }
     }
 
     @Override
@@ -88,44 +95,48 @@ public class JobServiceImpl implements JobService {
         Preconditions.checkNotNull(source.getType());
         Preconditions.checkNotNull(source.getName());
 
-        return processingHistoryRepository.save(source);
+        return jobRepository.save(source);
     }
 
     @Override
     public JobVO get(int id) {
-        return processingHistoryRepository.toVO(processingHistoryRepository.getById(id));
+        return findById(id)
+            .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", ProcessingHistory.class.getSimpleName(), id)));
     }
 
     @Override
     public Optional<JobVO> findById(int id) {
-        return processingHistoryRepository.findById(id)
-            .map(processingHistoryRepository::toVO);
+        return jobRepository.findById(id)
+            .map(jobRepository::toVO);
     }
 
     @Override
     public List<JobVO> findAll(JobFilterVO filter) {
-        return processingHistoryRepository.findAll(filter);
+        return jobRepository.findAll(filter);
     }
 
     @Override
     public Page<JobVO> findAll(JobFilterVO filter, Pageable page) {
-        return processingHistoryRepository.findAll(filter, page);
+        return jobRepository.findAll(filter, page);
     }
 
-    @Transactional
-    protected boolean initProcessingTypes() {
+    public boolean updateProcessingTypes() {
         try {
             String entityName = ProcessingType.class.getSimpleName();
             List<String> newTypeLabels = Arrays.stream(ProcessingTypeEnum.values())
                 .map(ProcessingTypeEnum::getLabel)
                 // Filter if not exists
                 .filter(label -> referentialDao.countByFilter(
-                    ProcessingType.class.getSimpleName(),
+                    entityName,
                     ReferentialFilterVO.builder()
                         .label(label)
                         .build()) == 0)
                 // Transform to new VO
-                .map(label -> ReferentialVO.builder().label(label).entityName(entityName).build())
+                .map(label -> ReferentialVO.builder()
+                    .label(label)
+                    .name(label)
+                    .statusId(StatusEnum.ENABLE.getId())
+                    .entityName(entityName).build())
                 // Save VO
                 .map(referentialDao::save)
                 // Update the enum id
@@ -135,7 +146,8 @@ public class JobServiceImpl implements JobService {
                 })
                 .collect(Collectors.toList());
             if (!newTypeLabels.isEmpty()) {
-                log.info("Adding {} processing types: {}", newTypeLabels.size(), newTypeLabels);
+                log.info("Technical table PROCESSING_TYPE successfully updated. (inserts: {})", newTypeLabels.size());
+                log.debug(" - New processing types: {}", newTypeLabels);
             }
             return true;
         } catch (Throwable t) {

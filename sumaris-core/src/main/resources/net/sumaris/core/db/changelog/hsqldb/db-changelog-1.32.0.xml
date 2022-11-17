@@ -50,6 +50,47 @@
 														 referencedTableName="qualitative_value" referencedColumnNames="id"/>
 	</changeSet>
 
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-2">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="user_event" columnName="level"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="user_event">
+			<column name="level" type="varchar(30)">
+			</column>
+		</addColumn>
+		<sql endDelimiter=";">
+			update USER_EVENT set LEVEL='DEBUG' where EVENT_TYPE='DEBUG_DATA' and LEVEL is null;
+			update USER_EVENT set LEVEL='INFO' where LEVEL is null;
+			commit;
+		</sql>
+		<addNotNullConstraint tableName="user_event" columnName="level"/>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-3">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="user_event" columnName="read_date"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="user_event">
+			<column name="read_date" type="timestamp"/>
+		</addColumn>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-4">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="user_event" columnName="processing_history_fk"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="user_event">
+			<column name="processing_history_fk" type="INT"/>
+		</addColumn>
+		<addForeignKeyConstraint baseColumnNames="processing_history_fk" baseTableName="user_event"
+														 constraintName="user_event_processing_history_fkc"
+														 referencedColumnNames="id" referencedTableName="processing_history"/>
+	</changeSet>
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
@@ -60,6 +101,7 @@
 			<column name="LABEL">1.32.0</column>
 			<column name="DESCRIPTION">
 				- Add some columns into VESSEL_FEATURES
+				- Add columns LEVEL and READ_DATE in USER_EVENT
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>

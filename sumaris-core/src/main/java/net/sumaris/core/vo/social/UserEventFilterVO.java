@@ -58,4 +58,6 @@ public class UserEventFilterVO {
     private String[] issuers;
     private Date startDate;
     private boolean excludeRead = false;
+
+    private Integer jobId;
 }

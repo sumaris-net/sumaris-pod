@@ -42,6 +42,7 @@ import net.sumaris.core.dao.technical.liquibase.Liquibase;
 import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
+import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.util.ResourceUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -54,6 +55,7 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Environment;
+import org.hibernate.dialect.Oracle10gDialect;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
@@ -69,14 +71,18 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceException;
+import javax.persistence.*;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.EntityType;
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
@@ -92,19 +98,27 @@ public class DatabaseSchemaDaoImpl
         extends HibernateDaoSupport
         implements DatabaseSchemaDao {
 
-    @Autowired
-    private Liquibase liquibase;
+    private final Liquibase liquibase;
 
+    private DataSource dataSource;
 
     /**
      * Constructor used by Spring
      *
+     * @param config a {@link SumarisConfiguration} config.
      * @param entityManager a {@link EntityManager} object.
+     * @param dataSource a {@link DataSource} object.
+     * @param liquibase a {@link Liquibase} object.
      */
     @Autowired
-    public DatabaseSchemaDaoImpl(EntityManager entityManager) {
-        super();
+    public DatabaseSchemaDaoImpl(SumarisConfiguration config,
+                                 EntityManager entityManager,
+                                 DataSource dataSource,
+                                 Liquibase liquibase) {
+        super(config);
         setEntityManager(entityManager);
+        this.dataSource = dataSource;
+        this.liquibase = liquibase;
     }
 
     /**
@@ -167,13 +181,20 @@ public class DatabaseSchemaDaoImpl
     /** {@inheritDoc} */
     @Override
     public void generateCreateSchemaFile(String filename, boolean doExecute, boolean withDrop, boolean withCreate) {
-        SchemaExport schemaExport = new SchemaExport();
-        schemaExport.setDelimiter(";");
-        schemaExport.setOutputFile(filename);
-        schemaExport.execute(EnumSet.of(TargetType.SCRIPT),
-            withDrop ? SchemaExport.Action.BOTH : SchemaExport.Action.CREATE,
-            getMetadata());
+        new SchemaExport()
+            .setDelimiter(";")
+            .setOutputFile(filename)
+            .execute(EnumSet.of(TargetType.SCRIPT),
+                withDrop ? SchemaExport.Action.BOTH : SchemaExport.Action.CREATE,
+                getMetadata()
+            );
 
+        // Add table and columns comment
+        try {
+            appendRemarks(filename);
+        } catch (SQLException | IOException e) {
+            throw new SumarisTechnicalException("Error when appending comments on file", e);
+        }
     }
 
     /** {@inheritDoc} */
@@ -457,6 +478,8 @@ public class DatabaseSchemaDaoImpl
 
 
     /* -- Internal methods --*/
+
+
     /**
      * <p>checkConnection.</p>
      *
@@ -731,5 +754,54 @@ public class DatabaseSchemaDaoImpl
         throw new SumarisTechnicalException("Cannot generate Timezone query : not implemented for this database type");
     }
 
+    private void appendRemarks(String filename) throws SQLException, IOException {
+        List<String> linesToAppend = new ArrayList<>();
+        String schemaName = dataSource.getConnection().getSchema();
+        getEntityManager().getEntityManagerFactory().getMetamodel().getEntities().stream()
+            .sorted(Comparator.comparing(EntityType::getName))
+            .forEach(entityType -> {
+                Table table = entityType.getJavaType().getAnnotation(Table.class);
+                Comment tableComment = entityType.getJavaType().getAnnotation(Comment.class);
+                if (table != null) {
+                    if (tableComment != null) {
+                        Optional.ofNullable(getTableCommentQuery(schemaName, table.name(), tableComment.value())).ifPresent(linesToAppend::add);
+                    }
+                    // iterate attributes
+                    entityType.getAttributes().stream()
+                        .sorted(Comparator.comparing(Attribute::getName))
+                        .forEach(attribute -> {
+                            if (attribute.getJavaMember() instanceof Field) {
+                                Field field = (Field) attribute.getJavaMember();
+                                Column column = field.getAnnotation(Column.class);
+                                JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
+                                Comment columnComment = field.getAnnotation(Comment.class);
+                                String columnName = Optional.ofNullable(column).map(Column::name).orElse(
+                                    Optional.ofNullable(joinColumn).map(JoinColumn::name).orElse(null)
+                                );
+                                if (columnName != null && columnComment != null) {
+                                    Optional.ofNullable(getColumnCommentQuery(schemaName, table.name(), columnName, columnComment.value())).ifPresent(linesToAppend::add);
+                                }
+                            }
+                        });
+                }
+            });
 
+        if (!linesToAppend.isEmpty()) {
+            Files.write(Paths.get(filename), linesToAppend, StandardOpenOption.APPEND);
+        }
+    }
+
+    private String getTableCommentQuery(String schemaName, String tableName, String comment) {
+        if (Daos.getDialect(getEntityManager()) instanceof Oracle10gDialect) {
+            return String.format("comment on table %s.%s is '%s';", schemaName, tableName, comment.replaceAll("'", "''"));
+        }
+        return null;
+    }
+
+    private String getColumnCommentQuery(String schemaName, String tableName, String columnName, String comment) {
+        if (Daos.getDialect(getEntityManager()) instanceof Oracle10gDialect) {
+            return String.format("comment on column %s.%s.%s is '%s';", schemaName, tableName, columnName, comment.replaceAll("'", "''"));
+        }
+        return null;
+    }
 }

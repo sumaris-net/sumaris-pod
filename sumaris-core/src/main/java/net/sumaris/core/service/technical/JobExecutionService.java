@@ -25,11 +25,12 @@ package net.sumaris.core.service.technical;
 import io.reactivex.Observable;
 import net.sumaris.core.event.job.JobProgressionVO;
 import net.sumaris.core.vo.technical.job.JobVO;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Function;
-
 
 public interface JobExecutionService {
     JobVO run(JobVO job, Function<JobVO, Future<?>> asyncMethod);

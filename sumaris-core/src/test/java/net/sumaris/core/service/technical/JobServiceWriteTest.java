@@ -1,26 +1,26 @@
-package net.sumaris.core.service.technical.history;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.core.service.technical;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.ProcessingTypeEnum;
@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+
 public class JobServiceWriteTest extends AbstractServiceTest{
 
     @ClassRule
@@ -81,25 +81,22 @@ public class JobServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
+    //@Ignore
     // FIXME failed with a transaction error ??
     public void save() {
 
-        // Valid
-        {
-            JobVO job = createSystemJob();
-            JobVO savedJob = service.save(job);
+        JobVO job = createSystemJob();
+        JobVO savedJob = service.save(job);
 
-            Assert.assertNotNull(savedJob);
-            Assert.assertNotNull(savedJob.getId());
-            Assert.assertNotNull(savedJob.getName());
+        Assert.assertNotNull(savedJob);
+        Assert.assertNotNull(savedJob.getId());
+        Assert.assertNotNull(savedJob.getName());
 
-            // Reload
-            JobVO reloadedJob = service.get(savedJob.getId());
-            Assert.assertNotNull(reloadedJob);
-            Assert.assertNotNull(reloadedJob.getId());
-            Assert.assertNotNull(reloadedJob.getName());
-        }
+        // Reload
+        JobVO reloadedJob = service.get(savedJob.getId());
+        Assert.assertNotNull(reloadedJob);
+        Assert.assertNotNull(reloadedJob.getId());
+        Assert.assertNotNull(reloadedJob.getName());
     }
 
     /* -- internal functions -- */
@@ -111,7 +108,7 @@ public class JobServiceWriteTest extends AbstractServiceTest{
     private JobVO createJob(String issuer) {
         JobVO target = new JobVO();
         target.setName("Extraction test job");
-        target.setType(ProcessingTypeEnum.SUMARIS_EXTRACTION.getLabel());
+        target.setType(ProcessingTypeEnum.SIOP_VESSELS_IMPORTATION.getLabel());
         target.setIssuer(issuer);
         target.setStatus(JobStatusEnum.PENDING);
 

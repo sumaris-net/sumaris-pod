@@ -31,6 +31,7 @@ import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEventListener;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.server.exception.ErrorCodes;
@@ -43,6 +44,7 @@ import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -84,7 +86,11 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         String GQL_STOP = "stop";
         String GQL_ERROR = "error";
         String GQL_DATA = "data";
+
+        String GQL_SUBSCRIBE = "subscribe";
         String GQL_COMPLETE = "complete";
+
+        String GQL_NEXT = "next";
     }
 
     private final boolean debug;
@@ -156,7 +162,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             request = objectMapper.readValue(message.asBytes(), Map.class);
             if (debug) log.debug(I18n.t("sumaris.server.subscription.getRequest", request));
 
-            String type = Objects.toString(request.get("type"), "start");
+            String type = Objects.toString(request.get("type"), GqlTypes.GQL_START);
             switch (type) {
                 case GqlTypes.GQL_CONNECTION_INIT:
                     handleInitConnection(session, request);
@@ -164,7 +170,13 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                 case GqlTypes.GQL_START:
                     handleStartRequest(session, request);
                     break;
+                case GqlTypes.GQL_SUBSCRIBE:
+                    handleSubscribeRequest(session, request);
+                    break;
                 case GqlTypes.GQL_STOP:
+                    handleStopRequest(session, request);
+                    break;
+                case GqlTypes.GQL_COMPLETE:
                     handleStopRequest(session, request);
                     break;
                 case GqlTypes.GQL_CONNECTION_KEEP_ALIVE:
@@ -254,6 +266,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     }
 
 
+    @Deprecated
     protected void handleStartRequest(WebSocketSession session, Map<String, Object> request) {
 
         Map<String, Object> payload = (Map<String, Object>)request.get("payload");
@@ -289,11 +302,59 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         }
 
         if (result.getData() instanceof Publisher) {
-            handleSubscription(session, id, result);
+            handleSubscription(session, id, GqlTypes.GQL_DATA, result);
         } else {
             handleQueryOrMutation(session, id, result);
         }
 
+    }
+
+    protected void handleSubscribeRequest(WebSocketSession session, Map<String, Object> request) {
+
+        Map<String, Object> payload = (Map<String, Object>)request.get("payload");
+        final String id = request.get("id").toString();
+
+        // Check authenticated
+        if (!isAuthenticated()) {
+            try {
+                session.close(CloseStatus.SERVICE_RESTARTED);
+            }
+            catch(IOException e) {
+                // continue
+            }
+            return;
+        }
+
+        String query = Objects.toString(payload.get("query"));
+        ExecutionResult result = graphQL.execute(ExecutionInput.newExecutionInput()
+            .query(query)
+            .operationName((String) payload.get("operationName"))
+            .variables(GraphQLHelper.getVariables(payload, objectMapper))
+            .build());
+
+        // If error: send error then disconnect
+        if (CollectionUtils.isNotEmpty(result.getErrors())) {
+            sendResponse(session,
+                ImmutableMap.of(
+                    "id", id,
+                    "type", GqlTypes.GQL_ERROR,
+                    "payload", GraphQLHelper.processExecutionResult(result))
+            );
+            return;
+        }
+
+        if (!(result.getData() instanceof Publisher)) {
+            Exception error = new DataRetrievalFailureException("Server return invalid result. Expected 'Publisher' but get '" + result.getData().getClass() + "'");
+            sendResponse(session,
+                ImmutableMap.of(
+                    "id", id,
+                    "type", GqlTypes.GQL_ERROR,
+                    "payload", GraphQLHelper.processError(error))
+            );
+            return;
+        }
+
+        handleSubscription(session, id, GqlTypes.GQL_NEXT, result);
     }
 
     protected void handleStopRequest(WebSocketSession session, Map<String, Object> request) {
@@ -302,12 +363,11 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         // Closing the subscription
         cancel(opeId);
     }
-
-    protected void handleSubscription(WebSocketSession session, String id, ExecutionResult executionResult) {
+    protected void handleSubscription(WebSocketSession session, String id, String nextType, ExecutionResult executionResult) {
         Publisher<ExecutionResult> events = executionResult.getData();
 
         Disposable subscription = Flux.from(events).subscribe(
-            result -> onNext(session, id, result),
+            result -> onNext(session, id, nextType, result),
             error -> onError(session, id, error),
             () -> onComplete(session, id)
         );
@@ -315,14 +375,14 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     }
 
     private void handleQueryOrMutation(WebSocketSession session, String id, ExecutionResult result) {
-        onNext(session, id, result);
+        onNext(session, id, GqlTypes.GQL_DATA, result);
         onComplete(session, id);
     }
 
-    protected void onNext(WebSocketSession session,  String id, ExecutionResult result) {
+    protected void onNext(WebSocketSession session,  String id, String nextType, ExecutionResult result) {
         sendResponse(session, ImmutableMap.of(
             "id", id,
-            "type", GqlTypes.GQL_DATA,
+            "type", nextType, // Should be GQL_DATA or GQL_NEXT
             "payload", GraphQLHelper.processExecutionResult(result))
         );
     }

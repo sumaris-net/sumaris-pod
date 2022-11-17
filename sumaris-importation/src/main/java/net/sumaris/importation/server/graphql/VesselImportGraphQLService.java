@@ -38,6 +38,7 @@ import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +47,6 @@ import java.io.File;
 import static org.nuiton.i18n.I18n.t;
 
 @Service
-@Transactional
 @GraphQLApi
 @ConditionalOnWebApplication
 @Slf4j
@@ -72,7 +72,6 @@ public class VesselImportGraphQLService {
     }
 
     @GraphQLQuery(name = "importSiopVessels", description = "Import vessels from a SIOP file")
-    @Transactional
     public JobVO importSiopVessels(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
@@ -83,7 +82,7 @@ public class VesselImportGraphQLService {
 
         JobVO importJob = new JobVO();
         importJob.setType(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name());
-        importJob.setName(t("import.job.vessel.name", fileName));
+        importJob.setName(t("sumaris.import.vessel.siop.job.name", fileName));
         importJob.setIssuer(user.getPubkey());
 
         File inputFile = fileController.getUserUploadFile(fileName);

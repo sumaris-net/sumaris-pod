@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
-@Transactional
+
 public interface SiopVesselImportService {
 
     /**
@@ -45,9 +45,10 @@ public interface SiopVesselImportService {
      * @return
      * @throws IOException
      */
+    @Transactional
     SiopVesselImportResultVO importFromFile(SiopVesselImportContextVO context, IProgressionModel progressionModel) throws IOException;
 
 
-    @Async
+    @Async("jobTaskExecutor")
     Future<SiopVesselImportResultVO> asyncImportFromFile(SiopVesselImportContextVO context, JobVO job);
 }

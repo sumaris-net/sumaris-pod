@@ -24,6 +24,7 @@ package net.sumaris.server.config;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.server.http.rest.RestPaths;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -109,6 +110,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
     }
 
     @Bean(name = {"applicationTaskExecutor", "taskExecutor"})
+    @ConditionalOnMissingBean(name = {"applicationTaskExecutor", "taskExecutor"})
     @Lazy
     public ThreadPoolTaskExecutor taskExecutor(TaskExecutorBuilder builder) {
         return builder.build();

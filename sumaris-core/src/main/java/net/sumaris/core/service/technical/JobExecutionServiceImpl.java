@@ -49,6 +49,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.jms.Message;
@@ -108,7 +109,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         job.setStartDate(new Date());
 
         // Save job
-        jobService.save(job);
+        job = jobService.save(job);
 
         // Notify user
         sendUserEvent(EventLevelEnum.INFO, job);
@@ -124,9 +125,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     public void waitJobFuture() {
         synchronized (jobFutureMap) {
             if (!jobFutureMap.isEmpty()) {
+                // Get finished task
                 List<Map.Entry<Integer, Future<?>>> doneJobs = jobFutureMap.entrySet().stream()
                     .filter(entry -> entry.getValue().isDone() || entry.getValue().isCancelled())
                     .collect(Collectors.toList());
+                // Mark jobs as finished
                 for (Map.Entry<Integer, Future<?>> doneJob: doneJobs) {
                     // Get the future
                     Integer jobId = doneJob.getKey();
@@ -313,7 +316,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
         // Build events
         UserEventVO userEvent = UserEventVO.builder()
-                .id(job.getUserEventId())
+                .jobId(job.getId()) // Link user event, to be able to refresh it
                 .issuer(SystemRecipientEnum.SYSTEM.getLabel())
                 .recipient(job.getIssuer())
                 .level(level)
