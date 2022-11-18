@@ -35,4 +35,9 @@ public enum EventTypeEnum implements Serializable {
     FEED,
     JOB;
 
+    public static EventTypeEnum valueOfOrNull(final String level) {
+        return Arrays.stream(values()).filter(enumValue -> enumValue.name().equalsIgnoreCase(level))
+            .findFirst()
+            .orElse(null);
+    }
 }

@@ -27,8 +27,7 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.social.EventLevelEnum;
-import net.sumaris.core.model.social.EventTypeEnum;
+import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -75,6 +74,19 @@ public class UserEventServiceImpl implements UserEventService {
         Preconditions.checkNotNull(event.getRecipient());
         Preconditions.checkNotNull(event.getType());
         Preconditions.checkNotNull(event.getLevel());
+
+        // Special case if link to a job: retrieve the existing event
+        if (event.getId() == null && event.getJobId() != null) {
+            UserEvent existingEvent = userEventRepository.getByProcessingHistoryId(event.getJobId());
+            if (existingEvent != null) {
+                event.setId(existingEvent.getId());
+                event.setCreationDate(existingEvent.getCreationDate());
+                event.setUpdateDate(existingEvent.getUpdateDate());
+            }
+        }
+
+        event.setReadDate(null);
+        event.setReadSignature(null);
 
         return userEventRepository.save(event);
     }

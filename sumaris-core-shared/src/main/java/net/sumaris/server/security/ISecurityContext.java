@@ -32,6 +32,8 @@ public interface ISecurityContext<V extends IValueObject> {
 
     Optional<V> getAuthenticatedUser();
 
+    Optional<String> getAuthenticatedUsername();
+
     boolean hasAuthority(String authority);
 
     boolean isAdmin();

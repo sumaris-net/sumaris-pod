@@ -23,7 +23,6 @@
 package net.sumaris.importation.service.vessel;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -32,8 +31,9 @@ import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.importation.DatabaseFixtures;
 import net.sumaris.importation.DatabaseResource;
+import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
+import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -50,7 +50,7 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private SiopVesselLoaderService service = null;
+    private SiopVesselImportService service = null;
 
     @Autowired
     private PersonService personService = null;
@@ -64,7 +64,11 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
 
         // Import vessel file
         try {
-            service.loadFromFile(userId, file, true, true);
+            SiopVesselImportContextVO context = SiopVesselImportContextVO.builder()
+                .recorderPersonId(userId)
+                .processingFile(file)
+                .build();
+            service.importFromFile(context, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             Assert.fail(e.getMessage());
@@ -84,7 +88,11 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
 
         // Import vessel file
         try {
-            service.loadFromFile(userId, file, true, true);
+            SiopVesselImportContextVO context = SiopVesselImportContextVO.builder()
+                .recorderPersonId(userId)
+                .processingFile(file)
+                .build();
+            service.importFromFile(context, null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             Assert.fail(e.getMessage());

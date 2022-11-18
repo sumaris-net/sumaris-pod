@@ -25,6 +25,8 @@ package net.sumaris.core.dao.social;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.ParameterExpression;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -54,6 +57,7 @@ public interface UserEventSpecifications {
             .and(creationDateAfter(filter.getStartDate()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludeRead(filter.isExcludeRead()))
+            .and(hasJobId(filter.getJobId()))
             ;
     }
 
@@ -69,6 +73,17 @@ public interface UserEventSpecifications {
     default Specification<UserEvent> inIssuers(String[] issuers) {
         return inPropertyValues(UserEvent.Fields.ISSUER, issuers);
 
+    }
+
+    default Specification<UserEvent> hasJobId(Integer jobId) {
+        if (jobId == null) return null;
+        return BindableSpecification.<UserEvent>where((root, query, cb) -> {
+                ParameterExpression<Integer> param = cb.parameter(Integer.class, UserEvent.Fields.PROCESSING_HISTORY);
+                return cb.equal(
+                    Daos.composeJoin(root, StringUtils.doting(UserEvent.Fields.PROCESSING_HISTORY, ProcessingHistory.Fields.ID)),
+                    param);
+            })
+            .addBind(UserEvent.Fields.PROCESSING_HISTORY, jobId);
     }
 
     default Specification<UserEvent> inRecipients(String[] recipients) {

@@ -56,6 +56,8 @@ public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Int
     private Date readDate;
     private String readSignature;
 
+    private Integer jobId;
+
     @Deprecated
     private String eventType;
 }

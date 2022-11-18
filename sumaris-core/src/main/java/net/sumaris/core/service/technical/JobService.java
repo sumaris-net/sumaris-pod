@@ -7,6 +7,7 @@ import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,6 +15,9 @@ import java.util.Optional;
 
 @Transactional
 public interface JobService {
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    boolean updateProcessingTypes();
 
     JobVO save(JobVO source);
 

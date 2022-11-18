@@ -27,7 +27,8 @@ import java.util.Arrays;
 public enum JobTypeEnum implements Serializable {
 
     EXTRACTION("EXTRACTION"),
-    IMPORTATION("IMPORTATION")
+    IMPORTATION("IMPORTATION"),
+    SIOP_VESSELS_IMPORTATION("SIOP_VESSELS_IMPORTATION")
     ;
 
     private final String id;

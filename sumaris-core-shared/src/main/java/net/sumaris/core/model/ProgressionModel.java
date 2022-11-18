@@ -131,6 +131,10 @@ public class ProgressionModel implements IProgressionModel {
         return jobId;
     }
 
+    public boolean isCompleted() {
+        return total > 0 && total == current;
+    }
+
     /* PropertyChangeSupport methods */
     public final void addPropertyChangeListener(PropertyChangeListener listener) {
         this.pcs.addPropertyChangeListener(listener);

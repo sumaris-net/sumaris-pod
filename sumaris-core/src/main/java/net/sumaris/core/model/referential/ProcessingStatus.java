@@ -40,11 +40,11 @@ import java.util.Date;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "processing_status")
+@Cacheable
 public class ProcessingStatus implements IItemReferentialEntity<Integer> {
 
     @Id

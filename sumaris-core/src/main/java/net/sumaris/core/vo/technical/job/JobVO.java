@@ -57,8 +57,6 @@ public class JobVO implements
     private String configuration;
     private String report;
 
-    private Integer userEventId;
-
     @ToString.Include
     private String issuer;
 

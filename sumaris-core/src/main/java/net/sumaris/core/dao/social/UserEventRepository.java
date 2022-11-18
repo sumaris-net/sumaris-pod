@@ -39,4 +39,7 @@ public interface UserEventRepository
 
     @Query("select max(readDate) from UserEvent where recipient in (:recipients)")
     Timestamp getMaxReadDateByRecipient(@Param("recipients") Collection<String> recipients);
+
+    @Query("from UserEvent where processingHistory.id = :processingHistoryId")
+    UserEvent getByProcessingHistoryId(@Param("processingHistoryId") int processingHistoryId);
 }

@@ -24,6 +24,7 @@ package net.sumaris.importation.service.rdb;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Files;
+import net.sumaris.importation.core.service.rdb.RdbDataLoaderServiceImpl;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.Assert;
 import org.junit.Ignore;

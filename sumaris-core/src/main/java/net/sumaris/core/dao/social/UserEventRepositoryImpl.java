@@ -26,7 +26,10 @@ package net.sumaris.core.dao.social;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.model.social.EventLevelEnum;
+import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +83,19 @@ public class UserEventRepositoryImpl
     public void toEntity(UserEventVO source, UserEvent target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
 
+        target.setLevel(source.getLevel().name());
+        target.setType(source.getType().name());
+
+        // Processing history
+        if (source.getJobId() != null || copyIfNull) {
+            if (source.getJobId() == null) {
+                target.setProcessingHistory(null);
+            }
+            else {
+                target.setProcessingHistory(getReference(ProcessingHistory.class, source.getJobId()));
+            }
+        }
+
         boolean isNew = source.getId() == null;
         if (isNew) {
             target.setCreationDate(new Date());
@@ -89,6 +105,13 @@ public class UserEventRepositoryImpl
     @Override
     public void toVO(UserEvent source, UserEventVO target, boolean copyIfNull) {
         super.toVO(source, target, copyIfNull);
+
+        target.setLevel(EventLevelEnum.valueOfOrNull(source.getLevel()));
+        target.setType(EventTypeEnum.valueOfOrNull(source.getType()));
+
+        if (source.getProcessingHistory() != null) {
+            target.setJobId(source.getProcessingHistory().getId());
+        }
     }
 
     @Override

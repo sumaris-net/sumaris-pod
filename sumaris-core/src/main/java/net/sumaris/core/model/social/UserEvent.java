@@ -25,7 +25,13 @@ package net.sumaris.core.model.social;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ISignedEntity;
+import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.referential.taxon.TaxonGroupType;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -63,6 +69,7 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     private String recipient;
 
     @Column(name = "event_type", nullable = false, length = 30)
+    @Comment("Le type de l'évènement")
     private String type;
 
     @Column(name = "level", nullable = false, length = 30)
@@ -85,4 +92,7 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ProcessingHistory.class)
+    @JoinColumn(name = "processing_history_fk")
+    private ProcessingHistory processingHistory;
 }

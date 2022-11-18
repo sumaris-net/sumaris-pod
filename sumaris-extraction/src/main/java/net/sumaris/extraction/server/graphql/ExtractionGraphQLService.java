@@ -45,7 +45,7 @@ import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.server.geojson.ExtractionGeoJsonConverter;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.server.http.graphql.GraphQLApi;
-import net.sumaris.server.security.IDownloadController;
+import net.sumaris.server.security.IFileController;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -54,8 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional
@@ -67,11 +65,11 @@ public class ExtractionGraphQLService {
 
     private final ExtractionSecurityService extractionSecurityService;
     private final ExtractionService extractionService;
-    private final IDownloadController downloadController;
+    private final IFileController downloadController;
     private final ExtractionGeoJsonConverter geoJsonConverter;
 
     public ExtractionGraphQLService(
-        IDownloadController downloadController,
+        IFileController downloadController,
         ExtractionSecurityService extractionSecurityService,
         ExtractionService extractionService,
         ExtractionGeoJsonConverter geoJsonConverter) {
