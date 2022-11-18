@@ -154,6 +154,9 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
         // Close keep alive task
         cancelPingTask();
+
+        // logout
+        logout();
     }
 
     @Override
@@ -188,7 +191,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                     disposeAllSubscriptions();
                     break;
 
-                // Deprecated graphql-subscription-ws (for Pod v1)
+                // Deprecated subscriptions-transport-ws (for Pod v1)
                 case GqlTypes.GQL_CONNECTION_KEEP_ALIVE:
                     log.debug(I18n.t("sumaris.server.info.subscription.cancelKeepAliveTask", type));
                     cancelPingTask();
@@ -527,4 +530,8 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         }
     }
 
+    protected void logout() {
+        this.authentication.set(null);
+        SecurityContextHolder.clearContext();
+    }
 }
