@@ -106,7 +106,7 @@ public class JobRepositoryImpl
         target.setType(sourceType.getLabel());
 
         // Start date
-        target.setStartDate(Dates.min(source.getUpdateDate(), source.getProcessingDate());
+        target.setStartDate(Dates.min(source.getUpdateDate(), source.getProcessingDate()));
 
         // End date
         if (ProcessingStatusEnum.isFinished(sourceStatus)) {
