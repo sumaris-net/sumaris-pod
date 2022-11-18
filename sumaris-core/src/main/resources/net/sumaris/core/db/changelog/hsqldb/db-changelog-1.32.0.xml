@@ -87,6 +87,26 @@
 			<column name="source" type="varchar(50)"/>
 		</addColumn>
 	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-5">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists tableName="user_event" indexName="user_event_source_idx" columnNames="source"/>
+			</not>
+		</preConditions>
+		<createIndex tableName="user_event" indexName="user_event_source_idx">
+			<column name="source"/>
+		</createIndex>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-6">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists tableName="processing_history" indexName="processing_history_address_idx" columnNames="data_transfert_address"/>
+			</not>
+		</preConditions>
+		<createIndex tableName="processing_history" indexName="processing_history_address_idx">
+			<column name="data_transfert_address"/>
+		</createIndex>
+	</changeSet>
 
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-200" runOnChange="true">

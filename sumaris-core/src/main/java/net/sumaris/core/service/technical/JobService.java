@@ -17,6 +17,9 @@ import java.util.Optional;
 public interface JobService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    boolean updateProcessingStatus();
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     boolean updateProcessingTypes();
 
     JobVO save(JobVO source);

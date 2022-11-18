@@ -32,9 +32,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.referential.ProcessingType;
-import net.sumaris.core.model.referential.ProcessingTypeEnum;
-import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -83,6 +81,9 @@ public class JobServiceImpl implements JobService {
                 // Get self (by interface) to force transaction creation
                 JobService self = applicationContext.getBean(JobService.class);
 
+                // Insert missing processing status
+                self.updateProcessingStatus();
+
                 // Insert missing processing types
                 self.updateProcessingTypes();
             }
@@ -120,10 +121,46 @@ public class JobServiceImpl implements JobService {
         return jobRepository.findAll(filter, page);
     }
 
+    public boolean updateProcessingStatus() {
+        try {
+            String entityName = ProcessingStatus.class.getSimpleName();
+            List<String> insertedLabels = Arrays.stream(ProcessingStatusEnum.values())
+                    .map(ProcessingStatusEnum::getLabel)
+                    // Filter if not exists
+                    .filter(label -> referentialDao.countByFilter(
+                            entityName,
+                            ReferentialFilterVO.builder()
+                                    .label(label)
+                                    .build()) == 0)
+                    // Transform to new VO
+                    .map(label -> ReferentialVO.builder()
+                            .label(label)
+                            .name(label)
+                            .statusId(StatusEnum.ENABLE.getId())
+                            .entityName(entityName).build())
+                    // Save VO
+                    .map(referentialDao::save)
+                    // Update the enum id
+                    .map(vo -> {
+                        ProcessingStatusEnum.byLabel(vo.getLabel()).setId(vo.getId());
+                        return vo.getLabel();
+                    })
+                    .collect(Collectors.toList());
+            if (!insertedLabels.isEmpty()) {
+                log.info("Technical table PROCESSING_STATUS successfully updated. (inserts: {})", insertedLabels.size());
+                log.debug(" - New processing status: {}", insertedLabels);
+            }
+            return true;
+        } catch (Throwable t) {
+            log.error("Error while initializing processing status: {}", t.getMessage(), t);
+            return false;
+        }
+    }
+
     public boolean updateProcessingTypes() {
         try {
             String entityName = ProcessingType.class.getSimpleName();
-            List<String> newTypeLabels = Arrays.stream(ProcessingTypeEnum.values())
+            List<String> insertedLabels = Arrays.stream(ProcessingTypeEnum.values())
                 .map(ProcessingTypeEnum::getLabel)
                 // Filter if not exists
                 .filter(label -> referentialDao.countByFilter(
@@ -145,9 +182,9 @@ public class JobServiceImpl implements JobService {
                     return vo.getLabel();
                 })
                 .collect(Collectors.toList());
-            if (!newTypeLabels.isEmpty()) {
-                log.info("Technical table PROCESSING_TYPE successfully updated. (inserts: {})", newTypeLabels.size());
-                log.debug(" - New processing types: {}", newTypeLabels);
+            if (!insertedLabels.isEmpty()) {
+                log.info("Technical table PROCESSING_TYPE successfully updated. (inserts: {})", insertedLabels.size());
+                log.debug(" - New processing types: {}", insertedLabels);
             }
             return true;
         } catch (Throwable t) {

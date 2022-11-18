@@ -26,6 +26,7 @@ import net.sumaris.core.dao.referential.IEntityWithJoinSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingStatusEnum;
+import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingType;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
@@ -64,7 +65,7 @@ public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer
 
     default Specification<ProcessingHistory> hasTypes(String... types) {
         return hasInnerJoinValues(
-            StringUtils.doting(ProcessingHistory.Fields.DATA_TRANSFERT_TYPE, ProcessingType.Fields.LABEL),
+            StringUtils.doting(ProcessingHistory.Fields.PROCESSING_TYPE, ProcessingType.Fields.LABEL),
             types);
     }
 
