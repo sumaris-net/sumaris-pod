@@ -25,8 +25,6 @@ package net.sumaris.server.service.administration;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.server.config.ServerCacheConfiguration;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface ImageService {
@@ -40,5 +38,7 @@ public interface ImageService {
 
     void fillLogo(DepartmentVO department);
 
-    String getImageUrl(String imageUri);
+    String getImageUrlByUri(String imageUri);
+
+    String getImageUrlById(int id);
 }

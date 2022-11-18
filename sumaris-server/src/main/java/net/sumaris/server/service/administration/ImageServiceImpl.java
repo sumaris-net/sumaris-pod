@@ -97,7 +97,7 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public String getImageUrl(String imageUri) {
+    public String getImageUrlByUri(String imageUri) {
         if (StringUtils.isBlank(imageUri) || imageUrl == null) return null;
 
         // Resolve URI like 'image:<ID>'
@@ -106,6 +106,11 @@ public class ImageServiceImpl implements ImageService {
         }
         // should be a URL, so return it
         return imageUri;
+    }
+
+    @Override
+    public String getImageUrlById(int id) {
+        return imageUrl.replace("{id}", String.valueOf(id));
     }
 
     /* -- protected methods -- */

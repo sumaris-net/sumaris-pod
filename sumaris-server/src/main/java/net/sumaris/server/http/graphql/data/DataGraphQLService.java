@@ -32,6 +32,9 @@ import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.service.data.*;
@@ -49,9 +52,11 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
+import net.sumaris.server.http.rest.RestPaths;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -62,6 +67,7 @@ import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -1345,6 +1351,24 @@ public class DataGraphQLService {
         if (vesselSnapshot.getMeasurementValues() != null) vesselSnapshot.getMeasurementValues();
         if (vesselSnapshot.getId() == null) return null;
         return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getId());
+    }
+
+    // Images
+    @GraphQLQuery(name = "dataUrl", description = "Get image data url")
+    public String getImageDateUrl(@GraphQLContext ImageAttachmentVO image) {
+        if (image.getContent() == null || image.getContentType() == null) return null;
+
+        return new StringBuffer().append("data:")
+                .append(image.getContentType()).append(";")
+                .append(image.getContent())
+                .toString();
+    }
+
+    @GraphQLQuery(name = "url", description = "Get image url")
+    public String getImageUrl(@GraphQLContext ImageAttachmentVO image) {
+        if (image.getPath() == null || image.getId() == null) return null;
+
+        return imageService.getImageUrlById(image.getId());
     }
 
     /* -- protected methods -- */
