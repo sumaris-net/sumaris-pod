@@ -94,6 +94,12 @@ public class SampleServiceImpl implements SampleService {
 	}
 
 	@Override
+	public List<SampleVO> getAllByLandingId(int landingId, SampleFetchOptions fetchOptions) {
+		return sampleRepository.findAll(SampleFilterVO.builder().landingId(landingId).build(),
+				fetchOptions);
+	}
+
+	@Override
 	public SampleVO get(int id) {
 		return sampleRepository.get(id);
 	}

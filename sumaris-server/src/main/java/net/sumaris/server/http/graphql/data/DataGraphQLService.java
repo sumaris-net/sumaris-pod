@@ -881,6 +881,7 @@ public class DataGraphQLService {
         return sampleService.getAllByOperationId(operation.getId(), SampleFetchOptions.builder()
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
+                .withImages(fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
                 .build());
     }
 
@@ -894,10 +895,13 @@ public class DataGraphQLService {
     }
 
     @GraphQLQuery(name = "samples", description = "Get landing's samples")
-    public List<SampleVO> getSamplesByLanding(@GraphQLContext LandingVO landing) {
+    public List<SampleVO> getSamplesByLanding(@GraphQLContext LandingVO landing,
+                                              @GraphQLEnvironment ResolutionEnvironment env) {
         // Avoid a reloading (e.g. when saving)
         if (landing.getSamples() != null) return landing.getSamples();
         if (landing.getId() == null) return null;
+
+        Set<String> fields = GraphQLUtils.fields(env);
 
         // Get samples by operation if a main undefined operation group exists
         List<SampleVO> samples;
@@ -905,7 +909,13 @@ public class DataGraphQLService {
         if (operationId != null) {
             samples = sampleService.getAllByOperationId(operationId);
         } else {
-            samples = sampleService.getAllByLandingId(landing.getId());
+            SampleFetchOptions fetchOptions = SampleFetchOptions.builder()
+                    .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                    .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
+                    .withImages(fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
+                    .build();
+
+            samples = sampleService.getAllByLandingId(landing.getId(), fetchOptions);
         }
 
         landing.setSamples(samples);
