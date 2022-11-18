@@ -80,15 +80,12 @@
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-4">
 		<preConditions onFail="MARK_RAN">
 			<not>
-				<columnExists tableName="user_event" columnName="processing_history_fk"/>
+				<columnExists tableName="user_event" columnName="source"/>
 			</not>
 		</preConditions>
 		<addColumn tableName="user_event">
-			<column name="processing_history_fk" type="INT"/>
+			<column name="source" type="varchar(50)"/>
 		</addColumn>
-		<addForeignKeyConstraint baseColumnNames="processing_history_fk" baseTableName="user_event"
-														 constraintName="user_event_processing_history_fkc"
-														 referencedColumnNames="id" referencedTableName="processing_history"/>
 	</changeSet>
 
 	<!-- update SYSTEM_VERSION -->
@@ -101,7 +98,7 @@
 			<column name="LABEL">1.32.0</column>
 			<column name="DESCRIPTION">
 				- Add some columns into VESSEL_FEATURES
-				- Add columns LEVEL and READ_DATE in USER_EVENT
+				- Add columns LEVEL,READ_DATE and SOURCE into USER_EVENT
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>

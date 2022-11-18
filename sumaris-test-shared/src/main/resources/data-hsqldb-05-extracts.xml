@@ -657,9 +657,25 @@
                         DATA_TRANSFERT_ADDRESS="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
                         PROCESSING_DATE="2022-11-03" UPDATE_DATE="2022-11-03"
                         PROCESSING_TYPE_FK="2" PROCESSING_STATUS_FK="1"/>
-    <USER_EVENT ID="1" CONTENT="{&quot;id&quot;: 1, &quot;status&quot;: &quot;SUCCESS&quot;, &quot;type&quot;: &quot;JOB&quot;, &quot;level&quot;: &quot;INFO&quot;}"
+    <PROCESSING_HISTORY ID="2" NAME="Importation des navires"
+                        DATA_TRANSFERT_ADDRESS="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB" DATA_TRANSFERT_DATE="2022-11-11 09:41:00.000"
+                        PROCESSING_DATE="2022-11-11"  UPDATE_DATE="2022-11-11 09:41:00.000"
+                        PROCESSING_TYPE_FK="3" PROCESSING_STATUS_FK="2"/>
+
+    <USER_EVENT ID="1" CONTENT="{&quot;id&quot;: 1, &quot;status&quot;: &quot;ERROR&quot;, &quot;type&quot;: &quot;SUMARIS_EXTRACTION&quot;, &quot;name&quot;: &quot;Extraction RDB&quot;}"
                 EVENT_TYPE="JOB"
+                SOURCE="job:1"
+                LEVEL="ERROR"
                 ISSUER="SYSTEM"
                 RECIPIENT="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
                 UPDATE_DATE="2022-11-03" CREATION_DATE="2022-11-03"/>
+    <USER_EVENT ID="2" CONTENT="{&quot;id&quot;: 2, &quot;status&quot;: &quot;SUCCESS&quot;, &quot;type&quot;: &quot;SIOP_VESSELS_IMPORTATION&quot;, &quot;name&quot;: &quot;Import des navires&quot;}"
+                EVENT_TYPE="JOB"
+                SOURCE="job:2"
+                LEVEL="INFO"
+                ISSUER="SYSTEM"
+                RECIPIENT="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
+                CREATION_DATE="2022-11-11 02:00:00.000" UPDATE_DATE="2022-11-11 09:41:00.000"/>
+
+
 </dataset>

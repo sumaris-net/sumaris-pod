@@ -549,6 +549,12 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     public static Date max(Date d1, Date d2) {
         return (d1 == null || d2 == null)
             ? (d1 != null ? d1 : d2)
-            : (d1.getTime() > d2.getTime() ? d1 : d2);
+            : (d1.getTime() >= d2.getTime() ? d1 : d2);
+    }
+
+    public static Date min(Date d1, Date d2) {
+        return (d1 == null || d2 == null)
+                ? (d1 != null ? d1 : d2)
+                : (d1.getTime() <= d2.getTime() ? d1 : d2);
     }
 }

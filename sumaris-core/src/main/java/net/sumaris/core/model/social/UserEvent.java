@@ -43,7 +43,7 @@ import java.util.Date;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "user_event")
+@Table(name = "user_event", indexes = @Index(name = "user_event_source_idx", columnList = "source"))
 @Cacheable
 public class UserEvent implements ISignedEntity<Integer, Date> {
 
@@ -62,17 +62,17 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
-    
     private String issuer;
 
     @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String recipient;
 
     @Column(name = "event_type", nullable = false, length = 30)
-    @Comment("Le type de l'évènement")
+    @Comment("Le type de l'évènement (INBOX_MESSAGE, FEED, JOB, etc.)")
     private String type;
 
     @Column(name = "level", nullable = false, length = 30)
+    @Comment("Le niveau de l'évènement (INFO, ERROR, etc.)")
     private String level;
 
     @Lob
@@ -92,7 +92,6 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ProcessingHistory.class)
-    @JoinColumn(name = "processing_history_fk")
-    private ProcessingHistory processingHistory;
+    @Column(name = "source", length = 50)
+    private String source;
 }

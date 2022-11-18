@@ -180,7 +180,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                     handleCompleteRequest(session, request);
                     break;
                 case GqlTypes.GQL_CONNECTION_PING:
-                    log.debug(I18n.t("sumaris.server.info.subscription.cancelKeepAliveTask", type));
+                    log.debug(I18n.t("sumaris.server.info.subscription.cancelPingTask", type));
                     cancelPingTask();
                     break;
                 case GqlTypes.GQL_CONNECTION_PONG:
@@ -193,7 +193,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
                 // Deprecated subscriptions-transport-ws (for Pod v1)
                 case GqlTypes.GQL_CONNECTION_KEEP_ALIVE:
-                    log.debug(I18n.t("sumaris.server.info.subscription.cancelKeepAliveTask", type));
+                    log.debug(I18n.t("sumaris.server.info.subscription.cancelPingTask", type));
                     cancelPingTask();
                     break;
                 case GqlTypes.GQL_START:

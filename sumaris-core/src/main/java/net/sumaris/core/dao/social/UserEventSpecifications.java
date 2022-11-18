@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.ParameterExpression;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -57,7 +56,7 @@ public interface UserEventSpecifications {
             .and(creationDateAfter(filter.getStartDate()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludeRead(filter.isExcludeRead()))
-            .and(hasJobId(filter.getJobId()))
+            .and(hasSource(filter.getSource()))
             ;
     }
 
@@ -75,15 +74,13 @@ public interface UserEventSpecifications {
 
     }
 
-    default Specification<UserEvent> hasJobId(Integer jobId) {
-        if (jobId == null) return null;
+    default Specification<UserEvent> hasSource(String source) {
+        if (StringUtils.isBlank(source)) return null;
         return BindableSpecification.<UserEvent>where((root, query, cb) -> {
-                ParameterExpression<Integer> param = cb.parameter(Integer.class, UserEvent.Fields.PROCESSING_HISTORY);
-                return cb.equal(
-                    Daos.composeJoin(root, StringUtils.doting(UserEvent.Fields.PROCESSING_HISTORY, ProcessingHistory.Fields.ID)),
-                    param);
+                ParameterExpression<String> param = cb.parameter(String.class, UserEvent.Fields.SOURCE);
+                return cb.equal(root.get(UserEvent.Fields.SOURCE), param);
             })
-            .addBind(UserEvent.Fields.PROCESSING_HISTORY, jobId);
+            .addBind(UserEvent.Fields.SOURCE, source);
     }
 
     default Specification<UserEvent> inRecipients(String[] recipients) {

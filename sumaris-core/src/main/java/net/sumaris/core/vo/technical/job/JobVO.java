@@ -21,6 +21,7 @@ package net.sumaris.core.vo.technical.job;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -65,5 +66,10 @@ public class JobVO implements
     @Override
     public int compareTo(JobVO o) {
         return this.hashCode() - o.hashCode();
+    }
+
+    @JsonIgnore
+    public String asSource() {
+        return String.format("job:%s", getId());
     }
 }

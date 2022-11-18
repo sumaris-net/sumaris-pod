@@ -49,7 +49,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.jms.Message;
@@ -316,7 +315,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
         // Build events
         UserEventVO userEvent = UserEventVO.builder()
-                .jobId(job.getId()) // Link user event, to be able to refresh it
+                .source(job.asSource()) // Link to job
                 .issuer(SystemRecipientEnum.SYSTEM.getLabel())
                 .recipient(job.getIssuer())
                 .level(level)

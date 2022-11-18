@@ -59,5 +59,5 @@ public class UserEventFilterVO {
     private Date startDate;
     private boolean excludeRead = false;
 
-    private Integer jobId;
+    private String source;
 }

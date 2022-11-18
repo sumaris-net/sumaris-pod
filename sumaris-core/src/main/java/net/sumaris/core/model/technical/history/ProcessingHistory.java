@@ -22,11 +22,12 @@ package net.sumaris.core.model.technical.history;
  * #L%
  */
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.ProcessingStatus;
@@ -49,7 +50,9 @@ import java.util.Date;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "processing_history")
+@Table(name = "processing_history",
+    indexes = @Index(name = "processing_history_address_idx", columnList = "data_transfert_address")
+)
 @Comment("Liste des traitements lancés")
 public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<Integer, Date> {
 
@@ -68,7 +71,8 @@ public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<In
     private String name;
 
     @Column(name = "processing_date", nullable = false)
-    private Date date;
+    @Comment("Date d'execution du traitement. Généralement, la date de fin du traitement, renseigné via sysdate.")
+    private Date processingDate;
 
     /**
      * S'il s'agit d'un traitement manipulant des données (importation ou exportation) :

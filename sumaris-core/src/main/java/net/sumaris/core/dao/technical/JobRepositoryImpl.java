@@ -106,14 +106,14 @@ public class JobRepositoryImpl
         target.setType(sourceType.getLabel());
 
         // Start date
-        target.setStartDate(source.getDate());
+        target.setStartDate(Dates.min(source.getUpdateDate(), source.getProcessingDate());
 
         // End date
         if (ProcessingStatusEnum.isFinished(sourceStatus)) {
-            target.setEndDate(Dates.max(source.getUpdateDate(), source.getDate()));
+            target.setEndDate(Dates.max(source.getUpdateDate(), source.getProcessingDate()));
         }
         else {
-            target.setEndDate(null); // Running or pending
+            target.setEndDate(null); // Running or pending = no end date
         }
 
         // Configuration
@@ -162,10 +162,6 @@ public class JobRepositoryImpl
         // Issuer
         target.setDataTransfertAddress(source.getIssuer());
 
-        Date date = source.getStartDate();
-        if (date == null) date = new Date();
-        target.setDate(date);
-
         // Type
         ProcessingTypeEnum targetType = ProcessingTypeEnum.valueOf(source.getType());
         target.setProcessingType(getReference(ProcessingType.class, targetType.getId()));
@@ -176,6 +172,19 @@ public class JobRepositoryImpl
             targetStatus = ProcessingStatusEnum.WAITING_EXECUTION;
         }
         target.setProcessingStatus(getReference(ProcessingStatus.class, targetStatus.getId()));
+
+        // Job is finished: fill processing date with end date
+        if (ProcessingStatusEnum.isFinished(targetStatus)) {
+            Date processingDate = source.getEndDate();
+            if (processingDate == null) processingDate = getDatabaseCurrentDate();
+            target.setProcessingDate(processingDate);
+        }
+        // Job is pending or running: fill processing date with start date
+        else {
+            Date processingDate = source.getStartDate();
+            if (processingDate == null) processingDate = this.getDatabaseCurrentTimestamp();
+            target.setProcessingDate(processingDate);
+        }
 
         // Configuration
         if (StringUtils.isNotBlank(source.getConfiguration())) {

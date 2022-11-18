@@ -76,15 +76,15 @@ public class UserEventServiceImpl implements UserEventService {
         Preconditions.checkNotNull(event.getLevel());
 
         // Special case if link to a job: retrieve the existing event
-        if (event.getId() == null && event.getJobId() != null) {
-            UserEvent existingEvent = userEventRepository.getByProcessingHistoryId(event.getJobId());
+        if (event.getId() == null && event.getSource() != null) {
+            UserEvent existingEvent = userEventRepository.getBySource(event.getSource());
             if (existingEvent != null) {
                 event.setId(existingEvent.getId());
-                event.setCreationDate(existingEvent.getCreationDate());
                 event.setUpdateDate(existingEvent.getUpdateDate());
             }
         }
 
+        // Mark as unread
         event.setReadDate(null);
         event.setReadSignature(null);
 
