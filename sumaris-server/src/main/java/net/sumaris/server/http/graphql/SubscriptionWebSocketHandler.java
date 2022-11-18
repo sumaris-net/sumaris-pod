@@ -31,7 +31,6 @@ import graphql.GraphQL;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEventListener;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.server.exception.ErrorCodes;
@@ -44,7 +43,6 @@ import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -70,33 +68,34 @@ import java.util.function.Consumer;
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler implements SubProtocolCapable {
 
-    private static final List<String> GRAPHQL_WS = Collections.singletonList("graphql-ws");
+    private static final List<String> GRAPHQL_WS_PROTOCOLS = Collections.singletonList("graphql-transport-ws");
 
     public interface GqlTypes {
         String GQL_CONNECTION_INIT = "connection_init";
         String GQL_CONNECTION_ACK = "connection_ack";
         String GQL_CONNECTION_ERROR = "connection_error";
-        String GQL_CONNECTION_KEEP_ALIVE = "ka";
-
         String GQL_CONNECTION_PING = "ping";
-
         String GQL_CONNECTION_PONG = "pong";
         String GQL_CONNECTION_TERMINATE = "connection_terminate";
-        String GQL_START = "start";
-        String GQL_STOP = "stop";
         String GQL_ERROR = "error";
-        String GQL_DATA = "data";
-
         String GQL_SUBSCRIBE = "subscribe";
         String GQL_COMPLETE = "complete";
-
         String GQL_NEXT = "next";
+
+        @Deprecated
+        String GQL_CONNECTION_KEEP_ALIVE = "ka";
+        @Deprecated
+        String GQL_START = "start";
+        @Deprecated
+        String GQL_STOP = "stop";
+        @Deprecated
+        String GQL_DATA = "data";
     }
 
     private final boolean debug;
 
     private final Map<String, Disposable> subscriptions = Maps.newConcurrentMap();
-    private final AtomicReference<ScheduledFuture<?>> keepAlive = new AtomicReference<>();
+    private final AtomicReference<ScheduledFuture<?>> pingTask = new AtomicReference<>();
 
     private final AtomicBoolean ready = new AtomicBoolean(false);
     private final GraphQL graphQL;
@@ -104,8 +103,10 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     private final AuthService authService;
     private final TaskScheduler taskScheduler;
 
-    @Value("${graphql.spqr.ws.keepAlive.intervalMillis:10000}")
-    private int keepAliveInterval = 10000;
+    private final AtomicReference<UsernamePasswordAuthenticationToken> authentication = new AtomicReference<>();
+
+    @Value("${graphql.ws.ping.intervalMillis:10000}")
+    private int pingInterval = 10000;
 
     @Autowired
     public SubscriptionWebSocketHandler(ConfigurationService configuration,
@@ -138,9 +139,10 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         if (taskScheduler != null) {
-            this.keepAlive.compareAndSet(null,
-                taskScheduler.scheduleWithFixedDelay(keepAliveTask(session),
-                Math.max(keepAliveInterval, 5000))); // Should be >= 5 sec
+            this.pingTask.compareAndSet(null,
+                taskScheduler.scheduleWithFixedDelay(
+                    () -> this.sendPing(session),
+                    Math.max(pingInterval, 5000))); // Should be >= 5 sec
         }
     }
 
@@ -148,10 +150,10 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 
         // Closing session's subscriptions
-        cancelAll();
+        disposeAllSubscriptions();
 
         // Close keep alive task
-        cancelKeepAliveTask();
+        cancelPingTask();
     }
 
     @Override
@@ -164,33 +166,40 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
             String type = Objects.toString(request.get("type"), GqlTypes.GQL_START);
             switch (type) {
+                // graphql-transport-ws
                 case GqlTypes.GQL_CONNECTION_INIT:
                     handleInitConnection(session, request);
-                    break;
-                case GqlTypes.GQL_START:
-                    handleStartRequest(session, request);
                     break;
                 case GqlTypes.GQL_SUBSCRIBE:
                     handleSubscribeRequest(session, request);
                     break;
-                case GqlTypes.GQL_STOP:
-                    handleStopRequest(session, request);
-                    break;
                 case GqlTypes.GQL_COMPLETE:
-                    handleStopRequest(session, request);
+                    handleCompleteRequest(session, request);
                     break;
-                case GqlTypes.GQL_CONNECTION_KEEP_ALIVE:
                 case GqlTypes.GQL_CONNECTION_PING:
                     log.debug(I18n.t("sumaris.server.info.subscription.cancelKeepAliveTask", type));
-                    cancelKeepAliveTask();
+                    cancelPingTask();
                     break;
                 case GqlTypes.GQL_CONNECTION_PONG:
                     log.debug(I18n.t("sumaris.server.info.subscription.received", type));
                     break;
                 case GqlTypes.GQL_CONNECTION_TERMINATE:
                     session.close();
-                    cancelAll();
+                    disposeAllSubscriptions();
                     break;
+
+                // Deprecated graphql-subscription-ws (for Pod v1)
+                case GqlTypes.GQL_CONNECTION_KEEP_ALIVE:
+                    log.debug(I18n.t("sumaris.server.info.subscription.cancelKeepAliveTask", type));
+                    cancelPingTask();
+                    break;
+                case GqlTypes.GQL_START:
+                    handleSubscribeRequest(session, request, GqlTypes.GQL_DATA);
+                    break;
+                case GqlTypes.GQL_STOP:
+                    handleStopRequest(session, request);
+                    break;
+
                 default:
                     log.error(I18n.t("sumaris.server.error.subscription.badRequest", "Unknown message type :" + type));
             }
@@ -207,7 +216,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
     @Override
     public List<String> getSubProtocols() {
-        return GRAPHQL_WS;
+        return GRAPHQL_WS_PROTOCOLS;
     }
 
     /* -- protected methods -- */
@@ -240,6 +249,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                 // If success: store authentication in the security context
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(authUser.getUsername(), token, authUser.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                this.authentication.set(authentication);
 
                 // Send an ack
                 sendResponse(session,
@@ -265,51 +275,10 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             ));
     }
 
-
-    @Deprecated
-    protected void handleStartRequest(WebSocketSession session, Map<String, Object> request) {
-
-        Map<String, Object> payload = (Map<String, Object>)request.get("payload");
-        final String id = request.get("id").toString();
-
-        // Check authenticated
-        if (!isAuthenticated()) {
-            try {
-                session.close(CloseStatus.SERVICE_RESTARTED);
-            }
-            catch(IOException e) {
-                // continue
-            }
-            return;
-        }
-
-        String query = Objects.toString(payload.get("query"));
-        ExecutionResult result = graphQL.execute(ExecutionInput.newExecutionInput()
-                .query(query)
-                .operationName((String) payload.get("operationName"))
-                .variables(GraphQLHelper.getVariables(payload, objectMapper))
-                .build());
-
-        // If error: send error then disconnect
-        if (CollectionUtils.isNotEmpty(result.getErrors())) {
-            sendResponse(session,
-                         ImmutableMap.of(
-                                "id", id,
-                                "type", GqlTypes.GQL_ERROR,
-                                "payload", GraphQLHelper.processExecutionResult(result))
-                );
-            return;
-        }
-
-        if (result.getData() instanceof Publisher) {
-            handleSubscription(session, id, GqlTypes.GQL_DATA, result);
-        } else {
-            handleQueryOrMutation(session, id, result);
-        }
-
-    }
-
     protected void handleSubscribeRequest(WebSocketSession session, Map<String, Object> request) {
+        handleSubscribeRequest(session, request, GqlTypes.GQL_NEXT);
+    }
+    protected void handleSubscribeRequest(WebSocketSession session, Map<String, Object> request, String nextType) {
 
         Map<String, Object> payload = (Map<String, Object>)request.get("payload");
         final String id = request.get("id").toString();
@@ -343,46 +312,69 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             return;
         }
 
-        if (!(result.getData() instanceof Publisher)) {
-            Exception error = new DataRetrievalFailureException("Server return invalid result. Expected 'Publisher' but get '" + result.getData().getClass() + "'");
-            sendResponse(session,
-                ImmutableMap.of(
-                    "id", id,
-                    "type", GqlTypes.GQL_ERROR,
-                    "payload", GraphQLHelper.processError(error))
-            );
-            return;
+        // Subscription
+        if (result.getData() instanceof Publisher) {
+            handleSubscription(session, id, result, nextType);
+        }
+        // Query or mutation
+        else {
+            onNext(session, id, result, nextType);
+            onComplete(session, id);
         }
 
-        handleSubscription(session, id, GqlTypes.GQL_NEXT, result);
     }
 
-    protected void handleStopRequest(WebSocketSession session, Map<String, Object> request) {
+    protected void handleCompleteRequest(WebSocketSession session, Map<String, Object> request) {
         final String opeId = request.get("id").toString();
 
         // Closing the subscription
-        cancel(opeId);
+        disposeSubscription(opeId);
     }
-    protected void handleSubscription(WebSocketSession session, String id, String nextType, ExecutionResult executionResult) {
+
+    protected void handleSubscription(WebSocketSession session, String id, ExecutionResult executionResult) {
+        handleSubscription(session, id, executionResult, GqlTypes.GQL_NEXT);
+    }
+    protected void handleSubscription(WebSocketSession session, String id, ExecutionResult executionResult, String nextType) {
         Publisher<ExecutionResult> events = executionResult.getData();
 
         Disposable subscription = Flux.from(events).subscribe(
-            result -> onNext(session, id, nextType, result),
+            result -> onNext(session, id, result, nextType),
             error -> onError(session, id, error),
             () -> onComplete(session, id)
         );
         registerSubscription(id, subscription);
     }
 
-    private void handleQueryOrMutation(WebSocketSession session, String id, ExecutionResult result) {
-        onNext(session, id, GqlTypes.GQL_DATA, result);
-        onComplete(session, id);
+    @Deprecated
+    protected void handleDataSubscription(WebSocketSession session, String id, ExecutionResult executionResult) {
+        Publisher<ExecutionResult> events = executionResult.getData();
+
+        Disposable subscription = Flux.from(events).subscribe(
+            result -> onData(session, id, result),
+            error -> onError(session, id, error),
+            () -> onComplete(session, id)
+        );
+        registerSubscription(id, subscription);
     }
 
-    protected void onNext(WebSocketSession session,  String id, String nextType, ExecutionResult result) {
+    @Deprecated
+    protected void handleStopRequest(WebSocketSession session, Map<String, Object> request) {
+        handleCompleteRequest(session, request);
+    }
+
+    @Deprecated
+    protected void handleStartRequest(WebSocketSession session, Map<String, Object> request) {
+        handleSubscribeRequest(session, request, GqlTypes.GQL_DATA);
+    }
+
+    protected void onNext(WebSocketSession session,  String id, ExecutionResult result) {
+        onNext(session, id, result, GqlTypes.GQL_NEXT);
+    }
+
+    protected void onNext(WebSocketSession session,  String id, ExecutionResult result, String type) {
         sendResponse(session, ImmutableMap.of(
             "id", id,
-            "type", nextType, // Should be GQL_DATA or GQL_NEXT
+            "type", type,
             "payload", GraphQLHelper.processExecutionResult(result))
         );
     }
@@ -405,9 +397,33 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         ));
     }
 
+    @Deprecated
+    protected void onData(WebSocketSession session,  String id, ExecutionResult result) {
+        sendResponse(session, ImmutableMap.of(
+            "id", id,
+            "type", GqlTypes.GQL_DATA,
+            "payload", GraphQLHelper.processExecutionResult(result))
+        );
+    }
+
     protected boolean isAuthenticated() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (auth != null && auth.isAuthenticated());
+
+        // Thread is auth: OK
+        if (auth != null && auth.isAuthenticated()) {
+            return true;
+        }
+
+        // Check if session hold authentication
+        auth = this.authentication.get();
+        if (auth != null && auth.isAuthenticated()) {
+            // Store in security context
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            return true;
+        }
+
+        // No authentication (nor in the thread, not in the session)
+        return false;
     }
 
     protected void sendResponse(WebSocketSession session, Object value)  {
@@ -436,30 +452,34 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
         return GraphQLHelper.toJsonErrorString(ErrorCodes.UNAUTHORIZED, "Authentication required");
     }
 
-    protected void cancelAll() {
-        // Closing session's subscriptions
+    /**
+     * Closing all session's subscriptions
+     */
+    protected void disposeAllSubscriptions() {
         synchronized (subscriptions) {
-            subscriptions.values().forEach(Disposable::dispose);
+            subscriptions.values().stream()
+                .filter(d -> !d.isDisposed())
+                .forEach(Disposable::dispose);
             subscriptions.clear();
         }
     }
 
-    protected void cancel(String id) {
+    protected void disposeSubscription(String opeId) {
 
         // Stop subscription
         synchronized (subscriptions) {
-            Disposable subscription = subscriptions.remove(id);
+            Disposable subscription = subscriptions.remove(opeId);
             if (subscription != null && !subscription.isDisposed()) {
                 subscription.dispose();
             }
         }
     }
 
-    protected void registerSubscription(String id, Disposable subscription) {
+    protected void registerSubscription(String opeId, Disposable subscription) {
 
         // Add to subscriptions
         synchronized (subscriptions) {
-            subscriptions.put(id, subscription);
+            subscriptions.put(opeId, subscription);
         }
     }
 
@@ -479,28 +499,26 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             exception.addSuppressed(suppressed);
             log.warn("WebSocket session {} ({}) closed due to an exception", session.getId(), session.getRemoteAddress(), exception);
         }
-        cancelAll();
+        disposeAllSubscriptions();
     }
 
-    private Runnable keepAliveTask(WebSocketSession session) {
-        return () -> {
-            if (session != null && session.isOpen()) {
-                sendResponse(session,
-                    ImmutableMap.of(
-                        "type", "ping" //GqlTypes.GQL_CONNECTION_KEEP_ALIVE
-                    ),
-                    // Error handler
-                    (e) -> {
-                        if (e instanceof IllegalStateException) return; // Silent (continue without close the session)
-                        fatalError(session, e);
-                    });
-            }
-        };
+    private void sendPing(WebSocketSession session) {
+        if (session != null && session.isOpen()) {
+            sendResponse(session,
+                ImmutableMap.of(
+                    "type", GqlTypes.GQL_CONNECTION_PING
+                ),
+                // Error handler
+                (e) -> {
+                    if (e instanceof IllegalStateException) return; // Silent (continue without close the session)
+                    fatalError(session, e);
+                });
+        }
     }
 
-    protected void cancelKeepAliveTask() {
+    protected void cancelPingTask() {
         if (taskScheduler != null) {
-            this.keepAlive.getAndUpdate(task -> {
+            this.pingTask.getAndUpdate(task -> {
                 if (task != null) {
                     task.cancel(false);
                 }
@@ -508,4 +526,5 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             });
         }
     }
+
 }
