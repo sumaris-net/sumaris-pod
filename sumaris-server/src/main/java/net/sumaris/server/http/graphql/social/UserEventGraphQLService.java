@@ -229,7 +229,7 @@ public class UserEventGraphQLService {
             }
         }
 
-        // Fill default level
+        // Fill default level to INFO
         if (event.getLevel() == null) {
             event.setLevel(EventLevelEnum.INFO);
         }

@@ -64,7 +64,7 @@ import org.junit.runners.Suite;
     // DAO : data
     BatchRepositoryWriteTest.class,
     LandingRepositoryReadTest.class,
-    SampleDaoWriteTest.class,
+    SampleRepositoryWriteTest.class,
     TripRepositoryWriteTest.class,
     VesselDaoImplReadTest.class,
     VesselSnapshotDaoImplReadTest.class,

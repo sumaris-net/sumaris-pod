@@ -22,22 +22,28 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 
 @Slf4j
-public class SampleDaoWriteTest extends AbstractDaoTest {
+public class SampleRepositoryWriteTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -101,5 +107,28 @@ public class SampleDaoWriteTest extends AbstractDaoTest {
 
     }
 
+    @Test
+    public void getWithImages() {
 
+        // Get an existing sample, with images fetched
+        SampleVO sample = sampleRepository.get(fixtures.getSampleIdWithImages(), SampleFetchOptions.builder()
+                .withMeasurementValues(true)
+                .withImages(true)
+                .build());
+        Assert.assertNotNull(sample);
+        Assert.assertNotNull(sample.getId());
+        Assert.assertTrue(CollectionUtils.isNotEmpty(sample.getImages()));
+        Assert.assertEquals(1, CollectionUtils.size(sample.getImages()));
+        sample.getImages().forEach(this::assertImage);
+
+    }
+
+    protected void assertImage(ImageAttachmentVO image) {
+        Assert.assertNotNull(image);
+        Assert.assertNotNull(image.getId());
+        Assert.assertNotNull(image.getUpdateDate());
+        Assert.assertNotNull(image.getCreationDate());
+        Assert.assertEquals(ObjectTypeEnum.SAMPLE.getId(), image.getObjectTypeId());
+        Assert.assertNotNull(image.getObjectId());
+    }
 }

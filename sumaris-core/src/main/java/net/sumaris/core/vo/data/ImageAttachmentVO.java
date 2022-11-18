@@ -23,6 +23,9 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -30,7 +33,9 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 
 import java.util.Date;
 
-@Data
+@Setter
+@Getter
+@EqualsAndHashCode
 @FieldNameConstants
 public class ImageAttachmentVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
@@ -49,7 +54,11 @@ public class ImageAttachmentVO implements IDataVO<Integer>,
 
     private Date dateTime;
     private String contentType;
+
+    @EqualsAndHashCode.Exclude
     private String content;
     private String path;
 
+    private Integer objectTypeId;
+    private Integer objectId;
 }

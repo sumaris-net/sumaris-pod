@@ -59,6 +59,9 @@ public interface SampleService {
 	@Transactional(readOnly = true)
 	SampleVO get(int id);
 
+	@Transactional(readOnly = true)
+	SampleVO get(int id, SampleFetchOptions fetchOptions);
+
 	SampleVO save(SampleVO sale);
 
 	List<SampleVO> save(List<SampleVO> samples);

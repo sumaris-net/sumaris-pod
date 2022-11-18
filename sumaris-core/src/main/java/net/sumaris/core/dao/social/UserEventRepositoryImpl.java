@@ -84,15 +84,6 @@ public class UserEventRepositoryImpl
 
         target.setLevel(source.getLevel().name());
         target.setType(source.getType().name());
-
-        boolean isNew = source.getId() == null;
-        if (isNew) {
-            target.setCreationDate(new Date());
-        }
-        else {
-            // If exists, always use the original creation date
-            target.setCreationDate(source.getCreationDate());
-        }
     }
 
     @Override
@@ -110,10 +101,22 @@ public class UserEventRepositoryImpl
 
     /* -- protected methods -- */
 
+    @Override
+    protected void onBeforeSaveEntity(UserEventVO source, UserEvent target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
+
+        // When new entity: set the creation date
+        if (isNew || target.getCreationDate() == null) {
+            target.setCreationDate(target.getUpdateDate());
+        }
+    }
+
     protected void onAfterSaveEntity(UserEventVO vo, UserEvent savedEntity, boolean isNew) {
-        vo.setId(savedEntity.getId());
-        vo.setCreationDate(savedEntity.getCreationDate());
-        vo.setUpdateDate(savedEntity.getUpdateDate());
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (isNew) {
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.vo.filter;
 
 /*-
  * #%L
@@ -22,17 +22,33 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
-import net.sumaris.core.model.data.ImageAttachment;
-import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.core.vo.filter.IDataFilter;
-import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
+
+import java.util.Date;
 
 /**
- * @author peck7 on 31/08/2020.
+ * @author peck7 on 01/09/2020.
  */
-public interface ImageAttachmentRepository
-        extends DataRepository<ImageAttachment, ImageAttachmentVO, ImageAttachmentFilterVO, IFetchOptions>,
-        ImageAttachmentSpecifications {
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldNameConstants
+public class ImageAttachmentFilterVO implements IDataFilter {
+
+    private Integer recorderDepartmentId;
+
+    // Parent
+    private Integer objectId;
+    private Integer objectTypeId;
+
+    // Quality
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
 
 }

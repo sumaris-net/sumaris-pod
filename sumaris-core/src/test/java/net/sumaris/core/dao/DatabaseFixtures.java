@@ -152,6 +152,10 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getSampleIdWithImages() {
+		return 4; // ADAP-CONTROLE sample, with image
+	}
+
 	public Integer getSampleId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

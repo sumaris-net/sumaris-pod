@@ -31,7 +31,9 @@ import java.util.Arrays;
 @EntityEnum(entity = ObjectType.class, joinAttributes = ObjectType.Fields.LABEL)
 public enum ObjectTypeEnum implements Serializable {
 
-    VESSEL(1, "VESSEL");
+    VESSEL(1, "VESSEL"),
+    SAMPLE(2, "SAMPLE")
+    ;
 
     public static ObjectTypeEnum valueOf(final int id) {
         return Arrays.stream(values())

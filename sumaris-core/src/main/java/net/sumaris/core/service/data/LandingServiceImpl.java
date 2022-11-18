@@ -40,6 +40,7 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.LandingMeasurement;
 import net.sumaris.core.model.data.SurveyMeasurement;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;

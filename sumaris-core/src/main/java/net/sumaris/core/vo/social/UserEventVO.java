@@ -58,4 +58,11 @@ public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Int
 
     private String source;
 
+    /**
+     * Compatibility with version < 1.29.0 (to send DEBUG_DATA)
+     * @deprecated
+     */
+    @Deprecated
+    private String eventType;
+
 }

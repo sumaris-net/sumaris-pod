@@ -25,9 +25,11 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.core.vo.filter.IDataFilter;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 
@@ -36,11 +38,13 @@ import javax.persistence.EntityManager;
  */
 @Slf4j
 public class ImageAttachmentRepositoryImpl
-    extends DataRepositoryImpl<ImageAttachment, ImageAttachmentVO, IDataFilter, DataFetchOptions> {
+    extends DataRepositoryImpl<ImageAttachment, ImageAttachmentVO, ImageAttachmentFilterVO, DataFetchOptions>
+    implements ImageAttachmentSpecifications {
 
     protected ImageAttachmentRepositoryImpl(EntityManager entityManager) {
         super(ImageAttachment.class, ImageAttachmentVO.class, entityManager);
-        setLockForUpdate(true);
+        setLockForUpdate(false);
+        setCheckUpdateDate(false);
     }
 
     @Override
@@ -51,6 +55,9 @@ public class ImageAttachmentRepositoryImpl
         Preconditions.checkNotNull(source.getDateTime());
         Preconditions.checkNotNull(source.getRecorderDepartment());
         Preconditions.checkNotNull(source.getRecorderDepartment().getId());
+        Preconditions.checkArgument(
+                (source.getObjectId() == null && source.getObjectTypeId() == null)
+                || (source.getObjectId() != null && source.getObjectTypeId() != null));
 
         return super.save(source);
     }
@@ -60,6 +67,28 @@ public class ImageAttachmentRepositoryImpl
         super.toEntity(source, target, copyIfNull);
         // Recorder person
         DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
+
+        // Object type
+        if (source.getObjectTypeId() != null || copyIfNull) {
+            if (source.getObjectTypeId() == null) {
+                target.setObjectType(null);
+            }
+            else {
+                target.setObjectType(getReference(ObjectType.class, source.getObjectTypeId()));
+            }
+        }
+    }
+
+    @Override
+    public void toVO(ImageAttachment source, ImageAttachmentVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+        super.toVO(source, target, fetchOptions, copyIfNull);
+
+        if (source.getObjectType() != null) {
+            target.setObjectTypeId(source.getObjectType().getId());
+        }
+        else {
+            target.setObjectTypeId(null);
+        }
     }
 
     @Override
@@ -75,9 +104,16 @@ public class ImageAttachmentRepositoryImpl
     @Override
     protected void onAfterSaveEntity(ImageAttachmentVO vo, ImageAttachment savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+
         if (isNew) {
             vo.setCreationDate(savedEntity.getCreationDate());
         }
     }
 
+    @Override
+    protected Specification<ImageAttachment> toSpecification(ImageAttachmentFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
+                .and(hasObjectId(filter.getObjectId()))
+                .and(hasObjectTypeId(filter.getObjectTypeId()));
+    }
 }

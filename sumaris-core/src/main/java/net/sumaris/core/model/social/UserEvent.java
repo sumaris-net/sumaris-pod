@@ -25,6 +25,7 @@ package net.sumaris.core.model.social;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ISignedEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
@@ -45,7 +46,7 @@ import java.util.Date;
 @Entity
 @Table(name = "user_event", indexes = @Index(name = "user_event_source_idx", columnList = "source"))
 @Cacheable
-public class UserEvent implements ISignedEntity<Integer, Date> {
+public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")
