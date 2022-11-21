@@ -22,32 +22,25 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import net.sumaris.core.vo.data.sample.SampleFetchOptions;
+import lombok.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class LandingFetchOptions implements IDataFetchOptions {
+public class ImageAttachmentFetchOptions implements IDataFetchOptions {
 
-    public static final LandingFetchOptions DEFAULT = LandingFetchOptions.builder().build();
+    public static final ImageAttachmentFetchOptions DEFAULT = ImageAttachmentFetchOptions.builder().build();
 
-    public static final LandingFetchOptions MINIMAL = LandingFetchOptions.builder()
+    public static final ImageAttachmentFetchOptions MINIMAL = ImageAttachmentFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
-        .withObservers(false)
         .build();
 
-    public static final LandingFetchOptions FULL_GRAPH = LandingFetchOptions.builder()
-        .withChildrenEntities(true)
-        .withMeasurementValues(true)
-        .withTrip(true)
-        .withTripSales(true)
-        .withTripExpectedSales(true)
+    public static final ImageAttachmentFetchOptions WITH_CONTENT = ImageAttachmentFetchOptions.builder()
+        .withRecorderDepartment(false)
+        .withRecorderPerson(false)
+        .withContent(true)
         .build();
 
     @Builder.Default
@@ -57,23 +50,15 @@ public class LandingFetchOptions implements IDataFetchOptions {
     private boolean withRecorderPerson = true;
 
     @Builder.Default
-    private boolean withObservers = true;
+    private boolean withContent = false; // Important: should be disabled by default (for performance reason)
+
 
     @Builder.Default
-    private boolean withChildrenEntities = false; // Important: should be disabled by default (see TripService or LandingService)
+    private boolean withObservers = false; // Make no sens here
 
     @Builder.Default
-    private boolean withMeasurementValues = false;
+    private boolean withChildrenEntities = false; // Make no sens here
 
     @Builder.Default
-    private boolean withTrip = false;
-
-    @Builder.Default
-    private boolean withTripSales = false;
-
-    @Builder.Default
-    private boolean withTripExpectedSales = false;
-
-    @Builder.Default
-    private SampleFetchOptions sampleFetchOptions = null;
+    private boolean withMeasurementValues = false; // Make no sens here
 }

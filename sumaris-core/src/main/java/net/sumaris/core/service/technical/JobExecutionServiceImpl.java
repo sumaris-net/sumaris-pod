@@ -25,6 +25,7 @@ package net.sumaris.core.service.technical;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import lombok.NonNull;
@@ -45,6 +46,7 @@ import net.sumaris.core.event.job.JobProgressionVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
+import org.reactivestreams.Publisher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -53,10 +55,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.jms.Message;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -187,6 +186,19 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
 
     public Observable<JobProgressionVO> watchJobProgression(Integer id) {
+
+        JobVO job = jobService.findById(id).orElse(null);
+        if (job == null) {
+            log.debug("Job not found (id={})", id);
+            return Observable.empty();
+        }
+        if (job.getStatus() != null && JobStatusEnum.isFinished(job.getStatus())) {
+            log.debug("Job is finished (id={})", id);
+            return Observable.empty();
+        }
+
+        JobProgressionVO startProgression = new JobProgressionVO(id, job.getName(), t("sumaris.core.job.progression.pending"), 0, 0);
+
         Observable<JobProgressionVO> observable = Observable.create(emitter -> {
             Consumer<JobProgressionVO> listener = emitter::onNext;
             registerListener(id, listener);
@@ -195,10 +207,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
         return observable
             .observeOn(Schedulers.io())
-            .startWith(() -> {
-                JobVO job = jobService.get(id);
-                return List.of(new JobProgressionVO(id, job.getName(), t("sumaris.core.job.progression.pending"), 0, 0)).iterator();
-            })
+            .startWith(() -> Iterators.cycle(startProgression))
             .takeUntil(Observable.interval(1, TimeUnit.SECONDS).filter(o -> !hasListeners(id))) // use a timer to watch listeners exists
             .doOnLifecycle(
                 (subscription) -> log.debug("Watching job progression (id={})", id),

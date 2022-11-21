@@ -33,9 +33,9 @@ public enum JobStatusEnum implements Serializable {
     ERROR("ERROR", ProcessingStatusEnum.ERROR),
     WARNING("WARNING", ProcessingStatusEnum.WARNING),
 
-    RUNNING("RUNNING", ProcessingStatusEnum.WAITING_EXECUTION), // TODO: add CANCELLED in ProcessingStatusEnum ?
+    RUNNING("RUNNING", ProcessingStatusEnum.WAITING_EXECUTION),
     FATAL("FATAL", ProcessingStatusEnum.ERROR), // TODO: add FATAL in ProcessingStatusEnum ?
-    CANCELLED("CANCELLED", ProcessingStatusEnum.ERROR) // TODO: add CANCELLED in ProcessingStatusEnum ?
+    CANCELLED("CANCELLED", ProcessingStatusEnum.CANCELLED)
     ;
 
     private final String id;
@@ -65,5 +65,9 @@ public enum JobStatusEnum implements Serializable {
             .filter(enumValue -> enumValue.processingStatus == processingStatus)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown ProcessingStatusEnum: " + processingStatus.name()));
+    }
+
+    public static boolean isFinished(JobStatusEnum status) {
+        return ProcessingStatusEnum.isFinished(status.processingStatus);
     }
 }

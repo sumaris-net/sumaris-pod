@@ -35,8 +35,10 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.StringUtils;
@@ -58,6 +60,7 @@ import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.rest.RestPaths;
 import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
@@ -1364,19 +1367,40 @@ public class DataGraphQLService {
     }
 
     // Images
-    @GraphQLQuery(name = "dataUrl", description = "Get image data url")
-    public String getImageDateUrl(@GraphQLContext ImageAttachmentVO image) {
-        if (image.getContent() == null || image.getContentType() == null) return null;
+    @GraphQLQuery(name = "images", description = "Get sample's images")
+    public List<ImageAttachmentVO> getSampleImages(@GraphQLContext SampleVO sample) {
+        if (sample.getImages() != null) return sample.getImages();
+        if (sample.getId() == null) return null;
 
-        return new StringBuffer().append("data:")
-                .append(image.getContentType()).append(";")
-                .append(image.getContent())
-                .toString();
+        return imageService.getImagesForObject(sample.getId(), ObjectTypeEnum.SAMPLE);
+    }
+
+    @GraphQLQuery(name = "images", description = "Search filter")
+    @IsUser
+    public List<ImageAttachmentVO> findImagesByFilter(@GraphQLArgument(name = "filter") ImageAttachmentFilterVO filter,
+                                                      @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                      @GraphQLArgument(name = "size", defaultValue = "100") Integer size,
+                                                      @GraphQLArgument(name = "sortBy") String sort,
+                                                      @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction) {
+
+        filter = ImageAttachmentFilterVO.nullToEmpty(filter);
+
+        // If not an admin, limit to itself images
+        if (!authService.isAdmin()) {
+            Integer userId = this.authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+            filter.setRecorderPersonId(userId);
+        }
+
+        return imageService.findAllByFilter(filter, Page.builder()
+            .offset(offset).size(size).sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction, SortDirection.DESC))
+            .build(), null);
     }
 
     @GraphQLQuery(name = "url", description = "Get image url")
     public String getImageUrl(@GraphQLContext ImageAttachmentVO image) {
-        if (image.getPath() == null || image.getId() == null) return null;
+        if (image.getUrl() != null) return image.getUrl(); // Already fetched
+        if (image.getId() == null) return null; // Cannot fetch without id
 
         return imageService.getImageUrlById(image.getId());
     }
@@ -1521,11 +1545,17 @@ public class DataGraphQLService {
             || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID));
         boolean withChildren = withTrip
             || fields.contains(StringUtils.slashing(LandingVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID));
+        SampleFetchOptions sampleFetchOptions = SampleFetchOptions.builder()
+            .withRecorderDepartment(false)
+            .withMeasurementValues(fields.contains(StringUtils.slashing(LandingVO.Fields.SAMPLES, SampleVO.Fields.MEASUREMENT_VALUES)))
+            .withImages(fields.contains(StringUtils.slashing(LandingVO.Fields.SAMPLES, SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
+            .build();
         return LandingFetchOptions.builder()
             .withTrip(withTrip)
             .withTripSales(withTripSale)
             .withTripExpectedSales(withTripExpectedSale)
             .withChildrenEntities(withChildren)
+            .sampleFetchOptions(sampleFetchOptions)
             .build();
     }
 

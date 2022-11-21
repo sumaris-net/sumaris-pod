@@ -156,7 +156,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Person
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_ID, Integer.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
-            Caches.createHeapCache(cacheManager, Names.PERSON_AVATAR_BY_PUBKEY, String.class, ImageAttachmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.PERSON_AVATAR_BY_PUBKEY, ImageAttachmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Location
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_LEVEL_BY_LABEL, String.class, ReferentialVO.class, 600);

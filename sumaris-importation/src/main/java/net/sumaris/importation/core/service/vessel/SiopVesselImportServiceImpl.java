@@ -210,7 +210,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		SiopVesselImportResultVO result = context.getResult();
 
 		// Init progression model
-		progressionModel = Optional.ofNullable(progressionModel).orElse(new ProgressionModel());
+		progressionModel = Optional.ofNullable(progressionModel).orElseGet(ProgressionModel::new);
 		progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
 
 		PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
@@ -253,6 +253,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
 					.map(this::toVO)
 					.collect(Collectors.toList());
+
+				progressionModel.setTotal(vessels.size() + 1 /*disable vessels*/);
 
 				for (VesselVO vessel: vessels) {
 
@@ -305,9 +307,13 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 						}
 						finally {
 							rowCounter.increment();
+							if (rowCounter.intValue() % 10 == 0) {
+								progressionModel.setCurrent(rowCounter.intValue());
+							}
 						}
 					}
 				}
+				progressionModel.setCurrent(vessels.size());
 
 				// Disable not present vessels
 				Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
@@ -329,7 +335,6 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 							}
 						}
 					});
-
 				}
 
 				if (errors.intValue() == 0) {
@@ -364,6 +369,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			Files.deleteTemporaryFiles(context.getProcessingFile());
 
 			locationByFilterCache.clear();
+			progressionModel.setCurrent(progressionModel.getTotal());
 		}
 
 	}

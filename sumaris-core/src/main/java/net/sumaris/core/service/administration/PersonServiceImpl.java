@@ -39,6 +39,7 @@ import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -152,7 +153,7 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
 	@Cacheable(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, unless = "#result==null")
-	public ImageAttachmentVO getAvatarByPubkey(@NonNull final String pubkey) {
+	public ImageAttachmentVO getAvatarByPubkey(@NonNull final String pubkey, ImageAttachmentFetchOptions fetchOptions) {
 		Optional<Person> person = personRepository.findByPubkey(pubkey)
 			.flatMap(vo -> personRepository.findById(vo.getId()));
 
@@ -161,7 +162,7 @@ public class PersonServiceImpl implements PersonService {
 			.map(ImageAttachment::getId)
 			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.person.avatar.notFound")));
 
-		return imageAttachmentService.find(avatarId);
+		return imageAttachmentService.find(avatarId, fetchOptions);
 	}
 
 	@Override

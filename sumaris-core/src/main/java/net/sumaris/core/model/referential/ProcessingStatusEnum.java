@@ -44,7 +44,8 @@ public enum ProcessingStatusEnum implements Serializable  {
     WAITING_ACKNOWLEDGE(3, "WAITING_ACKNOWLEDGE"),
     WAITING_EXECUTION(4, "WAITING_EXECUTION"),
     WARNING(5, "WARNING"),
-    RUNNING(6, "RUNNING");
+    RUNNING(6, "RUNNING"),
+    CANCELLED(7, "CANCELLED");
 
     public static ProcessingStatusEnum valueOf(final int id) {
         return Arrays.stream(values())
@@ -90,6 +91,7 @@ public enum ProcessingStatusEnum implements Serializable  {
             case WARNING:
             case WAITING_ACKNOWLEDGE:
             case SUCCESS:
+            case CANCELLED:
                 return true;
             case WAITING_EXECUTION:
             case RUNNING:

@@ -41,7 +41,12 @@ import java.util.Date;
 @FieldNameConstants
 public class ImageAttachmentFilterVO implements IDataFilter {
 
+    public static ImageAttachmentFilterVO nullToEmpty(ImageAttachmentFilterVO filter) {
+        return filter != null ? filter : new ImageAttachmentFilterVO();
+    }
+
     private Integer recorderDepartmentId;
+    private Integer recorderPersonId;
 
     // Parent
     private Integer objectId;

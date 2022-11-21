@@ -144,6 +144,7 @@
 		</createIndex>
 	</changeSet>
 
+
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
@@ -155,6 +156,7 @@
 			<column name="DESCRIPTION">
 				- Add some columns into VESSEL_FEATURES
 				- Add columns LEVEL,READ_DATE and SOURCE into USER_EVENT
+				- Add more PROCESSING_TYPE (RUNNING, CANCELLED)
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>

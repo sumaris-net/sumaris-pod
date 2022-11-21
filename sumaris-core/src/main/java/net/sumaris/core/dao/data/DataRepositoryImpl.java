@@ -77,10 +77,10 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     private String[] copyExcludeProperties = new String[]{IUpdateDateEntity.Fields.UPDATE_DATE};
 
     @Autowired
-    private PersonRepository personRepository;
+    protected PersonRepository personRepository;
 
     @Autowired
-    private DepartmentRepository departmentRepository;
+    protected DepartmentRepository departmentRepository;
 
     protected DataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);

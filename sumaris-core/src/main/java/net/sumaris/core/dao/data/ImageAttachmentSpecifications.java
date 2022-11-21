@@ -9,6 +9,13 @@ import javax.persistence.criteria.ParameterExpression;
 
 public interface ImageAttachmentSpecifications extends DataSpecifications<Integer, ImageAttachment> {
 
+    default Specification<ImageAttachment> hasRecorderPersonId(Integer recorderPersonId) {
+        if (recorderPersonId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, ImageAttachment.Fields.RECORDER_PERSON);
+            return cb.equal(root.get(ImageAttachment.Fields.RECORDER_PERSON).get(IEntity.Fields.ID), param);
+        }).addBind(ImageAttachment.Fields.RECORDER_PERSON, recorderPersonId);
+    }
 
     default Specification<ImageAttachment> hasObjectId(Integer objectId) {
         if (objectId == null) return null;

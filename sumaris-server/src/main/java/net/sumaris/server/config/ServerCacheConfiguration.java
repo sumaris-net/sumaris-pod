@@ -54,7 +54,7 @@ public class ServerCacheConfiguration {
 
             // Image cache
             Caches.createEternalHeapCache(cacheManager, Names.FAVICON, Object.class, 1);
-            Caches.createHeapCache(cacheManager, Names.IMAGE_BY_ID, Integer.class, Object.class, Duration.ofSeconds(600) /*10 min*/, 50);
+            Caches.createHeapCache(cacheManager, Names.IMAGE_BY_ID, Object.class, Duration.ofSeconds(600) /*10 min*/, 50);
 
             // Change listener
             Caches.createHeapCache(cacheManager, Names.CHANGES_PUBLISHER_FIND_IF_NEWER, Optional.class, Duration.ofSeconds(5), 600);

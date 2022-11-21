@@ -48,6 +48,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -159,9 +160,9 @@ public class LandingServiceImpl implements LandingService {
 
             // Get samples by operation if a main undefined operation group exists
             if (mainUndefinedOperation != null) {
-                target.setSamples(sampleService.getAllByOperationId(mainUndefinedOperation.getId()));
+                target.setSamples(sampleService.getAllByOperationId(mainUndefinedOperation.getId(), fetchOptions.getSampleFetchOptions()));
             } else {
-                target.setSamples(sampleService.getAllByLandingId(id));
+                target.setSamples(sampleService.getAllByLandingId(id, fetchOptions.getSampleFetchOptions()));
             }
         }
 

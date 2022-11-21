@@ -38,6 +38,8 @@ import java.util.Date;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name="image_attachment",
     indexes = @Index(name="image_attachment_object_idx", columnList = "object_type_fk,object_id")
@@ -59,6 +61,8 @@ public class ImageAttachment implements IDataEntity<Integer>,
     private String contentType;
 
     @Column(length=20971520)
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
     private String content;
 
     @Column()

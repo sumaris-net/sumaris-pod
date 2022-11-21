@@ -33,6 +33,7 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import org.nuiton.i18n.I18n;
@@ -86,7 +87,7 @@ public class DepartmentServiceImpl implements DepartmentService {
 			.map(ImageAttachment::getId)
 			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.department.logo.notFound")));
 
-		return imageAttachmentService.find(logoId);
+		return imageAttachmentService.find(logoId, ImageAttachmentFetchOptions.WITH_CONTENT);
 	}
 
 	@Override

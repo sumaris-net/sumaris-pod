@@ -24,22 +24,42 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service("imageAttachmentService")
+@RequiredArgsConstructor
 @Slf4j
 public class ImageAttachmentServiceImpl implements ImageAttachmentService {
 
-	@Autowired
-	protected ImageAttachmentRepository imageAttachmentRepository;
+	protected final ImageAttachmentRepository imageAttachmentRepository;
 
 	@Override
-	public ImageAttachmentVO find(int id) {
-		return imageAttachmentRepository.findById(id).orElse(null);
+	public List<ImageAttachmentVO> findAllByObject(int objectId, ObjectTypeEnum objectType, ImageAttachmentFetchOptions fetchOptions) {
+		return imageAttachmentRepository.findAllByObject(objectId, objectType.getId())
+			.stream()
+			.map(image -> imageAttachmentRepository.toVO(image, fetchOptions))
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public ImageAttachmentVO find(int id, ImageAttachmentFetchOptions fetchOptions) {
+		return imageAttachmentRepository.findById(id, fetchOptions).orElse(null);
+	}
+
+	@Override
+	public List<ImageAttachmentVO> findAllByFilter(ImageAttachmentFilterVO filter, Page page, ImageAttachmentFetchOptions fetchOptions) {
+		return imageAttachmentRepository.findAll(filter, page, fetchOptions);
 	}
 
 	@Override

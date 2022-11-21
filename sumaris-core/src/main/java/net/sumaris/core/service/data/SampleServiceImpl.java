@@ -24,7 +24,6 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -47,7 +46,6 @@ import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -246,15 +244,30 @@ public class SampleServiceImpl implements SampleService {
 
 
 	private void saveImageAttachments(SampleVO sample) {
+		List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(sample.getId(), ObjectTypeEnum.SAMPLE.getId());
 		sample.getImages()
-			.stream().filter(Objects::nonNull)
+			.stream()
+			.filter(Objects::nonNull)
 			.forEach(image -> {
-				// Fill defaults
-				fillDefaultProperties(image, sample);
+				boolean exists = existingIdsToRemove.remove(image.getId());
 
-				// Save
-				imageAttachmentRepository.save(image);
+				// Skip image when already saved, and no content
+				if (exists && image.getContent() == null) {
+					log.debug("Skipping save of an existing image (content not set)");
+				}
+				else {
+					// Fill defaults
+					fillDefaultProperties(image, sample);
+
+					// Save
+					imageAttachmentRepository.save(image);
+				}
 			});
+
+		// Remove
+		if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
+			imageAttachmentRepository.deleteAllById(existingIdsToRemove);
+		}
 	}
 
 	private void checkSampleUniqueTag(SampleVO savedSample) {

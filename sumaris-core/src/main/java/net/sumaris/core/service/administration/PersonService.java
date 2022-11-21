@@ -26,6 +26,7 @@ package net.sumaris.core.service.administration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.springframework.data.domain.Page;
@@ -88,7 +89,7 @@ public interface PersonService {
 	boolean isExistsByEmailHash(String hash);
 
 	@Transactional(readOnly = true)
-	ImageAttachmentVO getAvatarByPubkey(String pubkey);
+	ImageAttachmentVO getAvatarByPubkey(String pubkey, ImageAttachmentFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<String> getEmailsByProfiles(UserProfileEnum... userProfiles);

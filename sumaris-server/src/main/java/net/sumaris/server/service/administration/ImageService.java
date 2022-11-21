@@ -22,17 +22,28 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public interface ImageService {
 
     String URI_IMAGE_SUFFIX = "image:";
 
+    List<ImageAttachmentVO> getImagesForObject(int objectId, ObjectTypeEnum objectType);
+
+    List<ImageAttachmentVO> findAllByFilter(ImageAttachmentFilterVO filter, Page page, @Nullable ImageAttachmentFetchOptions fetchOptions);
+
     @Transactional(readOnly = true)
-    ImageAttachmentVO find(int id);
+    ImageAttachmentVO find(int id, @Nullable ImageAttachmentFetchOptions fetchOptions);
 
     void fillAvatar(PersonVO person);
 
@@ -41,4 +52,5 @@ public interface ImageService {
     String getImageUrlByUri(String imageUri);
 
     String getImageUrlById(int id);
+
 }

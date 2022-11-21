@@ -22,6 +22,8 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -64,4 +66,25 @@ public class ImageAttachmentVO implements IDataVO<Integer>,
     private Integer objectTypeId;
     private Integer objectId;
 
+    @EqualsAndHashCode.Exclude
+    private String url;
+
+    @JsonGetter
+    public String getDataUrl() {
+        if (content == null || contentType == null) return null;
+        return new StringBuffer().append("data:")
+            .append(contentType).append(";base64,")
+            .append(content)
+            .toString();
+    }
+
+    @JsonSetter
+    public void setDataUrl(String dataUrl) {
+        if (dataUrl == null) return;
+        int separatorIndex = dataUrl.indexOf(";base64,");
+        if (!dataUrl.startsWith("data:") || separatorIndex == -1) throw new IllegalArgumentException("Invalid 'dataUrl'. Should be a base64 data URL.");
+
+        this.contentType = dataUrl.substring(5, separatorIndex);
+        this.content = dataUrl.substring(separatorIndex + 8);
+    }
 }

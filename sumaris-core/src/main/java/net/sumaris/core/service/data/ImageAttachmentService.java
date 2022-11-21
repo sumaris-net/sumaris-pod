@@ -23,8 +23,15 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Image service
@@ -34,7 +41,13 @@ import org.springframework.transaction.annotation.Transactional;
 public interface ImageAttachmentService {
 
 	@Transactional(readOnly = true)
-	ImageAttachmentVO find(int id);
+	ImageAttachmentVO find(int id, @Nullable ImageAttachmentFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<ImageAttachmentVO> findAllByFilter(ImageAttachmentFilterVO filter, Page page, ImageAttachmentFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<ImageAttachmentVO> findAllByObject(int objectId, ObjectTypeEnum objectType, ImageAttachmentFetchOptions fetchOptions);
 
 	ImageAttachmentVO save(ImageAttachmentVO trip);
 

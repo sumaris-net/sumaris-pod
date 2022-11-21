@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,10 +89,12 @@ public class UserEventRepositoryImpl
 
     @Override
     public void toVO(UserEvent source, UserEventVO target, boolean copyIfNull) {
-        super.toVO(source, target, copyIfNull);
+        Beans.copyProperties(source, target, UserEventVO.Fields.CONTENT /*skip content here*/);
 
         target.setLevel(EventLevelEnum.valueOfOrNull(source.getLevel()));
         target.setType(EventTypeEnum.valueOfOrNull(source.getType()));
+
+
     }
 
     @Override

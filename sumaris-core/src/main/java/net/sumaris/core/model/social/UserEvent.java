@@ -78,6 +78,7 @@ public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntit
 
     @Lob
     @Column(length=20971520)
+    @Basic(fetch = FetchType.LAZY)
     private String content;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)

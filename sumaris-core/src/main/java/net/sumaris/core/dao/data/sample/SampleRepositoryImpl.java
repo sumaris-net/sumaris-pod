@@ -46,6 +46,7 @@ import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -168,7 +169,7 @@ public class SampleRepositoryImpl
             List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
                     .objectId(sampleId)
                     .objectTypeId(ObjectTypeEnum.SAMPLE.getId())
-                    .build(), DataFetchOptions.MINIMAL);
+                    .build(), ImageAttachmentFetchOptions.MINIMAL);
             target.setImages(images);
         }
     }

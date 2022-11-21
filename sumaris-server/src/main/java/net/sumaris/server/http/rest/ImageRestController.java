@@ -28,6 +28,7 @@ import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.ServerCacheConfiguration;
@@ -83,17 +84,12 @@ public class ImageRestController implements ResourceLoaderAware {
     @ResponseBody
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<byte[]> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) {
-        ImageAttachmentVO image  = personService.getAvatarByPubkey(pubkey);
+    public ResponseEntity<?> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) throws IOException {
+        ImageAttachmentVO image  = personService.getAvatarByPubkey(pubkey, ImageAttachmentFetchOptions.WITH_CONTENT);
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
-
-        byte[] bytes = Base64.decodeBase64(image.getContent());
-        return ResponseEntity.ok()
-                .contentLength(bytes.length)
-                .contentType(MediaType.parseMediaType(image.getContentType()))
-                .body(bytes);
+        return getImageResponse(image);
 
     }
 
@@ -109,7 +105,7 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.IMAGE_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getImage(@NonNull @PathVariable(name="id") Integer id) throws IOException {
-        ImageAttachmentVO image = imageService.find(id);
+        ImageAttachmentVO image = imageService.find(id, ImageAttachmentFetchOptions.WITH_CONTENT);
         return getImageResponse(image);
     }
 

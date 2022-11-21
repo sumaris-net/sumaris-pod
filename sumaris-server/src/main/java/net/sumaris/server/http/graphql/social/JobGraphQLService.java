@@ -118,12 +118,6 @@ public class JobGraphQLService {
         @GraphQLArgument(name = "interval") Integer interval
     ) {
 
-        if (jobService.findById(id).isEmpty()) {
-            log.debug("Job not found (id={})", id);
-            //noinspection unchecked
-            return (Publisher<JobProgressionVO>) Observable.empty();
-        }
-
         log.info("Checking progression for Job#{}", id);
 
         return jobExecutionService.watchJobProgression(id)
