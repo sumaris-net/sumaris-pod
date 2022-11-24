@@ -128,7 +128,7 @@ public abstract class RootDataRepositoryImpl<
         Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
-        // TODO VALIDATION PROCESS HERE
+        // Set the validation date
         entity.setValidationDate(newUpdateDate);
 
         // Save entityName
