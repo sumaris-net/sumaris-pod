@@ -71,19 +71,14 @@ public interface AuthService extends ISecurityContext<PersonVO> {
 
     AuthTokenVO createNewChallenge();
 
-    @Transactional(readOnly = true)
     Optional<PersonVO> getAuthenticatedUser();
 
-    @Transactional(readOnly = true)
     Optional<Integer> getAuthenticatedUserId();
 
-    @Transactional(readOnly = true)
     Optional<String> getAuthenticatedUsername();
 
-    @Transactional
     UserDetails authenticateByToken(String token) throws AuthenticationException;
 
-    @Transactional
     UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

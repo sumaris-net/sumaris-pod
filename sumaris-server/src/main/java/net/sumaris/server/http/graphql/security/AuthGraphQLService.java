@@ -39,7 +39,6 @@ import java.text.ParseException;
 
 @Service
 @GraphQLApi
-@Transactional
 @Slf4j
 public class AuthGraphQLService {
 
