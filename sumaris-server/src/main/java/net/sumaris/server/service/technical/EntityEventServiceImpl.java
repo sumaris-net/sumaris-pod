@@ -48,7 +48,6 @@ import net.sumaris.server.dao.technical.EntityDao;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.Nullable;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.TaskExecutor;
@@ -78,20 +77,25 @@ public class EntityEventServiceImpl implements EntityEventService {
     @Value("${sumaris.entity.watch.minIntervalInSeconds:10}")
     private int minIntervalInSeconds;
 
-    @Autowired(required = false)
-    protected TaskExecutor taskExecutor;
 
-    @Autowired
-    private EntityDao dataChangeDao;
+    protected final Optional<TaskExecutor> taskExecutor;
 
-    @Autowired
-    private ConversionService conversionService;
+    private final EntityDao entityDao;
 
-    @Autowired
-    private CacheManager cacheManager;
+    private final ConversionService conversionService;
+
+    private final CacheManager cacheManager;
 
     private final AtomicLong timerObserverCount = new AtomicLong(0);
     private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
+
+
+    public EntityEventServiceImpl(Optional<TaskExecutor> taskExecutor, EntityDao entityDao, ConversionService conversionService, CacheManager cacheManager) {
+        this.taskExecutor = taskExecutor;
+        this.entityDao = entityDao;
+        this.conversionService = conversionService;
+        this.cacheManager = cacheManager;
+    }
 
     @Override
     public <K extends Serializable, D extends Date, T extends IUpdateDateEntity<K, D>, V extends IUpdateDateEntity<K, D>> Observable<V>
@@ -511,7 +515,7 @@ public class EntityEventServiceImpl implements EntityEventService {
 
         return Observable
             .interval(intervalInSecond, TimeUnit.SECONDS)
-            .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
+            .observeOn(taskExecutor.map(Schedulers::from).orElseGet(Schedulers::io))
             .map(n -> getter.call())
             .filter(Optional::isPresent)
             .map(Optional::get);
@@ -596,7 +600,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                               Date lastUpdateDate) {
 
         log.debug("Checking update on {}#{}...", entityClass.getSimpleName(), id);
-        T entity = dataChangeDao.find(entityClass, id);
+        T entity = entityDao.find(entityClass, id);
         // Entity has been deleted
         if (entity == null) {
             return Optional.empty();
@@ -627,7 +631,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         Class<V> targetClass,
         K id) {
 
-        T entity = dataChangeDao.find(entityClass, id);
+        T entity = entityDao.find(entityClass, id);
 
         // Entity has been deleted
         if (entity == null) {
@@ -648,7 +652,7 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     @Transactional(readOnly = true)
     protected <K extends Serializable, D extends Date, T extends IUpdateDateEntity<K, D>> T find(Class<T> entityClass, K id) {
-        return dataChangeDao.find(entityClass, id);
+        return entityDao.find(entityClass, id);
     }
 
     protected void checkInterval(int intervalInSeconds) {
