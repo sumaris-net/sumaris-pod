@@ -140,7 +140,7 @@ public class LandingServiceImpl implements LandingService {
 
             target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
 
-            OperationGroupVO mainUndefinedOperation = null;
+            Integer mainUndefinedOperationGroupId = null;
             if (target.getTripId() != null && fetchOptions.isWithTrip()) {
                 TripFetchOptions tripFetchOptions = TripFetchOptions.builder()
                     .withChildrenEntities(true) // Need to fetch operation group (fishing areas, metier)
@@ -155,12 +155,12 @@ public class LandingServiceImpl implements LandingService {
                 trip.setHasExpectedSales(false);
 
                 // Get the main undefined operation group
-                mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(target.getTripId());
+                mainUndefinedOperationGroupId = operationGroupService.getMainUndefinedOperationGroupId(target.getTripId());
             }
 
             // Get samples by operation if a main undefined operation group exists
-            if (mainUndefinedOperation != null) {
-                target.setSamples(sampleService.getAllByOperationId(mainUndefinedOperation.getId(), fetchOptions.getSampleFetchOptions()));
+            if (mainUndefinedOperationGroupId != null) {
+                target.setSamples(sampleService.getAllByOperationId(mainUndefinedOperationGroupId, fetchOptions.getSampleFetchOptions()));
             } else {
                 target.setSamples(sampleService.getAllByLandingId(id, fetchOptions.getSampleFetchOptions()));
             }
@@ -323,7 +323,7 @@ public class LandingServiceImpl implements LandingService {
         }
 
         // Save trip
-        OperationGroupVO mainUndefinedOperation = null;
+        Integer mainUndefinedOperationGroupId = null;
         TripVO trip = source.getTrip();
         if (trip != null) {
             // Prepare landing to save
@@ -350,7 +350,7 @@ public class LandingServiceImpl implements LandingService {
             source.setTrip(savedTrip);
 
             // Get the main undefined operation group
-            mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(savedTrip.getId());
+            mainUndefinedOperationGroupId = operationGroupService.getMainUndefinedOperationGroupId(savedTrip.getId());
         }
 
         // Save samples
@@ -359,8 +359,8 @@ public class LandingServiceImpl implements LandingService {
             samples.forEach(s -> fillDefaultProperties(source, s));
 
             // Save samples by operation if a main undefined operation group exists
-            if (mainUndefinedOperation != null) {
-                samples = sampleService.saveByOperationId(mainUndefinedOperation.getId(), samples);
+            if (mainUndefinedOperationGroupId != null) {
+                samples = sampleService.saveByOperationId(mainUndefinedOperationGroupId, samples);
             } else {
                 samples = sampleService.saveByLandingId(source.getId(), samples);
             }

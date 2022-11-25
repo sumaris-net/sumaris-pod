@@ -241,6 +241,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     // -- DATA CONSTANTS --------------------------------------------------//
     // ------------------------------------------------------------------------//
 
+    DATA_IMAGES_ENABLE("sumaris.data.images.enable",
+        n("sumaris.config.option.data.images.enable.description"),
+        Boolean.FALSE.toString(),
+        boolean.class,
+        false),
+
     IMPORT_NB_YEARS_DATA_HISTORY(
         "sumaris.synchro.import.nbYearDataHistory",
         n("sumaris.config.option.synchro.import.nbYearDataHistory.description"),

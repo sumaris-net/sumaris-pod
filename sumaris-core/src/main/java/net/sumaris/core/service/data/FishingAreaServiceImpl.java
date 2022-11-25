@@ -24,16 +24,16 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.vo.data.FishingAreaVO;
-import net.sumaris.core.vo.data.OperationGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,41 +54,32 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
     @Override
     public FishingAreaVO getByFishingTripId(int tripId) {
-        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroup(tripId))
-            .flatMap(operationGroup -> fishingAreaRepository.getAllByOperationId(operationGroup.getId()).stream().findFirst())
+        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroupId(tripId))
+            .flatMap(operationGroupId -> fishingAreaRepository.getAllByOperationId(operationGroupId)
+                .stream()
+                // Get the first, order by id (should be the first saved)
+                .min(Comparator.comparingInt(FishingAreaVO::getId))
+            )
             .orElse(null);
     }
 
     @Override
     public FishingAreaVO saveByFishingTripId(int tripId, FishingAreaVO fishingArea) {
-        OperationGroupVO operationGroup = operationGroupRepository.getMainUndefinedOperationGroup(tripId);
-        if (operationGroup == null) {
-            if (fishingArea == null) {
-                return null; // Nothing to delete
-            }
-            throw new SumarisTechnicalException("the main undefined operation was not found, please check the trip's metier");
-        }
-
-        if (fishingArea == null) {
-            fishingAreaRepository.deleteAllByOperationId(operationGroup.getId());
-            return null;
-        }
-
-        List<FishingAreaVO> fishingAreas = fishingAreaRepository.saveAllByOperationId(operationGroup.getId(), Collections.singletonList(fishingArea));
+        List<FishingAreaVO> fishingAreas = saveAllByFishingTripId(tripId, ImmutableList.of(fishingArea));
         return CollectionUtils.extractSingleton(fishingAreas);
     }
 
     @Override
     public List<FishingAreaVO> getAllByFishingTripId(int tripId) {
-        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroup(tripId))
-                .map(operationGroup -> fishingAreaRepository.getAllByOperationId(operationGroup.getId()))
+        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroupId(tripId))
+                .map(fishingAreaRepository::getAllByOperationId)
                 .orElse(null);
     }
 
     @Override
     public List<FishingAreaVO> saveAllByFishingTripId(int tripId, List<FishingAreaVO> fishingAreas) {
-        OperationGroupVO operationGroup = operationGroupRepository.getMainUndefinedOperationGroup(tripId);
-        if (operationGroup == null) {
+        Integer operationGroupId = operationGroupRepository.getMainUndefinedOperationGroupId(tripId);
+        if (operationGroupId == null) {
             if (fishingAreas == null || CollectionUtils.isEmpty(fishingAreas)) {
                 return null; // Nothing to delete
             }
@@ -96,11 +87,11 @@ public class FishingAreaServiceImpl implements FishingAreaService {
         }
 
         if (CollectionUtils.isEmpty(fishingAreas)) {
-            fishingAreaRepository.deleteAllByOperationId(operationGroup.getId());
+            fishingAreaRepository.deleteAllByOperationId(operationGroupId);
             return null;
         }
 
-        return fishingAreaRepository.saveAllByOperationId(operationGroup.getId(), fishingAreas);
+        return fishingAreaRepository.saveAllByOperationId(operationGroupId, fishingAreas);
     }
 
     @Override

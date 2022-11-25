@@ -53,19 +53,19 @@
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-2">
 		<preConditions onFail="MARK_RAN">
 			<not>
-				<columnExists tableName="user_event" columnName="level"/>
+				<columnExists tableName="user_event" columnName="event_level"/>
 			</not>
 		</preConditions>
 		<addColumn tableName="user_event">
-			<column name="level" type="varchar(30)">
+			<column name="event_level" type="varchar(30)">
 			</column>
 		</addColumn>
 		<sql endDelimiter=";">
-			update USER_EVENT set LEVEL='DEBUG' where EVENT_TYPE='DEBUG_DATA' and LEVEL is null;
-			update USER_EVENT set LEVEL='INFO' where LEVEL is null;
+			update USER_EVENT set EVENT_LEVEL='DEBUG' where EVENT_TYPE='DEBUG_DATA' and LEVEL is null;
+			update USER_EVENT set EVENT_LEVEL='INFO' where EVENT_LEVEL is null;
 			commit;
 		</sql>
-		<addNotNullConstraint tableName="user_event" columnName="level"/>
+		<addNotNullConstraint tableName="user_event" columnName="event_level"/>
 	</changeSet>
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-3">
 		<preConditions onFail="MARK_RAN">
@@ -144,7 +144,6 @@
 		</createIndex>
 	</changeSet>
 
-
 	<!-- update SYSTEM_VERSION -->
 	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-200" runOnChange="true">
 		<delete tableName="SYSTEM_VERSION">
@@ -155,12 +154,16 @@
 			<column name="LABEL">1.32.0</column>
 			<column name="DESCRIPTION">
 				- Add some columns into VESSEL_FEATURES
-				- Add columns LEVEL,READ_DATE and SOURCE into USER_EVENT
-				- Add more PROCESSING_TYPE (RUNNING, CANCELLED)
+				- Add some columns into USER_EVENT
+				- Add more PROCESSING_TYPE
 			</column>
 			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-			<column name="COMMENTS"/>
+			<column name="COMMENTS">
+				- Add some columns into VESSEL_FEATURES
+				- Add columns EVENT_LEVEL,READ_DATE and SOURCE into USER_EVENT
+				- Add more PROCESSING_TYPE (RUNNING, CANCELLED)
+			</column>
 		</insert>
 	</changeSet>
 </databaseChangeLog>

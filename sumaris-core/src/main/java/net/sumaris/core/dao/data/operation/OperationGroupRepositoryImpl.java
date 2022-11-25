@@ -27,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
-import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
@@ -42,6 +42,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
@@ -65,29 +66,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OperationGroupRepositoryImpl
     extends DataRepositoryImpl<Operation, OperationGroupVO, OperationGroupFilterVO, DataFetchOptions>
-    implements OperationGroupRepository {
+    implements OperationGroupSpecifications {
 
-    @Autowired
-    private MetierRepository metierRepository;
+    private final MetierRepository metierRepository;
 
-    @Autowired
-    private PhysicalGearRepository physicalGearRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final FishingAreaRepository fishingAreaRepository;
 
-    //@Autowired
-    //private PacketService packetService;
+    private final MeasurementDao measurementDao;
 
-    @Autowired
-    private FishingAreaRepository fishingAreaRepository;
-
-    @Autowired
-    private MeasurementDao measurementDao;
-
-
-    protected OperationGroupRepositoryImpl(EntityManager entityManager) {
+    protected OperationGroupRepositoryImpl(EntityManager entityManager, MetierRepository metierRepository, ProductRepository productRepository, FishingAreaRepository fishingAreaRepository, MeasurementDao measurementDao) {
         super(Operation.class, OperationGroupVO.class, entityManager);
+        this.metierRepository = metierRepository;
+        this.productRepository = productRepository;
+        this.fishingAreaRepository = fishingAreaRepository;
+        this.measurementDao = measurementDao;
         setLockForUpdate(false);
         setCheckUpdateDate(false);
     }
@@ -101,14 +95,14 @@ public class OperationGroupRepositoryImpl
             ParameterExpression<Integer> param = cb.parameter(Integer.class, OperationGroupVO.Fields.TRIP_ID);
             if (filter.isOnlyUndefined()) {
                 return cb.and(
-                        cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
-                        cb.equal(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME)),
-                        cb.equal(root.get(Operation.Fields.END_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME))
+                    cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
+                    cb.equal(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME)),
+                    cb.equal(root.get(Operation.Fields.END_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.RETURN_DATE_TIME))
                 );
             } else if (filter.isOnlyDefined()) {
                 return cb.and(
-                        cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
-                        cb.notEqual(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME))
+                    cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param),
+                    cb.notEqual(root.get(Operation.Fields.START_DATE_TIME), root.get(Operation.Fields.TRIP).get(Trip.Fields.DEPARTURE_DATE_TIME))
                 );
             } else {
                 return cb.equal(root.get(Operation.Fields.TRIP).get(IEntity.Fields.ID), param);
@@ -146,10 +140,6 @@ public class OperationGroupRepositoryImpl
 
             // Fishing Areas
             target.setFishingAreas(fishingAreaRepository.getAllByOperationId(operationId));
-
-            // Packets
-            // TODO
-            //target.setPackets(packetService.getAllByOperationId(operationId));
 
             // Measurements
             target.setMeasurements(measurementDao.getOperationVesselUseMeasurements(operationId));
@@ -236,9 +226,11 @@ public class OperationGroupRepositoryImpl
     }
 
     @Override
-    public OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
+    public OperationGroupVO getMainUndefinedOperationGroup(int tripId, DataFetchOptions fetchOptions) {
         List<OperationGroupVO> operationGroups = findAll(
-                OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build()
+            OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build(),
+            Page.builder().build(),
+            fetchOptions
         );
         // Get the first (main ?) undefined operation group
         // todo maybe add is_main_operation and manage metier order in app
@@ -275,20 +267,19 @@ public class OperationGroupRepositoryImpl
         // No undefined operations: skip
         if (CollectionUtils.isEmpty(undefinedOperationIds)) return;
 
-        int nbRowUpdated = getEntityManager()
-            .createNamedQuery("Operation.updateUndefinedOperationDates")
+        int nbRowUpdated = em.createNamedQuery("Operation.updateUndefinedOperationDates")
             .setParameter("ids", undefinedOperationIds)
             .setParameter("startDateTime", startDateTime)
             .setParameter("endDateTime", endDateTime)
             .executeUpdate();
 
         if (log.isDebugEnabled() && nbRowUpdated > 0) {
-            log.debug(String.format("%s undefined operations updated for trip is=%s", nbRowUpdated, tripId));
+            log.debug("{} undefined operations updated on trip #{}", nbRowUpdated, tripId);
         }
 
         // This is need to make sure fetched operations will have updated dates
-        getEntityManager().flush();
-        getEntityManager().clear();
+        em.flush();
+        em.clear();
     }
 
     @Override

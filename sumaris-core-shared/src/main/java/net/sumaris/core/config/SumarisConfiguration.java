@@ -1045,6 +1045,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ACTIVEMQ_POOL_ENABLED.getKey());
     }
 
+    public boolean enableDataImages() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_IMAGES_ENABLE.getKey());
+    }
+
     /* -- protected methods -- */
 
     /**

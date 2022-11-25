@@ -23,7 +23,6 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
@@ -55,6 +54,8 @@ public interface OperationGroupService {
     List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 
     OperationGroupVO getMainUndefinedOperationGroup(int tripId);
+
+    Integer getMainUndefinedOperationGroupId(int tripId);
 
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 

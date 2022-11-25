@@ -22,17 +22,15 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ISignedEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.referential.taxon.TaxonGroupType;
-import net.sumaris.core.model.technical.history.ProcessingHistory;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -40,11 +38,13 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "user_event", indexes = @Index(name = "user_event_source_idx", columnList = "source"))
+@Table(name = "user_event", indexes = {
+    @Index(name = "user_event_source_idx", columnList = "source"),
+    @Index(name = "user_event_recipient_idx", columnList = "recipient")
+})
 @Cacheable
 public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntity<Integer, Date> {
 
@@ -68,11 +68,11 @@ public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntit
     @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String recipient;
 
-    @Column(name = "event_type", nullable = false, length = 30)
+    @Column(name = "event_type", nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     @Comment("Le type de l'évènement (INBOX_MESSAGE, FEED, JOB, etc.)")
     private String type;
 
-    @Column(name = "level", nullable = false, length = 30)
+    @Column(name = "event_level", nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     @Comment("Le niveau de l'évènement (INFO, ERROR, etc.)")
     private String level;
 
@@ -94,6 +94,6 @@ public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntit
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
-    @Column(name = "source", length = 50)
+    @Column(name = "source", length = IItemReferentialEntity.LENGTH_LABEL)
     private String source;
 }

@@ -154,6 +154,13 @@ public class DataGraphQLService {
     @Autowired
     private DataAccessControlService dataAccessControlService;
 
+    private boolean enableImageAttachments = false;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        this.enableImageAttachments = event.getConfiguration().enableDataImages();
+    }
+
     /* -- Trip -- */
 
     @GraphQLQuery(name = "trips", description = "Search in trips")
@@ -879,22 +886,20 @@ public class DataGraphQLService {
         if (operation.getSamples() != null) return operation.getSamples();
         if (operation.getId() == null) return null;
 
-        Set<String> fields = GraphQLUtils.fields(env);
-
-        return sampleService.getAllByOperationId(operation.getId(), SampleFetchOptions.builder()
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
-                .withImages(fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
-                .build());
+        SampleFetchOptions fetchOptions = getSampleFetchOptions(GraphQLUtils.fields(env));
+        return sampleService.getAllByOperationId(operation.getId(), fetchOptions);
     }
 
     @GraphQLQuery(name = "samples", description = "Get operation group's samples")
-    public List<SampleVO> getSamplesByOperationGroup(@GraphQLContext OperationGroupVO operationGroup) {
+    public List<SampleVO> getSamplesByOperationGroup(@GraphQLContext OperationGroupVO operationGroup,
+                                                     @GraphQLEnvironment ResolutionEnvironment env) {
         // Avoid a reloading (e.g. when saving)
         if (operationGroup.getSamples() != null) return operationGroup.getSamples();
         if (operationGroup.getId() == null) return null;
 
-        return sampleService.getAllByOperationId(operationGroup.getId());
+        SampleFetchOptions fetchOptions = getSampleFetchOptions(GraphQLUtils.fields(env));
+
+        return sampleService.getAllByOperationId(operationGroup.getId(), fetchOptions);
     }
 
     @GraphQLQuery(name = "samples", description = "Get landing's samples")
@@ -904,20 +909,14 @@ public class DataGraphQLService {
         if (landing.getSamples() != null) return landing.getSamples();
         if (landing.getId() == null) return null;
 
-        Set<String> fields = GraphQLUtils.fields(env);
+        SampleFetchOptions fetchOptions = getSampleFetchOptions(GraphQLUtils.fields(env));
 
         // Get samples by operation if a main undefined operation group exists
         List<SampleVO> samples;
         Integer operationId = getMainUndefinedOperationGroupId(landing);
         if (operationId != null) {
-            samples = sampleService.getAllByOperationId(operationId);
+            samples = sampleService.getAllByOperationId(operationId, fetchOptions);
         } else {
-            SampleFetchOptions fetchOptions = SampleFetchOptions.builder()
-                    .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                    .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
-                    .withImages(fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
-                    .build();
-
             samples = sampleService.getAllByLandingId(landing.getId(), fetchOptions);
         }
 
@@ -1543,18 +1542,18 @@ public class DataGraphQLService {
             || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALES, IEntity.Fields.ID));
         boolean withTripExpectedSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
             || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID));
-        boolean withChildren = withTrip
+        boolean withChildrenEntities = withTrip
             || fields.contains(StringUtils.slashing(LandingVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID));
-        SampleFetchOptions sampleFetchOptions = SampleFetchOptions.builder()
-            .withRecorderDepartment(false)
-            .withMeasurementValues(fields.contains(StringUtils.slashing(LandingVO.Fields.SAMPLES, SampleVO.Fields.MEASUREMENT_VALUES)))
-            .withImages(fields.contains(StringUtils.slashing(LandingVO.Fields.SAMPLES, SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
-            .build();
+
+        SampleFetchOptions sampleFetchOptions = getSampleFetchOptions(fields, LandingVO.Fields.SAMPLES);
+        // Avoid to fetch recorder department here
+        sampleFetchOptions.setWithRecorderDepartment(false);
+
         return LandingFetchOptions.builder()
             .withTrip(withTrip)
             .withTripSales(withTripSale)
             .withTripExpectedSales(withTripExpectedSale)
-            .withChildrenEntities(withChildren)
+            .withChildrenEntities(withChildrenEntities)
             .sampleFetchOptions(sampleFetchOptions)
             .build();
     }
@@ -1568,6 +1567,28 @@ public class DataGraphQLService {
                 .withParentOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.PARENT_OPERATION, IEntity.Fields.ID)))
                 .withChildOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.CHILD_OPERATION, IEntity.Fields.ID)))
                 .build();
+    }
+
+    protected SampleFetchOptions getSampleFetchOptions(Set<String> fields) {
+        return SampleFetchOptions.builder()
+
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
+
+            // Enable images only if enable in Pod configuration
+            .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
+            .build();
+    }
+
+    protected SampleFetchOptions getSampleFetchOptions(Set<String> fields, String samplePath) {
+        return SampleFetchOptions.builder()
+
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withMeasurementValues(fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.MEASUREMENT_VALUES)))
+
+            // Enable images only if enable in Pod configuration
+            .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
+            .build();
     }
 
     /**
@@ -1624,8 +1645,7 @@ public class DataGraphQLService {
 
     private Integer getMainUndefinedOperationGroupId(LandingVO landing) {
         if (landing.getTripId() != null) {
-            OperationGroupVO mainUndefinedOperation = operationGroupService.getMainUndefinedOperationGroup(landing.getTripId());
-            return mainUndefinedOperation != null ? mainUndefinedOperation.getId() : null;
+            return operationGroupService.getMainUndefinedOperationGroupId(landing.getTripId());
         }
         return null;
     }

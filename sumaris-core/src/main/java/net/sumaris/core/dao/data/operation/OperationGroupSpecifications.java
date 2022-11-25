@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.operation;
 
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
 
@@ -39,7 +40,7 @@ public interface OperationGroupSpecifications
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);
 
-    OperationGroupVO getMainUndefinedOperationGroup(int tripId);
+    OperationGroupVO getMainUndefinedOperationGroup(int tripId, DataFetchOptions fetchOptions);
 
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 
