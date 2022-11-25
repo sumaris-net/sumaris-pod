@@ -28,6 +28,7 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -38,6 +39,6 @@ public interface OperationGroupRepository
     extends DataRepository<Operation, OperationGroupVO, OperationGroupFilterVO, DataFetchOptions>, OperationGroupSpecifications {
 
     @Query("select min(o.id) from Operation o inner join o.trip t where t.id=:tripId and o.startDateTime = t.departureDateTime and o.endDateTime = t.returnDateTime")
-    Integer getMainUndefinedOperationGroupId(int tripId);
+    Integer getMainUndefinedOperationGroupId(@Param("tripId") int tripId);
 
 }

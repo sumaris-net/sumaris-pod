@@ -28,6 +28,7 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
 import io.reactivex.BackpressureStrategy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -49,7 +50,6 @@ import net.sumaris.server.service.technical.EntityEventService;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -58,24 +58,21 @@ import java.util.*;
  */
 @Service
 @GraphQLApi
-@Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class UserEventGraphQLService {
 
     final static int DEFAULT_PAGE_SIZE = 100;
     final static int MAX_PAGE_SIZE = 1000;
 
-    @Autowired
-    private UserEventService userEventService;
+    private final UserEventService userEventService;
 
-    @Autowired
-    private EntityEventService entityEventService;
+    private final EntityEventService entityEventService;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+
 
     @GraphQLQuery(name = "userEvents", description = "Search in user events")
-    @Transactional(readOnly = true)
     @IsUser
     public List<UserEventVO> findUserEvents(
         @GraphQLArgument(name = "filter") UserEventFilterVO filter,
@@ -143,7 +140,6 @@ public class UserEventGraphQLService {
     }
 
     @GraphQLQuery(name = "userEventsCount", description = "Count user events")
-    @Transactional(readOnly = true)
     @IsUser
     public Long countUserEvents(
         @GraphQLArgument(name = "filter") UserEventFilterVO filter){

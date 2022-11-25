@@ -55,6 +55,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFileAttributes;
 
 @Controller
 @Slf4j
@@ -93,13 +94,16 @@ public class FileController implements IFileController {
         }
     }
 
-    @RequestMapping({RestPaths.DOWNLOAD_PATH + "/{username}/{filename}", RestPaths.DOWNLOAD_PATH + "/{filename}"})
+    @RequestMapping({
+            RestPaths.DOWNLOAD_PATH + "/{username}/{filename:[a-zA-Z0-9-_$.]+}",
+            RestPaths.DOWNLOAD_PATH + "/{filename:[a-zA-Z0-9-_$.]+}"
+    })
     public ResponseEntity<InputStreamResource> downloadFileAsPath(
             @PathVariable(name="username", required = false) String username,
             @PathVariable(name="filename") String filename
     ) throws IOException {
         if (StringUtils.isNotBlank(username)) {
-            return getDownloadFileResponse(username + "/" + filename);
+            return getDownloadFileResponse(username + File.separator + filename);
         }
         else {
             return getDownloadFileResponse(filename);
@@ -112,7 +116,7 @@ public class FileController implements IFileController {
             @RequestParam(name = "filename") String filename
     ) throws IOException{
         if (StringUtils.isNotBlank(username)) {
-            return getDownloadFileResponse(username + "/" + filename);
+            return getDownloadFileResponse(username + File.separator + filename);
         }
         else {
             return getDownloadFileResponse(filename);
@@ -156,6 +160,7 @@ public class FileController implements IFileController {
                 .build());
     }
 
+    @Override
     public String registerFile(File sourceFile, boolean moveSourceFile) throws IOException {
 
         String username = securityContext.getAuthenticatedUsername().orElseThrow(UnauthorizedException::new);
@@ -196,7 +201,7 @@ public class FileController implements IFileController {
                 targetFile.getFileName().toString());
     }
 
-    public ResponseEntity<InputStreamResource> getDownloadFileResponse(@NonNull File baseDirectory, String filename) throws IOException {
+    public ResponseEntity<InputStreamResource> getDownloadFileResponse(@NonNull Path baseDirectory, String filename) throws IOException {
         if (StringUtils.isBlank(filename)) return ResponseEntity.badRequest().build();
 
         // Avoid '..' in the path
@@ -208,7 +213,7 @@ public class FileController implements IFileController {
         MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
             .orElse(MediaType.APPLICATION_OCTET_STREAM);
 
-        File file = new File(baseDirectory, filename);
+        File file = baseDirectory.resolve(filename).toFile();
         if (!file.exists()) {
             log.warn("Reject request to file {} - File not found, or invalid path", file.getAbsolutePath());
             return ResponseEntity.notFound().build();
@@ -247,7 +252,7 @@ public class FileController implements IFileController {
     /* -- protected method -- */
 
     protected ResponseEntity<InputStreamResource> getDownloadFileResponse(String filename) throws IOException {
-        return getDownloadFileResponse(configuration.getDownloadDirectory(), filename);
+        return getDownloadFileResponse(downloadDirectory, filename);
     }
 
     protected String asSecuredPath(String path) {

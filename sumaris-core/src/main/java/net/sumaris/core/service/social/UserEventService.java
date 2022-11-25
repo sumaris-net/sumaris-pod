@@ -33,14 +33,19 @@ import java.util.List;
 @Transactional
 public interface UserEventService {
 
+    @Transactional(readOnly = true)
     Long count(UserEventFilterVO filter);
 
+    @Transactional(readOnly = true)
     List<UserEventVO> findAll(UserEventFilterVO filter);
 
+    @Transactional(readOnly = true)
     List<UserEventVO> findAll(UserEventFilterVO filter, Page page);
 
+    @Transactional(readOnly = true)
     Timestamp getLastCreationDate(String ...recipients);
 
+    @Transactional(readOnly = true)
     Timestamp getLastReadDate(String ...recipients);
 
     UserEventVO save(UserEventVO event);
@@ -49,6 +54,5 @@ public interface UserEventService {
 
     void delete(List<Integer> ids);
 
-    @Transactional
     void markAsRead(List<Integer> userEventIds);
 }

@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLNonNull;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
@@ -56,7 +57,7 @@ import java.io.File;
 import java.io.IOException;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 @GraphQLApi
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
@@ -65,23 +66,10 @@ public class ExtractionGraphQLService {
 
     private final ExtractionSecurityService extractionSecurityService;
     private final ExtractionService extractionService;
-    private final IFileController downloadController;
+    private final IFileController fileController;
     private final ExtractionGeoJsonConverter geoJsonConverter;
 
-    public ExtractionGraphQLService(
-        IFileController downloadController,
-        ExtractionSecurityService extractionSecurityService,
-        ExtractionService extractionService,
-        ExtractionGeoJsonConverter geoJsonConverter) {
-
-        this.downloadController = downloadController;
-        this.extractionSecurityService = extractionSecurityService;
-        this.extractionService = extractionService;
-        this.geoJsonConverter = geoJsonConverter;
-    }
-
     @GraphQLQuery(name = "extractionRows", description = "Preview some extraction rows")
-    @Transactional
     public ExtractionResultVO read(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                    @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                    @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -118,7 +106,6 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "extraction", description = "Read extraction data")
-    @Transactional
     public ObjectNode[] readAsJson(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                    @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                    @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -158,7 +145,6 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Extract data into a file")
-    @Transactional(timeout = 10000000)
     public String getExtractionFile(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                     @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                     @GraphQLArgument(name = "strata") AggregationStrataVO strata
@@ -170,13 +156,12 @@ public class ExtractionGraphQLService {
         File tempFile = extractionService.executeAndDump(type, filter, strata);
 
         // Add to download controller
-        String filePath = downloadController.registerFile(tempFile, true);
+        String filePath = fileController.registerFile(tempFile, true);
 
        return filePath;
     }
 
     @GraphQLQuery(name = "aggregationGeoJson", description = "Execute an aggregation and return as GeoJson")
-    @Transactional(readOnly = true)
     public Object getGeoJsonAggregation(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                         @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                         @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -248,7 +233,6 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationTech", description = "Execute an aggregation and return as GeoJson")
-    @Transactional(readOnly = true)
     public AggregationTechResultVO readByTech(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                               @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                               @GraphQLArgument(name = "strata") AggregationStrataVO strata,
@@ -267,7 +251,6 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "aggregationTechMinMax", description = "Execute an aggregation and return as GeoJson")
-    @Transactional(readOnly = true)
     public MinMaxVO getTechMinMax(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata) {

@@ -25,6 +25,7 @@ package net.sumaris.importation.server.graphql;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.UnauthorizedException;
@@ -47,6 +48,7 @@ import java.io.File;
 import static org.nuiton.i18n.I18n.t;
 
 @Service
+@RequiredArgsConstructor
 @GraphQLApi
 @ConditionalOnWebApplication
 @Slf4j
@@ -55,29 +57,14 @@ public class VesselImportGraphQLService {
     private final SiopVesselImportService siopVesselImportService;
     private final JobExecutionService jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
-
     private final IFileController fileController;
 
-    public VesselImportGraphQLService(
-        SiopVesselImportService siopVesselImportService,
-        JobExecutionService jobExecutionService,
-        ISecurityContext<PersonVO> securityContext,
-        IFileController fileController
-    ) {
-
-        this.siopVesselImportService = siopVesselImportService;
-        this.jobExecutionService = jobExecutionService;
-        this.securityContext = securityContext;
-        this.fileController = fileController;
-    }
 
     @GraphQLQuery(name = "importSiopVessels", description = "Import vessels from a SIOP file")
     public JobVO importSiopVessels(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
-        if (!securityContext.isAdmin()) {
-            throw new UnauthorizedException();
-        }
+        if (!securityContext.isAdmin())throw new UnauthorizedException();
         PersonVO user = securityContext.getAuthenticatedUser().get();
 
         JobVO importJob = new JobVO();
