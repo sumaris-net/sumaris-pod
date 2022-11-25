@@ -23,6 +23,7 @@
 package net.sumaris.server.config;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.server.http.filter.CORSFilter;
 import net.sumaris.server.http.rest.RestPaths;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -87,11 +88,11 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
             public void addCorsMappings(CorsRegistry registry) {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping(RestPaths.BASE_PATH + "/**")
+                registry.addMapping("/**")
                         .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                        .allowCredentials(true);
+                        .allowedMethods(CORSFilter.ALLOWED_METHODS)
+                        .allowedHeaders(CORSFilter.ALLOWED_HEADERS)
+                        .allowCredentials(CORSFilter.ALLOWED_CREDENTIALS);
             }
 
             @Override
