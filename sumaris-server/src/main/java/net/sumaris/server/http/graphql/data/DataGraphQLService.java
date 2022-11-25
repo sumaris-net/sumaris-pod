@@ -23,6 +23,7 @@
 package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
@@ -1369,7 +1370,7 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "images", description = "Get sample's images")
     public List<ImageAttachmentVO> getSampleImages(@GraphQLContext SampleVO sample) {
         if (sample.getImages() != null) return sample.getImages();
-        if (sample.getId() == null) return null;
+        if (sample.getId() == null || !this.enableImageAttachments) return null;
 
         return imageService.getImagesForObject(sample.getId(), ObjectTypeEnum.SAMPLE);
     }
@@ -1381,6 +1382,8 @@ public class DataGraphQLService {
                                                       @GraphQLArgument(name = "size", defaultValue = "100") Integer size,
                                                       @GraphQLArgument(name = "sortBy") String sort,
                                                       @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction) {
+
+        if (!this.enableImageAttachments) return ImmutableList.of();
 
         filter = ImageAttachmentFilterVO.nullToEmpty(filter);
 
