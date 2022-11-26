@@ -61,7 +61,7 @@
 			</column>
 		</addColumn>
 		<sql endDelimiter=";">
-			update USER_EVENT set EVENT_LEVEL='DEBUG' where EVENT_TYPE='DEBUG_DATA' and LEVEL is null;
+			update USER_EVENT set EVENT_LEVEL='DEBUG' where EVENT_TYPE='DEBUG_DATA' and EVENT_LEVEL is null;
 			update USER_EVENT set EVENT_LEVEL='INFO' where EVENT_LEVEL is null;
 			commit;
 		</sql>
